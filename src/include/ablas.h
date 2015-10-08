@@ -15,7 +15,7 @@
  * ************************************************************************ */
 
  /*! \file
- * \brief clBLAS.h defines 'C' compatible callable functions and types that
+ * \brief ablas.h defines 'C' compatible callable functions and types that
  * call into the library
  * \details The minimum compiler versions the library should support
  * ( These compilers have solid C++11 support):
@@ -25,30 +25,30 @@
  */
 
 #pragma once
-#ifndef _aBLAS_H_
-#define _aBLAS_H_
+#ifndef _ABLAS_H_
+#define _ABLAS_H_
 
 #include <stdbool.h>
 
 /*!
  * CMake-generated file to define export related preprocessor macros, including
- * CLBLAS_EXPORT and CLBLAS_DEPRECATED
+ * ABLAS_EXPORT and ABLAS_DEPRECATED
 */
-#include "clblas_export.h"
+#include "ablas_export.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "clBLAS-types.h"
+#include "ablas_types.h"
 
-/*! Define CLBLAS_USE_OPENCL to build library for OpenCL
+/*! Define ABLAS_USE_OPENCL to build library for OpenCL
  */
-#if defined( CLBLAS_USE_OPENCL )
-  #include "clBLAS-opencl.h"
+#if defined( ABLAS_USE_OPENCL )
+  #include "ablas_opencl.h"
 #else
   // Boltzman headers to be included here
-  #include "clBLAS-hsa.h"
+  #include "ablas_hsa.h"
 #endif
 
 /*!
@@ -65,17 +65,17 @@ extern "C" {
 /**@{*/
 
 /*!
-* \brief Enable/Disable asynchronous behavior for clBLAS
+* \brief Enable/Disable asynchronous behavior for ablas
 *
-* \param[in] control  A valid clsparseControl created with clblasCreateControl
+* \param[in] control  A valid clsparseControl created with ablasCreateControl
 * \param[in] async  True to enable immediate return, false to block execution until event completion
 *
 * \ingroup STATE-SINGLE
 *
-* \returns \b clblasSuccess
+* \returns \b ablasSuccess
 */
-CLBLAS_EXPORT clblasStatus
-  clblasEnableAsync( clblasControl control, bool async );
+ABLAS_EXPORT ablas_status
+ablas_enable_async( ablas_control control, bool async );
 /**@}*/
 
 /*!
@@ -92,31 +92,80 @@ CLBLAS_EXPORT clblasStatus
 /**@{*/
 
 
-/*! \brief Refactored clBLAS API
- * \details These pointers are not denoting arrays.  The batch processing is specified inside of these
- * structs with batch_size, \f$ C \leftarrow \alpha \ast A \ast B + \beta \ast C \f$
+/*! \brief Refactored ablas API
+ * \details Generic matrix-matrix multiplication. These pointers are not denoting arrays.  The batch processing is specified inside of these
+ * structs with batch_size
+ * \f$ c \leftarrow \alpha o (a \ast b) + \beta o c \f$
+ *
+ * operator 'o' represent the entrywise (Hadamard) product.
+ * scalar o scalar
+ * scalar o vector
+ * scalar o matrix
+ * vector o vector
+ * vector o matrix
+ * matrix o matrix
+ *
+ * The general equation can be simplified by the terms being either ZERO or IDENTITY.
+ *
+ * GEMM (L3)
+ * alpha - scalar, vector or matrix
+ * a - matrix
+ * b - matrix
+ * beta - scalar, vector or matrix
+ * c - matrix
+ *
+ * GEMV (L2)
+ * alpha - scalar or vector
+ * a - matrix
+ * b - vector
+ * beta - scalar or vector
+ * c - vector
+ *
+ * AXPY (L1)
+ * alpha - scalar or vector
+ * a - vector
+ * b - IDENTITY
+ * beta - ZERO
+ * c - vector
+ *
+ * SDOT (L1)
+ * alpha - IDENTITY
+ * a - vector
+ * b - vector
+ * beta - ZERO
+ * c - scalar
+ *
+ * SCAL (L1)
+ * alpha - ZERO
+ * a - ZERO
+ * b - ZERO
+ * beta - scalar, vector or matrix
+ * c - scalar, vector or matrix
+ *
+ *
  * \param[in] alpha  Scalar value to be multiplied into the product of A * B
  * \param[in] a  Source matrix
  * \param[in] b  Source matrix
  * \param[in] beta  Scalar value to be multiplied into the matrix C on read
  * \param[in,out] c  Destination matrix
- * \param[in] control  clBLAS state object
+ * \param[in,out] control  ablas state object
  */
-CLBLAS_EXPORT clblasStatus
-  clblasGemm(const clblasScalar* alpha,
-                const clblasMatrix* a,
-                const clblasMatrix* b,
-                const clblasScalar* beta,
-                clblasMatrix* c,
-                clblasControl control );
+ABLAS_EXPORT ablas_status
+ablas_gemm(
+  const ablas_matrix *alpha,
+  const ablas_matrix *a,
+  const ablas_matrix *b,
+  const ablas_matrix *beta,
+        ablas_matrix *c,
+        ablas_control *control );
 /**@}*/
 
-// Example of older clBLAS API from v2.x.x
-// CLBLAS_DEPRECATED clblasStatus
-// clblasSgemm(
-//     clblasOrder order,
-//     clblasTranspose transA,
-//     clblasTranspose transB,
+// Example of older ablas API from v2.x.x
+// ABLAS_DEPRECATED ablasStatus
+// ablasSgemm(
+//     ablasOrder order,
+//     ablasTranspose transA,
+//     ablasTranspose transB,
 //     size_t M,
 //     size_t N,
 //     size_t K,
@@ -141,4 +190,4 @@ CLBLAS_EXPORT clblasStatus
 }      // extern C
 #endif
 
-#endif // _aBLAS_H_
+#endif // _ABLAS_H_
