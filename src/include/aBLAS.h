@@ -25,8 +25,8 @@
  */
 
 #pragma once
-#ifndef _CL_BLAS_H_
-#define _CL_BLAS_H_
+#ifndef _aBLAS_H_
+#define _aBLAS_H_
 
 #include <stdbool.h>
 
@@ -103,7 +103,7 @@ CLBLAS_EXPORT clblasStatus
  * \param[in] control  clBLAS state object
  */
 CLBLAS_EXPORT clblasStatus
-  clblasGemm(  const clblasScalar* alpha,
+  clblasGemm(const clblasScalar* alpha,
                 const clblasMatrix* a,
                 const clblasMatrix* b,
                 const clblasScalar* beta,
@@ -141,4 +141,4 @@ CLBLAS_EXPORT clblasStatus
 }      // extern C
 #endif
 
-#endif // _CL_BLAS_H_
+#endif // _aBLAS_H_
