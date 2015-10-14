@@ -186,6 +186,25 @@ ablas_gemm(
 //     const cl_event *eventWaitList,
 //     cl_event *events);
 
+
+/**@{*/
+ABLAS_EXPORT ablas_status
+clblas_2_ablas_init_matrix(
+    const ablas_precision *precision,
+    const ablas_order *order,
+    const ablas_transpose *trans,
+    const ablas_uplo *uplo,
+    const ablas_diag *diag,
+    const size_t *M,
+    const size_t *N,
+    const size_t *K,
+    size_t offset,
+    size_t ldX,
+    void *X,
+    ablas_matrix *ablas_X
+);
+/**@}*/
+
 #ifdef __cplusplus
 }      // extern C
 #endif
