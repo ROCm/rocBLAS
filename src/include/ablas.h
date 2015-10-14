@@ -188,6 +188,21 @@ ablas_gemm(
 
 
 /**@{*/
+/*! \brief 
+ * \defgroup BLAS Level 3 BLAS
+ * @param[in] precision single/double, real/complex.
+ * @param[in] order     Row/column order.
+ * @param[in] trans     How matrix is to be transposed. NULL if does not apply.
+ * @param[in] uplo      The triangle in matrix being referenced. NULL if does not apply.
+ * @param[in] diag      Specify whether matrix is unit triangular. NULL if does not apply.
+ * @param[in] M         character for matrix A, C. NULL if does not apply.
+ * @param[in] N         character for matrix B, C. NULL if does not apply.
+ * @param[in] K         character for matrix A, B. NULL if does not apply.
+ * @param[in] offset    Offset of the first element of the matrix.
+ * @param[in] ldX       Leading dimension of matrix
+ * @param[in] X         pointer to device memory
+ * @param[out] ablas_X  pointer to a matrix struct. 
+ */
 ABLAS_EXPORT ablas_status
 clblas_2_ablas_init_matrix(
     const ablas_precision *precision,
