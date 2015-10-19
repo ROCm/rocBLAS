@@ -186,6 +186,40 @@ ablas_gemm(
 //     const cl_event *eventWaitList,
 //     cl_event *events);
 
+
+/**@{*/
+/*! \brief 
+ * \defgroup BLAS Level 3 BLAS
+ * @param[in] precision single/double, real/complex.
+ * @param[in] order     Row/column order.
+ * @param[in] trans     How matrix is to be transposed. NULL if does not apply.
+ * @param[in] uplo      The triangle in matrix being referenced. NULL if does not apply.
+ * @param[in] diag      Specify whether matrix is unit triangular. NULL if does not apply.
+ * @param[in] M         character for matrix A, C. NULL if does not apply.
+ * @param[in] N         character for matrix B, C. NULL if does not apply.
+ * @param[in] K         character for matrix A, B. NULL if does not apply.
+ * @param[in] offset    Offset of the first element of the matrix.
+ * @param[in] ldX       Leading dimension of matrix
+ * @param[in] X         pointer to device memory
+ * @param[out] ablas_X  pointer to a matrix struct. 
+ */
+ABLAS_EXPORT ablas_status
+clblas_2_ablas_init_matrix(
+    const ablas_precision *precision,
+    const ablas_order *order,
+    const ablas_transpose *trans,
+    const ablas_uplo *uplo,
+    const ablas_diag *diag,
+    const size_t *M,
+    const size_t *N,
+    const size_t *K,
+    size_t offset,
+    size_t ldX,
+    void *X,
+    ablas_matrix *ablas_X
+);
+/**@}*/
+
 #ifdef __cplusplus
 }      // extern C
 #endif
