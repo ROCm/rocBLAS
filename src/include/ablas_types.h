@@ -59,6 +59,19 @@ typedef enum ablas_side_ {
 } ablas_side;
 
 
+/*! \brief Indicate the data order of a matrix. This is only used by the help function clblas_2_ablas_gemm */
+typedef enum ablas_order_{
+    ablas_row_major,
+    ablas_column_major
+} ablas_order;
+
+/*! \brief Indicate the transpose form of a matrix. This is only used by the help function clblas_2_ablas_gemm */
+typedef enum ablas_transpose_{
+    ablas_no_trans,
+    ablas_trans,
+    ablas_conjugate_trans
+}ablas_transpose;
+
 /*! \brief Structure to encapsulate dense matrix/vector/scalar data to aBLAS API.
  * \details Able to store multiple matrices (or vectors, scalars)
  * to facilitate high-performance batched oprations;
