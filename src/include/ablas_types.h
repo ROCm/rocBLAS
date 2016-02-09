@@ -188,6 +188,34 @@ extern "C" {
 
 /* ============================================================================================ */
 
+/*! \brief Struct used to parse command line arguments in testing. */
+
+struct arguments {
+    ablas_int M;
+    ablas_int N;
+    ablas_int K;
+
+    ablas_int start;
+    ablas_int end;
+    ablas_int step;
+
+    double alpha;
+    double beta;
+
+    char transA_option;
+    char transB_option;
+    char side_option;
+    char uplo_option;
+    char diag_option;
+
+    ablas_int apiCallCount;
+    ablas_int order_option;
+    ablas_int validate;
+} ;
+
+
+/* ============================================================================================ */
+
 /*! \brief Structure to encapsulate dense matrix/vector/scalar data to aBLAS API.
  * \details Able to store multiple matrices (or vectors, scalars)
  * to facilitate high-performance batched oprations;
