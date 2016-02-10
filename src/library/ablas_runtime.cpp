@@ -8,13 +8,13 @@
 #include <hip_runtime.h> 
 
 
-	/*
-	 * ===========================================================================
-	 *   READEME: ABLAS Wrapper of HIP data types and APIs
+    /*
+     * ===========================================================================
+     *   READEME: ABLAS Wrapper of HIP data types and APIs
          *   HIP is still under development. Developers of aBLAS are encouraged to use ablas APIs
          *   in their code, in case HIP APIs would be changed in the future.
-	 * ===========================================================================
-	 */
+     * ===========================================================================
+     */
 
     /* ============================================================================================ */
 
@@ -25,25 +25,25 @@
 
     /*! \brief  Return last error returned by any HIP runtime API call and resets the stored error code to ablas_success. */
     extern "C"  ablas_status ablas_get_last_error( void ){
-		return hipGetLastError();
-	}
+        return hipGetLastError();
+    }
 
     /*! \brief  Return last error returned by any HIP runtime API call. */
     extern "C"  ablas_status ablas_peek_at_last_error ( void ){
-		return hipPeekAtLastError();	
-	} 	
-	
- 	/*! \brief Return name of the specified error code in text form. */
+        return hipPeekAtLastError();    
+    }     
+    
+     /*! \brief Return name of the specified error code in text form. */
     extern "C"  const char* ablas_get_error_name(ablas_status ablas_error)
-	{
-		return hipGetErrorName (ablas_error);
-	}
+    {
+        return hipGetErrorName (ablas_error);
+    }
 
-  	/*! \brief Return handy text string message to explain the error which occurred. On HCC, it is the same as ablas_get_error_name() */
+      /*! \brief Return handy text string message to explain the error which occurred. On HCC, it is the same as ablas_get_error_name() */
     extern "C"  const char* ablas_get_error_string(ablas_status ablas_error)
-	{
-		return hipGetErrorString (ablas_error);
-	}
+    {
+        return hipGetErrorString (ablas_error);
+    }
 
     /* ============================================================================================ */
     /*! \brief   memory allocation on GPU devie memory is on header file */
