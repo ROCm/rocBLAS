@@ -116,7 +116,6 @@ extern "C" {
 
     /*! \brief  Destroy all resources and reset all state on the default device in the current process. */
     ablas_status ablas_device_reset(void);
-    }
 
     /*! \brief  Set default device to be used for subsequent hip API calls from this thread. */
      ablas_status ablas_set_device(ablas_int device);
