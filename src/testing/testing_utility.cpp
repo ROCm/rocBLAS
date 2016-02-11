@@ -1,59 +1,16 @@
 /* ************************************************************************
- * Copyright 2015 Advanced Micro Devices, Inc.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http:// www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  * ************************************************************************ */
 
-#pragma once
-#ifndef _ABLAS_UTILITY_H_
-#define _ABLAS_UTILITY_H_
 
 #include "ablas_types.h" 
-#include "ablas_runtime.h" 
 #include <sys/time.h> 
 
-/*!\file
- * \brief provide random generator, device query, timing, etc, utilities.
- */
-
-    /* ============================================================================================ */
-    /* generate random number :*/
-
-     /*! \brief  generate a random number between [0, 0.999...] . */
-    template<typename T>
-    T random_generator(){
-        return rand()/( (T)RAND_MAX + 1)
-    }
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-    /* ============================================================================================ */
-    /*  query device :*/
-
-    void ablas_get_device_property()
-    {
-
-        int num_device, device_id=0;
-
-        ablas_get_device_count(&num_device);
-
-        ablas_set_device(device_id);
-
-        printf("There are %d GPU devices; running on device ID %d \n", num_device, device_id);
-
-    }
 
     /* ============================================================================================ */
     /*  timing:*/
@@ -76,26 +33,6 @@ extern "C" {
         return (tv.tv_sec * 1000) + tv.tv_usec /1000;
     };
   
-    /* ============================================================================================ */
-    /* integer functions */
-
-    /*! \brief  For integers x >= 0, y > 0, returns ceil( x/y ).
-     *          For x == 0, this is 0.
-     */
-    __host__ __device__
-    static inline ablas_int ablas_ceildiv( ablas_int x, ablas_int y )
-    {
-        return (x + y - 1)/y;
-    }
-
-    /*! \brief  For integers x >= 0, y > 0, returns x rounded up to multiple of y.
-     *          For x == 0, this is 0. y is not necessarily a power of 2.         
-     */
-    __host__ __device__
-    static inline ablas_int ablas_roundup( ablas_int x, ablas_int y )
-    {
-        return ablas_ceildiv( x, y ) * y;
-    }
 
     /* ============================================================================================ */
     /*  Convert ablas constants to lapack char. */
@@ -198,5 +135,4 @@ extern "C" {
 }
 #endif
 
-#endif
 

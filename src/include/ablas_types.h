@@ -1,17 +1,6 @@
 /* ************************************************************************
- * Copyright 2015 Advanced Micro Devices, Inc.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  * ************************************************************************ */
 
 /*!\file
@@ -24,25 +13,12 @@
 #define _ABLAS_TYPES_H_
 
 #include <stdint.h>
-#include <hip_runtime_api.h> 
+#include <ablas_hip.h>
 
 
 /*! \file
  * \brief ablas_types.h defines data types used by ablas
  */
-
-    /*
-     * ===========================================================================
-     *   READEME: ABLAS Wrapper of HIP data types and APIs
-     *   HIP is still under development. Developers of aBLAS are encouraged to use ablas APIs
-     *   in their code, in case HIP APIs would be changed in the future.
-     * ===========================================================================
-     */
-
-
-typedef hipStream_t ablas_queue;
-typedef hipEvent_t  ablas_event;
-typedef ablas_queue ablas_handle;
 
 
 #ifdef __cplusplus
@@ -99,46 +75,6 @@ extern "C" {
     } ablas_side;
 
 
-    /* ============================================================================================ */
-    /**
-     *   @brief ablas error codes definition, incorporating HIP error
-     *   definitions.
-     *
-     *   This enumeration is a subset of the HIP error codes extended with some
-     *   additional extra codes.  For example, hipErrorMemoryAllocation, which is
-     *   defined in hip_runtime_api.h is aliased as ablas_error_memory_allocation.
-     */
-    typedef enum ablas_status_ {
-
-        ablas_success                       =    hipSuccess = 0,                  ///< Successful completion.
-        ablas_error_memory_allocation       =    hipErrorMemoryAllocation,        ///< Memory allocation error.
-        ablas_error_memory_free             =    hipErrorMemoryFree,              ///< Memory free error.
-        ablas_error_unknown_symbol          =    hipErrorUnknownSymbol,           ///< Unknown symbol
-        ablas_error_outof_resources         =    hipErrorOutOfResources          ///< Out of resources error
-        ablas_error_invalid_value           =    hipErrorInvalidValue            ///< One or more of the paramters passed to the API call is NULL or not in an acceptable range.
-        ablas_error_invalid_resource_handle =    hipErrorInvalidResourceHandle   ///< Resource handle (hipEvent_t or hipStream_t) invalid.
-        ablas_error_invalid_device          =    hipErrorInvalidDevice           ///< DeviceID must be in range 0...#compute-devices.
-        ablas_error_no_deive                =    hipErrorNoDevice                ///< Call to cudaGetDeviceCount returned 0 devices
-        ablas_error_not_ready               =    hipErrorNotReady                ///< indicates that asynchronous operations enqueued earlier are not ready.  
-                                                                                 /// This is not actually an error, but is used to distinguish from hipSuccess(which indicates completion).  
-                                                                                 /// APIs that return this error include hipEventQuery and hipStreamQuery.
-        /* Extended error codes */
-        ablas_not_implemented         = -1024, /**< Functionality is not implemented */
-        ablas_not_initialized,                 /**< ablas library is not initialized yet */
-        ablas_invalid_matA,                    /**< Matrix A is not a valid memory object */
-        ablas_invalid_matB,                    /**< Matrix B is not a valid memory object */
-        ablas_invalid_matC,                    /**< Matrix C is not a valid memory object */
-        ablas_invalid_vecX,                    /**< Vector X is not a valid memory object */
-        ablas_invalid_becY,                    /**< Vector Y is not a valid memory object */
-        ablas_invalid_dim,                     /**< An input dimension (M,N,K) is invalid */
-        ablas_invalid_leadDimA,                /**< Leading dimension A must not be less than the size of the first dimension */
-        ablas_invalid_leadDimB,                /**< Leading dimension B must not be less than the size of the second dimension */
-        ablas_invalid_leadDimC,                /**< Leading dimension C must not be less than the size of the third dimension */
-        ablas_invalid_incx,                    /**< The increment for a vector X must not be 0 */
-        ablas_invalid_incy,                    /**< The increment for a vector Y must not be 0 */
-    } ablas_status;
-
-
 
     /* ============================================================================================ */
 
@@ -154,64 +90,12 @@ extern "C" {
      */
     typedef float2 ablas_float_complex
     typedef double2 ablas_double_complex
-
-    #define ABLAS_ONE 1
-    #define ABLAS_NEG_ONE -1
-    #define ABLAS_ZERO 0
-
-    #define ABLAS_Z_MAKE(r,i)     
-    #define ABLAS_Z_REAL(a)       (a).x
-    #define ABLAS_Z_IMAG(a)       (a).y
-    #define ABLAS_Z_ADD(a, b)     
-    #define ABLAS_Z_SUB(a, b)     
-    #define ABLAS_Z_MUL(a, b)     
-    #define ABLAS_Z_DIV(a, b)     
-    #define ABLAS_Z_ABS(a)        
-    #define ABLAS_Z_ABS1(a)       (fabs((a).x) + fabs((a).y))
-    #define ABLAS_Z_CONJ(a)       
-        
-    #define ABLAS_C_MAKE(r,i)     
-    #define ABLAS_C_REAL(a)       (a).x
-    #define ABLAS_C_IMAG(a)       (a).y
-    #define ABLAS_C_ADD(a, b)     
-    #define ABLAS_C_SUB(a, b)     
-    #define ABLAS_C_MUL(a, b)     
-    #define ABLAS_C_DIV(a, b)     
-    #define ABLAS_C_ABS(a)        
-    #define ABLAS_C_ABS1(a)       (fabsf((a).x) + fabsf((a).y))
-    #define ABLAS_C_CONJ(a)       
+    // A Lot TODO about complex
 
 #ifdef __cplusplus
 }
 #endif
 
-
-/* ============================================================================================ */
-
-/*! \brief Struct used to parse command line arguments in testing. */
-
-struct arguments {
-    ablas_int M;
-    ablas_int N;
-    ablas_int K;
-
-    ablas_int start;
-    ablas_int end;
-    ablas_int step;
-
-    double alpha;
-    double beta;
-
-    char transA_option;
-    char transB_option;
-    char side_option;
-    char uplo_option;
-    char diag_option;
-
-    ablas_int apiCallCount;
-    ablas_int order_option;
-    ablas_int validate;
-} ;
 
 
 /* ============================================================================================ */
