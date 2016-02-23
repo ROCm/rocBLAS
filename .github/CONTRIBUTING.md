@@ -12,10 +12,19 @@ Our code contriubtion guidelines closely follows the model of [GitHub pull-reque
   * new tests should integrate within the existing [googletest framework](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
 
 ## StyleGuide
-Our project's guidelines are based from the [CPP Core guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md), with few modifications or additions noted below.  All excellent pull-requests should in good faith attempt to follow all the guidelines stated therein, but we recognize that the content is lengthy.  We list below our primary concerns when reviewing pull-requests.  
+This project follows the [CPP Core guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md), with few modifications or additions noted below.  All pull-requests should in good faith attempt to follow the guidelines stated therein, but we recognize that the content is lengthy.  Below we list our primary concerns when reviewing pull-requests.  
+
+### Interface
 -  All public APIs are C89 compatible; all other library code should use c++14
--  [P.2](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-Cplusplus): Write in ISO Standard C++ (including supporting windows, linux and macos plaforms )
+  - Our minimum supported compiler is clang 3.6
+-  [NL.10](https://github.com/kknox/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rl-camel): Avoid CamelCase
+  - This rule applies specifically to publicly visible APIs, but is also encouraged (not mandated) for internal code
+
+### Philosophy
+-  [P.2](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-Cplusplus): Write in ISO Standard C++ (especially to support windows, linux and macos plaforms )
 -  [P.5](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-compile-time): Prefer compile-time checking to run-time checking
+
+### Implementation
 -  [SF.1](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rs-file-suffix): Use a .cpp suffix for code files and .h for interface files if your project doesn't already follow another convention
   - We modify this rule:
     - .h: C header files
