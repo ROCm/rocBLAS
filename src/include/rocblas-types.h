@@ -11,6 +11,7 @@
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
+#include <stddef.h>
 #include <stdint.h>
 // #include <hip_runtime_api.h>
 
@@ -19,19 +20,27 @@
  * \brief rocblas_types.h defines data types used by rocblas
  */
 
-    /*
-     * ===========================================================================
-     *   READEME: rocblas Wrapper of HIP data types and APIs
-     *   HIP is still under development. Developers of rocblas are encouraged to use rocblas APIs
-     *   in their code, in case HIP APIs would be changed in the future.
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *   README: rocblas Wrapper of HIP data types and APIs
+ *   HIP is still under development. Developers of rocblas are encouraged to use rocblas APIs
+ *   in their code, in case HIP APIs would be changed in the future.
+ * ===========================================================================
+ */
 
+ /*! \brief To specify whether int32 or int64 is used
+  */
+ #if defined( rocblas_ILP64 )
+   typedef int64_t rocblas_int;
+ #else
+   typedef int32_t rocblas_int;
+ #endif
 
-typedef hipStream_t rocblas_queue;
-typedef hipEvent_t  rocblas_event;
+typedef rocblas_int rocblas_queue;
+typedef rocblas_int  rocblas_event;
 typedef rocblas_queue rocblas_handle;
 
+typedef void* rocblas_control;
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,7 +81,7 @@ extern "C" {
      * matrix is unit triangular.
      */
     typedef enum rocblas_diag_ {
-        rocblas_non_unit  = 131           /**< Non-unit triangular. */
+        rocblas_non_unit  = 131,           /**< Non-unit triangular. */
         rocblas_unit      = 132,          /**< Unit triangular. */
     } rocblas_diag;
 
@@ -87,6 +96,14 @@ extern "C" {
     } rocblas_side;
 
 
+    /*! \brief Indicates the precision width of data stored in a blas type. */
+    typedef enum rocblas_precision_ {
+      rocblas_single = 151,
+      rocblas_double = 152,
+      rocblas_single_complex = 153,
+      rocblas_double_complex = 154
+    } rocblas_precision;
+
     /* ============================================================================================ */
     /**
      *   @brief rocblas error codes definition, incorporating HIP error
@@ -98,16 +115,16 @@ extern "C" {
      */
     typedef enum rocblas_status_ {
 
-        rocblas_success                       =    hipSuccess = 0,                  ///< Successful completion.
-        rocblas_error_memory_allocation       =    hipErrorMemoryAllocation,        ///< Memory allocation error.
-        rocblas_error_memory_free             =    hipErrorMemoryFree,              ///< Memory free error.
-        rocblas_error_unknown_symbol          =    hipErrorUnknownSymbol,           ///< Unknown symbol
-        rocblas_error_outof_resources         =    hipErrorOutOfResources          ///< Out of resources error
-        rocblas_error_invalid_value           =    hipErrorInvalidValue            ///< One or more of the paramters passed to the API call is NULL or not in an acceptable range.
-        rocblas_error_invalid_resource_handle =    hipErrorInvalidResourceHandle   ///< Resource handle (hipEvent_t or hipStream_t) invalid.
-        rocblas_error_invalid_device          =    hipErrorInvalidDevice           ///< DeviceID must be in range 0...#compute-devices.
-        rocblas_error_no_deive                =    hipErrorNoDevice                ///< Call to cudaGetDeviceCount returned 0 devices
-        rocblas_error_not_ready               =    hipErrorNotReady                ///< indicates that asynchronous operations enqueued earlier are not ready.
+        rocblas_success                       =    0, //hipSuccess                  ///< Successful completion.
+        rocblas_error_memory_allocation       =    1, //hipErrorMemoryAllocation,        ///< Memory allocation error.
+        rocblas_error_memory_free             =    2, //hipErrorMemoryFree,              ///< Memory free error.
+        rocblas_error_unknown_symbol          =    3, // hipErrorUnknownSymbol,           ///< Unknown symbol
+        rocblas_error_outof_resources         =    4, // hipErrorOutOfResources          ///< Out of resources error
+        rocblas_error_invalid_value           =    5, //hipErrorInvalidValue            ///< One or more of the paramters passed to the API call is NULL or not in an acceptable range.
+        rocblas_error_invalid_resource_handle =    6, //hipErrorInvalidResourceHandle   ///< Resource handle (hipEvent_t or hipStream_t) invalid.
+        rocblas_error_invalid_device          =    7, //hipErrorInvalidDevice           ///< DeviceID must be in range 0...#compute-devices.
+        rocblas_error_no_device               =    8, //hipErrorNoDevice                ///< Call to cudaGetDeviceCount returned 0 devices
+        rocblas_error_not_ready               =    9, //hipErrorNotReady                ///< indicates that asynchronous operations enqueued earlier are not ready.
                                                                                  /// This is not actually an error, but is used to distinguish from hipSuccess(which indicates completion).
                                                                                  /// APIs that return this error include hipEventQuery and hipStreamQuery.
         /* Extended error codes */
@@ -130,18 +147,10 @@ extern "C" {
 
     /* ============================================================================================ */
 
-    /*! \brief To specify whether int32 or int64 is used
-     */
-    #if defined(rocblas_ILP64)
-    typedef int64_t rocblas_int;
-    #else
-    typedef int32_t rocblas_int;
-    #endif
-
     /*! \brief  HIP & CUDA both use float2/double2 to define complex number
      */
-    typedef float2 rocblas_float_complex
-    typedef double2 rocblas_double_complex
+    // typedef float2 rocblas_float_complex
+    // typedef double2 rocblas_double_complex
 
     #define rocblas_ONE 1
     #define rocblas_NEG_ONE -1

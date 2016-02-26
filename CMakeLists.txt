@@ -16,9 +16,12 @@ if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
+# The superbuild does not build anything itself, all compiling is done in external projects
+project( rocblas-superbuild NONE )
+
 # Default arguments that get passed down into all external projects
 set( rocblas_CMAKE_ARGS
-  -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/hcc-toolchain.cmake
+  -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/clang-toolchain.cmake
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   )
@@ -30,8 +33,8 @@ option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/rocblas-package" )
 
-# Default behavior is to NOT install
-set( rocblas_INSTALL_COMMAND INSTALL_COMMAND "." )
+# Default behavior is to NOT install library, but clients may overload
+set( rocblas_INSTALL_COMMAND INSTALL_COMMAND ${CMAKE_COMMAND} -E echo_append )
 
 # Clients are programs provided in this repository, that make use of the library as a library client.  This can include
 # but is not limited to benchmarks, tests and samples.
