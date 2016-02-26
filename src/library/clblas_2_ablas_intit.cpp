@@ -1,68 +1,68 @@
-#include "ablas.h"
+#include "rocblas.h"
 
-ablas_status
-clblas_2_ablas_init_matrix(
-                           const ablas_precision *precision,
-                           const ablas_order *order,
-                           const ablas_transpose *trans,
-                           const ablas_uplo *uplo,
-                           const ablas_diag *diag,
+rocblas_status
+clblas_2_rocblas_init_matrix(
+                           const rocblas_precision *precision,
+                           const rocblas_order *order,
+                           const rocblas_transpose *trans,
+                           const rocblas_uplo *uplo,
+                           const rocblas_diag *diag,
                            const size_t *M,
                            const size_t *N,
                            const size_t *K,
                            size_t offset,
                            size_t ldX,
                            void *X,
-                           ablas_matrix *ablas_X)
+                           rocblas_matrix *rocblas_X)
 {
     //unfinished
-    if (ablas_X == NULL)
-        return -1;//throw some kind of error
-    
-    ablas_X->data = X;
-    ablas_X->precision = *precision;
-    ablas_X->offset = offset;
+    if (rocblas_X == NULL)
+        return rocblas_invalid_matA;//throw some kind of error
+
+    rocblas_X->data = X;
+    rocblas_X->precision = *precision;
+    rocblas_X->offset = offset;
 
     if ((uplo == NULL) && (diag == NULL))
-    { 
+    {
         //not a symmetric matrix
-            
-        if (*order == ablas_column_major)
-        { 
+
+        if (*order == rocblas_column_major)
+        {
             if (N == NULL)
-            { 
+            {
                 if (trans == NULL)
                 {
-                    //matrix C does not have trans 
-                    ablas_X->num_cols = *M;
-                    ablas_X->num_rows = *K;
-                    ablas_X->num_matrices = 1;
-                    ablas_X->col_stride = ldX;
-                    ablas_X->row_stride = 1;
-                    ablas_X->matrix_stride = ldX*(*K);
-                    return 0;
+                    //matrix C does not have trans
+                    rocblas_X->num_cols = *M;
+                    rocblas_X->num_rows = *K;
+                    rocblas_X->num_matrices = 1;
+                    rocblas_X->col_stride = ldX;
+                    rocblas_X->row_stride = 1;
+                    rocblas_X->matrix_stride = ldX*(*K);
+                    return rocblas_success;
                 }
-                else if (*trans == ablas_no_trans)
-                { 
-                    ablas_X->num_cols = *M;
-                    ablas_X->num_rows = *K;
-                    ablas_X->num_matrices = 1; 
-                    ablas_X->col_stride = ldX;
-                    ablas_X->row_stride = 1;
-                    ablas_X->matrix_stride = ldX*(*K);
-                    return 0;
-                }
-                else if (*trans == ablas_trans)
+                else if (*trans == rocblas_no_trans)
                 {
-                    ablas_X->num_cols = *K;
-                    ablas_X->num_rows = *M;
-                    ablas_X->num_matrices = 1;
-                    ablas_X->col_stride = ldX;
-                    ablas_X->row_stride = 1;
-                    ablas_X->matrix_stride = ldX*(*M);
-                    return 0;
+                    rocblas_X->num_cols = *M;
+                    rocblas_X->num_rows = *K;
+                    rocblas_X->num_matrices = 1;
+                    rocblas_X->col_stride = ldX;
+                    rocblas_X->row_stride = 1;
+                    rocblas_X->matrix_stride = ldX*(*K);
+                    return rocblas_success;
                 }
-                else if (*trans == ablas_conjugate_trans)
+                else if (*trans == rocblas_trans)
+                {
+                    rocblas_X->num_cols = *K;
+                    rocblas_X->num_rows = *M;
+                    rocblas_X->num_matrices = 1;
+                    rocblas_X->col_stride = ldX;
+                    rocblas_X->row_stride = 1;
+                    rocblas_X->matrix_stride = ldX*(*M);
+                    return rocblas_success;
+                }
+                else if (*trans == rocblas_conj_trans)
                 {
                 }
             }
@@ -75,13 +75,15 @@ clblas_2_ablas_init_matrix(
             else
             {
                //it would be confusing to have values for all M, N and K
-               return -1;
+               return rocblas_invalid_matA;
             }
 
         }
 
 
 
-        return -1;
+        return rocblas_invalid_matA;
     }
+
+return rocblas_success;
 }
