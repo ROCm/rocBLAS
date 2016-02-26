@@ -1,21 +1,9 @@
 /* ************************************************************************
- * Copyright 2015 Advanced Micro Devices, Inc.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
  /*! \file
- * \brief ablas.h defines 'C' compatible callable functions and types that
+ * \brief rocblas.h defines 'C' compatible callable functions and types that
  * call into the library
  * \details The minimum compiler versions the library should support
  * ( These compilers have solid C++11 support):
@@ -25,40 +13,31 @@
  */
 
 #pragma once
-#ifndef _ABLAS_H_
-#define _ABLAS_H_
+#ifndef _rocblas_H_
+#define _rocblas_H_
 
 #include <stdbool.h>
 
 
 	/*
 	 * ===========================================================================
-	 *   READEME: This set of API is supposed to be used by expert users 
-     *	 who are sensitive to performance and want more control over their computation 
+	 *   READEME: This set of API is supposed to be used by expert users
+     *	 who are sensitive to performance and want more control over their computation
 	 * ===========================================================================
 	 */
 
 
 /*!
  * CMake-generated file to define export related preprocessor macros, including
- * ABLAS_EXPORT and ABLAS_DEPRECATED
+ * rocblas_EXPORT and rocblas_DEPRECATED
 */
-#include "ablas_export.h"
+#include "rocblas-export.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include "ablas_types.h"
-
-/*! Define ABLAS_USE_OPENCL to build library for OpenCL
- */
-#if defined( ABLAS_USE_OPENCL )
-  #include "ablas_opencl.h"
-#else
-  // Boltzman headers to be included here
-  #include "ablas_hsa.h"
-#endif
+#include "rocblas-types.h"
 
 /*!
 * \defgroup STATE Back-end agnostic state
@@ -74,18 +53,18 @@ extern "C" {
 /**@{*/
 
 /*!
-* \brief Enable/Disable asynchronous behavior for ablas
+* \brief Enable/Disable asynchronous behavior for rocblas
 *
-* \param[in] control  A valid clsparseControl created with ablasCreateControl
+* \param[in] control  A valid clsparseControl created with rocblasCreateControl
 * \param[in] async  True to enable immediate return, false to block execution until event completion
 *
 * \ingroup STATE-SINGLE
 *
-* \returns \b ablasSuccess
+* \returns \b rocblasSuccess
 */
 
-ABLAS_EXPORT ablas_status
-ablas_enable_async( ablas_control control, bool async );
+ROCBLAS_EXPORT rocblas_status
+rocblas_enable_async( rocblas_control control, bool async );
 /**@}*/
 
 /*!
@@ -102,7 +81,7 @@ ablas_enable_async( ablas_control control, bool async );
 /**@{*/
 
 
-/*! \brief Refactored ablas API
+/*! \brief Refactored rocblas API
  * \details Generic matrix-matrix multiplication. These pointers are not denoting arrays.  The batch processing is specified inside of these
  * structs with batch_size
  * \f$ c \leftarrow \alpha o (a \ast b) + \beta o c \f$
@@ -129,16 +108,16 @@ ablas_enable_async( ablas_control control, bool async );
  * \param[in] b  Source matrix
  * \param[in] beta  Scalar value to be multiplied into the matrix C on read
  * \param[in,out] c  Destination matrix
- * \param[in,out] control  ablas state object
+ * \param[in,out] control  rocblas state object
  */
-ABLAS_EXPORT ablas_status
-ablas_gemm(
-  const ablas_matrix *alpha,
-  const ablas_matrix *a,
-  const ablas_matrix *b,
-  const ablas_matrix *beta,
-        ablas_matrix *c,
-        ablas_control *control );
+ROCBLAS_EXPORT rocblas_status
+rocblas_gemm(
+  const rocblas_matrix *alpha,
+  const rocblas_matrix *a,
+  const rocblas_matrix *b,
+  const rocblas_matrix *beta,
+        rocblas_matrix *c,
+        rocblas_control *control );
 /**@}*/
 
 ;
@@ -147,4 +126,4 @@ ablas_gemm(
 }      // extern C
 #endif
 
-#endif // _ABLAS_H_
+#endif // _rocblas_H_

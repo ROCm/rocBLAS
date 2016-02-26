@@ -18,7 +18,7 @@ endif( )
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+  set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
 # Check if cmake supports the new VERSION tag for project() commands
@@ -100,7 +100,7 @@ if( MSVC )
 	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}" )
 	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}" )
 
-elseif( CMAKE_COMPILER_IS_GNUCXX OR (CMAKE_CXX_COMPILER_ID MATCHES "Clang") )
+elseif( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 	message( STATUS "Detected GNU or Clang compiler collection" )
 
 	if( BUILD_LIBRARY_64 )
@@ -123,22 +123,29 @@ message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
 configure_file( "${PROJECT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/rocblas-version.h" )
-install( FILES
-		"${PROJECT_BINARY_DIR}/include/rocblas-version.h"
-		"include/rocblas.h"
-		"include/rocblas-types.h"
-	DESTINATION
-		"./include" )
 
+set( rocblas_headers_public
+  include/rocblas.h
+  include/rocblas-types.h
+  include/rocblas-expert.h
+  ${PROJECT_BINARY_DIR}/include/rocblas-version.h
+)
+
+source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
+
+# Build into subdirectories
 add_subdirectory( library )
+
+install( FILES
+		${rocblas_headers_public}
+	DESTINATION
+		"include" )
 
 # Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
 if( BUILD_LIBRARY_64 )
 	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocblas_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
-	set( INCLUDE_DIR include )
 else( )
 	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocblas_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )
-	set( INCLUDE_DIR include )
 endif( )
 
 # The following code is setting variables to control the behavior of CPack to generate our

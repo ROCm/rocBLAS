@@ -12,12 +12,13 @@
 #define _ROCBLAS_H_
 
 #include <stdbool.h>
-#include "rocblas_types.h"
+#include "rocblas-version.h"
+#include "rocblas-types.h"
 
-// #include "ablas_common"
-// #include "ablas_netlib.h"
-// #include "ablas_netlib_batched.h"
-#include "ablas_expert.h"
+// #include "rocblas_common"
+// #include "rocblas_netlib.h"
+// #include "rocblas_netlib_batched.h"
+#include "rocblas-expert.h"
 
 
 #endif // _ROCBLAS_H_
