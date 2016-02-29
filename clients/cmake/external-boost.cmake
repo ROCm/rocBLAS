@@ -63,7 +63,7 @@ message( STATUS "ExternalBoost building [ program_options, serialization, filesy
 
 list( APPEND Boost.Command -j ${Cores} --with-program_options --with-serialization --with-filesystem --with-system --with-regex )
 
-if( BUILD64 )
+if( BUILD_64 )
   list( APPEND Boost.Command address-model=64 )
 else( )
   list( APPEND Boost.Command address-model=32 )
@@ -77,9 +77,9 @@ elseif( MSVC12 )
   list( APPEND Boost.Command toolset=msvc-12.0 )
 elseif( MSVC14 )
   list( APPEND Boost.Command toolset=msvc-14.0 )
-elseif( XCODE_VERSION )
+elseif( XCODE_VERSION OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
   list( APPEND Boost.Command toolset=clang )
-elseif( DEFINED ENV{CC} )
+elseif( NOT "$ENV{CC}" STREQUAL "" )
   # CMake apprarently puts the full path of the compiler into CC
   # The user might specify a non-default gcc compiler through ENV
   message( STATUS "ENV{CC}=$ENV{CC}" )
@@ -150,19 +150,19 @@ else( )
   # .tar.bz2
   set( ext.MD5_HASH "65a840e1a0b13a558ff19eeb2c4f0cbe" )
 
-  if( XCODE_VERSION )
+  if( XCODE_VERSION OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
     list( APPEND Boost.Bootstrap --with-toolset=clang )
   endif( )
 endif( )
 
 # Below is a fancy CMake command to download, build and install Boost on the users computer
 ExternalProject_Add(
-  Boost
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/Externals/Boost
+  boost
+  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/extern/boost
   URL ${ext.Boost_URL}
   URL_MD5 ${ext.MD5_HASH}
   UPDATE_COMMAND ${Boost.Bootstrap}
-  LOG_UPDATE 1
+  LOG_UPDATE 0
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${Boost.Command}
   BUILD_IN_SOURCE 1
@@ -170,8 +170,8 @@ ExternalProject_Add(
   INSTALL_COMMAND ""
 )
 
-set_property( TARGET Boost PROPERTY FOLDER "Externals" )
-ExternalProject_Get_Property( Boost install_dir )
+set_property( TARGET boost PROPERTY FOLDER "extern" )
+ExternalProject_Get_Property( boost install_dir )
 
 # For use by the user of ExternalBoost.cmake
 set( BOOST_ROOT ${install_dir}/package )
