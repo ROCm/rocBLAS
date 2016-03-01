@@ -48,6 +48,9 @@ else( )
 	set( rocblas_VERSION "${rocblas_VERSION_MAJOR}.${rocblas_VERSION_MINOR}.${rocblas_VERSION_PATCH}.${rocblas_VERSION_TWEAK}")
 endif( )
 
+# MACOSX_RPATH is enabled by default policy 
+cmake_policy( SET CMP0042 NEW )
+
 message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
 message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
 
