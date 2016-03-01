@@ -12,7 +12,7 @@ endif( )
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
+if( NOT CMAKE_CONFIGURATION_TYPES )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
@@ -36,9 +36,12 @@ set_property( CACHE TOOLCHAIN_FILE PROPERTY STRINGS clang hcc gcc )
 # Default arguments that get passed down into all external projects
 set( rocblas_CMAKE_ARGS
   -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake
-  -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   )
+
+if( NOT CMAKE_CONFIGURATION_TYPES )
+	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+endif( )
 
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/rocblas-package" )
@@ -73,17 +76,29 @@ endif()
 # Build clients of the library
 if( BUILD_CLIENTS )
 	include( clients/cmake/build-options.cmake )
-  # add_subdirectory( clients )
 
 	# The purpose of specifying the clients as an external project is to be able to pass into another
 	# cmake instance the compiler that we want.  We want cmake to go through it's usual discovery
 	# process
+	ExternalProject_Get_Property( rocblas install_dir )
+
+	# Default arguments that get passed down into all external projects
+	set( clients_CMAKE_ARGS
+	  ${rocblas_CMAKE_ARGS}
+		-DBUILD_64=${BUILD_64}
+		-DBUILD_CLIENTS_DEPENDENCY_BOOST=${BUILD_CLIENTS_DEPENDENCY_BOOST}
+		-DBUILD_CLIENTS_DEPENDENCY_GTEST=${BUILD_CLIENTS_DEPENDENCY_GTEST}
+		-DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
+		-DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
+		-DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
+		-DCMAKE_PREFIX_PATH=${install_dir}
+	  )
+
   ExternalProject_Add( rocblas-clients
-#		DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR rocblas-clients-build
     INSTALL_DIR rocblas-clients-package
-    CMAKE_ARGS ${rocblas_CMAKE_ARGS} -DBUILD_64=${BUILD_64} -DBUILD_CLIENTS_DEPENDENCY_BOOST=${BUILD_CLIENTS_DEPENDENCY_BOOST} -DBUILD_CLIENTS_DEPENDENCY_GTEST=${BUILD_CLIENTS_DEPENDENCY_GTEST}
+    CMAKE_ARGS ${clients_CMAKE_ARGS}
 		INSTALL_COMMAND ""
   )
 endif( )

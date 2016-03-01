@@ -17,6 +17,17 @@ endfunction( )
 include( GenerateExportHeader )
 add_compiler_export_flags( )
 
+set( rocblas_blas3_source
+  blas3/gemm.cpp
+)
+
+prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
+
+add_library( rocblas ${BUILD_LIBRARY_TYPE}
+  ${rocblas_blas3_source}
+  ${relative_rocblas_headers_public}
+)
+
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
   target_compile_features( rocblas PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
@@ -26,20 +37,6 @@ else( )
     add_definitions( -std=c++14 )
   endif( )
 endif( )
-
-set( rocblas_blas3_source
-  blas3/gemm.cpp
-)
-# add_subdirectory( blas3 )
-
-prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
-
-add_library( rocblas ${BUILD_LIBRARY_TYPE}
-  ${rocblas_blas3_source}
-  ${relative_rocblas_headers_public}
-)
-# set_target_properties( rocblas PROPERTIES LINKER_LANGUAGE CXX )
-# target_link_libraries( rocblas PRIVATE blas3 )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
