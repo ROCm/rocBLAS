@@ -2,7 +2,7 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-message( STATUS "Configuring Boost SuperBuild..." )
+message( STATUS "Configuring boost external dependency" )
 include( ExternalProject )
 
 # TODO:  Options should be added to allow downloading Boost straight from github
