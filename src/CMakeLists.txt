@@ -18,7 +18,7 @@ endif( )
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
 # Check if cmake supports the new VERSION tag for project() commands
@@ -47,6 +47,9 @@ else( )
 
 	set( rocblas_VERSION "${rocblas_VERSION_MAJOR}.${rocblas_VERSION_MINOR}.${rocblas_VERSION_PATCH}.${rocblas_VERSION_TWEAK}")
 endif( )
+
+# MACOSX_RPATH is enabled by default policy 
+cmake_policy( SET CMP0042 NEW )
 
 message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
 message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
