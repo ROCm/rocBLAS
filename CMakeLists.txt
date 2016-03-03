@@ -30,18 +30,8 @@ else()
 	option( BUILD_64 "Build a 64-bit product" ON )
 endif()
 
-set( TOOLCHAIN_FILE "clang" CACHE STRING "Which toolchain to use for compiling project" )
-set_property( CACHE TOOLCHAIN_FILE PROPERTY STRINGS clang hcc gcc )
-
-# Default arguments that get passed down into all external projects
-set( rocblas_CMAKE_ARGS
-  -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake
-  -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  )
-
-if( NOT CMAKE_CONFIGURATION_TYPES )
-	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
-endif( )
+set( TOOLCHAIN_FILE "clang" CACHE STRING "Compiler toolchain: (clang gcc hcc hipcc)" )
+set_property( CACHE TOOLCHAIN_FILE PROPERTY STRINGS clang gcc hcc hipcc )
 
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/rocblas-package" )
@@ -59,6 +49,29 @@ endif()
 
 # standard cmake module to manage dependencies
 include( ExternalProject )
+
+# Default arguments that get passed down into all external projects
+set( rocblas_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> )
+
+# If our toolchain is using hip, we need to download hip and generate a toolchain file so we can find it
+# since the tools are not in the standard system path
+if( TOOLCHAIN_FILE STREQUAL "hipcc" )
+	include( cmake/external-hip.cmake )
+
+	# configure toolchain file to find the hip compiler with the hip we just downloaded
+	configure_file( "${PROJECT_SOURCE_DIR}/cmake/hipcc-toolchain.cmake.in"
+			"${PROJECT_BINARY_DIR}/cmake/hipcc-toolchain.cmake" )
+
+	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${PROJECT_BINARY_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake )
+
+else( )
+	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake )
+endif( )
+
+# CMAKE_BUILD_TYPE only applies to single configuration build systems
+if( NOT CMAKE_CONFIGURATION_TYPES )
+	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+endif( )
 
 if( BUILD_LIBRARY )
   include( src/cmake/build-options.cmake )

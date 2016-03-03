@@ -26,7 +26,7 @@ if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
 	project( rocblas-samples VERSION 0.0.0.1 LANGUAGES C CXX )
 else( )
-	project( rocblas-samples C CXX )
+	project( rocblas-samples CXX )
 	# Define a version for the code
 	if( NOT DEFINED rocblas_VERSION_MAJOR )
 		set( rocblas-samples_VERSION_MAJOR 0 )
