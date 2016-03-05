@@ -80,7 +80,7 @@ set( SUFFIX_BIN_DEFAULT "" )
 
 # Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
 # Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
-if( BUILD_LIBRARY_64 )
+if( BUILD_64 )
 	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE )
 	message( STATUS "64bit build - FIND_LIBRARY_USE_LIB64_PATHS TRUE" )
 
@@ -108,7 +108,7 @@ if( MSVC )
 elseif( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 	message( STATUS "Detected GNU or Clang compiler collection" )
 
-	if( BUILD_LIBRARY_64 )
+	if( BUILD_64 )
 		set( CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}" )
 		set( CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}" )
 	else( )
@@ -147,7 +147,7 @@ install( FILES
 		"include" )
 
 # Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
-if( BUILD_LIBRARY_64 )
+if( BUILD_64 )
 	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocblas_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
 else( )
 	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocblas_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )

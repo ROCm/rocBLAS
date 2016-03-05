@@ -9,12 +9,12 @@
 # parameters, which would already define them.
 
 # Determine whether to build 64-bit (default) or 32-bit
-if( NOT BUILD_LIBRARY_64 )
+if( NOT BUILD_64 )
 	if( MSVC_IDE )
-		set( BUILD_LIBRARY_64 ${CMAKE_CL_64} )
+		set( BUILD_64 ${CMAKE_CL_64} )
 		set_property( GLOBAL PROPERTY USE_FOLDERS TRUE )
 	else()
-		option( BUILD_LIBRARY_64 "Build a 64-bit product" ON )
+		option( BUILD_64 "Build a 64-bit product" ON )
 	endif()
 endif()
 

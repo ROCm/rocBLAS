@@ -30,8 +30,11 @@ else()
 	option( BUILD_64 "Build a 64-bit product" ON )
 endif()
 
-set( TOOLCHAIN_FILE "clang" CACHE STRING "Compiler toolchain: (clang gcc hcc hipcc)" )
-set_property( CACHE TOOLCHAIN_FILE PROPERTY STRINGS clang gcc hcc hipcc )
+set( HOST_TOOLCHAIN_NAME "clang" CACHE STRING "Compiler toolchain: (clang gcc)" )
+set_property( CACHE HOST_TOOLCHAIN_NAME PROPERTY STRINGS clang gcc )
+
+set( DEVICE_TOOLCHAIN_NAME "hipcc" CACHE STRING "Compiler toolchain for library: (hcc hipcc)" )
+set_property( CACHE DEVICE_TOOLCHAIN_NAME PROPERTY STRINGS hcc hipcc )
 
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/rocblas-package" )
@@ -50,38 +53,45 @@ endif()
 # standard cmake module to manage dependencies
 include( ExternalProject )
 
-# Default arguments that get passed down into all external projects
-set( rocblas_CMAKE_ARGS -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR> )
-
+set( DEVICE_TOOLCHAIN_FILE "" )
 # If our toolchain is using hip, we need to download hip and generate a toolchain file so we can find it
 # since the tools are not in the standard system path
-if( TOOLCHAIN_FILE STREQUAL "hipcc" )
+if( DEVICE_TOOLCHAIN_NAME STREQUAL "hipcc" )
 	include( cmake/external-hip.cmake )
 
 	# configure toolchain file to find the hip compiler with the hip we just downloaded
-	configure_file( "${PROJECT_SOURCE_DIR}/cmake/hipcc-toolchain.cmake.in"
-			"${PROJECT_BINARY_DIR}/cmake/hipcc-toolchain.cmake" )
+	configure_file( "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake.in"
+			"${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
 
-	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${PROJECT_BINARY_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake )
-
+	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
 else( )
-	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${TOOLCHAIN_FILE}-toolchain.cmake )
+	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
 endif( )
+
+# Default arguments that get passed down into all external projects
+set( BASE_CMAKE_ARGS
+	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+	-DBUILD_64=${BUILD_64} )
 
 # CMAKE_BUILD_TYPE only applies to single configuration build systems
 if( NOT CMAKE_CONFIGURATION_TYPES )
-	list( APPEND rocblas_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+	list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
 if( BUILD_LIBRARY )
   include( src/cmake/build-options.cmake )
+
+	set( LIBRARY_CMAKE_ARGS
+	 ${BASE_CMAKE_ARGS}
+	-DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
+	-DBUILD_LIBRARY_UNICODE=${BUILD_LIBRARY_UNICODE} )
 
   # Build the library as an external project
   ExternalProject_Add( rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
     BINARY_DIR rocblas-build
     INSTALL_DIR ${rocblas_INSTALL_DIR}
-    CMAKE_ARGS ${rocblas_CMAKE_ARGS} -DBUILD_LIBRARY_64=${BUILD_64} -DBUILD_LIBRARY_UNICODE=${BUILD_LIBRARY_UNICODE}
+    CMAKE_ARGS ${LIBRARY_CMAKE_ARGS}
     ${rocblas_INSTALL_COMMAND}
   )
 endif()
@@ -96,22 +106,23 @@ if( BUILD_CLIENTS )
 	ExternalProject_Get_Property( rocblas install_dir )
 
 	# Default arguments that get passed down into all external projects
-	set( clients_CMAKE_ARGS
-	  ${rocblas_CMAKE_ARGS}
-		-DBUILD_64=${BUILD_64}
+	set( CLIENTS_CMAKE_ARGS
+	  ${BASE_CMAKE_ARGS}
 		-DBUILD_CLIENTS_DEPENDENCY_BOOST=${BUILD_CLIENTS_DEPENDENCY_BOOST}
 		-DBUILD_CLIENTS_DEPENDENCY_GTEST=${BUILD_CLIENTS_DEPENDENCY_GTEST}
 		-DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
 		-DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
 		-DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
 		-DCMAKE_PREFIX_PATH=${install_dir}
+		-DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${HOST_TOOLCHAIN_NAME}-toolchain.cmake
+		-DCLIENT_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
 	  )
 
   ExternalProject_Add( rocblas-clients
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR rocblas-clients-build
     INSTALL_DIR rocblas-clients-package
-    CMAKE_ARGS ${clients_CMAKE_ARGS}
+    CMAKE_ARGS ${CLIENTS_CMAKE_ARGS}
 		INSTALL_COMMAND ""
   )
 endif( )

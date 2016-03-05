@@ -71,16 +71,6 @@ endif( )
 # message( STATUS "gtest_make ( " ${gtest_make} " ) " )
 # message( STATUS "gtest_cmake_args ( " ${gtest_cmake_args} " ) " )
 
-# Add external project for googleMock
-# ExternalProject_Add(
-#   gtest
-#   URL ${ext.gtest_URL}
-#   URL_MD5 ef5e700c8a0f3ee123e2e0209b8b4961
-#   CMAKE_ARGS ${gtest_cmake_args} -DCMAKE_DEBUG_POSTFIX=d -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
-#   BUILD_COMMAND ${gtest_make}
-#   INSTALL_COMMAND ""
-# )
-
 # Master branch has a new structure that combines googletest with googlemock
 ExternalProject_Add(
   gtest
