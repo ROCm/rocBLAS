@@ -1,0 +1,2 @@
+# Trivial toolchain file to help project pick up appropriate compilers
+set( CMAKE_CXX_COMPILER @HIP_ROOT@/bin/hipcc )

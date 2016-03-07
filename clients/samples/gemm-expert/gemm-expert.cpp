@@ -6,7 +6,7 @@
 /// @brief Sample file demonstrating use of the expert GEMM interface
 ///
 
-#include <iostream>
+#include "hip_runtime.h"
 #include "rocblas.h"
 
 int main( int argc, char* argv[] )
