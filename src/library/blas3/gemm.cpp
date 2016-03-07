@@ -2,6 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas.h"
+#include "hip_runtime.h"
 
 rocblas_status
 rocblas_gemm(
