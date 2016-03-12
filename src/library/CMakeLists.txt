@@ -34,7 +34,7 @@ if( CMAKE_VERSION VERSION_GREATER "3.0" )
 else( )
   # Otherwise, just try to compile the library with a standards flag
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
-    add_definitions( -std=c++14 )
+    target_compile_options( rocblas PRIVATE -std=c++11 )
   endif( )
 endif( )
 

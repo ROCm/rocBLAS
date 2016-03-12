@@ -38,7 +38,7 @@ else( )
   list( APPEND gtest_cmake_args -DCMAKE_C_FLAGS=${EXTRA_FLAGS} -DCMAKE_CXX_FLAGS=${EXTRA_FLAGS} )
 endif( )
 
-if( MSVC_IDE OR XCODE_VERSION )
+if( CMAKE_CONFIGURATION_TYPES )
   set( gtest_make
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Release
         COMMAND ${CMAKE_COMMAND} --build <BINARY_DIR> --config Debug
@@ -64,7 +64,8 @@ else( )
     endif( )
   endif( )
 
-  list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  # find_package( gtest ) only works well if it can find release binaries
+  list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=Release )
   message( STATUS "ExternalGmock using ( " ${Cores} " ) cores to build with" )
 endif( )
 
@@ -92,7 +93,7 @@ endif( )
 # Doesn't matter if its the gtest or gtestd project above
 set( package_dir "<INSTALL_DIR>/package" )
 set( gtest_lib_dir "<BINARY_DIR>/${LIB_DIR}" )
-if( MSVC_IDE OR XCODE_VERSION )
+if( CMAKE_CONFIGURATION_TYPES )
     # Create a package by bundling libraries and header files
     ExternalProject_Add_Step( gtest createPackage
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${gtest_lib_dir}/Debug ${package_dir}/${LIB_DIR}
@@ -104,11 +105,13 @@ if( MSVC_IDE OR XCODE_VERSION )
       DEPENDEES install
     )
 else( )
-  # Create a package by bundling libraries and header files
-  ExternalProject_Add_Step( gtest rename_lib_dir
-    COMMAND ${CMAKE_COMMAND} -E rename ${package_dir}/lib ${package_dir}/${LIB_DIR}
-    DEPENDEES install
-  )
+  if( BUILD_64 )
+    ExternalProject_Add_Step( gtest rename_lib_dir
+      COMMAND ${CMAKE_COMMAND} -E remove_directory ${package_dir}/${LIB_DIR}
+      COMMAND ${CMAKE_COMMAND} -E rename ${package_dir}/lib ${package_dir}/${LIB_DIR}
+      DEPENDEES install
+    )
+  endif( )
 endif( )
 
 set_property( TARGET gtest PROPERTY FOLDER "extern")
