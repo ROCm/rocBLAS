@@ -162,7 +162,7 @@ ExternalProject_Add(
   URL ${ext.Boost_URL}
   URL_MD5 ${ext.MD5_HASH}
   UPDATE_COMMAND ${Boost.Bootstrap}
-  LOG_UPDATE 0
+  LOG_UPDATE 1
   CONFIGURE_COMMAND ""
   BUILD_COMMAND ${Boost.Command}
   BUILD_IN_SOURCE 1

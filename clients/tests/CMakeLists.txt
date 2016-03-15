@@ -98,8 +98,7 @@ if( NOT Boost_FOUND )
 endif( )
 
 find_package( GTest REQUIRED )
-# find_package( cblas REQUIRED CONFIG )
-# find_package( LAPACKE REQUIRED CONFIG )
+find_package( cblas REQUIRED CONFIG	)
 find_package( rocblas REQUIRED CONFIG )
 
 add_executable( rocblas-test main.cpp )
@@ -113,18 +112,26 @@ else( )
 		# ::gets removed from std++14, but g++4.8 still uses it
 		# http://clang-developers.42468.n3.nabble.com/libc-gets-removed-from-C11-td4032945.html
     # target_compile_options( rocblas-test PRIVATE -std=c++14 )
-		target_compile_options( rocblas-test PRIVATE -std=c++11 )
+		target_compile_options( rocblas-test PRIVATE -std=c++11 -pthread )
   endif( )
 endif( )
 
 target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 )
 target_include_directories( rocblas-test
   PRIVATE
-#		$<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+		$<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+		$<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
 )
 
-# target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
-target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} )
+target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+
+# Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
+# https://github.com/google/googletest/issues/391#issuecomment-125645879
+# No easy way to filter to Ubuntu
+if( UNIX )
+	target_link_libraries( rocblas-test pthread )
+endif( )
+
 set_target_properties( rocblas-test PROPERTIES DEBUG_POSTFIX "-d" )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
