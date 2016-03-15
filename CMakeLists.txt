@@ -100,24 +100,26 @@ endif()
 if( BUILD_CLIENTS )
 	include( clients/cmake/build-options.cmake )
 
-	# The purpose of specifying the clients as an external project is to be able to pass into another
-	# cmake instance the compiler that we want.  We want cmake to go through it's usual discovery
-	# process
-	ExternalProject_Get_Property( rocblas install_dir )
-
 	# Default arguments that get passed down into all external projects
 	set( CLIENTS_CMAKE_ARGS
 	  ${BASE_CMAKE_ARGS}
 		-DBUILD_CLIENTS_DEPENDENCY_BOOST=${BUILD_CLIENTS_DEPENDENCY_BOOST}
 		-DBUILD_CLIENTS_DEPENDENCY_GTEST=${BUILD_CLIENTS_DEPENDENCY_GTEST}
+		-DBUILD_CLIENTS_DEPENDENCY_LAPACK=${BUILD_CLIENTS_DEPENDENCY_LAPACK}
 		-DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
 		-DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
 		-DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
-		-DCMAKE_PREFIX_PATH=${install_dir}
 		-DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${HOST_TOOLCHAIN_NAME}-toolchain.cmake
-		-DCLIENT_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
+		-DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
 	  )
 
+		if( BUILD_LIBRARY )
+			ExternalProject_Get_Property( rocblas install_dir )
+			list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
+		endif( )
+
+	# Clients are set up as an external project to take advantage of specifying toolchain files.
+	# We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR rocblas-clients-build

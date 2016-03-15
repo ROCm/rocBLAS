@@ -27,3 +27,7 @@ endif( )
 if( NOT BUILD_CLIENTS_DEPENDENCY_GTEST )
   option( BUILD_CLIENTS_DEPENDENCY_GTEST "Build google test dependency" OFF )
 endif( )
+
+if( NOT BUILD_CLIENTS_DEPENDENCY_LAPACK )
+  option( BUILD_CLIENTS_DEPENDENCY_LAPACK "Build lapack test dependency" OFF )
+endif( )
