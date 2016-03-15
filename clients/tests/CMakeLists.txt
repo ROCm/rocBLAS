@@ -1,3 +1,137 @@
 # ########################################################################
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
+# We require 2.8.12 for linking libraries we specify PRIVATE, INTERFACE and
+# PUBLIC keywords
+cmake_minimum_required( VERSION 2.8.12 )
+
+if( CMAKE_GENERATOR MATCHES "NMake" )
+	option( NMAKE_COMPILE_VERBOSE "Print VERBOSE compile/link msgs to the console" OFF )
+	if( NMAKE_COMPILE_VERBOSE )
+		set( CMAKE_START_TEMP_FILE "" )
+		set( CMAKE_END_TEMP_FILE "" )
+		set( CMAKE_VERBOSE_MAKEFILE 1 )
+	endif( )
+endif( )
+
+# This has to be initialized before the project() command appears
+# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
+if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+endif()
+
+# Check if cmake supports the new VERSION tag for project() commands
+# rocblas becomes the name of the project with a particular version
+if( POLICY CMP0048 )
+	cmake_policy( SET CMP0048 NEW )
+	project( rocblas-test VERSION 0.0.0.1 LANGUAGES C CXX )
+else( )
+	project( rocblas-test CXX )
+	# Define a version for the code
+	if( NOT DEFINED rocblas_VERSION_MAJOR )
+		set( rocblas-test_VERSION_MAJOR 0 )
+	endif( )
+
+	if( NOT DEFINED rocblas_VERSION_MINOR )
+		set( rocblas-test_VERSION_MINOR 0 )
+	endif( )
+
+	if( NOT DEFINED rocblas_VERSION_PATCH )
+		set( rocblas-test_VERSION_PATCH 0 )
+	endif( )
+
+	if( NOT DEFINED rocblas_VERSION_TWEAK )
+		set( rocblas-test_VERSION_TWEAK 1 )
+	endif( )
+
+	set( rocblas-test_VERSION "${rocblas-test_VERSION_MAJOR}.${rocblas-test_VERSION_MINOR}.${rocblas-test_VERSION_PATCH}.${rocblas-test_VERSION_TWEAK}")
+endif( )
+
+# Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
+# Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
+if( BUILD_64 )
+	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS TRUE )
+	message( STATUS "FIND_LIBRARY_USE_LIB64_PATHS{TRUE} - 64-bit builds" )
+else( )
+	set_property( GLOBAL PROPERTY FIND_LIBRARY_USE_LIB64_PATHS FALSE )
+	message( STATUS "FIND_LIBRARY_USE_LIB64_PATHS{FALSE} - 32-bit builds" )
+endif( )
+
+# Set common compile and link options
+if( MSVC )
+	# Following options for nMake
+	message( STATUS "Detected MSVS Ver: " ${MSVC_VERSION} )
+
+	# CMake uses huge stack frames for windows, we would like to remove.
+	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" )
+	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}" )
+	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}" )
+
+elseif( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+	message( STATUS "Detected GNU or Clang compiler collection" )
+
+	if( BUILD_64 )
+		set( CMAKE_CXX_FLAGS "-m64 ${CMAKE_CXX_FLAGS}" )
+		set( CMAKE_C_FLAGS "-m64 ${CMAKE_C_FLAGS}" )
+	else( )
+		set( CMAKE_CXX_FLAGS "-m32 ${CMAKE_CXX_FLAGS}" )
+		set( CMAKE_C_FLAGS "-m32 ${CMAKE_C_FLAGS}" )
+	endif( )
+else( )
+	message( AUTHOR_WARNING "Compiler not recognized.  Using default flags." )
+endif( )
+
+# This option only works for make/nmake and the ninja generators, but no reason it shouldn't be on all the time
+# This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
+
+# set( Boost_DEBUG ON )
+set( Boost_USE_MULTITHREADED ON )
+set( Boost_DETAILED_FAILURE_MSG ON )
+set( Boost_ADDITIONAL_VERSIONS 1.60.0 1.60 )
+set( Boost_USE_STATIC_LIBS ON )
+find_package( Boost REQUIRED COMPONENTS program_options )
+
+if( NOT Boost_FOUND )
+	set( Boost_USE_STATIC_LIBS OFF )
+	find_package( Boost REQUIRED COMPONENTS program_options )
+endif( )
+
+find_package( GTest REQUIRED )
+find_package( cblas REQUIRED CONFIG	)
+find_package( rocblas REQUIRED CONFIG )
+
+add_executable( rocblas-test main.cpp )
+
+# Try to test for specific compiler features if cmake version is recent enough
+if( CMAKE_VERSION VERSION_GREATER "3.0" )
+  target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+else( )
+  # Otherwise, just try to compile the library with a standards flag
+  if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+		# ::gets removed from std++14, but g++4.8 still uses it
+		# http://clang-developers.42468.n3.nabble.com/libc-gets-removed-from-C11-td4032945.html
+    # target_compile_options( rocblas-test PRIVATE -std=c++14 )
+		target_compile_options( rocblas-test PRIVATE -std=c++11 -pthread )
+  endif( )
+endif( )
+
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 )
+target_include_directories( rocblas-test
+  PRIVATE
+		$<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+		$<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+)
+
+target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+
+# Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
+# https://github.com/google/googletest/issues/391#issuecomment-125645879
+# No easy way to filter to Ubuntu
+if( UNIX )
+	target_link_libraries( rocblas-test pthread )
+endif( )
+
+set_target_properties( rocblas-test PROPERTIES DEBUG_POSTFIX "-d" )
+set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
