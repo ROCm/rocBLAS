@@ -29,7 +29,7 @@ if( BUILD_CLIENTS_DEPENDENCY_LAPACK )
 endif( )
 
 set( CLIENTS_CMAKE_ARGS
-	-DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
+	-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
 	-DBUILD_64=${BUILD_64}
 	)
 
@@ -41,8 +41,8 @@ if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
   include( ExternalProject )
 endif( )
 
-# WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks finding modules
-# =!!!= -DCMAKE_PREFIX_PATH:PATH="${CMAKE_PREFIX_PATH}"
+# WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks CMAKE_PREFIX_PATH use
+# DO NOT: -DCMAKE_PREFIX_PATH:PATH="${CMAKE_PREFIX_PATH}"
 if( BUILD_CLIENTS_SAMPLES )
   set( SAMPLES_CMAKE_ARGS
         ${CLIENTS_CMAKE_ARGS}
@@ -81,7 +81,7 @@ if( BUILD_CLIENTS_TESTS )
   	)
 
   ExternalProject_Add( tests
-    DEPENDS boost gtest lapack
+    DEPENDS boost googletest lapack
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/tests
     BINARY_DIR tests-build
     CMAKE_ARGS ${TESTS_CMAKE_ARGS}
