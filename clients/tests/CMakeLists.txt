@@ -119,12 +119,13 @@ endif( )
 target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 )
 target_include_directories( rocblas-test
   PRIVATE
-		$<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+#		$<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
 		$<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
 )
 
-target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+#target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} )
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879
