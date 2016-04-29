@@ -29,7 +29,7 @@ if( BUILD_CLIENTS_DEPENDENCY_LAPACK )
 endif( )
 
 set( CLIENTS_CMAKE_ARGS
-	-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+	-DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
 	-DBUILD_64=${BUILD_64}
 	)
 
@@ -81,7 +81,7 @@ if( BUILD_CLIENTS_TESTS )
   	)
 
   ExternalProject_Add( tests
-    DEPENDS boost googletest lapack
+    DEPENDS googletest lapack
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/tests
     BINARY_DIR tests-build
     CMAKE_ARGS ${TESTS_CMAKE_ARGS}
