@@ -19,10 +19,6 @@ add_compiler_export_flags( )
 
 set( rocblas_blas3_source
   blas3/gemm.cpp
-  rocblas_auxilary.cpp
-  blas1/rocblas_scal.cpp
-  blas1/rocblas_copy.cpp
-  blas1/rocblas_swap.cpp   
 )
 
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
