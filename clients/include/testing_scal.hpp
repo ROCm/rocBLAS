@@ -1,0 +1,158 @@
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ *
+ * ************************************************************************ */
+
+#include <stdlib.h>
+#include <stdio.h>
+#include <vector>
+
+#include "rocblas.h"
+#include "utility.h"
+#include "cblas_interface.h"
+#include "norm.h"
+#include "unit.h"
+#include <complex.h>
+
+using namespace std;
+
+/* ============================================================================================ */
+
+template<typename T>
+rocblas_status testing_scal(Arguments argus)
+{
+
+    rocblas_int N = argus.N;
+    rocblas_int incx = argus.incx;
+
+    rocblas_status status = rocblas_success;
+
+    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
+    if ( N < 0 ){
+        status = rocblas_invalid_dim;
+        return status;
+    }
+    else if ( incx < 0 ){
+        status = rocblas_invalid_incx;
+        return status;
+    }
+    if (status != rocblas_success) {
+        return status;
+    }
+
+
+    rocblas_int sizeX = N * incx;
+    T alpha = argus.alpha;
+
+    //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
+    vector<T> hx(sizeX);
+    vector<T> hz(sizeX);
+    T *dx;
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_error = 0.0;
+
+    rocblas_handle handle;
+
+    rocblas_create(&handle);
+
+    //allocate memory on device
+    CHECK_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+
+    //Initial Data on CPU
+    srand(1);
+    rocblas_init<T>(hx, 1, N, incx);
+
+    //copy vector is easy in STL; hz = hx: save a copy in hz which will be output of CPU BLAS
+    hz = hx;
+
+    //copy data from CPU to device, does not work for incx != 1
+
+    rocblas_set_vector(N, sizeof(T), hx.data(), incx, dx, incx);
+
+    if(argus.timing){
+        printf("SCAL     N    rocblas    (ms)     CPU (ms)     error\n");
+    }
+
+
+    /* =====================================================================
+         ROCBLAS
+    =================================================================== */
+    if(argus.timing){
+        gpu_time_used = rocblas_wtime();// in miliseconds
+    }
+
+    status = rocblas_scal<T>(handle,
+                    N,
+                    &alpha,
+                    dx, incx);
+    if (status != rocblas_success) {
+        CHECK_ERROR(hipFree(dx));
+        rocblas_destroy(handle);
+        return status;
+    }
+
+    if(argus.timing){
+        gpu_time_used = rocblas_wtime() - gpu_time_used;
+    }
+
+        //copy output from device to CPU
+    rocblas_get_vector(N, sizeof(T), dx, incx, hx.data(), incx);
+
+
+    if(argus.unit_check || argus.norm_check)
+    {
+
+     /* =====================================================================
+                 CPU BLAS
+     =================================================================== */
+         if(argus.timing){
+            cpu_time_used = rocblas_wtime();
+        }
+
+        cblas_scal<T>(
+                     N,
+                     alpha,
+                     hz.data(), incx);
+
+        if(argus.timing){
+            cpu_time_used = rocblas_wtime() - cpu_time_used;
+        }
+
+
+        //enable unit check, notice unit check is not invasive, but norm check is,
+        // unit check and norm check can not be interchanged their order
+        if(argus.unit_check){
+            unit_check_general<T>(1, N, incx, hz.data(), hx.data());
+        }
+
+        //for(int i=0; i<10; i++){
+        //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hx[i]);
+        //}
+
+        //if enable norm check, norm check is invasive
+        //any typeinfo(T) will not work here, because template deduction is matched in compilation time
+        if(argus.norm_check)
+        {
+            rocblas_error = norm_check_general<T>('F', 1, N, incx, hz.data(), hx.data());
+        }
+
+    }// end of if unit/norm check
+
+
+    if(argus.timing)
+    {
+        //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
+        if(argus.norm_check){
+            printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);
+        }
+        else{
+            printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
+        }
+    }
+
+
+    CHECK_ERROR(hipFree(dx));
+    rocblas_destroy(handle);
+    return rocblas_success;
+}
