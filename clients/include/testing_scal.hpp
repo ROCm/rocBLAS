@@ -79,7 +79,7 @@ rocblas_status testing_scal(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = rocblas_wtime();// in miliseconds
+        gpu_time_used = get_time_ms();// in miliseconds
     }
 
     status = rocblas_scal<T>(handle,
@@ -93,21 +93,20 @@ rocblas_status testing_scal(Arguments argus)
     }
 
     if(argus.timing){
-        gpu_time_used = rocblas_wtime() - gpu_time_used;
+        gpu_time_used = get_time_ms() - gpu_time_used;
     }
 
         //copy output from device to CPU
     rocblas_get_vector(N, sizeof(T), dx, incx, hx.data(), incx);
 
 
-    if(argus.unit_check || argus.norm_check)
-    {
+    if(argus.unit_check || argus.norm_check){
 
      /* =====================================================================
                  CPU BLAS
      =================================================================== */
-         if(argus.timing){
-            cpu_time_used = rocblas_wtime();
+        if(argus.timing){
+            cpu_time_used = get_time_ms();
         }
 
         cblas_scal<T>(
@@ -116,7 +115,7 @@ rocblas_status testing_scal(Arguments argus)
                      hz.data(), incx);
 
         if(argus.timing){
-            cpu_time_used = rocblas_wtime() - cpu_time_used;
+            cpu_time_used = get_time_ms() - cpu_time_used;
         }
 
 
@@ -132,16 +131,14 @@ rocblas_status testing_scal(Arguments argus)
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
-        {
+        if(argus.norm_check){
             rocblas_error = norm_check_general<T>('F', 1, N, incx, hz.data(), hx.data());
         }
 
     }// end of if unit/norm check
 
 
-    if(argus.timing)
-    {
+    if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
         if(argus.norm_check){
             printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);

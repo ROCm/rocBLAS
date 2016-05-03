@@ -38,7 +38,7 @@ extern "C" {
     /*  timing:*/
 
     /*! \brief  CPU Timer(in millisecond): synchronize with the default device and return wall time */
-    double rocblas_wtime( void ){
+    double get_time_ms( void ){
         hipDeviceSynchronize();
         struct timeval tv;
         gettimeofday(&tv, NULL);
@@ -48,7 +48,7 @@ extern "C" {
 
 
     /*! \brief  CPU Timer(in millisecond): synchronize with given queue/stream and return wall time */
-    double rocblas_sync_wtime( hipStream_t stream ){
+    double get_time_ms_sync( hipStream_t stream ){
         hipStreamSynchronize (stream);
         struct timeval tv;
         gettimeofday(&tv, NULL);

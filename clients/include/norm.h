@@ -9,14 +9,9 @@
 
 #include "rocblas.h"
 
-                    /* =====================================================================
-                         README: Two types of result checker are used
-                                 (1) Norm check: norm(A-B)/norm(A), evaluate relative error
-                                 (2) Google Unit check: ASSERT_EQ( elementof(A), elementof(B))
-
-                                 Numerically, (1) is recommended.
-                                 Yet, the default one is (2) in unit.h
-                        =================================================================== */
+/* =====================================================================
+        Norm check: norm(A-B)/norm(A), evaluate relative error
+    =================================================================== */
 
 
 /*!\file

@@ -96,7 +96,7 @@ rocblas_status testing_gemm(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = rocblas_wtime();// in miliseconds
+        gpu_time_used = get_time_ms();// in miliseconds
     }
 
 #if 0
@@ -116,22 +116,21 @@ rocblas_status testing_gemm(Arguments argus)
 #endif
  //    sleep(1);
     if(argus.timing){
-        gpu_time_used = rocblas_wtime() - gpu_time_used;
-        rocblas_gflops = gemm_gflops<T> (M, N, K) / gpu_time_used * 1e3;
+        gpu_time_used = get_time_ms() - gpu_time_used;
+        rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e3;
     }
 
     //copy output from device to CPU
     rocblas_get_matrix(M, N, sizeof(T), dC, ldc, hC.data(), ldc);
 
 
-    if(argus.unit_check || argus.norm_check)
-    {
+    if(argus.unit_check || argus.norm_check){
 
      /* =====================================================================
                  CPU BLAS
      =================================================================== */
-         if(argus.timing){
-            cpu_time_used = rocblas_wtime();
+        if(argus.timing){
+            cpu_time_used = get_time_ms();
         }
 
 
@@ -142,8 +141,8 @@ rocblas_status testing_gemm(Arguments argus)
                      beta, hC_copy.data(), ldc);
 
         if(argus.timing){
-            cpu_time_used = rocblas_wtime() - cpu_time_used;
-            cblas_gflops = gemm_gflops<T>(M, N, K) / cpu_time_used * 1e3;
+            cpu_time_used = get_time_ms() - cpu_time_used;
+            cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e3;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -154,15 +153,13 @@ rocblas_status testing_gemm(Arguments argus)
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
-        {
+        if(argus.norm_check){
             rocblas_error = norm_check_general<T>('F', M, N, lda, hC_copy.data(), hC.data());
         }
 
     }// end of if unit/norm check
 
-    if(argus.timing)
-    {
+    if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything,
             cout << "M, N, K, lda, ldb, ldc, rocblas-Gflops (ms) ";
             if(argus.norm_check){
@@ -219,8 +216,7 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_status status = rocblas_success;
 
     //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if( start < 0 || end < 0 || step < 0 || end < start )
-    {
+    if( start < 0 || end < 0 || step < 0 || end < start ){
         cout << "Invalid matrix dimension input, will return" << endl;
         return rocblas_invalid_dim;
     }
@@ -266,8 +262,7 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     ofstream myfile;
     myfile.open(filename);
-    if (myfile.is_open())
-    {
+    if (myfile.is_open()){
         myfile << "M, N, K, lda, ldb, ldc, rocblas-Gflops (ms) ";
         if(argus.norm_check){
             myfile << "CPU-Gflops(ms), norm-error" ;
@@ -275,8 +270,8 @@ rocblas_status range_testing_gemm(Arguments argus)
         myfile << endl;
     }
 
-    for(rocblas_int size = start; size <= end; size += step)
-    {
+    for(rocblas_int size = start; size <= end; size += step){
+        
         cout << "Benchmarking M:" << (int)size << ", N:"<< (int) size <<", K:" << (int)size << endl ;
 
         //make sure CPU and GPU routines see the same input
@@ -287,8 +282,8 @@ rocblas_status range_testing_gemm(Arguments argus)
              ROCBLAS
         =================================================================== */
 
-        gpu_time_used = rocblas_wtime();// in miliseconds
-        rocblas_gflops = gemm_gflops<T> (size, size, size) / gpu_time_used * 1e3 ;
+        gpu_time_used = get_time_ms();// in miliseconds
+        rocblas_gflops = gemm_gflop_count<T> (size, size, size) / gpu_time_used * 1e3 ;
 
     #if 0
         //library interface
@@ -306,19 +301,18 @@ rocblas_status range_testing_gemm(Arguments argus)
         }
     #endif
 
-        gpu_time_used = rocblas_wtime() - gpu_time_used;
+        gpu_time_used = get_time_ms() - gpu_time_used;
 
         //copy output from device to CPU
         rocblas_get_matrix(size, size, sizeof(T), dC, size, hC.data(), size);
 
-        if(argus.norm_check)
-        {
+        if(argus.norm_check){
 
              /* =====================================================================
                          CPU BLAS
              =================================================================== */
 
-            cpu_time_used = rocblas_wtime();
+            cpu_time_used = get_time_ms();
 
             cblas_gemm<T>(
                          transA, transB, size, size, size,
@@ -327,22 +321,19 @@ rocblas_status range_testing_gemm(Arguments argus)
                          beta, hC_copy.data(), size);
 
 
-            cpu_time_used = rocblas_wtime() - cpu_time_used;
+            cpu_time_used = get_time_ms() - cpu_time_used;
 
-            cblas_gflops = gemm_gflops<T> (size, size, size) / cpu_time_used * 1e3 ;
+            cblas_gflops = gemm_gflop_count<T> (size, size, size) / cpu_time_used * 1e3 ;
 
             //if enable norm check, norm check is invasive
             //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-            if(argus.norm_check)
-            {
+            if(argus.norm_check) {
                 rocblas_error = norm_check_general<T>('F', size, size, size, hC_copy.data(), hC.data());
-                //error.push_back (rocblas_error);
             }
 
         }// end of if unit/norm check
 
-        if (myfile.is_open())
-        {
+        if (myfile.is_open()){
         //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
             myfile << size <<','<< size <<',' << size <<',' << size <<','<< size <<',' << size <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
@@ -376,8 +367,7 @@ rocblas_status benchmark_gemm(Arguments argus)
         cout << endl;
         return testing_gemm<T>(argus);
     }
-    else
-    {
+    else{
         argus.timing = 1; //timing is enabled
         cout << "Range matrix size testing: output will be benchmark_xgemm_(transpose)_(begin)to(end)_(step).csv ..." << endl;
         cout << endl;

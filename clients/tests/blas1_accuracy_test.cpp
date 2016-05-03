@@ -23,13 +23,14 @@ using namespace std;
 typedef std::tuple<int, vector<double>, vector<int>> blas1_tuple;
 
 
-                    /* =====================================================================
-                         README: This file contains testers to verify the correctness of
-                                 BLAS routines with google test
+/* =====================================================================
+README: This file contains testers to verify the correctness of
+        BLAS routines with google test
 
-                                 It is supposed to be played/used by advance / expert users
-                                 Normal users only need to get the library routines without testers
-                               =================================================================== */
+        It is supposed to be played/used by advance / expert users
+        Normal users only need to get the library routines without testers
+      =================================================================== */
+      
 /*
 from ‘testing::internal::CartesianProductHolder3<testing::internal::ParamGenerator<int>,
 testing::internal::ParamGenerator<std::vector<double> >,
@@ -137,14 +138,11 @@ TEST_P(test_scal, scal_float)
     rocblas_status status = testing_scal<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_success)
-    {
-        if( arg.N < 0 )
-        {
+    if(status != rocblas_success){
+        if( arg.N < 0 ){
             EXPECT_EQ(rocblas_invalid_dim, status);
         }
-        else if( arg.incx < 0)
-        {
+        else if( arg.incx < 0){
             EXPECT_EQ(rocblas_invalid_incx, status);
         }
     }
