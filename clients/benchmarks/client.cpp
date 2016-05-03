@@ -54,14 +54,12 @@ int main(int argc, char *argv[])
     po::notify( vm );
 
 
-    if( vm.count( "help" ) )
-    {
+    if( vm.count( "help" ) ){
         std::cout << desc << std::endl;
         return 0;
     }
 
-    if( precision != 's' && precision != 'd' && precision != 'c' && precision != 'z' )
-    {
+    if( precision != 's' && precision != 'd' && precision != 'c' && precision != 'z' ){
         std::cerr << "Invalid value for --precision" << std::endl;
         return -1;
     }
@@ -77,13 +75,11 @@ int main(int argc, char *argv[])
     //Device Query
     rocblas_int device_count = query_device_property();
 
-    if(device_count <= device_id)
-    {
+    if(device_count <= device_id){
         printf("Error: invalid device ID. There may not be such device ID. Will exit \n");
         return -1;
     }
-    else
-    {
+    else{
         set_device(device_id);
     }
     /* ============================================================================================ */

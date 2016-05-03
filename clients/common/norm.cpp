@@ -35,10 +35,10 @@ extern "C" {
     double zlanhe_(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work);
 
 
-    void saxpy_(int* n, float* alpha, float* x, int* incx, float* y, int* incy);
-    void daxpy_(int* n, double* alpha, double* x, int* incx, double* y, int* incy);
-    void caxpy_(int* n, float* alpha, rocblas_float_complex* x, int* incx, rocblas_float_complex* y, int* incy);
-    void zaxpy_(int* n, double* alpha, rocblas_double_complex* x, int* incx, rocblas_double_complex* y, int* incy);
+    void   saxpy_(int* n, float* alpha, float* x, int* incx, float* y, int* incy);
+    void   daxpy_(int* n, double* alpha, double* x, int* incx, double* y, int* incy);
+    void   caxpy_(int* n, float* alpha, rocblas_float_complex* x, int* incx, rocblas_float_complex* y, int* incy);
+    void   zaxpy_(int* n, double* alpha, rocblas_double_complex* x, int* incx, rocblas_double_complex* y, int* incy);
 
 
 #ifdef __cplusplus

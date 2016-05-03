@@ -21,13 +21,13 @@ using namespace std;
 
 typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 
-                    /* =====================================================================
-                         README: This file contains testers to verify the correctness of
-                                 BLAS routines with google test
+/* =====================================================================
+README: This file contains testers to verify the correctness of
+        BLAS routines with google test
 
-                                 It is supposed to be played/used by advance / expert users
-                                 Normal users only need to get the library routines without testers
-                               =================================================================== */
+        It is supposed to be played/used by advance / expert users
+        Normal users only need to get the library routines without testers
+     =================================================================== */
 
 
 /* =====================================================================
@@ -158,22 +158,18 @@ TEST_P(test_gemm, test_gemm_float)
     rocblas_status status = testing_gemm<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_success)
-    {
-        if( arg.M < 0 || arg.N < 0 || arg.K < 0 )
-        {
+    if(status != rocblas_success){
+        
+        if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
             EXPECT_EQ(rocblas_invalid_dim, status);
         }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-        {
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
             EXPECT_EQ(rocblas_invalid_leadDimA, status);
         }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-        {
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
             EXPECT_EQ(rocblas_invalid_leadDimB, status);
         }
-        else if(arg.ldc < arg.M)
-        {
+        else if(arg.ldc < arg.M){
             EXPECT_EQ(rocblas_invalid_leadDimC, status);
         }
     }

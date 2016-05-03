@@ -97,11 +97,11 @@ rocblas_status testing_symv(Arguments argus)
            ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = rocblas_wtime();// in miliseconds
+        gpu_time_used = get_time_ms();// in miliseconds
     }
 
-    for(int iter=0;iter<10;iter++)
-    {
+    for(int iter=0;iter<10;iter++){
+        
         status = rocblas_symv<T>(handle,
                      uplo, N,
                      (T*)&alpha,
@@ -119,20 +119,19 @@ rocblas_status testing_symv(Arguments argus)
         }
     }
     if(argus.timing){
-        gpu_time_used = rocblas_wtime() - gpu_time_used;
-        rocblas_gflops = symv_gflops<T> (N) / gpu_time_used * 1e3 * 10;
+        gpu_time_used = get_time_ms() - gpu_time_used;
+        rocblas_gflops = symv_gflop_count<T> (N) / gpu_time_used * 1e3 * 10;
     }
 
     //copy output from device to CPU
     rocblas_get_vector(N, sizeof(T), dy, incy, hy.data(), incy);
 
-    if(argus.unit_check || argus.norm_check)
-    {
+    if(argus.unit_check || argus.norm_check){
         /* =====================================================================
            CPU BLAS
         =================================================================== */
         if(argus.timing){
-            cpu_time_used = rocblas_wtime();
+            cpu_time_used = get_time_ms();
         }
 
         cblas_symv<T>(uplo, N,
@@ -143,8 +142,8 @@ rocblas_status testing_symv(Arguments argus)
                hz.data(), incy);
 
         if(argus.timing){
-            cpu_time_used = rocblas_wtime() - cpu_time_used;
-            cblas_gflops = symv_gflops<T>(N) / cpu_time_used * 1e3;
+            cpu_time_used = get_time_ms() - cpu_time_used;
+            cblas_gflops = symv_gflop_count<T>(N) / cpu_time_used * 1e3;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -158,14 +157,12 @@ rocblas_status testing_symv(Arguments argus)
     }
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
-        {
+        if(argus.norm_check){
             rocblas_error = norm_check_general<T>('F', 1, N, incx, hz.data(), hz.data());
         }
     }
 
-    if(argus.timing)
-    {
+    if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
             cout << "N, lda, rocblas-Gflops (ms) ";
             if(argus.norm_check){

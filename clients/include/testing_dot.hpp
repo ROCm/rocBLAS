@@ -88,7 +88,7 @@ rocblas_status testing_dot(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = rocblas_wtime();// in miliseconds
+        gpu_time_used = get_time_ms();// in miliseconds
     }
 
      /* =====================================================================
@@ -119,19 +119,18 @@ rocblas_status testing_dot(Arguments argus)
     if(device_pointer)    CHECK_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
 
     if(argus.timing){
-        gpu_time_used = rocblas_wtime() - gpu_time_used;
+        gpu_time_used = get_time_ms() - gpu_time_used;
     }
 
     rocblas_get_vector(N, sizeof(T), dx, incx, hx.data(), incx);
 
-    if(argus.unit_check || argus.norm_check)
-    {
+    if(argus.unit_check || argus.norm_check){
 
      /* =====================================================================
                  CPU BLAS
      =================================================================== */
          if(argus.timing){
-            cpu_time_used = rocblas_wtime();
+            cpu_time_used = get_time_ms();
         }
 
         cblas_dot<T>(N,
@@ -139,7 +138,7 @@ rocblas_status testing_dot(Arguments argus)
                     hy.data(), incy, &cpu_result);
 
         if(argus.timing){
-            cpu_time_used = rocblas_wtime() - cpu_time_used;
+            cpu_time_used = get_time_ms() - cpu_time_used;
         }
 
 
@@ -149,8 +148,7 @@ rocblas_status testing_dot(Arguments argus)
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
-        {
+        if(argus.norm_check){
             printf("cpu=%f, gpu=%f\n", cpu_result, rocblas_result);
             rocblas_error = fabs((cpu_result - rocblas_result)/cpu_result);
         }
@@ -158,8 +156,7 @@ rocblas_status testing_dot(Arguments argus)
     }// end of if unit/norm check
 
 
-    if(argus.timing)
-    {
+    if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
         if(argus.norm_check){
             printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);

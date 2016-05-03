@@ -54,7 +54,7 @@ int main()
          ROCBLAS
     =================================================================== */
 
-    gpu_time_used = rocblas_wtime();// in miliseconds
+    gpu_time_used = get_time_ms();// in miliseconds
 
 
     //library interface
@@ -67,7 +67,7 @@ int main()
     }
 
 
-    gpu_time_used = rocblas_wtime() - gpu_time_used;
+    gpu_time_used = get_time_ms() - gpu_time_used;
 
     //copy output from device to CPU
     rocblas_get_vector(N, sizeof(float), dx, 1, hx.data(), 1);
