@@ -132,6 +132,7 @@ extern "C" {
 /*! \brief Class used to parse command arguments in both client & gtest   */
 
 // has to compile with option "-std=c++11", and this rocblas library uses c++11 everywhere
+// c++11 allows intilization of member of a struct
 
 class Arguments {
     public:
@@ -202,7 +203,7 @@ class Arguments {
         return *this;
     }
 
-} ;
+};
 
 
 
