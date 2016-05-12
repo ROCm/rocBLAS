@@ -74,24 +74,4 @@
     } rocblas_status;
 
 
-    /**
-     * @brief: rocblas wrapper for hipMalloc
-     *
-     * Perform automatic type conversion to eliminate need for excessive typecasting (ie void**)
-     *
-     */
-    #ifdef __cplusplus
-    template<class T>
-    static inline rocblas_status rocblas_malloc_device ( T** devPtr, size_t size)
-    {
-        return (rocblas_status)hipMalloc(devPtr, size);
-    }
-    #endif
-
-  /*
-    rocblas_status rocblas_free_device(void* ptr)
-    {
-        return (rocblas_status)hipFree(ptr);
-    }
-  */
 #endif
