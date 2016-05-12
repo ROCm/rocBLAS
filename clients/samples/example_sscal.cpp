@@ -46,7 +46,7 @@ int main()
     //copy vector is easy in SfloatL; hz = hx: save a copy in hz which will be output of CPU BLAS
     hz = hx;
 
-    rocblas_set_vector(N, sizeof(float), hx.data(), 1, dx, 1);
+    hipMemcpy(dx, hx.data(), sizeof(float)*N, hipMemcpyHostToDevice);
 
     printf("N    rocblas    (ms)     \n");
 
@@ -70,7 +70,7 @@ int main()
     gpu_time_used = get_time_ms() - gpu_time_used;
 
     //copy output from device to CPU
-    rocblas_get_vector(N, sizeof(float), dx, 1, hx.data(), 1);
+    hipMemcpy(hx.data(), dx, sizeof(float)*N, hipMemcpyDeviceToHost);
 
     for(int i=0;i<10;i++){
         printf("hx[%d]=%f   ", i, hx.data()[i]);
