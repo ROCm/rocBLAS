@@ -74,10 +74,8 @@ rocblas_status testing_dot(Arguments argus)
     rocblas_init<T>(hy, 1, N, incy);
 
     //copy data from CPU to device, does not work for incx != 1
-
-    rocblas_set_vector(N, sizeof(T), hx.data(), incx, dx, incx);
-    rocblas_set_vector(N, sizeof(T), hy.data(), incy, dy, incy);
-
+    hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice);
+    hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice);
 
     if(argus.timing){
         printf("dot     N    rocblas    (ms)     CPU (ms)     error\n");
@@ -122,7 +120,6 @@ rocblas_status testing_dot(Arguments argus)
         gpu_time_used = get_time_ms() - gpu_time_used;
     }
 
-    rocblas_get_vector(N, sizeof(T), dx, incx, hx.data(), incx);
 
     if(argus.unit_check || argus.norm_check){
 
