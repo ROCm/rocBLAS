@@ -12,7 +12,7 @@
 
     /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
     can not recoginize it is on host or not */
-    rocblas_pointer_type rocblas_get_pointer_type(void *ptr){
+    rocblas_mem_location rocblas_get_pointer_location(void *ptr){
         hipPointerAttribute_t attribute;
         hipPointerGetAttributes(&attribute, ptr);
         //if( rocblas_success != (rocblas_status)hipPointerGetAttributes(&attribute, ptr) ){
