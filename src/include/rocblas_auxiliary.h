@@ -27,9 +27,11 @@
     can not recoginize it is on host or not */
     rocblas_mem_location rocblas_get_pointer_location(void *ptr);
 
+
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
     /*! \brief   create rocblas handle called before any rocblas library routines*/
     rocblas_status rocblas_create(rocblas_handle *handle);
@@ -37,5 +39,9 @@ extern "C" {
     /*! \brief   release rocblas handle, will implicitly synchronize host and device */
     rocblas_status rocblas_destroy(rocblas_handle handle);
 
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif  /* _ROCBLAS_AUXILIARY_H_ */
