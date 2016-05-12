@@ -64,9 +64,9 @@ rocblas_status testing_dot(Arguments argus)
     rocblas_create(&handle);
 
     //allocate memory on device
-    CHECK_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
-    CHECK_ERROR(hipMalloc(&dy, sizeY * sizeof(T)));
-    CHECK_ERROR(hipMalloc(&d_rocblas_result, sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, sizeY * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -107,14 +107,14 @@ rocblas_status testing_dot(Arguments argus)
     }
 
     if (status != rocblas_success) {
-        CHECK_ERROR(hipFree(dx));
-        CHECK_ERROR(hipFree(dy));
-        CHECK_ERROR(hipFree(d_rocblas_result));
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        CHECK_HIP_ERROR(hipFree(d_rocblas_result));
         rocblas_destroy(handle);
         return status;
     }
 
-    if(device_pointer)    CHECK_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
+    if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
 
     if(argus.timing){
         gpu_time_used = get_time_ms() - gpu_time_used;
@@ -163,9 +163,9 @@ rocblas_status testing_dot(Arguments argus)
         }
     }
 
-    CHECK_ERROR(hipFree(dx));
-    CHECK_ERROR(hipFree(dy));
-    CHECK_ERROR(hipFree(d_rocblas_result));
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dy));
+    CHECK_HIP_ERROR(hipFree(d_rocblas_result));
     rocblas_destroy(handle);
     return rocblas_success;
 }

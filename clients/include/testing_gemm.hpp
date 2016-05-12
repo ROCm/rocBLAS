@@ -73,9 +73,9 @@ rocblas_status testing_gemm(Arguments argus)
     T *dA, *dB, *dC;
 
     //allocate memory on device
-    hipMalloc(&dA, A_size * sizeof(T));
-    hipMalloc(&dB, B_size * sizeof(T));
-    hipMalloc(&dC, C_size * sizeof(T));
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -87,9 +87,9 @@ rocblas_status testing_gemm(Arguments argus)
     hC_copy = hC;
 
     //copy data from CPU to device, does not work for lda != A_row
-    hipMemcpy(dA, hA.data(), sizeof(T)*lda*A_col,  hipMemcpyHostToDevice);
-    hipMemcpy(dB, hB.data(), sizeof(T)*ldb*B_col,  hipMemcpyHostToDevice);
-    hipMemcpy(dC, hC.data(), sizeof(T)*ldc*N,      hipMemcpyHostToDevice);
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*lda*A_col,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*ldb*B_col,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*ldc*N,      hipMemcpyHostToDevice));
 
     /* =====================================================================
          ROCBLAS
@@ -120,7 +120,7 @@ rocblas_status testing_gemm(Arguments argus)
     }
 
     //copy output from device to CPU
-    hipMemcpy(dC.data(), dC, sizeof(T)*ldc*N,      hipMemcpyDeviceToHost);
+    CHECK_HIP_ERROR(hipMemcpy(dC.data(), dC, sizeof(T)*ldc*N,      hipMemcpyDeviceToHost));
 
 
     if(argus.unit_check || argus.norm_check){
@@ -176,10 +176,9 @@ rocblas_status testing_gemm(Arguments argus)
             cout << endl;
     }
 
-    //rocblas_free_device(dx);
-    hipFree(dA);
-    hipFree(dB);
-    hipFree(dC);
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy(handle);
     return rocblas_success;
@@ -234,9 +233,9 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_create(&handle);
 
     //allocate memory on device
-    hipMalloc(&dA, A_size * sizeof(T));
-    hipMalloc(&dB, B_size * sizeof(T));
-    hipMalloc(&dC, C_size * sizeof(T));
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
 
     //rocblas_malloc_device(&dx, sizeX * sizeof(T));
 
@@ -250,8 +249,8 @@ rocblas_status range_testing_gemm(Arguments argus)
     hC_copy = hC;
 
     //copy data from CPU to device
-    hipMemcpy(dA, hA.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice);
-    hipMemcpy(dB, hB.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice);
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice));
 
     char precision = type2char<T>(); // like turn float-> 's'
 
@@ -274,7 +273,7 @@ rocblas_status range_testing_gemm(Arguments argus)
 
         //make sure CPU and GPU routines see the same input
         hC = hC_copy;
-        hipMemcpy(dC, hC.data(), sizeof(T)*size*size,      hipMemcpyHostToDevice);
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*size*size,      hipMemcpyHostToDevice));
 
         /* =====================================================================
              ROCBLAS
@@ -346,9 +345,9 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     if (myfile.is_open()) myfile.close();
 
-    hipFree(dA);
-    hipFree(dB);
-    hipFree(dC);
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy(handle);
     return rocblas_success;

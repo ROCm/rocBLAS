@@ -57,7 +57,7 @@ rocblas_status testing_scal(Arguments argus)
     rocblas_create(&handle);
 
     //allocate memory on device
-    CHECK_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -87,7 +87,7 @@ rocblas_status testing_scal(Arguments argus)
                     &alpha,
                     dx, incx);
     if (status != rocblas_success) {
-        CHECK_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dx));
         rocblas_destroy(handle);
         return status;
     }
@@ -149,7 +149,7 @@ rocblas_status testing_scal(Arguments argus)
     }
 
 
-    CHECK_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dx));
     rocblas_destroy(handle);
     return rocblas_success;
 }
