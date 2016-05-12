@@ -26,8 +26,5 @@
 #include "rocblas_netlib.h"
 #include "rocblas_netlib_batched.h"
 
-/* Advance expert interfaces */
-#include "rocblas_expert.h"
-
 
 #endif // _ROCBLAS_H_
