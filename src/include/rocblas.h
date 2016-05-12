@@ -21,7 +21,7 @@
 #include "rocblas_hip.h"
 
 /* Publis APIs */
-#include "rocblas_auxilary.h"
+#include "rocblas_auxiliary.h"
 #include "rocblas_template_api.h"
 #include "rocblas_netlib.h"
 #include "rocblas_netlib_batched.h"

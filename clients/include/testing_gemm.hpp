@@ -120,7 +120,7 @@ rocblas_status testing_gemm(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(dC.data(), dC, sizeof(T)*ldc*N,      hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T)*ldc*N,      hipMemcpyDeviceToHost));
 
 
     if(argus.unit_check || argus.norm_check){
