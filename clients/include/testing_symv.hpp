@@ -75,9 +75,9 @@ rocblas_status testing_symv(Arguments argus)
     rocblas_create(&handle);
 
     //allocate memory on device
-    CHECK_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_ERROR(hipMalloc(&dx, X_size * sizeof(T)));
-    CHECK_ERROR(hipMalloc(&dy, Y_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, X_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, Y_size * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -111,9 +111,9 @@ rocblas_status testing_symv(Arguments argus)
                      dy, incy);
 
         if (status != rocblas_success) {
-            CHECK_ERROR(hipFree(dA));
-            CHECK_ERROR(hipFree(dx));
-            CHECK_ERROR(hipFree(dy));
+            CHECK_HIP_ERROR(hipFree(dA));
+            CHECK_HIP_ERROR(hipFree(dx));
+            CHECK_HIP_ERROR(hipFree(dy));
             rocblas_destroy(handle);
             return status;
         }
@@ -180,9 +180,9 @@ rocblas_status testing_symv(Arguments argus)
             cout << endl;
     }
 
-    CHECK_ERROR(hipFree(dA));
-    CHECK_ERROR(hipFree(dx));
-    CHECK_ERROR(hipFree(dy));
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dy));
     rocblas_destroy(handle);
     return rocblas_success;
 }
