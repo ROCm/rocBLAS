@@ -88,7 +88,7 @@ rocblas_scal_template(rocblas_handle handle,
     //There is a bug in thread block configuration (256,1,1) -> (1,1,256) internally
     dim3 threads(NB_X, 1, 1);
 
-    if( rocblas_get_pointer_type((void*)alpha) == DEVICE_POINTER ){
+    if( rocblas_get_pointer_location((void*)alpha) == DEVICE_POINTER ){
         hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar), dim3(blocks), dim3(threads), 0, 0 , n, alpha, x, incx);
     }
     else{
