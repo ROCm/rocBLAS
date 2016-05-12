@@ -89,9 +89,9 @@ rocblas_status testing_symv(Arguments argus)
     hz = hy;
 
     //copy data from CPU to device
-    rocblas_set_matrix(N, N, sizeof(T), hA.data(), lda, dA, lda);
-    rocblas_set_vector(N, sizeof(T), hx.data(), incx, dx, incx);
-    rocblas_set_vector(N, sizeof(T), hy.data(), incy, dy, incy);
+    hipMemcpy(dA, hA.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice);
+    hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice);
+    hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice);
 
     /* =====================================================================
            ROCBLAS
@@ -100,8 +100,8 @@ rocblas_status testing_symv(Arguments argus)
         gpu_time_used = get_time_ms();// in miliseconds
     }
 
-    for(int iter=0;iter<10;iter++){
-        
+    for(int iter=0;iter<1;iter++){
+
         status = rocblas_symv<T>(handle,
                      uplo, N,
                      (T*)&alpha,
@@ -120,11 +120,11 @@ rocblas_status testing_symv(Arguments argus)
     }
     if(argus.timing){
         gpu_time_used = get_time_ms() - gpu_time_used;
-        rocblas_gflops = symv_gflop_count<T> (N) / gpu_time_used * 1e3 * 10;
+        rocblas_gflops = symv_gflop_count<T> (N) / gpu_time_used * 1e3 * 1;
     }
 
     //copy output from device to CPU
-    rocblas_get_vector(N, sizeof(T), dy, incy, hy.data(), incy);
+    hipMemcpy(hy.data(), dy, sizeof(T)*N*incy, hipMemcpyDeviceToHost);
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -152,13 +152,13 @@ rocblas_status testing_symv(Arguments argus)
             unit_check_general<T>(1, N, incy, hz.data(), hy.data());
         }
 
-    for(int i=0; i<10; i++){
-    //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hy[i]);
+    for(int i=0; i<32; i++){
+        printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hy[i]);
     }
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', 1, N, incx, hz.data(), hz.data());
+            rocblas_error = norm_check_general<T>('F', 1, N, incy, hz.data(), hy.data());
         }
     }
 

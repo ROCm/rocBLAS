@@ -67,8 +67,8 @@ rocblas_status testing_scal(Arguments argus)
     hz = hx;
 
     //copy data from CPU to device, does not work for incx != 1
+    hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice);
 
-    rocblas_set_vector(N, sizeof(T), hx.data(), incx, dx, incx);
 
     if(argus.timing){
         printf("SCAL     N    rocblas    (ms)     CPU (ms)     error\n");
@@ -97,7 +97,7 @@ rocblas_status testing_scal(Arguments argus)
     }
 
         //copy output from device to CPU
-    rocblas_get_vector(N, sizeof(T), dx, incx, hx.data(), incx);
+    hipMemcpy(hx.data(), dx, sizeof(T)*N*incx, hipMemcpyDeviceToHost);
 
 
     if(argus.unit_check || argus.norm_check){

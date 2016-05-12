@@ -87,10 +87,9 @@ rocblas_status testing_gemm(Arguments argus)
     hC_copy = hC;
 
     //copy data from CPU to device, does not work for lda != A_row
-
-    rocblas_set_matrix(A_row, A_col, sizeof(T), hA.data(), lda, dA, lda);
-    rocblas_set_matrix(B_row, B_col, sizeof(T), hB.data(), ldb, dB, ldb);
-    rocblas_set_matrix(M, N, sizeof(T), hC.data(), ldc, dC, ldc);
+    hipMemcpy(dA, hA.data(), sizeof(T)*lda*A_col,  hipMemcpyHostToDevice);
+    hipMemcpy(dB, hB.data(), sizeof(T)*ldb*B_col,  hipMemcpyHostToDevice);
+    hipMemcpy(dC, hC.data(), sizeof(T)*ldc*N,      hipMemcpyHostToDevice);
 
     /* =====================================================================
          ROCBLAS
@@ -121,7 +120,7 @@ rocblas_status testing_gemm(Arguments argus)
     }
 
     //copy output from device to CPU
-    rocblas_get_matrix(M, N, sizeof(T), dC, ldc, hC.data(), ldc);
+    hipMemcpy(dC.data(), dC, sizeof(T)*ldc*N,      hipMemcpyDeviceToHost);
 
 
     if(argus.unit_check || argus.norm_check){
@@ -250,10 +249,9 @@ rocblas_status range_testing_gemm(Arguments argus)
     //copy vector is easy in STL; hz = hx: save a copy in hC_copy which will be output of CPU BLAS
     hC_copy = hC;
 
-    //copy data from CPU to device, does not work for lda != A_row
-
-    rocblas_set_matrix(end, end, sizeof(T), hA.data(), end, dA, end);
-    rocblas_set_matrix(end, end, sizeof(T), hB.data(), end, dB, end);
+    //copy data from CPU to device
+    hipMemcpy(dA, hA.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice);
+    hipMemcpy(dB, hB.data(), sizeof(T)*end*end,  hipMemcpyHostToDevice);
 
     char precision = type2char<T>(); // like turn float-> 's'
 
@@ -271,12 +269,12 @@ rocblas_status range_testing_gemm(Arguments argus)
     }
 
     for(rocblas_int size = start; size <= end; size += step){
-        
+
         cout << "Benchmarking M:" << (int)size << ", N:"<< (int) size <<", K:" << (int)size << endl ;
 
         //make sure CPU and GPU routines see the same input
         hC = hC_copy;
-        rocblas_set_matrix(size, size, sizeof(T), hC.data(), size, dC, size);
+        hipMemcpy(dC, hC.data(), sizeof(T)*size*size,      hipMemcpyHostToDevice);
 
         /* =====================================================================
              ROCBLAS
@@ -304,7 +302,7 @@ rocblas_status range_testing_gemm(Arguments argus)
         gpu_time_used = get_time_ms() - gpu_time_used;
 
         //copy output from device to CPU
-        rocblas_get_matrix(size, size, sizeof(T), dC, size, hC.data(), size);
+        hipMemcpy(hC.data(), dC, sizeof(T)*size*size,      hipMemcpyDeviceToHost);
 
         if(argus.norm_check){
 
