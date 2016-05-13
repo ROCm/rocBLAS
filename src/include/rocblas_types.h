@@ -52,10 +52,9 @@ extern "C" {
 
     /*! \brief Used to specify whether the matrix is to be transposed or not. */
     typedef enum rocblas_trans_ {
-        rocblas_no_trans   = 111,           /**< Operate with the matrix. */
-        rocblas_trans      = 112,           /**< Operate with the transpose of the matrix. */
-        rocblas_conj_trans = 113            /**< Operate with the conjugate transpose of
-                                         the matrix. */
+        rocblas_transpose_none      = 111,           /**< Operate with the matrix. */
+        rocblas_transpose_transpose = 112,           /**< Operate with the transpose of the matrix. */
+        rocblas_transpose_conjugate = 113            /**< Operate with the conjugate transpose of the matrix. */
     } rocblas_transpose;
 
     /*! \brief Used by the Hermitian, symmetric and triangular matrix
@@ -90,6 +89,48 @@ extern "C" {
 
 
     /* ============================================================================================ */
+    /**
+     *   @brief rocblas error codes definition, incorporating HIP error
+     *   definitions.
+     *
+     *   This enumeration is a subset of the HIP error codes extended with some
+     *   additional extra codes.  For example, hipErrorMemoryAllocation, which is
+     *   defined in hip_runtime_api.h is aliased as rocblas_error_memory_allocation.
+     */
+    typedef enum rocblas_status_ {
+
+
+        rocblas_success                       =    0, //hipSuccess                  ///< Successful completion.
+        rocblas_error_memory_allocation       =    1, //hipErrorMemoryAllocation,        ///< Memory allocation error.
+        rocblas_error_memory_free             =    2, //hipErrorMemoryFree,              ///< Memory free error.
+        rocblas_error_unknown_symbol          =    3, // hipErrorUnknownSymbol,           ///< Unknown symbol
+        rocblas_error_outof_resources         =    4, // hipErrorOutOfResources          ///< Out of resources error
+        rocblas_error_invalid_value           =    5, //hipErrorInvalidValue            ///< One or more of the paramters passed to the API call is NULL or not in an acceptable range.
+        rocblas_error_invalid_resource_handle =    6, //hipErrorInvalidResourceHandle   ///< Resource handle (hipEvent_t or hipStream_t) invalid.
+        rocblas_error_invalid_device          =    7, //hipErrorInvalidDevice           ///< DeviceID must be in range 0...#compute-devices.
+        rocblas_error_no_device               =    8, //hipErrorNoDevice                ///< Call to cudaGetDeviceCount returned 0 devices
+        rocblas_error_not_ready               =    9, //hipErrorNotReady                ///< indicates that asynchronous operations enqueued earlier are not ready.
+                                                                                 /// This is not actually an error, but is used to distinguish from hipSuccess(which indicates completion).
+                                                                                 /// APIs that return this error include hipEventQuery and hipStreamQuery.
+        /* Extended error codes */
+        rocblas_not_implemented         = -1024, /**< Functionality is not implemented */
+        rocblas_not_initialized,                 /**< rocblas library is not initialized yet */
+        rocblas_invalid_matA,                    /**< Matrix A is not a valid memory object */
+        rocblas_invalid_matB,                    /**< Matrix B is not a valid memory object */
+        rocblas_invalid_matC,                    /**< Matrix C is not a valid memory object */
+        rocblas_invalid_vecX,                    /**< Vector X is not a valid memory object */
+        rocblas_invalid_becY,                    /**< Vector Y is not a valid memory object */
+        rocblas_invalid_dim,                     /**< An input dimension (M,N,K) is invalid */
+        rocblas_invalid_leadDimA,                /**< Leading dimension A must not be less than the size of the first dimension */
+        rocblas_invalid_leadDimB,                /**< Leading dimension B must not be less than the size of the second dimension */
+        rocblas_invalid_leadDimC,                /**< Leading dimension C must not be less than the size of the third dimension */
+        rocblas_invalid_incx,                    /**< The increment for a vector X must not be 0 */
+        rocblas_invalid_incy,                    /**< The increment for a vector Y must not be 0 */
+
+        rocblas_status_success,
+        rocblas_status_invalid_parameter,
+        rocblas_status_internal_error
+    } rocblas_status;
 
 
     /*! \brief Indicates the precision width of data stored in a blas type. */
