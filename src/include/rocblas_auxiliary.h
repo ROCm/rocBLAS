@@ -33,12 +33,43 @@ extern "C" {
 #endif
 
 
-    /*! \brief   create rocblas handle called before any rocblas library routines*/
-    rocblas_status rocblas_create(rocblas_handle *handle);
+/********************************************************************************
+ * \brief rocblas_handle is a structure holding the rocblas library context.
+ * It must be initialized using rocblas_control_create()
+ * and the returned handle must be passed
+ * to all subsequent library function calls.
+ * It should be destroyed at the end using rocblas_control_destroy().
+ *******************************************************************************/
+rocblas_status
+rocblas_create_handle( rocblas_handle *handle);
 
-    /*! \brief   release rocblas handle, will implicitly synchronize host and device */
-    rocblas_status rocblas_destroy(rocblas_handle handle);
 
+/********************************************************************************
+ * \brief destroy handle
+ *******************************************************************************/
+rocblas_status
+rocblas_destroy_handle( rocblas_handle handle);
+
+
+/********************************************************************************
+ * \brief add stream to handle
+ *******************************************************************************/
+rocblas_status
+rocblas_add_stream( rocblas_handle handle, hipStream_t stream );
+
+
+/********************************************************************************
+ * \brief remove any streams from handle, and add one
+ *******************************************************************************/
+rocblas_status
+rocblas_set_stream( rocblas_handle handle, hipStream_t stream );
+
+
+/********************************************************************************
+ * \brief get stream [0] from handle
+ *******************************************************************************/
+rocblas_status
+rocblas_get_stream( rocblas_handle handle, hipStream_t *stream );
 
 #ifdef __cplusplus
 }
