@@ -131,8 +131,8 @@ configure_file( "${PROJECT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_
 
 set( rocblas_headers_public
   include/rocblas.h
-  include/rocblas-types.h
-  include/rocblas-expert.h
+  include/rocblas_types.h
+  include/rocblas_expert.h
   ${PROJECT_BINARY_DIR}/include/rocblas-version.h
 )
 

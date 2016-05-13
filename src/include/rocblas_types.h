@@ -1,5 +1,6 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
+ *
  * ************************************************************************ */
 
 /*!\file
@@ -13,34 +14,24 @@
 
 #include <stddef.h>
 #include <stdint.h>
-// #include <hip_runtime_api.h>
 
 
 /*! \file
  * \brief rocblas_types.h defines data types used by rocblas
  */
 
-/*
- * ===========================================================================
- *   README: rocblas Wrapper of HIP data types and APIs
- *   HIP is still under development. Developers of rocblas are encouraged to use rocblas APIs
- *   in their code, in case HIP APIs would be changed in the future.
- * ===========================================================================
- */
 
- /*! \brief To specify whether int32 or int64 is used
-  */
- #if defined( rocblas_ILP64 )
-   typedef int64_t rocblas_int;
- #else
-   typedef int32_t rocblas_int;
- #endif
+    /*! \brief To specify whether int32 or int64 is used
+     */
 
-typedef rocblas_int rocblas_queue;
-typedef rocblas_int  rocblas_event;
-typedef rocblas_queue rocblas_handle;
 
-typedef void* rocblas_control;
+    #if defined( rocblas_ILP64 )
+    typedef int64_t rocblas_int;
+    #else
+    typedef int32_t rocblas_int;
+    #endif
+
+    typedef void* rocblas_control;
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,119 +87,31 @@ extern "C" {
     } rocblas_side;
 
 
+
+
+    /* ============================================================================================ */
+
+
     /*! \brief Indicates the precision width of data stored in a blas type. */
     typedef enum rocblas_precision_ {
-      rocblas_single = 151,
-      rocblas_double = 152,
-      rocblas_single_complex = 153,
-      rocblas_double_complex = 154
+      rocblas_single_ = 151,
+      rocblas_double_ = 152,
+      rocblas_single_complex_ = 153,
+      rocblas_double_complex_ = 154
     } rocblas_precision;
 
-    /* ============================================================================================ */
-    /**
-     *   @brief rocblas error codes definition, incorporating HIP error
-     *   definitions.
-     *
-     *   This enumeration is a subset of the HIP error codes extended with some
-     *   additional extra codes.  For example, hipErrorMemoryAllocation, which is
-     *   defined in hip_runtime_api.h is aliased as rocblas_error_memory_allocation.
-     */
-    typedef enum rocblas_status_ {
 
-        rocblas_success                       =    0, //hipSuccess                  ///< Successful completion.
-        rocblas_error_memory_allocation       =    1, //hipErrorMemoryAllocation,        ///< Memory allocation error.
-        rocblas_error_memory_free             =    2, //hipErrorMemoryFree,              ///< Memory free error.
-        rocblas_error_unknown_symbol          =    3, // hipErrorUnknownSymbol,           ///< Unknown symbol
-        rocblas_error_outof_resources         =    4, // hipErrorOutOfResources          ///< Out of resources error
-        rocblas_error_invalid_value           =    5, //hipErrorInvalidValue            ///< One or more of the paramters passed to the API call is NULL or not in an acceptable range.
-        rocblas_error_invalid_resource_handle =    6, //hipErrorInvalidResourceHandle   ///< Resource handle (hipEvent_t or hipStream_t) invalid.
-        rocblas_error_invalid_device          =    7, //hipErrorInvalidDevice           ///< DeviceID must be in range 0...#compute-devices.
-        rocblas_error_no_device               =    8, //hipErrorNoDevice                ///< Call to cudaGetDeviceCount returned 0 devices
-        rocblas_error_not_ready               =    9, //hipErrorNotReady                ///< indicates that asynchronous operations enqueued earlier are not ready.
-                                                                                 /// This is not actually an error, but is used to distinguish from hipSuccess(which indicates completion).
-                                                                                 /// APIs that return this error include hipEventQuery and hipStreamQuery.
-        /* Extended error codes */
-        rocblas_not_implemented         = -1024, /**< Functionality is not implemented */
-        rocblas_not_initialized,                 /**< rocblas library is not initialized yet */
-        rocblas_invalid_matA,                    /**< Matrix A is not a valid memory object */
-        rocblas_invalid_matB,                    /**< Matrix B is not a valid memory object */
-        rocblas_invalid_matC,                    /**< Matrix C is not a valid memory object */
-        rocblas_invalid_vecX,                    /**< Vector X is not a valid memory object */
-        rocblas_invalid_becY,                    /**< Vector Y is not a valid memory object */
-        rocblas_invalid_dim,                     /**< An input dimension (M,N,K) is invalid */
-        rocblas_invalid_leadDimA,                /**< Leading dimension A must not be less than the size of the first dimension */
-        rocblas_invalid_leadDimB,                /**< Leading dimension B must not be less than the size of the second dimension */
-        rocblas_invalid_leadDimC,                /**< Leading dimension C must not be less than the size of the third dimension */
-        rocblas_invalid_incx,                    /**< The increment for a vector X must not be 0 */
-        rocblas_invalid_incy,                    /**< The increment for a vector Y must not be 0 */
-    } rocblas_status;
+    /*! \brief Indicates the pointer is device pointer or host pointer */
+    typedef enum rocblas_mem_location_ {
+      DEVICE_POINTER = 1,
+      HOST_POINTER = 0
+  } rocblas_mem_location;
 
-
-
-    /* ============================================================================================ */
-
-    /*! \brief  HIP & CUDA both use float2/double2 to define complex number
-     */
-    // typedef float2 rocblas_float_complex
-    // typedef double2 rocblas_double_complex
-
-    #define rocblas_ONE 1
-    #define rocblas_NEG_ONE -1
-    #define rocblas_ZERO 0
-
-    #define rocblas_Z_MAKE(r,i)
-    #define rocblas_Z_REAL(a)       (a).x
-    #define rocblas_Z_IMAG(a)       (a).y
-    #define rocblas_Z_ADD(a, b)
-    #define rocblas_Z_SUB(a, b)
-    #define rocblas_Z_MUL(a, b)
-    #define rocblas_Z_DIV(a, b)
-    #define rocblas_Z_ABS(a)
-    #define rocblas_Z_ABS1(a)       (fabs((a).x) + fabs((a).y))
-    #define rocblas_Z_CONJ(a)
-
-    #define rocblas_C_MAKE(r,i)
-    #define rocblas_C_REAL(a)       (a).x
-    #define rocblas_C_IMAG(a)       (a).y
-    #define rocblas_C_ADD(a, b)
-    #define rocblas_C_SUB(a, b)
-    #define rocblas_C_MUL(a, b)
-    #define rocblas_C_DIV(a, b)
-    #define rocblas_C_ABS(a)
-    #define rocblas_C_ABS1(a)       (fabsf((a).x) + fabsf((a).y))
-    #define rocblas_C_CONJ(a)
 
 #ifdef __cplusplus
 }
 #endif
 
-
-/* ============================================================================================ */
-
-/*! \brief Struct used to parse command line arguments in testing. */
-
-struct arguments {
-    rocblas_int M;
-    rocblas_int N;
-    rocblas_int K;
-
-    rocblas_int start;
-    rocblas_int end;
-    rocblas_int step;
-
-    double alpha;
-    double beta;
-
-    char transA_option;
-    char transB_option;
-    char side_option;
-    char uplo_option;
-    char diag_option;
-
-    rocblas_int apiCallCount;
-    rocblas_int order_option;
-    rocblas_int validate;
-} ;
 
 
 /* ============================================================================================ */
