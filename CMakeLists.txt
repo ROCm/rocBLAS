@@ -81,10 +81,24 @@ endif( )
 if( BUILD_LIBRARY )
   include( src/cmake/build-options.cmake )
 
+  # defines 
+  # Cobalt_INCLUDE_DIRS
+  # CobaltLib_LIBRARIES
+  # CobaltLogger_LIBRARIES
+
+  include( cmake/external-Cobalt.cmake )
+  MESSAGE( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
+  MESSAGE( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
+
 	set( LIBRARY_CMAKE_ARGS
 	 ${BASE_CMAKE_ARGS}
 	-DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
-	-DBUILD_LIBRARY_UNICODE=${BUILD_LIBRARY_UNICODE} )
+	-DBUILD_LIBRARY_UNICODE=${BUILD_LIBRARY_UNICODE}
+  -DCobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}
+  -DCobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}
+  -DCobaltLogger_LIBRARIES=${CobaltLogger_LIBRARIES}
+  -DCobalt_BACKEND_HIP=1
+  )
 
   # Build the library as an external project
   ExternalProject_Add( rocblas

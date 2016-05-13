@@ -18,7 +18,7 @@ ExternalProject_Add(
   GIT_REPOSITORY ${hip_git_repository}
   GIT_TAG ${hip_git_tag}
   PREFIX ${CMAKE_BINARY_DIR}/extern/hip
-  CONFIGURE_COMMAND ""
+  CMAKE_CACHE_ARGS ""
   BUILD_COMMAND HIPCC_FLAGS=-fPIC make
   BUILD_IN_SOURCE 1
   INSTALL_COMMAND ""

@@ -45,6 +45,12 @@ target_include_directories( rocblas
           $<INSTALL_INTERFACE:include>
 )
 
+# Cobalt
+MESSAGE( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
+include_directories( ${Cobalt_INCLUDE_DIRS} )
+target_link_libraries( rocblas ${CobaltLib_LIBRARIES} )
+add_definitions( -DCobalt_BACKEND_HIP=1 )
+
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
