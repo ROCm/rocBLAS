@@ -31,7 +31,7 @@
     typedef int32_t rocblas_int;
     #endif
 
-    typedef void* rocblas_control;
+    typedef struct _rocblas_handle * rocblas_handle;
 
 #ifdef __cplusplus
 extern "C" {
@@ -147,7 +147,6 @@ extern "C" {
       DEVICE_POINTER = 1,
       HOST_POINTER = 0
   } rocblas_mem_location;
-
 
 #ifdef __cplusplus
 }

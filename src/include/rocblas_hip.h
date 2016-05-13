@@ -9,21 +9,11 @@
 
 #include <hip_runtime.h>
 #include <hip_vector_types.h>
+#include "rocblas_types.h"
 
 /*!\file
  * \brief ROCBLAS data types must inherit from HIP:
  */
-
-    /* \brief rocblas_handle is a structure holding the rocblas library context.
-        It must be initialized using rocblas_create() and the returned handle must be passed to all subsequent library function calls.
-        It should be destroyed at the end using rocblas_destroy().
-    */
-    class rocblas_handle
-    {
-        public:
-            rocblas_int device_id;
-            hipStream_t stream;
-    };
 
 
     /*! \brief  HIP & CUDA both use float2/double2 to define complex number
@@ -42,6 +32,7 @@
      *   additional extra codes.  For example, hipErrorMemoryAllocation, which is
      *   defined in hip_runtime_api.h is aliased as rocblas_error_memory_allocation.
      */
+#if 0
     typedef enum rocblas_status_ {
 
         rocblas_success                       =    hipSuccess ,                  ///< Successful completion.
@@ -72,6 +63,6 @@
         rocblas_invalid_incx,                    /**< The increment for a vector X must not be 0 */
         rocblas_invalid_incy,                    /**< The increment for a vector Y must not be 0 */
     } rocblas_status;
-
+#endif
 
 #endif

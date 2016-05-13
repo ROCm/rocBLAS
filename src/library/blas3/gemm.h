@@ -1,5 +1,5 @@
 
-CobaltTensor initializeTensorForGEMM(
+void initializeTensorForGEMM(
     CobaltTensor & tensor,
     CobaltDataType dataType,
     int stride0,      // stride from one row to another

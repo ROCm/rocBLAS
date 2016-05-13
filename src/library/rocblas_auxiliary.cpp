@@ -5,69 +5,94 @@
 
 #include <stdio.h>
 #include <hip_runtime.h>
+#include "definitions.h"
 #include "rocblas_types.h"
 #include "rocblas_hip.h"
 
     /* ============================================================================================ */
 
-    /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
-    can not recoginize it is on host or not */
-    rocblas_mem_location rocblas_get_pointer_location(void *ptr){
-        hipPointerAttribute_t attribute;
-        hipPointerGetAttributes(&attribute, ptr);
-        //if( rocblas_success != (rocblas_status)hipPointerGetAttributes(&attribute, ptr) ){
-        //    printf("failed to get the pointer type\n");
-        //}
-        if (ptr == attribute.devicePointer) {
-            return DEVICE_POINTER;
-        }
-        else{
-            return HOST_POINTER;
-        }
-    }
+/*******************************************************************************
+ * ! \brief  indicates whether the pointer is on the host or device.
+ * currently HIP API can only recoginize the input ptr on deive or not
+ *  can not recoginize it is on host or not
+ ******************************************************************************/
+rocblas_mem_location rocblas_get_pointer_location(void *ptr){
+  hipPointerAttribute_t attribute;
+  hipPointerGetAttributes(&attribute, ptr);
+  if (ptr == attribute.devicePointer) {
+    return DEVICE_POINTER;
+  } else {
+    return HOST_POINTER;
+  }
+}
 
 
-    /*! \brief   create rocblas handle called before any rocblas library routines*/
-    extern "C"
-    rocblas_status rocblas_create(rocblas_handle *handle){
-        /* TODO */
-        rocblas_int device;
+/*******************************************************************************
+ * ! \brief create rocblas handle called before any rocblas library routines
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_create_handle(rocblas_handle *handle){
 
-        rocblas_status status;
-        status = (rocblas_status)hipGetDevice(&device);// return the active device
+  // if handle not valid
+  if (handle == nullptr) {
+    return rocblas_status_not_initialized;
+  }
 
-        if (status != rocblas_success) {
-            return status;
-        }
+  // allocate on heap
+  try {
+    *handle = new _rocblas_handle();
+  } catch (rocblas_status status) {
+    return status;
+  }
 
-        handle->device_id = device;
-        return rocblas_success;
-    }
-
-    /*! \brief   release rocblas handle, will implicitly synchronize host and device */
-    extern "C"
-    rocblas_status rocblas_destroy(rocblas_handle handle){
-        /* TODO */
-
-        return rocblas_success;
-    }
+  return rocblas_status_success;
+}
 
 
-    /*! \brief   set rocblas stream used for all subsequent library function calls.
-     *   If not set, all hip kernels will take the default NULL stream. stream_id must be created before this call */
-    extern "C"
-    rocblas_status
-    rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id){
-        handle.stream = stream_id;
-        return rocblas_success;
-    }
+/*******************************************************************************
+ *! \brief release rocblas handle, will implicitly synchronize host and device
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_destroy_handle(rocblas_handle handle){
+  // call destructor
+  try {
+    delete handle;
+  } catch (rocblas_status status) {
+    return status;
+  }
+  return rocblas_status_success;
+}
 
 
-    /*! \brief   get rocblas stream used for all subsequent library function calls.
-     *   If not set, all hip kernels will take the default NULL stream. */
-    extern "C"
-    rocblas_status
-    rocblas_get_stream(rocblas_handle handle, hipStream_t *stream_id){
-        *stream_id = handle.stream;
-        return rocblas_success;
-    }
+/*******************************************************************************
+ *! \brief   set rocblas stream used for all subsequent library function calls.
+ *   If not set, all hip kernels will take the default NULL stream.
+ *   stream_id must be created before this call
+ ******************************************************************************/
+extern "C"
+rocblas_status
+rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id){
+  return handle->set_stream( stream_id );
+}
+
+
+/*******************************************************************************
+ *! \brief   get rocblas stream used for all subsequent library function calls.
+ *   If not set, all hip kernels will take the default NULL stream.
+ ******************************************************************************/
+extern "C"
+rocblas_status
+rocblas_get_stream(rocblas_handle handle, hipStream_t *stream_id){
+  return handle->get_stream( stream_id );
+}
+
+
+/*******************************************************************************
+ *! \brief  add stream to handle
+ ******************************************************************************/
+extern "C"
+rocblas_status
+rocblas_add_stream(rocblas_handle handle, hipStream_t stream_id ){
+  return handle->add_stream( stream_id );
+}
+

@@ -1,7 +1,10 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "definitions.h"
+#include "status.h"
 #include "rocblas.h"
+#include "handle.h"
 #include "hip_runtime.h"
 #include "Cobalt.h"
 #include "gemm.h"
@@ -14,6 +17,7 @@
 // only accept column-major input
 rocblas_status
 rocblas_sgemm(
+    rocblas_handle handle,
     rocblas_transpose transA,
     rocblas_transpose transB,
     rocblas_int M,
@@ -26,16 +30,15 @@ rocblas_sgemm(
     rocblas_int ldb,
     const float *beta,
           float *c,
-    rocblas_int ldc,
-    rocblas_control *control )
+    rocblas_int ldc )
 {
   // ensure sizes positive
   if ( M < 1 || N < 1 || K < 1 ) {
     return rocblas_status_invalid_parameter;
   }
 
-  // control must be valid
-  if (control == nullptr) {
+  // handle must be valid
+  if (handle == nullptr) {
     return rocblas_status_invalid_parameter;
   }
 
@@ -130,7 +133,7 @@ rocblas_sgemm(
       alphaType,
       betaType,
       useOffsets,
-      control->deviceProfile,
+      handle->cobaltDeviceProfile,
       &status );
   cobaltStatusCheck(status);
   if (status != cobaltStatusSuccess) {
@@ -162,28 +165,12 @@ rocblas_sgemm(
     return rocblas_status_invalid_parameter;
   }
 
-  // C
+  // pointers
   CobaltTensorData tensorDataC{ c, 0 };
-  //tensorDataC.offset = 0;
-  //tensorDataC.data = c;
-
-  // A
   CobaltTensorDataConst tensorDataA{ a, 0 };
-  //tensorDataA.offset = 0;
-  //tensorDataA.data = a;
-
-  // B
   CobaltTensorDataConst tensorDataB{ b, 0 };
-  //tensorDataB.offset = 0;
-  //tensorDataB.data = b;
-
-  // alpha
   CobaltScalarData scalarDataAlpha{ alpha };
-  //scalarDataAlpha.data = alpha;
-  
-  // beta
   CobaltScalarData scalarDataBeta{ beta };
-  //scalarDataBeta.data = beta;
 
   // enqueue solution
   cobaltEnqueueSolution(
@@ -193,23 +180,19 @@ rocblas_sgemm(
       tensorDataB,
       scalarDataAlpha,
       scalarDataBeta,
-      control->cobaltControl );
+      &handle->cobaltControl );
 
   // problem cleanup
   status = cobaltDestroyProblem( problem );
   cobaltStatusCheck(status);
-  if (status != cobaltStatusSuccess) {
-    return rocblas_status_internal_error;
-  }
+  RETURN_IF_COBALT_ERROR(status);
 
   // solution cleanup
   status = cobaltDestroySolution( solution );
   cobaltStatusCheck(status);
-  if (status != cobaltStatusSuccess) {
-    return rocblas_status_internal_error;
-  }
+  RETURN_IF_COBALT_ERROR(status);
 
-  // put events into control, if necessary
+  // TODO put events into handle, if necessary
 
   // success
   return rocblas_status_success;
@@ -217,7 +200,7 @@ rocblas_sgemm(
 
 
 
-CobaltTensor initializeTensorForGEMM(
+void initializeTensorForGEMM(
     CobaltTensor & tensor,
     CobaltDataType dataType,
     int stride0,      // stride from one row to another
