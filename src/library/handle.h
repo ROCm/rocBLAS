@@ -15,7 +15,7 @@ struct _rocblas_handle{
   ~_rocblas_handle();
   rocblas_status add_stream( hipStream_t stream );
   rocblas_status set_stream( hipStream_t stream );
-  rocblas_status get_stream() const; // stream 0
+  rocblas_status get_stream( hipStream_t *stream ) const; // stream 0
 
   rocblas_int device;
   std::vector<hipStream_t> streams;

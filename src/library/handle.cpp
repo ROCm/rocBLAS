@@ -20,7 +20,7 @@ _rocblas_handle::_rocblas_handle() {
   // cobalt device profile
   // TODO - get device name via hip runtime
   cobaltDeviceProfile = cobaltCreateEmptyDeviceProfile();
-  cobaltDeviceProfile.devices[0].name = "Fiji";
+  sprintf(cobaltDeviceProfile.devices[0].name, "Fiji");
   cobaltDeviceProfile.numDevices = 1;
 
 
@@ -36,10 +36,13 @@ _rocblas_handle::_rocblas_handle() {
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle() {
   // destroy streams
+  /*
+   * TODO put teardown back in; was having compiler errors
   while( !streams.empty() ) {
     hipStream_t stream = static_cast<hipStream_t>( streams.pop_back() );
     THROW_IF_HIP_ERROR( hipStreamDestroy(stream) );
   }
+  */
 }
 
 /*******************************************************************************
@@ -58,9 +61,11 @@ rocblas_status _rocblas_handle::add_stream( hipStream_t stream ) {
  ******************************************************************************/
 rocblas_status _rocblas_handle::set_stream( hipStream_t stream ) {
   // empty stream list
+  /*
   while( !streams.empty() ) {
     RETURN_IF_HIP_ERROR( hipStreamDestroy( streams.pop_back() ) );
   }
+  */
   // add new stream
   streams.push_back(stream);
   cobaltControl.queues[0] = stream;

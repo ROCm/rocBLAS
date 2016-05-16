@@ -46,6 +46,7 @@ else( )
     target_compile_options( rocblas PRIVATE -std=c++11 )
   endif( )
 endif( )
+set_target_properties( rocblas PROPERTIES COMPILE_FLAGS "-fPIC" )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>

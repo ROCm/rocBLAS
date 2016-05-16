@@ -8,6 +8,7 @@
 #include "definitions.h"
 #include "rocblas_types.h"
 #include "rocblas_hip.h"
+#include "handle.h"
 
     /* ============================================================================================ */
 
@@ -35,7 +36,7 @@ rocblas_status rocblas_create_handle(rocblas_handle *handle){
 
   // if handle not valid
   if (handle == nullptr) {
-    return rocblas_status_not_initialized;
+    return rocblas_status_invalid_parameter;
   }
 
   // allocate on heap
