@@ -30,3 +30,4 @@
 # vim tags
 tags
 .tags
+.*.swp
