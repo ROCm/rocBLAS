@@ -45,7 +45,7 @@ extern "C" {
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    trans     rocblas_transpose
+    trans     rocblas_operation
     @param[in]
     m         rocblas_int
     @param[in]
@@ -76,7 +76,7 @@ extern "C" {
 
     ********************************************************************/
     rocblas_status rocblas_sgemv_batched(rocblas_handle handle,
-                     rocblas_transpose trans,
+                     rocblas_operation trans,
                      rocblas_int m, rocblas_int n,
                      const float *alpha,
                      const float *A, rocblas_int lda,
@@ -86,7 +86,7 @@ extern "C" {
                      rocblas_int batchCount);
 
     rocblas_status rocblas_dgemv_batched(rocblas_handle handle,
-                     rocblas_transpose trans,
+                     rocblas_operation trans,
                      rocblas_int m, rocblas_int n,
                      const double *alpha,
                      const double *A, rocblas_int lda,
@@ -96,7 +96,7 @@ extern "C" {
                      rocblas_int batchCount);
 
     rocblas_status rocblas_cgemv_batched(rocblas_handle handle,
-                     rocblas_transpose trans,
+                     rocblas_operation trans,
                      rocblas_int m, rocblas_int n,
                      const rocblas_float_complex *alpha,
                      const rocblas_float_complex *A, rocblas_int lda,
@@ -106,7 +106,7 @@ extern "C" {
                      rocblas_int batchCount);
 
     rocblas_status rocblas_zgemv_batched(rocblas_handle handle,
-                     rocblas_transpose trans,
+                     rocblas_operation trans,
                      rocblas_int m, rocblas_int n,
                      const rocblas_double_complex *alpha,
                      const rocblas_double_complex *A, rocblas_int lda,
@@ -147,10 +147,10 @@ extern "C" {
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    transA    rocblas_transpose
+    transA    rocblas_operation
               specifies the form of op( A )
     @param[in]
-    transB    rocblas_transpose
+    transB    rocblas_operation
               specifies the form of op( B )
     @param[in]
     m         rocblas_int.
@@ -185,7 +185,7 @@ extern "C" {
     ********************************************************************/
 
     rocblas_status rocblas_sgemm_batched(rocblas_handle handle,
-                             rocblas_transpose transa, rocblas_transpose transb,
+                             rocblas_operation transa, rocblas_operation transb,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             const float *alpha,
                             const float *A, rocblas_int lda,
@@ -195,7 +195,7 @@ extern "C" {
                             rocblas_int batchCount);
 
     rocblas_status rocblas_dgemm_batched(rocblas_handle handle,
-                             rocblas_transpose transa, rocblas_transpose transb,
+                             rocblas_operation transa, rocblas_operation transb,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             const double *alpha,
                             const double *A, rocblas_int lda,
@@ -205,7 +205,7 @@ extern "C" {
                             rocblas_int batchCount);
 
     rocblas_status rocblas_cgemm_batched(rocblas_handle handle,
-                            rocblas_transpose transa, rocblas_transpose transb,
+                            rocblas_operation transa, rocblas_operation transb,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             const rocblas_float_complex *alpha,
                             const rocblas_float_complex *A, rocblas_int lda,
@@ -215,7 +215,7 @@ extern "C" {
                             rocblas_int batchCount);
 
     rocblas_status rocblas_zgemm_batched(rocblas_handle handle,
-                            rocblas_transpose transa, rocblas_transpose transb,
+                            rocblas_operation transa, rocblas_operation transb,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             const rocblas_double_complex *alpha,
                             const rocblas_double_complex *A, rocblas_int lda,

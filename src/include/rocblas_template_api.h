@@ -61,7 +61,7 @@
     template<typename T>
     rocblas_status
     rocblas_symv(rocblas_handle handle,
-             rocblas_uplo uplo,
+             rocblas_fill uplo,
              rocblas_int n,
              const T *alpha,
              const T *A, rocblas_int lda,

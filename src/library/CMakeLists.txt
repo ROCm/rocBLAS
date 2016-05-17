@@ -17,6 +17,14 @@ endfunction( )
 include( GenerateExportHeader )
 add_compiler_export_flags( )
 
+set( rocblas_auxiliary_source
+  handle.h
+  handle.cpp
+  rocblas_auxiliary.cpp
+  status.h
+  status.cpp
+)
+
 set( rocblas_blas3_source
   blas3/gemm.cpp
 )
@@ -26,6 +34,7 @@ prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 add_library( rocblas ${BUILD_LIBRARY_TYPE}
   ${rocblas_blas3_source}
   ${relative_rocblas_headers_public}
+  ${rocblas_auxiliary_source}
 )
 
 # Try to test for specific compiler features if cmake version is recent enough
@@ -37,13 +46,21 @@ else( )
     target_compile_options( rocblas PRIVATE -std=c++11 )
   endif( )
 endif( )
+set_target_properties( rocblas PROPERTIES COMPILE_FLAGS "-fPIC" )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library>
           $<INSTALL_INTERFACE:include>
 )
+
+# Cobalt
+MESSAGE( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
+include_directories( ${Cobalt_INCLUDE_DIRS} )
+target_link_libraries( rocblas ${CobaltLib_LIBRARIES} )
+add_definitions( -DCobalt_BACKEND_HIP=1 )
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
