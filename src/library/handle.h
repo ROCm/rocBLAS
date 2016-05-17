@@ -15,9 +15,10 @@ struct _rocblas_handle{
   ~_rocblas_handle();
   rocblas_status add_stream( hipStream_t stream );
   rocblas_status set_stream( hipStream_t stream );
-  rocblas_status get_stream( hipStream_t *stream ) const; // stream 0
+  rocblas_status get_stream( hipStream_t *stream ) const;
 
-  rocblas_int device;
+  int device;
+  hipDeviceProp_t device_properties;
   std::vector<hipStream_t> streams;
 
   /*****************************************************************************
@@ -25,13 +26,13 @@ struct _rocblas_handle{
    * describes device to which this control is assigned so
    * Cobalt can lookup optimal solution
    ****************************************************************************/
-  CobaltDeviceProfile cobaltDeviceProfile;
+  CobaltDeviceProfile cobalt_device_profile;
 
   /*****************************************************************************
    * \brief Cobalt Control
    * for passing control state (stream) to Cobalt
    ****************************************************************************/
-  CobaltControl cobaltControl;
+  CobaltControl cobalt_control;
 
 
 };
