@@ -34,7 +34,7 @@ rocblas_sgemm(
 {
   // ensure sizes positive
   if ( m < 0 || n < 0 || k < 0 ) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_size;
   }
 
   // C already correct
@@ -47,7 +47,7 @@ rocblas_sgemm(
 
   // handle must be valid
   if (handle == nullptr) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_size;
   }
 
   // sgemm
@@ -77,7 +77,7 @@ rocblas_sgemm(
 
   // ensure strides positive
   if ( ldc < num_cols_c || lda < num_cols_a || ldb < num_cols_b ) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_size;
   }
 
   // create tensors
@@ -145,7 +145,7 @@ rocblas_sgemm(
       &status );
   cobaltStatusCheck(status);
   if (status != cobaltStatusSuccess) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_size;
   }
 
 #ifdef _DEBUG
@@ -153,7 +153,7 @@ rocblas_sgemm(
   CobaltStatus validationStatus = cobaltValidateProblem( problem );
   cobaltStatusCheck(validationStatus);
   if (validationStatus != cobaltStatusSuccess) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_size;
   }
 #endif
 
@@ -170,7 +170,7 @@ rocblas_sgemm(
       || b == nullptr
       || alpha == nullptr
       || beta == nullptr ) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_pointer;
   }
 
   // pointers

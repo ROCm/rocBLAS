@@ -101,7 +101,8 @@ extern "C" {
         rocblas_status_success          = 0, /**< success */
         rocblas_status_invalid_handle   = 1, /**< handle not initialized, invalid or null */
         rocblas_status_not_implemented  = 2, /**< function is not implemented */
-        rocblas_status_invalid_value    = 3, /**< invalid function parameter, pointer, size or other */
+        rocblas_status_invalid_pointer  = 3, /**< invalid pointer parameter */
+        rocblas_status_invalid_size     = 3, /**< invalid size parameter */
         rocblas_status_memory_error     = 4, /**< failed internal memory allocation, copy or dealloc */
         rocblas_status_internal_error   = 5, /**< other internal library failure */
     } rocblas_status;
