@@ -36,7 +36,7 @@ rocblas_status rocblas_create_handle(rocblas_handle *handle){
 
   // if handle not valid
   if (handle == nullptr) {
-    return rocblas_status_invalid_value;
+    return rocblas_status_invalid_pointer;
   }
 
   // allocate on heap
