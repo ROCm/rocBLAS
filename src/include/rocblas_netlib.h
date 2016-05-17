@@ -147,7 +147,7 @@ extern "C" {
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    trans     rocblas_transpose
+    trans     rocblas_operation
     @param[in]
     m         rocblas_int
     @param[in]
@@ -174,7 +174,7 @@ extern "C" {
 
     ********************************************************************/
     rocblas_status rocblas_sgemv(rocblas_handle handle,
-                     rocblas_transpose trans, 
+                     rocblas_operation trans, 
                      rocblas_int m, rocblas_int n, 
                      const float *alpha, 
                      const float *A, rocblas_int lda, 
@@ -183,7 +183,7 @@ extern "C" {
                      float *y, rocblas_int incy);
 
     rocblas_status rocblas_dgemv(rocblas_handle handle,
-                     rocblas_transpose trans, 
+                     rocblas_operation trans, 
                      rocblas_int m, rocblas_int n, 
                      const double *alpha, 
                      const double *A, rocblas_int lda, 
@@ -192,7 +192,7 @@ extern "C" {
                      double *y, rocblas_int incy);
 
     rocblas_status rocblas_cgemv(rocblas_handle handle,
-                     rocblas_transpose trans, 
+                     rocblas_operation trans, 
                      rocblas_int m, rocblas_int n, 
                      const rocblas_float_complex *alpha, 
                      const rocblas_float_complex *A, rocblas_int lda, 
@@ -201,7 +201,7 @@ extern "C" {
                      rocblas_float_complex *y, rocblas_int incy);
 
     rocblas_status rocblas_zgemv(rocblas_handle handle,
-                     rocblas_transpose trans, 
+                     rocblas_operation trans, 
                      rocblas_int m, rocblas_int n, 
                      const rocblas_double_complex *alpha, 
                      const rocblas_double_complex *A, rocblas_int lda, 
@@ -224,7 +224,7 @@ extern "C" {
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    uplo      rocblas_uplo.
+    uplo      rocblas_fill.
               specifies whether the upper or lower
     @param[in]
     n         rocblas_int.
@@ -250,7 +250,7 @@ extern "C" {
 
     ********************************************************************/
     rocblas_status rocblas_ssymv(rocblas_handle handle,
-                     rocblas_uplo uplo, 
+                     rocblas_fill uplo, 
                      rocblas_int n, 
                      const float *alpha, 
                      const float *A, rocblas_int lda, 
@@ -259,7 +259,7 @@ extern "C" {
                      float *y, rocblas_int incy);
 
     rocblas_status rocblas_dsymv(rocblas_handle handle,
-                     rocblas_uplo uplo, 
+                     rocblas_fill uplo, 
                      rocblas_int n, 
                      const double *alpha, 
                      const double *A, rocblas_int lda, 
@@ -268,7 +268,7 @@ extern "C" {
                      double *y, rocblas_int incy);
 
     rocblas_status rocblas_chemv(rocblas_handle handle,
-                     rocblas_uplo uplo, 
+                     rocblas_fill uplo, 
                      rocblas_int n, 
                      const rocblas_float_complex *alpha, 
                      const rocblas_float_complex *A, rocblas_int lda, 
@@ -277,7 +277,7 @@ extern "C" {
                      rocblas_float_complex *y, rocblas_int incy);
 
     rocblas_status rocblas_zhemv(rocblas_handle handle,
-                     rocblas_uplo uplo, 
+                     rocblas_fill uplo, 
                      rocblas_int n, 
                      const rocblas_double_complex *alpha, 
                      const rocblas_double_complex *A, rocblas_int lda, 
@@ -313,10 +313,10 @@ extern "C" {
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    transA    rocblas_transpose
+    transA    rocblas_operation
               specifies the form of op( A )
     @param[in]
-    transB    rocblas_transpose
+    transB    rocblas_operation
               specifies the form of op( B )
     @param[in]
     m         rocblas_int.
@@ -346,7 +346,7 @@ extern "C" {
 
     ********************************************************************/
     rocblas_status rocblas_sgemm(rocblas_handle handle,
-                     rocblas_transpose transa, rocblas_transpose transb, 
+                     rocblas_operation transa, rocblas_operation transb, 
                      rocblas_int m, rocblas_int n, rocblas_int k, 
                      const float *alpha, 
                      const float *A, rocblas_int lda, 
@@ -355,7 +355,7 @@ extern "C" {
                      float *C, rocblas_int ldc);
 
     rocblas_status rocblas_dgemm(rocblas_handle handle,
-                     rocblas_transpose transa, rocblas_transpose transb, 
+                     rocblas_operation transa, rocblas_operation transb, 
                      rocblas_int m, rocblas_int n, rocblas_int k, 
                      const double *alpha, 
                      const double *A, rocblas_int lda, 
@@ -364,7 +364,7 @@ extern "C" {
                      float *C, rocblas_int ldc);
 
     rocblas_status rocblas_cgemm(rocblas_handle handle,
-                     rocblas_transpose transa, rocblas_transpose transb, 
+                     rocblas_operation transa, rocblas_operation transb, 
                      rocblas_int m, rocblas_int n, rocblas_int k, 
                      const rocblas_float_complex *alpha, 
                      const rocblas_float_complex *A, rocblas_int lda, 
@@ -373,7 +373,7 @@ extern "C" {
                      rocblas_float_complex *C, rocblas_int ldc);
 
     rocblas_status rocblas_zgemm(rocblas_handle handle,
-                     rocblas_transpose transa, rocblas_transpose transb, 
+                     rocblas_operation transa, rocblas_operation transb, 
                      rocblas_int m, rocblas_int n, rocblas_int k, 
                      const rocblas_double_complex *alpha, 
                      const rocblas_double_complex *A, rocblas_int lda, 
