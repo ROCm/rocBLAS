@@ -418,7 +418,7 @@ extern "C" {
      * lsb - non-1 leading stride of b
      * lsc - non-1 leading stride of c
      **************************************************************************/
-    rocblas_status rocblas_hgemm_s(
+    rocblas_status rocblas_hgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -429,7 +429,7 @@ extern "C" {
         const rocblas_half *beta,
               rocblas_half *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_sgemm_s(
+    rocblas_status rocblas_sgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -440,7 +440,7 @@ extern "C" {
         const float *beta,
               float *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_dgemm_s(
+    rocblas_status rocblas_dgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -451,7 +451,7 @@ extern "C" {
         const double *beta,
               double *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_qgemm_s(
+    rocblas_status rocblas_qgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -462,7 +462,7 @@ extern "C" {
         const rocblas_half_complex *beta,
               rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_cgemm_s(
+    rocblas_status rocblas_cgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -473,7 +473,7 @@ extern "C" {
         const rocblas_float_complex *beta,
               rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_zgemm_s(
+    rocblas_status rocblas_zgemm_strided(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -491,7 +491,7 @@ extern "C" {
      * bsc
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-    rocblas_status rocblas_hgemm_b(
+    rocblas_status rocblas_hgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -503,7 +503,7 @@ extern "C" {
               rocblas_half *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_sgemm_b(
+    rocblas_status rocblas_sgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -515,7 +515,7 @@ extern "C" {
               float *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_dgemm_b(
+    rocblas_status rocblas_dgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -527,7 +527,7 @@ extern "C" {
               double *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_qgemm_b(
+    rocblas_status rocblas_qgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -539,7 +539,7 @@ extern "C" {
               rocblas_half_complex *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_cgemm_b(
+    rocblas_status rocblas_cgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -551,7 +551,7 @@ extern "C" {
               rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_zgemm_b(
+    rocblas_status rocblas_zgemm_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -574,7 +574,7 @@ extern "C" {
      * bsc
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-    rocblas_status rocblas_hgemm_sb(
+    rocblas_status rocblas_hgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -586,7 +586,7 @@ extern "C" {
               rocblas_half *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_sgemm_sb(
+    rocblas_status rocblas_sgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -598,7 +598,7 @@ extern "C" {
               float *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_dgemm_sb(
+    rocblas_status rocblas_dgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -610,7 +610,7 @@ extern "C" {
               double *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_qgemm_sb(
+    rocblas_status rocblas_qgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -622,7 +622,7 @@ extern "C" {
               rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_cgemm_sb(
+    rocblas_status rocblas_cgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
@@ -634,7 +634,7 @@ extern "C" {
               rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count );
 
-    rocblas_status rocblas_zgemm_sb(
+    rocblas_status rocblas_zgemm_strided_batched(
         rocblas_handle handle,
         rocblas_order order,
         rocblas_operation transa, rocblas_operation transb,
