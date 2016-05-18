@@ -14,6 +14,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <hip_runtime.h>
 
 
 /*! \file
@@ -21,17 +22,24 @@
  */
 
 
-    /*! \brief To specify whether int32 or int64 is used
-     */
+/*! \brief To specify whether int32 or int64 is used
+ */
 
 
-    #if defined( rocblas_ILP64 )
-    typedef int64_t rocblas_int;
-    #else
-    typedef int32_t rocblas_int;
-    #endif
+// integer type
+#if defined( rocblas_ILP64 )
+typedef int64_t rocblas_int;
+#else
+typedef int32_t rocblas_int;
+#endif
+// complex type
+typedef float2  rocblas_float_complex;
+typedef double2 rocblas_double_complex;
+// half type TODO put name of half here
+typedef float    rocblas_half;
+typedef float2   rocblas_half_complex;
 
-    typedef struct _rocblas_handle * rocblas_handle;
+typedef struct _rocblas_handle * rocblas_handle;
 
 #ifdef __cplusplus
 extern "C" {
