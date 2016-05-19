@@ -403,7 +403,7 @@ rocblas_status rocblas_zgemm(
      * ls_b - non-1 leading stride of b
      * ls_c - non-1 leading stride of c
      **************************************************************************/
-rocblas_status rocblas_hgemm_s(
+rocblas_status rocblas_hgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -431,7 +431,7 @@ rocblas_status rocblas_hgemm_s(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_sgemm_s(
+rocblas_status rocblas_sgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -459,7 +459,7 @@ rocblas_status rocblas_sgemm_s(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_dgemm_s(
+rocblas_status rocblas_dgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -487,7 +487,7 @@ rocblas_status rocblas_dgemm_s(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_qgemm_s(
+rocblas_status rocblas_qgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -515,7 +515,7 @@ rocblas_status rocblas_qgemm_s(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_cgemm_s(
+rocblas_status rocblas_cgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -543,7 +543,7 @@ rocblas_status rocblas_cgemm_s(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_zgemm_s(
+rocblas_status rocblas_zgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -578,7 +578,7 @@ rocblas_status rocblas_zgemm_s(
      * bs_c
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-rocblas_status rocblas_hgemm_b(
+rocblas_status rocblas_hgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -606,7 +606,7 @@ rocblas_status rocblas_hgemm_b(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_sgemm_b(
+rocblas_status rocblas_sgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -634,7 +634,7 @@ rocblas_status rocblas_sgemm_b(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_dgemm_b(
+rocblas_status rocblas_dgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -662,7 +662,7 @@ rocblas_status rocblas_dgemm_b(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_qgemm_b(
+rocblas_status rocblas_qgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -690,7 +690,7 @@ rocblas_status rocblas_qgemm_b(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_cgemm_b(
+rocblas_status rocblas_cgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -728,7 +728,7 @@ rocblas_status rocblas_cgemm_b(
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
-rocblas_status rocblas_zgemm_b(
+rocblas_status rocblas_zgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -767,7 +767,7 @@ rocblas_status rocblas_zgemm_b(
      * bs_c
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-rocblas_status rocblas_hgemm_sb(
+rocblas_status rocblas_hgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -791,7 +791,7 @@ rocblas_status rocblas_hgemm_sb(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_sgemm_sb(
+rocblas_status rocblas_sgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -815,7 +815,7 @@ rocblas_status rocblas_sgemm_sb(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_dgemm_sb(
+rocblas_status rocblas_dgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -839,7 +839,7 @@ rocblas_status rocblas_dgemm_sb(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_qgemm_sb(
+rocblas_status rocblas_qgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -863,7 +863,7 @@ rocblas_status rocblas_qgemm_sb(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_cgemm_sb(
+rocblas_status rocblas_cgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
@@ -887,7 +887,7 @@ rocblas_status rocblas_cgemm_sb(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-rocblas_status rocblas_zgemm_sb(
+rocblas_status rocblas_zgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
