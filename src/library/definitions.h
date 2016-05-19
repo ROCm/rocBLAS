@@ -8,6 +8,7 @@
 
 #define RETURN_IF_COBALT_ERROR(STATUS) \
   if (STATUS != cobaltStatusSuccess) { \
+    cobaltStatusCheck( STATUS ); \
     return get_rocblas_status_for_cobalt_status(STATUS); \
   }
 #define RETURN_IF_HIP_ERROR(STATUS) \
@@ -21,6 +22,7 @@
 
 #define THROW_IF_COBALT_ERROR(STATUS) \
   if (STATUS != cobaltStatusSuccess) { \
+    cobaltStatusCheck( STATUS ); \
     throw get_rocblas_status_for_cobalt_status(STATUS); \
   }
 #define THROW_IF_HIP_ERROR(STATUS) \
