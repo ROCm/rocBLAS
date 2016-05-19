@@ -60,9 +60,9 @@ extern "C" {
 
     /*! \brief Used to specify whether the matrix is to be transposed or not. */
     typedef enum rocblas_operation_ {
-        rocblas_operation_none      = 111,           /**< Operate with the matrix. */
-        rocblas_operation_transpose = 112,           /**< Operate with the transpose of the matrix. */
-        rocblas_operation_conjugate = 113            /**< Operate with the conjugate transpose of the matrix. */
+        rocblas_operation_none                = 111, /**< Operate with the matrix. */
+        rocblas_operation_transpose           = 112, /**< Operate with the transpose of the matrix. */
+        rocblas_operation_conjugate_transpose = 113  /**< Operate with the conjugate transpose of the matrix. */
     } rocblas_operation;
 
     /*! \brief Used by the Hermitian, symmetric and triangular matrix
