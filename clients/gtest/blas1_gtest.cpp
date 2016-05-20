@@ -138,12 +138,12 @@ TEST_P(test_scal, scal_float)
     rocblas_status status = testing_scal<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_success){
+    if(status != rocblas_status_success){
         if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_invalid_dim, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_invalid_incx, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
 

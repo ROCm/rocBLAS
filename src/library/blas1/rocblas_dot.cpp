@@ -94,15 +94,15 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 {
 
     if ( n < 0 )
-        return rocblas_invalid_dim;
+        return rocblas_status_invalid_size;
     else if ( x == NULL )
-        return rocblas_invalid_vecX;
+        return rocblas_status_invalid_size;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
+        return rocblas_status_invalid_size;
     else if ( y == NULL )
-        return rocblas_invalid_vecY;
+        return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
-        return rocblas_invalid_incy;
+        return rocblas_status_invalid_size;
 
 
     /*
@@ -110,7 +110,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
      */
 
     if ( n == 0)
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
@@ -128,7 +128,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy, workspace);
 
-    if( rocblas_get_pointer_location(result) == DEVICE_POINTER ){
+    if( rocblas_get_pointer_location(result) == rocblas_mem_location_device ){
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
     }
@@ -141,7 +141,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
         CHECK_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
     }
 
-    return rocblas_success;
+    return rocblas_status_success;
 
 }
 
@@ -185,15 +185,15 @@ rocblas_dot_template(rocblas_handle handle,
 {
 
     if ( n < 0 )
-        return rocblas_invalid_dim;
+        return rocblas_status_invalid_size;
     else if ( x == NULL )
-        return rocblas_invalid_vecX;
+        return rocblas_status_invalid_size;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
+        return rocblas_status_invalid_size;
     else if ( y == NULL )
-        return rocblas_invalid_vecY;
+        return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
-        return rocblas_invalid_incy;
+        return rocblas_status_invalid_size;
 
 
     /*
@@ -201,7 +201,7 @@ rocblas_dot_template(rocblas_handle handle,
      */
 
     if ( n == 0)
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 

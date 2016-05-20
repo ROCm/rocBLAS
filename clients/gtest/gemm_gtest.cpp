@@ -158,19 +158,19 @@ TEST_P(test_gemm, test_gemm_float)
     rocblas_status status = testing_gemm<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_success){
+    if(status != rocblas_status_success){
         
         if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
-            EXPECT_EQ(rocblas_invalid_dim, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
-            EXPECT_EQ(rocblas_invalid_leadDimA, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
-            EXPECT_EQ(rocblas_invalid_leadDimB, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if(arg.ldc < arg.M){
-            EXPECT_EQ(rocblas_invalid_leadDimC, status);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
 
