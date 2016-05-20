@@ -48,14 +48,14 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_status status = rocblas_status_success;
     rocblas_create_handle(&handle);
 
-    if(transA == rocblas_no_trans){
+    if(transA == rocblas_operation_none){
         A_row =  M; A_col = K;
     }
     else{
         A_row = K; A_col = M;
     }
 
-    if(transB == rocblas_no_trans){
+    if(transB == rocblas_operation_none){
         B_row =  K; B_col = N;
     }
     else{
@@ -146,7 +146,9 @@ rocblas_status testing_gemm(Arguments argus)
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
-        if(argus.unit_check){rocblas_status_invalid_size
+        if(argus.unit_check){
+            unit_check_general<T>(M, N, lda, hC_copy.data(), hC.data());
+        }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time

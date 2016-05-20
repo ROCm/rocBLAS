@@ -17,6 +17,12 @@ using namespace std;
  * \brief provide data initialization, timing, rocblas type <-> lapack char conversion utilities.
  */
 
+#define CHECK_HIP_ERROR(error) \
+    if (error != hipSuccess) { \
+      fprintf(stderr, "error: '%s'(%d) at %s:%d\n", hipGetErrorString(error), error,__FILE__, __LINE__); \
+      exit(EXIT_FAILURE);\
+    }
+
     /* ============================================================================================ */
     /* generate random number :*/
 
