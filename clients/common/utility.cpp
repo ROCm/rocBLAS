@@ -60,7 +60,7 @@ extern "C" {
     rocblas_int query_device_property(){
         int device_count;
         rocblas_status status = (rocblas_status)hipGetDeviceCount(&device_count);
-        if(status != rocblas_success){
+        if(status != rocblas_status_success){
                printf ("Query device error: cannot get device count \n");
                return -1;
         }
@@ -72,7 +72,7 @@ extern "C" {
         {
             hipDeviceProp_t props;
             rocblas_status status = (rocblas_status)hipGetDeviceProperties(&props, i);
-            if(status != rocblas_success){
+            if(status != rocblas_status_success){
                printf ("Query device error: cannot get device ID %d's property\n", i);
             }
             else{
@@ -92,7 +92,7 @@ extern "C" {
     /*  set current device to device_id */
     void set_device(rocblas_int device_id){
         rocblas_status status = (rocblas_status)hipSetDevice(device_id);
-        if(status != rocblas_success){
+        if(status != rocblas_status_success){
                printf ("Set device error: cannot set device ID %d, there may not be such device ID\n", (int)device_id);
         }
     }
@@ -101,33 +101,33 @@ extern "C" {
     /*  Convert rocblas constants to lapack char. */
 
     char
-    rocblas2char_transpose(rocblas_transpose value)
+    rocblas2char_operation(rocblas_operation value)
     {
         switch (value) {
-            case rocblas_no_trans:      return 'N';
-            case rocblas_trans:         return 'T';
-            case rocblas_conj_trans:    return 'C';
+            case rocblas_operation_none:                   return 'N';
+            case rocblas_operation_transpose:              return 'T';
+            case rocblas_operation_conjugate_transpose:    return 'C';
         }
         return '\0';
     }
 
     char
-    rocblas2char_uplo(rocblas_uplo value)
+    rocblas2char_fill(rocblas_fill value)
     {
         switch (value) {
-            case rocblas_upper:  return 'U';
-            case rocblas_lower:  return 'L';
-            case rocblas_full :  return 'F';
+            case rocblas_fill_upper:  return 'U';
+            case rocblas_fill_lower:  return 'L';
+            case rocblas_fill_full :  return 'F';
         }
         return '\0';
     }
 
     char
-    rocblas2char_diag(rocblas_diag value)
+    rocblas2char_diag(rocblas_diagonal value)
     {
         switch (value) {
-            case rocblas_unit:        return 'U';
-            case rocblas_non_unit:    return 'N';
+            case rocblas_diagonal_unit:        return 'U';
+            case rocblas_diagonal_non_unit:    return 'N';
         }
         return '\0';
     }
@@ -136,9 +136,9 @@ extern "C" {
     rocblas2char_side(rocblas_side value)
     {
         switch (value) {
-            case rocblas_left:   return 'L';
-            case rocblas_right:  return 'R';
-            case rocblas_both:   return 'B';
+            case rocblas_side_left:   return 'L';
+            case rocblas_side_right:  return 'R';
+            case rocblas_side_both:   return 'B';
         }
         return '\0';
     }
@@ -146,54 +146,54 @@ extern "C" {
     /* ============================================================================================ */
     /*  Convert lapack char constants to rocblas type. */
 
-    rocblas_transpose
-    char2rocblas_transpose(char value)
+    rocblas_operation
+    char2rocblas_operation(char value)
     {
         switch (value) {
-            case 'N':      return rocblas_no_trans;
-            case 'T':         return rocblas_trans;
-            case 'C':    return rocblas_conj_trans;
-            case 'n':      return rocblas_no_trans;
-            case 't':         return rocblas_trans;
-            case 'c':    return rocblas_conj_trans;
+            case 'N':    return               rocblas_operation_none;
+            case 'T':    return          rocblas_operation_transpose;
+            case 'C':    return rocblas_operation_conjugate_transpose;
+            case 'n':    return                rocblas_operation_none;
+            case 't':    return           rocblas_operation_transpose;
+            case 'c':    return rocblas_operation_conjugate_transpose;
         }
-        return rocblas_no_trans;
+        return rocblas_operation_none;
     }
 
-    rocblas_uplo
-    char2rocblas_uplo(char value)
+    rocblas_fill
+    char2rocblas_fill(char value)
     {
         switch (value) {
-            case 'U':  return rocblas_upper;
-            case 'L':  return rocblas_lower;
-            case 'u':  return rocblas_upper;
-            case 'l':  return rocblas_lower;
+            case 'U':  return rocblas_fill_upper;
+            case 'L':  return rocblas_fill_lower;
+            case 'u':  return rocblas_fill_upper;
+            case 'l':  return rocblas_fill_lower;
         }
-        return rocblas_lower;
+        return rocblas_fill_lower;
     }
 
-    rocblas_diag
-    char2rocblas_diag(char value)
+    rocblas_diagonal
+    char2rocblas_diagonal(char value)
     {
         switch (value) {
-            case 'U':        return rocblas_unit;
-            case 'N':    return rocblas_non_unit;
-            case 'u':        return rocblas_unit;
-            case 'n':    return rocblas_non_unit;
+            case 'U':    return     rocblas_diagonal_unit;
+            case 'N':    return rocblas_diagonal_non_unit;
+            case 'u':    return     rocblas_diagonal_unit;
+            case 'n':    return rocblas_diagonal_non_unit;
         }
-        return rocblas_non_unit;
+        return rocblas_diagonal_non_unit;
     }
 
     rocblas_side
     char2rocblas_side(char value)
     {
         switch (value) {
-            case 'L':   return rocblas_left;
-            case 'R':  return rocblas_right;
-            case 'l':   return rocblas_left;
-            case 'r':  return rocblas_right;
+            case 'L':   return rocblas_side_left;
+            case 'R':  return rocblas_side_right;
+            case 'l':   return rocblas_side_left;
+            case 'r':  return rocblas_side_right;
         }
-        return rocblas_left;
+        return rocblas_side_left;
     }
 
 #ifdef __cplusplus

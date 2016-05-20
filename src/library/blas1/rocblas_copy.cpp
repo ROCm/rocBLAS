@@ -58,30 +58,30 @@ rocblas_copy_template(rocblas_handle handle,
 {
 
     if ( n < 0 )
-        return rocblas_invalid_dim;
+        return rocblas_status_invalid_size;
     else if ( x == NULL )
-        return rocblas_invalid_vecX;
+        return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
+        return rocblas_status_invalid_size;
     else if ( y == NULL )
-        return rocblas_invalid_vecY;
+        return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
-        return rocblas_invalid_incy;
+        return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible.
      */
     if ( n == 0)
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
     dim3 grid( blocks, 1, 1 );
     dim3 threads( NB_X, 1, 1 );
 
-    //hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy);
+    hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy);
 
-    return rocblas_success;
+    return rocblas_status_success;
 }
 
 /* ============================================================================================ */

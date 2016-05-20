@@ -33,8 +33,8 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_int ldb = argus.ldb;
     rocblas_int ldc = argus.ldc;
 
-    rocblas_transpose transA = char2rocblas_transpose(argus.transA_option);
-    rocblas_transpose transB = char2rocblas_transpose(argus.transB_option);
+    rocblas_operation transA = char2rocblas_operation(argus.transA_option);
+    rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
     rocblas_int  A_size, B_size, C_size, A_row, A_col, B_row, B_col;
     T alpha = argus.alpha;
@@ -45,8 +45,8 @@ rocblas_status testing_gemm(Arguments argus)
 
     T rocblas_error = 0.0;
     rocblas_handle handle;
-    rocblas_status status = rocblas_success;
-    rocblas_create(&handle);
+    rocblas_status status = rocblas_status_success;
+    rocblas_create_handle(&handle);
 
     if(transA == rocblas_no_trans){
         A_row =  M; A_col = K;
@@ -106,7 +106,7 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
-    if (status != rocblas_success) {
+    if (status != rocblas_status_success) {
         hipFree(dA);
         hipFree(dB);
         hipFree(dC);
@@ -146,9 +146,7 @@ rocblas_status testing_gemm(Arguments argus)
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
-        if(argus.unit_check){
-            unit_check_general<T>(M, N, lda, hC_copy.data(), hC.data());
-        }
+        if(argus.unit_check){rocblas_status_invalid_size
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
@@ -180,8 +178,8 @@ rocblas_status testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dB));
     CHECK_HIP_ERROR(hipFree(dC));
 
-    rocblas_destroy(handle);
-    return rocblas_success;
+    rocblas_destroy_handle(handle);
+    return rocblas_status_success;
 }
 
 
@@ -199,8 +197,8 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_int step = argus.step;
     rocblas_int end = argus.end;
 
-    rocblas_transpose transA = char2rocblas_transpose(argus.transA_option);
-    rocblas_transpose transB = char2rocblas_transpose(argus.transB_option);
+    rocblas_operation transA = char2rocblas_operation(argus.transA_option);
+    rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
     rocblas_int  A_size, B_size, C_size;
     T alpha = argus.alpha;
@@ -211,12 +209,12 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     T rocblas_error = 0.0;
     rocblas_handle handle;
-    rocblas_status status = rocblas_success;
+    rocblas_status status = rocblas_status_success;
 
     //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
     if( start < 0 || end < 0 || step < 0 || end < start ){
         cout << "Invalid matrix dimension input, will return" << endl;
-        return rocblas_invalid_dim;
+        return rocblas_status_invalid_size;
     }
 
 
@@ -230,7 +228,7 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     T *dA, *dB, *dC;
 
-    rocblas_create(&handle);
+    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
@@ -290,7 +288,7 @@ rocblas_status range_testing_gemm(Arguments argus)
                         dB, size,
                         &beta, dC, size);
 
-        if (status != rocblas_success) {
+        if (status != rocblas_status_success) {
             hipFree(dA);
             hipFree(dB);
             hipFree(dC);
@@ -349,8 +347,8 @@ rocblas_status range_testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dB));
     CHECK_HIP_ERROR(hipFree(dC));
 
-    rocblas_destroy(handle);
-    return rocblas_success;
+    rocblas_destroy_handle(handle);
+    return rocblas_status_success;
 }
 
 
