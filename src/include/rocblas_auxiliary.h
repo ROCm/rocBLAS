@@ -15,13 +15,6 @@
 
 
 
-#define CHECK_HIP_ERROR(error) \
-    if (error != hipSuccess) { \
-      fprintf(stderr, "error: '%s'(%d) at %s:%d\n", hipGetErrorString(error), error,__FILE__, __LINE__); \
-      exit(EXIT_FAILURE);\
-    }
-
-
     /* ============================================================================================ */
     /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
     can not recoginize it is on host or not */

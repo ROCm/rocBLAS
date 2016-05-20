@@ -68,9 +68,11 @@ rocblas_scal_template(rocblas_handle handle,
     T *x, rocblas_int incx)
 {
 
-    if ( n < 0 )
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
+    else if ( n < 0 )
         return rocblas_status_invalid_size;
-    else if ( x == NULL )
+    else if ( x == nullptr )
         return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
         return rocblas_status_invalid_size;
@@ -85,7 +87,6 @@ rocblas_scal_template(rocblas_handle handle,
     int blocks = (n-1)/ NB_X + 1;
 
     dim3 grid( blocks, 1, 1 );
-    //There is a bug in thread block configuration (256,1,1) -> (1,1,256) internally
     dim3 threads(NB_X, 1, 1);
 
     if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device ){

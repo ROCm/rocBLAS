@@ -57,13 +57,15 @@ rocblas_copy_template(rocblas_handle handle,
     T* y,       rocblas_int incy)
 {
 
-    if ( n < 0 )
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
+    else if ( n < 0 )
         return rocblas_status_invalid_size;
-    else if ( x == NULL )
+    else if ( x == nullptr )
         return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
         return rocblas_status_invalid_size;
-    else if ( y == NULL )
+    else if ( y == nullptr )
         return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
         return rocblas_status_invalid_size;
