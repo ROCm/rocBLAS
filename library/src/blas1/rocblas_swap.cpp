@@ -9,14 +9,13 @@
 
 #define NB_X 256
 
-template<class T>
+template<typename T>
 __global__ void
 swap_kernel(hipLaunchParm lp,
     rocblas_int n,
     T *x, rocblas_int incx,
     T* y,  rocblas_int incy)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     T tmp;

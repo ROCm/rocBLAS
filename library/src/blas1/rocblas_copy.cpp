@@ -9,14 +9,13 @@
 
 #define NB_X 256
 
-template<class T>
+template<typename T>
 __global__ void
 copy_kernel(hipLaunchParm lp,
     rocblas_int n,
     const T *x, rocblas_int incx,
     T* y,  rocblas_int incy)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
