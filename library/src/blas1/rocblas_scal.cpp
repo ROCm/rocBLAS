@@ -15,7 +15,6 @@ scal_kernel_host_scalar(hipLaunchParm lp,
     const T alpha,
     T *x, rocblas_int incx)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
@@ -30,7 +29,6 @@ scal_kernel_device_scalar(hipLaunchParm lp,
     const T *alpha,
     T *x, rocblas_int incx)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {

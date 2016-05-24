@@ -5,7 +5,9 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
-#include "../device_template.h"
+#include "status.h"
+#include "definitions.h"
+#include "device_template.h"
 
 template<typename T, rocblas_int NB>
 __global__ void
@@ -120,7 +122,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     if(lworkspace < blocks) {
         printf("size workspace = %d is too small, allocate at least %d", lworkspace, blocks);
-        return rocblas_not_implemented;
+        return rocblas_status_not_implemented;
     }
 
     dim3 grid(blocks, 1, 1);
@@ -131,7 +133,6 @@ rocblas_dot_template_workspace(rocblas_handle handle,
     if( rocblas_get_pointer_location(result) == rocblas_mem_location_device ){
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
-        return rocblas_status_success;
     }
     else{
         //the last argument 0 indicate the result is on host
@@ -139,8 +140,10 @@ rocblas_dot_template_workspace(rocblas_handle handle,
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
         if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
-        return get_rocblas_status_for_hip_status(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
     }
+
+    return rocblas_status_success;
 }
 
 /* ============================================================================================ */
@@ -207,17 +210,17 @@ rocblas_dot_template(rocblas_handle handle,
     rocblas_status status;
 
     T *workspace;
-    status = get_rocblas_status_for_hip_status(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
-    if(status != rocblas_status_success) return status;
+    RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
 
-    rocblas_status status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
+    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
     if(status != rocblas_status_success){
         hipFree( workspace );
         return status;
     }
 
-    status = get_rocblas_status_for_hip_status(hipFree(workspace));
-    return status;
+    RETURN_IF_HIP_ERROR(hipFree(workspace));
+
+    return rocblas_status_success;
 }
 
 
