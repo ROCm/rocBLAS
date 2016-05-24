@@ -13,6 +13,18 @@
  * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing not part of the GPU library
 */
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+    void    strtri_(char* uplo, char* diag, int* n, float* A, int* lda, int *info);
+    void    dtrtri_(char* uplo, char* diag, int* n, double* A, int* lda, int *info);
+    void    ctrtri_(char* uplo, char* diag, int* n, rocblas_float_complex* A,  int* lda, int *info);
+    void    ztrtri_(char* uplo, char* diag, int* n, rocblas_double_complex* A, int* lda, int *info);
+
+#ifdef __cplusplus
+}
+#endif
 
     /*
      * ===========================================================================
@@ -251,4 +263,29 @@
                             rocblas_double_complex beta, rocblas_double_complex* C, rocblas_int ldc)
     {
         cblas_zgemm(CblasColMajor, (CBLAS_TRANSPOSE)transA, (CBLAS_TRANSPOSE)transB, m, n, k, &alpha, A, lda, B, ldb, &beta, C, ldc);
+    }
+
+    //trtri
+    template<>
+    rocblas_int cblas_trtri<float>(char uplo, char diag,
+                            rocblas_int n,
+                            float *A, rocblas_int lda)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        //printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+        rocblas_int info;
+        strtri_(&uplo, &diag, &n, A, &lda, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_trtri<double>(char uplo, char diag,
+                            rocblas_int n,
+                            double *A, rocblas_int lda)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        //printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+        rocblas_int info;
+        dtrtri_(&uplo, &diag, &n, A, &lda, &info);
+        return info;
     }

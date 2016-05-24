@@ -123,7 +123,7 @@ extern "C" {
     }
 
     char
-    rocblas2char_diag(rocblas_diagonal value)
+    rocblas2char_diagonal(rocblas_diagonal value)
     {
         switch (value) {
             case rocblas_diagonal_unit:        return 'U';

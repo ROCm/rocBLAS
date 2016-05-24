@@ -107,7 +107,7 @@ extern "C" {
     rocblas2char_fill(rocblas_fill value);
 
     char
-    rocblas2char_diag(rocblas_diagonal value);
+    rocblas2char_diagonal(rocblas_diagonal value);
 
     char
     rocblas2char_side(rocblas_side value);
