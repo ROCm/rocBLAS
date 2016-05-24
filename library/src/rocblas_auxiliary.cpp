@@ -7,7 +7,6 @@
 #include <hip_runtime.h>
 #include "definitions.h"
 #include "rocblas_types.h"
-#include "rocblas_hip.h"
 #include "handle.h"
 
     /* ============================================================================================ */

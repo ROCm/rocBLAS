@@ -18,13 +18,11 @@
 
 /* Data type */
 #include "rocblas_types.h"
-#include "rocblas_hip.h"
 
 /* Publis APIs */
 #include "rocblas_auxiliary.h"
-#include "rocblas_template_api.h"
-#include "rocblas_netlib.h"
-#include "rocblas_netlib_batched.h"
+#include "rocblas_template_functions.h"
+#include "rocblas_functions.h"
 
 
 #endif // _ROCBLAS_H_

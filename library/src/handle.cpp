@@ -19,6 +19,7 @@ _rocblas_handle::_rocblas_handle() {
   THROW_IF_HIP_ERROR( hipStreamCreate(&stream) );
   streams.push_back(stream);
 
+
   // cobalt device profile
   cobalt_device_profile = cobaltCreateEmptyDeviceProfile();
   if ( strlen(device_properties.name) > cobalt_device_profile.devices[0].maxNameLength) {

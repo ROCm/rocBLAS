@@ -163,7 +163,7 @@
      */
 
     template<>
-    void cblas_symv<float>( rocblas_uplo uplo, rocblas_int n,
+    void cblas_symv<float>( rocblas_fill uplo, rocblas_int n,
                             float alpha,
                             float *A, rocblas_int lda,
                             float* x, rocblas_int incx,
@@ -173,7 +173,7 @@
     }
 
     template<>
-    void cblas_symv<double>(rocblas_uplo uplo, rocblas_int n,
+    void cblas_symv<double>(rocblas_fill uplo, rocblas_int n,
                             double alpha,
                             double *A, rocblas_int lda,
                             double* x, rocblas_int incx,
@@ -183,7 +183,7 @@
     }
 
     template<>
-    void cblas_hemv<rocblas_float_complex>(rocblas_uplo uplo, rocblas_int n,
+    void cblas_hemv<rocblas_float_complex>(rocblas_fill uplo, rocblas_int n,
                             rocblas_float_complex alpha,
                             rocblas_float_complex *A, rocblas_int lda,
                             rocblas_float_complex* x, rocblas_int incx,
@@ -193,7 +193,7 @@
     }
 
     template<>
-    void cblas_hemv<rocblas_double_complex>(rocblas_uplo uplo, rocblas_int n,
+    void cblas_hemv<rocblas_double_complex>(rocblas_fill uplo, rocblas_int n,
                             rocblas_double_complex alpha,
                             rocblas_double_complex *A, rocblas_int lda,
                             rocblas_double_complex* x, rocblas_int incx,
@@ -211,7 +211,7 @@
     //gemm
 
     template<>
-    void cblas_gemm<float>( rocblas_transpose transA, rocblas_transpose transB,
+    void cblas_gemm<float>( rocblas_operation transA, rocblas_operation transB,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             float alpha, float *A, rocblas_int lda,
                             float* B, rocblas_int ldb,
@@ -223,7 +223,7 @@
     }
 
     template<>
-    void cblas_gemm<double>(rocblas_transpose transA, rocblas_transpose transB,
+    void cblas_gemm<double>(rocblas_operation transA, rocblas_operation transB,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             double alpha, double *A, rocblas_int lda,
                             double* B, rocblas_int ldb,
@@ -233,7 +233,7 @@
     }
 
     template<>
-    void cblas_gemm<rocblas_float_complex>(rocblas_transpose transA, rocblas_transpose transB,
+    void cblas_gemm<rocblas_float_complex>(rocblas_operation transA, rocblas_operation transB,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             rocblas_float_complex alpha, rocblas_float_complex *A, rocblas_int lda,
                             rocblas_float_complex* B, rocblas_int ldb,
@@ -244,7 +244,7 @@
     }
 
     template<>
-    void cblas_gemm<rocblas_double_complex>(rocblas_transpose transA, rocblas_transpose transB,
+    void cblas_gemm<rocblas_double_complex>(rocblas_operation transA, rocblas_operation transB,
                             rocblas_int m, rocblas_int n, rocblas_int k,
                             rocblas_double_complex alpha, rocblas_double_complex *A, rocblas_int lda,
                             rocblas_double_complex* B, rocblas_int ldb,

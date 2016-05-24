@@ -33,22 +33,22 @@ rocblas_status testing_symv(Arguments argus)
     rocblas_int X_size = N * incx;
     rocblas_int Y_size = N * incy;
 
-    rocblas_status status = rocblas_success;
+    rocblas_status status = rocblas_status_success;
 
     //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
     if ( N < 0 ){
-        status = rocblas_invalid_dim;
+        status = rocblas_status_invalid_size;
         return status;
     }
     else if ( lda < 0 ){
-        status = rocblas_invalid_leadDimA;
+        status = rocblas_status_invalid_size;
         return status;
     }
     else if ( incx < 0 ){
-        status = rocblas_invalid_incx;
+        status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_success) {
+    if (status != rocblas_status_success) {
         return status;
     }
 
@@ -69,10 +69,10 @@ rocblas_status testing_symv(Arguments argus)
 
     rocblas_handle handle;
 
-    char char_uplo = argus.uplo_option;
-    rocblas_uplo uplo = char2rocblas_uplo(char_uplo);
+    char char_fill = argus.uplo_option;
+    rocblas_fill uplo = char2rocblas_fill(char_fill);
 
-    rocblas_create(&handle);
+    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
@@ -110,11 +110,11 @@ rocblas_status testing_symv(Arguments argus)
                      (T*)&beta,
                      dy, incy);
 
-        if (status != rocblas_success) {
+        if (status != rocblas_status_success) {
             CHECK_HIP_ERROR(hipFree(dA));
             CHECK_HIP_ERROR(hipFree(dx));
             CHECK_HIP_ERROR(hipFree(dy));
-            rocblas_destroy(handle);
+            rocblas_destroy_handle(handle);
             return status;
         }
     }
@@ -183,6 +183,6 @@ rocblas_status testing_symv(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dA));
     CHECK_HIP_ERROR(hipFree(dx));
     CHECK_HIP_ERROR(hipFree(dy));
-    rocblas_destroy(handle);
-    return rocblas_success;
+    rocblas_destroy_handle(handle);
+    return rocblas_status_success;
 }

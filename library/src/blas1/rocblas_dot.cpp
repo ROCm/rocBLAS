@@ -5,7 +5,9 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
-#include "../device_template.h"
+#include "status.h"
+#include "definitions.h"
+#include "device_template.h"
 
 template<typename T, rocblas_int NB>
 __global__ void
@@ -94,15 +96,15 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 {
 
     if ( n < 0 )
-        return rocblas_invalid_dim;
-    else if ( x == NULL )
-        return rocblas_invalid_vecX;
+        return rocblas_status_invalid_size;
+    else if ( x == nullptr )
+        return rocblas_status_invalid_size;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
-    else if ( y == NULL )
-        return rocblas_invalid_vecY;
+        return rocblas_status_invalid_size;
+    else if ( y == nullptr )
+        return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
-        return rocblas_invalid_incy;
+        return rocblas_status_invalid_size;
 
 
     /*
@@ -110,7 +112,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
      */
 
     if ( n == 0)
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
@@ -120,7 +122,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     if(lworkspace < blocks) {
         printf("size workspace = %d is too small, allocate at least %d", lworkspace, blocks);
-        return rocblas_not_implemented;
+        return rocblas_status_not_implemented;
     }
 
     dim3 grid(blocks, 1, 1);
@@ -128,7 +130,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy, workspace);
 
-    if( rocblas_get_pointer_location(result) == DEVICE_POINTER ){
+    if( rocblas_get_pointer_location(result) == rocblas_mem_location_device ){
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
     }
@@ -138,11 +140,10 @@ rocblas_dot_template_workspace(rocblas_handle handle,
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
         if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
-        CHECK_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
     }
 
-    return rocblas_success;
-
+    return rocblas_status_success;
 }
 
 /* ============================================================================================ */
@@ -183,17 +184,18 @@ rocblas_dot_template(rocblas_handle handle,
     const T *y, rocblas_int incy,
     T *result)
 {
-
-    if ( n < 0 )
-        return rocblas_invalid_dim;
-    else if ( x == NULL )
-        return rocblas_invalid_vecX;
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
+    else if ( n < 0 )
+        return rocblas_status_invalid_size;
+    else if ( x == nullptr )
+        return rocblas_status_invalid_size;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
-    else if ( y == NULL )
-        return rocblas_invalid_vecY;
+        return rocblas_status_invalid_size;
+    else if ( y == nullptr )
+        return rocblas_status_invalid_pointer;
     else if ( incy < 0 )
-        return rocblas_invalid_incy;
+        return rocblas_status_invalid_size;
 
 
     /*
@@ -201,26 +203,24 @@ rocblas_dot_template(rocblas_handle handle,
      */
 
     if ( n == 0)
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
-    rocblas_int default_device;
-    //save the current device
-    CHECK_HIP_ERROR(hipGetDevice(&default_device));
-    //set the devcie to the one associated with the handle
-    CHECK_HIP_ERROR(hipSetDevice(handle.device_id));// this operation set the deafult device is destructive
+    rocblas_status status;
 
     T *workspace;
-    CHECK_HIP_ERROR(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
+    RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
 
-    rocblas_status status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
+    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
+    if(status != rocblas_status_success){
+        hipFree( workspace );
+        return status;
+    }
 
-    CHECK_HIP_ERROR(hipFree(workspace));
-    //reset device to default one
-    CHECK_HIP_ERROR(hipSetDevice(default_device));
+    RETURN_IF_HIP_ERROR(hipFree(workspace));
 
-    return status;
+    return rocblas_status_success;
 }
 
 
