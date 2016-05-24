@@ -28,10 +28,10 @@ extern "C" {
 
 /********************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
- * It must be initialized using rocblas_control_create()
+ * It must be initialized using rocblas_create_handle()
  * and the returned handle must be passed
  * to all subsequent library function calls.
- * It should be destroyed at the end using rocblas_control_destroy().
+ * It should be destroyed at the end using rocblas_destroy_handle().
  *******************************************************************************/
 rocblas_status
 rocblas_create_handle( rocblas_handle *handle);

@@ -3,9 +3,8 @@
  *
  * ************************************************************************ */
 
-/*!\file
- * \brief rocblas-types.h defines public types to be consummed by the library
- * The types are agnostic to the underlying runtime used by the library
+/*! \file
+ * \brief rocblas_types.h defines data types used by rocblas
  */
 
 #pragma once
@@ -17,16 +16,9 @@
 #include <hip_runtime.h>
 
 
-/*! \file
- * \brief rocblas_types.h defines data types used by rocblas
- */
-
-
+// integer type
 /*! \brief To specify whether int32 or int64 is used
  */
-
-
-// integer type
 #if defined( rocblas_ILP64 )
 typedef int64_t rocblas_int;
 #else
@@ -98,12 +90,7 @@ extern "C" {
 
     /* ============================================================================================ */
     /**
-     *   @brief rocblas error codes definition, incorporating HIP error
-     *   definitions.
-     *
-     *   This enumeration is a subset of the HIP error codes extended with some
-     *   additional extra codes.  For example, hipErrorMemoryAllocation, which is
-     *   defined in hip_runtime_api.h is aliased as rocblas_status_memory_allocation.
+     *   @brief rocblas status codes definition
      */
     typedef enum rocblas_status_ {
         rocblas_status_success          = 0, /**< success */

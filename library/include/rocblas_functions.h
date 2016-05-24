@@ -4,8 +4,8 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _ROCBLAS_NETLIB_H_
-#define _ROCBLAS_NETLIB_H_
+#ifndef _ROCBLAS_FUNCTIONS_H_
+#define _ROCBLAS_FUNCTIONS_H_
 
 #include <rocblas_types.h>
 
@@ -13,17 +13,14 @@
 /*!\file
  * \brief rocblas_netlib.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based NVIDIA GPUs.
+ *  This file exposes C89 BLAS interface
 */
 
     /*
      * ===========================================================================
      *   READEME: Please follow the naming convention
      *   Big case for matrix, e.g. matrix A, B, C   GEMM (C = A*B)
-     *     lower case for vector, e.g. vector x, y    GEMV (y = A*x)
-
-     *   rocblas_handle is defined as rocblas_queue (hipStream_t) right now
-     *   to allow multiple BLAS routines called in different streams(or called queues)
-     *   on the same GPU device. This feature is called streaming supported by CUBLAS,too.
+     *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
      * ===========================================================================
      */
 
@@ -652,4 +649,4 @@ extern "C" {
 }
 #endif
 
-#endif  /* _ROCBLAS_NETLIB_H_ */
+#endif  /* _ROCBLAS_FUNCTIONS_H_ */
