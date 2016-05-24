@@ -81,12 +81,12 @@ rocblas_status testing_trtri(Arguments argus)
         gpu_time_used = get_time_ms();// in miliseconds
     }
 
-/*
+
     status = rocblas_trtri<T>(handle,
             uplo, diag,
             N,
-            hA.data(),lda);
-*/
+            dA,lda);
+
     if (status != rocblas_status_success) {
         CHECK_HIP_ERROR(hipFree(dA));
         rocblas_destroy_handle(handle);
