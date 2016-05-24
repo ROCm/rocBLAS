@@ -57,7 +57,7 @@ set( DEVICE_TOOLCHAIN_FILE "" )
 # If our toolchain is using hip, we need to download hip and generate a toolchain file so we can find it
 # since the tools are not in the standard system path
 if( DEVICE_TOOLCHAIN_NAME STREQUAL "hipcc" )
-	include( cmake/external-hip.cmake )
+    #include( cmake/external-hip.cmake )
 
 	# configure toolchain file to find the hip compiler with the hip we just downloaded
 	configure_file( "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake.in"

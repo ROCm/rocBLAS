@@ -15,7 +15,6 @@ scal_kernel_host_scalar(hipLaunchParm lp,
     const T alpha,
     T *x, rocblas_int incx)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
@@ -30,7 +29,6 @@ scal_kernel_device_scalar(hipLaunchParm lp,
     const T *alpha,
     T *x, rocblas_int incx)
 {
-    int tx  = hipThreadIdx_x;
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
@@ -68,27 +66,28 @@ rocblas_scal_template(rocblas_handle handle,
     T *x, rocblas_int incx)
 {
 
-    if ( n < 0 )
-        return rocblas_invalid_dim;
-    else if ( x == NULL )
-        return rocblas_invalid_vecX;
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
+    else if ( n < 0 )
+        return rocblas_status_invalid_size;
+    else if ( x == nullptr )
+        return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
-        return rocblas_invalid_incx;
+        return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible. Not Argument error
      */
 
     if ( n == 0 )
-        return rocblas_success;
+        return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
     dim3 grid( blocks, 1, 1 );
-    //There is a bug in thread block configuration (256,1,1) -> (1,1,256) internally
     dim3 threads(NB_X, 1, 1);
 
-    if( rocblas_get_pointer_location((void*)alpha) == DEVICE_POINTER ){
+    if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device ){
         hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar), dim3(blocks), dim3(threads), 0, 0 , n, alpha, x, incx);
     }
     else{
@@ -97,7 +96,7 @@ rocblas_scal_template(rocblas_handle handle,
         hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_host_scalar), dim3(blocks), dim3(threads), 0, 0 , n, scalar, x, incx);
     }
 
-    return rocblas_success;
+    return rocblas_status_success;
 }
 
 /* ============================================================================================ */

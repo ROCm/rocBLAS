@@ -17,6 +17,12 @@ using namespace std;
  * \brief provide data initialization, timing, rocblas type <-> lapack char conversion utilities.
  */
 
+#define CHECK_HIP_ERROR(error) \
+    if (error != hipSuccess) { \
+      fprintf(stderr, "error: '%s'(%d) at %s:%d\n", hipGetErrorString(error), error,__FILE__, __LINE__); \
+      exit(EXIT_FAILURE);\
+    }
+
     /* ============================================================================================ */
     /* generate random number :*/
 
@@ -95,13 +101,13 @@ extern "C" {
     /*  Convert rocblas constants to lapack char. */
 
     char
-    rocblas2char_transpose(rocblas_transpose value);
+    rocblas2char_operation(rocblas_operation value);
 
     char
-    rocblas2char_uplo(rocblas_uplo value);
+    rocblas2char_fill(rocblas_fill value);
 
     char
-    rocblas2char_diag(rocblas_diag value);
+    rocblas2char_diag(rocblas_diagonal value);
 
     char
     rocblas2char_side(rocblas_side value);
@@ -109,14 +115,14 @@ extern "C" {
     /* ============================================================================================ */
     /*  Convert lapack char constants to rocblas type. */
 
-    rocblas_transpose
-    char2rocblas_transpose(char value);
+    rocblas_operation
+    char2rocblas_operation(char value);
 
-    rocblas_uplo
-    char2rocblas_uplo(char value);
+    rocblas_fill
+    char2rocblas_fill(char value);
 
-    rocblas_diag
-    char2rocblas_diag(char value);
+    rocblas_diagonal
+    char2rocblas_diagonal(char value);
 
     rocblas_side
     char2rocblas_side(char value);

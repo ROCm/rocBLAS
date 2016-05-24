@@ -40,21 +40,21 @@
                     T *result);
 
     template<typename T>
-    void cblas_symv( rocblas_uplo uplo, rocblas_int n,
+    void cblas_symv( rocblas_fill uplo, rocblas_int n,
                      T alpha,
                      T *A, rocblas_int lda,
                      T* x, rocblas_int incx,
                      T beta, T* y, rocblas_int incy);
 
     template<typename T>
-    void cblas_hemv( rocblas_uplo uplo, rocblas_int n,
+    void cblas_hemv( rocblas_fill uplo, rocblas_int n,
                      T alpha,
                      T *A, rocblas_int lda,
                      T* x, rocblas_int incx,
                      T beta, T* y, rocblas_int incy);
 
     template<typename T>
-    void cblas_gemm( rocblas_transpose transA, rocblas_transpose transB,
+    void cblas_gemm( rocblas_operation transA, rocblas_operation transB,
                      rocblas_int m, rocblas_int n, rocblas_int k,
                      T alpha, T *A, rocblas_int lda,
                      T* B, rocblas_int ldb,
