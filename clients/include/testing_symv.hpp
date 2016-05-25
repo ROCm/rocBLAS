@@ -97,7 +97,7 @@ rocblas_status testing_symv(Arguments argus)
            ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
     }
 
     for(int iter=0;iter<1;iter++){
@@ -119,8 +119,8 @@ rocblas_status testing_symv(Arguments argus)
         }
     }
     if(argus.timing){
-        gpu_time_used = get_time_ms() - gpu_time_used;
-        rocblas_gflops = symv_gflop_count<T> (N) / gpu_time_used * 1e3 * 1;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = symv_gflop_count<T> (N) / gpu_time_used * 1e6 * 1;
     }
 
     //copy output from device to CPU
@@ -131,7 +131,7 @@ rocblas_status testing_symv(Arguments argus)
            CPU BLAS
         =================================================================== */
         if(argus.timing){
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
         }
 
         cblas_symv<T>(uplo, N,
@@ -142,8 +142,8 @@ rocblas_status testing_symv(Arguments argus)
                hz.data(), incy);
 
         if(argus.timing){
-            cpu_time_used = get_time_ms() - cpu_time_used;
-            cblas_gflops = symv_gflop_count<T>(N) / cpu_time_used * 1e3;
+            cpu_time_used = get_time_us() - cpu_time_used;
+            cblas_gflops = symv_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -164,9 +164,9 @@ rocblas_status testing_symv(Arguments argus)
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "N, lda, rocblas-Gflops (ms) ";
+            cout << "N, lda, rocblas-Gflops (us) ";
             if(argus.norm_check){
-                cout << "CPU-Gflops(ms), norm-error" ;
+                cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 

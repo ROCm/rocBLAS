@@ -90,12 +90,12 @@ extern "C" {
     /*  timing: HIP only provides very limited timers function clock() and not general;
                 rocblas sync CPU and device and use more accurate CPU timer*/
 
-    /*! \brief  CPU Timer(in millisecond): synchronize with the default device and return wall time */
-    double get_time_ms( void );
+    /*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
+    double get_time_us( void );
 
 
-    /*! \brief  CPU Timer(in millisecond): synchronize with given queue/stream and return wall time */
-    double get_time_ms_sync( hipStream_t stream );
+    /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
+    double get_time_us_sync( hipStream_t stream );
 
     /* ============================================================================================ */
     /*  Convert rocblas constants to lapack char. */
