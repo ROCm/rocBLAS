@@ -49,3 +49,16 @@
     double  gemm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k){
         return (double)(8.0 * m * n * k)/1e9;
     }
+
+
+    /* \brief floating point counts of TRTRI */
+    template<>
+    double  trtri_gflop_count<rocblas_float_complex>(rocblas_int n){
+        return (double)(8.0 * n * n * n)/3.0/1e9;
+    }
+
+
+    template<>
+    double  trtri_gflop_count<rocblas_double_complex>(rocblas_int n){
+        return (double)(8.0 * n * n * n)/3.0/1e9;
+    }
