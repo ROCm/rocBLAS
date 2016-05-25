@@ -48,9 +48,7 @@ rocblas_status testing_symv(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_status_success) {
-        return status;
-    }
+
 
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);

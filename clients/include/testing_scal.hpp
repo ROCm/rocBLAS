@@ -36,9 +36,6 @@ rocblas_status testing_scal(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_status_success) {
-        return status;
-    }
 
 
     rocblas_int sizeX = N * incx;
