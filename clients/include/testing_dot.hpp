@@ -78,7 +78,7 @@ rocblas_status testing_dot(Arguments argus)
     hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice);
 
     if(argus.timing){
-        printf("dot     N    rocblas    (ms)     CPU (ms)     error\n");
+        printf("dot     N    rocblas    (us)     CPU (us)     error\n");
     }
 
 
@@ -86,7 +86,7 @@ rocblas_status testing_dot(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
     }
 
      /* =====================================================================
@@ -117,7 +117,7 @@ rocblas_status testing_dot(Arguments argus)
     if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
 
     if(argus.timing){
-        gpu_time_used = get_time_ms() - gpu_time_used;
+        gpu_time_used = get_time_us() - gpu_time_used;
     }
 
 
@@ -127,7 +127,7 @@ rocblas_status testing_dot(Arguments argus)
                  CPU BLAS
      =================================================================== */
          if(argus.timing){
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
         }
 
         cblas_dot<T>(N,
@@ -135,7 +135,7 @@ rocblas_status testing_dot(Arguments argus)
                     hy.data(), incy, &cpu_result);
 
         if(argus.timing){
-            cpu_time_used = get_time_ms() - cpu_time_used;
+            cpu_time_used = get_time_us() - cpu_time_used;
         }
 
 

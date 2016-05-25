@@ -58,6 +58,7 @@ rocblas_status testing_trtri(Arguments argus)
     char char_uplo = argus.uplo_option;
     char char_diag = argus.diag_option;
 
+    char_uplo = 'U';
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
@@ -78,7 +79,7 @@ rocblas_status testing_trtri(Arguments argus)
            ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
     }
 
 
@@ -94,8 +95,8 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     if(argus.timing){
-        gpu_time_used = get_time_ms() - gpu_time_used;
-        rocblas_gflops = trtri_gflop_count<T> (N) / gpu_time_used * 1e3 ;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = trtri_gflop_count<T> (N) / gpu_time_used * 1e6 ;
     }
 
     //copy output from device to CPU
@@ -106,7 +107,7 @@ rocblas_status testing_trtri(Arguments argus)
            CPU BLAS
         =================================================================== */
         if(argus.timing){
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
         }
 
         rocblas_int info = cblas_trtri<T>(
@@ -117,8 +118,8 @@ rocblas_status testing_trtri(Arguments argus)
         if(info != 0) printf("error in cblas_trtri\n");
 
         if(argus.timing){
-            cpu_time_used = get_time_ms() - cpu_time_used;
-            cblas_gflops = trtri_gflop_count<T>(N) / cpu_time_used * 1e3;
+            cpu_time_used = get_time_us() - cpu_time_used;
+            cblas_gflops = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -139,13 +140,13 @@ rocblas_status testing_trtri(Arguments argus)
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "N, lda, rocblas-Gflops (ms) ";
+            cout << "N, lda, rocblas-Gflops (us) ";
             if(argus.norm_check){
-                cout << "CPU-Gflops(ms), norm-error" ;
+                cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << N <<',' << lda <<','<< rocblas_gflops << "(" << gpu_time_used << "),";
+            cout << N <<',' << lda <<','<< rocblas_gflops << "(" << gpu_time_used  << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";

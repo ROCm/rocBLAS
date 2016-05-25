@@ -48,13 +48,13 @@ int main()
 
     hipMemcpy(dx, hx.data(), sizeof(float)*N, hipMemcpyHostToDevice);
 
-    printf("N    rocblas    (ms)     \n");
+    printf("N    rocblas    (us)     \n");
 
     /* =====================================================================
          ROCBLAS
     =================================================================== */
 
-    gpu_time_used = get_time_ms();// in miliseconds
+    gpu_time_used = get_time_us();// in microseconds
 
 
     //library interface
@@ -67,7 +67,7 @@ int main()
     }
 
 
-    gpu_time_used = get_time_ms() - gpu_time_used;
+    gpu_time_used = get_time_us() - gpu_time_used;
 
     //copy output from device to CPU
     hipMemcpy(hx.data(), dx, sizeof(float)*N, hipMemcpyDeviceToHost);

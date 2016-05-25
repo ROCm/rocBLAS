@@ -64,7 +64,7 @@ rocblas_status testing_bandwidth(Arguments argus)
     //copy data from CPU to device,
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
 
-    printf("Bandwidth     MByte    GPU (GB/s)    Time (ms) \n");
+    printf("Bandwidth     MByte    GPU (GB/s)    Time (us) \n");
 
     /* =====================================================================
          Bandwidth
@@ -74,7 +74,7 @@ rocblas_status testing_bandwidth(Arguments argus)
 
         CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*size*incx, hipMemcpyHostToDevice));
 
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
 
         //scal dx
         status = rocblas_scal<T>(handle,
@@ -92,7 +92,7 @@ rocblas_status testing_bandwidth(Arguments argus)
 
 //       hipMemset(dx, 0, size*sizeof(T));
 
-        gpu_time_used = get_time_ms() - gpu_time_used;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
         gpu_bandwidth = 2 * size * sizeof(T) / 1e6 / (gpu_time_used); //in GB/s
 
