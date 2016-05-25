@@ -39,9 +39,6 @@ rocblas_status testing_trtri(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_status_success) {
-        return status;
-    }
 
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
@@ -134,7 +131,7 @@ rocblas_status testing_trtri(Arguments argus)
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', N, N, lda, hB.data(), hA.data());
+            rocblas_error = norm_check_symmetric<T>('F', char_uplo, N, lda, hB.data(), hA.data());
         }
     }
 

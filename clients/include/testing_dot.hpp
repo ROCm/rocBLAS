@@ -41,9 +41,6 @@ rocblas_status testing_dot(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_status_success) {
-        return status;
-    }
 
 
     rocblas_int sizeX = N * incx;
@@ -74,8 +71,8 @@ rocblas_status testing_dot(Arguments argus)
     rocblas_init<T>(hy, 1, N, incy);
 
     //copy data from CPU to device, does not work for incx != 1
-    hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice);
-    hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice);
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice));
 
     if(argus.timing){
         printf("dot     N    rocblas    (us)     CPU (us)     error\n");
