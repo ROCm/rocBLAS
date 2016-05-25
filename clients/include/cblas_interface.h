@@ -59,6 +59,11 @@
                      T alpha, T *A, rocblas_int lda,
                      T* B, rocblas_int ldb,
                      T beta, T* C, rocblas_int ldc);
+
+    template<typename T>
+    rocblas_int cblas_trtri(char uplo, char diag,
+                     rocblas_int n,
+                     T *A, rocblas_int lda);
     /* ============================================================================================ */
 
 

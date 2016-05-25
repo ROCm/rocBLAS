@@ -45,4 +45,10 @@
         return (2.0 * m * n * k)/1e9;
     }
 
+    /* \brief floating point counts of TRTRI */
+    template<typename T>
+    double  trtri_gflop_count(rocblas_int n){
+        return (1.0 * n * n * n)/3.0/1e9;
+    }
+
 #endif  /* _ROCBLAS_FLOPS_H_ */

@@ -95,7 +95,7 @@ rocblas_status testing_gemm(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
     }
 
 #if 0
@@ -115,8 +115,8 @@ rocblas_status testing_gemm(Arguments argus)
 #endif
  //    sleep(1);
     if(argus.timing){
-        gpu_time_used = get_time_ms() - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6;
     }
 
     //copy output from device to CPU
@@ -129,7 +129,7 @@ rocblas_status testing_gemm(Arguments argus)
                  CPU BLAS
      =================================================================== */
         if(argus.timing){
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
         }
 
 
@@ -140,8 +140,8 @@ rocblas_status testing_gemm(Arguments argus)
                      beta, hC_copy.data(), ldc);
 
         if(argus.timing){
-            cpu_time_used = get_time_ms() - cpu_time_used;
-            cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e3;
+            cpu_time_used = get_time_us() - cpu_time_used;
+            cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -160,9 +160,9 @@ rocblas_status testing_gemm(Arguments argus)
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything,
-            cout << "M, N, K, lda, ldb, ldc, rocblas-Gflops (ms) ";
+            cout << "M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
             if(argus.norm_check){
-                cout << "CPU-Gflops(ms), norm-error" ;
+                cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
@@ -260,9 +260,9 @@ rocblas_status range_testing_gemm(Arguments argus)
     ofstream myfile;
     myfile.open(filename);
     if (myfile.is_open()){
-        myfile << "M, N, K, lda, ldb, ldc, rocblas-Gflops (ms) ";
+        myfile << "M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
         if(argus.norm_check){
-            myfile << "CPU-Gflops(ms), norm-error" ;
+            myfile << "CPU-Gflops(us), norm-error" ;
         }
         myfile << endl;
     }
@@ -279,8 +279,8 @@ rocblas_status range_testing_gemm(Arguments argus)
              ROCBLAS
         =================================================================== */
 
-        gpu_time_used = get_time_ms();// in miliseconds
-        rocblas_gflops = gemm_gflop_count<T> (size, size, size) / gpu_time_used * 1e3 ;
+        gpu_time_used = get_time_us();// in microseconds
+        rocblas_gflops = gemm_gflop_count<T> (size, size, size) / gpu_time_used * 1e6 ;
 
     #if 0
         //library interface
@@ -298,7 +298,7 @@ rocblas_status range_testing_gemm(Arguments argus)
         }
     #endif
 
-        gpu_time_used = get_time_ms() - gpu_time_used;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
         //copy output from device to CPU
         hipMemcpy(hC.data(), dC, sizeof(T)*size*size,      hipMemcpyDeviceToHost);
@@ -309,7 +309,7 @@ rocblas_status range_testing_gemm(Arguments argus)
                          CPU BLAS
              =================================================================== */
 
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
 
             cblas_gemm<T>(
                          transA, transB, size, size, size,
@@ -318,9 +318,9 @@ rocblas_status range_testing_gemm(Arguments argus)
                          beta, hC_copy.data(), size);
 
 
-            cpu_time_used = get_time_ms() - cpu_time_used;
+            cpu_time_used = get_time_us() - cpu_time_used;
 
-            cblas_gflops = gemm_gflop_count<T> (size, size, size) / cpu_time_used * 1e3 ;
+            cblas_gflops = gemm_gflop_count<T> (size, size, size) / cpu_time_used * 1e6 ;
 
             //if enable norm check, norm check is invasive
             //any typeinfo(T) will not work here, because template deduction is matched in compilation time

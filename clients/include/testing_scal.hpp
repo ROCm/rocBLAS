@@ -36,9 +36,6 @@ rocblas_status testing_scal(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    if (status != rocblas_status_success) {
-        return status;
-    }
 
 
     rocblas_int sizeX = N * incx;
@@ -67,11 +64,11 @@ rocblas_status testing_scal(Arguments argus)
     hz = hx;
 
     //copy data from CPU to device, does not work for incx != 1
-    hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice);
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
 
 
     if(argus.timing){
-        printf("SCAL     N    rocblas    (ms)     CPU (ms)     error\n");
+        printf("SCAL     N    rocblas    (us)     CPU (us)     error\n");
     }
 
 
@@ -79,7 +76,7 @@ rocblas_status testing_scal(Arguments argus)
          ROCBLAS
     =================================================================== */
     if(argus.timing){
-        gpu_time_used = get_time_ms();// in miliseconds
+        gpu_time_used = get_time_us();// in microseconds
     }
 
     status = rocblas_scal<T>(handle,
@@ -93,11 +90,11 @@ rocblas_status testing_scal(Arguments argus)
     }
 
     if(argus.timing){
-        gpu_time_used = get_time_ms() - gpu_time_used;
+        gpu_time_used = get_time_us() - gpu_time_used;
     }
 
         //copy output from device to CPU
-    hipMemcpy(hx.data(), dx, sizeof(T)*N*incx, hipMemcpyDeviceToHost);
+    CHECK_HIP_ERROR(hipMemcpy(hx.data(), dx, sizeof(T)*N*incx, hipMemcpyDeviceToHost));
 
 
     if(argus.unit_check || argus.norm_check){
@@ -106,7 +103,7 @@ rocblas_status testing_scal(Arguments argus)
                  CPU BLAS
      =================================================================== */
         if(argus.timing){
-            cpu_time_used = get_time_ms();
+            cpu_time_used = get_time_us();
         }
 
         cblas_scal<T>(
@@ -115,7 +112,7 @@ rocblas_status testing_scal(Arguments argus)
                      hz.data(), incx);
 
         if(argus.timing){
-            cpu_time_used = get_time_ms() - cpu_time_used;
+            cpu_time_used = get_time_us() - cpu_time_used;
         }
 
 

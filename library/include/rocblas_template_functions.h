@@ -65,4 +65,12 @@
              const T *beta,
              T *y, rocblas_int incy);
 
+    template<typename T>
+    rocblas_status
+    rocblas_trtri(rocblas_handle handle,
+        rocblas_fill uplo, rocblas_diagonal diag,
+        rocblas_int n,
+        T *A, rocblas_int lda);
+
+
 #endif  /* _ROCBLAS_TEMPLATE_FUNCTIONS_H_ */

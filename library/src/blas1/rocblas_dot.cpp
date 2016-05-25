@@ -94,19 +94,6 @@ rocblas_dot_template_workspace(rocblas_handle handle,
     const T *y, rocblas_int incy,
     T* result, T* workspace, rocblas_int lworkspace)
 {
-
-    if ( n < 0 )
-        return rocblas_status_invalid_size;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_size;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
-    else if ( y == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( incy < 0 )
-        return rocblas_status_invalid_size;
-
-
     /*
      * Quick return if possible.
      */
@@ -189,7 +176,7 @@ rocblas_dot_template(rocblas_handle handle,
     else if ( n < 0 )
         return rocblas_status_invalid_size;
     else if ( x == nullptr )
-        return rocblas_status_invalid_size;
+        return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
         return rocblas_status_invalid_size;
     else if ( y == nullptr )
@@ -213,14 +200,10 @@ rocblas_dot_template(rocblas_handle handle,
     RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
 
     status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
-    if(status != rocblas_status_success){
-        hipFree( workspace );
-        return status;
-    }
 
     RETURN_IF_HIP_ERROR(hipFree(workspace));
 
-    return rocblas_status_success;
+    return status;
 }
 
 
