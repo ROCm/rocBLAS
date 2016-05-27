@@ -5,8 +5,6 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
-#include "status.h"
-#include "definitions.h"
 #include "trtri_device.h"
 
 //flag indicate whether write into A or invA
@@ -17,9 +15,9 @@ trtri_kernel(hipLaunchParm lp,
     rocblas_diagonal diag,
     rocblas_int n,
     T *A, rocblas_int lda,
-    T *invA)
+    T *invA, rocblas_int ldinvA)
 {
-    trtri_device<T, NB, flag>(uplo, diag, n, A, lda, invA);
+    trtri_device<T, NB, flag>(uplo, diag, n, A, lda, invA, ldinvA);
 }
 
 
@@ -34,7 +32,7 @@ rocblas_trtri_template_workspace(rocblas_handle handle,
     rocblas_fill uplo, rocblas_diagonal diag,
     rocblas_int n,
     T *A, rocblas_int lda,
-    T *invA)
+    T *invA, rocblas_int ldinvA)
 {
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
@@ -48,7 +46,8 @@ rocblas_trtri_template_workspace(rocblas_handle handle,
         return rocblas_status_invalid_size;
     else if ( invA == nullptr )
         return rocblas_status_invalid_pointer;
-
+    else if ( ldinvA < n )
+        return rocblas_status_invalid_size;
     /*
      * Quick return if possible.
      */
@@ -64,7 +63,7 @@ rocblas_trtri_template_workspace(rocblas_handle handle,
     dim3 grid(1, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 1>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, invA);
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 1>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, invA, ldinvA);
 
     return rocblas_status_success;
 
@@ -96,12 +95,9 @@ rocblas_trtri_template_workspace(rocblas_handle handle,
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
-    @param[output]
-    invA      pointer storing the inverse matrix A on the GPU.
 
     ********************************************************************/
 
-//allocate invA inside this API
 template<typename T>
 rocblas_status
 rocblas_trtri_template(rocblas_handle handle,
@@ -136,7 +132,7 @@ rocblas_trtri_template(rocblas_handle handle,
     dim3 grid(1, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 0>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, nullptr);
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 0>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, nullptr, 0);
 
     return rocblas_status_success;
 }

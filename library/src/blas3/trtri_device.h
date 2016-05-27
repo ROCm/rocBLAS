@@ -42,7 +42,7 @@ trtri_device(rocblas_fill uplo,
     rocblas_diagonal diag,
     rocblas_int n,
     T *A, rocblas_int lda,
-    T *invA)
+    T *invA, rocblas_int ldinvA)
 {
     int tx  = hipThreadIdx_x;
 
@@ -114,23 +114,25 @@ trtri_device(rocblas_fill uplo,
 
 
     //if flag 0, then A will be overwritten by sA, invA is not touched
-    T* output;
+    T* output; int ldoutput;
     if(flag == 0){
         output = A;
+        ldoutput = lda;
     }
     else{ //else invA will be overwritten by sA, A is not touched
         output = invA;
+        ldoutput = ldinvA;
     }
 
     if (tx < n){
         if(uplo == rocblas_fill_lower){
             for(int i=0;i<=tx;i++){
-                output[tx + i * lda] = sA[tx + i * n];
+                output[tx + i * ldoutput] = sA[tx + i * n];
             }
         }
         else{ // transpose back to A from sA if upper
             for(int i=n-1;i>=tx;i--){
-                output[tx + i * lda] = sA[(n-1-tx) + (n-1-i) * n];
+                output[tx + i * ldoutput] = sA[(n-1-tx) + (n-1-i) * n];
             }
         }
     }

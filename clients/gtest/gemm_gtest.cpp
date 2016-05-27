@@ -72,8 +72,7 @@ vector<vector<double>> full_alpha_beta_range = { {1.0, 0.0},
 
 //vector of vector, each pair is a {transA, transB};
 //add/delete this list in pairs, like {'N', 'T'}
-//for single/double precision, 'C'(conjTranspose) =='T' (transpose),
-//and this internal switch should be handled by the BLAS routine but should not throw an error.
+//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm/dgemm,
 const
 vector<vector<char>> transA_transB_range = { {'N', 'N'},
                                         {'N', 'T'},
@@ -81,11 +80,7 @@ vector<vector<char>> transA_transB_range = { {'N', 'N'},
                                         {'T', 'C'}
                                        };
 
-//this group of vectors must be of identical size, currently 2
-//If you change one size (add/delete), change everyone in this group.
-const vector<char> side_option = {'L', 'R'};
-const vector<char> uplo_option = {'U', 'L'};
-const vector<char> diag_option = {'N', 'U'};
+
 
 
 
@@ -135,17 +130,17 @@ Arguments setup_gemm_arguments(gemm_tuple tup)
 }
 
 
-class test_gemm: public :: TestWithParam <gemm_tuple>
+class gemm_gtest: public :: TestWithParam <gemm_tuple>
 {
     protected:
-        test_gemm(){}
-        virtual ~test_gemm(){}
+        gemm_gtest(){}
+        virtual ~gemm_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(test_gemm, test_gemm_float)
+TEST_P(gemm_gtest, gemm_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -159,7 +154,7 @@ TEST_P(test_gemm, test_gemm_float)
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
-        
+
         if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
@@ -182,16 +177,16 @@ TEST_P(test_gemm, test_gemm_float)
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
 
 //THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is small
-INSTANTIATE_TEST_CASE_P(accuracy_test_gemm_matrix_size,
-                        test_gemm,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size,
+                        gemm_gtest,
                         Combine(
                                   ValuesIn(full_matrix_size_range), ValuesIn(alpha_beta_range), ValuesIn(transA_transB_range)
                                )
                         );
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
-INSTANTIATE_TEST_CASE_P(accuracy_test_gemm_scalar_transpose,
-                        test_gemm,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose,
+                        gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(full_alpha_beta_range), ValuesIn(transA_transB_range)
                                )
