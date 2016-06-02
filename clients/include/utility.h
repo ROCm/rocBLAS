@@ -167,11 +167,12 @@ class Arguments {
     char diag_option = 'N';
 
     rocblas_int apiCallCount = 1;
-    rocblas_int order_option = 1;
+    rocblas_int order_option = 0;// 0 is column  major, 1 is row major
+    rocblas_int batch_count = 1000;
+
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
     rocblas_int timing = 0;
-
 
     Arguments & operator=(const Arguments &rhs)
     {
@@ -201,6 +202,7 @@ class Arguments {
 
         apiCallCount = rhs.apiCallCount;
         order_option = rhs.order_option;
+        batch_count = rhs.batch_count;
 
         norm_check = rhs.norm_check;
         unit_check = rhs.unit_check;
