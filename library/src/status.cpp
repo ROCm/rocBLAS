@@ -1,11 +1,11 @@
 #include "status.h"
-#include "hip_runtime.h"
+#include <hip_runtime_api.h>
 #include "Cobalt.h"
 
 /*******************************************************************************
  * \brief convert CobaltStatus to rocblas_status
  ******************************************************************************/
-rocblas_status 
+rocblas_status
 get_rocblas_status_for_cobalt_status( CobaltStatus status ) {
   switch(status) {
 
@@ -31,7 +31,7 @@ get_rocblas_status_for_cobalt_status( CobaltStatus status ) {
   case cobaltStatusOperationSummationIndexAssignmentsInvalid:
   case cobaltStatusDeviceProfileNumDevicesInvalid:
   case cobaltStatusDeviceProfileNotSupported: // cobalt should return a default implementation
-  case cobaltStatusProblemNotSupported: // 
+  case cobaltStatusProblemNotSupported: //
   case cobaltStatusInvalidParameter:
   default:
     return rocblas_status_internal_error;

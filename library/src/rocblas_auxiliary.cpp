@@ -4,10 +4,11 @@
  * ************************************************************************ */
 
 #include <stdio.h>
-#include <hip_runtime.h>
+#include <hip_runtime_api.h>
 #include "definitions.h"
 #include "rocblas_types.h"
 #include "handle.h"
+#include "rocblas_auxiliary.h"
 
     /* ============================================================================================ */
 
@@ -95,4 +96,3 @@ rocblas_status
 rocblas_add_stream(rocblas_handle handle, hipStream_t stream_id ){
   return handle->add_stream( stream_id );
 }
-
