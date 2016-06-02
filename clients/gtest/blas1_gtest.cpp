@@ -30,7 +30,7 @@ README: This file contains testers to verify the correctness of
         It is supposed to be played/used by advance / expert users
         Normal users only need to get the library routines without testers
       =================================================================== */
-      
+
 /*
 from ‘testing::internal::CartesianProductHolder3<testing::internal::ParamGenerator<int>,
 testing::internal::ParamGenerator<std::vector<double> >,
@@ -74,27 +74,11 @@ vector<vector<int>> incx_incy_range = { {1, 1},
      BLAS-1: Scal, Swap, Copy
 =================================================================== */
 
-class test_scal: public :: TestWithParam <blas1_tuple>
+class blas1_gtest: public :: TestWithParam <blas1_tuple>
 {
     protected:
-        test_scal(){}
-        virtual ~test_scal(){}
-        virtual void SetUp(){}
-        virtual void TearDown(){}
-};
-
-class test_swap: public :: TestWithParam <blas1_tuple>{
-    protected:
-        test_swap(){}
-        virtual ~test_swap(){}
-        virtual void SetUp(){}
-        virtual void TearDown(){}
-};
-
-class test_copy: public :: TestWithParam <blas1_tuple>{
-    protected:
-        test_copy(){}
-        virtual ~test_copy(){}
+        blas1_gtest(){}
+        virtual ~blas1_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
@@ -127,7 +111,7 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
 }
 
 
-TEST_P(test_scal, scal_float)
+TEST_P(blas1_gtest, scal_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -151,7 +135,7 @@ TEST_P(test_scal, scal_float)
 
 
 
-TEST_P(test_swap, swap_float)
+TEST_P(blas1_gtest, swap_float)
 {
     // argument automatically transferred to testing_swap
     //testing_swap<float>( GetParam() );
@@ -159,7 +143,7 @@ TEST_P(test_swap, swap_float)
 }
 
 
-TEST_P(test_copy, copy_float)
+TEST_P(blas1_gtest, copy_float)
 {
     // argument automatically transferred to testing_copy
     //testing_copy<float>( GetParam() );
@@ -172,26 +156,9 @@ TEST_P(test_copy, copy_float)
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { N, {alpha, beta}, {incx, incy} }
-INSTANTIATE_TEST_CASE_P(accuracy_test_BLAS1_scal,
-                        test_scal,
+INSTANTIATE_TEST_CASE_P(rocblas_blas1,
+                        blas1_gtest,
                         Combine(
                                   ValuesIn(N_range), ValuesIn(alpha_beta_range), ValuesIn(incx_incy_range)
                                )
                         );
-
-/*
-INSTANTIATE_TEST_CASE_P(accuracy_test_BLAS1_swap,
-                        test_swap,
-                        Combine(
-                                  ValuesIn(N_range), ValuesIn(alpha_beta_range), ValuesIn(incx_incy_range)
-                               )
-                        );
-
-
-INSTANTIATE_TEST_CASE_P(accuracy_test_BLAS1_copy,
-                        test_copy,
-                        Combine(
-                                  ValuesIn(N_range), ValuesIn(alpha_beta_range), ValuesIn(incx_incy_range)
-                               )
-                        );
-*/
