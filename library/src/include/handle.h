@@ -2,12 +2,13 @@
 #define HANDLE_H
 #include "rocblas.h"
 #include "Cobalt.h"
-#include "hip_runtime.h"
+#include <hip_runtime_api.h>
+#include <vector>
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
- * It must be initialized using rocblas_create() and the returned handle mus
- * It should be destroyed at the end using rocblas_destroy().
+ * It must be initialized using rocblas_create_handle() and the returned handle mus
+ * It should be destroyed at the end using rocblas_destroy_handle().
 ******************************************************************************/
 struct _rocblas_handle{
 

@@ -2,7 +2,7 @@
 #include "definitions.h"
 #include "status.h"
 #include "handle.h"
-#include "hip_runtime.h"
+#include <hip_runtime_api.h>
 
 /*******************************************************************************
  * constructor

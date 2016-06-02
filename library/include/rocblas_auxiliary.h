@@ -7,7 +7,7 @@
 #ifndef _ROCBLAS_AUXILIARY_H_
 #define _ROCBLAS_AUXILIARY_H_
 
-#include <rocblas_types.h>
+#include "rocblas_types.h"
 
 /*!\file
  * \brief rocblas_auxiliary.h provides auxilary functions in rocblas
