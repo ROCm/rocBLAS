@@ -5,6 +5,7 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
+#include "definitions.h"
 
 #define NB_X 256
 
@@ -87,13 +88,15 @@ rocblas_scal_template(rocblas_handle handle,
     dim3 grid( blocks, 1, 1 );
     dim3 threads(NB_X, 1, 1);
 
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
     if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device ){
-        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar), dim3(blocks), dim3(threads), 0, 0 , n, alpha, x, incx);
+        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, alpha, x, incx);
     }
-    else{
-        printf("i am in host branch\n");
+    else{// alpha is on host
         T scalar = *alpha;
-        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_host_scalar), dim3(blocks), dim3(threads), 0, 0 , n, scalar, x, incx);
+        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_host_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, scalar, x, incx);
     }
 
     return rocblas_status_success;

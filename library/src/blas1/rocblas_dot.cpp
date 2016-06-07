@@ -115,18 +115,21 @@ rocblas_dot_template_workspace(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy, workspace);
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy, workspace);
 
     if( rocblas_get_pointer_location(result) == rocblas_mem_location_device ){
         //the last argument 1 indicate the result is on device, not memcpy is required
-        hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
+        hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream, blocks, workspace, result);
     }
     else{
         //the last argument 0 indicate the result is on host
         // workspace[0] has a copy of the final result, if the result pointer is on host, a memory copy is required
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
-        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, 0, blocks, workspace, result);
+        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream, blocks, workspace, result);
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
     }
 
