@@ -5,6 +5,7 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
+#include "definitions.h"
 #include "trtri_device.h"
 
 //flag indicate whether write into A or invA
@@ -121,7 +122,10 @@ rocblas_trtri_batched_template_workspace(rocblas_handle handle,
     dim3 grid(1, 1, batch_count);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel_batched<T, NB_X, 1>), dim3(grid), dim3(threads), 0, 0 ,
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel_batched<T, NB_X, 1>), dim3(grid), dim3(threads), 0, rocblas_stream,
                     uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA);
 
     return rocblas_status_success;
