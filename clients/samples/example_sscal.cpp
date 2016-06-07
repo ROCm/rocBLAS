@@ -9,8 +9,6 @@
 
 #include "rocblas.h"
 #include "utility.h"
-#include "cblas_interface.h"
-#include <typeinfo>
 
 using namespace std;
 
@@ -20,10 +18,8 @@ int main()
 {
 
     rocblas_int N = 10240;
-    rocblas_status status = rocblas_success;
+    rocblas_status status = rocblas_status_success;
     float alpha = 10.0;
-
-    int norm_check = 0;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<float> hx(N);
@@ -31,10 +27,9 @@ int main()
     float *dx;
 
     double gpu_time_used;
-    float rocblas_error = 0.0;
 
     rocblas_handle handle;
-    rocblas_create(&handle);
+    rocblas_create_handle(&handle);
 
     //allocate memory on device
     hipMalloc(&dx, N * sizeof(float));
@@ -48,21 +43,20 @@ int main()
 
     hipMemcpy(dx, hx.data(), sizeof(float)*N, hipMemcpyHostToDevice);
 
-    printf("N    rocblas    (us)     \n");
-
-    /* =====================================================================
-         ROCBLAS
-    =================================================================== */
+    printf("N        rocblas(us)     \n");
 
     gpu_time_used = get_time_us();// in microseconds
 
 
-    //library interface
+    /* =====================================================================
+         ROCBLAS  template interface
+    =================================================================== */
+
     status = rocblas_scal<float>(handle,
                     N,
                     &alpha,
                     dx, 1);
-    if (status != rocblas_success) {
+    if (status != rocblas_status_success) {
         return status;
     }
 
@@ -72,14 +66,18 @@ int main()
     //copy output from device to CPU
     hipMemcpy(hx.data(), dx, sizeof(float)*N, hipMemcpyDeviceToHost);
 
-    for(int i=0;i<10;i++){
-        printf("hx[%d]=%f   ", i, hx.data()[i]);
+    //verify rocblas_scal result
+    for(rocblas_int i=0;i<N;i++){
+        if(hz[i] * alpha != hx[i]){
+            printf("error in element %d: CPU=%f, GPU=%f ", i, hz[i]*alpha, hx[i]);
+            break;
+        }
     }
 
-    printf("%d    %8.2f     ---     \n", (int)N, gpu_time_used);
+    printf("%d    %8.2f        \n", (int)N, gpu_time_used);
 
 
     hipFree(dx);
-    rocblas_destroy(handle);
-    return rocblas_success;
+    rocblas_destroy_handle(handle);
+    return rocblas_status_success;
 }
