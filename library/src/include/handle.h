@@ -18,10 +18,11 @@ struct _rocblas_handle{
   rocblas_status set_stream( hipStream_t stream );
   rocblas_status get_stream( hipStream_t *stream ) const;
 
-  int device;
+  rocblas_int device;
   hipDeviceProp_t device_properties;
   std::vector<hipStream_t> streams;
 
+  hipStream_t default_stream = 0;
   /*****************************************************************************
    * \brief Cobalt Device Profile
    * describes device to which this control is assigned so

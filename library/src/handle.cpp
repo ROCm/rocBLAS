@@ -76,7 +76,8 @@ rocblas_status _rocblas_handle::set_stream( hipStream_t stream ) {
   }
   */
   // add new stream
-  streams.push_back(stream);
+  //streams.push_back(stream);
+  default_stream = stream;
   cobalt_control.queues[0] = stream;
   cobalt_control.numQueues = 1;
   // TODO stream may point to new device
@@ -89,6 +90,6 @@ rocblas_status _rocblas_handle::set_stream( hipStream_t stream ) {
  * get stream
  ******************************************************************************/
 rocblas_status _rocblas_handle::get_stream( hipStream_t *stream ) const {
-  *stream = streams[0];
+  *stream = default_stream;
   return rocblas_status_success;
 }
