@@ -17,7 +17,7 @@ using ::testing::ValuesIn;
 using ::testing::Combine;
 using namespace std;
 
-//only GCC/VS 2010 comes with std::tuple, but it is unnecessary,  std::tuple is good enough;
+//only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
 typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 

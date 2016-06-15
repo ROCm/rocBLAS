@@ -7,7 +7,7 @@
 #ifndef _ROCBLAS_TEMPLATE_FUNCTIONS_H_
 #define _ROCBLAS_TEMPLATE_FUNCTIONS_H_
 
-#include <rocblas_types.h>
+#include "rocblas_types.h"
 
 
 /*!\file
