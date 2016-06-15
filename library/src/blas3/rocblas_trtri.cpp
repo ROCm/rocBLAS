@@ -6,6 +6,8 @@
 #include <hip_runtime.h>
 #include "rocblas.h"
 #include "trtri_device.h"
+#include "definitions.h"
+
 
 //flag indicate whether write into A or invA
 template<typename T, rocblas_int NB, rocblas_int flag>
@@ -63,7 +65,10 @@ rocblas_trtri_template_workspace(rocblas_handle handle,
     dim3 grid(1, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 1>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, invA, ldinvA);
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 1>), dim3(grid), dim3(threads), 0, rocblas_stream, uplo, diag, n, A, lda, invA, ldinvA);
 
     return rocblas_status_success;
 
@@ -132,7 +137,10 @@ rocblas_trtri_template(rocblas_handle handle,
     dim3 grid(1, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 0>), dim3(grid), dim3(threads), 0, 0 , uplo, diag, n, A, lda, nullptr, 0);
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel<T, NB_X, 0>), dim3(grid), dim3(threads), 0, rocblas_stream, uplo, diag, n, A, lda, nullptr, 0);
 
     return rocblas_status_success;
 }

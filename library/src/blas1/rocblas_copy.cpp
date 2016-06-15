@@ -5,7 +5,7 @@
 
 #include <hip_runtime.h>
 #include "rocblas.h"
-
+#include "definitions.h"
 
 #define NB_X 256
 
@@ -80,7 +80,10 @@ rocblas_copy_template(rocblas_handle handle,
     dim3 grid( blocks, 1, 1 );
     dim3 threads( NB_X, 1, 1 );
 
-    hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel), dim3(grid), dim3(threads), 0, 0 , n, x, incx, y, incy);
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy);
 
     return rocblas_status_success;
 }
