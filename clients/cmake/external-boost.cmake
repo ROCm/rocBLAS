@@ -12,7 +12,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.60.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.61.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -139,16 +139,16 @@ if( WIN32 )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "0cc5b9cf9ccdf26945b225c7338b4288" )
+    set( ext.MD5_HASH "015ae4afa6f3e597232bfe1dab949ace" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "7ce7f5a4e396484da8da6b60d4ed7661" )
+    set( ext.MD5_HASH "bb1dad35ad069e8d7c8516209a51053c" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "65a840e1a0b13a558ff19eeb2c4f0cbe" )
+  set( ext.MD5_HASH "6095876341956f65f9d35939ccea1a9f" )
 
   if( XCODE_VERSION OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
     list( APPEND Boost.Bootstrap --with-toolset=clang )
