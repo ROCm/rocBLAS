@@ -2,7 +2,9 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
+# ########################################################################
 # A helper function to prefix a source list of files with a common path into a new list (non-destructive)
+# ########################################################################
 function( prepend_path prefix source_list_of_files return_list_of_files )
   foreach( file ${${source_list_of_files}} )
     if(IS_ABSOLUTE ${file} )
@@ -13,6 +15,10 @@ function( prepend_path prefix source_list_of_files return_list_of_files )
   endforeach( )
   set( ${return_list_of_files} ${new_list} PARENT_SCOPE )
 endfunction( )
+
+# ########################################################################
+# Main
+# ########################################################################
 
 include( GenerateExportHeader )
 add_compiler_export_flags( )
@@ -30,8 +36,13 @@ set( rocblas_blas3_source
 )
 
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
+if( ${BUILD_SHARED_LIBS} )
+  message( STATUS "Library Type: SHARED" )
+else( )
+  message( STATUS "Library Type: STATIC" )
+endif( )
 
-add_library( rocblas ${BUILD_LIBRARY_TYPE}
+add_library( rocblas
   ${rocblas_blas3_source}
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
@@ -46,7 +57,6 @@ else( )
     target_compile_options( rocblas PRIVATE -std=c++11 )
   endif( )
 endif( )
-set_target_properties( rocblas PROPERTIES COMPILE_FLAGS "-fPIC" )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
@@ -67,7 +77,7 @@ set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
-if( ${BUILD_LIBRARY_TYPE} STREQUAL "STATIC" )
+if( NOT ${BUILD_SHARED_LIBS} )
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
 endif( )
 
@@ -79,8 +89,8 @@ GENERATE_EXPORT_HEADER( rocblas EXPORT_FILE_NAME rocblas-export.h )
 # https://cmake.org/cmake/help/v3.0/module/CMakePackageConfigHelpers.html
 include( CMakePackageConfigHelpers )
 
-set( LIB_INSTALL_DIR lib${SUFFIX_LIB} )
-set( INCLUDE_INSTALL_DIR include )
+set( LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} )
+set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 set( config_package_location ${LIB_INSTALL_DIR}/cmake/rocblas )
 
 configure_package_config_file(
@@ -98,9 +108,9 @@ write_basic_package_version_file(
 
 install( TARGETS rocblas
   EXPORT rocblas-targets
-  RUNTIME DESTINATION bin${SUFFIX_BIN}
-  LIBRARY DESTINATION lib${SUFFIX_LIB}
-  ARCHIVE DESTINATION lib${SUFFIX_LIB}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install( EXPORT rocblas-targets
@@ -117,5 +127,5 @@ install( FILES
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-export.h
   DESTINATION
-    include
+    ${CMAKE_INSTALL_INCLUDEDIR}
 )
