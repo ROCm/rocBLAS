@@ -64,6 +64,10 @@ rocblas_status testing_gemm(Arguments argus)
 
     A_size = A_row * A_col; B_size = B_row * B_col; C_size = M * N;
 
+    //check here to prevent undefined memory allocation error
+    if( M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 ){
+        return rocblas_status_invalid_size;
+    }
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hA(A_size);
     vector<T> hB(B_size);
