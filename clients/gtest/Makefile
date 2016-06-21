@@ -40,9 +40,10 @@ LIBS = -lblas -llapack $(GTEST_LIBS)
 # define the C source files
 
 ROCBLAS_SRCS =  \
-       	$(ROCBLAS_DIR)/src/rocblas_auxiliary.cpp \
        	$(ROCBLAS_DIR)/src/handle.cpp \
        	$(ROCBLAS_DIR)/src/status.cpp \
+       	$(ROCBLAS_DIR)/src/rocblas_auxiliary.cpp \
+
 
 #		$(ROCBLAS_DIR)/src/blas1/rocblas_dot.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_scal.cpp \
@@ -59,6 +60,8 @@ COMMON_SRCS = ../common/cblas_interface.cpp \
 
 GTEST_SRCS = ./rocblas_gtest_main.cpp \
 			blas1_gtest.cpp \
+			gemm_gtest.cpp \
+			trsm_gtest.cpp \
 
 #			gemm_gtest.cpp \
 
@@ -99,7 +102,7 @@ $(MAIN): $(OBJS)
 # the rule(a .c file) and $@: the name of the target of the rule (a .o file)
 # (see the gnu make manual section about automatic variables)
 
-#.cpp.o:
+.cpp.o:
 $(ROCBLAS_OBJ): $(ROCBLAS_SRCS)
 	$(HCC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 $(COMMON_OBJ): $(COMMON_SRCS)
@@ -110,11 +113,11 @@ $(GTEST_OBJ): $(GTEST_SRCS)
 # %.o: %.cpp
 # 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
-#.cpp.o:
-#	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
+# .cpp.o:
+# 	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) *.o $(ROCBLAS_DIR)/src/blas*/*.o $(ROCBLAS_DIR)/src/*.o ../common/*.o *~ $(MAIN)
+	$(RM) $(OBJS) *~ $(MAIN)
 
-depend: $(SRCS)
+depend: $(GTEST_SRCS) $(ROCBLAS_SRCS) $(COMMON_SRCS)
 	makedepend $(INCLUDES) $^
