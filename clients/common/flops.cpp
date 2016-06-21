@@ -50,6 +50,16 @@
         return (double)(8.0 * m * n * k)/1e9;
     }
 
+    /* \brief floating point counts of TRMM */
+    template<>
+    double  trsm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k){
+        return (double)(4.0 * m * n * (k+1))/1e9;
+    }
+
+    template<>
+    double  trsm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k){
+        return (double)(4.0 * m * n * (k+1))/1e9;
+    }
 
     /* \brief floating point counts of TRTRI */
     template<>
