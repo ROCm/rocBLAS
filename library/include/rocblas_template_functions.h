@@ -70,6 +70,20 @@
 
      template<typename T>
      rocblas_status
+     rocblas_amax(rocblas_handle handle,
+         rocblas_int n,
+         const T *x, rocblas_int incx,
+         rocblas_int *result);
+
+     template<typename T>
+     rocblas_status
+     rocblas_amin(rocblas_handle handle,
+         rocblas_int n,
+         const T *x, rocblas_int incx,
+         rocblas_int *result);
+
+     template<typename T>
+     rocblas_status
      rocblas_axpy(rocblas_handle handle,
          rocblas_int n,
          const T *alpha,
