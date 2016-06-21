@@ -119,7 +119,274 @@ extern "C" {
         const double *x, rocblas_int incx,
         double* y,       rocblas_int incy);
 
+    rocblas_status
+    rocblas_ccopy(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *x, rocblas_int incx,
+        rocblas_float_complex* y,       rocblas_int incy);
 
+    rocblas_status
+    rocblas_zcopy(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *x, rocblas_int incx,
+        rocblas_double_complex* y,       rocblas_int incy);
+
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    dot(u)  perform dot product of vector x and y
+
+        result = x * y;
+
+    dotc  perform dot product of complex vector x and complex y
+
+        result = conjugate (x) * y;
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              store the dot product. either on the host CPU or device GPU.
+              return is 0.0 if n <= 0.
+
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_sdot(rocblas_handle handle,
+        rocblas_int n,
+        const float *x, rocblas_int incx,
+        const float *y, rocblas_int incy,
+        float *result);
+
+    rocblas_status
+    rocblas_ddot(rocblas_handle handle,
+        rocblas_int n,
+        const double *x, rocblas_int incx,
+        const double *y, rocblas_int incy,
+        double *result);
+
+    rocblas_status
+    rocblas_cdotu(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *x, rocblas_int incx,
+        const rocblas_float_complex *y, rocblas_int incy,
+        rocblas_float_complex *result);
+
+    rocblas_status
+    rocblas_zdotu(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *x, rocblas_int incx,
+        const rocblas_double_complex *y, rocblas_int incy,
+        rocblas_double_complex *result);
+
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    swap  interchange vector x[i] and y[i], for  i = 1 , … , n
+
+        y := x; x := y
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[inout]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      specifies the increment for the elements of x.
+    @param[inout]
+    y         pointer storing vector y on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_sswap(rocblas_handle handle,
+        rocblas_int n,
+        float *x, rocblas_int incx,
+        float* y, rocblas_int incy);
+
+    rocblas_status
+    rocblas_dswap(rocblas_handle handle,
+        rocblas_int n,
+        double *x, rocblas_int incx,
+        double* y, rocblas_int incy);
+
+    rocblas_status
+    rocblas_cswap(rocblas_handle handle,
+        rocblas_int n,
+        rocblas_float_complex *x, rocblas_int incx,
+        rocblas_float_complex* y, rocblas_int incy);
+
+    rocblas_status
+    rocblas_zswap(rocblas_handle handle,
+        rocblas_int n,
+        rocblas_double_complex *x, rocblas_int incx,
+        rocblas_double_complex* y, rocblas_int incy);
+
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    axpy   compute y := alpha * x + y
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    alpha     specifies the scalar alpha.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+    @param[out]
+    y         pointer storing vector y on the GPU.
+    @param[inout]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_saxpy(rocblas_handle handle,
+        rocblas_int n,
+        const float *alpha,
+        const float *x, rocblas_int incx,
+        float *y,  rocblas_int incy);
+
+    rocblas_status
+    rocblas_daxpy(rocblas_handle handle,
+        rocblas_int n,
+        const double *alpha,
+        const double *x, rocblas_int incx,
+        double *y,  rocblas_int incy);
+
+    rocblas_status
+    rocblas_caxpy(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *alpha,
+        const rocblas_float_complex *x, rocblas_int incx,
+        rocblas_float_complex *y,  rocblas_int incy);
+
+    rocblas_status
+    rocblas_zaxpy(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *alpha,
+        const rocblas_double_complex *x, rocblas_int incx,
+        rocblas_double_complex *y,  rocblas_int incy);
+
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    asum computes the sum of the magnitudes of elements of a real vector x,
+         or the sum of magnitudes of the real and imaginary parts of elements if x is a complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              store the asum product. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_sasum(rocblas_handle handle,
+        rocblas_int n,
+        const float *x, rocblas_int incx,
+        float *result);
+
+    rocblas_status
+    rocblas_dasum(rocblas_handle handle,
+        rocblas_int n,
+        const double *x, rocblas_int incx,
+        double *result);
+
+    rocblas_status
+    rocblas_scasum(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *x, rocblas_int incx,
+        float *result);
+
+    rocblas_status
+    rocblas_dzasum(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *x, rocblas_int incx,
+        double *result);
+
+
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    nrm2 computes the euclidean norm of a real or complex vector
+              := sqrt( x'*x ) for real vector
+              := sqrt( x**H*x ) for complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              store the nrm2 product. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_snrm2(rocblas_handle handle,
+        rocblas_int n,
+        const float *x, rocblas_int incx,
+        float *result);
+
+    rocblas_status
+    rocblas_dnrm2(rocblas_handle handle,
+        rocblas_int n,
+        const double *x, rocblas_int incx,
+        double *result);
+
+    rocblas_status
+    rocblas_scnrm2(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *x, rocblas_int incx,
+        float *result);
+
+    rocblas_status
+    rocblas_dznrm2(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *x, rocblas_int incx,
+        double *result);
 
 
     /*
