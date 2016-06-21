@@ -35,7 +35,7 @@ using namespace std;
 int main()
 {
 
-    rocblas_int N = 10240;
+    rocblas_int N = 102400;
     float alpha = 10.0;
 
     omp_set_num_threads(NUM_THREADS);
@@ -86,10 +86,12 @@ int main()
         /* =====================================================================
              ROCBLAS  template interface
         =================================================================== */
+        for(int j=0;j<100;j++)
         rocblas_scal<float>(handles[thread_id],
                         N,
                         &alpha,
                         dx+thread_id*N, 1);
+
 
         //Blocks until all stream has completed all operations.
         hipStreamSynchronize(streams[thread_id]);
@@ -100,6 +102,7 @@ int main()
     //copy output from device to CPU
     hipMemcpy(hx.data(), dx, sizeof(float)*N * NUM_THREADS, hipMemcpyDeviceToHost);
 
+#if 0
     //verify rocblas_scal result
     for(rocblas_int i=0;i<N*NUM_THREADS;i++){
         if(hz[i] * alpha != hx[i]){
@@ -107,6 +110,8 @@ int main()
             break;
         }
     }
+
+#endif
 
     printf("%d    %8.2f         \n", (int)N * NUM_THREADS, gpu_time_used);
 

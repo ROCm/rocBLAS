@@ -235,6 +235,38 @@ extern "C" {
         *result = cblas_dzasum(n, x, incx);
     }
 
+    //amax
+    template<>
+    void cblas_amax<float>( rocblas_int n,
+                            const float *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_isamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<double>( rocblas_int n,
+                            const double *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_idamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<rocblas_float_complex>( rocblas_int n,
+                            const rocblas_float_complex *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_icamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<rocblas_double_complex>( rocblas_int n,
+                            const rocblas_double_complex *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_izamax(n, x, incx);
+    }
     /*
      * ===========================================================================
      *    level 2 BLAS
