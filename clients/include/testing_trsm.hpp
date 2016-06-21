@@ -46,16 +46,10 @@ rocblas_status testing_trsm(Arguments argus)
 
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if ( M < 0 )
+    //check here to prevent undefined memory allocation error
+    if( M < 0 || N < 0 || lda < 0 || ldb < 0){
         return rocblas_status_invalid_size;
-    else if ( N < 0 )
-        return rocblas_status_invalid_size;
-    else if ( lda < K )
-        return rocblas_status_invalid_size;
-    else if ( ldb < M )
-        return rocblas_status_invalid_size;
-
+    }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
     vector<T> hB(B_size);
