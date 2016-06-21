@@ -7,7 +7,7 @@
 #ifndef _ROCBLAS_TEMPLATE_FUNCTIONS_H_
 #define _ROCBLAS_TEMPLATE_FUNCTIONS_H_
 
-#include "rocblas_types.h"
+#include <rocblas_types.h>
 
 
 /*!\file
@@ -54,6 +54,28 @@
          const T *y, rocblas_int incy,
          T *result);
 
+     template<typename T1, typename T2>
+     rocblas_status
+     rocblas_asum(rocblas_handle handle,
+         rocblas_int n,
+         const T1 *x, rocblas_int incx,
+         T2 *result);
+
+     template<typename T1, typename T2>
+     rocblas_status
+     rocblas_nrm2(rocblas_handle handle,
+         rocblas_int n,
+         const T1 *x, rocblas_int incx,
+         T2 *result);
+
+     template<typename T>
+     rocblas_status
+     rocblas_axpy(rocblas_handle handle,
+         rocblas_int n,
+         const T *alpha,
+         const T *x, rocblas_int incx,
+         T *y, rocblas_int incy);
+
     template<typename T>
     rocblas_status
     rocblas_symv(rocblas_handle handle,
@@ -64,6 +86,25 @@
              const T *x, rocblas_int incx,
              const T *beta,
              T *y, rocblas_int incy);
+
+    template<typename T>
+    rocblas_status rocblas_gemm(rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n, rocblas_int k,
+        const T *alpha,
+        const T *A, rocblas_int lda,
+        const T *B, rocblas_int ldb,
+        const T *beta,
+        T *C, rocblas_int ldc);
+
+    template<typename T>
+    rocblas_status rocblas_trsm(rocblas_handle handle,
+        rocblas_side side, rocblas_fill uplo,
+        rocblas_operation transA, rocblas_diagonal diag,
+        rocblas_int m, rocblas_int n,
+        const T* alpha,
+        const T* A, rocblas_int lda,
+        T*       B, rocblas_int ldb);
 
     template<typename T>
     rocblas_status
