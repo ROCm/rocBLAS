@@ -39,26 +39,44 @@
                     const T *y, rocblas_int incy,
                     T *result);
 
+    template<typename T1, typename T2>
+    void cblas_nrm2( rocblas_int n,
+                    const T1 *x, rocblas_int incx,
+                    T2 *result);
+
+    template<typename T1, typename T2>
+    void cblas_asum( rocblas_int n,
+                    const T1 *x, rocblas_int incx,
+                    T2 *result);
+
     template<typename T>
     void cblas_symv( rocblas_fill uplo, rocblas_int n,
                      T alpha,
                      T *A, rocblas_int lda,
-                     T* x, rocblas_int incx,
-                     T beta, T* y, rocblas_int incy);
+                     T *x, rocblas_int incx,
+                     T beta, T *y, rocblas_int incy);
 
     template<typename T>
     void cblas_hemv( rocblas_fill uplo, rocblas_int n,
                      T alpha,
                      T *A, rocblas_int lda,
-                     T* x, rocblas_int incx,
-                     T beta, T* y, rocblas_int incy);
+                     T *x, rocblas_int incx,
+                     T beta, T *y, rocblas_int incy);
 
     template<typename T>
     void cblas_gemm( rocblas_operation transA, rocblas_operation transB,
                      rocblas_int m, rocblas_int n, rocblas_int k,
                      T alpha, T *A, rocblas_int lda,
-                     T* B, rocblas_int ldb,
-                     T beta, T* C, rocblas_int ldc);
+                     T *B, rocblas_int ldb,
+                     T beta, T *C, rocblas_int ldc);
+
+    template<typename T>
+    void cblas_trsm( rocblas_side side, rocblas_fill uplo,
+                     rocblas_operation transA, rocblas_diagonal diag,
+                     rocblas_int m, rocblas_int n,
+                     T alpha,
+                     T *A, rocblas_int lda,
+                     T *B, rocblas_int ldb);
 
     template<typename T>
     rocblas_int cblas_trtri(char uplo, char diag,

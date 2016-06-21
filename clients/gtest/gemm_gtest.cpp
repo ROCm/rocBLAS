@@ -42,14 +42,16 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 //add/delete as a group
 const
-vector<vector<int>> matrix_size_range = { {-1, -1, -1, -1, 1, 1},
+vector<vector<int>> matrix_size_range = {
+                                        {-1, -1, -1, -1, 1, 1},
                                         {10, 10, 20, 100, 10, 10},
                                         {600,500, 500, 500, 600, 500},
                                         {1024, 1024, 1024, 1024, 1024, 1024}
                                        };
 
 const
-vector<vector<int>> full_matrix_size_range = { {1000, 1000, 1000, 1000, 1000, 1000},
+vector<vector<int>> full_matrix_size_range = {
+                                        {1000, 1000, 1000, 1000, 1000, 1000},
                                         {2000, 2000, 2000, 2000, 2000, 2000},
                                         {4011, 4011, 4011, 4011, 4011, 4011},
                                         {8000, 8000, 8000, 8000, 8000, 8000},
@@ -64,7 +66,8 @@ vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
 
 
 const
-vector<vector<double>> full_alpha_beta_range = { {1.0, 0.0},
+vector<vector<double>> full_alpha_beta_range = {
+                                            {1.0, 0.0},
                                             {-1.0, -1.0},
                                             {2.0, 1.0},
                                             {0.0, 1.0}
@@ -74,7 +77,8 @@ vector<vector<double>> full_alpha_beta_range = { {1.0, 0.0},
 //add/delete this list in pairs, like {'N', 'T'}
 //for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm/dgemm,
 const
-vector<vector<char>> transA_transB_range = { {'N', 'N'},
+vector<vector<char>> transA_transB_range = {
+                                        {'N', 'N'},
                                         {'N', 'T'},
                                         {'C', 'N'},
                                         {'T', 'C'}
@@ -98,7 +102,7 @@ vector<vector<char>> transA_transB_range = { {'N', 'N'},
 //like BLAS-1 Scal does not have lda, BLAS-2 GEMV does not have ldb, ldc;
 //That is fine. These testers & routines will leave untouched members alone.
 //Do not use std::tuple to directly pass parameters to testers
-//If soe, you unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
+//by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
 
 Arguments setup_gemm_arguments(gemm_tuple tup)
 {

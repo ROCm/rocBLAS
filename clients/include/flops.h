@@ -45,6 +45,12 @@
         return (2.0 * m * n * k)/1e9;
     }
 
+    /* \brief floating point counts of TRSM */
+    template<typename T>
+    double  trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k){
+        return (1.0 * m * n * (k+1))/1e9;
+    }
+
     /* \brief floating point counts of TRTRI */
     template<typename T>
     double  trtri_gflop_count(rocblas_int n){
