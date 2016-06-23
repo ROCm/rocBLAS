@@ -83,30 +83,30 @@ if( NOT CMAKE_CONFIGURATION_TYPES )
 endif( )
 
 if( BUILD_LIBRARY )
-  # defines 
+  # defines
   # Cobalt_INCLUDE_DIRS
   # CobaltLib_LIBRARIES
   # CobaltLogger_LIBRARIES
 
   include( cmake/external-Cobalt.cmake )
-  MESSAGE( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
-  MESSAGE( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
+  message( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
+  message( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
 
 	set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-  -DCobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}
-  -DCobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}
-  -DCobaltLogger_LIBRARIES=${CobaltLogger_LIBRARIES}
-  -DCobalt_BACKEND_HIP=1
+    -DCobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}
+    -DCobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}
+    -DCobaltLogger_LIBRARIES=${CobaltLogger_LIBRARIES}
+    -DCobalt_BACKEND_HIP=1
   )
 
   # Build the library as an external project
   ExternalProject_Add( rocblas
     DEPENDS ${rocblas_dependencies}
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/src
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/library
     BINARY_DIR library-build
     INSTALL_DIR library-package
     CMAKE_ARGS ${LIBRARY_CMAKE_ARGS}

@@ -112,7 +112,7 @@ set( rocblas_headers_public
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
 
 # Build into subdirectories
-add_subdirectory( library )
+add_subdirectory( src )
 
 install( FILES
 		${rocblas_headers_public}
