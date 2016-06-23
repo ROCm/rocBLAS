@@ -10,7 +10,7 @@
 message( STATUS "Configuring Cobalt external dependency" )
 include( ExternalProject )
 
-set( Cobalt_REPO "https://github.com/guacamoleo/Cobalt.git"
+set( Cobalt_REPO "https://github.com/clMathLibraries/Cobalt.git"
     CACHE STRING "URL to download Cobalt from" )
 set( Cobalt_TAG "develop" CACHE STRING "Cobalt branch to download" )
 
@@ -23,14 +23,14 @@ ExternalProject_Add(
   GIT_REPOSITORY ${Cobalt_REPO}
   GIT_TAG ${Cobalt_TAG}
   PREFIX ${CMAKE_BINARY_DIR}/extern/Cobalt
-  CMAKE_CACHE_ARGS
-      -DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}
-      -DCobalt_BACKEND:STRING=HIP
-      -DCobalt_ENABLE_LOGGER:BOOL=${Cobalt_ENABLE_LOGGER}
-      -DCobalt_OPTIMIZE_ALPHA:BOOL=Off
-      -DCobalt_OPTIMIZE_BETA:BOOL=Off
-      -DCobalt_DIR_PROBLEMS:STRING=${CMAKE_SOURCE_DIR}/src/library/blas3/Cobalt/XML_Problems
-      -DCobalt_DIR_SOLUTIONS:STRING=${CMAKE_SOURCE_DIR}/src/library/blas3/Cobalt/XML_SolutionTimes
+  CMAKE_ARGS
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCobalt_BACKEND=HIP
+    -DCobalt_ENABLE_LOGGER=${Cobalt_ENABLE_LOGGER}
+    -DCobalt_OPTIMIZE_ALPHA=OFF
+    -DCobalt_OPTIMIZE_BETA=OFF
+    -DCobalt_DIR_PROBLEMS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_Problems
+    -DCobalt_DIR_SOLUTIONS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
   BUILD_COMMAND make && make
   INSTALL_COMMAND ""
   #UPDATE_COMMAND ""

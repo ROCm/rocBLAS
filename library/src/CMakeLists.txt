@@ -24,10 +24,11 @@ include( GenerateExportHeader )
 add_compiler_export_flags( )
 
 set( rocblas_auxiliary_source
-  handle.h
+  include/handle.h
+  include/definitions.h
   handle.cpp
   rocblas_auxiliary.cpp
-  status.h
+  include/status.h
   status.cpp
 )
 
@@ -62,7 +63,8 @@ target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
           $<INSTALL_INTERFACE:include>
 )
 
