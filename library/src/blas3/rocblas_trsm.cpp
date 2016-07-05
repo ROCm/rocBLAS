@@ -14,7 +14,7 @@
     where alpha is a scalar, X and B are m by n matrices,
     A is triangular matrix and op(A) is one of
 
-        op( A ) = A   or   op( A ) = A'   or   op( A ) = conjg( A' ).
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
 
     The matrix X is overwritten on B.
 
@@ -71,7 +71,7 @@
             if side = rocblas_side_right, lda >= max( 1, n ).
 
     @param[in,output]
-    B       pointer storing matrix A on the GPU.
+    B       pointer storing matrix B on the GPU.
 
     @param[in]
     ldb    rocblas_int.

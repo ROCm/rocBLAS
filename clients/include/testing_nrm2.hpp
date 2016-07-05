@@ -97,7 +97,7 @@ rocblas_status testing_nrm2(Arguments argus)
         return status;
     }
 
-    if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T1), hipMemcpyDeviceToHost));
+    if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(T2), hipMemcpyDeviceToHost));
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
