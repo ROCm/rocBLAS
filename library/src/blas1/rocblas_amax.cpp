@@ -77,7 +77,7 @@ amax_kernel_part2(hipLaunchParm lp,
 
     __syncthreads();
 
-    rocblas_maxid_reduce<NB, T2>(tx, shared_tep, index);
+    rocblas_maxid_reduce<NB, T>(tx, shared_tep, index);
 
     if(tx == 0){
         if(flag){
@@ -91,7 +91,8 @@ amax_kernel_part2(hipLaunchParm lp,
 }
 
 
-
+//HIP support up to 1024 threads/work itmes per thread block/work group
+#define NB_X 1024
 
 //assume workspace has already been allocated, recommened for repeated calling of amax product routine
 template<typename T1, typename T2>
@@ -167,8 +168,7 @@ rocblas_amax_template_workspace(rocblas_handle handle,
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
-//HIP support up to 1024 threads/work itmes per thread block/work group
-#define NB_X 1024
+
 
 //allocate workspace inside this API
 template<typename T1, typename T2>

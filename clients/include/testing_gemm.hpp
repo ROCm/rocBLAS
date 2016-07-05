@@ -102,7 +102,7 @@ rocblas_status testing_gemm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-#if 0
+#if 1
     //library interface
     status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
@@ -170,11 +170,11 @@ rocblas_status testing_gemm(Arguments argus)
             }
             cout << endl;
 
-            cout << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
+            cout << "GG," << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
-                //cout << rocblas_error;
+                cout << rocblas_error;
             }
 
             cout << endl;

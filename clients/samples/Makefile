@@ -37,11 +37,13 @@ ROCBLAS_SRCS = $(ROCBLAS_DIR)/src/blas1/rocblas_dot.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_axpy.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_asum.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_nrm2.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/rocblas_amax.cpp \
        	$(ROCBLAS_DIR)/src/blas1/fetch_template.cpp \
        	$(ROCBLAS_DIR)/src/rocblas_auxiliary.cpp \
        	$(ROCBLAS_DIR)/src/blas2/rocblas_symv.cpp \
        	$(ROCBLAS_DIR)/src/blas3/rocblas_trtri.cpp \
        	$(ROCBLAS_DIR)/src/blas3/rocblas_trtri_batched.cpp \
+       	$(ROCBLAS_DIR)/src/blas3/rocblas_gemm.cpp \
        	$(ROCBLAS_DIR)/src/handle.cpp \
        	$(ROCBLAS_DIR)/src/status.cpp \
 
