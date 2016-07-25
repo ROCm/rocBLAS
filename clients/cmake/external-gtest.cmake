@@ -77,7 +77,8 @@ endif( )
 ExternalProject_Add(
   googletest
   PREFIX ${CMAKE_BINARY_DIR}/extern/gtest
-  DOWNLOAD_COMMAND git clone --depth 1 --branch ${gtest_git_tag} ${gtest_git_repository}
+  GIT_REPOSITORY ${gtest_git_repository}
+  GIT_TAG ${gtest_git_tag}
   CMAKE_ARGS ${gtest_cmake_args}
   BUILD_COMMAND ${gtest_make}
   LOG_BUILD 1
