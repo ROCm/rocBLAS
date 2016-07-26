@@ -100,7 +100,7 @@ if( BUILD_CLIENTS_TESTS )
 
   ExternalProject_Add( tests
     DEPENDS ${rocblas_clients_dependencies} googletest lapack
-    SOURCE_DIR ${PROJECT_SOURCE_DIR}/tests
+    SOURCE_DIR ${PROJECT_SOURCE_DIR}/gtest
     BINARY_DIR tests-build
     CMAKE_ARGS ${TESTS_CMAKE_ARGS}
     LIST_SEPARATOR ^^

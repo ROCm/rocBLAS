@@ -14,10 +14,26 @@ set( Cobalt_REPO "https://github.com/clMathLibraries/Cobalt.git"
     CACHE STRING "URL to download Cobalt from" )
 set( Cobalt_TAG "develop" CACHE STRING "Cobalt branch to download" )
 
-option( Cobalt_ENABLE_LOGGER "Enable logger in Cobalt?" )
+option( Cobalt_ENABLE_LOGGER "Enable logger in Cobalt?" OFF )
+
+include( ProcessorCount )
+ProcessorCount( Cores )
+if( NOT Cores EQUAL 0 )
+  # Travis can fail to build Boost sporadically; uses 32 cores, reduce stress on VM
+  if( DEFINED ENV{TRAVIS} )
+    if( Cores GREATER 8 )
+      set( Cores 8 )
+    endif( )
+  endif( )
+
+  # Add build thread in addition to the number of cores that we have
+  math( EXPR Cores "${Cores} + 1 " )
+else( )
+  # If we could not detect # of cores, assume 1 core and add an additional build thread
+  set( Cores "2" )
+endif( )
 
 # TODO rocBLAS clients to use logger and write XMLs to build dir, not src
-
 ExternalProject_Add(
   Cobalt
   GIT_REPOSITORY ${Cobalt_REPO}
@@ -31,7 +47,7 @@ ExternalProject_Add(
     -DCobalt_OPTIMIZE_BETA=OFF
     -DCobalt_DIR_PROBLEMS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_Problems
     -DCobalt_DIR_SOLUTIONS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
-  BUILD_COMMAND make && make
+  BUILD_COMMAND make -j ${Cores} CobaltLib && make -j ${Cores} CobaltLib
   INSTALL_COMMAND ""
   #UPDATE_COMMAND ""
 )

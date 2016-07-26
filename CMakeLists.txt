@@ -89,6 +89,7 @@ if( BUILD_LIBRARY )
   # CobaltLogger_LIBRARIES
 
   include( cmake/external-Cobalt.cmake )
+  list( APPEND rocblas_dependencies Cobalt )
   message( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
   message( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
 
