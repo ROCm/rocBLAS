@@ -102,7 +102,7 @@ rocblas_status testing_gemm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-#if 1
+#if 0
     //library interface
     status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
