@@ -60,3 +60,14 @@
             }
         }
     }
+
+    template<>
+    void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_int *hCPU, rocblas_int *hGPU){
+        for(rocblas_int j=0; j<N; j++){
+            for(rocblas_int i=0;i<M;i++){
+#ifdef GOOGLE_TEST
+                ASSERT_EQ(hCPU[i+j*lda], hGPU[i+j*lda]);
+#endif
+            }
+        }
+    }

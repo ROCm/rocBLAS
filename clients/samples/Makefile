@@ -34,10 +34,16 @@ LIBS = -lblas -llapack #-L$(ROCBLAS_DIR)/lib/ -lrocblas until rocm1.1 link with 
 ROCBLAS_SRCS = $(ROCBLAS_DIR)/src/blas1/rocblas_dot.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_scal.cpp \
        	$(ROCBLAS_DIR)/src/blas1/rocblas_copy.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/rocblas_axpy.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/rocblas_asum.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/rocblas_nrm2.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/rocblas_amax.cpp \
+       	$(ROCBLAS_DIR)/src/blas1/fetch_template.cpp \
        	$(ROCBLAS_DIR)/src/rocblas_auxiliary.cpp \
        	$(ROCBLAS_DIR)/src/blas2/rocblas_symv.cpp \
        	$(ROCBLAS_DIR)/src/blas3/rocblas_trtri.cpp \
        	$(ROCBLAS_DIR)/src/blas3/rocblas_trtri_batched.cpp \
+       	$(ROCBLAS_DIR)/src/blas3/rocblas_gemm.cpp \
        	$(ROCBLAS_DIR)/src/handle.cpp \
        	$(ROCBLAS_DIR)/src/status.cpp \
 
@@ -49,6 +55,7 @@ COMMON_SRCS = ../common/cblas_interface.cpp \
 
 OPENMP_SRCS = ./example_openmp.cpp
 SCAL_SRCS = ./example_sscal.cpp
+CLIENT_SRCS = ./client.cpp
 
 # define the C object files
 #
@@ -63,17 +70,17 @@ ROCBLAS_OBJ = $(ROCBLAS_SRCS:.cpp=.o)
 COMMON_OBJ = $(COMMON_SRCS:.cpp=.o)
 OPENMP_OBJ = $(OPENMP_SRCS:.cpp=.o)
 SCAL_OBJ = $(SCAL_SRCS:.cpp=.o)
-
+CLIENT_OBJ = $(CLIENT_SRCS:.cpp=.o)
 
 OPENMP_OBJS =  $(COMMON_OBJ) $(OPENMP_OBJ) $(ROCBLAS_OBJ)
 SCAL_OBJS =  $(COMMON_OBJ) $(SCAL_OBJ) $(ROCBLAS_OBJ)
-
+CLIENT_OBJS = $(COMMON_OBJ) $(CLIENT_OBJ) $(ROCBLAS_OBJ)
 
 
 # define the executable file
 openmp = example_openmp
 scal = example_sscal
-
+client = client
 #
 # The following part of the makefile is generic; it can be used to
 # build any executable just by changing the definitions above and by
@@ -82,7 +89,7 @@ scal = example_sscal
 
 .PHONY: depend clean
 
-all:  $(openmp) $(scal)
+all:  $(openmp) $(scal) $(client)
 #    @echo  Simple compiler named mycc has been compiled
 
 $(openmp): $(OPENMP_OBJS)
@@ -90,6 +97,9 @@ $(openmp): $(OPENMP_OBJS)
 
 $(scal): $(SCAL_OBJS)
 	$(CC) $(CFLAGS) $(INCLUDES) -o $(scal) $(SCAL_OBJS) $(LFLAGS) $(LIBS)
+
+$(client): $(CLIENT_OBJS)
+	$(CC) $(CFLAGS) $(INCLUDES) -o $(client) $(CLIENT_OBJS) $(LFLAGS) $(LIBS)
 
 # this is a suffix replacement rule for building .o's from .c's
 # it uses automatic variables $<: the name of the prerequisite of
@@ -104,7 +114,7 @@ $(scal): $(SCAL_OBJS)
 #	$(CC) $(CFLAGS) $(INCLUDES) -c $<  -o $@
 
 clean:
-	$(RM) $(OPENMP_OBJS) $(SCAL_OBJS) *~ $(openmp) $(scal)
+	$(RM) $(OPENMP_OBJS) $(SCAL_OBJS) $(CLIENT_OBJS) *~ $(openmp) $(scal) $(client)
 
 depend: $(SRCS)
 	makedepend $(INCLUDES) $^
