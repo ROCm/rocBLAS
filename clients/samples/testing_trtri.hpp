@@ -30,16 +30,10 @@ rocblas_status testing_trtri(Arguments argus)
 
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if ( N < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
+    //check here to prevent undefined memory allocation error
+    if( N < 0 || lda < 0 ){
+        return rocblas_status_invalid_size;
     }
-    else if ( lda < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
-
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
     vector<T> hB(A_size);

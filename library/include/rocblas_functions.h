@@ -389,6 +389,53 @@ extern "C" {
         double *result);
 
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    amax finds the first index of the element of maximum magnitude of real vector x
+         or the sum of magnitude of the real and imaginary parts of elements if x is a complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              store the amax product. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+    ********************************************************************/
+
+    rocblas_status
+    rocblas_samax(rocblas_handle handle,
+        rocblas_int n,
+        const float *x, rocblas_int incx,
+        rocblas_int *result);
+
+    extern "C"
+    rocblas_status
+    rocblas_damax(rocblas_handle handle,
+        rocblas_int n,
+        const double *x, rocblas_int incx,
+        rocblas_int *result);
+
+    rocblas_status
+    rocblas_scamax(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_float_complex *x, rocblas_int incx,
+        rocblas_int *result);
+
+    rocblas_status
+    rocblas_dzamax(rocblas_handle handle,
+        rocblas_int n,
+        const rocblas_double_complex *x, rocblas_int incx,
+        rocblas_int *result);
+
     /*
      * ===========================================================================
      *    level 2 BLAS
