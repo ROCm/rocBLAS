@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -19,7 +19,7 @@ using namespace std;
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
+typedef std::tuple<vector<int>, vector<double>, vector<char>, int> gemm_batched_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -40,22 +40,17 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 
 //vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
-//add/delete as a group
+//add/delete as a group, in batched gemm, the matrix is much smaller than standard gemm
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1, -1, 1, 1},
                                         {10, 10, 20, 100, 10, 10},
+                                        {128, 128, 64, 128, 128, 128},
                                         {600,500, 500, 500, 600, 500},
                                         {1024, 1024, 1024, 1024, 1024, 1024}
                                        };
 
-const
-vector<vector<int>> full_matrix_size_range = {
-                                        {1000, 1000, 1000, 1000, 1000, 1000},
-                                        {2000, 2000, 2000, 2000, 2000, 2000},
-                                        {4011, 4011, 4011, 4011, 4011, 4011},
-                                        {8000, 8000, 8000, 8000, 8000, 8000},
-                                       };
+
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
@@ -65,17 +60,10 @@ vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
                                           };
 
 
-const
-vector<vector<double>> full_alpha_beta_range = {
-                                            {1.0, 0.0},
-                                            {-1.0, -1.0},
-                                            {2.0, 1.0},
-                                            {0.0, 1.0}
-                                          };
 
 //vector of vector, each pair is a {transA, transB};
 //add/delete this list in pairs, like {'N', 'T'}
-//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm/dgemm,
+//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm_batched/dgemm_batched,
 const
 vector<vector<char>> transA_transB_range = {
                                         {'N', 'N'},
@@ -84,7 +72,15 @@ vector<vector<char>> transA_transB_range = {
                                         {'T', 'C'}
                                        };
 
-
+//number of gemms in batched gemm
+const
+vector<int> batch_count_range = {
+                                        {-1},
+                                        {0},
+                                        {1},
+                                        {10},
+                                        {100},
+                                       };
 
 
 
@@ -92,7 +88,7 @@ vector<vector<char>> transA_transB_range = {
 
 
 /* =====================================================================
-     BLAS-3 GEMM:
+     BLAS-3 gemm_batched:
 =================================================================== */
 
 /* ============================Setup Arguments======================================= */
@@ -104,12 +100,13 @@ vector<vector<char>> transA_transB_range = {
 //Do not use std::tuple to directly pass parameters to testers
 //by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
 
-Arguments setup_gemm_arguments(gemm_tuple tup)
+Arguments setup_gemm_batched_arguments(gemm_batched_tuple tup)
 {
 
     vector<int> matrix_size = std::get<0>(tup);
     vector<double> alpha_beta = std::get<1>(tup);
     vector<char> transA_transB = std::get<2>(tup);
+    int batch_count = std::get<3>(tup);
 
     Arguments arg;
 
@@ -128,23 +125,24 @@ Arguments setup_gemm_arguments(gemm_tuple tup)
     arg.transA_option = transA_transB[0];
     arg.transB_option = transA_transB[1];
 
+    arg.batch_count = batch_count;
     arg.timing = 0;
 
     return arg;
 }
 
 
-class gemm_gtest: public :: TestWithParam <gemm_tuple>
+class gemm_batched_gtest: public :: TestWithParam <gemm_batched_tuple>
 {
     protected:
-        gemm_gtest(){}
-        virtual ~gemm_gtest(){}
+        gemm_batched_gtest(){}
+        virtual ~gemm_batched_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(gemm_gtest, gemm_gtest_float)
+TEST_P(gemm_batched_gtest, gemm_batched_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -152,9 +150,9 @@ TEST_P(gemm_gtest, gemm_gtest_float)
     // while the tuple is non-intuitive.
 
 
-    Arguments arg = setup_gemm_arguments( GetParam() );
+    Arguments arg = setup_gemm_batched_arguments( GetParam() );
 
-    rocblas_status status = testing_gemm<float>( arg );
+    rocblas_status status = testing_gemm_batched<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
@@ -171,36 +169,7 @@ TEST_P(gemm_gtest, gemm_gtest_float)
         else if(arg.ldc < arg.M){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-    }
-
-}
-
-
-TEST_P(gemm_gtest, gemm_gtest_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-
-    Arguments arg = setup_gemm_arguments( GetParam() );
-
-    rocblas_status status = testing_gemm<double>( arg );
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-
-        if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldc < arg.M){
+        else if(arg.batch_count < 0){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
@@ -210,20 +179,11 @@ TEST_P(gemm_gtest, gemm_gtest_double)
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
+// The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB}, {batch_count} }
 
-//THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is small
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size,
-                        gemm_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_batched,
+                        gemm_batched_gtest,
                         Combine(
-                                  ValuesIn(full_matrix_size_range), ValuesIn(alpha_beta_range), ValuesIn(transA_transB_range)
-                               )
-                        );
-
-//THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose,
-                        gemm_gtest,
-                        Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(full_alpha_beta_range), ValuesIn(transA_transB_range)
+                                  ValuesIn(matrix_size_range), ValuesIn(alpha_beta_range), ValuesIn(transA_transB_range), ValuesIn(batch_count_range)
                                )
                         );
