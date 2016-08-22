@@ -60,11 +60,11 @@ rocblas_status testing_gemv(Arguments argus)
         status = rocblas_status_invalid_size;
         return status;
     }
-    else if ( incx < 0 ){
+    else if ( incx <= 0 ){
         status = rocblas_status_invalid_size;
         return status;
     }
-    else if ( incy < 0 ){
+    else if ( incy <= 0 ){
         status = rocblas_status_invalid_size;
         return status;
     }
@@ -166,11 +166,11 @@ rocblas_status testing_gemv(Arguments argus)
         if(argus.unit_check){
             unit_check_general<T>(1, Y_size, incy, hz.data(), hy.data());
         }
-/*
+
     for(int i=0; i<M; i++){
         printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hy[i]);
     }
-*/
+
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){

@@ -29,7 +29,8 @@ using namespace std;
     /*! \brief  generate a random number between [0, 0.999...] . */
     template<typename T>
     T random_generator(){
-        return rand()/( (T)RAND_MAX + 1);
+        //return rand()/( (T)RAND_MAX + 1);
+        return (T)(rand() % 10 + 1); //generate a integer number between [1, 10]
     };
 
 

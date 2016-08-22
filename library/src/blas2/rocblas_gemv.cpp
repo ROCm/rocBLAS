@@ -154,8 +154,8 @@ rocblas_gemv_template(rocblas_handle handle,
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
     if ( transA == rocblas_operation_none ) {
-        #define  GEMVN_DIM_X 32 //
-        #define  GEMVN_DIM_Y 8 //GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
+        #define  GEMVN_DIM_X 64 //
+        #define  GEMVN_DIM_Y 16 //GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
         rocblas_int blocks = (m-1)/(GEMVN_DIM_X * 4) + 1;
 
         dim3 gemvn_grid( blocks, 1, 1 );
@@ -228,4 +228,43 @@ rocblas_gemv<double>(rocblas_handle handle,
              double *y, rocblas_int incy){
 
     return rocblas_gemv_template<double>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+
+/* ============================================================================================ */
+
+    /*
+     * ===========================================================================
+     *    C wrapper
+     * ===========================================================================
+     */
+
+
+
+extern "C"
+rocblas_status
+rocblas_sgemv(rocblas_handle handle,
+             rocblas_operation transA, rocblas_int m, rocblas_int n,
+             const float *alpha,
+             const float *A, rocblas_int lda,
+             const float *x, rocblas_int incx,
+             const float *beta,
+             float *y, rocblas_int incy){
+
+    return   rocblas_gemv<float>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+
+}
+
+extern "C"
+rocblas_status
+rocblas_dgemv(rocblas_handle handle,
+             rocblas_operation transA, rocblas_int m, rocblas_int n,
+             const double *alpha,
+             const double *A, rocblas_int lda,
+             const double *x, rocblas_int incx,
+             const double *beta,
+             double *y, rocblas_int incy){
+
+    return   rocblas_gemv<double>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+
 }

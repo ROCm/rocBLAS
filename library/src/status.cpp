@@ -53,9 +53,8 @@ get_rocblas_status_for_hip_status( hipError_t status ) {
 
   // internal hip memory allocation
   case hipErrorMemoryAllocation:
-  case hipErrorMemoryFree:
-  case hipErrorOutOfResources:
-  case hipErrorUnknownSymbol:
+  case hipErrorLaunchOutOfResources:
+  case hipErrorUnknown://TODO
     return rocblas_status_memory_error;
 
   // user-allocated hip memory
@@ -77,4 +76,3 @@ get_rocblas_status_for_hip_status( hipError_t status ) {
     return rocblas_status_internal_error;
   }
 }
-
