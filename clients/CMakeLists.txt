@@ -15,7 +15,7 @@ project( rocblas-clients CXX )
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 include( build-options )
-include ( build-bitness )
+include( build-bitness )
 
 # This captures all of the dependencies cmake builds itself
 set( rocblas_clients_dependencies )
@@ -47,14 +47,15 @@ string(REGEX REPLACE ";" "^^" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
 string(REGEX REPLACE ";" "^^" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" )
 
 set( CLIENTS_CMAKE_ARGS
-	-DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
-	-DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-	-DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-	-DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
-	)
+  -DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
+  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+  -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+  -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
+  -DBUILD_64=${BUILD_64}
+  )
 
 if( NOT CMAKE_CONFIGURATION_TYPES )
-	list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
@@ -65,7 +66,7 @@ if( BUILD_CLIENTS_SAMPLES )
   set( SAMPLES_CMAKE_ARGS
         ${CLIENTS_CMAKE_ARGS}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
-  	)
+    )
 
   ExternalProject_Add( samples
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
@@ -96,7 +97,7 @@ if( BUILD_CLIENTS_TESTS )
   set( TESTS_CMAKE_ARGS
         ${CLIENTS_CMAKE_ARGS}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}^^${BOOST_ROOT}^^${GTEST_ROOT}^^${LAPACK_ROOT}
-  	)
+    )
 
   ExternalProject_Add( tests
     DEPENDS ${rocblas_clients_dependencies} googletest lapack

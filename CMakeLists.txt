@@ -141,6 +141,7 @@ if( BUILD_CLIENTS )
 	# Clients are set up as an external project to take advantage of specifying toolchain files.
 	# We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
+    DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR clients-build
     INSTALL_DIR clients-package
