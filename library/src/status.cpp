@@ -71,6 +71,7 @@ get_rocblas_status_for_hip_status( hipError_t status ) {
 
   // hip runtime failing
   case hipErrorNoDevice: // no hip devices
+  case hipErrorUnknown:
   default:
     return rocblas_status_internal_error;
   }

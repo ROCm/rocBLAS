@@ -69,6 +69,7 @@ if( BUILD_CLIENTS_SAMPLES )
     )
 
   ExternalProject_Add( samples
+    DEPENDS ${rocblas_clients_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
     BINARY_DIR samples-build
     CMAKE_ARGS ${SAMPLES_CMAKE_ARGS}
@@ -100,7 +101,7 @@ if( BUILD_CLIENTS_TESTS )
     )
 
   ExternalProject_Add( tests
-    DEPENDS ${rocblas_clients_dependencies} googletest lapack
+    DEPENDS ${rocblas_clients_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/gtest
     BINARY_DIR tests-build
     CMAKE_ARGS ${TESTS_CMAKE_ARGS}

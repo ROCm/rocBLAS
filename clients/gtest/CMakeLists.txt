@@ -107,9 +107,9 @@ set(rocblas_test_source
     gemm_gtest.cpp
     trsm_gtest.cpp )
 
-  set(rocblas_test_includes
-      ../include/utility.h
-      )
+set(rocblas_test_includes
+    ../include/utility.h
+    )
 
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_test_includes} )
 
