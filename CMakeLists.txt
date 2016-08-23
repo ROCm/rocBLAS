@@ -44,7 +44,7 @@ set( rocblas_INSTALL_COMMAND INSTALL_COMMAND ${CMAKE_COMMAND} -E echo_append )
 # but is not limited to benchmarks, tests and samples.
 if( BUILD_CLIENTS )
   # Clients need to find and link rocfft; we install it locally instead of globally
-  unset( rocblas_INSTALL_DIR )
+  unset( rocblas_INSTALL_COMMAND )
 endif()
 
 # standard cmake module to manage dependencies

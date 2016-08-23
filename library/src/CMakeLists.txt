@@ -34,6 +34,21 @@ set( rocblas_auxiliary_source
 
 set( rocblas_blas3_source
   blas3/gemm.cpp
+  blas3/rocblas_trsm.cpp
+  blas3/rocblas_trtri_batched.cpp
+  blas3/rocblas_trtri.cpp
+)
+
+set( rocblas_blas1_source
+  blas1/fetch_template.cpp
+  blas1/rocblas_amax.cpp
+  blas1/rocblas_asum.cpp
+  blas1/rocblas_axpy.cpp
+  blas1/rocblas_copy.cpp
+  blas1/rocblas_dot.cpp
+  blas1/rocblas_nrm2.cpp
+  blas1/rocblas_scal.cpp
+  blas1/rocblas_swap.cpp
 )
 
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
@@ -45,6 +60,7 @@ endif( )
 
 add_library( rocblas
   ${rocblas_blas3_source}
+  ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
 )
@@ -65,12 +81,11 @@ target_include_directories( rocblas
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
+          $<BUILD_INTERFACE:${Cobalt_INCLUDE_DIRS}>
           $<INSTALL_INTERFACE:include>
 )
 
 # Cobalt
-MESSAGE( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
-include_directories( ${Cobalt_INCLUDE_DIRS} )
 target_link_libraries( rocblas ${CobaltLib_LIBRARIES} )
 add_definitions( -DCobalt_BACKEND_HIP=1 )
 
