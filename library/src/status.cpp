@@ -53,9 +53,7 @@ get_rocblas_status_for_hip_status( hipError_t status ) {
 
   // internal hip memory allocation
   case hipErrorMemoryAllocation:
-  case hipErrorMemoryFree:
-  case hipErrorOutOfResources:
-  case hipErrorUnknownSymbol:
+  case hipErrorLaunchOutOfResources:
     return rocblas_status_memory_error;
 
   // user-allocated hip memory
@@ -73,8 +71,8 @@ get_rocblas_status_for_hip_status( hipError_t status ) {
 
   // hip runtime failing
   case hipErrorNoDevice: // no hip devices
+  case hipErrorUnknown:
   default:
     return rocblas_status_internal_error;
   }
 }
-
