@@ -5,8 +5,8 @@
 message( STATUS "Configuring lapack external dependency" )
 include( ExternalProject )
 
-set( lapack_git_repository "https://github.com/live-clones/lapack.git" CACHE STRING "URL to download lapack from" )
-set( lapack_git_tag "master" CACHE STRING "git branch" )
+set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack-release" CACHE STRING "URL to download lapack from" )
+set( lapack_git_tag "lapack-3.6.1" CACHE STRING "git branch" )
 
 set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
 
@@ -27,7 +27,8 @@ endif( )
 ExternalProject_Add(
   lapack
   PREFIX ${CMAKE_BINARY_DIR}/extern/lapack
-  DOWNLOAD_COMMAND git clone --depth 1 --branch ${lapack_git_tag} ${lapack_git_repository}
+  GIT_REPOSITORY ${lapack_git_repository}
+  GIT_TAG ${lapack_git_tag}
   CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF
   LOG_BUILD 1
   LOG_INSTALL 1
