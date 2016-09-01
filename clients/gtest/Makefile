@@ -60,7 +60,9 @@ COMMON_SRCS = ../common/cblas_interface.cpp \
 
 GTEST_SRCS = ./rocblas_gtest_main.cpp \
 			blas1_gtest.cpp \
+			gemv_gtest.cpp \
 			gemm_gtest.cpp \
+			gemm_batched_gtest.cpp \
 			trsm_gtest.cpp \
 
 #			gemm_gtest.cpp \

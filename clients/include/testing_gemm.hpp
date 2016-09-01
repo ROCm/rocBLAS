@@ -62,7 +62,7 @@ rocblas_status testing_gemm(Arguments argus)
         B_row = N; B_col = K;
     }
 
-    A_size = A_row * A_col; B_size = B_row * B_col; C_size = M * N;
+    A_size = lda * A_col; B_size = ldb * B_col; C_size = ldc * N;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 ){
