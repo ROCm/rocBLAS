@@ -6,6 +6,11 @@
 # PUBLIC keywords
 cmake_minimum_required( VERSION 2.8.12 )
 
+# CMP0063: Honor visibility properties for all target types [cmake 3.3]
+if( POLICY CMP0063 )
+  cmake_policy( SET CMP0063 NEW )
+endif( )
+
 if( CMAKE_GENERATOR MATCHES "NMake" )
 	option( NMAKE_COMPILE_VERBOSE "Print VERBOSE compile/link msgs to the console" OFF )
 	if( NMAKE_COMPILE_VERBOSE )

@@ -3,6 +3,9 @@
  *
  * ************************************************************************ */
 
+ #include <hip_runtime.h>
+ #include "rocblas.h"
+
 /*! \brief BLAS Level 3 API
 
     \details
