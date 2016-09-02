@@ -20,23 +20,26 @@ endfunction( )
 # Main
 # ########################################################################
 
-include( GenerateExportHeader )
-add_compiler_export_flags( )
-
 set( rocblas_auxiliary_source
   include/handle.h
   include/definitions.h
+  include/status.h
   handle.cpp
   rocblas_auxiliary.cpp
-  include/status.h
   status.cpp
 )
 
 set( rocblas_blas3_source
   blas3/gemm.cpp
-  blas3/rocblas_trsm.cpp
+#  blas3/rocblas_gemm.cpp
+#  blas3/rocblas_trmm.cpp
+#  blas3/rocblas_trsm.cpp
   blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
+)
+
+set( rocblas_blas2_source
+  blas2/rocblas_gemv.cpp
 )
 
 set( rocblas_blas1_source
@@ -52,14 +55,18 @@ set( rocblas_blas1_source
 )
 
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
+
 if( ${BUILD_SHARED_LIBS} )
   message( STATUS "Library Type: SHARED" )
 else( )
   message( STATUS "Library Type: STATIC" )
 endif( )
 
+find_package( cobalt REQUIRED CONFIG )
+
 add_library( rocblas
   ${rocblas_blas3_source}
+  ${rocblas_blas2_source}
   ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
@@ -81,25 +88,28 @@ target_include_directories( rocblas
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
-          $<BUILD_INTERFACE:${Cobalt_INCLUDE_DIRS}>
           $<INSTALL_INTERFACE:include>
 )
 
-# Cobalt
-target_link_libraries( rocblas ${CobaltLib_LIBRARIES} )
-add_definitions( -DCobalt_BACKEND_HIP=1 )
+target_link_libraries( rocblas PRIVATE Cobalt-hcc )
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
-set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas-hcc )
+
+# Package that helps me set visibility for function names exported from shared library
+include( GenerateExportHeader )
+if( CMAKE_VERSION VERSION_LESS "3.0" )
+  add_compiler_export_flags( )
+else()
+  set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
+endif( )
+GENERATE_EXPORT_HEADER( rocblas EXPORT_FILE_NAME rocblas-export.h )
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if( NOT ${BUILD_SHARED_LIBS} )
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
 endif( )
-
-# Package that helps me set visibility for function names exported from shared library
-GENERATE_EXPORT_HEADER( rocblas EXPORT_FILE_NAME rocblas-export.h )
 
 # The following is cmake code to generate a config file package for rocblas
 # Documentation for how to use the following package:
