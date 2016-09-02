@@ -4,10 +4,12 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _ROCBLAS_TEMPLATE_FUNCTIONS_H_
-#define _ROCBLAS_TEMPLATE_FUNCTIONS_H_
+#ifndef _ROCBLAS_HPP_
+#define _ROCBLAS_HPP_
 
-#include <rocblas_types.h>
+#include "rocblas_types.h"
+#include "rocblas_auxiliary.h"
+#include "rocblas_functions.h"
 
 
 /*!\file
@@ -160,4 +162,4 @@
         T *invA, rocblas_int ldinvA, rocblas_int bsinvA,
         rocblas_int batch_count);
 
-#endif  /* _ROCBLAS_TEMPLATE_FUNCTIONS_H_ */
+#endif  // _ROCBLAS_HPP_

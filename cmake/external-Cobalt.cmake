@@ -33,6 +33,8 @@ else( )
   set( Cores "2" )
 endif( )
 
+message( "Building Cobalt with ${Cores} cores" )
+
 # TODO rocBLAS clients to use logger and write XMLs to build dir, not src
 ExternalProject_Add(
   Cobalt
@@ -41,15 +43,15 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/extern/Cobalt
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package
     -DCobalt_BACKEND=HIP
     -DCobalt_ENABLE_LOGGER=${Cobalt_ENABLE_LOGGER}
     -DCobalt_OPTIMIZE_ALPHA=OFF
     -DCobalt_OPTIMIZE_BETA=OFF
     -DCobalt_DIR_PROBLEMS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_Problems
     -DCobalt_DIR_SOLUTIONS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
-  BUILD_COMMAND make -j ${Cores} CobaltLib && make -j ${Cores} CobaltLib
-  INSTALL_COMMAND ""
-  #UPDATE_COMMAND ""
+  BUILD_COMMAND make -j ${Cores} Cobalt-hcc COMMAND make -j ${Cores} Cobalt-hcc
+  LOG_BUILD 1
 )
 
 ExternalProject_Get_Property( Cobalt SOURCE_DIR )
@@ -61,8 +63,8 @@ set( CobaltLogger_LIBRARIES ${BINARY_DIR}/CobaltLib/libCobaltLogger.a )
 #MESSAGE( "CobaltLib_LIBRARIES: ${CobaltLib_LIBRARIES}" )
 #MESSAGE( "CobaltLogger_LIBRARIES: ${CobaltLogger_LIBRARIES}" )
 
-#set_property( TARGET Cobalt PROPERTY FOLDER "extern")
-#ExternalProject_Get_Property( Cobalt source_dir )
+set_property( TARGET Cobalt PROPERTY FOLDER "extern")
+ExternalProject_Get_Property( Cobalt install_dir )
 
 # For use by the user of external-Cobalt.cmake
-# set( Cobalt_ROOT ${source_dir} )
+set( Cobalt_ROOT ${install_dir}/package )

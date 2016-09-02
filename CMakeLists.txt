@@ -90,11 +90,11 @@ if( BUILD_LIBRARY )
 
   include( cmake/external-Cobalt.cmake )
   list( APPEND rocblas_dependencies Cobalt )
-  message( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
-  message( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
+  message( STATUS "Cobalt_ROOT=${Cobalt_ROOT}" )
 
 	set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
+    -DCMAKE_PREFIX_PATH=${Cobalt_ROOT}
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
