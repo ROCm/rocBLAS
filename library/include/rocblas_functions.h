@@ -16,13 +16,13 @@
  *  This file exposes C89 BLAS interface
 */
 
-    /*
-     * ===========================================================================
-     *   READEME: Please follow the naming convention
-     *   Big case for matrix, e.g. matrix A, B, C   GEMM (C = A*B)
-     *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *   READEME: Please follow the naming convention
+ *   Big case for matrix, e.g. matrix A, B, C   GEMM (C = A*B)
+ *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
+ * ===========================================================================
+ */
 
 
 #ifdef __cplusplus
@@ -30,11 +30,11 @@ extern "C" {
 #endif
 
 
-    /*
-     * ===========================================================================
-     *    level 1 BLAS
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *    level 1 BLAS
+ * ===========================================================================
+ */
 
 /*! \brief BLAS Level 1 API
 
@@ -58,29 +58,29 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_sscal(rocblas_handle handle,
-        rocblas_int n,
-        const float *alpha,
-        float *x, rocblas_int incx);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sscal(rocblas_handle handle,
+    rocblas_int n,
+    const float *alpha,
+    float *x, rocblas_int incx);
 
-    rocblas_status
-    rocblas_dscal(rocblas_handle handle,
-        rocblas_int n,
-        const double *alpha,
-        double *x, rocblas_int incx);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dscal(rocblas_handle handle,
+    rocblas_int n,
+    const double *alpha,
+    double *x, rocblas_int incx);
 
-    rocblas_status
-    rocblas_cscal(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *alpha,
-        rocblas_float_complex *x, rocblas_int incx);
+ROCBLAS_EXPORT rocblas_status
+rocblas_cscal(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *alpha,
+    rocblas_float_complex *x, rocblas_int incx);
 
-    rocblas_status
-    rocblas_zscal(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *alpha,
-        rocblas_double_complex *x, rocblas_int incx);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zscal(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *alpha,
+    rocblas_double_complex *x, rocblas_int incx);
 
 
 /*! \brief BLAS Level 1 API
@@ -107,29 +107,29 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_scopy(rocblas_handle handle,
-        rocblas_int n,
-        const float *x, rocblas_int incx,
-        float* y,       rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_scopy(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    float* y,       rocblas_int incy);
 
-    rocblas_status
-    rocblas_dcopy(rocblas_handle handle,
-        rocblas_int n,
-        const double *x, rocblas_int incx,
-        double* y,       rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dcopy(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    double* y,       rocblas_int incy);
 
-    rocblas_status
-    rocblas_ccopy(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *x, rocblas_int incx,
-        rocblas_float_complex* y,       rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_ccopy(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    rocblas_float_complex* y,       rocblas_int incy);
 
-    rocblas_status
-    rocblas_zcopy(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *x, rocblas_int incx,
-        rocblas_double_complex* y,       rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zcopy(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    rocblas_double_complex* y,       rocblas_int incy);
 
 
 /*! \brief BLAS Level 1 API
@@ -160,33 +160,33 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_sdot(rocblas_handle handle,
-        rocblas_int n,
-        const float *x, rocblas_int incx,
-        const float *y, rocblas_int incy,
-        float *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sdot(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    const float *y, rocblas_int incy,
+    float *result);
 
-    rocblas_status
-    rocblas_ddot(rocblas_handle handle,
-        rocblas_int n,
-        const double *x, rocblas_int incx,
-        const double *y, rocblas_int incy,
-        double *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_ddot(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    const double *y, rocblas_int incy,
+    double *result);
 
-    rocblas_status
-    rocblas_cdotu(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *x, rocblas_int incx,
-        const rocblas_float_complex *y, rocblas_int incy,
-        rocblas_float_complex *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_cdotu(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    const rocblas_float_complex *y, rocblas_int incy,
+    rocblas_float_complex *result);
 
-    rocblas_status
-    rocblas_zdotu(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *x, rocblas_int incx,
-        const rocblas_double_complex *y, rocblas_int incy,
-        rocblas_double_complex *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zdotu(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    const rocblas_double_complex *y, rocblas_int incy,
+    rocblas_double_complex *result);
 
 
 /*! \brief BLAS Level 1 API
@@ -213,29 +213,29 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_sswap(rocblas_handle handle,
-        rocblas_int n,
-        float *x, rocblas_int incx,
-        float* y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sswap(rocblas_handle handle,
+    rocblas_int n,
+    float *x, rocblas_int incx,
+    float* y, rocblas_int incy);
 
-    rocblas_status
-    rocblas_dswap(rocblas_handle handle,
-        rocblas_int n,
-        double *x, rocblas_int incx,
-        double* y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dswap(rocblas_handle handle,
+    rocblas_int n,
+    double *x, rocblas_int incx,
+    double* y, rocblas_int incy);
 
-    rocblas_status
-    rocblas_cswap(rocblas_handle handle,
-        rocblas_int n,
-        rocblas_float_complex *x, rocblas_int incx,
-        rocblas_float_complex* y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_cswap(rocblas_handle handle,
+    rocblas_int n,
+    rocblas_float_complex *x, rocblas_int incx,
+    rocblas_float_complex* y, rocblas_int incy);
 
-    rocblas_status
-    rocblas_zswap(rocblas_handle handle,
-        rocblas_int n,
-        rocblas_double_complex *x, rocblas_int incx,
-        rocblas_double_complex* y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zswap(rocblas_handle handle,
+    rocblas_int n,
+    rocblas_double_complex *x, rocblas_int incx,
+    rocblas_double_complex* y, rocblas_int incy);
 
 
 /*! \brief BLAS Level 1 API
@@ -263,33 +263,33 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_saxpy(rocblas_handle handle,
-        rocblas_int n,
-        const float *alpha,
-        const float *x, rocblas_int incx,
-        float *y,  rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_saxpy(rocblas_handle handle,
+    rocblas_int n,
+    const float *alpha,
+    const float *x, rocblas_int incx,
+    float *y,  rocblas_int incy);
 
-    rocblas_status
-    rocblas_daxpy(rocblas_handle handle,
-        rocblas_int n,
-        const double *alpha,
-        const double *x, rocblas_int incx,
-        double *y,  rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_daxpy(rocblas_handle handle,
+    rocblas_int n,
+    const double *alpha,
+    const double *x, rocblas_int incx,
+    double *y,  rocblas_int incy);
 
-    rocblas_status
-    rocblas_caxpy(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *alpha,
-        const rocblas_float_complex *x, rocblas_int incx,
-        rocblas_float_complex *y,  rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_caxpy(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *x, rocblas_int incx,
+    rocblas_float_complex *y,  rocblas_int incy);
 
-    rocblas_status
-    rocblas_zaxpy(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *alpha,
-        const rocblas_double_complex *x, rocblas_int incx,
-        rocblas_double_complex *y,  rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zaxpy(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *alpha,
+    const rocblas_double_complex *x, rocblas_int incx,
+    rocblas_double_complex *y,  rocblas_int incy);
 
 
 /*! \brief BLAS Level 1 API
@@ -315,29 +315,29 @@ extern "C" {
 
     ********************************************************************/
 
-    rocblas_status
-    rocblas_sasum(rocblas_handle handle,
-        rocblas_int n,
-        const float *x, rocblas_int incx,
-        float *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sasum(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    float *result);
 
-    rocblas_status
-    rocblas_dasum(rocblas_handle handle,
-        rocblas_int n,
-        const double *x, rocblas_int incx,
-        double *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dasum(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    double *result);
 
-    rocblas_status
-    rocblas_scasum(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *x, rocblas_int incx,
-        float *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_scasum(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    float *result);
 
-    rocblas_status
-    rocblas_dzasum(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *x, rocblas_int incx,
-        double *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dzasum(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    double *result);
 
 
 
@@ -364,29 +364,29 @@ extern "C" {
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
-    rocblas_status
-    rocblas_snrm2(rocblas_handle handle,
-        rocblas_int n,
-        const float *x, rocblas_int incx,
-        float *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_snrm2(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    float *result);
 
-    rocblas_status
-    rocblas_dnrm2(rocblas_handle handle,
-        rocblas_int n,
-        const double *x, rocblas_int incx,
-        double *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dnrm2(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    double *result);
 
-    rocblas_status
-    rocblas_scnrm2(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *x, rocblas_int incx,
-        float *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_scnrm2(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    float *result);
 
-    rocblas_status
-    rocblas_dznrm2(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *x, rocblas_int incx,
-        double *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dznrm2(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    double *result);
 
 
 /*! \brief BLAS Level 1 API
@@ -411,30 +411,29 @@ extern "C" {
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
-    rocblas_status
-    rocblas_samax(rocblas_handle handle,
-        rocblas_int n,
-        const float *x, rocblas_int incx,
-        rocblas_int *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_samax(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    rocblas_int *result);
 
-    extern "C"
-    rocblas_status
-    rocblas_damax(rocblas_handle handle,
-        rocblas_int n,
-        const double *x, rocblas_int incx,
-        rocblas_int *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_damax(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    rocblas_int *result);
 
-    rocblas_status
-    rocblas_scamax(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_float_complex *x, rocblas_int incx,
-        rocblas_int *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_scamax(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    rocblas_int *result);
 
-    rocblas_status
-    rocblas_dzamax(rocblas_handle handle,
-        rocblas_int n,
-        const rocblas_double_complex *x, rocblas_int incx,
-        rocblas_int *result);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dzamax(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    rocblas_int *result);
 
     /*
      * ===========================================================================
@@ -484,41 +483,45 @@ extern "C" {
               specifies the increment for the elements of y.
 
     ********************************************************************/
-    rocblas_status rocblas_sgemv(rocblas_handle handle,
-                     rocblas_operation trans,
-                     rocblas_int m, rocblas_int n,
-                     const float *alpha,
-                     const float *A, rocblas_int lda,
-                     const float *x, rocblas_int incx,
-                     const float *beta,
-                     float *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sgemv(rocblas_handle handle,
+                 rocblas_operation trans,
+                 rocblas_int m, rocblas_int n,
+                 const float *alpha,
+                 const float *A, rocblas_int lda,
+                 const float *x, rocblas_int incx,
+                 const float *beta,
+                 float *y, rocblas_int incy);
 
-    rocblas_status rocblas_dgemv(rocblas_handle handle,
-                     rocblas_operation trans,
-                     rocblas_int m, rocblas_int n,
-                     const double *alpha,
-                     const double *A, rocblas_int lda,
-                     const double *x, rocblas_int incx,
-                     const double *beta,
-                     double *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dgemv(rocblas_handle handle,
+                 rocblas_operation trans,
+                 rocblas_int m, rocblas_int n,
+                 const double *alpha,
+                 const double *A, rocblas_int lda,
+                 const double *x, rocblas_int incx,
+                 const double *beta,
+                 double *y, rocblas_int incy);
 
-    rocblas_status rocblas_cgemv(rocblas_handle handle,
-                     rocblas_operation trans,
-                     rocblas_int m, rocblas_int n,
-                     const rocblas_float_complex *alpha,
-                     const rocblas_float_complex *A, rocblas_int lda,
-                     const rocblas_float_complex *x, rocblas_int incx,
-                     const rocblas_float_complex *beta,
-                     rocblas_float_complex *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_cgemv(rocblas_handle handle,
+                 rocblas_operation trans,
+                 rocblas_int m, rocblas_int n,
+                 const rocblas_float_complex *alpha,
+                 const rocblas_float_complex *A, rocblas_int lda,
+                 const rocblas_float_complex *x, rocblas_int incx,
+                 const rocblas_float_complex *beta,
+                 rocblas_float_complex *y, rocblas_int incy);
 
-    rocblas_status rocblas_zgemv(rocblas_handle handle,
-                     rocblas_operation trans,
-                     rocblas_int m, rocblas_int n,
-                     const rocblas_double_complex *alpha,
-                     const rocblas_double_complex *A, rocblas_int lda,
-                     const rocblas_double_complex *x, rocblas_int incx,
-                     const rocblas_double_complex *beta,
-                     rocblas_double_complex *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zgemv(rocblas_handle handle,
+                 rocblas_operation trans,
+                 rocblas_int m, rocblas_int n,
+                 const rocblas_double_complex *alpha,
+                 const rocblas_double_complex *A, rocblas_int lda,
+                 const rocblas_double_complex *x, rocblas_int incx,
+                 const rocblas_double_complex *beta,
+                 rocblas_double_complex *y, rocblas_int incy);
 
 
 /*! \brief BLAS Level 2 API
@@ -560,48 +563,52 @@ extern "C" {
               specifies the increment for the elements of y.
 
     ********************************************************************/
-    rocblas_status rocblas_ssymv(rocblas_handle handle,
-                     rocblas_fill uplo,
-                     rocblas_int n,
-                     const float *alpha,
-                     const float *A, rocblas_int lda,
-                     const float *x, rocblas_int incx,
-                     const float *beta,
-                     float *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_ssymv(rocblas_handle handle,
+                 rocblas_fill uplo,
+                 rocblas_int n,
+                 const float *alpha,
+                 const float *A, rocblas_int lda,
+                 const float *x, rocblas_int incx,
+                 const float *beta,
+                 float *y, rocblas_int incy);
 
-    rocblas_status rocblas_dsymv(rocblas_handle handle,
-                     rocblas_fill uplo,
-                     rocblas_int n,
-                     const double *alpha,
-                     const double *A, rocblas_int lda,
-                     const double *x, rocblas_int incx,
-                     const double *beta,
-                     double *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dsymv(rocblas_handle handle,
+                 rocblas_fill uplo,
+                 rocblas_int n,
+                 const double *alpha,
+                 const double *A, rocblas_int lda,
+                 const double *x, rocblas_int incx,
+                 const double *beta,
+                 double *y, rocblas_int incy);
 
-    rocblas_status rocblas_chemv(rocblas_handle handle,
-                     rocblas_fill uplo,
-                     rocblas_int n,
-                     const rocblas_float_complex *alpha,
-                     const rocblas_float_complex *A, rocblas_int lda,
-                     const rocblas_float_complex *x, rocblas_int incx,
-                     const rocblas_float_complex *beta,
-                     rocblas_float_complex *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_chemv(rocblas_handle handle,
+                 rocblas_fill uplo,
+                 rocblas_int n,
+                 const rocblas_float_complex *alpha,
+                 const rocblas_float_complex *A, rocblas_int lda,
+                 const rocblas_float_complex *x, rocblas_int incx,
+                 const rocblas_float_complex *beta,
+                 rocblas_float_complex *y, rocblas_int incy);
 
-    rocblas_status rocblas_zhemv(rocblas_handle handle,
-                     rocblas_fill uplo,
-                     rocblas_int n,
-                     const rocblas_double_complex *alpha,
-                     const rocblas_double_complex *A, rocblas_int lda,
-                     const rocblas_double_complex *x, rocblas_int incx,
-                     const rocblas_double_complex *beta,
-                     rocblas_double_complex *y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status
+rocblas_zhemv(rocblas_handle handle,
+                 rocblas_fill uplo,
+                 rocblas_int n,
+                 const rocblas_double_complex *alpha,
+                 const rocblas_double_complex *A, rocblas_int lda,
+                 const rocblas_double_complex *x, rocblas_int incx,
+                 const rocblas_double_complex *beta,
+                 rocblas_double_complex *y, rocblas_int incy);
 
 
-    /*
-     * ===========================================================================
-     *    level 3 BLAS
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *    level 3 BLAS
+ * ===========================================================================
+ */
 
 
 /*! \brief BLAS Level 3 API
@@ -656,308 +663,330 @@ extern "C" {
               specifies the leading dimension of C.
 
     ********************************************************************/
-    rocblas_status rocblas_hgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half *alpha,
-        const rocblas_half *A, rocblas_int lda,
-        const rocblas_half *B, rocblas_int ldb,
-        const rocblas_half *beta,
-              rocblas_half *C, rocblas_int ldc);
+ROCBLAS_EXPORT rocblas_status
+rocblas_hgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half *alpha,
+    const rocblas_half *A, rocblas_int lda,
+    const rocblas_half *B, rocblas_int ldb,
+    const rocblas_half *beta,
+          rocblas_half *C, rocblas_int ldc);
 
-    rocblas_status rocblas_sgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const float *alpha,
-        const float *A, rocblas_int lda,
-        const float *B, rocblas_int ldb,
-        const float *beta,
-              float *C, rocblas_int ldc);
+ROCBLAS_EXPORT rocblas_status
+rocblas_sgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const float *alpha,
+    const float *A, rocblas_int lda,
+    const float *B, rocblas_int ldb,
+    const float *beta,
+          float *C, rocblas_int ldc);
 
-    rocblas_status rocblas_dgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const double *alpha,
-        const double *A, rocblas_int lda,
-        const double *B, rocblas_int ldb,
-        const double *beta,
-              double *C, rocblas_int ldc);
+ROCBLAS_EXPORT rocblas_status
+rocblas_dgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const double *alpha,
+    const double *A, rocblas_int lda,
+    const double *B, rocblas_int ldb,
+    const double *beta,
+          double *C, rocblas_int ldc);
 
-    rocblas_status rocblas_qgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half_complex *alpha,
-        const rocblas_half_complex *A, rocblas_int lda,
-        const rocblas_half_complex *B, rocblas_int ldb,
-        const rocblas_half_complex *beta,
-              rocblas_half_complex *C, rocblas_int ldc);
+ROCBLAS_EXPORT rocblas_status
+rocblas_qgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half_complex *alpha,
+    const rocblas_half_complex *A, rocblas_int lda,
+    const rocblas_half_complex *B, rocblas_int ldb,
+    const rocblas_half_complex *beta,
+          rocblas_half_complex *C, rocblas_int ldc);
 
-    rocblas_status rocblas_cgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_float_complex *alpha,
-        const rocblas_float_complex *A, rocblas_int lda,
-        const rocblas_float_complex *B, rocblas_int ldb,
-        const rocblas_float_complex *beta,
-              rocblas_float_complex *C, rocblas_int ldc);
+ROCBLAS_EXPORT rocblas_status
+rocblas_cgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *A, rocblas_int lda,
+    const rocblas_float_complex *B, rocblas_int ldb,
+    const rocblas_float_complex *beta,
+          rocblas_float_complex *C, rocblas_int ldc);
 
-    rocblas_status rocblas_zgemm(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_double_complex *alpha,
-        const rocblas_double_complex *A, rocblas_int lda,
-        const rocblas_double_complex *B, rocblas_int ldb,
-        const rocblas_double_complex *beta,
-              rocblas_double_complex *C, rocblas_int ldc);
-
-
-    /***************************************************************************
-     * strided - specify leading stride
-     * lsa - non-1 leading stride of a
-     * lsb - non-1 leading stride of b
-     * lsc - non-1 leading stride of c
-     **************************************************************************/
-    rocblas_status rocblas_hgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half *alpha,
-        const rocblas_half *A, rocblas_int lsa, rocblas_int lda,
-        const rocblas_half *B, rocblas_int lsb, rocblas_int ldb,
-        const rocblas_half *beta,
-              rocblas_half *C, rocblas_int lsc, rocblas_int ldc);
-
-    rocblas_status rocblas_sgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const float *alpha,
-        const float *A, rocblas_int lsa, rocblas_int lda,
-        const float *B, rocblas_int lsb, rocblas_int ldb,
-        const float *beta,
-              float *C, rocblas_int lsc, rocblas_int ldc);
-
-    rocblas_status rocblas_dgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const double *alpha,
-        const double *A, rocblas_int lsa, rocblas_int lda,
-        const double *B, rocblas_int lsb, rocblas_int ldb,
-        const double *beta,
-              double *C, rocblas_int lsc, rocblas_int ldc);
-
-    rocblas_status rocblas_qgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half_complex *alpha,
-        const rocblas_half_complex *A, rocblas_int lsa, rocblas_int lda,
-        const rocblas_half_complex *B, rocblas_int lsb, rocblas_int ldb,
-        const rocblas_half_complex *beta,
-              rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc);
-
-    rocblas_status rocblas_cgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_float_complex *alpha,
-        const rocblas_float_complex *A, rocblas_int lsa, rocblas_int lda,
-        const rocblas_float_complex *B, rocblas_int lsb, rocblas_int ldb,
-        const rocblas_float_complex *beta,
-              rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc);
-
-    rocblas_status rocblas_zgemm_strided(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_double_complex *alpha,
-        const rocblas_double_complex *A, rocblas_int lsa, rocblas_int lda,
-        const rocblas_double_complex *B, rocblas_int lsb, rocblas_int ldb,
-        const rocblas_double_complex *beta,
-              rocblas_double_complex *C, rocblas_int lsc, rocblas_int ldc);
-
-    /***************************************************************************
-     * batched
-     * bsa - "batch stride a": stride from the start of one "A" matrix to the next
-     * bsb
-     * bsc
-     * batch_count - numbers of gemm's in the batch
-     **************************************************************************/
-    rocblas_status rocblas_hgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half *alpha,
-        const rocblas_half *A, rocblas_int lda, rocblas_int bsa,
-        const rocblas_half *B, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_half *beta,
-              rocblas_half *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
-
-    rocblas_status rocblas_sgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const float *alpha,
-        const float *A, rocblas_int lda, rocblas_int bsa,
-        const float *B, rocblas_int ldb, rocblas_int bsb,
-        const float *beta,
-              float *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
-
-    rocblas_status rocblas_dgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const double *alpha,
-        const double *A, rocblas_int lda, rocblas_int bsa,
-        const double *B, rocblas_int ldb, rocblas_int bsb,
-        const double *beta,
-              double *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
-
-    rocblas_status rocblas_qgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half_complex *alpha,
-        const rocblas_half_complex *A, rocblas_int lda, rocblas_int bsa,
-        const rocblas_half_complex *B, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_half_complex *beta,
-              rocblas_half_complex *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
-
-    rocblas_status rocblas_cgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_float_complex *alpha,
-        const rocblas_float_complex *A, rocblas_int lda, rocblas_int bsa,
-        const rocblas_float_complex *B, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_float_complex *beta,
-              rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
-
-    rocblas_status rocblas_zgemm_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_double_complex *alpha,
-        const rocblas_double_complex *A, rocblas_int lda, rocblas_int bsa,
-        const rocblas_double_complex *B, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_double_complex *beta,
-              rocblas_double_complex *C, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_zgemm(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_double_complex *alpha,
+    const rocblas_double_complex *A, rocblas_int lda,
+    const rocblas_double_complex *B, rocblas_int ldb,
+    const rocblas_double_complex *beta,
+          rocblas_double_complex *C, rocblas_int ldc);
 
 
-    /***************************************************************************
-     * strided & batched
-     * lsa - non-1 leading stride of a
-     * lsb - non-1 leading stride of b
-     * lsc - non-1 leading stride of c
-     * bsa - "batch stride a": stride from the start of one "A" matrix to the next
-     * bsb
-     * bsc
-     * batch_count - numbers of gemm's in the batch
-     **************************************************************************/
-    rocblas_status rocblas_hgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half *alpha,
-        const rocblas_half *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const rocblas_half *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_half *beta,
-              rocblas_half *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+/***************************************************************************
+ * strided - specify leading stride
+ * lsa - non-1 leading stride of a
+ * lsb - non-1 leading stride of b
+ * lsc - non-1 leading stride of c
+ **************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_hgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half *alpha,
+    const rocblas_half *A, rocblas_int lsa, rocblas_int lda,
+    const rocblas_half *B, rocblas_int lsb, rocblas_int ldb,
+    const rocblas_half *beta,
+          rocblas_half *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_sgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const float *alpha,
-        const float *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const float *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const float *beta,
-              float *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_sgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const float *alpha,
+    const float *A, rocblas_int lsa, rocblas_int lda,
+    const float *B, rocblas_int lsb, rocblas_int ldb,
+    const float *beta,
+          float *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_dgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const double *alpha,
-        const double *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const double *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const double *beta,
-              double *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_dgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const double *alpha,
+    const double *A, rocblas_int lsa, rocblas_int lda,
+    const double *B, rocblas_int lsb, rocblas_int ldb,
+    const double *beta,
+          double *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_qgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_half_complex *alpha,
-        const rocblas_half_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const rocblas_half_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_half_complex *beta,
-              rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_qgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half_complex *alpha,
+    const rocblas_half_complex *A, rocblas_int lsa, rocblas_int lda,
+    const rocblas_half_complex *B, rocblas_int lsb, rocblas_int ldb,
+    const rocblas_half_complex *beta,
+          rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_cgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_float_complex *alpha,
-        const rocblas_float_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const rocblas_float_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_float_complex *beta,
-              rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_cgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *A, rocblas_int lsa, rocblas_int lda,
+    const rocblas_float_complex *B, rocblas_int lsb, rocblas_int ldb,
+    const rocblas_float_complex *beta,
+          rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc);
 
-    rocblas_status rocblas_zgemm_strided_batched(
-        rocblas_handle handle,
-        rocblas_order order,
-        rocblas_operation transa, rocblas_operation transb,
-        rocblas_int m, rocblas_int n, rocblas_int k,
-        const rocblas_double_complex *alpha,
-        const rocblas_double_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
-        const rocblas_double_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
-        const rocblas_double_complex *beta,
-              rocblas_double_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
-        rocblas_int batch_count );
+ROCBLAS_EXPORT rocblas_status
+rocblas_zgemm_strided(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_double_complex *alpha,
+    const rocblas_double_complex *A, rocblas_int lsa, rocblas_int lda,
+    const rocblas_double_complex *B, rocblas_int lsb, rocblas_int ldb,
+    const rocblas_double_complex *beta,
+          rocblas_double_complex *C, rocblas_int lsc, rocblas_int ldc);
+
+/***************************************************************************
+ * batched
+ * bsa - "batch stride a": stride from the start of one "A" matrix to the next
+ * bsb
+ * bsc
+ * batch_count - numbers of gemm's in the batch
+ **************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_hgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half *alpha,
+    const rocblas_half *A, rocblas_int lda, rocblas_int bsa,
+    const rocblas_half *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_half *beta,
+          rocblas_half *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_sgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const float *alpha,
+    const float *A, rocblas_int lda, rocblas_int bsa,
+    const float *B, rocblas_int ldb, rocblas_int bsb,
+    const float *beta,
+          float *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const double *alpha,
+    const double *A, rocblas_int lda, rocblas_int bsa,
+    const double *B, rocblas_int ldb, rocblas_int bsb,
+    const double *beta,
+          double *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_qgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half_complex *alpha,
+    const rocblas_half_complex *A, rocblas_int lda, rocblas_int bsa,
+    const rocblas_half_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_half_complex *beta,
+          rocblas_half_complex *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_cgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *A, rocblas_int lda, rocblas_int bsa,
+    const rocblas_float_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_float_complex *beta,
+          rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_zgemm_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_double_complex *alpha,
+    const rocblas_double_complex *A, rocblas_int lda, rocblas_int bsa,
+    const rocblas_double_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_double_complex *beta,
+          rocblas_double_complex *C, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
 
 
+/***************************************************************************
+ * strided & batched
+ * lsa - non-1 leading stride of a
+ * lsb - non-1 leading stride of b
+ * lsc - non-1 leading stride of c
+ * bsa - "batch stride a": stride from the start of one "A" matrix to the next
+ * bsb
+ * bsc
+ * batch_count - numbers of gemm's in the batch
+ **************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_hgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half *alpha,
+    const rocblas_half *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const rocblas_half *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_half *beta,
+          rocblas_half *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_sgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const float *alpha,
+    const float *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const float *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const float *beta,
+          float *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const double *alpha,
+    const double *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const double *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const double *beta,
+          double *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_qgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_half_complex *alpha,
+    const rocblas_half_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const rocblas_half_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_half_complex *beta,
+          rocblas_half_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_cgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const rocblas_float_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_float_complex *beta,
+          rocblas_float_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_zgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const rocblas_double_complex *alpha,
+    const rocblas_double_complex *A, rocblas_int lsa, rocblas_int lda, rocblas_int bsa,
+    const rocblas_double_complex *B, rocblas_int lsb, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_double_complex *beta,
+          rocblas_double_complex *C, rocblas_int lsc, rocblas_int ldc, rocblas_int bsc,
+    rocblas_int batch_count );
 
 #ifdef __cplusplus
 }

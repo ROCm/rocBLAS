@@ -31,6 +31,8 @@ set( rocblas_auxiliary_source
 
 set( rocblas_blas3_source
   blas3/gemm.cpp
+#  blas3/rocblas_gemm.cpp
+#  blas3/rocblas_trmm.cpp
 #  blas3/rocblas_trsm.cpp
   blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
@@ -89,7 +91,7 @@ target_include_directories( rocblas
           $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries( rocblas PUBLIC Cobalt-hcc )
+target_link_libraries( rocblas PRIVATE Cobalt-hcc )
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
@@ -97,7 +99,7 @@ set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
-if( CMAKE_VERSION VERSION_LESS 3.0 )
+if( CMAKE_VERSION VERSION_LESS "3.0" )
   add_compiler_export_flags( )
 else()
   set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )

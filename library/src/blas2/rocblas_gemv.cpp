@@ -4,12 +4,12 @@
  * ************************************************************************ */
 
 #include <hip_runtime.h>
+
 #include "rocblas.h"
+#include "rocblas.hpp"
 #include "status.h"
 #include "definitions.h"
 #include "gemv_device.h"
-
-
 
 template<typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
 __global__ void

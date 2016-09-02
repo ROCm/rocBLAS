@@ -4,7 +4,9 @@
  * ************************************************************************ */
 
 #include <hip_runtime.h>
+
 #include "rocblas.h"
+#include "rocblas.hpp"
 #include "trtri_device.h"
 #include "definitions.h"
 
