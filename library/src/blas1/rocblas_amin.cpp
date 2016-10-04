@@ -1,5 +1,5 @@
 /* ************************************************************************
- * amaxright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -15,7 +15,7 @@
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
-amax_kernel_part1(hipLaunchParm lp,
+amin_kernel_part1(hipLaunchParm lp,
     rocblas_int n,
     const T1* x, rocblas_int incx,
     T2* workspace,
@@ -51,7 +51,7 @@ amax_kernel_part1(hipLaunchParm lp,
 
 template<typename T, rocblas_int NB, rocblas_int flag>
 __global__ void
-amax_kernel_part2(hipLaunchParm lp,
+amin_kernel_part2(hipLaunchParm lp,
     rocblas_int n,
     T* workspace,
     rocblas_int* workspace_index,
@@ -96,10 +96,10 @@ amax_kernel_part2(hipLaunchParm lp,
 //HIP support up to 1024 threads/work itmes per thread block/work group
 #define NB_X 1024
 
-//assume workspace has already been allocated, recommened for repeated calling of amax product routine
+//assume workspace has already been allocated, recommened for repeated calling of amin product routine
 template<typename T1, typename T2>
 rocblas_status
-rocblas_amax_template_workspace(rocblas_handle handle,
+rocblas_amin_template_workspace(rocblas_handle handle,
     rocblas_int n,
     const T1 *x, rocblas_int incx,
     rocblas_int *result,
@@ -125,12 +125,12 @@ rocblas_amax_template_workspace(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    hipLaunchKernel(HIP_KERNEL_NAME(amax_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream,
+    hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream,
                                                                       n, x, incx, workspace, workspace_index);
 
     if( rocblas_get_pointer_location(result) == rocblas_mem_location_device ){
         //the last argument 1 indicate the result is a device pointer, not memcpy is required
-        hipLaunchKernel(HIP_KERNEL_NAME(amax_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
+        hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                          blocks, workspace, workspace_index, result);
     }
     else{
@@ -138,7 +138,7 @@ rocblas_amax_template_workspace(rocblas_handle handle,
         // workspace[0] has a copy of the final result, if the result pointer is on host, a memory copy is required
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
-        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(amax_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
+        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                                           blocks, workspace, workspace_index, result);
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
     }
@@ -151,7 +151,7 @@ rocblas_amax_template_workspace(rocblas_handle handle,
 /*! \brief BLAS Level 1 API
 
     \details
-    amax finds the first index of the element of maximum magnitude of real vector x
+    amin finds the first index of the element of minimum magnitude of real vector x
          or the sum of magnitude of the real and imaginary parts of elements if x is a complex vector
 
     @param[in]
@@ -166,7 +166,7 @@ rocblas_amax_template_workspace(rocblas_handle handle,
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amax product. either on the host CPU or device GPU.
+              store the amin product. either on the host CPU or device GPU.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
@@ -175,7 +175,7 @@ rocblas_amax_template_workspace(rocblas_handle handle,
 //allocate workspace inside this API
 template<typename T1, typename T2>
 rocblas_status
-rocblas_amax_template(rocblas_handle handle,
+rocblas_amin_template(rocblas_handle handle,
     rocblas_int n,
     const T1 *x, rocblas_int incx,
     rocblas_int *result)
@@ -211,7 +211,7 @@ rocblas_amax_template(rocblas_handle handle,
     RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T2) * blocks));//potential error may rise here, blocking device operation
     RETURN_IF_HIP_ERROR(hipMalloc(&workspace_index, sizeof(rocblas_int) * blocks));//potential error may rise here, blocking device operation
 
-    status = rocblas_amax_template_workspace<T1, T2>(handle, n, x, incx, result, workspace, workspace_index, blocks);
+    status = rocblas_amin_template_workspace<T1, T2>(handle, n, x, incx, result, workspace, workspace_index, blocks);
 
     RETURN_IF_HIP_ERROR(hipFree(workspace));
     RETURN_IF_HIP_ERROR(hipFree(workspace_index));
@@ -233,42 +233,42 @@ rocblas_amax_template(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_amax<float>(rocblas_handle handle,
+rocblas_amin<float>(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax_template<float, float>(handle, n, x, incx, result);
+    return rocblas_amin_template<float, float>(handle, n, x, incx, result);
 }
 
 template<>
 rocblas_status
-rocblas_amax<double>(rocblas_handle handle,
+rocblas_amin<double>(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax_template<double, double>(handle, n, x, incx, result);
+    return rocblas_amin_template<double, double>(handle, n, x, incx, result);
 }
 
 template<>
 rocblas_status
-rocblas_amax<rocblas_float_complex>(rocblas_handle handle,
+rocblas_amin<rocblas_float_complex>(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax_template<rocblas_float_complex, float>(handle, n, x, incx, result);
+    return rocblas_amin_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
 template<>
 rocblas_status
-rocblas_amax<rocblas_double_complex>(rocblas_handle handle,
+rocblas_amin<rocblas_double_complex>(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax_template<rocblas_double_complex, double>(handle, n, x, incx, result);
+    return rocblas_amin_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
 
 
@@ -284,49 +284,44 @@ rocblas_amax<rocblas_double_complex>(rocblas_handle handle,
 
 extern "C"
 rocblas_status
-rocblas_samax(rocblas_handle handle,
+rocblas_samin(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<float>(handle, n, x, incx, result);
+    return rocblas_amin<float>(handle, n, x, incx, result);
 }
 
 
 extern "C"
 rocblas_status
-rocblas_damax(rocblas_handle handle,
+rocblas_damin(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<double>(handle, n, x, incx, result);
+    return rocblas_amin<double>(handle, n, x, incx, result);
 }
 
 
 extern "C"
 rocblas_status
-rocblas_scamax(rocblas_handle handle,
+rocblas_scamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<rocblas_float_complex>(handle, n, x, incx, result);
+    return rocblas_amin<rocblas_float_complex>(handle, n, x, incx, result);
 }
 
 extern "C"
 rocblas_status
-rocblas_dzamax(rocblas_handle handle,
+rocblas_dzamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<rocblas_double_complex>(handle, n, x, incx, result);
+    return rocblas_amin<rocblas_double_complex>(handle, n, x, incx, result);
 }
 
 
-
-
-
-
-/* ============================================================================================ */
