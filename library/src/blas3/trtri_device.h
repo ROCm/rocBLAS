@@ -20,6 +20,8 @@
     @param[in]
     uplo      rocblas_fill.
               specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+              if rocblas_fill_upper, the lower part of A is not referenced
+              if rocblas_fill_lower, the upper part of A is not referenced
     @param[in]
     diag      rocblas_diagonal.
               = 'rocblas_diagonal_non_unit', A is non-unit triangular;
@@ -44,6 +46,10 @@ trtri_device(rocblas_fill uplo,
     T *A, rocblas_int lda,
     T *invA, rocblas_int ldinvA)
 {
+
+    //quick return 
+    if (n <=0 ) return ;
+
     int tx  = hipThreadIdx_x;
 
     __shared__ T sA[NB * NB];
