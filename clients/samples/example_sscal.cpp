@@ -49,10 +49,10 @@ int main()
 
 
     /* =====================================================================
-         ROCBLAS  template interface
+         ROCBLAS  C interface
     =================================================================== */
 
-    status = rocblas_scal<float>(handle,
+    status = rocblas_sscal(handle,
                     N,
                     &alpha,
                     dx, 1);
