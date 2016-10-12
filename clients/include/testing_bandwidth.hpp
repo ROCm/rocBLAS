@@ -8,7 +8,7 @@
 #include <unistd.h>
 #include <vector>
 
-#include "rocblas.h"
+#include "rocblas.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
