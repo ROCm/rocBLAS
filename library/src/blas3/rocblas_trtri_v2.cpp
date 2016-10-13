@@ -86,17 +86,16 @@ trtri_diagonal_kernel(hipLaunchParm lp,
 
 
 /*
-    suppose nn is the orginal matrix AA' size (denoted as n in TOP API)
-    A, B, C, submatrices in AA in trtri
     this special gemm performs D  = -A*B*C after trtri
+    suppose nn is the orginal matrix AA' size (denoted as n in TOP API)
 
     if  lower,
         D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
-        let m = (nn-IB), n = IB,
+        set m = (nn-IB), n = IB,
 
     if upper,
         D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
-        let m = IB, n = (nn-IB),
+        set m = IB, n = (nn-IB),
 
     Then, either case,
         D is of m * n
@@ -105,7 +104,7 @@ trtri_diagonal_kernel(hipLaunchParm lp,
         C is of n * n
 
    since m <= IB, n <= IB,
-   create a shared memory space as the buffer to store the intermediate results of W=B*C, A*W
+   create a shared memory space as the buffer to store the intermediate results like B*C
 
 */
 
@@ -172,6 +171,9 @@ gemm_trsm_kernel(hipLaunchParm lp,
     }
 
 }
+
+
+
 
 
 /*
@@ -289,7 +291,6 @@ rocblas_trtri_large(rocblas_handle handle,
               = 'rocblas_diagonal_unit', A is unit triangular;
     @param[in]
     n         rocblas_int.
-              size of matrix A and invA
     @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
@@ -328,12 +329,13 @@ rocblas_trtri_template(rocblas_handle handle,
         return rocblas_status_invalid_size;
 
     //because of shared memory size, the IB must be <= 64, typically 64 for s, d, c, but 32 for z
-    //typically, only a small matrix A is inverted by trtri, so if n is too big, trtri is not implemented
-    //trtri is usually called by trsm
+    // typically, only a small matrix A is inverted by trtri
+
     if (n <= IB){
         return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
     }
     else if( n <= 2 * IB){
+        RETURN_IF_HIP_ERROR(hipMemset(invA, 0, sizeof(T)*ldinvA*n ));
         return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
     else{
         printf("n is %d, n must be less than %d, will return\n", n, 2*IB);
