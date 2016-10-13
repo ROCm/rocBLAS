@@ -25,8 +25,9 @@ rocblas_status testing_trtri(Arguments argus)
 {
 
     rocblas_int N = argus.N;
-    rocblas_int lda = argus.lda;
-    rocblas_int A_size = lda * N;
+    rocblas_int lda;
+    rocblas_int ldinvA;
+    ldinvA = lda = argus.lda;
 
     rocblas_status status = rocblas_status_success;
 
@@ -38,7 +39,7 @@ rocblas_status testing_trtri(Arguments argus)
     vector<T> hA(A_size);
     vector<T> hB(A_size);
 
-    T *dA;
+    T *dA, *dinvA;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -57,6 +58,7 @@ rocblas_status testing_trtri(Arguments argus)
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dinvA, A_size * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -77,10 +79,12 @@ rocblas_status testing_trtri(Arguments argus)
     status = rocblas_trtri<T>(handle,
             uplo, diag,
             N,
-            dA,lda);
+            dA,lda,
+            dinvA,ldinvA);
 
     if (status != rocblas_status_success) {
         CHECK_HIP_ERROR(hipFree(dA));
+        CHECK_HIP_ERROR(hipFree(dinvA));
         rocblas_destroy_handle(handle);
         return status;
     }
@@ -91,7 +95,7 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -148,6 +152,7 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(ldinvA));
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }
