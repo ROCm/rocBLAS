@@ -27,7 +27,7 @@ endif()
 
 if( POLICY CMP0048 )
 	cmake_policy( SET CMP0048 NEW )
-	project( rocblas-samples VERSION 0.0.0.1 LANGUAGES C CXX )
+	project( rocblas-samples VERSION 0.0.2.0 LANGUAGES C CXX )
 else( )
 	project( rocblas-samples C CXX )
 	# Define a version for the code
@@ -40,17 +40,15 @@ else( )
 	endif( )
 
 	if( NOT DEFINED rocblas_VERSION_PATCH )
-		set( rocblas-samples_VERSION_PATCH 0 )
+		set( rocblas-samples_VERSION_PATCH 2 )
 	endif( )
 
 	if( NOT DEFINED rocblas_VERSION_TWEAK )
-		set( rocblas-samples_VERSION_TWEAK 1 )
+		set( rocblas-samples_VERSION_TWEAK 0 )
 	endif( )
 
 	set( rocblas-samples_VERSION "${rocblas-samples_VERSION_MAJOR}.${rocblas-samples_VERSION_MINOR}.${rocblas-samples_VERSION_PATCH}.${rocblas-samples_VERSION_TWEAK}")
 endif( )
-
-include ( build-bitness )
 
 # Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
 # Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
@@ -79,5 +77,50 @@ set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 find_package( rocblas REQUIRED CONFIG )
 
-# Build into subdirectories
-add_subdirectory( gemm-expert )
+set( rocblas_samples_common
+      ../common/cblas_interface.cpp
+      ../common/norm.cpp
+      ../common/unit.cpp
+      ../common/utility.cpp
+      ../common/flops.cpp
+    )
+
+add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
+add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
+
+# Try to test for specific compiler features if cmake version is recent enough
+if( CMAKE_VERSION VERSION_GREATER "3.0" )
+  target_compile_features( example-openmp PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+  target_compile_features( example-sscal PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+else( )
+  # Otherwise, just try to compile the library with a standards flag
+  if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
+    # ::gets removed from std++14, but g++4.8 still uses it
+    # http://clang-developers.42468.n3.nabble.com/libc-gets-removed-from-C11-td4032945.html
+    # target_compile_options( rocblas-test PRIVATE -std=c++14 )
+    target_compile_options( example-openmp PRIVATE -std=c++11 -pthread )
+    target_compile_options( example-sscal PRIVATE -std=c++11 -pthread )
+  endif( )
+endif( )
+
+target_include_directories( example-openmp
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+)
+
+target_link_libraries( example-openmp rocblas )
+target_link_libraries( example-sscal rocblas )
+
+# Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
+# https://github.com/google/googletest/issues/391#issuecomment-125645879
+# No easy way to filter to Ubuntu
+if( UNIX )
+  target_link_libraries( example-openmp pthread )
+  target_link_libraries( example-sscal pthread )
+endif( )
+
+set_target_properties( example-openmp PROPERTIES DEBUG_POSTFIX "-d" )
+# set_target_properties( example-openmp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+
+set_target_properties( example-sscal PROPERTIES DEBUG_POSTFIX "-d" )
+# set_target_properties( example-sscal PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

@@ -4,7 +4,9 @@
  * ************************************************************************ */
 
 #include <hip_runtime.h>
+
 #include "rocblas.h"
+#include "rocblas.hpp"
 #include "definitions.h"
 
 
@@ -155,7 +157,7 @@ rocblas_swap<rocblas_double_complex>(rocblas_handle handle,
 
 extern "C"
 rocblas_status
-rocblas_sswap_kernel(rocblas_handle handle,
+rocblas_sswap(rocblas_handle handle,
     rocblas_int n,
     float *x, rocblas_int incx,
     float* y, rocblas_int incy){
@@ -166,7 +168,7 @@ rocblas_sswap_kernel(rocblas_handle handle,
 
 extern "C"
 rocblas_status
-rocblas_dswap_kernel(rocblas_handle handle,
+rocblas_dswap(rocblas_handle handle,
     rocblas_int n,
     double *x, rocblas_int incx,
     double* y, rocblas_int incy){

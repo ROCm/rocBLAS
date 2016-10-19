@@ -44,7 +44,7 @@ set( rocblas_INSTALL_COMMAND INSTALL_COMMAND ${CMAKE_COMMAND} -E echo_append )
 # but is not limited to benchmarks, tests and samples.
 if( BUILD_CLIENTS )
   # Clients need to find and link rocfft; we install it locally instead of globally
-  unset( rocblas_INSTALL_DIR )
+  unset( rocblas_INSTALL_COMMAND )
 endif()
 
 # standard cmake module to manage dependencies
@@ -89,11 +89,12 @@ if( BUILD_LIBRARY )
   # CobaltLogger_LIBRARIES
 
   include( cmake/external-Cobalt.cmake )
-  message( STATUS "Cobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}" )
-  message( STATUS "CobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}" )
+  list( APPEND rocblas_dependencies Cobalt )
+  message( STATUS "Cobalt_ROOT=${Cobalt_ROOT}" )
 
 	set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
+    -DCMAKE_PREFIX_PATH=${Cobalt_ROOT}
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
@@ -140,6 +141,7 @@ if( BUILD_CLIENTS )
 	# Clients are set up as an external project to take advantage of specifying toolchain files.
 	# We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
+    DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR clients-build
     INSTALL_DIR clients-package

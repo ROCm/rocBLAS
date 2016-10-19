@@ -9,7 +9,7 @@
 #include <fstream>
 #include <vector>
 
-#include "rocblas.h"
+#include "rocblas.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -62,7 +62,7 @@ rocblas_status testing_gemm(Arguments argus)
         B_row = N; B_col = K;
     }
 
-    A_size = A_row * A_col; B_size = B_row * B_col; C_size = M * N;
+    A_size = lda * A_col; B_size = ldb * B_col; C_size = ldc * N;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 ){
@@ -170,11 +170,11 @@ rocblas_status testing_gemm(Arguments argus)
             }
             cout << endl;
 
-            cout << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
+            cout << "GG," << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
-                //cout << rocblas_error;
+                cout << rocblas_error;
             }
 
             cout << endl;

@@ -19,7 +19,7 @@ using namespace std;
 /* ============================================================================================ */
 
 template<typename T>
-rocblas_status testing_scal(Arguments argus)
+rocblas_status testing_amax(Arguments argus)
 {
 
     rocblas_int N = argus.N;
@@ -27,48 +27,41 @@ rocblas_status testing_scal(Arguments argus)
 
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if ( N < 0 ){
+    //check to prevent undefined memory allocation error
+    if( N < 0 || incx < 0 ){
         status = rocblas_status_invalid_size;
         return status;
     }
-    else if ( incx < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
-
 
     rocblas_int sizeX = N * incx;
-    T alpha = argus.alpha;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hx(sizeX);
-    vector<T> hz(sizeX);
+
     T *dx;
+    rocblas_int *d_rocblas_result;
+    rocblas_int cpu_result, rocblas_result;
+
+    rocblas_int device_pointer = 1;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_error = 0.0;
 
     rocblas_handle handle;
-
     rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
 
     //Initial Data on CPU
     srand(1);
     rocblas_init<T>(hx, 1, N, incx);
 
-    //copy vector is easy in STL; hz = hx: save a copy in hz which will be output of CPU BLAS
-    hz = hx;
-
     //copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
 
-
     if(argus.timing){
-        printf("SCAL     N    rocblas    (us)     CPU (us)     error\n");
+        printf("Idamax: N    rocblas(us)     CPU(us)     error\n");
     }
 
 
@@ -79,22 +72,35 @@ rocblas_status testing_scal(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-    status = rocblas_scal<T>(handle,
-                    N,
-                    &alpha,
-                    dx, incx);
+     /* =====================================================================
+                 CPU BLAS
+     =================================================================== */
+     //rocblas_amax accept both dev/host pointer for the scalar
+    if(device_pointer){
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+    }
+    else{
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx, incx,
+                        &rocblas_result);
+    }
+
     if (status != rocblas_status_success) {
         CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(d_rocblas_result));
         rocblas_destroy_handle(handle);
         return status;
     }
 
+    if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
+
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
     }
-
-        //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hx.data(), dx, sizeof(T)*N*incx, hipMemcpyDeviceToHost));
 
 
     if(argus.unit_check || argus.norm_check){
@@ -106,47 +112,34 @@ rocblas_status testing_scal(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-        cblas_scal<T>(
-                     N,
-                     alpha,
-                     hz.data(), incx);
+        cblas_amax<T>(N,
+                    hx.data(), incx,
+                    &cpu_result);
 
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
         }
 
 
-        //enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
         if(argus.unit_check){
-            unit_check_general<T>(1, N, incx, hz.data(), hx.data());
+            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &rocblas_result);
         }
-
-        //for(int i=0; i<10; i++){
-        //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hx[i]);
-        //}
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', 1, N, incx, hz.data(), hx.data());
+            printf("The maximum index cpu=%d, gpu=%d\n", cpu_result, rocblas_result);
         }
 
     }// end of if unit/norm check
 
 
     if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
-        if(argus.norm_check){
-            printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);
-        }
-        else{
-            printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
-        }
+        printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
     }
 
-
     CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(d_rocblas_result));
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

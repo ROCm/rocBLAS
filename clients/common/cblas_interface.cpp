@@ -235,11 +235,83 @@ extern "C" {
         *result = cblas_dzasum(n, x, incx);
     }
 
+    //amax
+    template<>
+    void cblas_amax<float>( rocblas_int n,
+                            const float *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_isamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<double>( rocblas_int n,
+                            const double *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_idamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<rocblas_float_complex>( rocblas_int n,
+                            const rocblas_float_complex *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_icamax(n, x, incx);
+    }
+
+    template<>
+    void cblas_amax<rocblas_double_complex>( rocblas_int n,
+                            const rocblas_double_complex *x, rocblas_int incx,
+                            rocblas_int *result)
+    {
+        *result = (rocblas_int)cblas_izamax(n, x, incx);
+    }
     /*
      * ===========================================================================
      *    level 2 BLAS
      * ===========================================================================
      */
+
+    template<>
+    void cblas_gemv<float>( rocblas_operation transA, rocblas_int m, rocblas_int n,
+                            float alpha,
+                            float *A, rocblas_int lda,
+                            float *x, rocblas_int incx,
+                            float beta, float *y, rocblas_int incy)
+    {
+        cblas_sgemv(CblasColMajor, (CBLAS_TRANSPOSE)transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+
+    template<>
+    void cblas_gemv<double>(rocblas_operation transA, rocblas_int m, rocblas_int n,
+                            double alpha,
+                            double *A, rocblas_int lda,
+                            double *x, rocblas_int incx,
+                            double beta, double *y, rocblas_int incy)
+    {
+        cblas_dgemv(CblasColMajor, (CBLAS_TRANSPOSE)transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+
+    template<>
+    void cblas_gemv<rocblas_float_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n,
+                            rocblas_float_complex alpha,
+                            rocblas_float_complex *A, rocblas_int lda,
+                            rocblas_float_complex *x, rocblas_int incx,
+                            rocblas_float_complex beta, rocblas_float_complex *y, rocblas_int incy)
+    {
+        cblas_cgemv(CblasColMajor, (CBLAS_TRANSPOSE)transA, m, n, &alpha, A, lda, x, incx, &beta, y, incy);
+    }
+
+    template<>
+    void cblas_gemv<rocblas_double_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n,
+                            rocblas_double_complex alpha,
+                            rocblas_double_complex *A, rocblas_int lda,
+                            rocblas_double_complex *x, rocblas_int incx,
+                            rocblas_double_complex beta, rocblas_double_complex *y, rocblas_int incy)
+    {
+        cblas_zgemv(CblasColMajor, (CBLAS_TRANSPOSE)transA, m, n, &alpha, A, lda, x, incx, &beta, y, incy);
+    }
 
     template<>
     void cblas_symv<float>( rocblas_fill uplo, rocblas_int n,

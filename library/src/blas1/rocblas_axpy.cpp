@@ -13,25 +13,38 @@
 
 template<typename T>
 __global__ void
-copy_kernel(hipLaunchParm lp,
+axpy_kernel_host_scalar(hipLaunchParm lp,
     rocblas_int n,
+    const T alpha,
     const T *x, rocblas_int incx,
-    T* y,  rocblas_int incy)
+    T *y,  rocblas_int incy)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
-        y[tid*incy] =  x[tid * incx];
+        y[tid * incy] +=  (alpha) * (x[tid * incx]);
     }
 }
 
+template<typename T>
+__global__ void
+axpy_kernel_device_scalar(hipLaunchParm lp,
+    rocblas_int n,
+    const T *alpha,
+    const T *x, rocblas_int incx,
+    T *y,  rocblas_int incy)
+{
+    int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    //bound
+    if ( tid < n ) {
+        y[tid * incy] +=  (*alpha) * (x[tid * incx]);
+    }
+}
 
 /*! \brief BLAS Level 1 API
 
     \details
-    copy  copies the vector x[i] into the vector y[i], for  i = 1 , … , n
-
-        y := x,
+    axpy   compute y := alpha * x + y
 
     @param[in]
     handle    rocblas_handle.
@@ -39,12 +52,15 @@ copy_kernel(hipLaunchParm lp,
     @param[in]
     n         rocblas_int.
     @param[in]
+    alpha     specifies the scalar alpha.
+    @param[in]
     x         pointer storing vector x on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[out]
     y         pointer storing vector y on the GPU.
-    @param[in]
+    @param[inout]
     incy      rocblas_int
               specifies the increment for the elements of y.
 
@@ -52,16 +68,19 @@ copy_kernel(hipLaunchParm lp,
 
 template<class T>
 rocblas_status
-rocblas_copy_template(rocblas_handle handle,
+rocblas_axpy_template(rocblas_handle handle,
     rocblas_int n,
+    const T *alpha,
     const T *x, rocblas_int incx,
-    T* y,       rocblas_int incy)
+    T *y,  rocblas_int incy)
 {
 
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
     else if ( n < 0 )
         return rocblas_status_invalid_size;
+    else if ( alpha == nullptr )
+        return rocblas_status_invalid_pointer;
     else if ( x == nullptr )
         return rocblas_status_invalid_pointer;
     else if ( incx < 0 )
@@ -72,20 +91,27 @@ rocblas_copy_template(rocblas_handle handle,
         return rocblas_status_invalid_size;
 
     /*
-     * Quick return if possible.
+     * Quick return if possible. Not Argument error
      */
-    if ( n == 0)
+
+    if ( n == 0 )
         return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
 
     dim3 grid( blocks, 1, 1 );
-    dim3 threads( NB_X, 1, 1 );
+    dim3 threads(NB_X, 1, 1);
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy);
+    if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device ){
+        hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_device_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, alpha, x, incx, y, incy);
+    }
+    else{// alpha is on host
+        T scalar = *alpha;
+        hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_host_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, scalar, x, incx, y, incy);
+    }
 
     return rocblas_status_success;
 }
@@ -102,93 +128,101 @@ rocblas_copy_template(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_copy<float>(rocblas_handle handle,
+rocblas_axpy<float>(rocblas_handle handle,
     rocblas_int n,
+    const float *alpha,
     const float *x, rocblas_int incx,
-    float* y,       rocblas_int incy){
+    float *y,  rocblas_int incy){
 
-    return rocblas_copy_template<float>(handle, n, x, incx, y, incy);
+    return rocblas_axpy_template<float>(handle, n, alpha, x, incx, y, incy);
 }
 
 template<>
 rocblas_status
-rocblas_copy<double>(rocblas_handle handle,
+rocblas_axpy<double>(rocblas_handle handle,
     rocblas_int n,
+    const double *alpha,
     const double *x, rocblas_int incx,
-    double* y,       rocblas_int incy){
+    double *y,  rocblas_int incy){
 
-    return rocblas_copy_template<double>(handle, n, x, incx, y, incy);
+    return rocblas_axpy_template<double>(handle, n, alpha, x, incx, y, incy);
 }
 
 template<>
 rocblas_status
-rocblas_copy<rocblas_float_complex>(rocblas_handle handle,
+rocblas_axpy<rocblas_float_complex>(rocblas_handle handle,
     rocblas_int n,
+    const rocblas_float_complex *alpha,
     const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y,       rocblas_int incy){
+    rocblas_float_complex *y,  rocblas_int incy){
 
-    return rocblas_copy_template<rocblas_float_complex>(handle, n, x, incx, y, incy);
+    return rocblas_axpy_template<rocblas_float_complex>(handle, n, alpha, x, incx, y, incy);
 }
 
 template<>
 rocblas_status
-rocblas_copy<rocblas_double_complex>(rocblas_handle handle,
+rocblas_axpy<rocblas_double_complex>(rocblas_handle handle,
     rocblas_int n,
+    const rocblas_double_complex *alpha,
     const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y,       rocblas_int incy){
+    rocblas_double_complex *y,  rocblas_int incy){
 
-    return rocblas_copy_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
+    return rocblas_axpy_template<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
 }
+
+
 /* ============================================================================================ */
 
     /*
      * ===========================================================================
-     *    C wrapper
+     *    C89 wrapper
      * ===========================================================================
      */
 
 
 extern "C"
 rocblas_status
-rocblas_scopy(rocblas_handle handle,
+rocblas_saxpy(rocblas_handle handle,
     rocblas_int n,
+    const float *alpha,
     const float *x, rocblas_int incx,
-    float* y,       rocblas_int incy){
+    float *y,  rocblas_int incy){
 
-    return rocblas_copy<float>(handle, n, x, incx, y, incy);
+    return rocblas_axpy<float>(handle, n, alpha, x, incx, y, incy);
 }
-
 
 extern "C"
 rocblas_status
-rocblas_dcopy(rocblas_handle handle,
+rocblas_daxpy(rocblas_handle handle,
     rocblas_int n,
+    const double *alpha,
     const double *x, rocblas_int incx,
-    double* y,       rocblas_int incy){
+    double *y,  rocblas_int incy){
 
-    return rocblas_copy<double>(handle, n, x, incx, y, incy);
+    return rocblas_axpy<double>(handle, n, alpha, x, incx, y, incy);
 }
 
 extern "C"
 rocblas_status
-rocblas_ccopy(rocblas_handle handle,
+rocblas_caxpy(rocblas_handle handle,
     rocblas_int n,
+    const rocblas_float_complex *alpha,
     const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y,       rocblas_int incy){
+    rocblas_float_complex *y,  rocblas_int incy){
 
-    return rocblas_copy<rocblas_float_complex>(handle, n, x, incx, y, incy);
+    return rocblas_axpy<rocblas_float_complex>(handle, n, alpha, x, incx, y, incy);
 }
 
 extern "C"
 rocblas_status
-rocblas_zcopy(rocblas_handle handle,
+rocblas_zaxpy(rocblas_handle handle,
     rocblas_int n,
+    const rocblas_double_complex *alpha,
     const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y,       rocblas_int incy){
+    rocblas_double_complex *y,  rocblas_int incy){
 
-    return rocblas_copy<rocblas_double_complex>(handle, n, x, incx, y, incy);
+    return rocblas_axpy<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
 }
-
 
 
 /* ============================================================================================ */
