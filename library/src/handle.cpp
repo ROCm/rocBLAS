@@ -4,8 +4,12 @@
 #include "handle.h"
 #include <hip_runtime_api.h>
 
+#if BUILD_WITH_COBALT
+    #include "Cobalt.h"
+#endif
+
 /*******************************************************************************
- * constructor
+ * constructor 
  ******************************************************************************/
 _rocblas_handle::_rocblas_handle() {
 
@@ -13,13 +17,9 @@ _rocblas_handle::_rocblas_handle() {
   THROW_IF_HIP_ERROR( hipGetDevice(&device) );
   THROW_IF_HIP_ERROR( hipGetDeviceProperties(&device_properties, device) );
 
-  // create a default stream for active device
-  // TODO - how do we cast null stream as stream type?
-  hipStream_t stream;
-  THROW_IF_HIP_ERROR( hipStreamCreate(&stream) );
-  streams.push_back(stream);
+  // rocblas by default take the system default stream 0 users cannot create
 
-/*
+#if BUILD_WITH_COBALT
   // cobalt device profile
   cobalt_device_profile = cobaltCreateEmptyDeviceProfile();
   if ( strlen(device_properties.name) > cobalt_device_profile.devices[0].maxNameLength) {
@@ -31,57 +31,41 @@ _rocblas_handle::_rocblas_handle() {
   }
   cobalt_device_profile.numDevices = 1;
 
-
   // cobalt control
   cobalt_control = cobaltCreateEmptyControl();
-  cobalt_control.queues[0] = streams[0];
+  cobalt_control.queues[0] = rocblas_stream;
   cobalt_control.numQueues = 1;
-*/
+
+#endif
+
 }
 
 /*******************************************************************************
  * destructor
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle() {
-  // destroy streams
-  /*
-   * TODO put teardown back in; was having compiler errors
-  while( !streams.empty() ) {
-    hipStream_t stream = static_cast<hipStream_t>( streams.pop_back() );
-    THROW_IF_HIP_ERROR( hipStreamDestroy(stream) );
-  }
-  */
+  //rocblas by default take the system default stream which user cannot destory
 }
 
 /*******************************************************************************
- * add stream
+ * Exactly like CUBLAS, ROCBLAS only uses one stream for one API routine
  ******************************************************************************/
-rocblas_status _rocblas_handle::add_stream( hipStream_t stream ) {
-  streams.push_back(stream);
-  cobalt_control.queues[cobalt_control.numQueues] = stream;
-  cobalt_control.numQueues++;
-  return rocblas_status_success;
-}
 
 
 /*******************************************************************************
- * set stream
+ * set stream: 
+   This API assumes user has already created a valid stream
+   Associate the following rocblas API call with this user provided stream 
  ******************************************************************************/
-rocblas_status _rocblas_handle::set_stream( hipStream_t stream ) {
-  // empty stream list
-  /*
-  // TODO add back in
-  while( !streams.empty() ) {
-    RETURN_IF_HIP_ERROR( hipStreamDestroy( streams.pop_back() ) );
-  }
-  */
-  // add new stream
-  //streams.push_back(stream);
-  default_stream = stream;
-  cobalt_control.queues[0] = stream;
+rocblas_status _rocblas_handle::set_stream( hipStream_t user_stream ) {
+
+  //TODO: check the user_stream valid or not
+  rocblas_stream = user_stream;
+#if BUILD_WITH_COBALT
+  cobalt_control.queues[0] = user_stream;
   cobalt_control.numQueues = 1;
-  // TODO stream may point to new device
-  // need to re-initialize device and cobalt info
+  // It is impossible to switch stream to another device in rocblas without destroying the handle
+#endif
   return rocblas_status_success;
 }
 
@@ -90,6 +74,6 @@ rocblas_status _rocblas_handle::set_stream( hipStream_t stream ) {
  * get stream
  ******************************************************************************/
 rocblas_status _rocblas_handle::get_stream( hipStream_t *stream ) const {
-  *stream = default_stream;
+  *stream = rocblas_stream;
   return rocblas_status_success;
 }
