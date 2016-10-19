@@ -21,7 +21,7 @@ using namespace std;
 /* ============================================================================================ */
 
 template<typename T>
-rocblas_status testing_trsm(Arguments argus)
+rocblas_status testing_trmm(Arguments argus)
 {
 
     rocblas_int M = argus.M;
@@ -53,9 +53,10 @@ rocblas_status testing_trsm(Arguments argus)
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
     vector<T> hB(B_size);
+    vector<T> hC(B_size);
     vector<T> hB_copy(B_size);
 
-    T *dA, *dB;
+    T *dA, *dB, *dC;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -68,6 +69,7 @@ rocblas_status testing_trsm(Arguments argus)
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
     CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, B_size * sizeof(T))); //dB and dC are exact the same size
 
     //Initial Data on CPU
     srand(1);
@@ -87,29 +89,31 @@ rocblas_status testing_trsm(Arguments argus)
     }
 
 /*
-    status = rocblas_trsm<T>(handle,
+    status = rocblas_trmm<T>(handle,
             side, uplo,
             transA, diag,
             M, N,
             &alpha,
             dA,lda,
-            dB,ldb);
+            dB,ldb,
+            dC,ldc);
 */
+
     if (status != rocblas_status_success) {
         CHECK_HIP_ERROR(hipFree(dA));
         CHECK_HIP_ERROR(hipFree(dB));
+        CHECK_HIP_ERROR(hipFree(dC));
         rocblas_destroy_handle(handle);
         return status;
     }
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
+        rocblas_gflops = trmm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
-    CHECK_HIP_ERROR(hipMemcpy(hB.data(), dB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T)*B_size, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -119,7 +123,7 @@ rocblas_status testing_trsm(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-        cblas_trsm<T>(
+        cblas_trmm<T>(
                 side, uplo,
                 transA, diag,
                 M, N, alpha,
@@ -128,19 +132,19 @@ rocblas_status testing_trsm(Arguments argus)
 
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
+            cblas_gflops = trmm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check){
-            unit_check_general<T>(M, N, ldb, hB_copy.data(), hB.data());
+            unit_check_general<T>(M, N, ldb, hB_copy.data(), hC.data());
         }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
+            rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hC.data());
         }
     }
 
@@ -164,6 +168,7 @@ rocblas_status testing_trsm(Arguments argus)
 
     CHECK_HIP_ERROR(hipFree(dA));
     CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dC));
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

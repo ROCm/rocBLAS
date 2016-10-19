@@ -1,13 +1,14 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
-#include "status.h"
+#include <hip_runtime.h>
+
 #include "rocblas.h"
-#include "handle.h"
-#include "hip_runtime.h"
 #include "Cobalt.h"
 #include "gemm.h"
+#include "definitions.h"
+#include "status.h"
+#include "handle.h"
 
 /*******************************************************************************
  * GEMM wrapper around Cobalt
@@ -24,7 +25,7 @@ rocblas_status xgemm_cobalt(
   CobaltDataType     type_c,       void *c,     rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
   rocblas_int batch_count ) {
 
-  // sizes must not be negative 
+  // sizes must not be negative
   if ( m < 0 || n < 0 || k < 0 ) {
     return rocblas_status_invalid_size;
   }

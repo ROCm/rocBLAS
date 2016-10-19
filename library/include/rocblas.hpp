@@ -4,10 +4,12 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _ROCBLAS_TEMPLATE_FUNCTIONS_H_
-#define _ROCBLAS_TEMPLATE_FUNCTIONS_H_
+#ifndef _ROCBLAS_HPP_
+#define _ROCBLAS_HPP_
 
-#include <rocblas_types.h>
+#include "rocblas_types.h"
+#include "rocblas_auxiliary.h"
+#include "rocblas_functions.h"
 
 
 /*!\file
@@ -70,11 +72,36 @@
 
      template<typename T>
      rocblas_status
+     rocblas_amax(rocblas_handle handle,
+         rocblas_int n,
+         const T *x, rocblas_int incx,
+         rocblas_int *result);
+
+     template<typename T>
+     rocblas_status
+     rocblas_amin(rocblas_handle handle,
+         rocblas_int n,
+         const T *x, rocblas_int incx,
+         rocblas_int *result);
+
+     template<typename T>
+     rocblas_status
      rocblas_axpy(rocblas_handle handle,
          rocblas_int n,
          const T *alpha,
          const T *x, rocblas_int incx,
          T *y, rocblas_int incy);
+
+    template<typename T>
+    rocblas_status
+    rocblas_gemv(rocblas_handle handle,
+             rocblas_operation transA,
+             rocblas_int m, rocblas_int n,
+             const T *alpha,
+             const T *A, rocblas_int lda,
+             const T *x, rocblas_int incx,
+             const T *beta,
+             T *y, rocblas_int incy);
 
     template<typename T>
     rocblas_status
@@ -96,6 +123,19 @@
         const T *B, rocblas_int ldb,
         const T *beta,
         T *C, rocblas_int ldc);
+
+    template<typename T>
+    rocblas_status rocblas_gemm_batched(
+        rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n, rocblas_int k,
+        const T *alpha,
+        const T *A, rocblas_int lda, rocblas_int bsa,
+        const T *B, rocblas_int ldb, rocblas_int bsb,
+        const T *beta,
+        T *C, rocblas_int ldc, rocblas_int bsc,
+        rocblas_int batch_count);
+
 
     template<typename T>
     rocblas_status rocblas_trsm(rocblas_handle handle,
@@ -122,4 +162,4 @@
         T *invA, rocblas_int ldinvA, rocblas_int bsinvA,
         rocblas_int batch_count);
 
-#endif  /* _ROCBLAS_TEMPLATE_FUNCTIONS_H_ */
+#endif  // _ROCBLAS_HPP_

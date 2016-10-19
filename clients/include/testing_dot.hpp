@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include <vector>
 
-#include "rocblas.h"
+#include "rocblas.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -75,7 +75,7 @@ rocblas_status testing_dot(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice));
 
     if(argus.timing){
-        printf("dot     N    rocblas    (us)     CPU (us)     error\n");
+        printf("dot: N    rocblas(us)     CPU(us)     error\n");
     }
 
 
@@ -137,7 +137,7 @@ rocblas_status testing_dot(Arguments argus)
 
 
         if(argus.unit_check){
-            unit_check_general<T>(1, 1, incx, &cpu_result, &rocblas_result);
+            unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result);
         }
 
         //if enable norm check, norm check is invasive

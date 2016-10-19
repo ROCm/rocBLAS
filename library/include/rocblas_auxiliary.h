@@ -15,16 +15,16 @@
 
 
 
-    /* ============================================================================================ */
-    /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
-    can not recoginize it is on host or not */
-    rocblas_mem_location rocblas_get_pointer_location(void *ptr);
+/* ============================================================================================ */
+/*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
+can not recoginize it is on host or not */
+ROCBLAS_EXPORT rocblas_mem_location
+rocblas_get_pointer_location(void *ptr);
 
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /********************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -33,35 +33,35 @@ extern "C" {
  * to all subsequent library function calls.
  * It should be destroyed at the end using rocblas_destroy_handle().
  *******************************************************************************/
-rocblas_status
+ROCBLAS_EXPORT rocblas_status
 rocblas_create_handle( rocblas_handle *handle);
 
 
 /********************************************************************************
  * \brief destroy handle
  *******************************************************************************/
-rocblas_status
+ROCBLAS_EXPORT rocblas_status
 rocblas_destroy_handle( rocblas_handle handle);
 
 
 /********************************************************************************
  * \brief add stream to handle
  *******************************************************************************/
-rocblas_status
+ROCBLAS_EXPORT rocblas_status
 rocblas_add_stream( rocblas_handle handle, hipStream_t stream );
 
 
 /********************************************************************************
  * \brief remove any streams from handle, and add one
  *******************************************************************************/
-rocblas_status
+ROCBLAS_EXPORT rocblas_status
 rocblas_set_stream( rocblas_handle handle, hipStream_t stream );
 
 
 /********************************************************************************
  * \brief get stream [0] from handle
  *******************************************************************************/
-rocblas_status
+ROCBLAS_EXPORT rocblas_status
 rocblas_get_stream( rocblas_handle handle, hipStream_t *stream );
 
 #ifdef __cplusplus

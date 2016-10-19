@@ -4,7 +4,9 @@
  * ************************************************************************ */
 
 #include <hip_runtime.h>
+
 #include "rocblas.h"
+#include "rocblas.hpp"
 #include "definitions.h"
 
 #define NB_X 256
@@ -16,7 +18,7 @@ scal_kernel_host_scalar(hipLaunchParm lp,
     const T alpha,
     T *x, rocblas_int incx)
 {
-    int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
         x[tid * incx] =  (alpha) * (x[tid * incx]);
@@ -30,7 +32,7 @@ scal_kernel_device_scalar(hipLaunchParm lp,
     const T *alpha,
     T *x, rocblas_int incx)
 {
-    int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
     if ( tid < n ) {
         x[tid * incx] =  (*alpha) * (x[tid * incx]);
@@ -83,7 +85,7 @@ rocblas_scal_template(rocblas_handle handle,
     if ( n == 0 )
         return rocblas_status_success;
 
-    int blocks = (n-1)/ NB_X + 1;
+    rocblas_int blocks = (n-1)/ NB_X + 1;
 
     dim3 grid( blocks, 1, 1 );
     dim3 threads(NB_X, 1, 1);
