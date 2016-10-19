@@ -88,11 +88,4 @@ rocblas_get_stream(rocblas_handle handle, hipStream_t *stream_id){
 }
 
 
-/*******************************************************************************
- *! \brief  add stream to handle
- ******************************************************************************/
-extern "C"
-rocblas_status
-rocblas_add_stream(rocblas_handle handle, hipStream_t stream_id ){
-  return handle->add_stream( stream_id );
-}
+

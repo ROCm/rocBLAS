@@ -24,6 +24,7 @@ project( rocblas-superbuild NONE )
 # Everything is initially off, so that cache is not initialized until user elects to build
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
+option( BUILD_WITH_COBALT "Building rocBLAS with Cobalt or not" OFF)
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
@@ -82,26 +83,34 @@ if( NOT CMAKE_CONFIGURATION_TYPES )
 	list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
-if( BUILD_LIBRARY )
-  # defines
-  # Cobalt_INCLUDE_DIRS
-  # CobaltLib_LIBRARIES
-  # CobaltLogger_LIBRARIES
 
-  include( cmake/external-Cobalt.cmake )
-  list( APPEND rocblas_dependencies Cobalt )
-  message( STATUS "Cobalt_ROOT=${Cobalt_ROOT}" )
+if( BUILD_LIBRARY )
+  if( BUILD_WITH_COBALT )
+      # defines
+      # Cobalt_INCLUDE_DIRS
+      # CobaltLib_LIBRARIES
+      # CobaltLogger_LIBRARIES
+
+      include( cmake/external-Cobalt.cmake )
+      list( APPEND rocblas_dependencies Cobalt )
+      message( STATUS "Cobalt_ROOT=${Cobalt_ROOT}" )
+
+      set(COBALT_CMAKE_ARGS
+        -DCMAKE_PREFIX_PATH=${Cobalt_ROOT}
+        -DCobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}
+        -DCobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}
+        -DCobaltLogger_LIBRARIES=${CobaltLogger_LIBRARIES}
+        -DCobalt_BACKEND_HIP=1
+        -DBUILD_WITH_COBALT
+      )
+  endif()
 
 	set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
-    -DCMAKE_PREFIX_PATH=${Cobalt_ROOT}
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-    -DCobalt_INCLUDE_DIRS=${Cobalt_INCLUDE_DIRS}
-    -DCobaltLib_LIBRARIES=${CobaltLib_LIBRARIES}
-    -DCobaltLogger_LIBRARIES=${CobaltLogger_LIBRARIES}
-    -DCobalt_BACKEND_HIP=1
+    ${COBALT_CMAKE_ARGS}
   )
 
   # Build the library as an external project
