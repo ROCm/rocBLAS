@@ -13,7 +13,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
-#include <hip_runtime.h>
+#include <hip/hip_runtime.h>
 
 
 // integer type

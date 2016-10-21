@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip_runtime.h>
+#include <hip/hip_runtime.h>
 
 #include "rocblas.h"
 #include "Cobalt.h"
