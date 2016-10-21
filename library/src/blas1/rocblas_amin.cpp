@@ -323,5 +323,3 @@ rocblas_dzamin(rocblas_handle handle,
 
     return rocblas_amin<rocblas_double_complex>(handle, n, x, incx, result);
 }
-
-

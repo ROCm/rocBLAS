@@ -1,6 +1,6 @@
 #ifndef HANDLE_H
 #define HANDLE_H
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include <vector>
 
 #include "rocblas.h"

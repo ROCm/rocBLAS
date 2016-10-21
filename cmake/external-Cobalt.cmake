@@ -10,7 +10,7 @@
 message( STATUS "Configuring Cobalt external dependency" )
 include( ExternalProject )
 
-set( Cobalt_REPO "https://github.com/kknox/Cobalt.git"
+set( Cobalt_REPO "https://github.com/clMathLibraries/Cobalt.git"
     CACHE STRING "URL to download Cobalt from" )
 set( Cobalt_TAG "develop" CACHE STRING "Cobalt branch to download" )
 

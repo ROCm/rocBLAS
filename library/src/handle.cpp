@@ -2,7 +2,7 @@
 #include "definitions.h"
 #include "status.h"
 #include "handle.h"
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 
 #if BUILD_WITH_COBALT
     #include "Cobalt.h"

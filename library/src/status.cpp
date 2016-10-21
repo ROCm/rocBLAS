@@ -1,6 +1,6 @@
 
 
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include "rocblas.h"
 #include "status.h"
 

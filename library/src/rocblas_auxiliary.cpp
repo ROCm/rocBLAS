@@ -4,7 +4,7 @@
  * ************************************************************************ */
 
 #include <stdio.h>
-#include <hip_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include "definitions.h"
 #include "rocblas_types.h"
 #include "handle.h"
