@@ -8,6 +8,7 @@
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "definitions.h"
+#include "status.h"
 #include "trtri_device.h"
 
 
@@ -127,7 +128,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    rocblas_int  blocks =  N / NB; // number of divisible NB*NB blocks, but 2 * blocks of IB*IB blocks
+    rocblas_int  blocks =  n / NB; // number of divisible NB*NB blocks, but 2 * blocks of IB*IB blocks
 
     dim3 grid(blocks * 2, 1, 1);
     dim3 threads(IB, 1, 1 );
@@ -183,7 +184,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     {
         A12_A21_offset = IB*NB; //A12
         invA11_invA22_offset =  NB*IB+IB; //invA22
-        invA21_invA12_offset = IB*NB//invA12
+        invA21_invA12_offset = IB*NB; //invA12
     }
 
     // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
