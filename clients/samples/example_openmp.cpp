@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <vector>
 
-#include "rocblas.h"
+#include "rocblas.hpp"
 #include "utility.h"
 
 using namespace std;

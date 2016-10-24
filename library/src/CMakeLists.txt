@@ -29,13 +29,18 @@ set( rocblas_auxiliary_source
   status.cpp
 )
 
+if( BUILD_WITH_COBALT )
+    set(Cobalt_SRC blas3/Cobalt/gemm.cpp) 
+endif()
+
 set( rocblas_blas3_source
-  blas3/gemm.cpp
 #  blas3/rocblas_gemm.cpp
 #  blas3/rocblas_trmm.cpp
 #  blas3/rocblas_trsm.cpp
-  blas3/rocblas_trtri_batched.cpp
+#  blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
+  blas3/rocblas_trtri_trsm.cpp
+  ${Cobalt_SRC}
 )
 
 set( rocblas_blas2_source
@@ -62,7 +67,9 @@ else( )
   message( STATUS "Library Type: STATIC" )
 endif( )
 
-find_package( cobalt REQUIRED CONFIG )
+if( BUILD_WITH_COBALT )
+  find_package( cobalt REQUIRED CONFIG )
+endif()
 
 add_library( rocblas
   ${rocblas_blas3_source}
@@ -91,7 +98,9 @@ target_include_directories( rocblas
           $<INSTALL_INTERFACE:include>
 )
 
-target_link_libraries( rocblas PRIVATE Cobalt-hcc )
+if( BUILD_WITH_COBALT )
+    target_link_libraries( rocblas PRIVATE Cobalt-hcc )
+endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

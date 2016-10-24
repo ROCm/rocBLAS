@@ -203,38 +203,43 @@ rocblas_status xgemm_cobalt(
 
 
 /*******************************************************************************
- * API Functions
+ * API Functions :
  ******************************************************************************/
-rocblas_status rocblas_hgemm(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int ld_a,
-    const rocblas_half *B, rocblas_int ld_b,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ld_c) {
-
-  CobaltDataType type_c     = cobaltDataTypeHalf;
-  CobaltDataType type_a     = cobaltDataTypeHalf;
-  CobaltDataType type_b     = cobaltDataTypeHalf;
-  CobaltDataType type_alpha = cobaltDataTypeHalf;
-  CobaltDataType type_beta  = cobaltDataTypeHalf;
-
-  rocblas_int ls_c = 1;
-  rocblas_int ls_a = 1;
-  rocblas_int ls_b = 1;
-
-  infer_batch_strides( order, transa, transb, m, n, k,
-    ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
-  rocblas_int batch_count = 1;
-
-  return xgemm_cobalt( handle, order, transa, transb,
-      m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-      type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-      type_c, C, ls_c, ld_c, bs_c, batch_count );
-}
+// fp16 (hgemm) is available
+// rocblas_status rocblas_hgemm(
+//     rocblas_handle handle,
+//     rocblas_order order,
+//     rocblas_operation transa, rocblas_operation transb,
+//     rocblas_int m, rocblas_int n, rocblas_int k,
+//     const rocblas_half *alpha,
+//     const rocblas_half *A, rocblas_int ld_a,
+//     const rocblas_half *B, rocblas_int ld_b,
+//     const rocblas_half *beta,
+//           rocblas_half *C, rocblas_int ld_c) {
+//
+//   CobaltDataType type_c     = cobaltDataTypeHalf;
+//   CobaltDataType type_a     = cobaltDataTypeHalf;
+//   CobaltDataType type_b     = cobaltDataTypeHalf;
+//   CobaltDataType type_alpha = cobaltDataTypeHalf;
+//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//
+//   rocblas_int ls_c = 1;
+//   rocblas_int ls_a = 1;
+//   rocblas_int ls_b = 1;
+//
+//   rocblas_int bs_c;
+//   rocblas_int bs_a;
+//   rocblas_int bs_b;
+//
+//   infer_batch_strides( order, transa, transb, m, n, k,
+//     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
+//   rocblas_int batch_count = 1;
+//
+//   return xgemm_cobalt( handle, order, transa, transb,
+//       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
+//       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
+//       type_c, C, ls_c, ld_c, bs_c, batch_count );
+// }
 
 rocblas_status rocblas_sgemm(
     rocblas_handle handle,
@@ -256,6 +261,10 @@ rocblas_status rocblas_sgemm(
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
+
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
 
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
@@ -288,6 +297,10 @@ rocblas_status rocblas_dgemm(
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -318,6 +331,10 @@ rocblas_status rocblas_qgemm(
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
+
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
 
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
@@ -350,6 +367,10 @@ rocblas_status rocblas_cgemm(
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -381,6 +402,10 @@ rocblas_status rocblas_zgemm(
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -398,32 +423,36 @@ rocblas_status rocblas_zgemm(
      * ls_b - non-1 leading stride of b
      * ls_c - non-1 leading stride of c
      **************************************************************************/
-rocblas_status rocblas_hgemm_strided(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int ls_a, rocblas_int ld_a,
-    const rocblas_half *B, rocblas_int ls_b, rocblas_int ld_b,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c) {
-
-  CobaltDataType type_c     = cobaltDataTypeHalf;
-  CobaltDataType type_a     = cobaltDataTypeHalf;
-  CobaltDataType type_b     = cobaltDataTypeHalf;
-  CobaltDataType type_alpha = cobaltDataTypeHalf;
-  CobaltDataType type_beta  = cobaltDataTypeHalf;
-
-  infer_batch_strides( order, transa, transb, m, n, k,
-    ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
-  rocblas_int batch_count = 1;
-
-  return xgemm_cobalt( handle, order, transa, transb,
-      m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-      type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-      type_c, C, ls_c, ld_c, bs_c, batch_count );
-}
+// rocblas_status rocblas_hgemm_strided(
+//     rocblas_handle handle,
+//     rocblas_order order,
+//     rocblas_operation transa, rocblas_operation transb,
+//     rocblas_int m, rocblas_int n, rocblas_int k,
+//     const rocblas_half *alpha,
+//     const rocblas_half *A, rocblas_int ls_a, rocblas_int ld_a,
+//     const rocblas_half *B, rocblas_int ls_b, rocblas_int ld_b,
+//     const rocblas_half *beta,
+//           rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c) {
+//
+//   CobaltDataType type_c     = cobaltDataTypeHalf;
+//   CobaltDataType type_a     = cobaltDataTypeHalf;
+//   CobaltDataType type_b     = cobaltDataTypeHalf;
+//   CobaltDataType type_alpha = cobaltDataTypeHalf;
+//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//
+//   rocblas_int bs_c;
+//   rocblas_int bs_a;
+//   rocblas_int bs_b;
+//
+//   infer_batch_strides( order, transa, transb, m, n, k,
+//     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
+//   rocblas_int batch_count = 1;
+//
+//   return xgemm_cobalt( handle, order, transa, transb,
+//       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
+//       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
+//       type_c, C, ls_c, ld_c, bs_c, batch_count );
+// }
 
 rocblas_status rocblas_sgemm_strided(
     rocblas_handle handle,
@@ -441,6 +470,10 @@ rocblas_status rocblas_sgemm_strided(
   CobaltDataType type_b     = cobaltDataTypeSingle;
   CobaltDataType type_alpha = cobaltDataTypeSingle;
   CobaltDataType type_beta  = cobaltDataTypeSingle;
+
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
 
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
@@ -469,6 +502,10 @@ rocblas_status rocblas_dgemm_strided(
   CobaltDataType type_alpha = cobaltDataTypeDouble;
   CobaltDataType type_beta  = cobaltDataTypeDouble;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -495,6 +532,10 @@ rocblas_status rocblas_qgemm_strided(
   CobaltDataType type_b     = cobaltDataTypeComplexHalf;
   CobaltDataType type_alpha = cobaltDataTypeComplexHalf;
   CobaltDataType type_beta  = cobaltDataTypeComplexHalf;
+
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
 
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
@@ -523,6 +564,10 @@ rocblas_status rocblas_cgemm_strided(
   CobaltDataType type_alpha = cobaltDataTypeComplexSingle;
   CobaltDataType type_beta  = cobaltDataTypeComplexSingle;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -550,6 +595,10 @@ rocblas_status rocblas_zgemm_strided(
   CobaltDataType type_alpha = cobaltDataTypeComplexDouble;
   CobaltDataType type_beta  = cobaltDataTypeComplexDouble;
 
+  rocblas_int bs_c;
+  rocblas_int bs_a;
+  rocblas_int bs_b;
+
   infer_batch_strides( order, transa, transb, m, n, k,
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
@@ -567,33 +616,33 @@ rocblas_status rocblas_zgemm_strided(
      * bs_c
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-rocblas_status rocblas_hgemm_batched(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int ld_a, rocblas_int bs_a,
-    const rocblas_half *B, rocblas_int ld_b, rocblas_int bs_b,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ld_c, rocblas_int bs_c,
-    rocblas_int batch_count ) {
-
-  CobaltDataType type_c     = cobaltDataTypeHalf;
-  CobaltDataType type_a     = cobaltDataTypeHalf;
-  CobaltDataType type_b     = cobaltDataTypeHalf;
-  CobaltDataType type_alpha = cobaltDataTypeHalf;
-  CobaltDataType type_beta  = cobaltDataTypeHalf;
-
-  rocblas_int ls_c = 1;
-  rocblas_int ls_a = 1;
-  rocblas_int ls_b = 1;
-
-  return xgemm_cobalt( handle, order, transa, transb,
-      m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-      type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-      type_c, C, ls_c, ld_c, bs_c, batch_count );
-}
+// rocblas_status rocblas_hgemm_batched(
+//     rocblas_handle handle,
+//     rocblas_order order,
+//     rocblas_operation transa, rocblas_operation transb,
+//     rocblas_int m, rocblas_int n, rocblas_int k,
+//     const rocblas_half *alpha,
+//     const rocblas_half *A, rocblas_int ld_a, rocblas_int bs_a,
+//     const rocblas_half *B, rocblas_int ld_b, rocblas_int bs_b,
+//     const rocblas_half *beta,
+//           rocblas_half *C, rocblas_int ld_c, rocblas_int bs_c,
+//     rocblas_int batch_count ) {
+//
+//   CobaltDataType type_c     = cobaltDataTypeHalf;
+//   CobaltDataType type_a     = cobaltDataTypeHalf;
+//   CobaltDataType type_b     = cobaltDataTypeHalf;
+//   CobaltDataType type_alpha = cobaltDataTypeHalf;
+//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//
+//   rocblas_int ls_c = 1;
+//   rocblas_int ls_a = 1;
+//   rocblas_int ls_b = 1;
+//
+//   return xgemm_cobalt( handle, order, transa, transb,
+//       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
+//       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
+//       type_c, C, ls_c, ld_c, bs_c, batch_count );
+// }
 
 rocblas_status rocblas_sgemm_batched(
     rocblas_handle handle,
@@ -756,29 +805,29 @@ rocblas_status rocblas_zgemm_batched(
      * bs_c
      * batch_count - numbers of gemm's in the batch
      **************************************************************************/
-rocblas_status rocblas_hgemm_strided_batched(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int ls_a, rocblas_int ld_a, rocblas_int bs_a,
-    const rocblas_half *B, rocblas_int ls_b, rocblas_int ld_b, rocblas_int bs_b,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
-    rocblas_int batch_count ) {
-
-  CobaltDataType type_c     = cobaltDataTypeHalf;
-  CobaltDataType type_a     = cobaltDataTypeHalf;
-  CobaltDataType type_b     = cobaltDataTypeHalf;
-  CobaltDataType type_alpha = cobaltDataTypeHalf;
-  CobaltDataType type_beta  = cobaltDataTypeHalf;
-
-  return xgemm_cobalt( handle, order, transa, transb,
-      m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-      type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-      type_c, C, ls_c, ld_c, bs_c, batch_count );
-}
+// rocblas_status rocblas_hgemm_strided_batched(
+//     rocblas_handle handle,
+//     rocblas_order order,
+//     rocblas_operation transa, rocblas_operation transb,
+//     rocblas_int m, rocblas_int n, rocblas_int k,
+//     const rocblas_half *alpha,
+//     const rocblas_half *A, rocblas_int ls_a, rocblas_int ld_a, rocblas_int bs_a,
+//     const rocblas_half *B, rocblas_int ls_b, rocblas_int ld_b, rocblas_int bs_b,
+//     const rocblas_half *beta,
+//           rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
+//     rocblas_int batch_count ) {
+//
+//   CobaltDataType type_c     = cobaltDataTypeHalf;
+//   CobaltDataType type_a     = cobaltDataTypeHalf;
+//   CobaltDataType type_b     = cobaltDataTypeHalf;
+//   CobaltDataType type_alpha = cobaltDataTypeHalf;
+//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//
+//   return xgemm_cobalt( handle, order, transa, transb,
+//       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
+//       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
+//       type_c, C, ls_c, ld_c, bs_c, batch_count );
+// }
 
 rocblas_status rocblas_sgemm_strided_batched(
     rocblas_handle handle,
