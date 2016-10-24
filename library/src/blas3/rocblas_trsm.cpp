@@ -11,81 +11,7 @@
 #include "definitions.h"
 
 
-/*! \brief BLAS Level 3 API
 
-    \details
-
-    trsm solves
-
-        op(A)*X = alpha*B or  X*op(A) = alpha*B,
-
-    where alpha is a scalar, X and B are m by n matrices,
-    A is triangular matrix and op(A) is one of
-
-        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
-
-    The matrix X is overwritten on B.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-
-    @param[in]
-    side    rocblas_side.
-            rocblas_side_left:       op(A)*X = alpha*B.
-            rocblas_side_right:      X*op(A) = alpha*B.
-
-    @param[in]
-    uplo    rocblas_fill.
-            rocblas_fill_upper:  A is an upper triangular matrix.
-            rocblas_fill_lower:  A is a  lower triangular matrix.
-
-    @param[in]
-    transA  rocblas_operation.
-            transB:    op(A) = A.
-            rocblas_operation_transpose:      op(A) = A^T.
-            rocblas_operation_conjugate_transpose:  op(A) = A^H.
-
-    @param[in]
-    diag    rocblas_diagonal.
-            rocblas_diagonal_unit:     A is assumed to be unit triangular.
-            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
-
-    @param[in]
-    m       rocblas_int.
-            m specifies the number of rows of B. m >= 0.
-
-    @param[in]
-    n       rocblas_int.
-            n specifies the number of columns of B. n >= 0.
-
-    @param[in]
-    alpha
-            alpha specifies the scalar alpha. When alpha is
-            zero then A is not referenced and B need not be set before
-            entry.
-
-    @param[in]
-    A       pointer storing matrix A on the GPU.
-            of dimension ( lda, k ), where k is m
-            when  rocblas_side_left  and
-            is  n  when  rocblas_side_right
-            only the upper/lower triangular part is accessed.
-
-    @param[in]
-    lda     rocblas_int.
-            lda specifies the first dimension of A.
-            if side = rocblas_side_left,  lda >= max( 1, m ),
-            if side = rocblas_side_right, lda >= max( 1, n ).
-
-    @param[in,output]
-    B       pointer storing matrix B on the GPU.
-
-    @param[in]
-    ldb    rocblas_int.
-           ldb specifies the first dimension of B. ldb >= max( 1, m ).
-
-    ********************************************************************/
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
@@ -304,8 +230,86 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
 
 }
 
-template<typename T>
-rocblas_status rocblas_trsm(rocblas_handle handle,
+/* ============================================================================================ */
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    trsm solves
+
+        op(A)*X = alpha*B or  X*op(A) = alpha*B,
+
+    where alpha is a scalar, X and B are m by n matrices,
+    A is triangular matrix and op(A) is one of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    The matrix X is overwritten on B.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side.
+            rocblas_side_left:       op(A)*X = alpha*B.
+            rocblas_side_right:      X*op(A) = alpha*B.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation.
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int.
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int.
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and B need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when  rocblas_side_left  and
+            is  n  when  rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int.
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in,output]
+    B       pointer storing matrix B on the GPU.
+
+    @param[in]
+    ldb    rocblas_int.
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    ********************************************************************/
+
+template<typename T, rocblas_int BLOCK>
+rocblas_status rocblas_trsm_template(rocblas_handle handle,
     rocblas_side side, rocblas_fill uplo,
     rocblas_operation transA, rocblas_diagonal diag,
     rocblas_int m, rocblas_int n,
@@ -339,8 +343,6 @@ rocblas_status rocblas_trsm(rocblas_handle handle,
     if (m == 0 || n == 0)
         return rocblas_status_success;
 
-#define BLOCK 256 //Tunable
-
     T* invA, X;
     //invA is of size BLOCK*k, BLOCK is the blocking size
     RETURN_IF_HIP_ERROR(hipMalloc( &invA, BLOCK*k ));
@@ -352,17 +354,10 @@ rocblas_status rocblas_trsm(rocblas_handle handle,
     //potential bug, may use hipMemcpy B to X
     RETURN_IF_HIP_ERROR(hipMemset(X, 0, ldb*n*sizeof(T)));
 
-    //only implement divisible case
-    if( k % BLOCK != 0 ){
-        return rocblas_status_not_implemented;
-    }
-
-    rocblas_int batch_count = k / BLOCK;
-
     //batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-    rocblas_status status = rocblas_trtri_batched_workspace(handle, uplo, diag, BLOCK,
-                                    A, lda, lda*BLOCK, //BLOCK*lda is the stride between the matrices in A
-                                    invA, BLOCK, BLOCK*BLOCK, batchCount);
+    rocblas_status status = rocblas_trtri_trsm<T>(handle, uplo, diag,
+                                    k, A, lda,
+                                    invA, BLOCK);
 
     if(status != rocblas_status_success) return status;
 
@@ -378,6 +373,75 @@ rocblas_status rocblas_trsm(rocblas_handle handle,
     RETURN_IF_HIP_ERROR(hipFree(X));
 
     return status;
+}
 
-#undef BLOCK
+/* ============================================================================================ */
+
+    /*
+     * ===========================================================================
+     *    template interface
+     *    template specialization
+     * ===========================================================================
+     */
+
+template<>
+rocblas_status
+rocblas_trsm<float>(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const float* alpha,
+    const float* A, rocblas_int lda,
+    float*       B, rocblas_int ldb){
+
+    //shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
+    return rocblas_trsm_template<float, 192>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+
+template<>
+rocblas_status
+rocblas_trsm<double>(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const double* alpha,
+    const double* A, rocblas_int lda,
+    double*       B, rocblas_int ldb){
+    //shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
+    return rocblas_trsm_template<double, 128>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+
+/* ============================================================================================ */
+
+    /*
+     * ===========================================================================
+     *    C wrapper
+     * ===========================================================================
+     */
+
+
+extern "C"
+rocblas_status
+rocblas_strsm(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const float* alpha,
+    const float* A, rocblas_int lda,
+    float*       B, rocblas_int ldb){
+
+    return rocblas_trsm<float>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+
+extern "C"
+rocblas_status
+rocblas_dtrsm(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const double* alpha,
+    const double* A, rocblas_int lda,
+    double*       B, rocblas_int ldb){
+
+    return rocblas_trsm<double>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
