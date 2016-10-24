@@ -33,7 +33,7 @@ rocblas_status
 rocblas_trtri_small(rocblas_handle handle,
     rocblas_fill uplo, rocblas_diagonal diag,
     rocblas_int n,
-    T *A, rocblas_int lda
+    T *A, rocblas_int lda,
     T *invA, rocblas_int ldinvA)
 {
 
@@ -119,11 +119,11 @@ gemm_trsm_kernel(hipLaunchParm lp,
     T *D, rocblas_int ldd)
 {
 
-    __shared__ shared_tep[IB*IB];
-    __shared__ vec[IB];
+    __shared__ T shared_tep[IB*IB];
+    __shared__ T vec[IB];
     T reg[IB];
 
-    rocblas_int tx = threadIdx_x;
+    rocblas_int tx = hipThreadIdx_x;
 
     //read B into registers, B is of m * n
     if(tx < m){
@@ -135,7 +135,7 @@ gemm_trsm_kernel(hipLaunchParm lp,
     //shared_tep = B * C; shared_tep is of m * n, C is of n * n
     for(int col=0;col<n;col++){
         //load C's column in vec
-        vec[tx] = C[col * ldc + tx]
+        vec[tx] = C[col * ldc + tx];
         __syncthreads();
 
         T reg_tep = 0;
@@ -206,7 +206,8 @@ rocblas_status
 rocblas_trtri_large(rocblas_handle handle,
     rocblas_fill uplo, rocblas_diagonal diag,
     rocblas_int n,
-    T *A, rocblas_int lda)
+    T *A, rocblas_int lda,
+    T *invA, rocblas_int ldinvA)
 {
 
     if(n > 2 * IB ){
@@ -222,7 +223,8 @@ rocblas_trtri_large(rocblas_handle handle,
 
     //first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
     hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
-                                        uplo, diag, n, A, lda, invA);
+                                        uplo, diag, n, A, lda, invA, ldinvA);
+
 
     if( n <= IB ){
         //if n is too small, no invA21 or invA12 exist, gemm is not required
@@ -239,7 +241,7 @@ rocblas_trtri_large(rocblas_handle handle,
     T *C_gemm;
     T *D_gemm;
 
-    if(uplop == rocblas_fill_lower){
+    if(uplo == rocblas_fill_lower){
         // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
         m_gemm =  (n-IB);
         n_gemm =  IB;
@@ -259,7 +261,7 @@ rocblas_trtri_large(rocblas_handle handle,
     }
 
     hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
-                                        m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D, ldinvA);
+                                        m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
 
     return rocblas_status_success;
 
@@ -327,14 +329,13 @@ rocblas_trtri_template(rocblas_handle handle,
     else if ( ldinvA < n )
         return rocblas_status_invalid_size;
 
-    //because of shared memory size, the IB must be <= 64, typically 64 for s, d, c, but 32 for z
-    //typically, only a small matrix A is inverted by trtri, so if n is too big, trtri is not implemented
-    //trtri is usually called by trsm
+
     if (n <= IB){
         return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
     }
     else if( n <= 2 * IB){
         return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    }
     else{
         printf("n is %d, n must be less than %d, will return\n", n, 2*IB);
         return rocblas_status_not_implemented;
@@ -353,6 +354,11 @@ rocblas_trtri_template(rocblas_handle handle,
 
 
 
+
+//because of shared memory size, the IB must be <= 64, typically 64 for s, d, c, but 32 for z
+//typically, only a small matrix A is inverted by trtri, so if n is too big, trtri is not implemented
+//trtri is usually called by trsm
+
 template<>
 rocblas_status
 rocblas_trtri<float>(rocblas_handle handle,
@@ -361,7 +367,7 @@ rocblas_trtri<float>(rocblas_handle handle,
     float *A, rocblas_int lda,
     float *invA, rocblas_int ldinvA){
 
-    return rocblas_trtri_template<float, NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_template<float, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 
 template<>
@@ -372,5 +378,5 @@ rocblas_trtri<double>(rocblas_handle handle,
     double *A, rocblas_int lda,
     double *invA, rocblas_int ldinvA){
 
-    return rocblas_trtri_template<double, NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }

@@ -7,6 +7,9 @@
 #ifndef _ROCBLAS_HPP_
 #define _ROCBLAS_HPP_
 
+/* library headers */
+#include "rocblas-export.h"
+#include "rocblas-version.h"
 #include "rocblas_types.h"
 #include "rocblas_auxiliary.h"
 #include "rocblas_functions.h"
