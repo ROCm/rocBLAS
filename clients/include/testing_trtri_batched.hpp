@@ -95,7 +95,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
 
-    status = rocblas_trtri_batched_workspace<T>(handle,
+    status = rocblas_trtri_batched<T>(handle,
             uplo, diag,
             N,
             dA, lda, bsa,

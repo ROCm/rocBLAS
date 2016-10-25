@@ -9,6 +9,7 @@
 #include "rocblas.hpp"
 #include "status.h"
 #include "definitions.h"
+#include "trtri_device.h"
 
 
 
@@ -355,9 +356,9 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     RETURN_IF_HIP_ERROR(hipMemset(X, 0, ldb*n*sizeof(T)));
 
     //batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-    rocblas_status status = rocblas_trtri_trsm<T>(handle, uplo, diag,
+    rocblas_status status = rocblas_trtri_trsm<T, BLOCK>(handle, uplo, diag,
                                     k, A, lda,
-                                    invA, BLOCK);
+                                    invA);
 
     if(status != rocblas_status_success) return status;
 
@@ -395,7 +396,7 @@ rocblas_trsm<float>(rocblas_handle handle,
     float*       B, rocblas_int ldb){
 
     //shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
-    return rocblas_trsm_template<float, 192>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    return rocblas_trsm_template<float, STRSM_BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
 template<>
@@ -408,7 +409,7 @@ rocblas_trsm<double>(rocblas_handle handle,
     const double* A, rocblas_int lda,
     double*       B, rocblas_int ldb){
     //shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
-    return rocblas_trsm_template<double, 128>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    return rocblas_trsm_template<double, DTRSM_BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
 /* ============================================================================================ */
