@@ -165,7 +165,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
     T one = 1;  T zero = 0; T negative_one = -1;
     T* C;
-    RETURN_IF_HIP_ERROR(hipMalloc(C, sizeof(T) * IB * IB * blocks));
+    RETURN_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
 
     rocblas_status status;
 
@@ -237,25 +237,12 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_trtri_trsm<float>(rocblas_handle handle,
+rocblas_trtri_trsm<float, STRSM_BLOCK>(rocblas_handle handle,
     rocblas_fill uplo,
     rocblas_diagonal diag,
     rocblas_int n,
     float *A, rocblas_int lda,
-    float *invA, rocblas_int NB){
+    float *invA){
 
-    return rocblas_trtri_trsm_template<float, NB, NB/2>(handle, uplo, diag, n, A, lda, invA);
-}
-
-
-template<>
-rocblas_status
-rocblas_trtri_trsm<double>(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    double *A, rocblas_int lda,
-    double *invA, rocblas_int NB){
-
-    return rocblas_trtri_trsm_template<double, NB, NB/2>(handle, uplo, diag, n, A, lda, invA);
+    return rocblas_trtri_trsm_template<float, STRSM_BLOCK, STRSM_BLOCK/2>(handle, uplo, diag, n, A, lda, invA);
 }

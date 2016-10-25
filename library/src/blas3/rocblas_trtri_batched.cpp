@@ -80,7 +80,7 @@ trtri_kernel_batched(hipLaunchParm lp,
 //assume invA has already been allocated, recommened for repeated calling of trtri product routine
 template<typename T>
 rocblas_status
-rocblas_trtri_batched_template_workspace(rocblas_handle handle,
+rocblas_trtri_batched_template(rocblas_handle handle,
     rocblas_fill uplo,
     rocblas_diagonal diag,
     rocblas_int n,
@@ -149,7 +149,7 @@ rocblas_trtri_batched_template_workspace(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_trtri_batched_workspace<float>(rocblas_handle handle,
+rocblas_trtri_batched<float>(rocblas_handle handle,
     rocblas_fill uplo,
     rocblas_diagonal diag,
     rocblas_int n,
@@ -157,13 +157,13 @@ rocblas_trtri_batched_workspace<float>(rocblas_handle handle,
     float *invA, rocblas_int ldinvA, rocblas_int bsinvA,
     rocblas_int batch_count)
 {
-    return rocblas_trtri_batched_template_workspace<float>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+    return rocblas_trtri_batched_template<float>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
 
 template<>
 rocblas_status
-rocblas_trtri_batched_workspace<double>(rocblas_handle handle,
+rocblas_trtri_batched<double>(rocblas_handle handle,
     rocblas_fill uplo,
     rocblas_diagonal diag,
     rocblas_int n,
@@ -171,7 +171,7 @@ rocblas_trtri_batched_workspace<double>(rocblas_handle handle,
     double *invA, rocblas_int ldinvA, rocblas_int bsinvA,
     rocblas_int batch_count)
 {
-    return rocblas_trtri_batched_template_workspace<double>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+    return rocblas_trtri_batched_template<double>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
 /* ============================================================================================ */
