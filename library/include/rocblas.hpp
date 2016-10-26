@@ -159,11 +159,21 @@
 
     template<typename T>
     rocblas_status
+    rocblas_trtri_batched(rocblas_handle handle,
+    rocblas_fill uplo,
+    rocblas_diagonal diag,
+    rocblas_int n,
+    T *A, rocblas_int lda, rocblas_int bsa,
+    T *invA, rocblas_int ldinvA, rocblas_int bsinvA,
+    rocblas_int batch_count);
+
+    template<typename T, rocblas_int NB>
+    rocblas_status
     rocblas_trtri_trsm(rocblas_handle handle,
         rocblas_fill uplo, rocblas_diagonal diag,
         rocblas_int n,
         T *A, rocblas_int lda,
-        T *invA, rocblas_int NB);
+        T *invA);
 
 
 

@@ -37,9 +37,9 @@ set( rocblas_blas3_source
 #  blas3/rocblas_gemm.cpp
 #  blas3/rocblas_trmm.cpp
 #  blas3/rocblas_trsm.cpp
-#  blas3/rocblas_trtri_batched.cpp
+  blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
-  blas3/rocblas_trtri_trsm.cpp
+  #  blas3/rocblas_trtri_trsm.cpp
   ${Cobalt_SRC}
 )
 

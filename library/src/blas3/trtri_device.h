@@ -47,7 +47,7 @@ trtri_device(rocblas_fill uplo,
     T *invA, rocblas_int ldinvA)
 {
 
-    //quick return 
+    //quick return
     if (n <=0 ) return ;
 
     int tx  = hipThreadIdx_x;
@@ -143,3 +143,6 @@ trtri_device(rocblas_fill uplo,
         }
     }
 }
+
+#define STRSM_BLOCK 192
+#define DTRSM_BLOCK 128
