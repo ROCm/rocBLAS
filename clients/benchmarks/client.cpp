@@ -3,13 +3,13 @@
  *
  * ************************************************************************ */
 
-
+#include <iostream>
 #include <stdio.h>
 #include <boost/program_options.hpp>
 #include "rocblas.h"
 #include "testing_scal.hpp"
 #include "testing_dot.hpp"
-#include "testing_gemm.hpp"
+#include "testing_gemv.hpp"
 #include "utility.h"
 
 namespace po = boost::program_options;
@@ -37,7 +37,7 @@ int main(int argc, char *argv[])
         ( "alpha",   po::value<double>( &argus.alpha)->default_value(1.0), "specifies the scalar alpha" )
         ( "beta",    po::value<double>( &argus.beta )->default_value(0.0), "specifies the scalar beta" )
         ( "order,o", po::value<rocblas_int>(&argus.order_option )->default_value(1), "0 = row major, 1 = column major. Right now, only column major is supported" )
-        ( "function,f", po::value<std::string>( &function )->default_value("gemm"), "BLAS function to test. Options: gemm, trsm, trmm, gemv, symv, syrk, syr2k" )
+        ( "function,f", po::value<std::string>( &function )->default_value("gemv"), "BLAS function to test. Options: gemv, trsm, trmm, gemv, symv, syrk, syr2k" )
         ( "precision,r", po::value<char>( &precision )->default_value('s'), "Options: s,d,c,z" )
         ( "transposeA", po::value<char>( &argus.transA_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
         ( "transposeB", po::value<char>( &argus.transB_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
 
     //find the max dimension
     if( function != "scal"
-        && function != "gemm"
+        && function != "gemv"
     ){
         printf("Invalid value for --function \n");
         return -1;
@@ -105,15 +105,11 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_dot<double>( argus );
     }
-    else if (function == "gemm"){
+    else if (function == "gemv"){
         if (precision == 's')
-            benchmark_gemm<float>( argus );
+            testing_gemv<float>( argus );
         else if (precision == 'd')
-            benchmark_gemm<double>( argus );
-        else if (precision == 'c')
-            benchmark_gemm<rocblas_float_complex>( argus );
-        else if (precision == 'z')
-            benchmark_gemm<rocblas_double_complex>( argus );
+            testing_gemv<double>( argus );
     }
 
 
