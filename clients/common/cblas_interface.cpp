@@ -37,7 +37,6 @@ extern "C" {
                             const float alpha,
                             float *x, rocblas_int incx)
     {
-        printf(" I am in cblas_scal\n");
         cblas_sscal(n, alpha, x, incx);
     }
 
