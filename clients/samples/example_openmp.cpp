@@ -67,7 +67,7 @@ int main()
     srand(1);
     rocblas_init<float>(hx, 1, N * NUM_THREADS, 1);
 
-    //copy vector is easy in SfloatL; hz = hx: save a copy in hz which will be output of CPU BLAS
+    //copy vector is easy in STL; hz = hx: save a copy in hz which will be output of CPU BLAS
     hz = hx;
 
     hipMemcpy(dx, hx.data(), sizeof(float)*N * NUM_THREADS, hipMemcpyHostToDevice);
