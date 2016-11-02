@@ -167,9 +167,6 @@ rocblas_status testing_gemv(Arguments argus)
             unit_check_general<T>(1, Y_size, incy, hz.data(), hy.data());
         }
 
-    for(int i=0; i<M; i++){
-        printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hz[i], i, hy[i]);
-    }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
