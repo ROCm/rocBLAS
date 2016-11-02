@@ -74,10 +74,6 @@ rocblas_status testing_dot(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice));
 
-    if(argus.timing){
-        printf("dot: N    rocblas(us)     CPU(us)     error\n");
-    }
-
 
     /* =====================================================================
          ROCBLAS
@@ -149,16 +145,8 @@ rocblas_status testing_dot(Arguments argus)
 
     }// end of if unit/norm check
 
+    BLAS_1_RESULT_PRINT
 
-    if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
-        if(argus.norm_check){
-            printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);
-        }
-        else{
-            printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
-        }
-    }
 
     CHECK_HIP_ERROR(hipFree(dx));
     CHECK_HIP_ERROR(hipFree(dy));
