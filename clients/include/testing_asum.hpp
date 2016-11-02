@@ -61,10 +61,6 @@ rocblas_status testing_asum(Arguments argus)
     //copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T1)*N*incx, hipMemcpyHostToDevice));
 
-    if(argus.timing){
-        printf("asum: N    rocblas(us)     CPU(us)     error\n");
-    }
-
 
     /* =====================================================================
          ROCBLAS
@@ -136,15 +132,8 @@ rocblas_status testing_asum(Arguments argus)
     }// end of if unit/norm check
 
 
-    if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
-        if(argus.norm_check){
-            printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);
-        }
-        else{
-            printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
-        }
-    }
+    BLAS_1_RESULT_PRINT
+
 
     CHECK_HIP_ERROR(hipFree(dx));
     CHECK_HIP_ERROR(hipFree(d_rocblas_result));

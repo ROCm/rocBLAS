@@ -130,22 +130,7 @@ rocblas_status testing_scal(Arguments argus)
     }// end of if unit/norm check
 
 
-    if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything
-        cout << "N, rocblas (us) ";
-        if(argus.norm_check){
-            cout << "CPU (us), error" ;
-        }
-        cout << endl;
-
-        cout << N <<',' << gpu_time_used ;
-
-        if(argus.norm_check){
-            cout << cpu_time_used << ',';
-            cout << rocblas_error;
-        }
-        cout << endl;
-    }
+    BLAS_1_RESULT_PRINT
 
     CHECK_HIP_ERROR(hipFree(dx));
     rocblas_destroy_handle(handle);
