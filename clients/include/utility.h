@@ -23,6 +23,21 @@ using namespace std;
       exit(EXIT_FAILURE);\
     }
 
+#define BLAS_1_RESULT_PRINT                                                      \
+    if(argus.timing){                                                            \
+        cout << "N, rocblas (us), ";                                             \
+        if(argus.norm_check){                                                    \
+            cout << "CPU (us), error" ;                                          \
+        }                                                                        \
+        cout << endl;                                                            \
+        cout << N <<',' << gpu_time_used << ',';                                 \
+        if(argus.norm_check){                                                    \
+            cout << cpu_time_used <<',';                                         \
+            cout << rocblas_error;                                               \
+        }                                                                        \
+        cout << endl;                                                            \
+    }
+
     /* ============================================================================================ */
     /* generate random number :*/
 
