@@ -67,11 +67,6 @@ rocblas_status testing_scal(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
 
 
-    if(argus.timing){
-        printf("SCAL     N    rocblas    (us)     CPU (us)     error\n");
-    }
-
-
     /* =====================================================================
          ROCBLAS
     =================================================================== */
@@ -136,15 +131,21 @@ rocblas_status testing_scal(Arguments argus)
 
 
     if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything, only return the real part, imag part does not make sense
+        //only norm_check return an norm error, unit check won't return anything
+        cout << "N, rocblas (us) ";
         if(argus.norm_check){
-            printf("    %d    %8.2f    %8.2f     %8.2e \n", (int)N, gpu_time_used, cpu_time_used, rocblas_error);
+            cout << "CPU (us), error" ;
         }
-        else{
-            printf("    %d    %8.2f    %8.2f     ---     \n", (int)N, gpu_time_used, cpu_time_used);
-        }
-    }
+        cout << endl;
 
+        cout << N <<',' << gpu_time_used ;
+
+        if(argus.norm_check){
+            cout << cpu_time_used << ',';
+            cout << rocblas_error;
+        }
+        cout << endl;
+    }
 
     CHECK_HIP_ERROR(hipFree(dx));
     rocblas_destroy_handle(handle);
