@@ -7,10 +7,14 @@
 #include <stdio.h>
 #include <boost/program_options.hpp>
 #include "rocblas.h"
+#include "utility.h"
 #include "testing_scal.hpp"
 #include "testing_dot.hpp"
+#include "testing_nrm2.hpp"
+#include "testing_asum.hpp"
+#include "testing_amax.hpp"
 #include "testing_gemv.hpp"
-#include "utility.h"
+#include "testing_trtri.hpp"
 
 namespace po = boost::program_options;
 
@@ -64,13 +68,6 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    //find the max dimension
-    if( function != "scal"
-        && function != "gemv"
-    ){
-        printf("Invalid value for --function \n");
-        return -1;
-    }
 
     //Device Query
     rocblas_int device_count = query_device_property();
@@ -105,13 +102,40 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_dot<double>( argus );
     }
+    else if (function == "asum"){
+        if (precision == 's')
+            testing_asum<float, float>( argus );
+        else if (precision == 'd')
+            testing_asum<double, double>( argus );
+    }
+    else if (function == "nrm2"){
+        if (precision == 's')
+            testing_nrm2<float, float>( argus );
+        else if (precision == 'd')
+            testing_nrm2<double, double>( argus );
+    }
+    else if (function == "amax"){
+        if (precision == 's')
+            testing_amax<float>( argus );
+        else if (precision == 'd')
+            testing_amax<double>( argus );
+    }
     else if (function == "gemv"){
         if (precision == 's')
             testing_gemv<float>( argus );
         else if (precision == 'd')
             testing_gemv<double>( argus );
     }
-
+    else if (function == "trtri"){
+        if (precision == 's')
+            testing_trtri<float>( argus );
+        else if (precision == 'd')
+            testing_trtri<double>( argus );
+    }
+    else{
+        printf("Invalid value for --function \n");
+        return -1;
+    }
 
     return 0;
 }
