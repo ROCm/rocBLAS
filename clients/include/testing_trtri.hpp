@@ -29,6 +29,8 @@ rocblas_status testing_trtri(Arguments argus)
     rocblas_int ldinvA;
     ldinvA = lda = argus.lda;
 
+    rocblas_int A_size = lda * N;
+
     rocblas_status status = rocblas_status_success;
 
     //check here to prevent undefined memory allocation error
@@ -50,7 +52,7 @@ rocblas_status testing_trtri(Arguments argus)
     char char_uplo = argus.uplo_option;
     char char_diag = argus.diag_option;
 
-    char_uplo = 'U';
+
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
@@ -135,13 +137,14 @@ rocblas_status testing_trtri(Arguments argus)
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "N, lda, rocblas-Gflops (us) ";
+            cout << "N, lda, uplo, diag, rocblas-Gflops (us) ";
             if(argus.norm_check){
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << N <<',' << lda <<','<< rocblas_gflops << "(" << gpu_time_used  << "),";
+            cout << N <<',' << lda <<','<< char_uplo << ',' << char_diag << ',' << 
+                 rocblas_gflops << "(" << gpu_time_used  << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
@@ -152,7 +155,7 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(ldinvA));
+    CHECK_HIP_ERROR(hipFree(dinvA));
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }
