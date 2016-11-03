@@ -125,9 +125,7 @@ rocblas_status testing_trtri(Arguments argus)
             unit_check_general<T>(N, N, lda, hB.data(), hA.data());
         }
 
-        for(int i=0; i<32; i++){
-            printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hB[i], i, hA[i]);
-        }
+
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
