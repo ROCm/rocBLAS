@@ -77,10 +77,10 @@ trtri_diagonal_kernel(hipLaunchParm lp,
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
     // notice the last digaonal block may be smaller than IB*IB
 
-    T *individual_A = A + hipBlockIdx_z * IB * lda + hipBlockIdx_z * IB;
-    T *individual_invA = invA + hipBlockIdx_z * IB * ldinvA + hipBlockIdx_z * IB;
+    T *individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
+    T *individual_invA = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
 
-    trtri_device<T, IB, 1>(uplo, diag, min(IB, n- hipBlockIdx_z * IB), individual_A, lda, individual_invA, ldinvA);
+    trtri_device<T, IB, 1>(uplo, diag, min(IB, n- hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
 
 }
 
@@ -251,13 +251,13 @@ rocblas_trtri_large(rocblas_handle handle,
         D_gemm =  invA + IB; //invA21
     }
     else{
-        // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
+        // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,  
         m_gemm =  IB;
         n_gemm =  (n-IB);
         A_gemm =  invA; // invA11
-        B_gemm =  A; //A12
+        B_gemm =  A + lda * IB; //A12
         C_gemm =  invA + IB + IB * ldinvA; //invA22
-        D_gemm =  invA; // invA12
+        D_gemm =  invA + IB * ldinvA; // invA12
     }
 
     hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
