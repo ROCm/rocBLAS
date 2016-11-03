@@ -111,7 +111,15 @@ set(rocblas_test_includes
     ../include/utility.h
     )
 
-add_executable( rocblas-test ${rocblas_test_source} ${rocblas_test_includes} )
+set( rocblas_benchmark_common
+      ../common/utility.cpp
+      ../common/cblas_interface.cpp
+      ../common/flops.cpp
+      ../common/norm.cpp
+      ../common/unit.cpp
+    )
+
+add_executable( rocblas-test ${rocblas_test_source} ${rocblas_test_includes} ${rocblas_benchmark_common} )
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
