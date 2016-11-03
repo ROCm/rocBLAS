@@ -30,7 +30,7 @@ set( rocblas_auxiliary_source
 )
 
 if( BUILD_WITH_COBALT )
-    set(Cobalt_SRC blas3/Cobalt/gemm.cpp) 
+    set(Cobalt_SRC blas3/Cobalt/gemm.cpp)
 endif()
 
 set( rocblas_blas3_source
@@ -92,7 +92,7 @@ endif( )
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
-          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
