@@ -1,5 +1,9 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
+
+#include "Cobalt_status.h"
+#include "status.h"
+
 /*******************************************************************************
  * Definitions
  * this file to not include any others
