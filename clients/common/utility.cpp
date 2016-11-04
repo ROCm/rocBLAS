@@ -5,7 +5,6 @@
 
 
 #include <sys/time.h>
-#include <hip_runtime_api.h>
 #include "rocblas.h"
 #include "utility.h"
 

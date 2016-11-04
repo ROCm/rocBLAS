@@ -5,7 +5,7 @@
      * ===========================================================================
      */
 
-#include <hip_runtime.h>
+ 
 #include "rocblas.h"
 #include "fetch_template.h"
 

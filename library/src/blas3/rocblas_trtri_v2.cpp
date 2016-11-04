@@ -1,5 +1,5 @@
 
-#include <hip_runtime.h>
+ 
 
 #include "rocblas.h"
 #include "rocblas.hpp"
