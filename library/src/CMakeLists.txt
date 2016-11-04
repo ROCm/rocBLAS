@@ -30,7 +30,10 @@ set( rocblas_auxiliary_source
 )
 
 if( BUILD_WITH_COBALT )
-    set(Cobalt_SRC blas3/Cobalt/gemm.cpp)
+    set( Cobalt_SRC 
+      blas3/Cobalt/gemm.cpp
+      blas3/Cobalt/Cobalt_status.cpp
+      )
 endif()
 
 set( rocblas_blas3_source
@@ -68,7 +71,11 @@ else( )
 endif( )
 
 if( BUILD_WITH_COBALT )
-  find_package( cobalt REQUIRED CONFIG )
+  find_package(Cobalt REQUIRED CONFIG)
+
+  add_cobalt_lib( rocblas-cobalt
+      SOLUTIONS ${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
+      BACKEND HIP )
 endif()
 
 add_library( rocblas
@@ -91,15 +98,16 @@ endif( )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
 )
 
 if( BUILD_WITH_COBALT )
-    target_link_libraries( rocblas PRIVATE CobaltLib_HCC )
+    target_link_libraries( rocblas PRIVATE rocblas-cobalt )
+    target_compile_definitions( rocblas PRIVATE BUILD_WITH_COBALT=1 )
 endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
@@ -142,7 +150,7 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-install( TARGETS rocblas
+install( TARGETS rocblas rocblas-cobalt
   EXPORT rocblas-targets
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
