@@ -44,20 +44,21 @@ node('rocm-1.3 && fiji')
         }
 
         stage("Package Debian") {
-          sh 'cd rocblas-build; make package'
+          sh 'cd library-build; make package'
           archive includes: 'library-build/*.deb'
         }
 
         stage("unit tests") {
+          // To trim test time, only execute single digit tests
           sh '''
               cd clients-build/tests-build/staging
-              ./rocblas-test-d --gtest_output=xml
+              ./rocblas-test-d --gtest_output=xml --gtest_filter=*/?
           '''
           junit 'clients-build/tests-build/staging/*.xml'
         }
 
         stage("samples") {
-          sh "cd clients-build/samples-build; make; ./example_sscal"
+          sh "cd clients-build/samples-build; ./example-sscal-d"
         }
       }
     }
@@ -76,9 +77,9 @@ node('rocm-1.3 && fiji')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      // mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com",
-      //       subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
-      //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
+      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com",
+            subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
+            body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       throw err
   }

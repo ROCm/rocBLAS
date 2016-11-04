@@ -143,8 +143,8 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
-#target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
-target_link_libraries( rocblas-test rocblas ${GTEST_LIBRARIES} )
+#target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} )
+target_link_libraries( rocblas-test rocblas gfortran lapack ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} )
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879
