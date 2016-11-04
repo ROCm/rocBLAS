@@ -87,7 +87,6 @@ target_include_directories( client
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${FFTW_INCLUDES}>
 )
 
 
