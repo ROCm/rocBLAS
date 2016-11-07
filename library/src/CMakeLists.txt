@@ -30,7 +30,7 @@ set( rocblas_auxiliary_source
 )
 
 if( BUILD_WITH_COBALT )
-    set(Cobalt_SRC blas3/Cobalt/gemm.cpp) 
+    set(Cobalt_SRC blas3/Cobalt/gemm.cpp)
 endif()
 
 set( rocblas_blas3_source
@@ -91,15 +91,15 @@ endif( )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
+          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
-          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>/include
-          $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/library/include>
           $<INSTALL_INTERFACE:include>
 )
 
 if( BUILD_WITH_COBALT )
-    target_link_libraries( rocblas PRIVATE Cobalt-hcc )
+    target_link_libraries( rocblas PRIVATE CobaltLib_HCC )
 endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
