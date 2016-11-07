@@ -74,7 +74,7 @@ if( BUILD_WITH_COBALT )
   find_package(Cobalt REQUIRED CONFIG)
 
   add_cobalt_lib( rocblas-cobalt
-      SOLUTIONS ${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
+      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt/XML_SolutionTimes
       BACKEND HIP )
 endif()
 
