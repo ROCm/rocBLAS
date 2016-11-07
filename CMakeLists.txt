@@ -24,7 +24,7 @@ project( rocblas-superbuild NONE )
 # Everything is initially off, so that cache is not initialized until user elects to build
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
-option( BUILD_WITH_COBALT "Building rocBLAS with Cobalt or not" OFF )
+option( BUILD_WITH_COBALT "Building rocBLAS with Cobalt or not" ON )
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
