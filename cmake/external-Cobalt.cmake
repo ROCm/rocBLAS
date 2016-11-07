@@ -50,7 +50,8 @@ ExternalProject_Add(
     -DCobalt_OPTIMIZE_BETA=OFF
     -DCobalt_DIR_PROBLEMS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_Problems
     -DCobalt_DIR_SOLUTIONS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
-  BUILD_COMMAND make -j ${Cores} Cobalt-hcc COMMAND make -j ${Cores} Cobalt-hcc
+  BUILD_COMMAND COMMAND make -j ${Cores} CobaltLib_HCC
+                COMMAND make -j ${Cores} CobaltLib_HCC
   LOG_BUILD 1
 )
 
