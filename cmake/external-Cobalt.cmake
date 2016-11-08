@@ -44,25 +44,8 @@ ExternalProject_Add(
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package
-    -DCobalt_BACKEND=HIP
-    -DCobalt_ENABLE_LOGGER=${Cobalt_ENABLE_LOGGER}
-    -DCobalt_OPTIMIZE_ALPHA=OFF
-    -DCobalt_OPTIMIZE_BETA=OFF
-    -DCobalt_DIR_PROBLEMS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_Problems
-    -DCobalt_DIR_SOLUTIONS=${CMAKE_SOURCE_DIR}/library/src/blas3/Cobalt/XML_SolutionTimes
-  BUILD_COMMAND COMMAND make -j ${Cores} CobaltLib_HCC
-                COMMAND make -j ${Cores} CobaltLib_HCC
   LOG_BUILD 1
 )
-
-ExternalProject_Get_Property( Cobalt SOURCE_DIR )
-ExternalProject_Get_Property( Cobalt BINARY_DIR )
-set( Cobalt_INCLUDE_DIRS ${SOURCE_DIR}/CobaltLib/include )
-set( CobaltLib_LIBRARIES ${BINARY_DIR}/CobaltLib/libCobaltLib.a )
-set( CobaltLogger_LIBRARIES ${BINARY_DIR}/CobaltLib/libCobaltLogger.a )
-#MESSAGE( "Cobalt_INCLUDE_DIRS: ${Cobalt_INCLUDE_DIRS}" )
-#MESSAGE( "CobaltLib_LIBRARIES: ${CobaltLib_LIBRARIES}" )
-#MESSAGE( "CobaltLogger_LIBRARIES: ${CobaltLogger_LIBRARIES}" )
 
 set_property( TARGET Cobalt PROPERTY FOLDER "extern")
 ExternalProject_Get_Property( Cobalt install_dir )
