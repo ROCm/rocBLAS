@@ -2,6 +2,7 @@
  * asumright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+#include <hip/hip_runtime.h>
 
  
 
