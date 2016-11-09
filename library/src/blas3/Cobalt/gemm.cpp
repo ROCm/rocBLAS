@@ -9,6 +9,7 @@
 #include "definitions.h"
 #include "handle.h"
 
+#define COMPLEX 0
 /*******************************************************************************
  * GEMM wrapper around Cobalt
  ******************************************************************************/
@@ -345,6 +346,7 @@ rocblas_status rocblas_dgemm(
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
 // }
 
+#if COMPLEX
 rocblas_status rocblas_cgemm(
     rocblas_handle handle,
     rocblas_order order,
@@ -414,7 +416,7 @@ rocblas_status rocblas_zgemm(
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
-
+#endif
 
     /***************************************************************************
      * strided - specify leading stride
@@ -546,6 +548,7 @@ rocblas_status rocblas_dgemm_strided(
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
 // }
 
+#if COMPLEX
 rocblas_status rocblas_cgemm_strided(
     rocblas_handle handle,
     rocblas_order order,
@@ -607,6 +610,7 @@ rocblas_status rocblas_zgemm_strided(
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
+#endif
 
     /***************************************************************************
      * batched
@@ -727,6 +731,7 @@ rocblas_status rocblas_dgemm_batched(
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
 // }
 
+#if COMPLEX
 rocblas_status rocblas_cgemm_batched(
     rocblas_handle handle,
     rocblas_order order,
@@ -783,7 +788,7 @@ rocblas_status rocblas_zgemm_batched(
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
 
-
+#endif
     /***************************************************************************
      * strided & batched
      * ls_a - non-1 leading stride of a
@@ -890,6 +895,7 @@ rocblas_status rocblas_dgemm_strided_batched(
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
 // }
 
+#if COMPLEX
 rocblas_status rocblas_cgemm_strided_batched(
     rocblas_handle handle,
     rocblas_order order,
@@ -937,7 +943,7 @@ rocblas_status rocblas_zgemm_strided_batched(
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
-
+#endif
 
 /*******************************************************************************
  * Helper Functions
