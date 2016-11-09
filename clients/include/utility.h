@@ -7,6 +7,8 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
+#include <stdio.h>
+#include <stdlib.h>
 #include <vector>
 #include "rocblas.h"
 #include <sys/time.h>
