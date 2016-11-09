@@ -1,5 +1,11 @@
+/* ************************************************************************
+ *  * Copyright 2016 Advanced Micro Devices, Inc.
+ *   *
+ *    * ************************************************************************ */
+#include <hip/hip_runtime.h>
 
- 
+
+
 
 #include "rocblas.h"
 #include "rocblas.hpp"
@@ -251,7 +257,7 @@ rocblas_trtri_large(rocblas_handle handle,
         D_gemm =  invA + IB; //invA21
     }
     else{
-        // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,  
+        // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
         m_gemm =  IB;
         n_gemm =  (n-IB);
         A_gemm =  invA; // invA11

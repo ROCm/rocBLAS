@@ -14,6 +14,7 @@
 #include "testing_asum.hpp"
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
+#include "testing_gemm.hpp"
 #include "testing_trtri.hpp"
 
 namespace po = boost::program_options;
@@ -125,6 +126,12 @@ int main(int argc, char *argv[])
             testing_gemv<float>( argus );
         else if (precision == 'd')
             testing_gemv<double>( argus );
+    }
+    else if (function == "gemm"){
+        if (precision == 's')
+            testing_gemm<float>( argus );
+        else if (precision == 'd')
+            testing_gemm<double>( argus );
     }
     else if (function == "trtri"){
         if (precision == 's')
