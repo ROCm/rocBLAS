@@ -101,17 +101,15 @@ find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
 
-if( BUILD_WITH_COBALT )
-    set(Cobalt_TEST_SRC
+    set(Tensile_TEST_SRC
         gemm_gtest.cpp
         trsm_gtest.cpp
         )
-endif()
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
-    ${Cobalt_TEST_SRC}
+    ${Tensile_TEST_SRC}
     )
 
 

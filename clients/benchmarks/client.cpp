@@ -16,7 +16,7 @@
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
 #include "testing_trtri.hpp"
-#if BUILD_WITH_COBALT
+#if BUILD_WITH_TENSILE
     #include "testing_gemm.hpp"
 #endif
 
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
             testing_gemv<double>( argus );
     }
     else if (function == "gemm"){
-        #if  BUILD_WITH_COBALT
+        #if  BUILD_WITH_TENSILE
         if (precision == 's')
             testing_gemm<float>( argus );
         else if (precision == 'd')
