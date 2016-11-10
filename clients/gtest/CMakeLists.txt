@@ -106,6 +106,7 @@ find_package( rocblas REQUIRED CONFIG )
         trsm_gtest.cpp
         )
 
+
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
