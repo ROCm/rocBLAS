@@ -4,8 +4,8 @@
 #include "handle.h"
 #include <hip/hip_runtime_api.h>
 
-#if BUILD_WITH_COBALT
-    #include "Cobalt.h"
+#if BUILD_WITH_TENSILE
+    #include "Tensile.h"
 #endif
 
 /*******************************************************************************
@@ -19,22 +19,22 @@ _rocblas_handle::_rocblas_handle() {
 
   // rocblas by default take the system default stream 0 users cannot create
 
-#if BUILD_WITH_COBALT
-  // cobalt device profile
-  cobalt_device_profile = cobaltCreateEmptyDeviceProfile();
-  if ( strlen(device_properties.name) > cobalt_device_profile.devices[0].maxNameLength) {
-    strncpy( cobalt_device_profile.devices[0].name,
-        device_properties.name, cobalt_device_profile.devices[0].maxNameLength);
-    cobalt_device_profile.devices[0].name[cobalt_device_profile.devices[0].maxNameLength-1] = '\0';
+#if BUILD_WITH_TENSILE
+  // tensile device profile
+  tensile_device_profile = tensileCreateEmptyDeviceProfile();
+  if ( strlen(device_properties.name) > tensile_device_profile.devices[0].maxNameLength) {
+    strncpy( tensile_device_profile.devices[0].name,
+        device_properties.name, tensile_device_profile.devices[0].maxNameLength);
+    tensile_device_profile.devices[0].name[tensile_device_profile.devices[0].maxNameLength-1] = '\0';
   } else {
-    strcpy( cobalt_device_profile.devices[0].name, device_properties.name);
+    strcpy( tensile_device_profile.devices[0].name, device_properties.name);
   }
-  cobalt_device_profile.numDevices = 1;
+  tensile_device_profile.numDevices = 1;
 
-  // cobalt control
-  cobalt_control = cobaltCreateEmptyControl();
-  cobalt_control.queues[0] = rocblas_stream;
-  cobalt_control.numQueues = 1;
+  // tensile control
+  tensile_control = tensileCreateEmptyControl();
+  tensile_control.queues[0] = rocblas_stream;
+  tensile_control.numQueues = 1;
 
 #endif
 
@@ -61,9 +61,9 @@ rocblas_status _rocblas_handle::set_stream( hipStream_t user_stream ) {
 
   //TODO: check the user_stream valid or not
   rocblas_stream = user_stream;
-#if BUILD_WITH_COBALT
-  cobalt_control.queues[0] = user_stream;
-  cobalt_control.numQueues = 1;
+#if BUILD_WITH_TENSILE
+  tensile_control.queues[0] = user_stream;
+  tensile_control.numQueues = 1;
   // It is impossible to switch stream to another device in rocblas without destroying the handle
 #endif
   return rocblas_status_success;
