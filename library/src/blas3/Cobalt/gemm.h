@@ -1,7 +1,7 @@
 #include "rocblas_types.h"
-#include "Cobalt.h"
+#include "Tensile.h"
 
-CobaltDataType conjugate_if_necessary( CobaltDataType type, rocblas_operation trans );
+TensileDataType conjugate_if_necessary( TensileDataType type, rocblas_operation trans );
 
 void infer_batch_strides(
     rocblas_order order,

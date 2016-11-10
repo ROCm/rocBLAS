@@ -1,8 +1,8 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#if BUILD_WITH_COBALT
-   #include "Cobalt_status.h"
+#if BUILD_WITH_TENSILE
+   #include "Tensile_status.h"
 #endif
 
 #include "status.h"
@@ -13,11 +13,11 @@
  * thereby it can include top-level definitions included by all
  ******************************************************************************/
 
-#define RETURN_IF_COBALT_ERROR(INPUT_STATUS_FOR_CHECK) { \
-  CobaltStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-  if (TMP_STATUS_FOR_CHECK != cobaltStatusSuccess) { \
-    cobaltStatusCheck( TMP_STATUS_FOR_CHECK ); \
-    return get_rocblas_status_for_cobalt_status(TMP_STATUS_FOR_CHECK); \
+#define RETURN_IF_TENSILE_ERROR(INPUT_STATUS_FOR_CHECK) { \
+  TensileStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
+  if (TMP_STATUS_FOR_CHECK != tensileStatusSuccess) { \
+    tensileStatusCheck( TMP_STATUS_FOR_CHECK ); \
+    return get_rocblas_status_for_tensile_status(TMP_STATUS_FOR_CHECK); \
   } }
 
 #define RETURN_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK) { \
@@ -32,12 +32,12 @@
     return TMP_STATUS_FOR_CHECK; \
   } }
 
-#if BUILD_WITH_COBALT
-    #define THROW_IF_COBALT_ERROR(INPUT_STATUS_FOR_CHECK) {\
-    CobaltStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-    if (TMP_STATUS_FOR_CHECK != cobaltStatusSuccess) { \
-        cobaltStatusCheck( TMP_STATUS_FOR_CHECK ); \
-        throw get_rocblas_status_for_cobalt_status(TMP_STATUS_FOR_CHECK); \
+#if BUILD_WITH_TENSILE
+    #define THROW_IF_TENSILE_ERROR(INPUT_STATUS_FOR_CHECK) {\
+    TensileStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
+    if (TMP_STATUS_FOR_CHECK != tensileStatusSuccess) { \
+        tensileStatusCheck( TMP_STATUS_FOR_CHECK ); \
+        throw get_rocblas_status_for_tensile_status(TMP_STATUS_FOR_CHECK); \
     } }
 #endif
 

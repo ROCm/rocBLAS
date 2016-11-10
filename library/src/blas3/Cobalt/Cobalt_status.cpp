@@ -1,39 +1,39 @@
 
 #include "status.h"
 #include <hip/hip_runtime_api.h>
-#include "Cobalt.h"
+#include "Tensile.h"
 
 /*******************************************************************************
- * \brief convert CobaltStatus to rocblas_status
+ * \brief convert TensileStatus to rocblas_status
  ******************************************************************************/
 rocblas_status
-get_rocblas_status_for_cobalt_status( CobaltStatus status ) {
+get_rocblas_status_for_tensile_status( TensileStatus status ) {
   switch(status) {
 
-  case cobaltStatusSuccess:
+  case tensileStatusSuccess:
     return rocblas_status_success;
 
-  case cobaltStatusControlInvalid:
+  case tensileStatusControlInvalid:
     return rocblas_status_invalid_handle;
 
-  case cobaltStatusTensorNumDimensionsInvalid:
-  case cobaltStatusTensorDimensionOrderInvalid:
-  case cobaltStatusTensorDimensionStrideInvalid:
-  case cobaltStatusTensorDimensionSizeInvalid:
-  case cobaltStatusOperandNumDimensionsMismatch:
-  case cobaltStatusOperationOperandNumIndicesMismatch:
-  case cobaltStatusOperationIndexAssignmentInvalidA:
-  case cobaltStatusOperationIndexAssignmentInvalidB:
-  case cobaltStatusOperationIndexAssignmentDuplicateA:
-  case cobaltStatusOperationIndexAssignmentDuplicateB:
-  case cobaltStatusOperationNumFreeIndicesInvalid:
-  case cobaltStatusOperationNumSummationIndicesInvalid:
-  case cobaltStatusOperationIndexUnassigned:
-  case cobaltStatusOperationSummationIndexAssignmentsInvalid:
-  case cobaltStatusDeviceProfileNumDevicesInvalid:
-  case cobaltStatusDeviceProfileNotSupported: // cobalt should return a default implementation
-  case cobaltStatusProblemNotSupported: //
-  case cobaltStatusInvalidParameter:
+  case tensileStatusTensorNumDimensionsInvalid:
+  case tensileStatusTensorDimensionOrderInvalid:
+  case tensileStatusTensorDimensionStrideInvalid:
+  case tensileStatusTensorDimensionSizeInvalid:
+  case tensileStatusOperandNumDimensionsMismatch:
+  case tensileStatusOperationOperandNumIndicesMismatch:
+  case tensileStatusOperationIndexAssignmentInvalidA:
+  case tensileStatusOperationIndexAssignmentInvalidB:
+  case tensileStatusOperationIndexAssignmentDuplicateA:
+  case tensileStatusOperationIndexAssignmentDuplicateB:
+  case tensileStatusOperationNumFreeIndicesInvalid:
+  case tensileStatusOperationNumSummationIndicesInvalid:
+  case tensileStatusOperationIndexUnassigned:
+  case tensileStatusOperationSummationIndexAssignmentsInvalid:
+  case tensileStatusDeviceProfileNumDevicesInvalid:
+  case tensileStatusDeviceProfileNotSupported: // tensile should return a default implementation
+  case tensileStatusProblemNotSupported: //
+  case tensileStatusInvalidParameter:
   default:
     return rocblas_status_internal_error;
   }

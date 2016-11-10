@@ -2,19 +2,19 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# Downloads and builds Cobalt. Defines:
-# Cobalt_INCLUDE_DIRS
-# CobaltLib_LIBRARIES
-# CobaltLogger_LIBRARIES
+# Downloads and builds Tensile. Defines:
+# Tensile_INCLUDE_DIRS
+# TensileLib_LIBRARIES
+# TensileLogger_LIBRARIES
 
-message( STATUS "Configuring Cobalt external dependency" )
+message( STATUS "Configuring Tensile external dependency" )
 include( ExternalProject )
 
-set( Cobalt_REPO "https://github.com/clMathLibraries/Cobalt.git"
-    CACHE STRING "URL to download Cobalt from" )
-set( Cobalt_TAG "develop" CACHE STRING "Cobalt branch to download" )
+set( Tensile_REPO "https://github.com/clMathLibraries/Tensile.git"
+    CACHE STRING "URL to download Tensile from" )
+set( Tensile_TAG "develop" CACHE STRING "Tensile branch to download" )
 
-option( Cobalt_ENABLE_LOGGER "Enable logger in Cobalt?" OFF )
+option( Tensile_ENABLE_LOGGER "Enable logger in Tensile?" OFF )
 
 include( ProcessorCount )
 ProcessorCount( Cores )
@@ -33,22 +33,22 @@ else( )
   set( Cores "2" )
 endif( )
 
-message( "Building Cobalt with ${Cores} cores" )
+message( "Building Tensile with ${Cores} cores" )
 
 # TODO rocBLAS clients to use logger and write XMLs to build dir, not src
 ExternalProject_Add(
-  Cobalt
-  GIT_REPOSITORY ${Cobalt_REPO}
-  GIT_TAG ${Cobalt_TAG}
-  PREFIX ${CMAKE_BINARY_DIR}/extern/Cobalt
+  Tensile
+  GIT_REPOSITORY ${Tensile_REPO}
+  GIT_TAG ${Tensile_TAG}
+  PREFIX ${CMAKE_BINARY_DIR}/extern/Tensile
   CMAKE_ARGS
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package
   LOG_BUILD 1
 )
 
-set_property( TARGET Cobalt PROPERTY FOLDER "extern")
-ExternalProject_Get_Property( Cobalt install_dir )
+set_property( TARGET Tensile PROPERTY FOLDER "extern")
+ExternalProject_Get_Property( Tensile install_dir )
 
-# For use by the user of external-Cobalt.cmake
-set( Cobalt_ROOT ${install_dir}/package )
+# For use by the user of external-Tensile.cmake
+set( Tensile_ROOT ${install_dir}/package )

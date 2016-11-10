@@ -20,27 +20,27 @@ endfunction( )
 # Main
 # ########################################################################
 
-# Set up Cobalt  Dependency 
+# Set up Tensile  Dependency 
 
-if( BUILD_WITH_COBALT )
-  find_package(Cobalt REQUIRED CONFIG)
+if( BUILD_WITH_TENSILE )
+  find_package(Tensile REQUIRED CONFIG)
 
-  add_cobalt_lib( rocblas-cobalt
-      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt/XML_SolutionTimes
+  add_tensile_lib( rocblas-tensile
+      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/XML_SolutionTimes
       BACKEND HIP )
 
-  #rocblas_gemm and rocblas_trsm require cobalt 
-    set( Cobalt_SRC 
-      blas3/Cobalt/gemm.cpp
-      blas3/Cobalt/Cobalt_status.cpp
+  #rocblas_gemm and rocblas_trsm require tensile 
+    set( Tensile_SRC 
+      blas3/Tensile/gemm.cpp
+      blas3/Tensile/Tensile_status.cpp
       blas3/rocblas_gemm.cpp
 #  blas3/rocblas_trmm.cpp
 #  blas3/rocblas_trsm.cpp
 #  blas3/rocblas_trtri_trsm.cpp
       )
 
-    set(Cobalt_INC
-        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt
+    set(Tensile_INC
+        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
         )
 endif()
 
@@ -58,7 +58,7 @@ set( rocblas_auxiliary_source
 set( rocblas_blas3_source
   blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
-  ${Cobalt_SRC}
+  ${Tensile_SRC}
 )
 
 set( rocblas_blas2_source
@@ -107,15 +107,15 @@ endif( )
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${Cobalt_INC}>
+          $<BUILD_INTERFACE:${Tensile_INC}>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
 )
 
-if( BUILD_WITH_COBALT )
-    target_link_libraries( rocblas PRIVATE rocblas-cobalt )
-    target_compile_definitions( rocblas PRIVATE BUILD_WITH_COBALT=1 )
+if( BUILD_WITH_TENSILE )
+    target_link_libraries( rocblas PRIVATE rocblas-tensile )
+    target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
 endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
@@ -158,8 +158,8 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-if( BUILD_WITH_COBALT )
-    install( TARGETS rocblas rocblas-cobalt
+if( BUILD_WITH_TENSILE )
+    install( TARGETS rocblas rocblas-tensile
         EXPORT rocblas-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
