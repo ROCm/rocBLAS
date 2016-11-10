@@ -10,7 +10,7 @@
 message( STATUS "Configuring Tensile external dependency" )
 include( ExternalProject )
 
-set( Tensile_REPO "https://github.com/clMathLibraries/Tensile.git"
+set( Tensile_REPO "https://github.com/clMathLibraries/Cobalt.git"
     CACHE STRING "URL to download Tensile from" )
 set( Tensile_TAG "develop" CACHE STRING "Tensile branch to download" )
 
