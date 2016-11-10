@@ -4,25 +4,25 @@
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
-#include "Cobalt.h"
+#include "Tensile.h"
 #include "gemm.h"
 #include "definitions.h"
 #include "handle.h"
 
 #define COMPLEX 0
 /*******************************************************************************
- * GEMM wrapper around Cobalt
+ * GEMM wrapper around Tensile
  ******************************************************************************/
-rocblas_status xgemm_cobalt(
+rocblas_status xgemm_tensile(
   rocblas_handle handle,
   rocblas_order order,
   rocblas_operation trans_a, rocblas_operation trans_b,
   rocblas_int m, rocblas_int n, rocblas_int k,
-  CobaltDataType type_alpha, const void *alpha,
-  CobaltDataType     type_a, const void *a,     rocblas_int ls_a, rocblas_int ld_a, rocblas_int bs_a,
-  CobaltDataType     type_b, const void *b,     rocblas_int ls_b, rocblas_int ld_b, rocblas_int bs_b,
-  CobaltDataType  type_beta, const void *beta,
-  CobaltDataType     type_c,       void *c,     rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
+  TensileDataType type_alpha, const void *alpha,
+  TensileDataType     type_a, const void *a,     rocblas_int ls_a, rocblas_int ld_a, rocblas_int bs_a,
+  TensileDataType     type_b, const void *b,     rocblas_int ls_b, rocblas_int ld_b, rocblas_int bs_b,
+  TensileDataType  type_beta, const void *beta,
+  TensileDataType     type_c,       void *c,     rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
   rocblas_int batch_count ) {
 
   // sizes must not be negative
@@ -53,7 +53,7 @@ rocblas_status xgemm_cobalt(
   int num_rows_b = (trans_b == rocblas_operation_none) ? k : n;
 
 
-  /* create cobalt tensors
+  /* create tensile tensors
    * - translates rows/cols into dim0/dim1
    * - dim0 is dimension with shortest stride (necessary for performance)
    * - dim1 is other matrix dimension
@@ -61,7 +61,7 @@ rocblas_status xgemm_cobalt(
    */
 
   // create tensor c
-  CobaltTensor tensor_c;
+  TensileTensor tensor_c;
   tensor_c.dataType = type_c;
   tensor_c.numDimensions = (batch_count > 1) ? 3 : 2;
   tensor_c.dimensions[0].stride = ls_c;
@@ -85,7 +85,7 @@ rocblas_status xgemm_cobalt(
   }
 
   // create tensor a
-  CobaltTensor tensor_a;
+  TensileTensor tensor_a;
   tensor_a.dataType = conjugate_if_necessary( type_a, trans_a );
   tensor_a.numDimensions = (batch_count > 1) ? 3 : 2;
   tensor_a.dimensions[0].stride = ls_a;
@@ -109,7 +109,7 @@ rocblas_status xgemm_cobalt(
   }
 
   // create tensor b
-  CobaltTensor tensor_b;
+  TensileTensor tensor_b;
   tensor_b.dataType = conjugate_if_necessary( type_b, trans_b );
   tensor_b.numDimensions = (batch_count > 1) ? 3 : 2;
   tensor_b.dimensions[0].stride = ls_b;
@@ -152,47 +152,47 @@ rocblas_status xgemm_cobalt(
   }
 
   // create problem
-  CobaltProblem problem;
-  RETURN_IF_COBALT_ERROR( cobaltCreateProblem(
+  TensileProblem problem;
+  RETURN_IF_TENSILE_ERROR( tensileCreateProblem(
       &problem,
       tensor_c,
       tensor_a,
       tensor_b,
       index_assignments_a,
       index_assignments_b,
-      cobaltOperationTypeContraction,
+      tensileOperationTypeContraction,
       type_alpha,
       type_beta,
       false, // Use offsets? No. Only OpenCL needed them for generality; HIP doesn't.
-      handle->cobalt_device_profile) );
+      handle->tensile_device_profile) );
 
 #ifdef _DEBUG
   // thorough validation that problem was created correctly
-  RETURN_IF_COBALT_ERROR( cobaltValidateProblem(problem) );
+  RETURN_IF_TENSILE_ERROR( tensileValidateProblem(problem) );
 #endif
 
   // lookup solution
-  CobaltSolution solution;
-  RETURN_IF_COBALT_ERROR( cobaltGetSolutionForProblem( &solution, problem ) );
+  TensileSolution solution;
+  RETURN_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
 
   // wrap pointers and enqueue solution
-  CobaltTensorData      tensor_data_c{ c, 0 };
-  CobaltTensorDataConst tensor_data_a{ a, 0 };
-  CobaltTensorDataConst tensor_data_b{ b, 0 };
-  CobaltScalarData      scalar_data_alpha{ alpha };
-  CobaltScalarData      scalar_data_beta{ beta };
-  RETURN_IF_COBALT_ERROR( cobaltEnqueueSolution(
+  TensileTensorData      tensor_data_c{ c, 0 };
+  TensileTensorDataConst tensor_data_a{ a, 0 };
+  TensileTensorDataConst tensor_data_b{ b, 0 };
+  TensileScalarData      scalar_data_alpha{ alpha };
+  TensileScalarData      scalar_data_beta{ beta };
+  RETURN_IF_TENSILE_ERROR( tensileEnqueueSolution(
       solution,
       tensor_data_c,
       tensor_data_a,
       tensor_data_b,
       scalar_data_alpha,
       scalar_data_beta,
-      &handle->cobalt_control) );
+      &handle->tensile_control) );
 
   // cleanup
-  RETURN_IF_COBALT_ERROR( cobaltDestroyProblem(problem) );
-  RETURN_IF_COBALT_ERROR( cobaltDestroySolution(solution) );
+  RETURN_IF_TENSILE_ERROR( tensileDestroyProblem(problem) );
+  RETURN_IF_TENSILE_ERROR( tensileDestroySolution(solution) );
 
   // TODO - put events into handle, if necessary
 
@@ -217,11 +217,11 @@ rocblas_status xgemm_cobalt(
 //     const rocblas_half *beta,
 //           rocblas_half *C, rocblas_int ld_c) {
 //
-//   CobaltDataType type_c     = cobaltDataTypeHalf;
-//   CobaltDataType type_a     = cobaltDataTypeHalf;
-//   CobaltDataType type_b     = cobaltDataTypeHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//   TensileDataType type_c     = tensileDataTypeHalf;
+//   TensileDataType type_a     = tensileDataTypeHalf;
+//   TensileDataType type_b     = tensileDataTypeHalf;
+//   TensileDataType type_alpha = tensileDataTypeHalf;
+//   TensileDataType type_beta  = tensileDataTypeHalf;
 //
 //   rocblas_int ls_c = 1;
 //   rocblas_int ls_a = 1;
@@ -235,7 +235,7 @@ rocblas_status xgemm_cobalt(
 //     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
 //   rocblas_int batch_count = 1;
 //
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -252,11 +252,11 @@ rocblas_status rocblas_sgemm(
     const float *beta,
           float *C, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeSingle;
-  CobaltDataType type_a     = cobaltDataTypeSingle;
-  CobaltDataType type_b     = cobaltDataTypeSingle;
-  CobaltDataType type_alpha = cobaltDataTypeSingle;
-  CobaltDataType type_beta  = cobaltDataTypeSingle;
+  TensileDataType type_c     = tensileDataTypeSingle;
+  TensileDataType type_a     = tensileDataTypeSingle;
+  TensileDataType type_b     = tensileDataTypeSingle;
+  TensileDataType type_alpha = tensileDataTypeSingle;
+  TensileDataType type_beta  = tensileDataTypeSingle;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
@@ -270,7 +270,7 @@ rocblas_status rocblas_sgemm(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -287,11 +287,11 @@ rocblas_status rocblas_dgemm(
     const double *beta,
           double *C, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeDouble;
-  CobaltDataType type_a     = cobaltDataTypeDouble;
-  CobaltDataType type_b     = cobaltDataTypeDouble;
-  CobaltDataType type_alpha = cobaltDataTypeDouble;
-  CobaltDataType type_beta  = cobaltDataTypeDouble;
+  TensileDataType type_c     = tensileDataTypeDouble;
+  TensileDataType type_a     = tensileDataTypeDouble;
+  TensileDataType type_b     = tensileDataTypeDouble;
+  TensileDataType type_alpha = tensileDataTypeDouble;
+  TensileDataType type_beta  = tensileDataTypeDouble;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
@@ -305,7 +305,7 @@ rocblas_status rocblas_dgemm(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -322,11 +322,11 @@ rocblas_status rocblas_dgemm(
 //     const rocblas_half_complex *beta,
 //           rocblas_half_complex *C, rocblas_int ld_c) {
 
-//   CobaltDataType type_c     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_a     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_b     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeComplexHalf;
+//   TensileDataType type_c     = tensileDataTypeComplexHalf;
+//   TensileDataType type_a     = tensileDataTypeComplexHalf;
+//   TensileDataType type_b     = tensileDataTypeComplexHalf;
+//   TensileDataType type_alpha = tensileDataTypeComplexHalf;
+//   TensileDataType type_beta  = tensileDataTypeComplexHalf;
 
 //   rocblas_int ls_c = 1;
 //   rocblas_int ls_a = 1;
@@ -340,7 +340,7 @@ rocblas_status rocblas_dgemm(
 //     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
 //   rocblas_int batch_count = 1;
 
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -358,11 +358,11 @@ rocblas_status rocblas_cgemm(
     const rocblas_float_complex *beta,
           rocblas_float_complex *C, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_a     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_b     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_alpha = cobaltDataTypeComplexSingle;
-  CobaltDataType type_beta  = cobaltDataTypeComplexSingle;
+  TensileDataType type_c     = tensileDataTypeComplexSingle;
+  TensileDataType type_a     = tensileDataTypeComplexSingle;
+  TensileDataType type_b     = tensileDataTypeComplexSingle;
+  TensileDataType type_alpha = tensileDataTypeComplexSingle;
+  TensileDataType type_beta  = tensileDataTypeComplexSingle;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
@@ -376,7 +376,7 @@ rocblas_status rocblas_cgemm(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -393,11 +393,11 @@ rocblas_status rocblas_zgemm(
     const rocblas_double_complex *beta,
           rocblas_double_complex *C, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_a     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_b     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_alpha = cobaltDataTypeComplexDouble;
-  CobaltDataType type_beta  = cobaltDataTypeComplexDouble;
+  TensileDataType type_c     = tensileDataTypeComplexDouble;
+  TensileDataType type_a     = tensileDataTypeComplexDouble;
+  TensileDataType type_b     = tensileDataTypeComplexDouble;
+  TensileDataType type_alpha = tensileDataTypeComplexDouble;
+  TensileDataType type_beta  = tensileDataTypeComplexDouble;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
@@ -411,7 +411,7 @@ rocblas_status rocblas_zgemm(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -435,11 +435,11 @@ rocblas_status rocblas_zgemm(
 //     const rocblas_half *beta,
 //           rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c) {
 //
-//   CobaltDataType type_c     = cobaltDataTypeHalf;
-//   CobaltDataType type_a     = cobaltDataTypeHalf;
-//   CobaltDataType type_b     = cobaltDataTypeHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//   TensileDataType type_c     = tensileDataTypeHalf;
+//   TensileDataType type_a     = tensileDataTypeHalf;
+//   TensileDataType type_b     = tensileDataTypeHalf;
+//   TensileDataType type_alpha = tensileDataTypeHalf;
+//   TensileDataType type_beta  = tensileDataTypeHalf;
 //
 //   rocblas_int bs_c;
 //   rocblas_int bs_a;
@@ -449,7 +449,7 @@ rocblas_status rocblas_zgemm(
 //     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
 //   rocblas_int batch_count = 1;
 //
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -466,11 +466,11 @@ rocblas_status rocblas_sgemm_strided(
     const float *beta,
           float *C, rocblas_int ls_c, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeSingle;
-  CobaltDataType type_a     = cobaltDataTypeSingle;
-  CobaltDataType type_b     = cobaltDataTypeSingle;
-  CobaltDataType type_alpha = cobaltDataTypeSingle;
-  CobaltDataType type_beta  = cobaltDataTypeSingle;
+  TensileDataType type_c     = tensileDataTypeSingle;
+  TensileDataType type_a     = tensileDataTypeSingle;
+  TensileDataType type_b     = tensileDataTypeSingle;
+  TensileDataType type_alpha = tensileDataTypeSingle;
+  TensileDataType type_beta  = tensileDataTypeSingle;
 
   rocblas_int bs_c;
   rocblas_int bs_a;
@@ -480,7 +480,7 @@ rocblas_status rocblas_sgemm_strided(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -497,11 +497,11 @@ rocblas_status rocblas_dgemm_strided(
     const double *beta,
           double *C, rocblas_int ls_c, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeDouble;
-  CobaltDataType type_a     = cobaltDataTypeDouble;
-  CobaltDataType type_b     = cobaltDataTypeDouble;
-  CobaltDataType type_alpha = cobaltDataTypeDouble;
-  CobaltDataType type_beta  = cobaltDataTypeDouble;
+  TensileDataType type_c     = tensileDataTypeDouble;
+  TensileDataType type_a     = tensileDataTypeDouble;
+  TensileDataType type_b     = tensileDataTypeDouble;
+  TensileDataType type_alpha = tensileDataTypeDouble;
+  TensileDataType type_beta  = tensileDataTypeDouble;
 
   rocblas_int bs_c;
   rocblas_int bs_a;
@@ -511,7 +511,7 @@ rocblas_status rocblas_dgemm_strided(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -528,11 +528,11 @@ rocblas_status rocblas_dgemm_strided(
 //     const rocblas_half_complex *beta,
 //           rocblas_half_complex *C, rocblas_int ls_c, rocblas_int ld_c) {
 
-//   CobaltDataType type_c     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_a     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_b     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeComplexHalf;
+//   TensileDataType type_c     = tensileDataTypeComplexHalf;
+//   TensileDataType type_a     = tensileDataTypeComplexHalf;
+//   TensileDataType type_b     = tensileDataTypeComplexHalf;
+//   TensileDataType type_alpha = tensileDataTypeComplexHalf;
+//   TensileDataType type_beta  = tensileDataTypeComplexHalf;
 
 //   rocblas_int bs_c;
 //   rocblas_int bs_a;
@@ -542,7 +542,7 @@ rocblas_status rocblas_dgemm_strided(
 //     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
 //   rocblas_int batch_count = 1;
 
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -560,11 +560,11 @@ rocblas_status rocblas_cgemm_strided(
     const rocblas_float_complex *beta,
           rocblas_float_complex *C, rocblas_int ls_c, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_a     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_b     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_alpha = cobaltDataTypeComplexSingle;
-  CobaltDataType type_beta  = cobaltDataTypeComplexSingle;
+  TensileDataType type_c     = tensileDataTypeComplexSingle;
+  TensileDataType type_a     = tensileDataTypeComplexSingle;
+  TensileDataType type_b     = tensileDataTypeComplexSingle;
+  TensileDataType type_alpha = tensileDataTypeComplexSingle;
+  TensileDataType type_beta  = tensileDataTypeComplexSingle;
 
   rocblas_int bs_c;
   rocblas_int bs_a;
@@ -574,7 +574,7 @@ rocblas_status rocblas_cgemm_strided(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -591,11 +591,11 @@ rocblas_status rocblas_zgemm_strided(
     const rocblas_double_complex *beta,
           rocblas_double_complex *C, rocblas_int ls_c, rocblas_int ld_c) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_a     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_b     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_alpha = cobaltDataTypeComplexDouble;
-  CobaltDataType type_beta  = cobaltDataTypeComplexDouble;
+  TensileDataType type_c     = tensileDataTypeComplexDouble;
+  TensileDataType type_a     = tensileDataTypeComplexDouble;
+  TensileDataType type_b     = tensileDataTypeComplexDouble;
+  TensileDataType type_alpha = tensileDataTypeComplexDouble;
+  TensileDataType type_beta  = tensileDataTypeComplexDouble;
 
   rocblas_int bs_c;
   rocblas_int bs_a;
@@ -605,7 +605,7 @@ rocblas_status rocblas_zgemm_strided(
     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
   rocblas_int batch_count = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -631,17 +631,17 @@ rocblas_status rocblas_zgemm_strided(
 //           rocblas_half *C, rocblas_int ld_c, rocblas_int bs_c,
 //     rocblas_int batch_count ) {
 //
-//   CobaltDataType type_c     = cobaltDataTypeHalf;
-//   CobaltDataType type_a     = cobaltDataTypeHalf;
-//   CobaltDataType type_b     = cobaltDataTypeHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//   TensileDataType type_c     = tensileDataTypeHalf;
+//   TensileDataType type_a     = tensileDataTypeHalf;
+//   TensileDataType type_b     = tensileDataTypeHalf;
+//   TensileDataType type_alpha = tensileDataTypeHalf;
+//   TensileDataType type_beta  = tensileDataTypeHalf;
 //
 //   rocblas_int ls_c = 1;
 //   rocblas_int ls_a = 1;
 //   rocblas_int ls_b = 1;
 //
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -659,17 +659,17 @@ rocblas_status rocblas_sgemm_batched(
           float *C, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeSingle;
-  CobaltDataType type_a     = cobaltDataTypeSingle;
-  CobaltDataType type_b     = cobaltDataTypeSingle;
-  CobaltDataType type_alpha = cobaltDataTypeSingle;
-  CobaltDataType type_beta  = cobaltDataTypeSingle;
+  TensileDataType type_c     = tensileDataTypeSingle;
+  TensileDataType type_a     = tensileDataTypeSingle;
+  TensileDataType type_b     = tensileDataTypeSingle;
+  TensileDataType type_alpha = tensileDataTypeSingle;
+  TensileDataType type_beta  = tensileDataTypeSingle;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -687,17 +687,17 @@ rocblas_status rocblas_dgemm_batched(
           double *C, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeDouble;
-  CobaltDataType type_a     = cobaltDataTypeDouble;
-  CobaltDataType type_b     = cobaltDataTypeDouble;
-  CobaltDataType type_alpha = cobaltDataTypeDouble;
-  CobaltDataType type_beta  = cobaltDataTypeDouble;
+  TensileDataType type_c     = tensileDataTypeDouble;
+  TensileDataType type_a     = tensileDataTypeDouble;
+  TensileDataType type_b     = tensileDataTypeDouble;
+  TensileDataType type_alpha = tensileDataTypeDouble;
+  TensileDataType type_beta  = tensileDataTypeDouble;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -715,17 +715,17 @@ rocblas_status rocblas_dgemm_batched(
 //           rocblas_half_complex *C, rocblas_int ld_c, rocblas_int bs_c,
 //     rocblas_int batch_count ) {
 
-//   CobaltDataType type_c     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_a     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_b     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeComplexHalf;
+//   TensileDataType type_c     = tensileDataTypeComplexHalf;
+//   TensileDataType type_a     = tensileDataTypeComplexHalf;
+//   TensileDataType type_b     = tensileDataTypeComplexHalf;
+//   TensileDataType type_alpha = tensileDataTypeComplexHalf;
+//   TensileDataType type_beta  = tensileDataTypeComplexHalf;
 
 //   rocblas_int ls_c = 1;
 //   rocblas_int ls_a = 1;
 //   rocblas_int ls_b = 1;
 
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -744,17 +744,17 @@ rocblas_status rocblas_cgemm_batched(
           rocblas_float_complex *C, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_a     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_b     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_alpha = cobaltDataTypeComplexSingle;
-  CobaltDataType type_beta  = cobaltDataTypeComplexSingle;
+  TensileDataType type_c     = tensileDataTypeComplexSingle;
+  TensileDataType type_a     = tensileDataTypeComplexSingle;
+  TensileDataType type_b     = tensileDataTypeComplexSingle;
+  TensileDataType type_alpha = tensileDataTypeComplexSingle;
+  TensileDataType type_beta  = tensileDataTypeComplexSingle;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -772,17 +772,17 @@ rocblas_status rocblas_zgemm_batched(
           rocblas_double_complex *C, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_a     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_b     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_alpha = cobaltDataTypeComplexDouble;
-  CobaltDataType type_beta  = cobaltDataTypeComplexDouble;
+  TensileDataType type_c     = tensileDataTypeComplexDouble;
+  TensileDataType type_a     = tensileDataTypeComplexDouble;
+  TensileDataType type_b     = tensileDataTypeComplexDouble;
+  TensileDataType type_alpha = tensileDataTypeComplexDouble;
+  TensileDataType type_beta  = tensileDataTypeComplexDouble;
 
   rocblas_int ls_c = 1;
   rocblas_int ls_a = 1;
   rocblas_int ls_b = 1;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -811,13 +811,13 @@ rocblas_status rocblas_zgemm_batched(
 //           rocblas_half *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
 //     rocblas_int batch_count ) {
 //
-//   CobaltDataType type_c     = cobaltDataTypeHalf;
-//   CobaltDataType type_a     = cobaltDataTypeHalf;
-//   CobaltDataType type_b     = cobaltDataTypeHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeHalf;
+//   TensileDataType type_c     = tensileDataTypeHalf;
+//   TensileDataType type_a     = tensileDataTypeHalf;
+//   TensileDataType type_b     = tensileDataTypeHalf;
+//   TensileDataType type_alpha = tensileDataTypeHalf;
+//   TensileDataType type_beta  = tensileDataTypeHalf;
 //
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -835,13 +835,13 @@ rocblas_status rocblas_sgemm_strided_batched(
           float *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeSingle;
-  CobaltDataType type_a     = cobaltDataTypeSingle;
-  CobaltDataType type_b     = cobaltDataTypeSingle;
-  CobaltDataType type_alpha = cobaltDataTypeSingle;
-  CobaltDataType type_beta  = cobaltDataTypeSingle;
+  TensileDataType type_c     = tensileDataTypeSingle;
+  TensileDataType type_a     = tensileDataTypeSingle;
+  TensileDataType type_b     = tensileDataTypeSingle;
+  TensileDataType type_alpha = tensileDataTypeSingle;
+  TensileDataType type_beta  = tensileDataTypeSingle;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -859,13 +859,13 @@ rocblas_status rocblas_dgemm_strided_batched(
           double *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeDouble;
-  CobaltDataType type_a     = cobaltDataTypeDouble;
-  CobaltDataType type_b     = cobaltDataTypeDouble;
-  CobaltDataType type_alpha = cobaltDataTypeDouble;
-  CobaltDataType type_beta  = cobaltDataTypeDouble;
+  TensileDataType type_c     = tensileDataTypeDouble;
+  TensileDataType type_a     = tensileDataTypeDouble;
+  TensileDataType type_b     = tensileDataTypeDouble;
+  TensileDataType type_alpha = tensileDataTypeDouble;
+  TensileDataType type_beta  = tensileDataTypeDouble;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -883,13 +883,13 @@ rocblas_status rocblas_dgemm_strided_batched(
 //           rocblas_half_complex *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
 //     rocblas_int batch_count ) {
 
-//   CobaltDataType type_c     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_a     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_b     = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_alpha = cobaltDataTypeComplexHalf;
-//   CobaltDataType type_beta  = cobaltDataTypeComplexHalf;
+//   TensileDataType type_c     = tensileDataTypeComplexHalf;
+//   TensileDataType type_a     = tensileDataTypeComplexHalf;
+//   TensileDataType type_b     = tensileDataTypeComplexHalf;
+//   TensileDataType type_alpha = tensileDataTypeComplexHalf;
+//   TensileDataType type_beta  = tensileDataTypeComplexHalf;
 
-//   return xgemm_cobalt( handle, order, transa, transb,
+//   return xgemm_tensile( handle, order, transa, transb,
 //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
 //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
 //       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -908,13 +908,13 @@ rocblas_status rocblas_cgemm_strided_batched(
           rocblas_float_complex *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_a     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_b     = cobaltDataTypeComplexSingle;
-  CobaltDataType type_alpha = cobaltDataTypeComplexSingle;
-  CobaltDataType type_beta  = cobaltDataTypeComplexSingle;
+  TensileDataType type_c     = tensileDataTypeComplexSingle;
+  TensileDataType type_a     = tensileDataTypeComplexSingle;
+  TensileDataType type_b     = tensileDataTypeComplexSingle;
+  TensileDataType type_alpha = tensileDataTypeComplexSingle;
+  TensileDataType type_beta  = tensileDataTypeComplexSingle;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -932,13 +932,13 @@ rocblas_status rocblas_zgemm_strided_batched(
           rocblas_double_complex *C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
     rocblas_int batch_count ) {
 
-  CobaltDataType type_c     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_a     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_b     = cobaltDataTypeComplexDouble;
-  CobaltDataType type_alpha = cobaltDataTypeComplexDouble;
-  CobaltDataType type_beta  = cobaltDataTypeComplexDouble;
+  TensileDataType type_c     = tensileDataTypeComplexDouble;
+  TensileDataType type_a     = tensileDataTypeComplexDouble;
+  TensileDataType type_b     = tensileDataTypeComplexDouble;
+  TensileDataType type_alpha = tensileDataTypeComplexDouble;
+  TensileDataType type_beta  = tensileDataTypeComplexDouble;
 
-  return xgemm_cobalt( handle, order, transa, transb,
+  return xgemm_tensile( handle, order, transa, transb,
       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
       type_c, C, ls_c, ld_c, bs_c, batch_count );
@@ -948,18 +948,18 @@ rocblas_status rocblas_zgemm_strided_batched(
 /*******************************************************************************
  * Helper Functions
  ******************************************************************************/
-CobaltDataType conjugate_if_necessary( CobaltDataType type, rocblas_operation trans ) {
+TensileDataType conjugate_if_necessary( TensileDataType type, rocblas_operation trans ) {
   if ( trans == rocblas_operation_conjugate_transpose ) {
     switch ( type ) {
-    // case cobaltDataTypeComplexHalf:
-    //   return cobaltDataTypeComplexConjugateHalf;
-    case cobaltDataTypeComplexSingle:
-      return cobaltDataTypeComplexConjugateSingle;
-    case cobaltDataTypeComplexDouble:
-      return cobaltDataTypeComplexConjugateDouble;
+    // case tensileDataTypeComplexHalf:
+    //   return tensileDataTypeComplexConjugateHalf;
+    case tensileDataTypeComplexSingle:
+      return tensileDataTypeComplexConjugateSingle;
+    case tensileDataTypeComplexDouble:
+      return tensileDataTypeComplexConjugateDouble;
     default:
       // code should never come here, so create an error
-      return cobaltDataTypeNone;
+      return tensileDataTypeNone;
     }
   } else {
     // not conjugate transposing

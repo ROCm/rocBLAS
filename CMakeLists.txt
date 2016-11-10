@@ -24,7 +24,7 @@ project( rocblas-superbuild NONE )
 # Everything is initially off, so that cache is not initialized until user elects to build
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
-option( BUILD_WITH_COBALT "Building rocBLAS with Cobalt or not" ON )
+option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
@@ -85,19 +85,19 @@ endif( )
 
 
 if( BUILD_LIBRARY )
-  if( BUILD_WITH_COBALT )
+  if( BUILD_WITH_TENSILE )
       # defines
-      # Cobalt_INCLUDE_DIRS
-      # CobaltLib_LIBRARIES
-      # CobaltLogger_LIBRARIES
+      # Tensile_INCLUDE_DIRS
+      # TensileLib_LIBRARIES
+      # TensileLogger_LIBRARIES
 
-      include( cmake/external-Cobalt.cmake )
-      list( APPEND rocblas_dependencies Cobalt )
-      message( STATUS "Cobalt_ROOT=${Cobalt_ROOT}" )
+      include( cmake/external-Tensile.cmake )
+      list( APPEND rocblas_dependencies Tensile )
+      message( STATUS "Tensile_ROOT=${Tensile_ROOT}" )
 
-      set(COBALT_CMAKE_ARGS
-        -DCMAKE_PREFIX_PATH=${Cobalt_ROOT}
-        -DBUILD_WITH_COBALT=${BUILD_WITH_COBALT}
+      set(TENSILE_CMAKE_ARGS
+        -DCMAKE_PREFIX_PATH=${Tensile_ROOT}
+        -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
       )
   endif()
 
@@ -106,7 +106,7 @@ if( BUILD_LIBRARY )
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-    ${COBALT_CMAKE_ARGS}
+    ${TENSILE_CMAKE_ARGS}
   )
 
   # Build the library as an external project

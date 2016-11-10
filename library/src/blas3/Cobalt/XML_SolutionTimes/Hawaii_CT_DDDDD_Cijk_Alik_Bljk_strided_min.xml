@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<CobaltLog>
+<TensileLog>
  <TE>
   <S>
    <P>
@@ -1638,4 +1638,4 @@
   </S>
   <B t="44.377917" u="ms" />
  </TE>
-</CobaltLog>
+</TensileLog>

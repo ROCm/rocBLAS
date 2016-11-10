@@ -15,7 +15,7 @@ CFLAGS = -Wall -O2 -g -std=c++11 $(shell hipconfig --cpp_config) # C flags
 #
 
 ROCBLAS_DIR = .
-COBLAT_DIR = /home/tim/Cobalt/CobaltLib
+COBLAT_DIR = /home/tim/Tensile/TensileLib
 
 INCLUDES = -I$(ROCBLAS_DIR)/include  -I$(ROCBLAS_DIR)/src/include -I$(COBLAT_DIR)/include
 
