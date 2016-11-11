@@ -2,11 +2,13 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+#include <hip/hip_runtime.h>
 
- 
+
 #include "rocblas.h"
 #include "rocblas.hpp"
 
+#define COMPLEX  0
 
 /* ============================================================================================ */
 
@@ -102,6 +104,8 @@ rocblas_gemm<double>(rocblas_handle handle,
     return rocblas_dgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
+#if COMPLEX
+
 template<>
 rocblas_status
 rocblas_gemm<rocblas_float_complex>(rocblas_handle handle,
@@ -133,6 +137,7 @@ rocblas_gemm<rocblas_double_complex>(rocblas_handle handle,
     return rocblas_zgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
+#endif
 /* ============================================================================================ */
 
 
@@ -238,18 +243,19 @@ rocblas_gemm_batched<double>(rocblas_handle handle,
     return rocblas_dgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
 
+#if COMPLEX
 
 template<>
 rocblas_status
-rocblas_gemm_batched<rocblas_rocblas_double_complex_complex>(rocblas_handle handle,
+rocblas_gemm_batched<rocblas_float_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
-    const rocblas_rocblas_double_complex_complex *alpha,
-    const rocblas_rocblas_double_complex_complex *A, rocblas_int lda, rocblas_int bsa,
-    const rocblas_rocblas_double_complex_complex *B, rocblas_int ldb, rocblas_int bsb,
-    const rocblas_rocblas_double_complex_complex *beta,
-    rocblas_rocblas_double_complex_complex *C, rocblas_int ldc, rocblas_int bsc,
+    const rocblas_float_complex *alpha,
+    const rocblas_float_complex *A, rocblas_int lda, rocblas_int bsa,
+    const rocblas_float_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_float_complex *beta,
+    rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count)
 {
     return rocblas_cgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
@@ -270,3 +276,6 @@ rocblas_gemm_batched<rocblas_double_complex>(rocblas_handle handle,
 {
     return rocblas_zgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
+
+#endif
+

@@ -5,8 +5,8 @@
 
 #include "rocblas.h"
 
-#if BUILD_WITH_COBALT
-    #include "Cobalt.h"
+#if BUILD_WITH_TENSILE
+    #include "Tensile.h"
 #endif
 
 /*******************************************************************************
@@ -29,19 +29,19 @@ struct _rocblas_handle{
   // rocblas by default take the system default stream 0 users cannot create
   hipStream_t rocblas_stream = 0; 
 
-#if BUILD_WITH_COBALT
+#if BUILD_WITH_TENSILE
   /*****************************************************************************
-   * \brief Cobalt Device Profile
+   * \brief Tensile Device Profile
    * describes device to which this control is assigned so
-   * Cobalt can lookup optimal solution
+   * Tensile can lookup optimal solution
    ****************************************************************************/
-  CobaltDeviceProfile cobalt_device_profile;
+  TensileDeviceProfile tensile_device_profile;
 
   /*****************************************************************************
-   * \brief Cobalt Control
-   * for passing control state (stream) to Cobalt
+   * \brief Tensile Control
+   * for passing control state (stream) to Tensile
    ****************************************************************************/
-  CobaltControl cobalt_control;
+  TensileControl tensile_control;
 #endif
 
 };
