@@ -126,7 +126,7 @@ add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} 
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
-  target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+    target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type)
 else( )
   # Otherwise, just try to compile the library with a standards flag
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
@@ -137,7 +137,7 @@ else( )
   endif( )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 )
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST)
 target_include_directories( rocblas-test
   PRIVATE
 #    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>

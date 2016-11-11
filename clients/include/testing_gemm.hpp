@@ -146,29 +146,36 @@ rocblas_status testing_gemm(Arguments argus)
             cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
+        for(int i=0;i<min(N, 4);i++)
+            for(int j=0;j<min(M,4);j++)
+            {
+                printf("matrix C col %d, row %d, CPU result=%f, GPU result=%f\n", i, j,  hC_copy[j+i*ldc], hC[j+i*ldc]);
+            }
+
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check){
-            unit_check_general<T>(M, N, lda, hC_copy.data(), hC.data());
+            unit_check_general<T>(M, N, ldc, hC_copy.data(), hC.data());
         }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', M, N, lda, hC_copy.data(), hC.data());
+            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_copy.data(), hC.data());
         }
 
     }// end of if unit/norm check
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything,
-            cout << "M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
+            cout << "Shape, M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
             if(argus.norm_check){
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << "GG," << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
+            cout << argus.transA_option << argus.transB_option << ',' << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<','
+                 << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
@@ -284,7 +291,6 @@ rocblas_status range_testing_gemm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
         rocblas_gflops = gemm_gflop_count<T> (size, size, size) / gpu_time_used * 1e6 ;
 
-    #if 0
         //library interface
         status = rocblas_gemm<T>(handle, transA, transB,
                         size, size, size,
@@ -298,7 +304,6 @@ rocblas_status range_testing_gemm(Arguments argus)
             hipFree(dC);
             return status;
         }
-    #endif
 
         gpu_time_used = get_time_us() - gpu_time_used;
 
