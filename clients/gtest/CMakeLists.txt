@@ -101,15 +101,18 @@ find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
 
+    set(Tensile_TEST_SRC
+        gemm_gtest.cpp
+        trsm_gtest.cpp
+        )
+
+
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
-    gemm_gtest.cpp
-    trsm_gtest.cpp )
-
-set(rocblas_test_includes
-    ../include/utility.h
+    ${Tensile_TEST_SRC}
     )
+
 
 set( rocblas_benchmark_common
       ../common/utility.cpp
@@ -119,7 +122,7 @@ set( rocblas_benchmark_common
       ../common/unit.cpp
     )
 
-add_executable( rocblas-test ${rocblas_test_source} ${rocblas_test_includes} ${rocblas_benchmark_common} )
+add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )

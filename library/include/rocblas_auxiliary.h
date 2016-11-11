@@ -7,6 +7,7 @@
 #ifndef _ROCBLAS_AUXILIARY_H_
 #define _ROCBLAS_AUXILIARY_H_
 
+#include <hip/hip_runtime_api.h>
 #include "rocblas_types.h"
 
 /*!\file
