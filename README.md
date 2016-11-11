@@ -32,7 +32,7 @@ Except a few routines (like TRSM) having memory allocation inside preventing asy
 
 The [wiki][] has helpful information about building rocblas library, samples and testing files. 
 
-[wiki]: https://github.com/clMathLibraries/rocBLAS/wiki
+[wiki]: https://github.com/RadeonOpenCompute/rocBLAS/wiki
 
 [ROCm]: https://radeonopencompute.github.io/
 
