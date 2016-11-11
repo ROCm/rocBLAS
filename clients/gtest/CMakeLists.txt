@@ -101,15 +101,18 @@ find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
 
+    set(Tensile_TEST_SRC
+        gemm_gtest.cpp
+        trsm_gtest.cpp
+        )
+
+
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
-    gemm_gtest.cpp
-    trsm_gtest.cpp )
-
-set(rocblas_test_includes
-    ../include/utility.h
+    ${Tensile_TEST_SRC}
     )
+
 
 set( rocblas_benchmark_common
       ../common/utility.cpp
@@ -119,11 +122,11 @@ set( rocblas_benchmark_common
       ../common/unit.cpp
     )
 
-add_executable( rocblas-test ${rocblas_test_source} ${rocblas_test_includes} ${rocblas_benchmark_common} )
+add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
-  target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+    target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type)
 else( )
   # Otherwise, just try to compile the library with a standards flag
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
@@ -134,7 +137,7 @@ else( )
   endif( )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 )
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST)
 target_include_directories( rocblas-test
   PRIVATE
 #    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>

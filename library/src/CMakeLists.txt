@@ -20,6 +20,32 @@ endfunction( )
 # Main
 # ########################################################################
 
+# Set up Tensile  Dependency 
+
+if( BUILD_WITH_TENSILE )
+  find_package(Tensile REQUIRED CONFIG)
+
+  add_tensile_lib( rocblas-tensile
+      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/XML_SolutionTimes
+      BACKEND HIP )
+
+  #rocblas_gemm and rocblas_trsm require tensile 
+    set( Tensile_SRC 
+      blas3/Tensile/gemm.cpp
+      blas3/Tensile/Tensile_status.cpp
+      blas3/rocblas_gemm.cpp
+#  blas3/rocblas_trmm.cpp
+#  blas3/rocblas_trsm.cpp
+#  blas3/rocblas_trtri_trsm.cpp
+      )
+
+    set(Tensile_INC
+        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
+        )
+endif()
+
+
+
 set( rocblas_auxiliary_source
   include/handle.h
   include/definitions.h
@@ -29,21 +55,10 @@ set( rocblas_auxiliary_source
   status.cpp
 )
 
-if( BUILD_WITH_COBALT )
-    set( Cobalt_SRC 
-      blas3/Cobalt/gemm.cpp
-      blas3/Cobalt/Cobalt_status.cpp
-      )
-endif()
-
 set( rocblas_blas3_source
-#  blas3/rocblas_gemm.cpp
-#  blas3/rocblas_trmm.cpp
-#  blas3/rocblas_trsm.cpp
   blas3/rocblas_trtri_batched.cpp
   blas3/rocblas_trtri.cpp
-  #  blas3/rocblas_trtri_trsm.cpp
-  ${Cobalt_SRC}
+  ${Tensile_SRC}
 )
 
 set( rocblas_blas2_source
@@ -70,13 +85,6 @@ else( )
   message( STATUS "Library Type: STATIC" )
 endif( )
 
-if( BUILD_WITH_COBALT )
-  find_package(Cobalt REQUIRED CONFIG)
-
-  add_cobalt_lib( rocblas-cobalt
-      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt/XML_SolutionTimes
-      BACKEND HIP )
-endif()
 
 add_library( rocblas
   ${rocblas_blas3_source}
@@ -99,15 +107,15 @@ endif( )
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/blas3/Cobalt>
+          $<BUILD_INTERFACE:${Tensile_INC}>
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
           $<INSTALL_INTERFACE:include>
 )
 
-if( BUILD_WITH_COBALT )
-    target_link_libraries( rocblas PRIVATE rocblas-cobalt )
-    target_compile_definitions( rocblas PRIVATE BUILD_WITH_COBALT=1 )
+if( BUILD_WITH_TENSILE )
+    target_link_libraries( rocblas PRIVATE rocblas-tensile )
+    target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
 endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} )
@@ -150,12 +158,21 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-install( TARGETS rocblas rocblas-cobalt
-  EXPORT rocblas-targets
-  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
+if( BUILD_WITH_TENSILE )
+    install( TARGETS rocblas rocblas-tensile
+        EXPORT rocblas-targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+else()
+    install( TARGETS rocblas 
+        EXPORT rocblas-targets
+        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    )
+endif()
 
 install( EXPORT rocblas-targets
   DESTINATION
