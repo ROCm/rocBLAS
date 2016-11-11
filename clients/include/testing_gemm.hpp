@@ -102,7 +102,6 @@ rocblas_status testing_gemm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-#if 0
     //library interface
     status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
@@ -116,7 +115,6 @@ rocblas_status testing_gemm(Arguments argus)
         hipFree(dC);
         return status;
     }
-#endif
  //    sleep(1);
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;

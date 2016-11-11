@@ -2,6 +2,7 @@
  
 
 #include "rocblas.h"
+#include <hip/hip_runtime.h>
 #include "rocblas.hpp"
 #include "trtri_device.h"
 #include "definitions.h"
