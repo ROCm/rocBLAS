@@ -16,9 +16,7 @@
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
 #include "testing_trtri.hpp"
-#if BUILD_WITH_TENSILE
-    #include "testing_gemm.hpp"
-#endif
+#include "testing_gemm.hpp"
 
 namespace po = boost::program_options;
 
@@ -131,12 +129,10 @@ int main(int argc, char *argv[])
             testing_gemv<double>( argus );
     }
     else if (function == "gemm"){
-        #if  BUILD_WITH_TENSILE
         if (precision == 's')
             testing_gemm<float>( argus );
         else if (precision == 'd')
             testing_gemm<double>( argus );
-        #endif
     }
     else if (function == "trtri"){
         if (precision == 's')
