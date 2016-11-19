@@ -12,8 +12,8 @@ endif( )
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT CMAKE_CONFIGURATION_TYPES )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
+if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
@@ -38,11 +38,14 @@ endif()
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
 
-set( HOST_TOOLCHAIN_NAME "clang" CACHE STRING "Compiler toolchain: (clang gcc)" )
-set_property( CACHE HOST_TOOLCHAIN_NAME PROPERTY STRINGS clang gcc )
-
-set( DEVICE_TOOLCHAIN_NAME "hipcc" CACHE STRING "Compiler toolchain for library: (hcc hipcc)" )
-set_property( CACHE DEVICE_TOOLCHAIN_NAME PROPERTY STRINGS hcc hipcc )
+if( NOT DEFINED DEVICE_CXX_COMPILER )
+  if( NOT DEFINED HIP_ROOT )
+    include( cmake/external-hip.cmake )
+    list( APPEND rocblas_dependencies HIP )
+  endif( )
+  # find_package( HIP )
+  set( DEVICE_CXX_COMPILER ${HIP_ROOT}/bin/hipcc )
+endif()
 
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/package" )
@@ -63,32 +66,19 @@ include( ExternalProject )
 # This captures all of the dependencies cmake builds itself
 set( rocblas_dependencies )
 
-set( DEVICE_TOOLCHAIN_FILE "" )
-if( DEVICE_TOOLCHAIN_NAME STREQUAL "hipcc" )
-  if( NOT DEFINED HIP_ROOT )
-    include( cmake/external-hip.cmake )
-    list( APPEND rocblas_dependencies HIP )
-  endif( )
-
-	# configure toolchain file to find the hip compiler with the hip we just downloaded
-	configure_file( "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake.in"
-			"${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-
-	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-else( )
-	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-endif( )
-
 # Default arguments that get passed down into all external projects
 set( BASE_CMAKE_ARGS
 	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
   -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+  -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+  -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+  -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
   -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
   -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
  )
 
 # CMAKE_BUILD_TYPE only applies to single configuration build systems
-if( NOT CMAKE_CONFIGURATION_TYPES )
+if( DEFINED CMAKE_BUILD_TYPE )
 	list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
@@ -112,8 +102,6 @@ if( BUILD_LIBRARY )
 
 	set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
-    -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
-    -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
     -DTensile_SCHEDULE=${Tensile_SCHEDULE}
     ${TENSILE_CMAKE_ARGS}

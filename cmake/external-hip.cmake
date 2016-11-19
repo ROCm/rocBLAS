@@ -22,15 +22,15 @@ if( ${BUILD_SHARED_LIBS} )
   list( APPEND hip_cmake_args -DCMAKE_CXX_FLAGS=-fPIC )
 endif()
 
-  ExternalProject_Add(
-    HIP
-    PREFIX ${CMAKE_BINARY_DIR}/extern/hip
+ExternalProject_Add(
+  HIP
+  PREFIX ${CMAKE_BINARY_DIR}/extern/hip
   GIT_REPOSITORY ${hip_git_repository}
   GIT_TAG ${hip_git_tag}
-    CMAKE_ARGS ${hip_cmake_args}
-    LOG_BUILD 1
-    LOG_INSTALL 1
-  )
+  CMAKE_ARGS ${hip_cmake_args}
+  LOG_BUILD 1
+  LOG_INSTALL 1
+)
 
 set_property( TARGET HIP PROPERTY FOLDER "extern")
 ExternalProject_Get_Property( HIP install_dir )

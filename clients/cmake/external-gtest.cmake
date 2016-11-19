@@ -66,7 +66,7 @@ else( )
 
   # WARNING: find_package( gtest ) only works if it can find release binaries
   # Even if you want to link against debug binaries, you must build release binaries too
-  list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=Release )
+  list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
   message( STATUS "ExternalGmock using ( " ${Cores} " ) cores to build with" )
 endif( )
 

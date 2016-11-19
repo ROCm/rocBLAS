@@ -8,7 +8,7 @@ include( ExternalProject )
 set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack-release" CACHE STRING "URL to download lapack from" )
 set( lapack_git_tag "lapack-3.6.1" CACHE STRING "git branch" )
 
-set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
+set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} )
 
 # message( STATUS "lapack_make ( " ${lapack_make} " ) " )
 # message( STATUS "lapack_cmake_args ( " ${lapack_cmake_args} " ) " )
