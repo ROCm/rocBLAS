@@ -13,7 +13,7 @@ endif( )
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT CMAKE_CONFIGURATION_TYPES )
-  set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
+    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
@@ -146,7 +146,7 @@ if( BUILD_CLIENTS )
 	# Clients are set up as an external project to take advantage of specifying toolchain files.
 	# We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
-    DEPENDS rocblas
+    #DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR clients-build
     INSTALL_DIR clients-package
