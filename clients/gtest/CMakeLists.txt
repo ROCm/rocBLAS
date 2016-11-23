@@ -97,14 +97,18 @@ if( NOT Boost_FOUND )
   find_package( Boost REQUIRED COMPONENTS program_options )
 endif( )
 
+# message( STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}" )
+# message( STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}" )
+
 find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
+find_package( HIP REQUIRED )
 
-    set(Tensile_TEST_SRC
-        gemm_gtest.cpp
-        trsm_gtest.cpp
-        )
+set(Tensile_TEST_SRC
+    gemm_gtest.cpp
+    trsm_gtest.cpp
+    )
 
 
 set(rocblas_test_source
@@ -122,6 +126,7 @@ set( rocblas_benchmark_common
       ../common/unit.cpp
     )
 
+link_directories( /opt/rocm/lib )
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 # Try to test for specific compiler features if cmake version is recent enough
@@ -137,17 +142,18 @@ else( )
   endif( )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST)
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST -D__HIP_PLATFORM_HCC__)
 target_include_directories( rocblas-test
   PRIVATE
 #    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${HIP_ROOT_DIR}/include>
 )
 
 #target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} )
-target_link_libraries( rocblas-test rocblas gfortran lapack ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} )
+target_link_libraries( rocblas-test rocblas ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} libmcwamp.a libhip_hcc.a CXLActivityLogger hsa-runtime64 hc_am hsakmt dl lapack c++ gfortran)
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879

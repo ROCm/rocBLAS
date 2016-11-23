@@ -13,6 +13,11 @@ if( NOT DEFINED CMAKE_Fortran_COMPILER )
     set( CMAKE_Fortran_COMPILER gfortran )
 endif( )
 
+# If the user does not specify an explicit fortran compiler, assume gfortran
+if( NOT DEFINED CMAKE_C_COMPILER )
+    set( CMAKE_C_COMPILER cc )
+endif( )
+
 set( lapack_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} -DCMAKE_Fortran_COMPILER=${CMAKE_Fortran_COMPILER} )
 
 # message( STATUS "lapack_make ( " ${lapack_make} " ) " )

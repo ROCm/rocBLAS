@@ -63,28 +63,28 @@ set( BASE_CMAKE_ARGS
  )
 
 if( DEFINED CMAKE_CXX_COMPILER )
-    message( STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER} " )
-    list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+  message( STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
 endif( )
 
 if( DEFINED CMAKE_C_COMPILER )
-    message( STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}" )
-    list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+  message( STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}" )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
 endif( )
 
 if( DEFINED CMAKE_CXX_FLAGS )
-    message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS} " )
-    list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+  message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
 endif( )
 
 if( DEFINED CMAKE_C_FLAGS )
-    message( STATUS "CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}" )
-    list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+  message( STATUS "CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}" )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
 endif( )
 
 # CMAKE_BUILD_TYPE only applies to single configuration build systems
 if( DEFINED CMAKE_BUILD_TYPE )
-    list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
 if( NOT DEFINED DEVICE_CXX_COMPILER )
@@ -140,29 +140,33 @@ endif()
 
 # Build clients of the library
 if( BUILD_CLIENTS )
-	include( clients/cmake/build-options.cmake )
+  include( clients/cmake/build-options.cmake )
 
-	# Default arguments that get passed down into all external projects
-	set( CLIENTS_CMAKE_ARGS
-	${BASE_CMAKE_ARGS}
+  # Default arguments that get passed down into all external projects
+  set( CLIENTS_CMAKE_ARGS
+  ${BASE_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-	-DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
-	-DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
-	-DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
+    -DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
+    -DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
+    -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
     -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
-	)
+  )
 
-    if( DEFINED BOOST_ROOT )
-      list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
-    endif( )
+  if( DEFINED BOOST_ROOT )
+    list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
+  endif( )
 
-	if( BUILD_LIBRARY )
-		ExternalProject_Get_Property( rocblas install_dir )
-		list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
-	endif( )
+  if( DEFINED HIP_ROOT )
+    list( APPEND CLIENTS_CMAKE_ARGS -DHIP_ROOT=${HIP_ROOT} )
+  endif( )
 
-	# Clients are set up as an external project to take advantage of specifying toolchain files.
-	# We want cmake to go through it's usual discovery process
+  if( BUILD_LIBRARY )
+  ExternalProject_Get_Property( rocblas install_dir )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
+  endif( )
+
+  # Clients are set up as an external project to take advantage of specifying toolchain files.
+  # We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
     DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
@@ -170,6 +174,6 @@ if( BUILD_CLIENTS )
     INSTALL_DIR clients-package
     LIST_SEPARATOR ^^
     CMAKE_ARGS ${CLIENTS_CMAKE_ARGS}
-		INSTALL_COMMAND ""
+    INSTALL_COMMAND ""
   )
 endif( )

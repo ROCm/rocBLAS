@@ -7,24 +7,20 @@ include( ExternalProject )
 
 # set( gtest_version "1.7.0" CACHE STRING "gtest version to download/use" )
 # mark_as_advanced( gtest_version )
-#
-# message( STATUS "gtest_version: " ${gtest_version} )
-#
-# if( DEFINED ENV{GMOCK_URL} )
-#   set( ext.gtest_URL "$ENV{GMOCK_URL}" CACHE STRING "URL to download gtest from" )
-# else( )
-#   set( ext.gtest_URL "https://github.com/google/googletest/archive/release-${gtest_version}.zip" CACHE STRING "URL to download gtest from" )
-# endif( )
-# mark_as_advanced( ext.gtest_URL )
+
+# If the user does not specify an explicit fortran compiler, assume gfortran
+if( NOT DEFINED CMAKE_C_COMPILER )
+    set( CMAKE_C_COMPILER cc )
+endif( )
 
 set( gtest_git_repository "https://github.com/google/googletest.git" CACHE STRING "URL to download gtest from" )
 set( gtest_git_tag "master" CACHE STRING "URL to download gtest from" )
 
 # -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${LIB_DIR}
-set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_DEBUG_POSTFIX=d -DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE} )
+set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package )
 
 if( MSVC )
-  list( APPEND gtest_cmake_args -Dgtest_force_shared_crt=ON )
+  list( APPEND gtest_cmake_args -Dgtest_force_shared_crt=ON -DCMAKE_DEBUG_POSTFIX=d )
 else( )
   # GTEST_USE_OWN_TR1_TUPLE necessary to compile with hipcc
   set( EXTRA_FLAGS "-DGTEST_USE_OWN_TR1_TUPLE=1" )
