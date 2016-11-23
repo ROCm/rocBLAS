@@ -32,9 +32,9 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # Compile the library with the device compiler
-if( DEFINED DEVICE_CXX_COMPILER )
-	set( CMAKE_CXX_COMPILER "${DEVICE_CXX_COMPILER}" )
-endif( )
+#if( DEFINED DEVICE_CXX_COMPILER )
+#    set( CMAKE_CXX_COMPILER ${DEVICE_CXX_COMPILER} CACHE STRING "CXX Compiler" FORCE )
+#endif( )
 
 # Check if cmake supports the new VERSION tag for project() commands
 # rocblas becomes the name of the project with a particular version

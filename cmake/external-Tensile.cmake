@@ -35,14 +35,13 @@ endif( )
 
 message( "Building Tensile with ${Cores} cores" )
 
-# TODO rocBLAS clients to use logger and write XMLs to build dir, not src
 ExternalProject_Add(
   Tensile
   GIT_REPOSITORY ${Tensile_REPO}
   GIT_TAG ${Tensile_TAG}
   PREFIX ${CMAKE_BINARY_DIR}/extern/Tensile
   CMAKE_ARGS
-    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+    ${BASE_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package
     -DTensile_BUILD_CLIENTS=OFF
   LOG_BUILD 1

@@ -39,8 +39,6 @@ list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
 string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
 string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
-# string(REGEX REPLACE ";" "^^" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
-# string(REGEX REPLACE ";" "^^" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" )
 
 set( CLIENTS_CMAKE_ARGS
   -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
