@@ -21,9 +21,9 @@ rocblas_mem_location rocblas_get_pointer_location(void *ptr){
     hipPointerAttribute_t attribute;
     hipPointerGetAttributes(&attribute, ptr);
     if (ptr == attribute.devicePointer) {
-      return rocblas_mem_location_device;
+        return rocblas_mem_location_device;
     } else {
-      return rocblas_mem_location_host;
+        return rocblas_mem_location_host;
     }
 }
 
@@ -36,14 +36,14 @@ rocblas_status rocblas_create_handle(rocblas_handle *handle){
 
     // if handle not valid
     if (handle == nullptr) {
-      return rocblas_status_invalid_pointer;
+        return rocblas_status_invalid_pointer;
     }
 
     // allocate on heap
     try {
       *handle = new _rocblas_handle();
     } catch (rocblas_status status) {
-      return status;
+        return status;
     }
 
     return rocblas_status_success;
@@ -57,9 +57,9 @@ extern "C"
 rocblas_status rocblas_destroy_handle(rocblas_handle handle){
     // call destructor
     try {
-      delete handle;
+        delete handle;
     } catch (rocblas_status status) {
-      return status;
+        return status;
     }
     return rocblas_status_success;
 }
