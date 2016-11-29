@@ -140,18 +140,26 @@ TEST_P(blas1_gtest, scal_float)
 TEST_P(blas1_gtest, swap_float)
 {
     // argument automatically transferred to testing_swap
-    //testing_swap<float>( GetParam() );
-    //testing_swap<double>( GetParam() );
+    testing_swap<float>( GetParam() );
 }
 
+TEST_P(blas1_gtest, swap_double)
+{
+    // argument automatically transferred to testing_swap
+    testing_swap<double>( GetParam() );
+}
 
 TEST_P(blas1_gtest, copy_float)
 {
     // argument automatically transferred to testing_copy
-    //testing_copy<float>( GetParam() );
-    //testing_copy<double>( GetParam() );
+    testing_copy<float>( GetParam() );
 }
 
+TEST_P(blas1_gtest, copy_double)
+{
+    // argument automatically transferred to testing_copy
+    testing_copy<double>( GetParam() );
+}
 
 //Values is for a single item; ValuesIn is for an array
 //notice we are using vector of vector
