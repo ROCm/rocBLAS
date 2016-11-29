@@ -23,11 +23,11 @@ _rocblas_handle::_rocblas_handle() {
     // tensile device profile
     tensile_device_profile = tensileCreateEmptyDeviceProfile();
     if ( strlen(device_properties.name) > tensile_device_profile.devices[0].maxNameLength) {
-      strncpy( tensile_device_profile.devices[0].name,
-          device_properties.name, tensile_device_profile.devices[0].maxNameLength);
+        strncpy( tensile_device_profile.devices[0].name,
+            device_properties.name, tensile_device_profile.devices[0].maxNameLength);
       tensile_device_profile.devices[0].name[tensile_device_profile.devices[0].maxNameLength-1] = '\0';
     } else {
-      strcpy( tensile_device_profile.devices[0].name, device_properties.name);
+        strcpy( tensile_device_profile.devices[0].name, device_properties.name);
     }
     tensile_device_profile.numDevices = 1;
 
@@ -61,11 +61,11 @@ rocblas_status _rocblas_handle::set_stream( hipStream_t user_stream ) {
 
     //TODO: check the user_stream valid or not
     rocblas_stream = user_stream;
-  #if BUILD_WITH_TENSILE
+#if BUILD_WITH_TENSILE
     tensile_control.queues[0] = user_stream;
     tensile_control.numQueues = 1;
     // It is impossible to switch stream to another device in rocblas without destroying the handle
-  #endif
+#endif
     return rocblas_status_success;
 }
 
