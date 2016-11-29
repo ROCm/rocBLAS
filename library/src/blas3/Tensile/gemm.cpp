@@ -970,8 +970,8 @@ TensileDataType conjugate_if_necessary( TensileDataType type, rocblas_operation 
         case tensileDataTypeComplexDouble:
           return tensileDataTypeComplexConjugateDouble;
         default:
-          // code should never come here, so create an error
-          return tensileDataTypeNone;
+          // if type was real, type doesn't change
+          return type;
         }
     } else {
         // not conjugate transposing
