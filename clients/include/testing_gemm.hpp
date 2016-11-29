@@ -109,12 +109,6 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
-    if (status != rocblas_status_success) {
-        hipFree(dA);
-        hipFree(dB);
-        hipFree(dC);
-        return status;
-    }
  //    sleep(1);
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
@@ -190,7 +184,7 @@ rocblas_status testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy_handle(handle);
-    return rocblas_status_success;
+    return status;
 }
 
 
@@ -298,13 +292,6 @@ rocblas_status range_testing_gemm(Arguments argus)
                         dB, size,
                         &beta, dC, size);
 
-        if (status != rocblas_status_success) {
-            hipFree(dA);
-            hipFree(dB);
-            hipFree(dC);
-            return status;
-        }
-
         gpu_time_used = get_time_us() - gpu_time_used;
 
         //copy output from device to CPU
@@ -357,7 +344,7 @@ rocblas_status range_testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy_handle(handle);
-    return rocblas_status_success;
+    return status;
 }
 
 

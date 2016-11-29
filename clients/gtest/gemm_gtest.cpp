@@ -51,17 +51,16 @@ vector<vector<int>> matrix_size_range = {
 
 const
 vector<vector<int>> full_matrix_size_range = {
+                                        {192, 192, 192, 192, 192, 192},
+                                        {640, 640, 640, 640, 640, 640},
                                         {1000, 1000, 1000, 1000, 1000, 1000},
-                                        {2000, 2000, 2000, 2000, 2000, 2000},
                                         {4011, 4011, 4011, 4011, 4011, 4011},
-                                        {8000, 8000, 8000, 8000, 8000, 8000},
                                        };
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
 const
 vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
-                                            {-1.0, -1.0},
                                           };
 
 
@@ -221,9 +220,11 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size,
                         );
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
+/*
 INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose,
                         gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(full_alpha_beta_range), ValuesIn(transA_transB_range)
                                )
                         );
+*/
