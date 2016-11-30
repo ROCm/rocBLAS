@@ -31,37 +31,8 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-# Compile the library with the device compiler
-#if( DEFINED DEVICE_CXX_COMPILER )
-#    set( CMAKE_CXX_COMPILER ${DEVICE_CXX_COMPILER} CACHE STRING "CXX Compiler" FORCE )
-#endif( )
-
-# Check if cmake supports the new VERSION tag for project() commands
-# rocblas becomes the name of the project with a particular version
-if( POLICY CMP0048 )
-	cmake_policy( SET CMP0048 NEW )
-	project( rocblas VERSION 0.0.2.0 LANGUAGES CXX C )
-else( )
-	project( rocblas CXX C )
-	# Define a version for the code
-	if( NOT DEFINED rocblas_VERSION_MAJOR )
-		set( rocblas_VERSION_MAJOR 0 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_MINOR )
-		set( rocblas_VERSION_MINOR 0 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_PATCH )
-		set( rocblas_VERSION_PATCH 2 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_TWEAK )
-		set( rocblas_VERSION_TWEAK 0 )
-	endif( )
-
-	set( rocblas_VERSION "${rocblas_VERSION_MAJOR}.${rocblas_VERSION_MINOR}.${rocblas_VERSION_PATCH}.${rocblas_VERSION_TWEAK}")
-endif( )
+include( build-version )
+project_version( NAME rocblas LANGUAGES CXX )
 
 message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
 message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
@@ -92,7 +63,7 @@ if( MSVC )
 	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}" )
 endif( )
 
-include ( build-bitness )
+include( build-bitness )
 
 # Print out compiler flags for viewing/debug
 message( STATUS "CMAKE_CXX_COMPILER flags: " ${CMAKE_CXX_FLAGS} )

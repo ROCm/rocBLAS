@@ -20,32 +20,8 @@ if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-# Check if cmake supports the new VERSION tag for project() commands
-# rocblas becomes the name of the project with a particular version
-if( POLICY CMP0048 )
-  cmake_policy( SET CMP0048 NEW )
-  project( rocblas-test VERSION 0.0.2.0 LANGUAGES C CXX )
-else( )
-  project( rocblas-test CXX )
-  # Define a version for the code
-  if( NOT DEFINED rocblas_VERSION_MAJOR )
-    set( rocblas-test_VERSION_MAJOR 0 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_MINOR )
-    set( rocblas-test_VERSION_MINOR 0 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_PATCH )
-    set( rocblas-test_VERSION_PATCH 2 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_TWEAK )
-    set( rocblas-test_VERSION_TWEAK 0 )
-  endif( )
-
-  set( rocblas-test_VERSION "${rocblas-test_VERSION_MAJOR}.${rocblas-test_VERSION_MINOR}.${rocblas-test_VERSION_PATCH}.${rocblas-test_VERSION_TWEAK}")
-endif( )
+include( build-version )
+project_version( NAME rocblas-test LANGUAGES CXX )
 
 # Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
 # Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
