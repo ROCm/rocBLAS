@@ -21,7 +21,7 @@ if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
 endif()
 
 include( build-version )
-project_version( rocblas-samples )
+project_version( NAME rocblas-samples LANGUAGES CXX )
 
 # Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
 # Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux

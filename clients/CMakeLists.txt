@@ -48,8 +48,19 @@ set( CLIENTS_CMAKE_ARGS
   -DBUILD_64=${BUILD_64}
   )
 
-if( DEFINED CMAKE_CXX_COMPILER )
-  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+# Linking rocblas dynamically should allow the user to use any host compiler
+# Linking rocblas statically requires the user to use the hcc compiler
+if( BUILD_SHARED_LIBS )
+  # Pass through compiler if explicitely set, otherwise let default handling
+  if( DEFINED CMAKE_CXX_COMPILER )
+    list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+  endif()
+else()
+  if( DEFINED DEVICE_CXX_COMPILER )
+    list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER} )
+  else()
+    message( FATAL_ERROR "Statically linking rocblas requires DEVICE_CXX_COMPILER to be defined, typically hipcc")
+  endif()
 endif( )
 
 if( DEFINED CMAKE_C_COMPILER )
