@@ -102,7 +102,7 @@ set( rocblas_benchmark_common
       ../common/unit.cpp
     )
 
-link_directories( /opt/rocm/lib )
+# link_directories( /opt/rocm/lib )
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 # Try to test for specific compiler features if cmake version is recent enough
@@ -118,7 +118,8 @@ else( )
   endif( )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST -D__HIP_PLATFORM_HCC__)
+# target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST -D__HIP_PLATFORM_HCC__)
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST )
 target_include_directories( rocblas-test
   PRIVATE
 #    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
@@ -128,8 +129,8 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${HIP_ROOT_DIR}/include>
 )
 
-#target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} )
-target_link_libraries( rocblas-test rocblas ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} libmcwamp.a libhip_hcc.a CXLActivityLogger hsa-runtime64 hc_am hsakmt dl lapack c++ gfortran)
+# target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} libmcwamp.a libhip_hcc.a CXLActivityLogger hsa-runtime64 hc_am hsakmt dl lapack c++ gfortran)
+target_link_libraries( rocblas-test rocblas ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} lapack gfortran)
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879

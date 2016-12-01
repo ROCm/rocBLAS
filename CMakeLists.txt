@@ -62,14 +62,22 @@ set( BASE_CMAKE_ARGS
   -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
  )
 
+# Noramlize the different ways of specifying a c++ compiler through -DCMAKE_CXX_COMPILER
 if( DEFINED CMAKE_CXX_COMPILER )
   message( STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER} " )
   list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+elseif( DEFINED ENV{CXX} )
+  message( STATUS "ENV{CXX}: $ENV{CXX} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=$ENV{CXX} )
 endif( )
 
+# Noramlize the different ways of specifying a c compiler through -DCMAKE_C_COMPILER
 if( DEFINED CMAKE_C_COMPILER )
   message( STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}" )
   list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+elseif( DEFINED ENV{CC} )
+  message( STATUS "ENV{CC}: $ENV{CC} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=$ENV{CC} )
 endif( )
 
 if( DEFINED CMAKE_CXX_FLAGS )

@@ -35,15 +35,19 @@ endif( )
 
 message( "Building Tensile with ${Cores} cores" )
 
+set( tensile_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DTensile_BUILD_CLIENTS=OFF )
+
+if( DEFINED CMAKE_CXX_COMPILER )
+  list( APPEND tensile_cmake_args -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+endif( )
+
 ExternalProject_Add(
   Tensile
   GIT_REPOSITORY ${Tensile_REPO}
   GIT_TAG ${Tensile_TAG}
   PREFIX ${CMAKE_BINARY_DIR}/extern/Tensile
   CMAKE_ARGS
-    ${BASE_CMAKE_ARGS}
-    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package
-    -DTensile_BUILD_CLIENTS=OFF
+    ${tensile_cmake_args}
   LOG_BUILD 1
 )
 
