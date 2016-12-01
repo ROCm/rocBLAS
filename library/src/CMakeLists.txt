@@ -21,12 +21,10 @@ endfunction( )
 # ########################################################################
 
 # Set up Tensile  Dependency 
-
 if( BUILD_WITH_TENSILE )
   find_package(Tensile REQUIRED CONFIG)
-
   add_tensile_lib( rocblas-tensile
-      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/XML_SolutionTimes
+      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/SolutionXMLs/${Tensile_SCHEDULE}
       BACKEND HIP )
 
   #rocblas_gemm and rocblas_trsm require tensile 

@@ -25,6 +25,15 @@ project( rocblas-superbuild NONE )
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
+# which benchmark solution schedule
+if ( BUILD_WITH_TENSILE )
+set( Tensile_SCHEDULE "Hawaii_Catalyst_15.201_min" CACHE STRING "Which benchmark data to use for Problem->Solution mapping")
+set_property( CACHE Tensile_SCHEDULE PROPERTY STRINGS
+  Fiji_ROCm_1.3_full
+  Fiji_ROCm_1.3_min
+  Hawaii_Catalyst_15.201_min
+  )
+endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
@@ -106,6 +115,7 @@ if( BUILD_LIBRARY )
     -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
     -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
+    -DTensile_SCHEDULE=${Tensile_SCHEDULE}
     ${TENSILE_CMAKE_ARGS}
   )
 
