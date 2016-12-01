@@ -1,0 +1,2310 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TensileLog>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <TA t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <TB t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.115867" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="90.533923" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TA t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1263" />
+    <TB t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1263" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="2.557378" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="0" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="0" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="1" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="1" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="96.552146" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1263" />
+    <TA t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1263" />
+    <TB t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1263" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="2.424400" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <TA t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <TB t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="39.976450" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1471" st1="5884" sz1="1471" />
+    <TA t="0" n="2" st0="2" sz0="1471" st1="5884" sz1="1471" />
+    <TB t="0" n="2" st0="2" sz0="1471" st1="5884" sz1="1471" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="3.151867" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4064" st1="16256" sz1="4064" />
+    <TA t="0" n="2" st0="2" sz0="4064" st1="16256" sz1="4063" />
+    <TB t="0" n="2" st0="2" sz0="4064" st1="16256" sz1="4063" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="50.598540" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="62.403252" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="69.961964" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="0.120267" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TA t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TB t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="2.214178" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="64" st1="256" sz1="64" />
+    <TA t="0" n="2" st0="2" sz0="64" st1="256" sz1="63" />
+    <TB t="0" n="2" st0="2" sz0="64" st1="256" sz1="63" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.122222" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TA t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <TB t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="0.127111" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <TA t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <TB t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="63.300852" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="0" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="0" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="1" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="1" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="73.309876" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4432" />
+    <TA t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4431" />
+    <TB t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4431" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="63.252452" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="0.121733" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3055" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3055" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="22.003425" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="72.243609" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <TA t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="72.971076" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2751" st1="11004" sz1="2751" />
+    <TA t="0" n="2" st0="2" sz0="2751" st1="11004" sz1="2751" />
+    <TB t="0" n="2" st0="2" sz0="2751" st1="11004" sz1="2751" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="16.509780" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5215" st1="20860" sz1="5215" />
+    <TA t="0" n="2" st0="2" sz0="5215" st1="20860" sz1="5215" />
+    <TB t="0" n="2" st0="2" sz0="5215" st1="20860" sz1="5215" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="100.795702" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="0.758756" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TA t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <TB t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.135911" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="592" st1="2368" sz1="592" />
+    <TA t="0" n="2" st0="2" sz0="592" st1="2368" sz1="591" />
+    <TB t="0" n="2" st0="2" sz0="592" st1="2368" sz1="591" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.417022" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2191" st1="8764" sz1="2191" />
+    <TA t="0" n="2" st0="2" sz0="2191" st1="8764" sz1="2191" />
+    <TB t="0" n="2" st0="2" sz0="2191" st1="8764" sz1="2191" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="9.133912" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="2" b1="2" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="95.134857" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="464" st1="1856" sz1="464" />
+    <TA t="0" n="2" st0="2" sz0="464" st1="1856" sz1="463" />
+    <TB t="0" n="2" st0="2" sz0="464" st1="1856" sz1="463" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.279644" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <TA t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.242000" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="351" st1="1404" sz1="351" />
+    <TA t="0" n="2" st0="2" sz0="351" st1="1404" sz1="351" />
+    <TB t="0" n="2" st0="2" sz0="351" st1="1404" sz1="351" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.219511" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="68.406809" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <TA t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <TB t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="76.756054" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="97.629168" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TA t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TB t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="2.266000" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <TA t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="15" st1="60" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="0" b1="0" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="2" mT1="2" b0="1" b1="0" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="2" mT1="2" b0="0" b1="1" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="2" mT1="2" b0="1" b1="1" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.175022" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <TA t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <TB t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.287956" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TA t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3375" />
+    <TB t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3375" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="30.121915" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="3" mT1="3" b0="2" b1="2" nlpaA="5" lspaA="5" tspaA="24" nlpeA="2" lspeA="12" tspeA="15" nlpaB="5" lspaB="5" tspaB="24" nlpeB="2" lspeB="12" tspeB="15" u0="15" u1="0" />
+   </ID>
+  </S>
+  <B t="0.127600" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TA t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3375" />
+    <TB t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3375" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="32.130271" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1264" />
+    <TA t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1263" />
+    <TB t="0" n="2" st0="2" sz0="1264" st1="5056" sz1="1263" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="2.332978" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <TA t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <TB t="0" n="2" st0="2" sz0="4815" st1="19260" sz1="4815" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="79.227388" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TA t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <TB t="0" n="2" st0="2" sz0="111" st1="444" sz1="112" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="16" tspeA="16" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.123689" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="2" b1="2" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="21.540936" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.226844" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="2" lspaA="24" tspaA="48" nlpeA="2" lspeA="10" tspeA="15" nlpaB="2" lspaB="24" tspaB="48" nlpeB="2" lspeB="10" tspeB="15" u0="15" u1="0" />
+   </ID>
+  </S>
+  <B t="0.114889" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1936" st1="7744" sz1="1936" />
+    <TA t="0" n="2" st0="2" sz0="1936" st1="7744" sz1="1935" />
+    <TB t="0" n="2" st0="2" sz0="1936" st1="7744" sz1="1935" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="6.604890" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TA t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TB t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.151067" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="20.993869" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="591" st1="2364" sz1="591" />
+    <TA t="0" n="2" st0="2" sz0="591" st1="2364" sz1="591" />
+    <TB t="0" n="2" st0="2" sz0="591" st1="2364" sz1="591" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.368622" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1072" />
+    <TA t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1071" />
+    <TB t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1071" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="1.997600" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1263" />
+    <TA t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1264" />
+    <TB t="0" n="2" st0="2" sz0="1263" st1="5052" sz1="1264" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="2.133511" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="4" mT1="4" b0="0" b1="0" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="4" tspeA="4" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="1" wG0="8" wG1="8" mT0="4" mT1="4" b0="1" b1="0" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="4" tspeA="4" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="2" wG0="8" wG1="8" mT0="4" mT1="4" b0="0" b1="1" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="4" tspeA="4" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+    <K i="3" wG0="8" wG1="8" mT0="4" mT1="4" b0="1" b1="1" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="4" tspeA="4" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="0.910311" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4063" st1="16252" sz1="4063" />
+    <TA t="0" n="2" st0="2" sz0="4063" st1="16252" sz1="4063" />
+    <TB t="0" n="2" st0="2" sz0="4063" st1="16252" sz1="4063" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="50.848362" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TA t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="2" b1="2" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="1.003689" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <TA t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <TB t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.161822" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TA t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <TB t="0" n="2" st0="2" sz0="4816" st1="19264" sz1="4816" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="0" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="0" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="1" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="1" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="68.269920" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="3" mT1="3" b0="2" b1="2" nlpaA="1" lspaA="24" tspaA="24" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="24" tspaB="24" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="0.132978" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TA t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.951378" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5631" />
+    <TA t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5632" />
+    <TB t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5632" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="2" b1="2" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="122.236416" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="21.592269" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TA t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1072" />
+    <TB t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1072" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="1.606489" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1072" />
+    <TA t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1071" />
+    <TB t="0" n="2" st0="2" sz0="1072" st1="4288" sz1="1071" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="1.743867" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <TA t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <TB t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.119289" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <TA t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <TB t="0" n="2" st0="2" sz0="4431" st1="17724" sz1="4431" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="62.778230" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="736" st1="2944" sz1="736" />
+    <TA t="0" n="2" st0="2" sz0="736" st1="2944" sz1="735" />
+    <TB t="0" n="2" st0="2" sz0="736" st1="2944" sz1="735" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.549511" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="2" lspeA="8" tspeA="15" nlpaB="1" lspaB="32" tspaB="32" nlpeB="2" lspeB="8" tspeB="15" u0="15" u1="0" />
+   </ID>
+  </S>
+  <B t="0.107556" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.985600" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="0" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="5" mT1="5" b0="0" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="5" mT1="5" b0="1" b1="1" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="89.090234" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1695" st1="6780" sz1="1695" />
+    <TA t="0" n="2" st0="2" sz0="1695" st1="6780" sz1="1695" />
+    <TB t="0" n="2" st0="2" sz0="1695" st1="6780" sz1="1695" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="4.693334" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="352" st1="1408" sz1="352" />
+    <TA t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <TB t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="1" lspaA="48" tspaA="48" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="48" tspaB="48" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.267911" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2752" st1="11008" sz1="2752" />
+    <TA t="0" n="2" st0="2" sz0="2752" st1="11008" sz1="2751" />
+    <TB t="0" n="2" st0="2" sz0="2752" st1="11008" sz1="2751" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="16.302980" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="8" tspaA="24" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="8" tspaB="24" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="0.130533" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5215" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5215" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="100.470102" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TA t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="895" st1="3580" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="2" lspaA="40" tspaA="80" nlpeA="2" lspeA="6" tspeA="8" nlpaB="2" lspaB="40" tspaB="80" nlpeB="2" lspeB="6" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="1.036933" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <TA t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <TB t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="0.119778" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TA t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <TB t="0" n="2" st0="2" sz0="5216" st1="20864" sz1="5216" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="0" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="0" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="6" mT1="6" b0="0" b1="1" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="6" mT1="6" b0="1" b1="1" nlpaA="3" lspaA="32" tspaA="96" nlpeA="1" lspeA="8" tspeA="8" nlpaB="3" lspaB="32" tspaB="96" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="89.283834" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2464" st1="9856" sz1="2464" />
+    <TA t="0" n="2" st0="2" sz0="2464" st1="9856" sz1="2463" />
+    <TB t="0" n="2" st0="2" sz0="2464" st1="9856" sz1="2463" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="11.936224" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2463" st1="9852" sz1="2463" />
+    <TA t="0" n="2" st0="2" sz0="2463" st1="9852" sz1="2463" />
+    <TB t="0" n="2" st0="2" sz0="2463" st1="9852" sz1="2463" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="12.153290" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="2192" st1="8768" sz1="2192" />
+    <TA t="0" n="2" st0="2" sz0="2192" st1="8768" sz1="2191" />
+    <TB t="0" n="2" st0="2" sz0="2192" st1="8768" sz1="2191" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="9.028801" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <TA t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <TB t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="16" tspeA="16" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.119289" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TA t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <TB t="0" n="2" st0="2" sz0="111" st1="444" sz1="111" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="16" tspeA="16" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.212178" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TA t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TB t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="2" b1="2" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="27.164137" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <TA t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <TB t="0" n="2" st0="2" sz0="175" st1="700" sz1="175" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="16" tspeA="16" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.153511" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.166711" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="112" st1="448" sz1="112" />
+    <TA t="0" n="2" st0="2" sz0="112" st1="448" sz1="111" />
+    <TB t="0" n="2" st0="2" sz0="112" st1="448" sz1="111" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="2" lspaA="16" tspaA="32" nlpeA="1" lspeA="16" tspeA="16" nlpaB="2" lspaB="16" tspaB="32" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.140311" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TA t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TB t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="1.058933" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="63" st1="252" sz1="63" />
+    <TA t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <TB t="0" n="2" st0="2" sz0="63" st1="252" sz1="64" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="0.119778" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="895" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="895" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.826222" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <TA t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <TB t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="32.102893" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1472" st1="5888" sz1="1472" />
+    <TA t="0" n="2" st0="2" sz0="1472" st1="5888" sz1="1471" />
+    <TB t="0" n="2" st0="2" sz0="1472" st1="5888" sz1="1471" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="3.241823" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="736" st1="2944" sz1="736" />
+    <TA t="0" n="2" st0="2" sz0="736" st1="2944" sz1="735" />
+    <TB t="0" n="2" st0="2" sz0="736" st1="2944" sz1="735" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.703022" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4432" />
+    <TA t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4431" />
+    <TB t="0" n="2" st0="2" sz0="4432" st1="17728" sz1="4431" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="4" lspaA="16" tspaA="64" nlpeA="1" lspeA="16" tspeA="16" nlpaB="4" lspaB="16" tspaB="64" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="62.306452" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TA t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TB t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="1.813289" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <TA t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <TB t="0" n="2" st0="2" sz0="3375" st1="13500" sz1="3375" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="31.927382" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="2" b1="2" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="19.333602" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1696" st1="6784" sz1="1696" />
+    <TA t="0" n="2" st0="2" sz0="1696" st1="6784" sz1="1695" />
+    <TB t="0" n="2" st0="2" sz0="1696" st1="6784" sz1="1695" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="4.640534" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="112" st1="448" sz1="112" />
+    <TA t="0" n="2" st0="2" sz0="112" st1="448" sz1="111" />
+    <TB t="0" n="2" st0="2" sz0="112" st1="448" sz1="111" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="1" lspaA="16" tspaA="16" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="16" tspaB="16" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.137867" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TA t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TB t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="1" lspaA="64" tspaA="64" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="64" tspaB="64" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="1.777600" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="176" st1="704" sz1="176" />
+    <TA t="0" n="2" st0="2" sz0="176" st1="704" sz1="175" />
+    <TB t="0" n="2" st0="2" sz0="176" st1="704" sz1="175" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.159378" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TA t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <TB t="0" n="2" st0="2" sz0="895" st1="3580" sz1="895" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="1.168445" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="0" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="4" mT1="4" b0="0" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="4" mT1="4" b0="1" b1="1" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="21.675869" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5631" />
+    <TA t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5631" />
+    <TB t="0" n="2" st0="2" sz0="5631" st1="22524" sz1="5631" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="123.675705" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1071" />
+    <TA t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1072" />
+    <TB t="0" n="2" st0="2" sz0="1071" st1="4284" sz1="1072" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="5" mT1="5" b0="2" b1="2" nlpaA="5" lspaA="16" tspaA="80" nlpeA="1" lspeA="16" tspeA="16" nlpaB="5" lspaB="16" tspaB="80" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="1.714045" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TA t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <TB t="0" n="2" st0="2" sz0="3056" st1="12224" sz1="3056" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="0" />
+   </ID>
+  </S>
+  <B t="21.239292" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="1935" st1="7740" sz1="1935" />
+    <TA t="0" n="2" st0="2" sz0="1935" st1="7740" sz1="1935" />
+    <TB t="0" n="2" st0="2" sz0="1935" st1="7740" sz1="1935" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="6.711956" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="7" lspaA="16" tspaA="112" nlpeA="1" lspeA="16" tspeA="16" nlpaB="7" lspaB="16" tspaB="112" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="0" />
+   </ID>
+  </S>
+  <B t="0.865822" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="255" st1="1020" sz1="255" />
+    <TA t="0" n="2" st0="2" sz0="255" st1="1020" sz1="255" />
+    <TB t="0" n="2" st0="2" sz0="255" st1="1020" sz1="255" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="2" b1="2" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.192133" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="592" st1="2368" sz1="592" />
+    <TA t="0" n="2" st0="2" sz0="592" st1="2368" sz1="591" />
+    <TB t="0" n="2" st0="2" sz0="592" st1="2368" sz1="591" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="1" lspaA="48" tspaA="48" nlpeA="1" lspeA="4" tspeA="4" nlpaB="1" lspaB="48" tspaB="48" nlpeB="1" lspeB="4" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="0.374489" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TA t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <TB t="0" n="2" st0="2" sz0="3376" st1="13504" sz1="3376" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="28.900181" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <TA t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <TB t="0" n="2" st0="2" sz0="463" st1="1852" sz1="463" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.288933" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="352" st1="1408" sz1="352" />
+    <TA t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <TB t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="2" lspaA="8" tspaA="16" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="8" tspaB="16" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.189200" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <TA t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <TB t="0" n="2" st0="2" sz0="31" st1="124" sz1="31" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="2" mT1="2" b0="0" b1="0" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="2" mT1="2" b0="1" b1="0" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="2" mT1="2" b0="0" b1="1" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="2" mT1="2" b0="1" b1="1" nlpaA="1" lspaA="32" tspaA="32" nlpeA="1" lspeA="8" tspeA="8" nlpaB="1" lspaB="32" tspaB="32" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.114889" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="16" st1="64" sz1="16" />
+    <TA t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <TB t="0" n="2" st0="2" sz0="16" st1="64" sz1="15" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="0" nlpaA="3" lspaA="6" tspaA="16" nlpeA="2" lspeA="10" tspeA="15" nlpaB="3" lspaB="6" tspaB="16" nlpeB="2" lspeB="10" tspeB="15" u0="15" u1="0" />
+    <K i="1" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="0" nlpaA="3" lspaA="6" tspaA="16" nlpeA="2" lspeA="10" tspeA="15" nlpaB="3" lspaB="6" tspaB="16" nlpeB="2" lspeB="10" tspeB="15" u0="15" u1="0" />
+    <K i="2" wG0="8" wG1="8" mT0="2" mT1="2" b0="0" b1="1" nlpaA="3" lspaA="6" tspaA="16" nlpeA="2" lspeA="10" tspeA="15" nlpaB="3" lspaB="6" tspaB="16" nlpeB="2" lspeB="10" tspeB="15" u0="15" u1="0" />
+    <K i="3" wG0="8" wG1="8" mT0="2" mT1="2" b0="1" b1="1" nlpaA="3" lspaA="6" tspaA="16" nlpeA="2" lspeA="10" tspeA="15" nlpaB="3" lspaB="6" tspaB="16" nlpeB="2" lspeB="10" tspeB="15" u0="15" u1="0" />
+   </ID>
+  </S>
+  <B t="0.115378" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5632" />
+    <TA t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5632" />
+    <TB t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5632" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="0" />
+   </ID>
+  </S>
+  <B t="112.356948" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5632" />
+    <TA t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5631" />
+    <TB t="0" n="2" st0="2" sz0="5632" st1="22528" sz1="5631" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="4" lspaA="32" tspaA="128" nlpeA="1" lspeA="8" tspeA="8" nlpaB="4" lspaB="32" tspaB="128" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="113.204681" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <TA t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <TB t="0" n="2" st0="2" sz0="3711" st1="14844" sz1="3711" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="0" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="8" mT1="8" b0="0" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="8" mT1="8" b0="1" b1="1" nlpaA="8" lspaA="16" tspaA="128" nlpeA="1" lspeA="16" tspeA="16" nlpaB="8" lspaB="16" tspaB="128" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="40.951783" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="352" st1="1408" sz1="352" />
+    <TA t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <TB t="0" n="2" st0="2" sz0="352" st1="1408" sz1="351" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="3" mT1="3" b0="2" b1="2" nlpaA="3" lspaA="16" tspaA="48" nlpeA="1" lspeA="16" tspeA="16" nlpaB="3" lspaB="16" tspaB="48" nlpeB="1" lspeB="16" tspeB="16" u0="16" u1="1" />
+   </ID>
+  </S>
+  <B t="0.294311" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="3055" st1="12220" sz1="3055" />
+    <TA t="0" n="2" st0="2" sz0="3055" st1="12220" sz1="3055" />
+    <TB t="0" n="2" st0="2" sz0="3055" st1="12220" sz1="3055" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="6" mT1="6" b0="2" b1="2" nlpaA="1" lspaA="96" tspaA="96" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="96" tspaB="96" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="22.481070" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="896" st1="3584" sz1="896" />
+    <TA t="0" n="2" st0="2" sz0="896" st1="3584" sz1="895" />
+    <TB t="0" n="2" st0="2" sz0="896" st1="3584" sz1="895" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="2" kG1="2" kG2="1" b0="1" b1="1" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="0" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+    <K i="1" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="0" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+    <K i="2" wG0="16" wG1="16" mT0="7" mT1="7" b0="0" b1="1" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+    <K i="3" wG0="16" wG1="16" mT0="7" mT1="7" b0="1" b1="1" nlpaA="1" lspaA="112" tspaA="112" nlpeA="2" lspeA="2" tspeA="4" nlpaB="1" lspaB="112" tspaB="112" nlpeB="2" lspeB="2" tspeB="4" u0="4" u1="1" />
+   </ID>
+  </S>
+  <B t="1.026667" u="ms" />
+ </TE>
+ <TE>
+  <S>
+   <P>
+    <TC t="0" n="2" st0="2" sz0="735" st1="2940" sz1="735" />
+    <TA t="0" n="2" st0="2" sz0="735" st1="2940" sz1="735" />
+    <TB t="0" n="2" st0="2" sz0="735" st1="2940" sz1="735" />
+    <O t="0" a="0" b="0" o="1" nF="2" nB="0" nS="1" >
+     <IA n="2" i0="0" i1="2" />
+     <IB n="2" i0="1" i1="2" />
+    </O>
+    <DP n="1" d0="Hawaii" CU0="44" MHz0="720" FPC0="128" />
+   </P>
+   <ID kG0="1" kG1="1" kG2="1" b0="2" b1="2" ppdO="0" ppdLS="0" ppdAll="0" >
+    <K i="0" wG0="16" wG1="16" mT0="4" mT1="4" b0="2" b1="2" nlpaA="2" lspaA="32" tspaA="64" nlpeA="1" lspeA="8" tspeA="8" nlpaB="2" lspaB="32" tspaB="64" nlpeB="1" lspeB="8" tspeB="8" u0="8" u1="1" />
+   </ID>
+  </S>
+  <B t="0.622356" u="ms" />
+ </TE>
+</TensileLog>
