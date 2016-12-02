@@ -32,7 +32,7 @@ if( NOT DEFINED GTEST_ROOT )
   list( APPEND rocblas_clients_dependencies googletest )
 endif( )
 
-if( NOT DEFINED LAPACK )
+if( NOT DEFINED LAPACK_ROOT )
   include( external-lapack )
   list( APPEND rocblas_clients_dependencies lapack )
 endif( )
