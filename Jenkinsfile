@@ -1,13 +1,20 @@
 #!/usr/bin/env groovy
 
-// Only keep the 20 most recent builds.
-properties([[$class: 'jenkins.model.BuildDiscarderProperty', 
-    strategy: [$class: 'LogRotator',
-    numToKeepStr: '20',
-    artifactNumToKeepStr: '20']]])
+// Generated from snippet generator 'properties; set job properties'
+properties([buildDiscarder(logRotator(
+    artifactDaysToKeepStr: '',
+    artifactNumToKeepStr: '',
+    daysToKeepStr: '',
+    numToKeepStr: '10')),
+  disableConcurrentBuilds(),
+  pipelineTriggers([cron('H/30 * * * *')])])
 
 currentBuild.result = "SUCCESS"
-node('rocm-1.3')
+
+// Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
+// They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
+// Manually load balance by picking a particular machine
+node('rocm-1.3 && hawaii')
 {
   def node_list = env.NODE_LABELS.tokenize()
   // sh "echo node_list: ${node_list}"
@@ -42,10 +49,13 @@ node('rocm-1.3')
       wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm'])
       {
 
-        dir("${build_dir_release}") {
+        dir("${build_dir_release}")
+        {
           stage("configure clang release") {
               sh """#!/usr/bin/env bash
-                cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY=ON -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_WITH_TENSILE=ON -DHIP_ROOT=/opt/rocm/hip -DBOOST_ROOT=/opt/boost/clang ${scm_dir}
+                cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_BUILD_TYPE=Release \
+                -DBUILD_LIBRARY=ON -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_WITH_TENSILE=ON \
+                -DHIP_ROOT=/opt/rocm/hip -DBOOST_ROOT=/opt/boost/clang ${scm_dir}
                 """
           }
 
@@ -78,19 +88,26 @@ node('rocm-1.3')
             archive includes: 'library-build/*.deb'
           }
 
-          stage("unit tests") {
-            // To trim test time, only execute single digit tests
-            sh '''#!/usr/bin/env bash
-                  cd clients-build/tests-build/staging
-                  ./rocblas-test-d --gtest_output=xml --gtest_filter=*/?
-               '''
-            junit 'clients-build/tests-build/staging/*.xml'
-          }
-      }
+          // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
+          timeout(time: 2, unit: 'HOURS')
+          {
+            stage("unit tests") {
+              // To trim test time, only execute single digit tests
+              sh '''#!/usr/bin/env bash
+                    cd clients-build/tests-build/staging
+                    ./rocblas-test --gtest_output=xml --gtest_filter=*/?
+                '''
+              junit 'clients-build/tests-build/staging/*.xml'
+            }
 
-        stage("samples") {
-          sh "cd clients-build/samples-build; ./example-sscal"
+            stage("samples")
+            {
+              sh "cd clients-build/samples-build; ./example-sscal"
+            }
+          }
+
         }
+
       }
     }
   }
@@ -108,7 +125,7 @@ node('rocm-1.3')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      mail  to: "kent.knox@amd.com",
+      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com",
             subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
