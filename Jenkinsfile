@@ -52,13 +52,13 @@ node('rocm-1.3 && fiji')
           // To trim test time, only execute single digit tests
           sh '''
               cd clients-build/tests-build/staging
-              ./rocblas-test-d --gtest_output=xml --gtest_filter=*/?
+              ./rocblas-test --gtest_output=xml --gtest_filter=*/?
           '''
           junit 'clients-build/tests-build/staging/*.xml'
         }
 
         stage("samples") {
-          sh "cd clients-build/samples-build; ./example-sscal-d"
+          sh "cd clients-build/samples-build; ./example-sscal"
         }
       }
     }
