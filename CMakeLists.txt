@@ -12,8 +12,8 @@ endif( )
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT CMAKE_CONFIGURATION_TYPES )
-    set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
+if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
@@ -38,12 +38,6 @@ endif()
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
 
-set( HOST_TOOLCHAIN_NAME "clang" CACHE STRING "Compiler toolchain: (clang gcc)" )
-set_property( CACHE HOST_TOOLCHAIN_NAME PROPERTY STRINGS clang gcc )
-
-set( DEVICE_TOOLCHAIN_NAME "hipcc" CACHE STRING "Compiler toolchain for library: (hcc hipcc)" )
-set_property( CACHE DEVICE_TOOLCHAIN_NAME PROPERTY STRINGS hcc hipcc )
-
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/package" )
 
@@ -63,35 +57,56 @@ include( ExternalProject )
 # This captures all of the dependencies cmake builds itself
 set( rocblas_dependencies )
 
-set( DEVICE_TOOLCHAIN_FILE "" )
-if( DEVICE_TOOLCHAIN_NAME STREQUAL "hipcc" )
+# Default arguments that get passed down into all external projects
+set( BASE_CMAKE_ARGS
+  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+ )
+
+# Noramlize the different ways of specifying a c++ compiler through -DCMAKE_CXX_COMPILER
+if( DEFINED CMAKE_CXX_COMPILER )
+  message( STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+elseif( DEFINED ENV{CXX} )
+  message( STATUS "ENV{CXX}: $ENV{CXX} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=$ENV{CXX} )
+endif( )
+
+# Noramlize the different ways of specifying a c compiler through -DCMAKE_C_COMPILER
+if( DEFINED CMAKE_C_COMPILER )
+  message( STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}" )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+elseif( DEFINED ENV{CC} )
+  message( STATUS "ENV{CC}: $ENV{CC} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=$ENV{CC} )
+endif( )
+
+if( DEFINED CMAKE_CXX_FLAGS )
+  message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS} " )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+endif( )
+
+if( DEFINED CMAKE_C_FLAGS )
+  message( STATUS "CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}" )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+endif( )
+
+# CMAKE_BUILD_TYPE only applies to single configuration build systems
+if( DEFINED CMAKE_BUILD_TYPE )
+  list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+endif( )
+
+if( NOT DEFINED DEVICE_CXX_COMPILER )
   if( NOT DEFINED HIP_ROOT )
     include( cmake/external-hip.cmake )
     list( APPEND rocblas_dependencies HIP )
   endif( )
+  set( DEVICE_CXX_COMPILER ${HIP_ROOT}/bin/hipcc )
+endif()
 
-	# configure toolchain file to find the hip compiler with the hip we just downloaded
-	configure_file( "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake.in"
-			"${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-
-	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_BINARY_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-else( )
-	set( DEVICE_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/${DEVICE_TOOLCHAIN_NAME}-toolchain.cmake" )
-endif( )
-
-# Default arguments that get passed down into all external projects
-set( BASE_CMAKE_ARGS
-	-DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
-  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-  -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-  -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
- )
-
-# CMAKE_BUILD_TYPE only applies to single configuration build systems
-if( NOT CMAKE_CONFIGURATION_TYPES )
-	list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
-endif( )
-
+# WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
+# Replace all occurances of ; with ^^, which we elect to use a path seperator
+string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
+string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
 
 if( BUILD_LIBRARY )
   if( BUILD_WITH_TENSILE )
@@ -110,12 +125,12 @@ if( BUILD_LIBRARY )
       )
   endif()
 
-	set( LIBRARY_CMAKE_ARGS
+  set( LIBRARY_CMAKE_ARGS
     ${BASE_CMAKE_ARGS}
-    -DHOST_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE}
-    -DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
     -DTensile_SCHEDULE=${Tensile_SCHEDULE}
+    -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
     ${TENSILE_CMAKE_ARGS}
   )
 
@@ -125,6 +140,7 @@ if( BUILD_LIBRARY )
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/library
     BINARY_DIR library-build
     INSTALL_DIR library-package
+    LIST_SEPARATOR ^^
     CMAKE_ARGS ${LIBRARY_CMAKE_ARGS}
     ${rocblas_INSTALL_COMMAND}
   )
@@ -132,35 +148,40 @@ endif()
 
 # Build clients of the library
 if( BUILD_CLIENTS )
-	include( clients/cmake/build-options.cmake )
+  include( clients/cmake/build-options.cmake )
 
-	# Default arguments that get passed down into all external projects
-	set( CLIENTS_CMAKE_ARGS
-	  ${BASE_CMAKE_ARGS}
-		-DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
-		-DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
-		-DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
-		-DCMAKE_TOOLCHAIN_FILE=${PROJECT_SOURCE_DIR}/cmake/${HOST_TOOLCHAIN_NAME}-toolchain.cmake
-		-DDEVICE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
-	  )
+  # Default arguments that get passed down into all external projects
+  set( CLIENTS_CMAKE_ARGS
+  ${BASE_CMAKE_ARGS}
+    -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
+    -DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
+    -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
+    -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+  )
 
-    if( DEFINED BOOST_ROOT )
-      list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
-    endif( )
+  if( DEFINED BOOST_ROOT )
+    list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
+  endif( )
 
-		if( BUILD_LIBRARY )
-			ExternalProject_Get_Property( rocblas install_dir )
-			list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
-		endif( )
+  if( DEFINED HIP_ROOT )
+    list( APPEND CLIENTS_CMAKE_ARGS -DHIP_ROOT=${HIP_ROOT} )
+  endif( )
 
-	# Clients are set up as an external project to take advantage of specifying toolchain files.
-	# We want cmake to go through it's usual discovery process
+  if( BUILD_LIBRARY )
+  ExternalProject_Get_Property( rocblas install_dir )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
+  endif( )
+
+  # Clients are set up as an external project to take advantage of specifying toolchain files.
+  # We want cmake to go through it's usual discovery process
   ExternalProject_Add( rocblas-clients
     DEPENDS rocblas
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/clients
     BINARY_DIR clients-build
     INSTALL_DIR clients-package
+    LIST_SEPARATOR ^^
     CMAKE_ARGS ${CLIENTS_CMAKE_ARGS}
-		INSTALL_COMMAND ""
+    INSTALL_COMMAND ""
   )
 endif( )

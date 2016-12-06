@@ -5,40 +5,10 @@
 # PUBLIC keywords
 cmake_minimum_required( VERSION 2.8.12 )
 
-# Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
-if( rocBLAS_BUILD64 )
-	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
-	set( INCLUDE_DIR include )
-else( )
-	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )
-	set( INCLUDE_DIR include )
-endif( )
-
-# The following code is setting variables to control the behavior of CPack to generate our
-if( WIN32 )
-	set( CPACK_SOURCE_GENERATOR "ZIP" )
-	set( CPACK_GENERATOR "ZIP" )
-else( )
-	set( CPACK_SOURCE_GENERATOR "TGZ" )
-	set( CPACK_GENERATOR "TGZ" )
-endif( )
-
-set( CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-Source")
-# set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
-set( CPACK_PACKAGE_VERSION_MAJOR ${rocBLAS-clients_VERSION_MAJOR} )
-set( CPACK_PACKAGE_VERSION_MINOR ${rocBLAS-clients_VERSION_MINOR} )
-set( CPACK_PACKAGE_VERSION_PATCH ${rocBLAS-clients_VERSION_PATCH} )
-set( CPACK_PACKAGE_VERSION_TWEAK ${rocBLAS-clients_VERSION_TWEAK} )
-set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Radeon Open Compute BLAS library package")
-set( CPACK_PACKAGE_VENDOR "AMD")
-set( CPACK_SOURCE_IGNORE_FILES "/\\\\.git/;/\\\\.hg/;/\\\\.svn/;" )
-
-# Define all variables that influence CPack before including CPack, such as install targets
-include( CPack )
+include( build-version )
+project_version( rocblas-client )
 
 #==================================NEW============================
-
-
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 find_package( rocblas REQUIRED CONFIG )
@@ -89,7 +59,6 @@ target_include_directories( client
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
 )
 
-
 target_link_libraries( client rocblas ${Boost_LIBRARIES} blas lapack)
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
@@ -99,7 +68,36 @@ if( UNIX )
   target_link_libraries( client pthread )
 endif( )
 
-
-
 set_target_properties( client PROPERTIES DEBUG_POSTFIX "-d" )
 # set_target_properties( client PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+
+# Depending on whether we are building for 64 or 32 bit, construct common paths and names that subdirectories can reference for their use
+if( rocBLAS_BUILD64 )
+	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x64" )
+	set( INCLUDE_DIR include )
+else( )
+	set( CPACK_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-x32" )
+	set( INCLUDE_DIR include )
+endif( )
+
+# The following code is setting variables to control the behavior of CPack to generate our
+if( WIN32 )
+	set( CPACK_SOURCE_GENERATOR "ZIP" )
+	set( CPACK_GENERATOR "ZIP" )
+else( )
+	set( CPACK_SOURCE_GENERATOR "TGZ" )
+	set( CPACK_GENERATOR "TGZ" )
+endif( )
+
+set( CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${rocBLAS-clients_VERSION}-${CMAKE_HOST_SYSTEM_NAME}-Source")
+# set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE.txt")
+set( CPACK_PACKAGE_VERSION_MAJOR ${rocBLAS-clients_VERSION_MAJOR} )
+set( CPACK_PACKAGE_VERSION_MINOR ${rocBLAS-clients_VERSION_MINOR} )
+set( CPACK_PACKAGE_VERSION_PATCH ${rocBLAS-clients_VERSION_PATCH} )
+set( CPACK_PACKAGE_VERSION_TWEAK ${rocBLAS-clients_VERSION_TWEAK} )
+set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Radeon Open Compute BLAS library package")
+set( CPACK_PACKAGE_VENDOR "AMD")
+set( CPACK_SOURCE_IGNORE_FILES "/\\\\.git/;/\\\\.hg/;/\\\\.svn/;" )
+
+# Define all variables that influence CPack before including CPack, such as install targets
+include( CPack )
