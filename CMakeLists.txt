@@ -16,7 +16,9 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+# Append our cmake path and the cmake path for hip
+# If users specify their own module_path, our default location below are overridden
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake /opt/rocm/hip/cmake )
 
 # Temp fix, there is a problem building our test program using googletest with gcc
 # Change compiler default to clang
@@ -67,10 +69,7 @@ include( ExternalProject )
 # This captures all of the dependencies cmake builds itself
 set( rocblas_dependencies )
 
-# Default arguments that get passed down into all external projects
-set( BASE_CMAKE_ARGS
-  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
- )
+set( BASE_CMAKE_ARGS )
 
 # Noramlize the different ways of specifying a c++ compiler through -DCMAKE_CXX_COMPILER
 if( DEFINED CMAKE_CXX_COMPILER )
@@ -106,17 +105,23 @@ if( DEFINED CMAKE_BUILD_TYPE )
 endif( )
 
 if( NOT DEFINED DEVICE_CXX_COMPILER )
-  if( NOT DEFINED HIP_ROOT )
-    include( cmake/external-hip.cmake )
-    list( APPEND rocblas_dependencies HIP )
-  endif( )
-  set( DEVICE_CXX_COMPILER ${HIP_ROOT}/bin/hipcc )
+  # if( NOT DEFINED HIP_ROOT )
+  #   include( cmake/external-hip.cmake )
+  #   list( APPEND rocblas_dependencies HIP )
+  # endif( )
+  find_package( HIP REQUIRED )
+  set( DEVICE_CXX_COMPILER ${HIP_ROOT_DIR}/bin/hipcc )
 endif()
 
+# Default arguments that get passed down into all external projects
 # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
 string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
 string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
+list( APPEND BASE_CMAKE_ARGS
+  -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
+  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
+ )
 
 if( BUILD_LIBRARY )
   if( BUILD_WITH_TENSILE )
@@ -174,9 +179,9 @@ if( BUILD_CLIENTS )
     list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
   endif( )
 
-  if( DEFINED HIP_ROOT )
-    list( APPEND CLIENTS_CMAKE_ARGS -DHIP_ROOT=${HIP_ROOT} )
-  endif( )
+  # if( DEFINED HIP_ROOT )
+  #   list( APPEND CLIENTS_CMAKE_ARGS -DHIP_ROOT=${HIP_ROOT} )
+  # endif( )
 
   if( BUILD_LIBRARY )
   ExternalProject_Get_Property( rocblas install_dir )
