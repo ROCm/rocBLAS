@@ -18,6 +18,16 @@ endif()
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
+# Temp fix, there is a problem building our test program using googletest with gcc
+# Change compiler default to clang
+if( NOT DEFINED CMAKE_CXX_COMPILER )
+  set( CMAKE_CXX_COMPILER clang++ )
+endif( )
+
+if( NOT DEFINED CMAKE_C_COMPILER )
+  set( CMAKE_C_COMPILER clang )
+endif( )
+
 # The superbuild does not build anything itself, all compiling is done in external projects
 project( rocblas-superbuild NONE )
 
