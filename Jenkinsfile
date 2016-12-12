@@ -6,8 +6,7 @@ properties([buildDiscarder(logRotator(
     artifactNumToKeepStr: '',
     daysToKeepStr: '',
     numToKeepStr: '10')),
-  disableConcurrentBuilds(),
-  pipelineTriggers([cron('H/30 * * * *')])])
+  disableConcurrentBuilds()])
 
 currentBuild.result = "SUCCESS"
 
