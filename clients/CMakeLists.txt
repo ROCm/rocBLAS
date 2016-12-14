@@ -26,12 +26,12 @@ set( rocblas_clients_dependencies )
 #  endif( )
 #endif()
 
-if( BUILD_CLIENTS_TESTS )
-  if( NOT DEFINED GTEST_ROOT )
-    include( external-gtest )
-    list( APPEND rocblas_clients_dependencies googletest )
-  endif( )
-endif()
+# if( BUILD_CLIENTS_TESTS )
+#   if( NOT DEFINED GTEST_ROOT )
+#     include( external-gtest )
+#     list( APPEND rocblas_clients_dependencies googletest )
+#   endif( )
+# endif()
 
 if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
   if( NOT DEFINED LAPACK_ROOT )
@@ -42,10 +42,11 @@ endif()
 
 # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
-string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
-string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
+string(REGEX REPLACE ";" "^^" CLIENT_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
+string(REGEX REPLACE ";" "^^" CLIENT_MODULE_PATH "${CMAKE_MODULE_PATH}" )
 
 set( CLIENTS_CMAKE_ARGS
+  -DCMAKE_PREFIX_PATH=${CLIENT_PREFIX_PATH}
   -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
   -DBUILD_64=${BUILD_64}
   )

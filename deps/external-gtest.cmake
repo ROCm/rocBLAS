@@ -16,8 +16,9 @@ endif( )
 set( gtest_git_repository "https://github.com/google/googletest.git" CACHE STRING "URL to download gtest from" )
 set( gtest_git_tag "master" CACHE STRING "URL to download gtest from" )
 
-# -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${LIB_DIR}
-set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package )
+# -DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:PATH=${LIB_DIR} PREFIX_GTEST
+# set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package )
+set( gtest_cmake_args -DCMAKE_INSTALL_PREFIX=${PREFIX_GTEST} )
 
 if( MSVC )
   list( APPEND gtest_cmake_args -Dgtest_force_shared_crt=ON -DCMAKE_DEBUG_POSTFIX=d )
@@ -62,22 +63,36 @@ else( )
 
   # WARNING: find_package( gtest ) only works if it can find release binaries
   # Even if you want to link against debug binaries, you must build release binaries too
-  list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+  if( DEFINED CMAKE_BUILD_TYPE )
+    list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
+  else( )
+    list( APPEND gtest_cmake_args -DCMAKE_BUILD_TYPE=Release )
+  endif( )
+
+  if( DEFINED CMAKE_CXX_COMPILER )
+    list( APPEND gtest_cmake_args -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+  endif( )
+
+  if( DEFINED CMAKE_C_COMPILER )
+    list( APPEND gtest_cmake_args -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+  endif( )
+
   message( STATUS "ExternalGmock using ( " ${Cores} " ) cores to build with" )
 endif( )
 
-# message( STATUS "gtest_make ( " ${gtest_make} " ) " )
-# message( STATUS "gtest_cmake_args ( " ${gtest_cmake_args} " ) " )
+message( STATUS "gtest_make ( " ${gtest_make} " ) " )
+message( STATUS "gtest_cmake_args ( " ${gtest_cmake_args} " ) " )
 
 # Master branch has a new structure that combines googletest with googlemock
 ExternalProject_Add(
   googletest
-  PREFIX ${CMAKE_BINARY_DIR}/extern/gtest
+  PREFIX ${CMAKE_BINARY_DIR}/gtest
   GIT_REPOSITORY ${gtest_git_repository}
   GIT_TAG ${gtest_git_tag}
   CMAKE_ARGS ${gtest_cmake_args}
   BUILD_COMMAND ${gtest_make}
   LOG_BUILD 1
+  INSTALL_COMMAND ""
   LOG_INSTALL 1
 )
 
@@ -91,10 +106,10 @@ endif( )
 
 # For visual studio, the path 'debug' is hardcoded because that is the default VS configuration for a build.
 # Doesn't matter if its the gtest or gtestd project above
-set( package_dir "<INSTALL_DIR>/package" )
-set( gtest_lib_dir "<BINARY_DIR>/${LIB_DIR}" )
+set( package_dir "${PREFIX_GTEST}" )
 if( CMAKE_CONFIGURATION_TYPES )
     # Create a package by bundling libraries and header files
+    set( gtest_lib_dir "<BINARY_DIR>/${LIB_DIR}" )
     ExternalProject_Add_Step( googletest createPackage
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${gtest_lib_dir}/Debug ${package_dir}/${LIB_DIR}
       COMMAND ${CMAKE_COMMAND} -E copy_directory ${gtest_lib_dir}/Release ${package_dir}/${LIB_DIR}
@@ -104,18 +119,20 @@ if( CMAKE_CONFIGURATION_TYPES )
       COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/gtest/include/gtest ${package_dir}/include/gtest
       DEPENDEES install
     )
-else( )
-  if( BUILD_64 )
-    ExternalProject_Add_Step( googletest rename_lib_dir
-      COMMAND ${CMAKE_COMMAND} -E remove_directory ${package_dir}/${LIB_DIR}
-      COMMAND ${CMAKE_COMMAND} -E rename ${package_dir}/lib ${package_dir}/${LIB_DIR}
-      DEPENDEES install
-    )
-  endif( )
+# else( )
+#   if( BUILD_64 )
+#     ExternalProject_Add_Step( googletest rename_lib_dir
+#       COMMAND ${CMAKE_COMMAND} -E remove_directory ${package_dir}/${LIB_DIR}
+#       COMMAND ${CMAKE_COMMAND} -E rename ${package_dir}/lib ${package_dir}/${LIB_DIR}
+#       DEPENDEES install
+#     )
+#   endif( )
 endif( )
 
 set_property( TARGET googletest PROPERTY FOLDER "extern")
 ExternalProject_Get_Property( googletest install_dir )
+ExternalProject_Get_Property( googletest binary_dir )
 
 # For use by the user of ExternalGtest.cmake
-set( GTEST_ROOT ${install_dir}/package )
+set( GTEST_INSTALL_ROOT ${install_dir} )
+set( GTEST_BINARY_ROOT ${binary_dir} )
