@@ -28,4 +28,14 @@ if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
 elseif( MSVC_IDE )
   set( BUILD_64 ${CMAKE_CL_64} )
   set_property( GLOBAL PROPERTY USE_FOLDERS TRUE )
+else( )
+  # Compiler is not recognized or is not defined; default to 64-bit
+  # default handling is to pretend the compiler understands gnu like flags
+  message( STATUS "build-bitness.cmake: Compiler not identified, emulating gnu 64-bit")
+
+  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64" )
+  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64" )
+
+  set( BUILD_64 ON )
+
 endif( )

@@ -12,7 +12,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.63.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.64.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
@@ -30,9 +30,9 @@ else( )
 endif( )
 
 if( WIN32 )
-  set( Boost.Command b2 --prefix=<INSTALL_DIR>/package )
+  set( Boost.Command b2 --prefix=${PREFIX_BOOST} )
 else( )
-  set( Boost.Command ./b2 --prefix=<INSTALL_DIR>/package )
+  set( Boost.Command ./b2 --prefix=${PREFIX_BOOST} )
 endif( )
 
 if( CMAKE_COMPILER_IS_GNUCXX )
@@ -97,7 +97,13 @@ if( WIN32 AND (ext.Boost_VERSION VERSION_LESS "1.60.0") )
   list( APPEND Boost.Command define=BOOST_LOG_USE_WINNT6_API )
 endif( )
 
-set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
+if( NOT DEFINED ext.Boost_LINK )
+  if( ${BUILD_SHARED_LIBS} MATCHES "ON" )
+    set( ext.Boost_LINK "shared" CACHE STRING "Which boost link method?  static | shared | static,shared" )
+  else( )
+    set( ext.Boost_LINK "static" CACHE STRING "Which boost link method?  static | shared | static,shared" )
+  endif( )
+endif()
 mark_as_advanced( ext.Boost_LINK )
 
 if( WIN32 )
@@ -111,7 +117,7 @@ else( )
     set( ext.Boost_LAYOUT "tagged" CACHE STRING "Which boost layout method?  versioned | tagged | system" )
 
    # For Linux, typically a build tree only needs one variant
-   if( ${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+   if( ${CMAKE_BUILD_TYPE} MATCHES "Debug")
      set( ext.Boost_VARIANT "debug" CACHE STRING "Which boost variant?  debug | release | debug,release" )
    else( )
      set( ext.Boost_VARIANT "release" CACHE STRING "Which boost variant?  debug | release | debug,release" )
@@ -133,22 +139,22 @@ endif( )
 mark_as_advanced( ext.Boost_URL )
 
 set( Boost.Bootstrap "" )
-set( ext.MD5_HASH "" )
+set( ext.HASH "" )
 if( WIN32 )
   set( Boost.Bootstrap "bootstrap.bat" )
 
   if( CMAKE_VERSION VERSION_LESS "3.1.0" )
     # .zip file
-    set( ext.MD5_HASH "015ae4afa6f3e597232bfe1dab949ace" )
+    set( ext.HASH "b99973c805f38b549dbeaf88701c0abeff8b0e8eaa4066df47cac10a32097523" )
   else( )
     # .7z file
-    set( ext.MD5_HASH "bb1dad35ad069e8d7c8516209a51053c" )
+    set( ext.HASH "49c6abfeb5b480f6a86119c0d57235966b4690ee6ff9e6401ee868244808d155" )
   endif( )
 else( )
   set( Boost.Bootstrap "./bootstrap.sh" )
 
   # .tar.bz2
-  set( ext.MD5_HASH "6095876341956f65f9d35939ccea1a9f" )
+  set( ext.HASH "7bcc5caace97baa948931d712ea5f37038dbb1c5d89b43ad4def4ed7cb683332" )
 
   if( XCODE_VERSION OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
     list( APPEND Boost.Bootstrap --with-toolset=clang )
@@ -158,9 +164,9 @@ endif( )
 # Below is a fancy CMake command to download, build and install Boost on the users computer
 ExternalProject_Add(
   boost
-  PREFIX ${CMAKE_CURRENT_BINARY_DIR}/extern/boost
+  PREFIX ${CMAKE_BINARY_DIR}/boost
   URL ${ext.Boost_URL}
-  URL_MD5 ${ext.MD5_HASH}
+  URL_HASH SHA256=${ext.HASH}
   UPDATE_COMMAND ${Boost.Bootstrap}
   LOG_UPDATE 1
   CONFIGURE_COMMAND ""
@@ -172,6 +178,8 @@ ExternalProject_Add(
 
 set_property( TARGET boost PROPERTY FOLDER "extern" )
 ExternalProject_Get_Property( boost install_dir )
+ExternalProject_Get_Property( boost binary_dir )
 
-# For use by the user of ExternalBoost.cmake
-set( BOOST_ROOT ${install_dir}/package )
+# For use by the user of ExternalGtest.cmake
+set( BOOST_INSTALL_ROOT ${install_dir} )
+set( BOOST_BINARY_ROOT ${binary_dir} )
