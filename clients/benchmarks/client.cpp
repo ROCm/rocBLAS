@@ -9,6 +9,7 @@
 
 #include "rocblas.h"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "testing_scal.hpp"
 #include "testing_dot.hpp"
 #include "testing_nrm2.hpp"

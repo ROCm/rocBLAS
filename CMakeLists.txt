@@ -47,7 +47,7 @@ set( rocblas_INSTALL_COMMAND INSTALL_COMMAND ${CMAKE_COMMAND} -E echo_append )
 # Clients are programs provided in this repository, that make use of the library as a library client.  This can include
 # but is not limited to benchmarks, tests and samples.
 if( BUILD_CLIENTS )
-  # Clients need to find and link rocfft; we install it locally instead of globally
+  # Clients need to find and link rocblas; we install it locally instead of globally
   unset( rocblas_INSTALL_COMMAND )
 endif()
 
