@@ -50,8 +50,8 @@ rocblas_status xgemm_tensile(
     }
 
     // tensor dimensions in rows/cols
-    int num_cols_c = m;
-    int num_rows_c = n;
+    int num_cols_c = n;
+    int num_rows_c = m;
     int num_cols_a = (trans_a == rocblas_operation_none) ? k : m;
     int num_rows_a = (trans_a == rocblas_operation_none) ? m : k;
     int num_cols_b = (trans_b == rocblas_operation_none) ? n : k;
