@@ -90,7 +90,7 @@ if( BUILD_CLIENTS_SAMPLES )
     )
 
   ExternalProject_Add( samples
-    DEPENDS ${rocblas_clients_dependencies}
+    #DEPENDS ${rocblas_clients_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
     BINARY_DIR samples-build
     CMAKE_ARGS ${SAMPLES_CMAKE_ARGS}
