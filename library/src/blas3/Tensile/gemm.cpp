@@ -10,6 +10,10 @@
 #include "handle.h"
 
 #define COMPLEX 0
+
+//this gemm.cpp needs considerable debugging
+
+
 /*******************************************************************************
  * GEMM wrapper around Tensile
  ******************************************************************************/
@@ -163,9 +167,11 @@ rocblas_status xgemm_tensile(
         index_assignments_b[1] = trans_b == rocblas_operation_none ? 1 : 2;
     }
 
+    printf("creating problem \n");
     // create problem
     TensileProblem problem;
-    RETURN_IF_TENSILE_ERROR( tensileCreateProblem(
+    // DONOT SIMPLY return a TENSILE error, the return type is rocblas_status, otherwise cause stalling
+    PRINT_IF_TENSILE_ERROR( tensileCreateProblem(
         &problem,
         tensor_c,
         tensor_a,
@@ -180,12 +186,13 @@ rocblas_status xgemm_tensile(
 
     #ifdef _DEBUG
     // thorough validation that problem was created correctly
-    RETURN_IF_TENSILE_ERROR( tensileValidateProblem(problem) );
+    PRINT_IF_TENSILE_ERROR( tensileValidateProblem(problem) );
     #endif
 
     // lookup solution
+    printf("looking up solution \n");
     TensileSolution solution;
-    RETURN_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
+    PRINT_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
 
     // wrap pointers and enqueue solution
     TensileTensorData      tensor_data_c{ c, 0 };
@@ -193,7 +200,7 @@ rocblas_status xgemm_tensile(
     TensileTensorDataConst tensor_data_b{ b, 0 };
     TensileScalarData      scalar_data_alpha{ alpha };
     TensileScalarData      scalar_data_beta{ beta };
-    RETURN_IF_TENSILE_ERROR( tensileEnqueueSolution(
+    PRINT_IF_TENSILE_ERROR( tensileEnqueueSolution(
         solution,
         tensor_data_c,
         tensor_data_a,
@@ -203,10 +210,10 @@ rocblas_status xgemm_tensile(
         &handle->tensile_control) );
 
     // cleanup
-    RETURN_IF_TENSILE_ERROR( tensileDestroyProblem(problem) );
-    RETURN_IF_TENSILE_ERROR( tensileDestroySolution(solution) );
+    PRINT_IF_TENSILE_ERROR( tensileDestroyProblem(problem) );
+    PRINT_IF_TENSILE_ERROR( tensileDestroySolution(solution) );
 
-    // TODO - put events into handle, if necessary
+    // TODO - put events into handle, if necessary. In HIP, events are surround the kernel, no way let kernel take an event
 
     // success
     return rocblas_status_success;
