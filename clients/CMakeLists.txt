@@ -18,20 +18,26 @@ set( rocblas_clients_dependencies )
 
 # If the user does not explicitely specify BOOST_ROOT, build our
 # own on the fly
-if( NOT DEFINED BOOST_ROOT )
-  include( external-boost )
-  list( APPEND rocblas_clients_dependencies boost )
-endif( )
+if( BUILD_CLIENTS_BENCHMARKS )
+  if( NOT DEFINED BOOST_ROOT )
+    include( external-boost )
+    list( APPEND rocblas_clients_dependencies boost )
+  endif( )
+endif()
 
-if( NOT DEFINED GTEST_ROOT )
-  include( external-gtest )
-  list( APPEND rocblas_clients_dependencies googletest )
-endif( )
+if( BUILD_CLIENTS_TESTS )
+  if( NOT DEFINED GTEST_ROOT )
+    include( external-gtest )
+    list( APPEND rocblas_clients_dependencies googletest )
+  endif( )
+endif()
 
-if( NOT DEFINED LAPACK_ROOT )
-  include( external-lapack )
-  list( APPEND rocblas_clients_dependencies lapack )
-endif( )
+if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
+  if( NOT DEFINED LAPACK_ROOT )
+    include( external-lapack )
+    list( APPEND rocblas_clients_dependencies lapack )
+  endif( )
+endif()
 
 if( DEFINED HIP_ROOT )
   list( APPEND CMAKE_MODULE_PATH ${HIP_ROOT}/cmake )
@@ -90,7 +96,6 @@ if( BUILD_CLIENTS_SAMPLES )
     )
 
   ExternalProject_Add( samples
-    #DEPENDS ${rocblas_clients_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
     BINARY_DIR samples-build
     CMAKE_ARGS ${SAMPLES_CMAKE_ARGS}

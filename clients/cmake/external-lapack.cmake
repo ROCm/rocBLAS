@@ -6,7 +6,7 @@ message( STATUS "Configuring lapack external dependency" )
 include( ExternalProject )
 
 set( lapack_git_repository "https://github.com/Reference-LAPACK/lapack-release" CACHE STRING "URL to download lapack from" )
-set( lapack_git_tag "lapack-3.6.1" CACHE STRING "git branch" )
+set( lapack_git_tag "lapack-3.7.0" CACHE STRING "git branch" )
 
 # If the user does not specify an explicit fortran compiler, assume gfortran
 if( NOT DEFINED CMAKE_Fortran_COMPILER )
