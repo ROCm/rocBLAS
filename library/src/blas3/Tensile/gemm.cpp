@@ -191,8 +191,21 @@ rocblas_status xgemm_tensile(
 
     // lookup solution
     printf("looking up solution \n");
+
+
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    double begin = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
+
     TensileSolution solution;
     PRINT_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
+
+    gettimeofday(&tv, NULL);
+    double end = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
+        
+    double time_used_in_us =  (end - begin);
+
+    printf("It takes %f us to get the solution \n", time_used_in_us);
 
     // wrap pointers and enqueue solution
     TensileTensorData      tensor_data_c{ c, 0 };
