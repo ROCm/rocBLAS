@@ -2,7 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
-
+#include <sys/time.h>
 #include "rocblas.h"
 #include "Tensile.h"
 #include "gemm.h"
@@ -202,7 +202,7 @@ rocblas_status xgemm_tensile(
 
     gettimeofday(&tv, NULL);
     double end = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
-        
+
     double time_used_in_us =  (end - begin);
 
     printf("It takes %f us to get the solution \n", time_used_in_us);
