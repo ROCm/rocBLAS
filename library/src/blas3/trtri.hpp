@@ -2,13 +2,12 @@
  *  * Copyright 2016 Advanced Micro Devices, Inc.
  *   *
  *    * ************************************************************************ */
+
+#pragma once
+#ifndef _TRTRI_HPP_
+#define _TRTRI_HPP_  
+
 #include <hip/hip_runtime.h>
-
-
-
-
-#include "rocblas.h"
-#include "rocblas.hpp"
 #include "trtri_device.h"
 #include "definitions.h"
 
@@ -32,6 +31,7 @@ trtri_small_kernel(hipLaunchParm lp,
 {
     trtri_device<T, NB, 1>(uplo, diag, n, A, lda, invA, ldinvA);
 }
+
 
 
 template<typename T, rocblas_int IB>
@@ -228,8 +228,8 @@ rocblas_trtri_large(rocblas_handle handle,
     dim3 threads(IB, 1, 1);
 
     //first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
-                                        uplo, diag, n, A, lda, invA, ldinvA);
+    //hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
+    //                                    uplo, diag, n, A, lda, invA, ldinvA);
 
 
     if( n <= IB ){
@@ -266,8 +266,8 @@ rocblas_trtri_large(rocblas_handle handle,
         D_gemm =  invA + IB * ldinvA; // invA12
     }
 
-    hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
-                                        m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
+   // hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
+    //                                    m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
 
     return rocblas_status_success;
 
@@ -310,7 +310,7 @@ rocblas_trtri_large(rocblas_handle handle,
               specifies the leading dimension of invA.
 
 ********************************************************************/
-
+/* IB must be <= 64 in order to fit shared (local) memory */
 template<typename T, rocblas_int IB>
 rocblas_status
 rocblas_trtri_template(rocblas_handle handle,
@@ -349,40 +349,5 @@ rocblas_trtri_template(rocblas_handle handle,
 }
 
 
-/* ============================================================================================ */
+#endif  // _TRTRI_HPP_
 
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-
-
-//because of shared memory size, the IB must be <= 64, typically 64 for s, d, c, but 32 for z
-//typically, only a small matrix A is inverted by trtri, so if n is too big, trtri is not implemented
-//trtri is usually called by trsm
-
-template<>
-rocblas_status
-rocblas_trtri<float>(rocblas_handle handle,
-    rocblas_fill uplo, rocblas_diagonal diag,
-    rocblas_int n,
-    float *A, rocblas_int lda,
-    float *invA, rocblas_int ldinvA){
-
-    return rocblas_trtri_template<float, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
-}
-
-template<>
-rocblas_status
-rocblas_trtri<double>(rocblas_handle handle,
-    rocblas_fill uplo, rocblas_diagonal diag,
-    rocblas_int n,
-    double *A, rocblas_int lda,
-    double *invA, rocblas_int ldinvA){
-
-    return rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
-}

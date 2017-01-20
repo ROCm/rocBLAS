@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "definitions.h"
 
 
@@ -97,55 +97,6 @@ rocblas_swap_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_swap<float>(rocblas_handle handle,
-    rocblas_int n,
-    float *x, rocblas_int incx,
-    float* y, rocblas_int incy){
-
-    return rocblas_swap_template<float>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_swap<double>(rocblas_handle handle,
-    rocblas_int n,
-    double *x, rocblas_int incx,
-    double* y, rocblas_int incy){
-
-    return rocblas_swap_template<double>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_swap<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y, rocblas_int incy){
-
-    return rocblas_swap_template<rocblas_float_complex>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_swap<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y, rocblas_int incy){
-
-    return rocblas_swap_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
-}
 
 /* ============================================================================================ */
 
@@ -163,7 +114,7 @@ rocblas_sswap(rocblas_handle handle,
     float *x, rocblas_int incx,
     float* y, rocblas_int incy){
 
-    return rocblas_swap<float>(handle, n, x, incx, y, incy);
+    return rocblas_swap_template<float>(handle, n, x, incx, y, incy);
 }
 
 
@@ -174,7 +125,7 @@ rocblas_dswap(rocblas_handle handle,
     double *x, rocblas_int incx,
     double* y, rocblas_int incy){
 
-    return rocblas_swap<double>(handle, n, x, incx, y, incy);
+    return rocblas_swap_template<double>(handle, n, x, incx, y, incy);
 }
 
 
@@ -185,7 +136,7 @@ rocblas_cswap(rocblas_handle handle,
     rocblas_float_complex *x, rocblas_int incx,
     rocblas_float_complex* y, rocblas_int incy){
 
-    return rocblas_swap<rocblas_float_complex>(handle, n, x, incx, y, incy);
+    return rocblas_swap_template<rocblas_float_complex>(handle, n, x, incx, y, incy);
 }
 
 extern "C"
@@ -195,7 +146,7 @@ rocblas_zswap(rocblas_handle handle,
     rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex* y, rocblas_int incy){
 
-    return rocblas_swap<rocblas_double_complex>(handle, n, x, incx, y, incy);
+    return rocblas_swap_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
 }
 
 /* ============================================================================================ */
