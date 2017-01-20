@@ -17,7 +17,7 @@
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
 #include "testing_trtri.hpp"
-//#include "testing_gemm.hpp"
+#include "testing_gemm.hpp"
 
 namespace po = boost::program_options;
 
@@ -135,13 +135,13 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_trtri<double>( argus );
     }
-/*    else if (function == "gemm"){
+    else if (function == "gemm"){
         if (precision == 's')
             testing_gemm<float>( argus );
         else if (precision == 'd')
             testing_gemm<double>( argus );
     }
-*/
+
     else{
         printf("Invalid value for --function \n");
         return -1;
