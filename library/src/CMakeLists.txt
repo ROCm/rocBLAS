@@ -31,10 +31,8 @@ if( BUILD_WITH_TENSILE )
     set( Tensile_SRC 
       blas3/Tensile/gemm.cpp
       blas3/Tensile/Tensile_status.cpp
-      blas3/rocblas_gemm.cpp
-#  blas3/rocblas_trmm.cpp
-#  blas3/rocblas_trsm.cpp
-#  blas3/rocblas_trtri_trsm.cpp
+      blas3/rocblas_trsm.cpp
+# blas3/rocblas_trtri_trsm.cpp
       )
 
     set(Tensile_INC
@@ -65,6 +63,7 @@ set( rocblas_blas2_source
 
 set( rocblas_blas1_source
   blas1/fetch_template.cpp
+  blas1/rocblas_amin.cpp
   blas1/rocblas_amax.cpp
   blas1/rocblas_asum.cpp
   blas1/rocblas_axpy.cpp

@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "status.h"
 #include "definitions.h"
 #include "gemv_device.h"
@@ -194,42 +194,6 @@ rocblas_gemv_template(rocblas_handle handle,
 }
 
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-
-template<>
-rocblas_status
-rocblas_gemv<float>(rocblas_handle handle,
-             rocblas_operation transA, rocblas_int m, rocblas_int n,
-             const float *alpha,
-             const float *A, rocblas_int lda,
-             const float *x, rocblas_int incx,
-             const float *beta,
-             float *y, rocblas_int incy){
-
-    return rocblas_gemv_template<float>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_gemv<double>(rocblas_handle handle,
-             rocblas_operation transA, rocblas_int m, rocblas_int n,
-             const double *alpha,
-             const double *A, rocblas_int lda,
-             const double *x, rocblas_int incx,
-             const double *beta,
-             double *y, rocblas_int incy){
-
-    return rocblas_gemv_template<double>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
-}
 
 
 /* ============================================================================================ */
@@ -252,7 +216,7 @@ rocblas_sgemv(rocblas_handle handle,
              const float *beta,
              float *y, rocblas_int incy){
 
-    return   rocblas_gemv<float>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    return   rocblas_gemv_template<float>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 
 }
 
@@ -266,6 +230,6 @@ rocblas_dgemv(rocblas_handle handle,
              const double *beta,
              double *y, rocblas_int incy){
 
-    return   rocblas_gemv<double>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    return   rocblas_gemv_template<double>(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 
 }
