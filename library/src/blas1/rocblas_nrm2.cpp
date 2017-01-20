@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
@@ -204,57 +204,6 @@ rocblas_nrm2_template(rocblas_handle handle,
 
 
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_nrm2<float, float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *x, rocblas_int incx,
-    float *result){
-
-    return rocblas_nrm2_template<float, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_nrm2<double, double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *x, rocblas_int incx,
-    double *result){
-
-    return rocblas_nrm2_template<double, double>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_nrm2<rocblas_float_complex, float>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    float *result){
-
-    return rocblas_nrm2_template<rocblas_float_complex, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_nrm2<rocblas_double_complex, double>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    double *result){
-
-    return rocblas_nrm2_template<rocblas_double_complex, double>(handle, n, x, incx, result);
-}
-
-
 
 /* ============================================================================================ */
 
@@ -272,7 +221,7 @@ rocblas_snrm2(rocblas_handle handle,
     const float *x, rocblas_int incx,
     float *result){
 
-    return rocblas_nrm2<float, float>(handle, n, x, incx, result);
+    return rocblas_nrm2_template<float, float>(handle, n, x, incx, result);
 }
 
 
@@ -283,7 +232,7 @@ rocblas_dnrm2(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *result){
 
-    return rocblas_nrm2<double, double>(handle, n, x, incx, result);
+    return rocblas_nrm2_template<double, double>(handle, n, x, incx, result);
 }
 
 
@@ -294,7 +243,7 @@ rocblas_scnrm2(rocblas_handle handle,
     const rocblas_float_complex *x, rocblas_int incx,
     float *result){
 
-    return rocblas_nrm2<rocblas_float_complex, float>(handle, n, x, incx, result);
+    return rocblas_nrm2_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
 extern "C"
@@ -304,7 +253,7 @@ rocblas_dznrm2(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     double *result){
 
-    return rocblas_nrm2<rocblas_double_complex, double>(handle, n, x, incx, result);
+    return rocblas_nrm2_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
 
 

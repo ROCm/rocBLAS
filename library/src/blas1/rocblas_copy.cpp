@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "definitions.h"
 
 #define NB_X 256
@@ -91,55 +91,7 @@ rocblas_copy_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-/* ============================================================================================ */
 
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_copy<float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *x, rocblas_int incx,
-    float* y,       rocblas_int incy){
-
-    return rocblas_copy_template<float>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_copy<double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *x, rocblas_int incx,
-    double* y,       rocblas_int incy){
-
-    return rocblas_copy_template<double>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_copy<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y,       rocblas_int incy){
-
-    return rocblas_copy_template<rocblas_float_complex>(handle, n, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_copy<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y,       rocblas_int incy){
-
-    return rocblas_copy_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
-}
 /* ============================================================================================ */
 
     /*
@@ -156,7 +108,7 @@ rocblas_scopy(rocblas_handle handle,
     const float *x, rocblas_int incx,
     float* y,       rocblas_int incy){
 
-    return rocblas_copy<float>(handle, n, x, incx, y, incy);
+    return rocblas_copy_template<float>(handle, n, x, incx, y, incy);
 }
 
 
@@ -167,7 +119,7 @@ rocblas_dcopy(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double* y,       rocblas_int incy){
 
-    return rocblas_copy<double>(handle, n, x, incx, y, incy);
+    return rocblas_copy_template<double>(handle, n, x, incx, y, incy);
 }
 
 extern "C"
@@ -177,7 +129,7 @@ rocblas_ccopy(rocblas_handle handle,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_float_complex* y,       rocblas_int incy){
 
-    return rocblas_copy<rocblas_float_complex>(handle, n, x, incx, y, incy);
+    return rocblas_copy_template<rocblas_float_complex>(handle, n, x, incx, y, incy);
 }
 
 extern "C"
@@ -187,7 +139,7 @@ rocblas_zcopy(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex* y,       rocblas_int incy){
 
-    return rocblas_copy<rocblas_double_complex>(handle, n, x, incx, y, incy);
+    return rocblas_copy_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
 }
 
 

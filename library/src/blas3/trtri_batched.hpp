@@ -2,12 +2,14 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
 
- 
 
-#include "rocblas.h"
-#include "rocblas.hpp"
+#pragma once
+#ifndef _TRTRI_BATCHED_HPP_
+#define _TRTRI_BATCHED_HPP_  
+
+
+#include <hip/hip_runtime.h> 
 #include "definitions.h"
 #include "trtri_device.h"
 
@@ -136,43 +138,4 @@ rocblas_trtri_batched_template(rocblas_handle handle,
 }
 
 
-
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     *    This function is called by trsm
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_trtri_batched<float>(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    float *A, rocblas_int lda, rocblas_int bsa,
-    float *invA, rocblas_int ldinvA, rocblas_int bsinvA,
-    rocblas_int batch_count)
-{
-    return rocblas_trtri_batched_template<float>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
-}
-
-
-template<>
-rocblas_status
-rocblas_trtri_batched<double>(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    double *A, rocblas_int lda, rocblas_int bsa,
-    double *invA, rocblas_int ldinvA, rocblas_int bsinvA,
-    rocblas_int batch_count)
-{
-    return rocblas_trtri_batched_template<double>(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
-}
-
-/* ============================================================================================ */
+#endif  // _TRTRI_BATCHED_HPP_

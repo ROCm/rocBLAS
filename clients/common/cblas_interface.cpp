@@ -201,7 +201,7 @@ extern "C" {
     }
 
 
-    //nrm2
+    //asum
     template<>
     void cblas_asum<float, float>( rocblas_int n,
                             const float *x, rocblas_int incx,

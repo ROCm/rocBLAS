@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
@@ -216,62 +216,6 @@ rocblas_dot_template(rocblas_handle handle,
 
 
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_dot<float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *x, rocblas_int incx,
-    const float *y, rocblas_int incy,
-    float *result){
-
-    return rocblas_dot_template<float>(handle, n, x, incx, y, incy, result);
-}
-
-
-
-template<>
-rocblas_status
-rocblas_dot<double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *x, rocblas_int incx,
-    const double *y, rocblas_int incy,
-    double *result){
-
-    return rocblas_dot_template<double>(handle, n, x, incx, y, incy, result);
-}
-
-template<>
-rocblas_status
-rocblas_dot<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    const rocblas_float_complex *y, rocblas_int incy,
-    rocblas_float_complex *result){
-
-    return rocblas_dot_template<rocblas_float_complex>(handle, n, x, incx, y, incy, result);
-}
-
-template<>
-rocblas_status
-rocblas_dot<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    const rocblas_double_complex *y, rocblas_int incy,
-    rocblas_double_complex *result){
-
-    return rocblas_dot_template<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
-}
-
 
 
 
@@ -292,7 +236,7 @@ rocblas_sdot(rocblas_handle handle,
     const float *y, rocblas_int incy,
     float *result){
 
-    return rocblas_dot<float>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot_template<float>(handle, n, x, incx, y, incy, result);
 }
 
 extern "C"
@@ -303,7 +247,7 @@ rocblas_ddot(rocblas_handle handle,
     const double *y, rocblas_int incy,
     double *result){
 
-    return rocblas_dot<double>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot_template<double>(handle, n, x, incx, y, incy, result);
 }
 
 
@@ -315,7 +259,7 @@ rocblas_cdotu(rocblas_handle handle,
     const rocblas_float_complex *y, rocblas_int incy,
     rocblas_float_complex *result){
 
-    return rocblas_dot<rocblas_float_complex>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot_template<rocblas_float_complex>(handle, n, x, incx, y, incy, result);
 }
 
 
@@ -327,7 +271,7 @@ rocblas_zdotu(rocblas_handle handle,
     const rocblas_double_complex *y, rocblas_int incy,
     rocblas_double_complex *result){
 
-    return rocblas_dot<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot_template<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
 }
 
 

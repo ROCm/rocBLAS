@@ -1,3 +1,12 @@
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ *
+ * ************************************************************************ */
+
+
+#pragma once
+#ifndef _TRTRI_DEVICE_H_
+#define _TRTRI_DEVICE_H_ 
 
     /*
      * ===========================================================================
@@ -146,3 +155,5 @@ trtri_device(rocblas_fill uplo,
 
 #define STRSM_BLOCK 192
 #define DTRSM_BLOCK 128
+
+#endif  // _TRTRI_DEVICE_H_

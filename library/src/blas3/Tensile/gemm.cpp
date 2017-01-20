@@ -167,7 +167,9 @@ rocblas_status xgemm_tensile(
         index_assignments_b[1] = trans_b == rocblas_operation_none ? 1 : 2;
     }
 
+    #ifdef _DEBUG
     printf("creating problem \n");
+    #endif
     // create problem
     TensileProblem problem;
     // DONOT SIMPLY return a TENSILE error, the return type is rocblas_status, otherwise cause stalling
@@ -189,23 +191,23 @@ rocblas_status xgemm_tensile(
     PRINT_IF_TENSILE_ERROR( tensileValidateProblem(problem) );
     #endif
 
+    #ifdef _DEBUG
     // lookup solution
     printf("looking up solution \n");
-
-
     struct timeval tv;
     gettimeofday(&tv, NULL);
     double begin = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
-
+    #endif
+    
     TensileSolution solution;
     PRINT_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
 
+    #ifdef _DEBUG
     gettimeofday(&tv, NULL);
     double end = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
-
     double time_used_in_us =  (end - begin);
-
     printf("It takes %f us to get the solution \n", time_used_in_us);
+    #endif
 
     // wrap pointers and enqueue solution
     TensileTensorData      tensor_data_c{ c, 0 };
@@ -225,8 +227,6 @@ rocblas_status xgemm_tensile(
     // cleanup
     PRINT_IF_TENSILE_ERROR( tensileDestroyProblem(problem) );
     PRINT_IF_TENSILE_ERROR( tensileDestroySolution(solution) );
-
-    // TODO - put events into handle, if necessary. In HIP, events are surround the kernel, no way let kernel take an event
 
     // success
     return rocblas_status_success;

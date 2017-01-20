@@ -7,7 +7,7 @@
 
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
@@ -226,58 +226,6 @@ rocblas_amax_template(rocblas_handle handle,
 
     /*
      * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_amax<float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *x, rocblas_int incx,
-    rocblas_int *result){
-
-    return rocblas_amax_template<float, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_amax<double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *x, rocblas_int incx,
-    rocblas_int *result){
-
-    return rocblas_amax_template<double, double>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_amax<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_int *result){
-
-    return rocblas_amax_template<rocblas_float_complex, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_amax<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_int *result){
-
-    return rocblas_amax_template<rocblas_double_complex, double>(handle, n, x, incx, result);
-}
-
-
-
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
      *    C wrapper
      * ===========================================================================
      */
@@ -290,7 +238,7 @@ rocblas_samax(rocblas_handle handle,
     const float *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<float>(handle, n, x, incx, result);
+    return rocblas_amax_template<float, float>(handle, n, x, incx, result);
 }
 
 
@@ -301,7 +249,7 @@ rocblas_damax(rocblas_handle handle,
     const double *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<double>(handle, n, x, incx, result);
+    return rocblas_amax_template<double, double>(handle, n, x, incx, result);
 }
 
 
@@ -312,7 +260,7 @@ rocblas_scamax(rocblas_handle handle,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<rocblas_float_complex>(handle, n, x, incx, result);
+    return rocblas_amax_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
 extern "C"
@@ -322,7 +270,7 @@ rocblas_dzamax(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amax<rocblas_double_complex>(handle, n, x, incx, result);
+    return rocblas_amax_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
 
 
