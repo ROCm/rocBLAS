@@ -38,6 +38,7 @@ set( rocblas_benchmark_common
 
 add_executable( client client.cpp ${rocblas_benchmark_common} )
 
+
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
   target_compile_features( client PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )

@@ -146,16 +146,9 @@
         rocblas_operation transA, rocblas_diagonal diag,
         rocblas_int m, rocblas_int n,
         const T* alpha,
-        const T* A, rocblas_int lda,
-        T*       B, rocblas_int ldb);
+        T* A, rocblas_int lda,
+        T* B, rocblas_int ldb);
 
-    template<typename T>
-    rocblas_status
-    rocblas_trtri(rocblas_handle handle,
-        rocblas_fill uplo, rocblas_diagonal diag,
-        rocblas_int n,
-        T *A, rocblas_int lda,
-        T *invA, rocblas_int ldinvA);
 
     template<typename T>
     rocblas_status
@@ -590,7 +583,7 @@
 
         ********************************************************************/
 
-
+    #if BUILD_WITH_TENSILE
 
     template<>
     rocblas_status
@@ -665,7 +658,7 @@
         rocblas_operation transA, rocblas_diagonal diag,
         rocblas_int m, rocblas_int n,
         const float* alpha,
-        const float* A, rocblas_int lda,
+        float* A, rocblas_int lda,
         float*       B, rocblas_int ldb){
 
         return rocblas_strsm(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
@@ -678,36 +671,15 @@
         rocblas_operation transA, rocblas_diagonal diag,
         rocblas_int m, rocblas_int n,
         const double* alpha,
-        const double* A, rocblas_int lda,
+        double* A, rocblas_int lda,
         double*       B, rocblas_int ldb){
 
         return rocblas_dtrsm(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
     }
 
 
+    #endif
 
-
-    template<>
-    rocblas_status
-    rocblas_trtri<float>(rocblas_handle handle,
-        rocblas_fill uplo, rocblas_diagonal diag,
-        rocblas_int n,
-        float *A, rocblas_int lda,
-        float *invA, rocblas_int ldinvA)
-    {
-        return rocblas_strtri(handle, uplo, diag, n, A, lda, invA, ldinvA);
-    }
-
-    template<>
-    rocblas_status
-    rocblas_trtri<double>(rocblas_handle handle,
-        rocblas_fill uplo, rocblas_diagonal diag,
-        rocblas_int n,
-        double *A, rocblas_int lda,
-        double *invA, rocblas_int ldinvA)
-    {
-        return rocblas_dtrtri(handle, uplo, diag, n, A, lda, invA, ldinvA);
-    }
 
 
     template<>

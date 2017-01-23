@@ -32,7 +32,6 @@ if( BUILD_WITH_TENSILE )
       blas3/Tensile/gemm.cpp
       blas3/Tensile/Tensile_status.cpp
       blas3/rocblas_trsm.cpp
-# blas3/rocblas_trtri_trsm.cpp
       )
 
     set(Tensile_INC
@@ -53,7 +52,6 @@ set( rocblas_auxiliary_source
 
 set( rocblas_blas3_source
   blas3/rocblas_trtri_batched.cpp
-  blas3/rocblas_trtri.cpp
   ${Tensile_SRC}
 )
 
