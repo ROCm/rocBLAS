@@ -228,8 +228,8 @@ rocblas_trtri_large(rocblas_handle handle,
     dim3 threads(IB, 1, 1);
 
     //first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
-    //hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
-    //                                    uplo, diag, n, A, lda, invA, ldinvA);
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
+                                        uplo, diag, n, A, lda, invA, ldinvA);
 
 
     if( n <= IB ){
@@ -266,8 +266,8 @@ rocblas_trtri_large(rocblas_handle handle,
         D_gemm =  invA + IB * ldinvA; // invA12
     }
 
-   // hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
-    //                                    m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
+    hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
+                                        m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
 
     return rocblas_status_success;
 

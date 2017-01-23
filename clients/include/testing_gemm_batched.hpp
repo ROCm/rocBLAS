@@ -108,21 +108,14 @@ rocblas_status testing_gemm_batched(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-#if 0
     //library interface
     status = rocblas_gemm_batched<T>(handle, transA, transB,
                     M, N, K,
-                    &alpha, dA, lda, bsa
+                    &alpha, dA, lda, bsa,
                     dB, ldb, bsb,
                     &beta, dC, ldc, bsc, batch_count);
 
-    if (status != rocblas_status_success) {
-        hipFree(dA);
-        hipFree(dB);
-        hipFree(dC);
-        return status;
-    }
-#endif
+
  //    sleep(1);
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;

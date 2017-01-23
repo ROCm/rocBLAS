@@ -81,11 +81,12 @@ find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
 find_package( HIP REQUIRED )
 
+if( BUILD_WITH_TENSILE )
 set(Tensile_TEST_SRC
     gemm_gtest.cpp
     trsm_gtest.cpp
     )
-
+endif()
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
@@ -106,6 +107,15 @@ set( rocblas_benchmark_common
 
 # link_directories( /opt/rocm/lib )
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
+
+if( ${BUILD_WITH_TENSILE} )
+    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 )
+    message(STATUS, "Build Tensil equal 1")
+else()
+    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=0 )
+    message(STATUS, "Build Tensil equal 0")
+endif()
+
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
