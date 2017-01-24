@@ -90,6 +90,8 @@ set(Tensile_TEST_SRC
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
+    gemv_gtest.cpp
+    ger_gtest.cpp
     ${Tensile_TEST_SRC}
     )
 

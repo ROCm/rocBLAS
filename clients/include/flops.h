@@ -32,6 +32,12 @@
         return (2.0 * n * n)/1e9;
     }
 
+    /* \brief floating point counts of GER */
+    template<typename T>
+    double  ger_gflop_count(rocblas_int m, rocblas_int n){
+        return (2.0 * m * n)/1e9;
+    }
+
     /*
      * ===========================================================================
      *    level 3 BLAS
