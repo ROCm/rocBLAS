@@ -352,6 +352,26 @@ extern "C" {
         cblas_zhemv(CblasColMajor, (CBLAS_UPLO)uplo, n, &alpha, A, lda, x, incx, &beta, y, incy);
     }
 
+    template<>
+    void cblas_ger<float>( rocblas_int m, rocblas_int n,
+                            float alpha,
+                            float *x, rocblas_int incx,
+                            float *y, rocblas_int incy,
+                            float *A, rocblas_int lda)
+    {
+        cblas_sger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
+    }
+
+    template<>
+    void cblas_ger<double>(rocblas_int m, rocblas_int n,
+                            double alpha,
+                            double *x, rocblas_int incx,
+                            double *y, rocblas_int incy,
+                            double *A, rocblas_int lda)
+    {
+        cblas_dger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
+    }
+
     /*
      * ===========================================================================
      *    level 3 BLAS

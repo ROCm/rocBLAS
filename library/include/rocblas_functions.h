@@ -604,6 +604,60 @@ rocblas_zhemv(rocblas_handle handle,
                  rocblas_double_complex *y, rocblas_int incy);
 
 
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGER performs the matrix-vector operations
+
+        A := A + alpha*x*y**T
+
+    where alpha is a scalars, x and y are vectors, and A is an
+    m by n matrix.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    m         rocblas_int
+    @param[in]
+    n         rocblas_int
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+    @param[in]
+    y         pointer storing vector y on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    A         pointer storing matrix A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_sger(rocblas_handle handle,
+                 rocblas_int m, rocblas_int n,
+                 const float *alpha,
+                 const float *x, rocblas_int incx,
+                 const float *y, rocblas_int incy,
+                       float *A, rocblas_int lda);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dger(rocblas_handle handle,
+                 rocblas_int m, rocblas_int n,
+                 const double *alpha,
+                 const double *x, rocblas_int incx,
+                 const double *y, rocblas_int incy,
+                       double *A, rocblas_int lda);
+
 /*
  * ===========================================================================
  *    level 3 BLAS
