@@ -435,6 +435,52 @@ rocblas_dzamax(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    amin finds the first index of the element of minimum magnitude of real vector x
+         or the sum of magnitude of the real and imaginary parts of elements if x is a complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              store the amin product. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_samin(rocblas_handle handle,
+    rocblas_int n,
+    const float *x, rocblas_int incx,
+    rocblas_int *result);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_damin(rocblas_handle handle,
+    rocblas_int n,
+    const double *x, rocblas_int incx,
+    rocblas_int *result);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_scamin(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_float_complex *x, rocblas_int incx,
+    rocblas_int *result);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dzamin(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_double_complex *x, rocblas_int incx,
+    rocblas_int *result);
+
     /*
      * ===========================================================================
      *    level 2 BLAS
@@ -609,6 +655,212 @@ rocblas_zhemv(rocblas_handle handle,
  *    level 3 BLAS
  * ===========================================================================
  */
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    trtri  compute the inverse of a matrix  A, namely, invA
+
+        and write the result into invA;
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      rocblas_fill.
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+              if rocblas_fill_upper, the lower part of A is not referenced
+              if rocblas_fill_lower, the upper part of A is not referenced
+    @param[in]
+    diag      rocblas_diagonal.
+              = 'rocblas_diagonal_non_unit', A is non-unit triangular;
+              = 'rocblas_diagonal_unit', A is unit triangular;
+    @param[in]
+    n         rocblas_int.
+              size of matrix A and invA
+    @param[in]
+    A         pointer storing matrix A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+    @param[output]
+    invA      pointer storing matrix invA on the GPU.
+    @param[in]
+    ldinvA    rocblas_int
+              specifies the leading dimension of invA.
+
+********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_strtri(rocblas_handle handle,
+    rocblas_fill uplo, rocblas_diagonal diag,
+    rocblas_int n,
+    float *A, rocblas_int lda,
+    float *invA, rocblas_int ldinvA);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dtrtri(rocblas_handle handle,
+    rocblas_fill uplo, rocblas_diagonal diag,
+    rocblas_int n,
+    double *A, rocblas_int lda,
+    double *invA, rocblas_int ldinvA);
+
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    trtri  compute the inverse of a matrix  A
+
+        inv(A);
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      rocblas_fill.
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+    @param[in]
+    diag      rocblas_diagonal.
+              = 'rocblas_diagonal_non_unit', A is non-unit triangular;
+              = 'rocblas_diagonal_unit', A is unit triangular;
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    A         pointer storing matrix A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+    @param[in]
+    bsa       rocblas_int
+             "batch stride a": stride from the start of one "A" matrix to the next
+    @param[output]
+    invA      pointer storing the inverse matrix A on the GPU.
+    @param[in]
+    ldinvA    rocblas_int
+              specifies the leading dimension of invA.
+    @param[in]
+    bsinvA    rocblas_int
+             "batch stride invA": stride from the start of one "invA" matrix to the next
+    @param[in]
+    batch_count       rocblas_int
+              numbers of matrices in the batch
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_strtri_batched(rocblas_handle handle,
+    rocblas_fill uplo,
+    rocblas_diagonal diag,
+    rocblas_int n,
+    float *A, rocblas_int lda, rocblas_int bsa,
+    float *invA, rocblas_int ldinvA, rocblas_int bsinvA,
+    rocblas_int batch_count);
+
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dtrtri_batched(rocblas_handle handle,
+    rocblas_fill uplo,
+    rocblas_diagonal diag,
+    rocblas_int n,
+    double *A, rocblas_int lda, rocblas_int bsa,
+    double *invA, rocblas_int ldinvA, rocblas_int bsinvA,
+    rocblas_int batch_count);
+
+
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    trsm solves
+
+        op(A)*X = alpha*B or  X*op(A) = alpha*B,
+
+    where alpha is a scalar, X and B are m by n matrices,
+    A is triangular matrix and op(A) is one of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    The matrix X is overwritten on B.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side.
+            rocblas_side_left:       op(A)*X = alpha*B.
+            rocblas_side_right:      X*op(A) = alpha*B.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation.
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int.
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int.
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            &zero then A is not referenced and B need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when  rocblas_side_left  and
+            is  n  when  rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int.
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in,output]
+    B       pointer storing matrix B on the GPU.
+
+    @param[in]
+    ldb    rocblas_int.
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_strsm(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const float* alpha,
+    float* A, rocblas_int lda,
+    float* B, rocblas_int ldb);
+
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dtrsm(rocblas_handle handle,
+    rocblas_side side, rocblas_fill uplo,
+    rocblas_operation transA, rocblas_diagonal diag,
+    rocblas_int m, rocblas_int n,
+    const double* alpha,
+    double* A, rocblas_int lda,
+    double* B, rocblas_int ldb);
 
 
 /*! \brief BLAS Level 3 API

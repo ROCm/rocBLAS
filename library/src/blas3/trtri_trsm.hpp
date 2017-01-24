@@ -2,16 +2,18 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+
+
+#pragma once
+#ifndef __TRTRI_TRSM_HPP__
+#define __TRTRI_TRSM_HPP__  
+
 #include <hip/hip_runtime.h>
-
  
-
-#include "rocblas.h"
-#include "rocblas.hpp"
 #include "definitions.h"
 #include "status.h"
-#include "trtri_device.h"
-
+#include "trtri.hpp"
+#include "gemm.hpp"
 
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB
@@ -24,7 +26,7 @@
         [    IB ]
 
 */
-template<typename T, rocblas_int NB, rocblas_int IB>
+template<typename T, rocblas_int NB>
 __global__ void
 trtri_trsm_kernel(hipLaunchParm lp,
     rocblas_fill uplo,
@@ -37,16 +39,15 @@ trtri_trsm_kernel(hipLaunchParm lp,
     //device function only see one matrix
 
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
-    T *individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
 
     T *individual_invA;
     individual_invA = invA + hipBlockIdx_x/2 * NB * NB;
     // the odd thread block makes a shift
     if( hipBlockIdx_x % 2 == 1 ){
-        individual_invA += NB * IB + IB;
+        individual_invA += NB * (NB/2) + (NB/2);
     }
 
-    trtri_device<T, IB, 1>(uplo, diag, IB, individual_A, lda, individual_invA, NB);
+    trtri_device<T, NB/2, 1>(uplo, diag, (NB/2), A+hipBlockIdx_x * (NB/2) * lda + hipBlockIdx_x * (NB/2), lda, individual_invA, NB);
 
 }
 
@@ -96,7 +97,7 @@ trtri_trsm_kernel(hipLaunchParm lp,
 
 //assume invA has already been allocated, and leading dimension of invA is NB
 //assume IB is exactly half of NB
-template<typename T, rocblas_int NB, rocblas_int IB>
+template<typename T, rocblas_int NB>
 rocblas_status
 rocblas_trtri_trsm_template(rocblas_handle handle,
     rocblas_fill uplo,
@@ -130,7 +131,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
     rocblas_int  blocks =  n / NB; // number of divisible NB*NB blocks, but 2 * blocks of IB*IB blocks
-
+    rocblas_int  IB = NB/2;
     dim3 grid(blocks * 2, 1, 1);
     dim3 threads(IB, 1, 1 );
 
@@ -161,8 +162,11 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     */
 
     //invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB, IB>), dim3(grid), dim3(threads), 0, rocblas_stream,
+
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB>), dim3(grid), dim3(threads), 0, rocblas_stream,
                                         uplo, diag, (blocks)*NB, A, lda, invA);
+
+
 
     T one = 1;  T zero = 0; T negative_one = -1;
     T* C;
@@ -190,24 +194,25 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
     // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
     // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C of size IB * IB
-    status = rocblas_gemm_batched<T>(handle, rocblas_operation_none, rocblas_operation_none,
+    status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                     IB, IB, IB,
                                     &one,
-                                    (A + A12_A21_offset), lda, stride_A,
-                                    (invA + invA11_invA22_offset), NB, stride_invA,
+                                    (const T*)(A + A12_A21_offset), lda, stride_A,
+                                    (const T*)(invA + invA11_invA22_offset), NB, stride_invA,
                                     &zero,
                                     C, IB, stride_C,
                                     blocks );
 
 
+
     // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
     // distance between each invA21 or invA12 is stride_invA,
-    status = rocblas_gemm_batched<T>(handle, rocblas_operation_none, rocblas_operation_none,
+    status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                     IB, IB, IB,
                                     &negative_one,
                                     invA + invA11_invA22_offset, NB, stride_invA,
-                                    &zero,
                                     C, IB, stride_C,
+                                    &zero,
                                     invA + invA21_invA12_offset, NB, stride_invA,
                                     blocks );
 
@@ -216,34 +221,14 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
     //the last digaonal block is handled seperately if n is not divisible by NB,
     if(n % NB != 0 ){
-        status = rocblas_trtri<T>(handle, uplo, diag, n-blocks*NB, A + blocks*NB*lda + blocks*NB, lda, invA + blocks*NB*NB, NB);
+        status = rocblas_trtri_template<T, NB/2>(handle, uplo, diag, n-blocks*NB, A + blocks*NB*lda + blocks*NB, lda, invA + blocks*NB*NB, NB);
     }
+
 
     return status;
 
 }
 
 
-/* ============================================================================================ */
 
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     *    This function is called by trsm
-     * ===========================================================================
-     */
-
-
-
-template<>
-rocblas_status
-rocblas_trtri_trsm<float, STRSM_BLOCK>(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    float *A, rocblas_int lda,
-    float *invA){
-
-    return rocblas_trtri_trsm_template<float, STRSM_BLOCK, STRSM_BLOCK/2>(handle, uplo, diag, n, A, lda, invA);
-}
+#endif  // __TRTRI_TRSM_HPP__

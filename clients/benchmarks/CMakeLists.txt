@@ -34,9 +34,19 @@ set( rocblas_benchmark_common
       ../common/flops.cpp
       ../common/norm.cpp
       ../common/unit.cpp
+
     )
 
 add_executable( client client.cpp ${rocblas_benchmark_common} )
+
+if( BUILD_WITH_TENSILE )
+    target_compile_definitions( client PRIVATE BUILD_WITH_TENSILE=1 )
+    message(STATUS, "Build Tensil equal 1")
+else()
+    target_compile_definitions( client PRIVATE BUILD_WITH_TENSILE=0 )
+    message(STATUS, "Build Tensil equal 0")
+endif()
+
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
