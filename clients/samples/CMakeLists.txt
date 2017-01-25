@@ -56,7 +56,7 @@ set( rocblas_samples_common
 
 #add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
-add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
+add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} ../common/rocblas_template_specialization)
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )

@@ -103,12 +103,13 @@ set( rocblas_benchmark_common
       ../common/flops.cpp
       ../common/norm.cpp
       ../common/unit.cpp
+      ../common/rocblas_template_specialization.cpp
     )
 
 # link_directories( /opt/rocm/lib )
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
 
-if( ${BUILD_WITH_TENSILE} )
+if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 )
     message(STATUS, "Build Tensil equal 1")
 else()

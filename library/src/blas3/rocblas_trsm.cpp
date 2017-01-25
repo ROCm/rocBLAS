@@ -368,7 +368,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
         status = rocblas_trsm_right<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, X);
     }
 
-
+    printf("copy x to b\n");
+    RETURN_IF_HIP_ERROR(hipMemcpy(B, X, ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
     RETURN_IF_HIP_ERROR(hipFree(invA));
     RETURN_IF_HIP_ERROR(hipFree(X));
 
@@ -396,7 +397,7 @@ rocblas_strsm(rocblas_handle handle,
     float* B, rocblas_int ldb){
 
     //shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
-    return rocblas_trsm_template<float, STRSM_BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    return rocblas_trsm_template<float, 32>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
 

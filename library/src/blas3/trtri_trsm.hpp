@@ -127,100 +127,108 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     if ( n == 0 )
         return rocblas_status_success;
 
+    rocblas_status status;
+
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    rocblas_int  blocks =  n / NB; // number of divisible NB*NB blocks, but 2 * blocks of IB*IB blocks
-    rocblas_int  IB = NB/2;
-    dim3 grid(blocks * 2, 1, 1);
-    dim3 threads(IB, 1, 1 );
+    /* blocks is number of divisible NB*NB blocks, but 2 * blocks of IB*IB blocks.
+       if n < NB. Then blocks = 0; the trtri_trsm and batched gemm are diabled */
 
-    /*
-       Algorithm:
+    rocblas_int  blocks =  n / NB; 
 
-        If A is a lower triangular matrix, to compute the invA
-        all of Aii, invAii are of size IB by IB
+    if(blocks > 0){
 
-            [ A11   0  ] * [ invA11   0     ]    = [ I 0 ]
-            [ A21  A22 ]   [ invA21  invA22 ]      [ 0 I ]
+        rocblas_int  IB = NB/2;
+        dim3 grid(blocks * 2, 1, 1);
+        dim3 threads(IB, 1, 1 );
 
-            A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
-            A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
-            A21*invA11 + invA22*invA21 = 0 ->  invA21 = -A22^{-1}*A21*invA11 = -invA22*A21*invA11, by gemm
+        /*
+           Algorithm:
 
+            If A is a lower triangular matrix, to compute the invA
+            all of Aii, invAii are of size IB by IB
 
-        If A is a upper triangular matrix, to compute the invA
-        all of Aii, invAii are of size IB by IB
+                [ A11   0  ] * [ invA11   0     ]    = [ I 0 ]
+                [ A21  A22 ]   [ invA21  invA22 ]      [ 0 I ]
 
-            [ A11  A12  ] * [ invA11  invA12 ]    = [ I 0 ]
-            [ 0    A22  ]   [   0     invA22 ]      [ 0 I ]
-
-            A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
-            A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
-            A11*invA12 + A12*invA22    = 0 ->  invA12 =  -A11^{-1}*A12*invA22 = -invA11*A12*invA22, by gemm
-
-    */
-
-    //invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
-
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB>), dim3(grid), dim3(threads), 0, rocblas_stream,
-                                        uplo, diag, (blocks)*NB, A, lda, invA);
+                A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
+                A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
+                A21*invA11 + invA22*invA21 = 0 ->  invA21 = -A22^{-1}*A21*invA11 = -invA22*A21*invA11, by gemm
 
 
+            If A is a upper triangular matrix, to compute the invA
+            all of Aii, invAii are of size IB by IB
 
-    T one = 1;  T zero = 0; T negative_one = -1;
-    T* C;
-    RETURN_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
+                [ A11  A12  ] * [ invA11  invA12 ]    = [ I 0 ]
+                [ 0    A22  ]   [   0     invA22 ]      [ 0 I ]
 
-    rocblas_status status;
+                A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
+                A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
+                A11*invA12 + A12*invA22    = 0 ->  invA12 =  -A11^{-1}*A12*invA22 = -invA11*A12*invA22, by gemm
 
-    rocblas_int stride_A = NB*lda + NB;
-    rocblas_int stride_invA = NB*NB;
-    rocblas_int stride_C = IB*IB;
+        */
 
-    rocblas_int A12_A21_offset, invA11_invA22_offset, invA21_invA12_offset;
+        //invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
 
-    if (uplo == rocblas_fill_lower){
-        A12_A21_offset = IB; //A21
-        invA11_invA22_offset =  0; //invA11
-        invA21_invA12_offset = IB; //invA21
-    }
-    else
-    {
-        A12_A21_offset = IB*NB; //A12
-        invA11_invA22_offset =  NB*IB+IB; //invA22
-        invA21_invA12_offset = IB*NB; //invA12
-    }
-
-    // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
-    // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C of size IB * IB
-    status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
-                                    IB, IB, IB,
-                                    &one,
-                                    (const T*)(A + A12_A21_offset), lda, stride_A,
-                                    (const T*)(invA + invA11_invA22_offset), NB, stride_invA,
-                                    &zero,
-                                    C, IB, stride_C,
-                                    blocks );
+        hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB>), dim3(grid), dim3(threads), 0, rocblas_stream,
+                                            uplo, diag, (blocks)*NB, A, lda, invA);
 
 
 
-    // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
-    // distance between each invA21 or invA12 is stride_invA,
-    status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
-                                    IB, IB, IB,
-                                    &negative_one,
-                                    invA + invA11_invA22_offset, NB, stride_invA,
-                                    C, IB, stride_C,
-                                    &zero,
-                                    invA + invA21_invA12_offset, NB, stride_invA,
-                                    blocks );
+        T one = 1;  T zero = 0; T negative_one = -1;
+        T* C;
+        RETURN_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
+
+        rocblas_int stride_A = NB*lda + NB;
+        rocblas_int stride_invA = NB*NB;
+        rocblas_int stride_C = IB*IB;
+
+        rocblas_int A12_A21_offset, invA11_invA22_offset, invA21_invA12_offset;
+
+        if (uplo == rocblas_fill_lower){
+            A12_A21_offset = IB; //A21
+            invA11_invA22_offset =  0; //invA11
+            invA21_invA12_offset = IB; //invA21
+        }
+        else
+        {
+            A12_A21_offset = IB*NB; //A12
+            invA11_invA22_offset =  NB*IB+IB; //invA22
+            invA21_invA12_offset = IB*NB; //invA12
+        }
+
+        // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
+        // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C of size IB * IB
+        status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
+                                        IB, IB, IB,
+                                        &one,
+                                        (const T*)(A + A12_A21_offset), lda, stride_A,
+                                        (const T*)(invA + invA11_invA22_offset), NB, stride_invA,
+                                        &zero,
+                                        C, IB, stride_C,
+                                        blocks );
 
 
-    RETURN_IF_HIP_ERROR(hipFree(C));
 
-    //the last digaonal block is handled seperately if n is not divisible by NB,
-    if(n % NB != 0 ){
+        // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
+        // distance between each invA21 or invA12 is stride_invA,
+        status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
+                                        IB, IB, IB,
+                                        &negative_one,
+                                        invA + invA11_invA22_offset, NB, stride_invA,
+                                        C, IB, stride_C,
+                                        &zero,
+                                        invA + invA21_invA12_offset, NB, stride_invA,
+                                        blocks );
+
+
+        RETURN_IF_HIP_ERROR(hipFree(C));
+
+    }//end if
+    
+    //the last digaonal block is handled seperately if n is not divisible by NB, or if there is only one block
+    if(n % NB != 0 || blocks == 0){
         status = rocblas_trtri_template<T, NB/2>(handle, uplo, diag, n-blocks*NB, A + blocks*NB*lda + blocks*NB, lda, invA + blocks*NB*NB, NB);
     }
 
