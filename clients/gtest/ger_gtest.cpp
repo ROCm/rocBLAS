@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_gemv.hpp"
+#include "testing_ger.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -19,7 +19,7 @@ using namespace std;
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, vector<int>, vector<double>, char> gemv_tuple;
+typedef std::tuple<vector<int>, vector<int>, double> ger_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -44,12 +44,16 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1},
-                                    /*  {10, 10, 2},       */
-                                    /*  {600,500, 500},    */
+                                        {11, 11, 11},
+                                        {16, 16, 16},
+                                        {32, 32, 32},
+                                        {65, 65, 65},
+                                   /*   {10, 10, 2},       */
+                                   /*   {600,500, 500},    */
                                         {1000, 1000, 1000},
                                         {2000, 2000, 2000},
                                         {4011, 4011, 4011},
-                                        {8000, 8000, 8000},
+                                        {8000, 8000, 8000}
                                        };
 
 //vector of vector, each pair is a {incx, incy};
@@ -59,36 +63,24 @@ vector<vector<int>> incx_incy_range = {
                                             {1, 1},
                                             {0, -1},
                                             {2, 1},
-                                            {10, 100},
+                                            {10, 100}
                                           };
 
-//vector of vector, each pair is a {alpha, beta};
-//add/delete this list in pairs, like {2.0, 4.0}
+//vector, each entry is  {alpha};
+//add/delete single values, like {2.0}
 const
-vector<vector<double>> alpha_beta_range = {
-                                            {1.0, 0.0},
-                                            {-1.0, -1.0},
-                                            {2.0, 1.0},
-                                            {0.0, 1.0},
+vector<double> alpha_range = {
+                                            -0.5,
+                                            2.0,
+                                            0.0
                                           };
-
-
-//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemv/dgemv,
-const
-vector<char> transA_range = {
-                                        'N',
-                                        'T',
-                                        'C',
-                                       };
-
-
 
 
 /* ===============Google Unit Test==================================================== */
 
 
 /* =====================================================================
-     BLAS-3 gemv:
+     BLAS-2 ger:
 =================================================================== */
 
 /* ============================Setup Arguments======================================= */
@@ -100,13 +92,12 @@ vector<char> transA_range = {
 //Do not use std::tuple to directly pass parameters to testers
 //by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
 
-Arguments setup_gemv_arguments(gemv_tuple tup)
+Arguments setup_ger_arguments(ger_tuple tup)
 {
 
     vector<int> matrix_size = std::get<0>(tup);
     vector<int> incx_incy = std::get<1>(tup);
-    vector<double> alpha_beta = std::get<2>(tup);
-    char transA = std::get<3>(tup);
+    double alpha = std::get<2>(tup);
 
     Arguments arg;
 
@@ -119,11 +110,7 @@ Arguments setup_gemv_arguments(gemv_tuple tup)
     arg.incx = incx_incy[0];
     arg.incy = incx_incy[1];
 
-    //the first element of alpha_beta_range is always alpha, and the second is always beta
-    arg.alpha = alpha_beta[0];
-    arg.beta = alpha_beta[1];
-
-    arg.transA_option = transA;
+    arg.alpha = alpha;
 
     arg.timing = 0;
 
@@ -131,17 +118,17 @@ Arguments setup_gemv_arguments(gemv_tuple tup)
 }
 
 
-class gemv_gtest: public :: TestWithParam <gemv_tuple>
+class ger_gtest: public :: TestWithParam <ger_tuple>
 {
     protected:
-        gemv_gtest(){}
-        virtual ~gemv_gtest(){}
+        ger_gtest(){}
+        virtual ~ger_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(gemv_gtest, gemv_gtest_float)
+TEST_P(ger_gtest, ger_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -149,9 +136,9 @@ TEST_P(gemv_gtest, gemv_gtest_float)
     // while the tuple is non-intuitive.
 
 
-    Arguments arg = setup_gemv_arguments( GetParam() );
+    Arguments arg = setup_ger_arguments( GetParam() );
 
-    rocblas_status status = testing_gemv<float>( arg );
+    rocblas_status status = testing_ger<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
@@ -175,11 +162,11 @@ TEST_P(gemv_gtest, gemv_gtest_float)
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { {M, N, lda}, {incx,incy} {alpha, beta}, {transA} }
+// The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemv,
-                        gemv_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_ger,
+                        ger_gtest,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_beta_range), ValuesIn(transA_range)
+                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_range)
                                )
                         );

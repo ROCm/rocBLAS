@@ -61,6 +61,7 @@ set( rocblas_blas3_source
 
 set( rocblas_blas2_source
   blas2/rocblas_gemv.cpp
+  blas2/rocblas_ger.cpp
 )
 
 set( rocblas_blas1_source
