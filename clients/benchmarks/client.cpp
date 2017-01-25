@@ -17,8 +17,13 @@
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
-#include "testing_trtri.hpp"
-#include "testing_gemm.hpp"
+#include "testing_trtri_batched.hpp"
+
+#if BUILD_WITH_TENSILE
+    #include "testing_gemm.hpp"
+    #include "testing_gemm_batched.hpp"
+    #include "testing_trsm.hpp"
+#endif
 
 namespace po = boost::program_options;
 
@@ -136,22 +141,37 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_ger<double>( argus );
     }
+    else if (function == "trtri_batched"){
+        if (precision == 's')
+            testing_trtri_batched<float>( argus );
+        else if (precision == 'd')
+            testing_trtri_batched<double>( argus );
+    }
+#if BUILD_WITH_TENSILE
     else if (function == "gemm"){
         if (precision == 's')
             testing_gemm<float>( argus );
         else if (precision == 'd')
             testing_gemm<double>( argus );
     }
-    else if (function == "trtri"){
+    else if (function == "gemm_batched"){
         if (precision == 's')
-            testing_trtri<float>( argus );
+            testing_gemm_batched<float>( argus );
         else if (precision == 'd')
-            testing_trtri<double>( argus );
+            testing_gemm_batched<double>( argus );
     }
+    else if (function == "trsm"){
+        if (precision == 's')
+            testing_trsm<float>( argus );
+        else if (precision == 'd')
+            testing_trsm<double>( argus );
+    }
+#endif
     else{
         printf("Invalid value for --function \n");
         return -1;
     }
+
 
     return 0;
 }
