@@ -18,12 +18,12 @@ set( rocblas_clients_dependencies )
 
 # If the user does not explicitely specify BOOST_ROOT, build our
 # own on the fly
-if( BUILD_CLIENTS_BENCHMARKS )
-  if( NOT DEFINED BOOST_ROOT )
-    include( external-boost )
-    list( APPEND rocblas_clients_dependencies boost )
-  endif( )
-endif()
+#if( BUILD_CLIENTS_BENCHMARKS )
+#  if( NOT DEFINED BOOST_ROOT )
+#    include( external-boost )
+#    list( APPEND rocblas_clients_dependencies boost )
+#  endif( )
+#endif()
 
 if( BUILD_CLIENTS_TESTS )
   if( NOT DEFINED GTEST_ROOT )
@@ -39,10 +39,10 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
   endif( )
 endif()
 
-if( DEFINED HIP_ROOT )
-  list( APPEND CMAKE_MODULE_PATH ${HIP_ROOT}/cmake )
-#  list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
-endif( )
+# if( DEFINED HIP_ROOT )
+#   list( APPEND CMAKE_MODULE_PATH ${HIP_ROOT}/cmake )
+# #  list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
+# endif( )
 
 # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
