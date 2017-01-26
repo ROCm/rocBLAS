@@ -12,8 +12,6 @@ endif( )
 set( hip_git_repository "https://github.com/GPUOpen-ProfessionalCompute-Tools/HIP.git" CACHE STRING "URL to download hip from" )
 set( hip_git_tag "master" CACHE STRING "URL to download hip from" )
 
-set( HOST_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/${HOST_TOOLCHAIN_NAME}-toolchain.cmake" )
-
 set( hip_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release )
 
 if( DEFINED CMAKE_CXX_COMPILER )

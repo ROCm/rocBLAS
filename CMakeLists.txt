@@ -16,7 +16,19 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
 endif()
 
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+# Append our library helper cmake path and the cmake path for hip (for convenience)
+# Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake /opt/rocm/hip/cmake )
+
+# Temp fix, there is a problem building our test program using googletest with gcc
+# Change compiler default to clang
+if( NOT DEFINED CMAKE_CXX_COMPILER AND NOT DEFINED ENV{CXX} )
+  set( CMAKE_CXX_COMPILER clang++ )
+endif( )
+
+if( NOT DEFINED CMAKE_C_COMPILER AND NOT DEFINED ENV{CC} )
+  set( CMAKE_C_COMPILER clang )
+endif( )
 
 # The superbuild does not build anything itself, all compiling is done in external projects
 project( rocblas-superbuild NONE )
@@ -25,14 +37,15 @@ project( rocblas-superbuild NONE )
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
+
 # which benchmark solution schedule
 if ( BUILD_WITH_TENSILE )
-set( Tensile_SCHEDULE "Hawaii_Catalyst_15.201_min" CACHE STRING "Which benchmark data to use for Problem->Solution mapping")
-set_property( CACHE Tensile_SCHEDULE PROPERTY STRINGS
-  Fiji_ROCm_1.3_full
-  Fiji_ROCm_1.3_min
-  Hawaii_Catalyst_15.201_min
-  )
+  set( Tensile_SCHEDULE "Hawaii_Catalyst_15.201_min" CACHE STRING "Which benchmark data to use for Problem->Solution mapping")
+  set_property( CACHE Tensile_SCHEDULE PROPERTY STRINGS
+    Fiji_ROCm_1.3_full
+    Fiji_ROCm_1.3_min
+    Hawaii_Catalyst_15.201_min
+    )
 endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
@@ -57,10 +70,7 @@ include( ExternalProject )
 # This captures all of the dependencies cmake builds itself
 set( rocblas_dependencies )
 
-# Default arguments that get passed down into all external projects
-set( BASE_CMAKE_ARGS
-  -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
- )
+set( BASE_CMAKE_ARGS )
 
 # Noramlize the different ways of specifying a c++ compiler through -DCMAKE_CXX_COMPILER
 if( DEFINED CMAKE_CXX_COMPILER )
@@ -96,42 +106,37 @@ if( DEFINED CMAKE_BUILD_TYPE )
 endif( )
 
 if( NOT DEFINED DEVICE_CXX_COMPILER )
-  if( NOT DEFINED HIP_ROOT )
-    include( cmake/external-hip.cmake )
-    list( APPEND rocblas_dependencies HIP )
-  endif( )
-  set( DEVICE_CXX_COMPILER ${HIP_ROOT}/bin/hipcc )
+  find_package( HIP REQUIRED )
+  set( DEVICE_CXX_COMPILER ${HIP_ROOT_DIR}/bin/hipcc )
 endif()
-
-# WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
-# Replace all occurances of ; with ^^, which we elect to use a path seperator
-string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
-string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
 
 if( BUILD_LIBRARY )
   if( BUILD_WITH_TENSILE )
-      # defines
-      # Tensile_INCLUDE_DIRS
-      # TensileLib_LIBRARIES
-      # TensileLogger_LIBRARIES
+    # defines
+    # Tensile_INCLUDE_DIRS
+    # TensileLib_LIBRARIES
+    # TensileLogger_LIBRARIES
 
-      include( cmake/external-Tensile.cmake )
-      list( APPEND rocblas_dependencies Tensile )
-      message( STATUS "Tensile_ROOT=${Tensile_ROOT}" )
-
-      set(TENSILE_CMAKE_ARGS
-        -DCMAKE_PREFIX_PATH=${Tensile_ROOT}
-        -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
-      )
+    include( cmake/external-Tensile.cmake )
+    list( APPEND rocblas_dependencies Tensile )
+    message( STATUS "Tensile_ROOT=${Tensile_ROOT}" )
+    list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
   endif()
 
+  # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
+  # Replace all occurances of ; with ^^, which we elect to use a path seperator
+  string(REGEX REPLACE ";" "^^" LIBRARY_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
+  string(REGEX REPLACE ";" "^^" LIBRARY_MODULE_PATH "${CMAKE_MODULE_PATH}" )
+
   set( LIBRARY_CMAKE_ARGS
-    ${BASE_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_PREFIX_PATH=${LIBRARY_PREFIX_PATH}
+    -DCMAKE_MODULE_PATH=${LIBRARY_MODULE_PATH}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
-    -DTensile_SCHEDULE=${Tensile_SCHEDULE}
     -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
-    ${TENSILE_CMAKE_ARGS}
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
+    -DTensile_SCHEDULE=${Tensile_SCHEDULE}
   )
 
   # Build the library as an external project
@@ -144,34 +149,34 @@ if( BUILD_LIBRARY )
     CMAKE_ARGS ${LIBRARY_CMAKE_ARGS}
     ${rocblas_INSTALL_COMMAND}
   )
-endif()
+endif( )
 
 # Build clients of the library
 if( BUILD_CLIENTS )
   include( clients/cmake/build-options.cmake )
 
+  if( BUILD_LIBRARY )
+    ExternalProject_Get_Property( rocblas install_dir )
+    list( APPEND CMAKE_PREFIX_PATH ${install_dir} )
+  endif( )
+
+  # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
+  # Replace all occurances of ; with ^^, which we elect to use a path seperator
+  string(REGEX REPLACE ";" "^^" CLIENT_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
+  string(REGEX REPLACE ";" "^^" CLIENT_MODULE_PATH "${CMAKE_MODULE_PATH}" )
+
   # Default arguments that get passed down into all external projects
   set( CLIENTS_CMAKE_ARGS
-  ${BASE_CMAKE_ARGS}
     -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+    -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+    -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+    -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+    -DCMAKE_PREFIX_PATH=${CLIENT_PREFIX_PATH}
+    -DCMAKE_MODULE_PATH=${CLIENT_MODULE_PATH}
     -DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
     -DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
     -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
-    -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
   )
-
-  if( DEFINED BOOST_ROOT )
-    list( APPEND CLIENTS_CMAKE_ARGS -DBOOST_ROOT=${BOOST_ROOT} )
-  endif( )
-
-  if( DEFINED HIP_ROOT )
-    list( APPEND CLIENTS_CMAKE_ARGS -DHIP_ROOT=${HIP_ROOT} )
-  endif( )
-
-  if( BUILD_LIBRARY )
-  ExternalProject_Get_Property( rocblas install_dir )
-  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_PREFIX_PATH=${install_dir} )
-  endif( )
 
   # Clients are set up as an external project to take advantage of specifying toolchain files.
   # We want cmake to go through it's usual discovery process
