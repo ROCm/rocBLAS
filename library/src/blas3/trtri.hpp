@@ -33,7 +33,7 @@ trtri_small_kernel(hipLaunchParm lp,
 }
 
 
-
+ 
 template<typename T, rocblas_int IB>
 rocblas_status
 rocblas_trtri_small(rocblas_handle handle,

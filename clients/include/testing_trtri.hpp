@@ -84,13 +84,6 @@ rocblas_status testing_trtri(Arguments argus)
             dA,lda,
             dinvA,ldinvA);
 
-    if (status != rocblas_status_success) {
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dinvA));
-        rocblas_destroy_handle(handle);
-        return status;
-    }
-
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = trtri_gflop_count<T> (N) / gpu_time_used * 1e6 ;

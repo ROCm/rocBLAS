@@ -17,8 +17,8 @@
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
+#include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
-
 #if BUILD_WITH_TENSILE
     #include "testing_gemm.hpp"
     #include "testing_gemm_batched.hpp"
@@ -140,6 +140,12 @@ int main(int argc, char *argv[])
             testing_ger<float>( argus );
         else if (precision == 'd')
             testing_ger<double>( argus );
+    }
+    else if (function == "trtri"){
+        if (precision == 's')
+            testing_trtri<float>( argus );
+        else if (precision == 'd')
+            testing_trtri<double>( argus );
     }
     else if (function == "trtri_batched"){
         if (precision == 's')
