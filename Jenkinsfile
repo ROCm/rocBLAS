@@ -30,10 +30,23 @@ node('rocm-1.3 && hawaii')
   try
   {
     dir("${scm_dir}") {
-      stage("Clone") {
+      stage("Clone")
+      {
         checkout scm
+
+        if( fileExists( 'cmake/build-version.cmake' ) )
+        {
+          def cmake_version_file = readFile( 'cmake/build-version.cmake' ).trim()
+          //echo "cmake_version_file:\n${cmake_version_file}"
+
+          cmake_version_file = cmake_version_file.replaceAll(/(\d+\.)(\d+\.)(\d+\.)\d+/, "\$1\$2\$3${env.BUILD_ID}")
+          cmake_version_file = cmake_version_file.replaceAll(/VERSION_TWEAK\s+\d+/, "VERSION_TWEAK ${env.BUILD_ID}")
+          //echo "cmake_version_file:\n${cmake_version_file}"
+          writeFile( file: 'cmake/build-version.cmake', text: cmake_version_file )
+        }
       }
     }
+
 
     withEnv(["PATH=${PATH}:/opt/rocm/bin"]) {
 
@@ -52,9 +65,8 @@ node('rocm-1.3 && hawaii')
         {
           stage("configure clang release") {
               sh """#!/usr/bin/env bash
-                cmake -DCMAKE_CXX_COMPILER=/usr/bin/clang++ -DCMAKE_C_COMPILER=/usr/bin/clang -DCMAKE_BUILD_TYPE=Release \
-                -DBUILD_LIBRARY=ON -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_WITH_TENSILE=ON \
-                -DHIP_ROOT=/opt/rocm/hip -DBOOST_ROOT=/opt/boost/clang ${scm_dir}
+                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
+                -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON ${scm_dir}
                 """
           }
 
@@ -88,10 +100,9 @@ node('rocm-1.3 && hawaii')
           }
 
           // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
-          timeout(time: 2, unit: 'HOURS')
+          timeout(time: 1, unit: 'HOURS')
           {
             stage("unit tests") {
-              // To trim test time, only execute single digit tests
               sh '''#!/usr/bin/env bash
                     cd clients-build/tests-build/staging
                     ./rocblas-test --gtest_output=xml --gtest_filter=*/?
@@ -124,7 +135,7 @@ node('rocm-1.3 && hawaii')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com",
+      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
             subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
