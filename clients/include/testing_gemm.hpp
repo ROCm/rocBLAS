@@ -129,11 +129,13 @@ rocblas_status testing_gemm(Arguments argus)
         }
 
 
-        cblas_gemm<T>(
-                     transA, transB, M, N, K,
-                     alpha, hA.data(), lda,
-                     hB.data(), ldb,
-                     beta, hC_copy.data(), ldc);
+        if(status == rocblas_status_success) {
+            cblas_gemm<T>(
+                         transA, transB, M, N, K,
+                         alpha, hA.data(), lda,
+                         hB.data(), ldb,
+                         beta, hC_copy.data(), ldc);
+        }
 
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
