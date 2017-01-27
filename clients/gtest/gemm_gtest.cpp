@@ -29,16 +29,6 @@ README: This file contains testers to verify the correctness of
         Normal users only need to get the library routines without testers
      =================================================================== */
 
-
-/* =====================================================================
-Advance users only: BrainStorm the parameters but do not make artificial one which invalidates the matrix.
-like lda pairs with M, and "lda must >= M". case "lda < M" will be guarded by argument-checkers inside API of course.
-Yet, the goal of this file is to verify result correctness not argument-checkers.
-
-Representative sampling is sufficient, endless brute-force sampling is not necessary
-=================================================================== */
-
-
 //vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 //add/delete as a group
 const
@@ -222,11 +212,11 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size,
                         );
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
-
+  
 INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose,
                         gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(full_alpha_beta_range), ValuesIn(transA_transB_range)
                                )
                         );
-
+  
