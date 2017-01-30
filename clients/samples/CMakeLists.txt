@@ -56,11 +56,13 @@ set( rocblas_samples_common
 
 #add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
+add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} ../common/rocblas_template_specialization)
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
   #target_compile_features( example-openmp PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
   target_compile_features( example-sscal PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
+  target_compile_features( example-scal-template PRIVATE cxx_static_assert cxx_nullptr cxx_lambdas cxx_auto_type )
 else( )
   # Otherwise, just try to compile the library with a standards flag
   if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
@@ -69,6 +71,7 @@ else( )
     # target_compile_options( rocblas-test PRIVATE -std=c++14 )
     #target_compile_options( example-openmp PRIVATE -std=c++11 -fopenmp -pthread )
     target_compile_options( example-sscal PRIVATE -std=c++11 -pthread )
+    target_compile_options( example-scal-template PRIVATE -std=c++11 -pthread )
   endif( )
 endif( )
 
@@ -78,8 +81,13 @@ target_include_directories( example-sscal
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
+target_include_directories( example-scal-template
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+)
 #target_link_libraries( example-openmp rocblas )
 target_link_libraries( example-sscal rocblas )
+target_link_libraries( example-scal-template rocblas )
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879
@@ -87,10 +95,12 @@ target_link_libraries( example-sscal rocblas )
 if( UNIX )
 #  target_link_libraries( example-openmp pthread )
   target_link_libraries( example-sscal pthread )
+  target_link_libraries( example-scal-template pthread )
 endif( )
 
 #set_target_properties( example-openmp PROPERTIES DEBUG_POSTFIX "-d" )
 # set_target_properties( example-openmp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 set_target_properties( example-sscal PROPERTIES DEBUG_POSTFIX "-d" )
+set_target_properties( example-scal-template PROPERTIES DEBUG_POSTFIX "-d" )
 # set_target_properties( example-sscal PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

@@ -36,7 +36,8 @@ project( rocblas-superbuild NONE )
 # Everything is initially off, so that cache is not initialized until user elects to build
 option( BUILD_LIBRARY "Build rocBLAS library" OFF )
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
-option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
+
+option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
 # which benchmark solution schedule
 if ( BUILD_WITH_TENSILE )
@@ -50,6 +51,9 @@ endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
+
+set( HIP_ROOT /opt/rocm/hip CACHE PATH "Specify hip installation dir")
+set( BOOST_ROOT /opt/boost  CACHE PATH "Specify boost installation dir")
 
 # set( rocblas_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
 set( rocblas_INSTALL_DIR "${PROJECT_BINARY_DIR}/package" )
@@ -176,6 +180,9 @@ if( BUILD_CLIENTS )
     -DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}
     -DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
     -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
+    -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
+    -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+
   )
 
   # Clients are set up as an external project to take advantage of specifying toolchain files.

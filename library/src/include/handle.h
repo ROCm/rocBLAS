@@ -1,3 +1,8 @@
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ *
+ * ************************************************************************ */
+
 #ifndef HANDLE_H
 #define HANDLE_H
 #include <hip/hip_runtime_api.h>
