@@ -47,6 +47,9 @@ int main(int argc, char *argv[])
         ( "sizem,m", po::value<rocblas_int>( &argus.M )->default_value(128), "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "sizen,n", po::value<rocblas_int>( &argus.N )->default_value(128), "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & BLAS-3: the number of columns" )
         ( "sizek,k", po::value<rocblas_int>( &argus.K )->default_value(128), "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in A & C  and rows in B." )
+        ( "lda", po::value<rocblas_int>( &argus.lda )->default_value(128), "Specific leading dimension of matrix A, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldb", po::value<rocblas_int>( &argus.ldb )->default_value(128), "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldc", po::value<rocblas_int>( &argus.ldc )->default_value(128), "Specific leading dimension of matrix C, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "alpha",   po::value<double>( &argus.alpha)->default_value(1.0), "specifies the scalar alpha" )
         ( "beta",    po::value<double>( &argus.beta )->default_value(0.0), "specifies the scalar beta" )
         ( "order,o", po::value<rocblas_int>(&argus.order_option )->default_value(1), "0 = row major, 1 = column major. Right now, only column major is supported" )
@@ -94,10 +97,11 @@ int main(int argc, char *argv[])
     }
 
     //adjust dimension for BLAS-3 routines, may not appplicable to BLAS-1 and certain BLAS-2 routines
-    argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-    argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-    argus.ldc = argus.M;
+    //argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+    //argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+    //argus.ldc = argus.M;
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
+
 
     if (function == "scal"){
         if (precision == 's')

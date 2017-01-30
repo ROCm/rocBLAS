@@ -178,7 +178,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
         T one = 1;  T zero = 0; T negative_one = -1;
         T* C;
-        RETURN_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
+        PRINT_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
 
         rocblas_int stride_A = NB*lda + NB;
         rocblas_int stride_invA = NB*NB;
@@ -202,6 +202,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
             invA21_invA12_offset = IB*NB; //invA12
         }
 
+         printf("first batched gemm\n");
         // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
         // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C of size IB * IB
         status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
@@ -214,7 +215,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
                                         blocks );
 
 
-         printf("I am here\n");
+         printf("second batched gemm\n");
         // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
         // distance between each invA21 or invA12 is stride_invA,
         status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
@@ -227,7 +228,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
                                         blocks );
 
 
-        RETURN_IF_HIP_ERROR(hipFree(C));
+        PRINT_IF_HIP_ERROR(hipFree(C));
 
     }//end if
     
@@ -237,7 +238,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
     }
 
 
-    return status;
+    return rocblas_status_success;
 
 }
 
