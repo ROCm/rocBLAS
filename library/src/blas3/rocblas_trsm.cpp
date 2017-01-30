@@ -74,8 +74,10 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
             // left, upper no-transpose
             jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
             i = m-jb;
+            printf("first gemm\n");
             rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
             if (i-BLOCK >= 0) {
+                printf("second gemm\n");
                 rocblas_gemm_template<T>(handle, transA, transB, i, n, jb, &negtive_one, A(0,i), lda, X(i,0), ldb, alpha, B, ldb);
 
                 // remaining blocks
@@ -345,21 +347,20 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     T* invA;
     T* X;
     //invA is of size BLOCK*k, BLOCK is the blocking size
-    RETURN_IF_HIP_ERROR(hipMalloc( &invA, BLOCK*k*sizeof(T) ));
+    PRINT_IF_HIP_ERROR(hipMalloc( &invA, BLOCK*k*sizeof(T) ));
     //X is the same size of B
-    RETURN_IF_HIP_ERROR(hipMalloc( &X, ldb*n * sizeof(T) ));
+    PRINT_IF_HIP_ERROR(hipMalloc( &X, ldb*n * sizeof(T) ));
 
     //intialize invA and X to be &zero
-    RETURN_IF_HIP_ERROR(hipMemset(invA, 0, BLOCK*k*sizeof(T)));
+    PRINT_IF_HIP_ERROR(hipMemset(invA, 0, BLOCK*k*sizeof(T)));
     //potential bug, may use hipMemcpy B to X
-    RETURN_IF_HIP_ERROR(hipMemset(X, 0, ldb*n*sizeof(T)));
+    PRINT_IF_HIP_ERROR(hipMemset(X, 0, ldb*n*sizeof(T)));
 
     //batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(handle, uplo, diag,
                                     k, A, lda,
                                     invA);
 
-    if(status != rocblas_status_success) return status;
 
     if (side == rocblas_side_left) {
         status = rocblas_trsm_left<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, X);
@@ -369,9 +370,9 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     }
 
     printf("copy x to b\n");
-    RETURN_IF_HIP_ERROR(hipMemcpy(B, X, ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
-    RETURN_IF_HIP_ERROR(hipFree(invA));
-    RETURN_IF_HIP_ERROR(hipFree(X));
+    PRINT_IF_HIP_ERROR(hipMemcpy(B, X, ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
+    PRINT_IF_HIP_ERROR(hipFree(invA));
+    PRINT_IF_HIP_ERROR(hipFree(X));
 
     return status;
 }

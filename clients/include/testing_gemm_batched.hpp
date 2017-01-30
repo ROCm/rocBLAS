@@ -69,7 +69,7 @@ rocblas_status testing_gemm_batched(Arguments argus)
         B_row = N; B_col = K;
     }
 
-    bsa = lda * A_col; bsb = ldb * B_col; bsc = ldc * N;
+    bsa = lda * A_col * 2; bsb = ldb * B_col * 2; bsc = ldc * N;
     A_size = bsa * batch_count;
     B_size = bsb * batch_count;
     C_size = bsc * batch_count;
