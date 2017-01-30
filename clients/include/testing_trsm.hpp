@@ -86,7 +86,7 @@ rocblas_status testing_trsm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-/*
+
     status = rocblas_trsm<T>(handle,
             side, uplo,
             transA, diag,
@@ -94,13 +94,6 @@ rocblas_status testing_trsm(Arguments argus)
             &alpha,
             dA,lda,
             dB,ldb);
-*/
-    if (status != rocblas_status_success) {
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dB));
-        rocblas_destroy_handle(handle);
-        return status;
-    }
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
@@ -144,15 +137,18 @@ rocblas_status testing_trsm(Arguments argus)
         }
     }
 
+
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "M, N, lda, rocblas-Gflops (us) ";
+            cout << "M, N, lda, side, uplo, transA, diag, rocblas-Gflops (us) ";
             if(argus.norm_check){
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << M <<','<< N <<',' << lda <<','<< rocblas_gflops << "(" << gpu_time_used  << "),";
+            cout << M << ',' << N <<',' << lda <<','<< char_side << ',' << char_uplo << ',' 
+                 << char_transA << ','  << char_diag << ',' <<
+                 rocblas_gflops << "(" << gpu_time_used  << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";

@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "definitions.h"
 
 #define NB_X 256
@@ -107,59 +107,11 @@ rocblas_scal_template(rocblas_handle handle,
 
 /* ============================================================================================ */
 
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
 
-
-template<>
-rocblas_status
-rocblas_scal<float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *alpha,
-    float *x, rocblas_int incx){
-
-    return rocblas_scal_template<float>(handle, n, alpha, x, incx);
-}
-
-template<>
-rocblas_status
-rocblas_scal<double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *alpha,
-    double *x, rocblas_int incx){
-
-    return rocblas_scal_template<double>(handle, n, alpha, x, incx);
-}
-
-template<>
-rocblas_status
-rocblas_scal<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *alpha,
-    rocblas_float_complex *x, rocblas_int incx){
-
-    return rocblas_scal_template<rocblas_float_complex>(handle, n, alpha, x, incx);
-}
-
-template<>
-rocblas_status
-rocblas_scal<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *alpha,
-    rocblas_double_complex *x, rocblas_int incx){
-
-    return rocblas_scal_template<rocblas_double_complex>(handle, n, alpha, x, incx);
-}
-
-/* ============================================================================================ */
 
     /*
      * ===========================================================================
-     *    C89 wrapper
+     *    C wrapper
      * ===========================================================================
      */
 
@@ -171,7 +123,7 @@ rocblas_sscal(rocblas_handle handle,
     const float *alpha,
     float *x, rocblas_int incx){
 
-    return rocblas_scal<float>(handle, n, alpha, x, incx);
+    return rocblas_scal_template<float>(handle, n, alpha, x, incx);
 }
 
 extern "C"
@@ -181,7 +133,7 @@ rocblas_dscal(rocblas_handle handle,
     const double *alpha,
     double *x, rocblas_int incx){
 
-    return rocblas_scal<double>(handle, n, alpha, x, incx);
+    return rocblas_scal_template<double>(handle, n, alpha, x, incx);
 }
 
 
@@ -192,7 +144,7 @@ rocblas_cscal(rocblas_handle handle,
     const rocblas_float_complex *alpha,
     rocblas_float_complex *x, rocblas_int incx){
 
-    return rocblas_scal<rocblas_float_complex>(handle, n, alpha, x, incx);
+    return rocblas_scal_template<rocblas_float_complex>(handle, n, alpha, x, incx);
 }
 
 extern "C"
@@ -202,7 +154,7 @@ rocblas_zscal(rocblas_handle handle,
     const rocblas_double_complex *alpha,
     rocblas_double_complex *x, rocblas_int incx){
 
-    return rocblas_scal<rocblas_double_complex>(handle, n, alpha, x, incx);
+    return rocblas_scal_template<rocblas_double_complex>(handle, n, alpha, x, incx);
 }
 
 

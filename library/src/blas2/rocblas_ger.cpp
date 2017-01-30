@@ -7,7 +7,6 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
 #include "status.h"
 #include "definitions.h"
 #include "ger_device.h"
@@ -143,42 +142,6 @@ rocblas_ger_template(rocblas_handle handle,
 
     /*
      * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-
-template<>
-rocblas_status
-rocblas_ger<float>(rocblas_handle handle,
-             rocblas_int m, rocblas_int n,
-             const float *alpha,
-             const float *x, rocblas_int incx,
-             const float *y, rocblas_int incy,
-                   float *A, rocblas_int lda){
-
-    return rocblas_ger_template<float>(handle, m, n, alpha, x, incx, y, incy, A, lda);
-}
-
-template<>
-rocblas_status
-rocblas_ger<double>(rocblas_handle handle,
-             rocblas_int m, rocblas_int n,
-             const double *alpha,
-             const double *x, rocblas_int incx,
-             const double *y, rocblas_int incy,
-                   double *A, rocblas_int lda){
-
-    return rocblas_ger_template<double>(handle, m, n, alpha, x, incx, y, incy, A, lda);
-}
-
-
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
      *    C wrapper
      * ===========================================================================
      */
@@ -194,7 +157,7 @@ rocblas_sger(rocblas_handle handle,
              const float *y, rocblas_int incy,
                    float *A, rocblas_int lda){
 
-    return   rocblas_ger<float>(handle, m, n, alpha, x, incx, y, incy, A, lda);
+    return   rocblas_ger_template<float>(handle, m, n, alpha, x, incx, y, incy, A, lda);
 
 }
 
@@ -207,6 +170,6 @@ rocblas_dger(rocblas_handle handle,
              const double *y, rocblas_int incy,
                    double *A, rocblas_int lda){
 
-    return   rocblas_ger<double>(handle, m, n, alpha, x, incx, y, incy, A, lda);
+    return   rocblas_ger_template<double>(handle, m, n, alpha, x, incx, y, incy, A, lda);
 
 }

@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
@@ -204,56 +204,6 @@ rocblas_asum_template(rocblas_handle handle,
 
 
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_asum<float, float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *x, rocblas_int incx,
-    float *result){
-
-    return rocblas_asum_template<float, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_asum<double, double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *x, rocblas_int incx,
-    double *result){
-
-    return rocblas_asum_template<double, double>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_asum<rocblas_float_complex, float>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    float *result){
-
-    return rocblas_asum_template<rocblas_float_complex, float>(handle, n, x, incx, result);
-}
-
-template<>
-rocblas_status
-rocblas_asum<rocblas_double_complex, double>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    double *result){
-
-    return rocblas_asum_template<rocblas_double_complex, double>(handle, n, x, incx, result);
-}
-
 
 
 /* ============================================================================================ */
@@ -272,7 +222,7 @@ rocblas_sasum(rocblas_handle handle,
     const float *x, rocblas_int incx,
     float *result){
 
-    return rocblas_asum<float, float>(handle, n, x, incx, result);
+    return rocblas_asum_template<float, float>(handle, n, x, incx, result);
 }
 
 
@@ -283,7 +233,7 @@ rocblas_dasum(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *result){
 
-    return rocblas_asum<double,double>(handle, n, x, incx, result);
+    return rocblas_asum_template<double,double>(handle, n, x, incx, result);
 }
 
 
@@ -294,7 +244,7 @@ rocblas_scasum(rocblas_handle handle,
     const rocblas_float_complex *x, rocblas_int incx,
     float *result){
 
-    return rocblas_asum<rocblas_float_complex, float>(handle, n, x, incx, result);
+    return rocblas_asum_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
 extern "C"
@@ -304,7 +254,7 @@ rocblas_dzasum(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     double *result){
 
-    return rocblas_asum<rocblas_double_complex, double>(handle, n, x, incx, result);
+    return rocblas_asum_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
 
 

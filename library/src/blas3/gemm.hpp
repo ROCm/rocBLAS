@@ -2,11 +2,36 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+
+
+#pragma once
+#ifndef _GEMM_HPP_
+#define _GEMM_HPP_ 
+
 #include <hip/hip_runtime.h>
 
+    template<typename T>
+    rocblas_status rocblas_gemm_template(rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n, rocblas_int k,
+        const T *alpha,
+        const T *A, rocblas_int lda,
+        const T *B, rocblas_int ldb,
+        const T *beta,
+        T *C, rocblas_int ldc);
 
-#include "rocblas.h"
-#include "rocblas.hpp"
+    template<typename T>
+    rocblas_status rocblas_gemm_batched_template(
+        rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n, rocblas_int k,
+        const T *alpha,
+        const T *A, rocblas_int lda, rocblas_int bsa,
+        const T *B, rocblas_int ldb, rocblas_int bsb,
+        const T *beta,
+        T *C, rocblas_int ldc, rocblas_int bsc,
+        rocblas_int batch_count);
+
 
 #define COMPLEX  0
 
@@ -76,7 +101,7 @@
 
 template<>
 rocblas_status
-rocblas_gemm<float>(rocblas_handle handle,
+rocblas_gemm_template<float>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -91,7 +116,7 @@ rocblas_gemm<float>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm<double>(rocblas_handle handle,
+rocblas_gemm_template<double>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -108,7 +133,7 @@ rocblas_gemm<double>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm<rocblas_float_complex>(rocblas_handle handle,
+rocblas_gemm_template<rocblas_float_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -124,7 +149,7 @@ rocblas_gemm<rocblas_float_complex>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm<rocblas_double_complex>(rocblas_handle handle,
+rocblas_gemm_template<rocblas_double_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -213,7 +238,7 @@ rocblas_gemm<rocblas_double_complex>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm_batched<float>(rocblas_handle handle,
+rocblas_gemm_batched_template<float>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -229,7 +254,7 @@ rocblas_gemm_batched<float>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm_batched<double>(rocblas_handle handle,
+rocblas_gemm_batched_template<double>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -247,7 +272,7 @@ rocblas_gemm_batched<double>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm_batched<rocblas_float_complex>(rocblas_handle handle,
+rocblas_gemm_batched_template<rocblas_float_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -263,7 +288,7 @@ rocblas_gemm_batched<rocblas_float_complex>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm_batched<rocblas_double_complex>(rocblas_handle handle,
+rocblas_gemm_batched_template<rocblas_double_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -279,3 +304,4 @@ rocblas_gemm_batched<rocblas_double_complex>(rocblas_handle handle,
 
 #endif
 
+#endif  // _GEMM_HPP_
