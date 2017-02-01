@@ -198,9 +198,11 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         {
             A12_A21_offset = IB*NB; //A12
             invA11_offset =  NB*IB+IB; //invA22 in upper
-            invA22_offset =  0; // A11 in upper
             invA21_invA12_offset = IB*NB; //invA12
+            invA22_offset =  0; // A11 in upper
         }
+
+
 
          printf("first batched gemm\n");
         // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
@@ -208,8 +210,8 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                         IB, IB, IB,
                                         &one,
-                                        (const T*)(A + A12_A21_offset), lda, stride_A,
-                                        (const T*)(invA + invA11_offset), NB, stride_invA,
+                                        (const T*)(A + ((uplo == rocblas_fill_lower) ? IB : IB*NB) ), lda, stride_A,
+                                        (const T*)(invA +  ((uplo == rocblas_fill_lower) ? 0 : IB*NB+IB) ) , NB, stride_invA,
                                         &zero,
                                         C, IB, stride_C,
                                         blocks );
@@ -221,10 +223,10 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                         IB, IB, IB,
                                         &negative_one,
-                                        invA + invA22_offset, NB, stride_invA,
-                                        C, IB, stride_C,
+                                        (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB*NB+IB : 0)), NB, stride_invA,
+                                        (const T*)C, IB, stride_C,
                                         &zero,
-                                        invA + invA21_invA12_offset, NB, stride_invA,
+                                        (invA + ((uplo == rocblas_fill_lower) ? IB : IB*NB)), NB, stride_invA,
                                         blocks );
 
 
