@@ -80,7 +80,7 @@ double norm_check_general<double>(char norm_type, rocblas_int M, rocblas_int N, 
     double cpu_norm = dlange_(&norm_type, &M, &N, hCPU, &lda, work);
     daxpy_(&size, &alpha, hCPU, &incx, hGPU, &incx);
 
-     double error = dlange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
+    double error = dlange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
 
     return error;
 }
@@ -99,7 +99,7 @@ double norm_check_general<rocblas_float_complex>(char norm_type, rocblas_int M, 
     float cpu_norm = clange_(&norm_type, &M, &N, hCPU, &lda, work);
     caxpy_(&size, &alpha, hCPU, &incx, hGPU, &incx);
 
-     float error = clange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
+    float error = clange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
 
     return (double)error;
 }
@@ -119,7 +119,7 @@ rocblas_double_complex *hGPU)
     double cpu_norm = zlange_(&norm_type, &M, &N, hCPU, &lda, work);
     zaxpy_(&size, &alpha, hCPU, &incx, hGPU, &incx);
 
-     double error = zlange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
+    double error = zlange_(&norm_type, &M, &N, hGPU, &lda, work)/cpu_norm;
 
     return error;
 }

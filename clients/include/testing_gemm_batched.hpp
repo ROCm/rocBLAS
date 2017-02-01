@@ -170,7 +170,7 @@ rocblas_status testing_gemm_batched(Arguments argus)
             }
             cout << endl;
 
-            cout << "GG," << batch_count << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
+            cout << "GG," << batch_count <<',' << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<',' << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
