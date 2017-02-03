@@ -140,13 +140,13 @@ rocblas_status testing_trsm(Arguments argus)
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "M, N, lda, side, uplo, transA, diag, rocblas-Gflops (us) ";
+            cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
             if(argus.norm_check){
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << M << ',' << N <<',' << lda <<','<< char_side << ',' << char_uplo << ',' 
+            cout << M << ',' << N <<',' << lda <<','<< ldb <<',' << char_side << ',' << char_uplo << ',' 
                  << char_transA << ','  << char_diag << ',' <<
                  rocblas_gflops << "(" << gpu_time_used  << "),";
 

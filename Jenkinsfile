@@ -105,7 +105,7 @@ node('rocm-1.3 && hawaii')
             stage("unit tests") {
               sh '''#!/usr/bin/env bash
                     cd clients-build/tests-build/staging
-                    ./rocblas-test --gtest_output=xml --gtest_filter=*/?
+                    ./rocblas-test --gtest_output=xml 
                 '''
               junit 'clients-build/tests-build/staging/*.xml'
             }

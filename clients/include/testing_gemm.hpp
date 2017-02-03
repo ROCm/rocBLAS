@@ -109,7 +109,6 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
- //    sleep(1);
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6;
@@ -128,26 +127,25 @@ rocblas_status testing_gemm(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-
-        if(status == rocblas_status_success) {
+        if(status != rocblas_status_invalid_size){//only valid size compare with cblas
             cblas_gemm<T>(
-                         transA, transB, M, N, K,
-                         alpha, hA.data(), lda,
-                         hB.data(), ldb,
-                         beta, hC_copy.data(), ldc);
+                     transA, transB, M, N, K,
+                     alpha, hA.data(), lda,
+                     hB.data(), ldb,
+                     beta, hC_copy.data(), ldc);
         }
-
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
-        for(int i=0;i<min(N, 4);i++)
-            for(int j=0;j<min(M,4);j++)
+    #ifndef NDEBUG
+        for(int i=0;i<min(N, 3);i++)
+            for(int j=0;j<min(M,3);j++)
             {
                 printf("matrix C col %d, row %d, CPU result=%f, GPU result=%f\n", i, j,  hC_copy[j+i*ldc], hC[j+i*ldc]);
             }
-
+    #endif
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check){

@@ -47,6 +47,9 @@ int main(int argc, char *argv[])
         ( "sizem,m", po::value<rocblas_int>( &argus.M )->default_value(128), "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "sizen,n", po::value<rocblas_int>( &argus.N )->default_value(128), "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & BLAS-3: the number of columns" )
         ( "sizek,k", po::value<rocblas_int>( &argus.K )->default_value(128), "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in A & C  and rows in B." )
+        ( "lda", po::value<rocblas_int>( &argus.lda )->default_value(128), "Specific leading dimension of matrix A, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldb", po::value<rocblas_int>( &argus.ldb )->default_value(128), "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldc", po::value<rocblas_int>( &argus.ldc )->default_value(128), "Specific leading dimension of matrix C, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "alpha",   po::value<double>( &argus.alpha)->default_value(1.0), "specifies the scalar alpha" )
         ( "beta",    po::value<double>( &argus.beta )->default_value(0.0), "specifies the scalar beta" )
         ( "order,o", po::value<rocblas_int>(&argus.order_option )->default_value(1), "0 = row major, 1 = column major. Right now, only column major is supported" )
@@ -57,6 +60,7 @@ int main(int argc, char *argv[])
         ( "side", po::value<char>( &argus.side_option )->default_value('L'), "L = left, R = right. Only applicable to certain routines" )
         ( "uplo", po::value<char>( &argus.uplo_option )->default_value('U'), "U = upper, L = lower. Only applicable to certain routines" )    // xsymv xsyrk xsyr2k xtrsm xtrmm
         ( "diag", po::value<char>( &argus.diag_option )->default_value('N'), "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines" ) // xtrsm xtrmm
+        ( "batch", po::value<rocblas_int>( &argus.batch_count )->default_value(10), "Number of matrices. Only applicable to batched routines" ) // xtrsm xtrmm
         ( "verify,v", po::value<rocblas_int>(&argus.norm_check)->default_value(0), "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
         ( "device", po::value<rocblas_int>(&device_id)->default_value(0), "Set default device to be used for subsequent program runs")
         ;
@@ -94,10 +98,11 @@ int main(int argc, char *argv[])
     }
 
     //adjust dimension for BLAS-3 routines, may not appplicable to BLAS-1 and certain BLAS-2 routines
-    argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-    argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-    argus.ldc = argus.M;
+    //argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+    //argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+    //argus.ldc = argus.M;
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
+
 
     if (function == "scal"){
         if (precision == 's')

@@ -168,7 +168,7 @@ rocblas_status xgemm_tensile(
         index_assignments_b[1] = trans_b == rocblas_operation_none ? 1 : 2;
     }
 
-    #ifdef _DEBUG
+    #ifndef NDEBUG
     printf("creating problem \n");
     #endif
     // create problem
@@ -187,12 +187,12 @@ rocblas_status xgemm_tensile(
         false, // Use offsets? No. Only OpenCL needed them for generality; HIP doesn't.
         handle->tensile_device_profile) );
 
-    #ifdef _DEBUG
+    #ifndef NDEBUG
     // thorough validation that problem was created correctly
     PRINT_IF_TENSILE_ERROR( tensileValidateProblem(problem) );
     #endif
 
-    #ifdef _DEBUG
+    #ifndef NDEBUG
     // lookup solution
     printf("looking up solution \n");
     struct timeval tv;
@@ -203,7 +203,7 @@ rocblas_status xgemm_tensile(
     TensileSolution solution;
     PRINT_IF_TENSILE_ERROR( tensileGetSolutionForProblem( &solution, problem ) );
 
-    #ifdef _DEBUG
+    #ifndef NDEBUG
     gettimeofday(&tv, NULL);
     double end = (tv.tv_sec * 1000 * 1000) + tv.tv_usec ;
     double time_used_in_us =  (end - begin);
@@ -1015,8 +1015,8 @@ void infer_batch_strides(
     int num_rows_a = (transa == rocblas_operation_none ? m : k);
     int num_cols_b = (transb == rocblas_operation_none ? n : k);
     int num_rows_b = (transb == rocblas_operation_none ? k : n);
-    int num_cols_c = m;
-    int num_rows_c = n;
+    int num_cols_c = n;
+    int num_rows_c = m;
 
     int dim1_size_a = (order==rocblas_order_column_major) ? num_cols_a : num_rows_a;
     int dim1_size_b = (order==rocblas_order_column_major) ? num_cols_b : num_rows_b;
