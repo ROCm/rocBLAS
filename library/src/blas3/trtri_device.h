@@ -79,7 +79,7 @@ trtri_device(rocblas_fill uplo,
             }
         }
     }
-    //__syncthreads(); // since NB < 64, this synch can be avoided
+    __syncthreads(); // since NB < 64, this synch can be avoided
 
     //invert the diagonal element
     if (tx < n){
@@ -96,6 +96,7 @@ trtri_device(rocblas_fill uplo,
             }
         }
     }
+    __syncthreads(); // since NB < 64, this synch can be avoided
 
     // solve the inverse of A column by column, each inverse(A)' column will overwrite sA'column which store A
     // this operation is safe
@@ -105,7 +106,7 @@ trtri_device(rocblas_fill uplo,
         //use the diagonal one to update current column
         if(tx > col) reg += sA[tx + col * n] * sA[col + col * n];
 
-        //__syncthreads(); // since NB < 64, this synch can be avoided
+        __syncthreads(); // since NB < 64, this synch can be avoided
 
         // in each column, it solves step, each step solve an inverse(A)[step][col]
         for(int step=col+1;step<n;step++){
@@ -116,15 +117,15 @@ trtri_device(rocblas_fill uplo,
                 sA[tx + col * n] = (0 - reg) * sA[tx + tx * n];
             }
 
-            //__syncthreads(); // since NB < 64, this synch can be avoided
+            __syncthreads(); // since NB < 64, this synch can be avoided
 
             //tx > step  update with (tx = step)'s result
             if(tx > step){
                 reg +=  sA[tx + step * n] * sA[step + col * n];
             }
-            //__syncthreads(); // since NB < 64, this synch can be avoided
+            __syncthreads(); // since NB < 64, this synch can be avoided
         }
-        //__syncthreads();
+        __syncthreads();
     }
 
 
