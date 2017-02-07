@@ -34,8 +34,7 @@ README: This file contains testers to verify the correctness of
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1, -1, 1, 1},
-                                        { 3, 33,  3,  3, 3, 3},
-                                        { 3, 33,  3,  32, 35, 35},
+                                        { 3, 33,  3,  33, 35, 35},
                                         { 5,  5,  5,  5, 5, 5},
                                         {10, 10, 20, 100, 10, 10},
                                         {600,500, 500, 500, 600, 500},

@@ -429,7 +429,7 @@ extern "C" {
                             rocblas_operation transA, rocblas_diagonal diag,
                             rocblas_int m, rocblas_int n,
                             float alpha,
-                            float *A, rocblas_int lda,
+                            const float *A, rocblas_int lda,
                             float *B, rocblas_int ldb)
     {
         //just directly cast, since transA, transB are integers in the enum
@@ -441,7 +441,7 @@ extern "C" {
                             rocblas_operation transA, rocblas_diagonal diag,
                             rocblas_int m, rocblas_int n,
                             double alpha,
-                            double *A, rocblas_int lda,
+                            const double *A, rocblas_int lda,
                             double *B, rocblas_int ldb)
     {
         //just directly cast, since transA, transB are integers in the enum
@@ -453,7 +453,7 @@ extern "C" {
                             rocblas_operation transA, rocblas_diagonal diag,
                             rocblas_int m, rocblas_int n,
                             rocblas_float_complex alpha,
-                            rocblas_float_complex *A, rocblas_int lda,
+                            const rocblas_float_complex *A, rocblas_int lda,
                             rocblas_float_complex *B, rocblas_int ldb)
     {
         //just directly cast, since transA, transB are integers in the enum
@@ -465,7 +465,7 @@ extern "C" {
                             rocblas_operation transA, rocblas_diagonal diag,
                             rocblas_int m, rocblas_int n,
                             rocblas_double_complex alpha,
-                            rocblas_double_complex *A, rocblas_int lda,
+                            const rocblas_double_complex *A, rocblas_int lda,
                             rocblas_double_complex *B, rocblas_int ldb)
     {
         //just directly cast, since transA, transB are integers in the enum
@@ -496,3 +496,54 @@ extern "C" {
         dtrtri_(&uplo, &diag, &n, A, &lda, &info);
         return info;
     }
+
+
+    //trmm
+    template<>
+    void cblas_trmm<float>( rocblas_side side, rocblas_fill uplo,
+                            rocblas_operation transA, rocblas_diagonal diag,
+                            rocblas_int m, rocblas_int n,
+                            float alpha,
+                            const float *A, rocblas_int lda,
+                            float *B, rocblas_int ldb)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        cblas_strmm(CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)transA, (CBLAS_DIAG)diag, m, n, alpha, A, lda, B, ldb);
+    }
+
+    template<>
+    void cblas_trmm<double>(rocblas_side side, rocblas_fill uplo,
+                            rocblas_operation transA, rocblas_diagonal diag,
+                            rocblas_int m, rocblas_int n,
+                            double alpha,
+                            const double *A, rocblas_int lda,
+                            double *B, rocblas_int ldb)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        cblas_dtrmm(CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)transA, (CBLAS_DIAG)diag, m, n, alpha, A, lda, B, ldb);
+    }
+
+    template<>
+    void cblas_trmm<rocblas_float_complex>( rocblas_side side, rocblas_fill uplo,
+                            rocblas_operation transA, rocblas_diagonal diag,
+                            rocblas_int m, rocblas_int n,
+                            rocblas_float_complex alpha,
+                            const rocblas_float_complex *A, rocblas_int lda,
+                            rocblas_float_complex *B, rocblas_int ldb)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        cblas_ctrmm(CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)transA, (CBLAS_DIAG)diag, m, n, &alpha, A, lda, B, ldb);
+    }
+
+    template<>
+    void cblas_trmm<rocblas_double_complex>( rocblas_side side, rocblas_fill uplo,
+                            rocblas_operation transA, rocblas_diagonal diag,
+                            rocblas_int m, rocblas_int n,
+                            rocblas_double_complex alpha,
+                            const rocblas_double_complex *A, rocblas_int lda,
+                            rocblas_double_complex *B, rocblas_int ldb)
+    {
+        //just directly cast, since transA, transB are integers in the enum
+        cblas_ztrmm(CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)transA, (CBLAS_DIAG)diag, m, n, &alpha, A, lda, B, ldb);
+    }
+
