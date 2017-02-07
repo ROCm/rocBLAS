@@ -54,6 +54,7 @@ rocblas_status testing_trsm(Arguments argus)
     vector<T> hA(A_size);
     vector<T> hB(B_size);
     vector<T> hB_copy(B_size);
+    vector<T> hX(B_size);
 
     T *dA, *dB;
 
@@ -72,12 +73,29 @@ rocblas_status testing_trsm(Arguments argus)
     //Initial Data on CPU
     srand(1);
     rocblas_init_symmetric<T>(hA, K, lda);
+    //proprocess the matrix to avoid ill-conditioned matrix 
+    for(int i=0;i<K;i++){
+        for(int j=0;j<K;j++){
+            if(j % 2)  hA[i+j*lda] *= -1.0;
+            if(i == j) hA[i+j*lda] *= 10.0; 
+        }
+    }
     rocblas_init<T>(hB, M, N, ldb);
+    hX = hB;//original solution hX
+    //Calculate hB = hA*hX;
+    cblas_trmm<T>(
+                side, uplo,
+                transA, diag,
+                M, N, 1.0/alpha,
+                (const T*)hA.data(), lda,
+                hB.data(), ldb);
+
     hB_copy = hB;
 
     //copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size,  hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size,  hipMemcpyHostToDevice));
+
 
     /* =====================================================================
            ROCBLAS
@@ -101,8 +119,8 @@ rocblas_status testing_trsm(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
     CHECK_HIP_ERROR(hipMemcpy(hB.data(), dB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
+
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -116,13 +134,21 @@ rocblas_status testing_trsm(Arguments argus)
                 side, uplo,
                 transA, diag,
                 M, N, alpha,
-                hA.data(), lda,
+                (const T*)hA.data(), lda,
                 hB_copy.data(), ldb);
 
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
+
+        #ifndef NDEBUG
+        for(int i=0;i<min(M,3);i++)
+            for(int j=0;j<min(N,3);j++)
+            {
+                printf("matrix B col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, hB_copy[j+i*ldb], hB[j+i*ldb]);
+            }
+        #endif
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
