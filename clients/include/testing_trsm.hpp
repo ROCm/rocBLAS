@@ -81,6 +81,14 @@ rocblas_status testing_trsm(Arguments argus)
         }
     }
     rocblas_init<T>(hB, M, N, ldb);
+    hX = hB;//original solution hX
+    //Calculate hB = hA*hX;
+    cblas_trmm<T>(
+                side, uplo,
+                transA, diag,
+                M, N, 1.0/alpha,
+                (const T*)hA.data(), lda,
+                hB.data(), ldb);
 
     hB_copy = hB;
 
@@ -138,7 +146,7 @@ rocblas_status testing_trsm(Arguments argus)
         for(int i=0;i<N;i++)
             for(int j=0;j<M;j++)
             {
-                if ( fabs(hB_copy[j+i*ldb] - hB[j+i*ldb]) >= 0.001) printf("matrix B col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, hB_copy[j+i*ldb], hB[j+i*ldb]);
+                printf("matrix B col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, hB_copy[j+i*ldb], hB[j+i*ldb]);
             }
         #endif
 
