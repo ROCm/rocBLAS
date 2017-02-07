@@ -143,8 +143,8 @@ rocblas_status testing_trsm(Arguments argus)
         }
 
         #ifndef NDEBUG
-        for(int i=0;i<N;i++)
-            for(int j=0;j<M;j++)
+        for(int i=0;i<min(M,3);i++)
+            for(int j=0;j<min(N,3);j++)
             {
                 printf("matrix B col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, hB_copy[j+i*ldb], hB[j+i*ldb]);
             }
