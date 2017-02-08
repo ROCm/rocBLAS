@@ -98,9 +98,9 @@ int main(int argc, char *argv[])
     }
 
     //adjust dimension for BLAS-3 routines, may not appplicable to BLAS-1 and certain BLAS-2 routines
-    //argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-    //argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-    //argus.ldc = argus.M;
+    argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+    argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+    argus.ldc = argus.M;
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
 
 
