@@ -55,7 +55,7 @@ rocblas_status testing_trsm(Arguments argus)
     vector<T> hB(B_size);
     vector<T> hB_copy(B_size);
     vector<T> hX(B_size);
-
+    
     T *dA, *dB;
 
     double gpu_time_used, cpu_time_used;
@@ -74,10 +74,18 @@ rocblas_status testing_trsm(Arguments argus)
     srand(1);
     rocblas_init_symmetric<T>(hA, K, lda);
     //proprocess the matrix to avoid ill-conditioned matrix 
+    vector<rocblas_int> ipiv(K);
+    cblas_getrf(K, K, hA.data(), lda, ipiv.data());
+    rocblas_init<T>(hB, M, N, ldb);
+    /*
     for(int i=0;i<K;i++){
         for(int j=0;j<K;j++){
+            hA[i+j*lda] *= 0.01;
             if(j % 2)  hA[i+j*lda] *= -1.0;
-            if(i == j) hA[i+j*lda] *= 10.0; 
+            if(i == j) { 
+                if (diag == rocblas_diagonal_unit) hA[i+j*lda] = 1.0;
+                else  hA[i+j*lda] *= 10.0;
+            } 
         }
     }
     rocblas_init<T>(hB, M, N, ldb);
@@ -90,6 +98,7 @@ rocblas_status testing_trsm(Arguments argus)
                 (const T*)hA.data(), lda,
                 hB.data(), ldb);
 
+    */
     hB_copy = hB;
 
     //copy data from CPU to device
@@ -143,11 +152,7 @@ rocblas_status testing_trsm(Arguments argus)
         }
 
         #ifndef NDEBUG
-        for(int i=0;i<min(M,3);i++)
-            for(int j=0;j<min(N,3);j++)
-            {
-                printf("matrix B col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, hB_copy[j+i*ldb], hB[j+i*ldb]);
-            }
+        print_matrix(hB_copy, hB, min(M, 3), min(N,3), ldb);
         #endif
 
         //enable unit check, notice unit check is not invasive, but norm check is,

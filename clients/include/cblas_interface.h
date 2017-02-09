@@ -114,6 +114,12 @@
                      T alpha,
                      const T *A, rocblas_int lda,
                      T *B, rocblas_int ldb);
+
+    template<typename T>
+    rocblas_int cblas_getrf(rocblas_int m,
+                            rocblas_int n,
+                            T *A, rocblas_int lda, 
+                            rocblas_int *ipiv);
     /* ============================================================================================ */
 
 

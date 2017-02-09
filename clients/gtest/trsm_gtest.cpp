@@ -51,10 +51,11 @@ vector<vector<int>> matrix_size_range = {
 
 const
 vector<vector<int>> full_matrix_size_range = {
+                                        {192, 192, 192, 192},
+                                        {640, 640, 960, 960},
                                         {1000, 1000, 1000, 1000},
                                         {2000, 2000, 2000, 2000},
                                         {4011, 4011, 4011, 4011},
-                                        {8000, 8000, 8000, 8000},
                                        };
 
 const

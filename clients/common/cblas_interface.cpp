@@ -22,6 +22,11 @@ extern "C" {
     void    ctrtri_(char* uplo, char* diag, int* n, rocblas_float_complex* A,  int* lda, int *info);
     void    ztrtri_(char* uplo, char* diag, int* n, rocblas_double_complex* A, int* lda, int *info);
 
+    void    sgetrf_(int* m, int* n, float* A, int* lda, int* ipiv, int *info);
+    void    dgetrf_(int* m, int* n, double* A, int* lda, int* ipiv, int *info);
+    void    cgetrf_(int* m, int* n, rocblas_float_complex* A, int* lda, int* ipiv, int *info);
+    void    zgetrf_(int* m, int* n, rocblas_double_complex* A, int* lda, int* ipiv, int *info);
+
 #ifdef __cplusplus
 }
 #endif
@@ -545,5 +550,50 @@ extern "C" {
     {
         //just directly cast, since transA, transB are integers in the enum
         cblas_ztrmm(CblasColMajor, (CBLAS_SIDE)side, (CBLAS_UPLO)uplo, (CBLAS_TRANSPOSE)transA, (CBLAS_DIAG)diag, m, n, &alpha, A, lda, B, ldb);
+    }
+
+    //getrf
+    template<>
+    rocblas_int cblas_getrf<float>(rocblas_int m,
+                            rocblas_int n,
+                            float *A, rocblas_int lda, 
+                            rocblas_int *ipiv)
+    {
+        rocblas_int info;
+        sgetrf_(&m, &n, A, &lda, ipiv, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_getrf<double>(rocblas_int m,
+                            rocblas_int n,
+                            double *A, rocblas_int lda, 
+                            rocblas_int *ipiv)
+    {
+        rocblas_int info;
+        dgetrf_(&m, &n, A, &lda, ipiv, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_getrf<rocblas_float_complex>(rocblas_int m,
+                            rocblas_int n,
+                            rocblas_float_complex *A, rocblas_int lda, 
+                            rocblas_int *ipiv)
+    {
+        rocblas_int info;
+        cgetrf_(&m, &n, A, &lda, ipiv, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_getrf<rocblas_double_complex>(rocblas_int m,
+                            rocblas_int n,
+                            rocblas_double_complex *A, rocblas_int lda, 
+                            rocblas_int *ipiv)
+    {
+        rocblas_int info;
+        zgetrf_(&m, &n, A, &lda, ipiv, &info);
+        return info;
     }
 

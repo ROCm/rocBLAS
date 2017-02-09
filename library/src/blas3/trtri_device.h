@@ -79,24 +79,24 @@ trtri_device(rocblas_fill uplo,
             }
         }
     }
-    __syncthreads(); // since NB < 64, this synch can be avoided
+    __syncthreads(); // if NB < 64, this synch can be avoided
 
     //invert the diagonal element
     if (tx < n){
         //compute only diagonal element
         if (diag == rocblas_diagonal_unit){
-            sA[tx + tx * n] = 1;
+            sA[tx + tx * n] = 1.0;
         }
-        else{
-            if(sA[tx + tx * n] == 0){ // notice this does not apply for complex
-                sA[tx + tx * n] = 1; // means the matrix is singular
+        else{//inverse the diagonal
+            if(sA[tx + tx * n] == 0.0){ // notice this does not apply for complex
+                sA[tx + tx * n] = 1.0; // means the matrix is singular
             }
             else{
-                sA[tx + tx * n] = 1/sA[tx + tx * n];
+                sA[tx + tx * n] = 1.0/sA[tx + tx * n];
             }
         }
     }
-    __syncthreads(); // since NB < 64, this synch can be avoided
+    __syncthreads(); // if NB < 64, this synch can be avoided
 
     // solve the inverse of A column by column, each inverse(A)' column will overwrite sA'column which store A
     // this operation is safe
@@ -106,7 +106,7 @@ trtri_device(rocblas_fill uplo,
         //use the diagonal one to update current column
         if(tx > col) reg += sA[tx + col * n] * sA[col + col * n];
 
-        __syncthreads(); // since NB < 64, this synch can be avoided
+        __syncthreads(); // if NB < 64, this synch can be avoided
 
         // in each column, it solves step, each step solve an inverse(A)[step][col]
         for(int step=col+1;step<n;step++){
