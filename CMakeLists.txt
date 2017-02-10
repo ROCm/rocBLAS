@@ -13,7 +13,8 @@ endif( )
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
-    set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." FORCE )
+  set( CMAKE_BUILD_TYPE "Debug" CACHE STRINGS "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel.")
+  set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -141,6 +142,7 @@ if( BUILD_LIBRARY )
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DTensile_SCHEDULE=${Tensile_SCHEDULE}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   )
 
   # Build the library as an external project
@@ -182,6 +184,7 @@ if( BUILD_CLIENTS )
     -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+    -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 
   )
 
