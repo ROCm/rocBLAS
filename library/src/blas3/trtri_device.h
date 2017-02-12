@@ -6,7 +6,7 @@
 
 #pragma once
 #ifndef _TRTRI_DEVICE_H_
-#define _TRTRI_DEVICE_H_ 
+#define _TRTRI_DEVICE_H_
 
     /*
      * ===========================================================================
@@ -96,7 +96,7 @@ trtri_device(rocblas_fill uplo,
             }
         }
     }
-    __syncthreads(); // if NB < 64, this synch can be avoided
+    __syncthreads(); // if NB < 64, this synch can be avoided on AMD Fiji
 
     // solve the inverse of A column by column, each inverse(A)' column will overwrite sA'column which store A
     // this operation is safe
@@ -106,7 +106,7 @@ trtri_device(rocblas_fill uplo,
         //use the diagonal one to update current column
         if(tx > col) reg += sA[tx + col * n] * sA[col + col * n];
 
-        __syncthreads(); // if NB < 64, this synch can be avoided
+        __syncthreads(); // if NB < 64, this synch can be avoided on AMD Fiji
 
         // in each column, it solves step, each step solve an inverse(A)[step][col]
         for(int step=col+1;step<n;step++){
@@ -117,13 +117,13 @@ trtri_device(rocblas_fill uplo,
                 sA[tx + col * n] = (0 - reg) * sA[tx + tx * n];
             }
 
-            __syncthreads(); // since NB < 64, this synch can be avoided
+            __syncthreads(); // if NB < 64, this synch can be avoided on AMD Fiji
 
             //tx > step  update with (tx = step)'s result
             if(tx > step){
                 reg +=  sA[tx + step * n] * sA[step + col * n];
             }
-            __syncthreads(); // since NB < 64, this synch can be avoided
+            __syncthreads(); // if NB < 64, this synch can be avoided on AMD Fiji
         }
         __syncthreads();
     }
