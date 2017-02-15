@@ -23,14 +23,18 @@ endfunction( )
 # Set up Tensile  Dependency 
 if( BUILD_WITH_TENSILE )
   find_package(Tensile REQUIRED CONFIG)
-  add_tensile_lib( rocblas-tensile
-      SOLUTIONS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/SolutionXMLs/${Tensile_SCHEDULE}
-      BACKEND HIP )
+  CreateTensile( Tensile
+      ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
+      ${Tensile_ROOT}                 # path
+      HIP
+      ${Tensile_MERGE_FILES}          # ON or OFF
+      ${Tensile_SHORT_FILE_NAMES}     # ON or OFF
+      ${Tensile_LIBRARY_PRINT_DEBUG}  # ON or OFF
+      )
 
   #rocblas_gemm and rocblas_trsm require tensile 
     set( Tensile_SRC 
       blas3/Tensile/gemm.cpp
-      blas3/Tensile/Tensile_status.cpp
       blas3/rocblas_trsm.cpp
       )
 
@@ -111,7 +115,7 @@ target_include_directories( rocblas
 )
 
 if( BUILD_WITH_TENSILE )
-    target_link_libraries( rocblas PRIVATE rocblas-tensile )
+    target_link_libraries( rocblas PRIVATE Tensile)
     target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
 endif()
 
@@ -156,7 +160,7 @@ write_basic_package_version_file(
 )
 
 if( BUILD_WITH_TENSILE )
-    install( TARGETS rocblas rocblas-tensile
+    install( TARGETS rocblas Tensile
         EXPORT rocblas-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}

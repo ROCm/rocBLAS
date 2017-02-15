@@ -1,6 +1,6 @@
-/* ************************************************************************
+/**************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- * ************************************************************************ */
+ ************************************************************************** */
 
 #include <hip/hip_runtime.h>
 #include <sys/time.h>
@@ -10,10 +10,164 @@
 #include "definitions.h"
 #include "handle.h"
 
+
+/*******************************************************************************
+ * API Args
+ ******************************************************************************/
+#define ARGS(TYPE) \
+  rocblas_handle handle, \
+  rocblas_order order, \
+  rocblas_operation transa, \
+  rocblas_operation transb, \
+  rocblas_int m, \
+  rocblas_int n, \
+  rocblas_int k, \
+  const TYPE *alpha, \
+  const TYPE *A, \
+  rocblas_int ld_a, \
+  const TYPE *B, \
+  rocblas_int ld_b, \
+  const TYPE *beta, \
+  TYPE *C, \
+  rocblas_int ld_c
+
+#define ARGS_BATCHED(TYPE) \
+  rocblas_handle handle, \
+  rocblas_order order, \
+  rocblas_operation transa, \
+  rocblas_operation transb, \
+  rocblas_int m, \
+  rocblas_int n, \
+  rocblas_int k, \
+  const TYPE *alpha, \
+  const TYPE *A, \
+  rocblas_int ld_a, \
+  rocblas_int bs_a, \
+  const TYPE *B, \
+  rocblas_int ld_b, \
+  rocblas_int bs_b, \
+  const TYPE *beta, \
+  TYPE *C, \
+  rocblas_int ld_c, \
+  rocblas_int bs_c, \
+  rocblas_int batch_count
+
+
+/*******************************************************************************
+ * Preamble Code
+ ******************************************************************************/
+#define PREAMBLE \
+  rocblas_int bs_c; \
+  rocblas_int bs_a; \
+  rocblas_int bs_b; \
+  infer_batch_strides( order, transa, transb, m, n, k, \
+      ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c ); \
+  rocblas_status status = validateParameters( handle, order, transa, transb, \
+    m, n, k, alpha, A, ld_a, bs_a, B, ld_b, bs_b, beta, C, ld_c, bs_c); \
+  if (status != rocblas_status_success) return status; \
+  \
+  unsigned int strideC1 = static_cast<unsigned int>(ld_c); \
+  unsigned int strideC2 = static_cast<unsigned int>(bs_c); \
+  unsigned int strideA1 = static_cast<unsigned int>(ld_a); \
+  unsigned int strideA2 = static_cast<unsigned int>(bs_a); \
+  unsigned int strideB1 = static_cast<unsigned int>(ld_b); \
+  unsigned int strideB2 = static_cast<unsigned int>(bs_b); \
+  unsigned int sizeI    = (order==rocblas_order_column_major) \
+      ? static_cast<unsigned int>(m) : static_cast<unsigned int>(n) ; \
+  unsigned int sizeJ    = (order==rocblas_order_column_major) \
+      ? static_cast<unsigned int>(n) : static_cast<unsigned int>(m) ; \
+  unsigned int sizeK    = 1; \
+  unsigned int sizeL    = static_cast<unsigned int>(k);
+
+#define PREAMBLE_BATCHED \
+  rocblas_status status = validateParameters( handle, order, transa, transb, \
+    m, n, k, alpha, A, ld_a, bs_a, B, ld_b, bs_b, beta, C, ld_c, bs_c); \
+  if (status != rocblas_status_success) return status; \
+  \
+  unsigned int strideC1 = static_cast<unsigned int>(ld_c); \
+  unsigned int strideC2 = static_cast<unsigned int>(bs_c); \
+  unsigned int strideA1 = static_cast<unsigned int>(ld_a); \
+  unsigned int strideA2 = static_cast<unsigned int>(bs_a); \
+  unsigned int strideB1 = static_cast<unsigned int>(ld_b); \
+  unsigned int strideB2 = static_cast<unsigned int>(bs_b); \
+  unsigned int sizeI    = (order==rocblas_order_column_major) \
+      ? static_cast<unsigned int>(m) : static_cast<unsigned int>(n) ; \
+  unsigned int sizeJ    = (order==rocblas_order_column_major) \
+      ? static_cast<unsigned int>(n) : static_cast<unsigned int>(m) ; \
+  unsigned int sizeK    = static_cast<unsigned int>(batch_count); \
+  unsigned int sizeL    = static_cast<unsigned int>(k);
+
+    int num_cols_c = n;
+    int num_rows_c = m;
+
+    sizeI = (order==rocblas_order_column_major) ? m : n;
+    sizeJ = (order==rocblas_order_column_major) ? n : m;
+    tensor_c.dimensions[2].stride = bs_c;
+
+
+/*******************************************************************************
+ * Calling Tensile
+ ******************************************************************************/
+#define TENSILE_NN(SCHEDULE, PREC) \
+  tensile_ ## SCHEDULE ##_Cijk_Ailk_Bljk_ ## PREC ## B
+#define TENSILE_NT(SCHEDULE, PREC) \
+  tensile_ ## SCHEDULE ##_Cijk_Ailk_Bjlk_ ## PREC ## B
+#define TENSILE_TN(SCHEDULE, PREC) \
+  tensile_ ## SCHEDULE ##_Cijk_Alik_Bljk_ ## PREC ## B
+#define TENSILE_TT(SCHEDULE, PREC) \
+  tensile_ ## SCHEDULE ##_Cijk_Alik_Bjlk_ ## PREC ## B
+
+#define TENSILE_CALLS(SCHEDULE, PREC) \
+  if ( trans_a == rocblas_operation_none) { \
+    if (trans_b == rocblas_operation_none) { /*NN*/ \
+      return TENSILE_NN(SCHEDULE,PREC)( C, A, B, alpha, beta, \
+          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
+          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+          handle->rocblas_stream, 0, nullptr, nullptr); \
+    } else { /*NT*/ \
+      return TENSILE_NT(SCHEDULE,PREC)( C, A, B, alpha, beta, \
+          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
+          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+          handle->rocblas_stream, 0, nullptr, nullptr); \
+    } \
+  } else { /*TN*/ \
+    if (trans_b == rocblas_operation_none) { \
+      return TENSILE_TN(SCHEDULE,PREC)( C, A, B, alpha, beta, \
+          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
+          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+          handle->rocblas_stream, 0, nullptr, nullptr); \
+    } else { /*TT*/ \
+      return TENSILE_TN(SCHEDULE,PREC)( C, A, B, alpha, beta, \
+          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
+          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+          handle->rocblas_stream, 0, nullptr, nullptr); \
+    } \
+  }
+
+
+/*******************************************************************************
+ * GEMM APIs
+ ******************************************************************************/
+#define GEMM_API(prec, PREC, TYPE, SCHEDULE) \
+  rocblas_status rocblas_ ## prec ## gemm( ARGS(TYPE) ) { \
+    PREAMBLE \
+    TENSILE_CALLS(SCHEDULE, PREC) \
+  }
+
+#define GEMM_API_BATCHED(prec, PREC, TYPE, SCHEDULE) \
+  rocblas_status rocblas_ ## prec ## gemm( ARGS_BATCHED(TYPE) ) { \
+    PREAMBLE_BATCHED \
+    TENSILE_CALLS(SCHEDULE, PREC) \
+  }
+
+GEMM_API(s, S, float, FijiROCm14 )
+GEMM_API(d, D, double, FijiROCm14 )
+GEMM_API_BATCHED(s, S, float, FijiROCm14 )
+GEMM_API_BATCHED(d, D, double, FijiROCm14 )
+
+#if 0
+
 #define COMPLEX 0
-
-//this gemm.cpp needs considerable debugging
-
 
 /*******************************************************************************
  * GEMM wrapper around Tensile
@@ -238,110 +392,48 @@ rocblas_status xgemm_tensile(
 /*******************************************************************************
  * API Functions :
  ******************************************************************************/
-// fp16 (hgemm) is available
-// rocblas_status rocblas_hgemm(
-//     rocblas_handle handle,
-//     rocblas_order order,
-//     rocblas_operation transa, rocblas_operation transb,
-//     rocblas_int m, rocblas_int n, rocblas_int k,
-//     const rocblas_half *alpha,
-//     const rocblas_half *A, rocblas_int ld_a,
-//     const rocblas_half *B, rocblas_int ld_b,
-//     const rocblas_half *beta,
-//           rocblas_half *C, rocblas_int ld_c) {
-//
-  //   TensileDataType type_c     = tensileDataTypeHalf;
-  //   TensileDataType type_a     = tensileDataTypeHalf;
-  //   TensileDataType type_b     = tensileDataTypeHalf;
-  //   TensileDataType type_alpha = tensileDataTypeHalf;
-  //   TensileDataType type_beta  = tensileDataTypeHalf;
-  //
-  //   rocblas_int ls_c = 1;
-  //   rocblas_int ls_a = 1;
-  //   rocblas_int ls_b = 1;
-  //
-  //   rocblas_int bs_c;
-  //   rocblas_int bs_a;
-  //   rocblas_int bs_b;
-  //
-  //   infer_batch_strides( order, transa, transb, m, n, k,
-  //     ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
-  //   rocblas_int batch_count = 1;
-  //
-  //   return xgemm_tensile( handle, order, transa, transb,
-  //       m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-  //       type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-  //       type_c, C, ls_c, ld_c, bs_c, batch_count );
-// }
+#if 0
+ rocblas_status rocblas_hgemm(
+     rocblas_handle handle,
+     rocblas_order order,
+     rocblas_operation transa, rocblas_operation transb,
+     rocblas_int m, rocblas_int n, rocblas_int k,
+     const rocblas_half *alpha,
+     const rocblas_half *A, rocblas_int ld_a,
+     const rocblas_half *B, rocblas_int ld_b,
+     const rocblas_half *beta,
+           rocblas_half *C, rocblas_int ld_c) {
 
-rocblas_status rocblas_sgemm(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const float *alpha,
-    const float *A, rocblas_int ld_a,
-    const float *B, rocblas_int ld_b,
-    const float *beta,
-    float *C, rocblas_int ld_c) {
+     TensileDataType type_c     = tensileDataTypeHalf;
+     TensileDataType type_a     = tensileDataTypeHalf;
+     TensileDataType type_b     = tensileDataTypeHalf;
+     TensileDataType type_alpha = tensileDataTypeHalf;
+     TensileDataType type_beta  = tensileDataTypeHalf;
 
-    TensileDataType type_c     = tensileDataTypeSingle;
-    TensileDataType type_a     = tensileDataTypeSingle;
-    TensileDataType type_b     = tensileDataTypeSingle;
-    TensileDataType type_alpha = tensileDataTypeSingle;
-    TensileDataType type_beta  = tensileDataTypeSingle;
+     rocblas_int ls_c = 1;
+     rocblas_int ls_a = 1;
+     rocblas_int ls_b = 1;
 
-    rocblas_int ls_c = 1;
-    rocblas_int ls_a = 1;
-    rocblas_int ls_b = 1;
+     rocblas_int bs_c;
+     rocblas_int bs_a;
+     rocblas_int bs_b;
 
-    rocblas_int bs_c;
-    rocblas_int bs_a;
-    rocblas_int bs_b;
+     infer_batch_strides( order, transa, transb, m, n, k,
+       ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
+     rocblas_int batch_count = 1;
 
-    infer_batch_strides( order, transa, transb, m, n, k,
-        ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
-        rocblas_int batch_count = 1;
-
-    return xgemm_tensile( handle, order, transa, transb,
-        m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-        type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-        type_c, C, ls_c, ld_c, bs_c, batch_count );
+     return xgemm_tensile( handle, order, transa, transb,
+         m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
+         type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
+         type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
+#endif
 
-rocblas_status rocblas_dgemm(
-    rocblas_handle handle,
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const double *alpha,
-    const double *A, rocblas_int ld_a,
-    const double *B, rocblas_int ld_b,
-    const double *beta,
-    double *C, rocblas_int ld_c) {
+GEMM_API(s, S, float, FijiROCm14 )
+GEMM_API(d, D, double, FijiROCm14 )
 
-    TensileDataType type_c     = tensileDataTypeDouble;
-    TensileDataType type_a     = tensileDataTypeDouble;
-    TensileDataType type_b     = tensileDataTypeDouble;
-    TensileDataType type_alpha = tensileDataTypeDouble;
-    TensileDataType type_beta  = tensileDataTypeDouble;
 
-    rocblas_int ls_c = 1;
-    rocblas_int ls_a = 1;
-    rocblas_int ls_b = 1;
-
-    rocblas_int bs_c;
-    rocblas_int bs_a;
-    rocblas_int bs_b;
-
-    infer_batch_strides( order, transa, transb, m, n, k,
-        ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c );
-        rocblas_int batch_count = 1;
-
-    return xgemm_tensile( handle, order, transa, transb,
-        m, n, k, type_alpha, alpha, type_a, A, ls_a, ld_a, bs_a,
-        type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
-        type_c, C, ls_c, ld_c, bs_c, batch_count );
+rocblas_status rocblas_dgemm( ARGS(double) ) {
 }
 
 // rocblas_status rocblas_qgemm(
@@ -976,53 +1068,9 @@ rocblas_status rocblas_zgemm_strided_batched(
         type_b, B, ls_b, ld_b, bs_b, type_beta, beta,
         type_c, C, ls_c, ld_c, bs_c, batch_count );
 }
+// eliminating complex
 #endif
 
-/*******************************************************************************
- * Helper Functions
- ******************************************************************************/
-TensileDataType conjugate_if_necessary( TensileDataType type, rocblas_operation trans ) {
-    if ( trans == rocblas_operation_conjugate_transpose ) {
-        switch ( type ) {
-        // case tensileDataTypeComplexHalf:
-        //   return tensileDataTypeComplexConjugateHalf;
-        case tensileDataTypeComplexSingle:
-          return tensileDataTypeComplexConjugateSingle;
-        case tensileDataTypeComplexDouble:
-          return tensileDataTypeComplexConjugateDouble;
-        default:
-          // if type was real, type doesn't change
-          return type;
-        }
-    } else {
-        // not conjugate transposing
-        return type;
-    }
-}
 
-/*******************************************************************************
- * Infer Batch Strides
- ******************************************************************************/
-void infer_batch_strides(
-    rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    rocblas_int ld_a, rocblas_int *bs_a,
-    rocblas_int ld_b, rocblas_int *bs_b,
-    rocblas_int ld_c, rocblas_int *bs_c ) {
-
-    int num_cols_a = (transa == rocblas_operation_none ? k : m);
-    int num_rows_a = (transa == rocblas_operation_none ? m : k);
-    int num_cols_b = (transb == rocblas_operation_none ? n : k);
-    int num_rows_b = (transb == rocblas_operation_none ? k : n);
-    int num_cols_c = n;
-    int num_rows_c = m;
-
-    int dim1_size_a = (order==rocblas_order_column_major) ? num_cols_a : num_rows_a;
-    int dim1_size_b = (order==rocblas_order_column_major) ? num_cols_b : num_rows_b;
-    int dim1_size_c = (order==rocblas_order_column_major) ? num_cols_c : num_rows_c;
-
-    *bs_a = ld_a * dim1_size_a;
-    *bs_b = ld_b * dim1_size_b;
-    *bs_c = ld_c * dim1_size_c;
-}
+// eliminating old code
+#endif
