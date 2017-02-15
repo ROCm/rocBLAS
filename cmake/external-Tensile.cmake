@@ -10,11 +10,10 @@
 message( STATUS "Configuring Tensile external dependency" )
 include( ExternalProject )
 
-set( Tensile_REPO "https://github.com/RadeonOpenCompute/Tensile.git"
+set( Tensile_REPO "https://github.com/guacamoleo/Tensile.git"
     CACHE STRING "URL to download Tensile from" )
-set( Tensile_TAG "develop" CACHE STRING "Tensile branch to download" )
+set( Tensile_TAG "v2" CACHE STRING "Tensile branch to download" )
 
-option( Tensile_ENABLE_LOGGER "Enable logger in Tensile?" OFF )
 
 include( ProcessorCount )
 ProcessorCount( Cores )
@@ -46,8 +45,8 @@ ExternalProject_Add(
   GIT_REPOSITORY ${Tensile_REPO}
   GIT_TAG ${Tensile_TAG}
   PREFIX ${CMAKE_BINARY_DIR}/extern/Tensile
-  CMAKE_ARGS
-    ${tensile_cmake_args}
+  #CMAKE_ARGS
+  #  ${tensile_cmake_args}
   LOG_BUILD 1
 )
 

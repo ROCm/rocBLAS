@@ -1,0 +1,228 @@
+- FijiROCm14
+- Batched: true
+  ComplexConjugateA: false
+  ComplexConjugateB: false
+  DataType: 1
+  HighPrecisionAccumulate: false
+  Index0: 0
+  Index01A: 0
+  Index01B: 1
+  Index1: 1
+  IndexAssignmentsA:
+  - 3
+  - 0
+  - 2
+  IndexAssignmentsB:
+  - 3
+  - 1
+  - 2
+  IndexUnroll: 3
+  IndexUnrollA: 0
+  IndexUnrollB: 0
+  IndicesBatch:
+  - 2
+  IndicesFree:
+  - 0
+  - 1
+  IndicesSummation:
+  - 3
+  NumDimensionsC: 2
+  NumIndicesBatch: 1
+  NumIndicesC: 3
+  NumIndicesFree: 2
+  NumIndicesSummation: 1
+  OperationType: GEMM
+  TLUA: false
+  TLUB: false
+  Tensor0: 0
+  Tensor1: 1
+  TileA: 0
+  TileB: 1
+  TotalIndices: 4
+  TransposeA: true
+  TransposeB: false
+  UseBeta: true
+  UseInitialStrides: false
+- - AtomicAccumulate: false
+    DepthU: 16
+    EdgeMultiKernel: false
+    EdgeType: Branch
+    KernelMaxSizes: &id001
+    - 0
+    - 0
+    - 0
+    KernelSerial: true
+    LoadMacInterleave: 4
+    LoopDoWhile: true
+    LoopTail: false
+    LoopUnroll: 16
+    MacroTile0: 32
+    MacroTile1: 32
+    MacroTileMaxRatio: 2
+    NumLoadsA: 2
+    NumLoadsB: 2
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 2
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 1
+    PadLDS: 1
+    Prefetch: false
+    ProblemType:
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      DataType: 1
+      HighPrecisionAccumulate: false
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
+      IndexUnroll: 3
+      IndexUnrollA: 0
+      IndexUnrollB: 0
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
+      NumDimensionsC: 2
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      TLUA: false
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: true
+      TransposeB: false
+      UseBeta: true
+      UseInitialStrides: false
+    SplitU: 1
+    ThreadTile0: 2
+    ThreadTile1: 2
+    ThreadTileEdge: 2
+    ThreadTileShape: 0
+    VectorWidthGlobalLoad: 4
+    VectorWidthGlobalStore: 4
+    VectorWidthLocalLoad: 4
+    VectorWidthLocalStore: 4
+    WorkGroup0: 16
+    WorkGroup1: 16
+    WorkGroupEdge: 16
+    WorkGroupMapping: 1
+    WorkGroupSchedule: 1
+    WorkGroupShape: 0
+  - AtomicAccumulate: false
+    DepthU: 16
+    EdgeMultiKernel: false
+    EdgeType: Branch
+    KernelMaxSizes: *id001
+    KernelSerial: true
+    LoadMacInterleave: 4
+    LoopDoWhile: true
+    LoopTail: false
+    LoopUnroll: 16
+    MacroTile0: 64
+    MacroTile1: 64
+    MacroTileMaxRatio: 2
+    NumLoadsA: 4
+    NumLoadsB: 4
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 4
+    NumLoadsPerpendicularA: 4
+    NumLoadsPerpendicularB: 1
+    PadLDS: 1
+    Prefetch: false
+    ProblemType:
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      DataType: 1
+      HighPrecisionAccumulate: false
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
+      IndexUnroll: 3
+      IndexUnrollA: 0
+      IndexUnrollB: 0
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
+      NumDimensionsC: 2
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      TLUA: false
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: true
+      TransposeB: false
+      UseBeta: true
+      UseInitialStrides: false
+    SplitU: 1
+    ThreadTile0: 4
+    ThreadTile1: 4
+    ThreadTileEdge: 4
+    ThreadTileShape: 0
+    VectorWidthGlobalLoad: 4
+    VectorWidthGlobalStore: 4
+    VectorWidthLocalLoad: 4
+    VectorWidthLocalStore: 4
+    WorkGroup0: 16
+    WorkGroup1: 16
+    WorkGroupEdge: 16
+    WorkGroupMapping: 1
+    WorkGroupSchedule: 1
+    WorkGroupShape: 0
+- []
+- []
+- - - 1
+    - - 512
+      - 512
+      - 2
+      - 0
+    - 166.4429931640625
+    - 220.7030029296875
+    - -1
+  - - 0
+    - - 32
+      - 32
+      - 2
+      - 0
+    - 5.613100051879883
+    - 177.86599731445312
+    - 122.68499755859375

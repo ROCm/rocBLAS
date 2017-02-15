@@ -42,12 +42,13 @@ option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
 # which benchmark solution schedule
 if ( BUILD_WITH_TENSILE )
-  set( Tensile_SCHEDULE "Hawaii_Catalyst_15.201_min" CACHE STRING "Which benchmark data to use for Problem->Solution mapping")
-  set_property( CACHE Tensile_SCHEDULE PROPERTY STRINGS
-    Fiji_ROCm_1.3_full
-    Fiji_ROCm_1.3_min
-    Hawaii_Catalyst_15.201_min
+  set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
+    FijiROCm14
     )
+  option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" OFF)
+  option( Tensile_SHORT_FILE_NAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF)
+  option( Tensile_LIBRARY_PRINT_DEBUG "Tensile to print runtime debug info?" OFF)
 endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
