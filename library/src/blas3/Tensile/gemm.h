@@ -6,16 +6,16 @@
  ******************************************************************************/
 inline void infer_batch_strides(
     rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
+    rocblas_operation trans_a, rocblas_operation trans_b,
     rocblas_int m, rocblas_int n, rocblas_int k,
     rocblas_int ld_a, rocblas_int *bs_a,
     rocblas_int ld_b, rocblas_int *bs_b,
     rocblas_int ld_c, rocblas_int *bs_c ) {
 
-  int num_cols_a = (transa == rocblas_operation_none ? k : m);
-  int num_rows_a = (transa == rocblas_operation_none ? m : k);
-  int num_cols_b = (transb == rocblas_operation_none ? n : k);
-  int num_rows_b = (transb == rocblas_operation_none ? k : n);
+  int num_cols_a = (trans_a == rocblas_operation_none ? k : m);
+  int num_rows_a = (trans_a == rocblas_operation_none ? m : k);
+  int num_cols_b = (trans_b == rocblas_operation_none ? n : k);
+  int num_rows_b = (trans_b == rocblas_operation_none ? k : n);
   int num_cols_c = n;
   int num_rows_c = m;
 
@@ -34,32 +34,32 @@ inline void infer_batch_strides(
 
 
 /*******************************************************************************
- * Validate Parameters
+ * Validate Arguments
  ******************************************************************************/
 inline rocblas_status validateArgs(
     rocblas_handle handle,
     rocblas_order order,
-    rocblas_operation transa, rocblas_operation transb,
+    rocblas_operation trans_a, rocblas_operation trans_b,
     rocblas_int m, rocblas_int n, rocblas_int k,
     const void *alpha,
-    const void *A, rocblas_int ld_a, rocblas_int bs_a,
-    const void *B, rocblas_int ld_b, rocblas_int bs_b,
+    const void *a, rocblas_int ld_a, rocblas_int bs_a,
+    const void *b, rocblas_int ld_b, rocblas_int bs_b,
     const void *beta,
-    void *C, rocblas_int ld_c, rocblas_int bs_c
+    void *c, rocblas_int ld_c, rocblas_int bs_c, rocblas_int b_c
     ) {
 
   // quick return 0 is valid in BLAS
-  if ( m == 0 || n == 0 || k == 0 || batch_count == 0) {
+  if ( m == 0 || n == 0 || k == 0 || b_c == 0) {
     return rocblas_status_success;
   }
 
   // sizes must not be negative
-  if ( m < 0 || n < 0 || k < 0 || batch_count < 0) {
+  if ( m < 0 || n < 0 || k < 0 || b_c < 0) {
     return rocblas_status_invalid_size;
   }
 
   // strides must not be negative
-  if ( m < 0 || n < 0 || k < 0 || batch_count < 0) {
+  if ( m < 0 || n < 0 || k < 0 || b_c < 0) {
     return rocblas_status_invalid_size;
   }
 
@@ -76,6 +76,13 @@ inline rocblas_status validateArgs(
       || beta == nullptr ) {
     return rocblas_status_invalid_pointer;
   }
+
+  rocblas_int num_cols_c = n;
+  rocblas_int num_rows_c = m;
+  rocblas_int num_cols_a = (trans_a == rocblas_operation_none) ? k : m;
+  rocblas_int num_rows_a = (trans_a == rocblas_operation_none) ? m : k;
+  rocblas_int num_cols_b = (trans_b == rocblas_operation_none) ? n : k;
+  rocblas_int num_rows_b = (trans_b == rocblas_operation_none) ? k : n;
 
   // valid strides
   if(order==rocblas_order_column_major){

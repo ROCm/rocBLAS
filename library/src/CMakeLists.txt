@@ -22,14 +22,18 @@ endfunction( )
 
 # Set up Tensile  Dependency 
 if( BUILD_WITH_TENSILE )
-  find_package(Tensile REQUIRED CONFIG)
-  CreateTensile( Tensile
+  message(STATUS "Tensile_ROOT=${Tensile_ROOT}")
+  message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
+  include(${Tensile_ROOT}/Source/CreateTensile.cmake)
+  #find_package(Tensile REQUIRED CONFIG)
+  set(Tensile_BACKEND "HIP")
+  CreateTensile(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-      ${Tensile_ROOT}                 # path
-      HIP
-      ${Tensile_MERGE_FILES}          # ON or OFF
-      ${Tensile_SHORT_FILE_NAMES}     # ON or OFF
-      ${Tensile_LIBRARY_PRINT_DEBUG}  # ON or OFF
+      ${Tensile_ROOT}             # Path to Repo
+      ${Tensile_BACKEND}          # HIP or OCL
+      ${Tensile_MERGE_FILES}      # ON or OFF
+      ${Tensile_SHORT_FILENAMES}  # ON or OFF
+      ${Tensile_PRINT_DEBUG}      # ON or OFF
       )
 
   #rocblas_gemm and rocblas_trsm require tensile 
