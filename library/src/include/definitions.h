@@ -6,10 +6,6 @@
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
 
-#if BUILD_WITH_TENSILE
-   #include "Tensile_status.h"
-#endif
-
 #include "status.h"
 
 /*******************************************************************************
@@ -56,31 +52,6 @@
         fprintf(stderr, "rocblas error code: %d at %s:%d\n",  TMP_STATUS_FOR_CHECK,__FILE__, __LINE__); \
 } }
 
-
-#if BUILD_WITH_TENSILE
-
-    #define RETURN_IF_TENSILE_ERROR(INPUT_STATUS_FOR_CHECK) { \
-        TensileStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if (TMP_STATUS_FOR_CHECK != tensileStatusSuccess) { \
-            tensileStatusCheck( TMP_STATUS_FOR_CHECK ); \
-            return get_rocblas_status_for_tensile_status(TMP_STATUS_FOR_CHECK); \
-    } }
-
-    #define THROW_IF_TENSILE_ERROR(INPUT_STATUS_FOR_CHECK) {\
-        TensileStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if (TMP_STATUS_FOR_CHECK != tensileStatusSuccess) { \
-            tensileStatusCheck( TMP_STATUS_FOR_CHECK ); \
-            throw get_rocblas_status_for_tensile_status(TMP_STATUS_FOR_CHECK); \
-    } }
-
-    #define PRINT_IF_TENSILE_ERROR(INPUT_STATUS_FOR_CHECK) {\
-        TensileStatus TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;\
-        if (TMP_STATUS_FOR_CHECK != tensileStatusSuccess) { \
-            fprintf(stderr, "tensile error code: %d at %s:%d\n",  TMP_STATUS_FOR_CHECK,__FILE__, __LINE__); \
-    } }\
-
-
-#endif //BUILD_WITH_TENSILE
 
 
 #endif //DEFINITIONS_H
