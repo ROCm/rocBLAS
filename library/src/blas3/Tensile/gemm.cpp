@@ -77,7 +77,7 @@
       ? static_cast<unsigned int>(m) : static_cast<unsigned int>(n) ; \
   unsigned int sizeJ    = (order==rocblas_order_column_major) \
       ? static_cast<unsigned int>(n) : static_cast<unsigned int>(m) ; \
-  unsigned int sizeK    = 1; \
+  unsigned int sizeK    = b_c; \
   unsigned int sizeL    = static_cast<unsigned int>(k);
 
 #define PREAMBLE_BATCHED \
@@ -152,7 +152,7 @@
   }
 
 #define GEMM_API_BATCHED(prec, PREC, TYPE, SCHEDULE) \
-  rocblas_status rocblas_ ## prec ## gemm( ARGS_BATCHED(TYPE) ) { \
+  rocblas_status rocblas_ ## prec ## gemm_batched( ARGS_BATCHED(TYPE) ) { \
     PREAMBLE_BATCHED \
     TENSILE_CALLS(SCHEDULE, PREC) \
   }

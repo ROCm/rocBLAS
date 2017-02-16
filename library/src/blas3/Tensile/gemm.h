@@ -12,18 +12,18 @@ inline void infer_batch_strides(
     rocblas_int ld_b, rocblas_int *bs_b,
     rocblas_int ld_c, rocblas_int *bs_c ) {
 
-  int num_cols_a = (trans_a == rocblas_operation_none ? k : m);
-  int num_rows_a = (trans_a == rocblas_operation_none ? m : k);
-  int num_cols_b = (trans_b == rocblas_operation_none ? n : k);
-  int num_rows_b = (trans_b == rocblas_operation_none ? k : n);
-  int num_cols_c = n;
-  int num_rows_c = m;
+  rocblas_int num_cols_c = n;
+  rocblas_int num_rows_c = m;
+  rocblas_int num_cols_a = (trans_a == rocblas_operation_none ? k : m);
+  rocblas_int num_rows_a = (trans_a == rocblas_operation_none ? m : k);
+  rocblas_int num_cols_b = (trans_b == rocblas_operation_none ? n : k);
+  rocblas_int num_rows_b = (trans_b == rocblas_operation_none ? k : n);
 
-  int dim1_size_a = (order==rocblas_order_column_major)
+  rocblas_int dim1_size_a = (order==rocblas_order_column_major)
       ? num_cols_a : num_rows_a;
-  int dim1_size_b = (order==rocblas_order_column_major)
+  rocblas_int dim1_size_b = (order==rocblas_order_column_major)
       ? num_cols_b : num_rows_b;
-  int dim1_size_c = (order==rocblas_order_column_major)
+  rocblas_int dim1_size_c = (order==rocblas_order_column_major)
       ? num_cols_c : num_rows_c;
 
   *bs_a = ld_a * dim1_size_a;
