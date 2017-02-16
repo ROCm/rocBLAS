@@ -53,8 +53,8 @@
     - 0
     KernelSerial: true
     LoadMacInterleave: 4
-    LoopDoWhile: true
-    LoopTail: false
+    LoopDoWhile: false
+    LoopTail: true
     LoopUnroll: 16
     MacroTile0: 32
     MacroTile1: 32
@@ -134,8 +134,8 @@
     KernelMaxSizes: *id001
     KernelSerial: true
     LoadMacInterleave: 4
-    LoopDoWhile: true
-    LoopTail: false
+    LoopDoWhile: false
+    LoopTail: true
     LoopUnroll: 16
     MacroTile0: 96
     MacroTile1: 96
@@ -215,8 +215,8 @@
     KernelMaxSizes: *id001
     KernelSerial: true
     LoadMacInterleave: 4
-    LoopDoWhile: true
-    LoopTail: false
+    LoopDoWhile: false
+    LoopTail: true
     LoopUnroll: 8
     MacroTile0: 128
     MacroTile1: 128
