@@ -37,7 +37,7 @@ if( BUILD_WITH_TENSILE )
         )
   else()
     message(STATUS "Tensile_ROOT=${Tensile_ROOT} specified; manually including TensileConfig.cmake")
-    include(${Tensile_ROOT}/Source/TensileConfig.cmake)
+    include(${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake)
     TensileCreateLibrary(
         ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
         ${Tensile_BACKEND}
