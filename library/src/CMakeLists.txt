@@ -22,24 +22,48 @@ endfunction( )
 
 # Set up Tensile  Dependency 
 if( BUILD_WITH_TENSILE )
-  #message(STATUS "Tensile_ROOT=${Tensile_ROOT}")
-  message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
-  message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
-  #include(${Tensile_ROOT}/Source/CreateTensile.cmake)
-  find_package(Tensile)
-  if (Tensile_FOUND)
-    message(STATUS "Tensile found.")
-  else()
-    message(STATUS "Tensile NOT found!")
-  endif()
   set(Tensile_BACKEND "HIP")
-  TensileCreateLibrary(
-      ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-      ${Tensile_BACKEND}          # HIP or OCL
-      ${Tensile_MERGE_FILES}      # ON or OFF
-      ${Tensile_SHORT_FILENAMES}  # ON or OFF
-      ${Tensile_PRINT_DEBUG}      # ON or OFF
-      )
+  message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
+  message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
+  if (Tensile_FOUND) # was it found at the top level
+    find_package(Tensile)
+    message(STATUS "Tensile package found")
+    TensileCreateLibrary(
+        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
+        ${Tensile_BACKEND}
+        ${Tensile_MERGE_FILES}
+        ${Tensile_SHORT_FILENAMES}
+        ${Tensile_PRINT_DEBUG}
+        )
+  else()
+    message(STATUS "Tensile_ROOT=${Tensile_ROOT} specified; manually including TensileConfig.cmake")
+    include(${Tensile_ROOT}/Source/TensileConfig.cmake)
+    TensileCreateLibrary(
+        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
+        ${Tensile_BACKEND}
+        ${Tensile_MERGE_FILES}
+        ${Tensile_SHORT_FILENAMES}
+        ${Tensile_PRINT_DEBUG}
+        Tensile_ROOT ${Tensile_ROOT}
+        )
+  endif()
+
+  #message(STATUS "Tensile_ROOT=${Tensile_ROOT}")
+  #find_package(Tensile)
+  #if (Tensile_FOUND)
+  #  message(STATUS "Tensile package found.")
+  #else()
+  #  message(STATUS "Tensile NOT found; including TensileConfig.cmake.")
+  #  include(${Tensile_ROOT}/Source/TensileConfig.cmake)
+  #endif()
+  #TensileCreateLibrary(
+  #    ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
+  #    ${Tensile_BACKEND}          # HIP or OCL
+  #    ${Tensile_MERGE_FILES}      # ON or OFF
+  #    ${Tensile_SHORT_FILENAMES}  # ON or OFF
+  #    ${Tensile_PRINT_DEBUG}      # ON or OFF
+  #    ${Tensile_ROOT}
+  #    )
 
   #rocblas_gemm and rocblas_trsm require tensile 
     set( Tensile_SRC 
