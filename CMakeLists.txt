@@ -41,7 +41,7 @@ option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
 # which benchmark solution schedule
-#set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
+set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
 if ( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
@@ -123,17 +123,19 @@ if( BUILD_LIBRARY )
     # Tensile_INCLUDE_DIRS
     # TensileLib_LIBRARIES
     # TensileLogger_LIBRARIES
-    find_package(Tensile)
-    if (Tensile_FOUND)
-      message(STATUS "Tensile found at top.")
+    if (Tensile_ROOT)
+      message(STATUS "Tensile_ROOT=${Tensile_ROOT} specified")
     else()
-      message(STATUS "Tensile NOT found at top!")
-      include(cmake/external-Tensile.cmake )
+      find_package(Tensile QUIET)
+      if (Tensile_FOUND)
+        message(STATUS "Tensile package found.")
+      else()
+        include(cmake/external-Tensile.cmake )
+        list( APPEND rocblas_dependencies Tensile )
+        list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
+        message( STATUS "Tensile not installed; will download to Tensile_ROOT=${Tensile_ROOT}" )
+      endif()
     endif()
-    #if ( Tensile_ROOT STREQUAL "" )
-    #  list( APPEND rocblas_dependencies Tensile )
-    #endif()
-    #list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
   endif()
 
   # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
@@ -150,12 +152,16 @@ if( BUILD_LIBRARY )
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DTensile_LOGIC=${Tensile_LOGIC}
-    #-DTensile_ROOT=${Tensile_ROOT}
     -DTensile_MERGE_FILES=${Tensile_MERGE_FILES}
     -DTensile_SHORT_FILENAMES=${Tensile_SHORT_FILENAMES}
     -DTensile_PRINT_DEBUG=${Tensile_PRINT_DEBUG}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   )
+  if (Tensile_FOUND)
+    set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_FOUND=${Tensile_FOUND})
+  else()
+    set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_ROOT=${Tensile_ROOT})
+  endif()
 
   # Build the library as an external project
   ExternalProject_Add( rocblas
