@@ -41,7 +41,7 @@ option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
 # which benchmark solution schedule
-set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
+#set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
 if ( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
@@ -123,11 +123,17 @@ if( BUILD_LIBRARY )
     # Tensile_INCLUDE_DIRS
     # TensileLib_LIBRARIES
     # TensileLogger_LIBRARIES
-    if ( Tensile_ROOT STREQUAL "" )
-      include( cmake/external-Tensile.cmake )
-      list( APPEND rocblas_dependencies Tensile )
+    find_package(Tensile)
+    if (Tensile_FOUND)
+      message(STATUS "Tensile found at top.")
+    else()
+      message(STATUS "Tensile NOT found at top!")
+      include(cmake/external-Tensile.cmake )
     endif()
-    list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
+    #if ( Tensile_ROOT STREQUAL "" )
+    #  list( APPEND rocblas_dependencies Tensile )
+    #endif()
+    #list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
   endif()
 
   # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
@@ -144,7 +150,7 @@ if( BUILD_LIBRARY )
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DTensile_LOGIC=${Tensile_LOGIC}
-    -DTensile_ROOT=${Tensile_ROOT}
+    #-DTensile_ROOT=${Tensile_ROOT}
     -DTensile_MERGE_FILES=${Tensile_MERGE_FILES}
     -DTensile_SHORT_FILENAMES=${Tensile_SHORT_FILENAMES}
     -DTensile_PRINT_DEBUG=${Tensile_PRINT_DEBUG}
