@@ -41,13 +41,15 @@ option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
 # which benchmark solution schedule
+set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
 if ( BUILD_WITH_TENSILE )
-  set( Tensile_SCHEDULE "Hawaii_Catalyst_15.201_min" CACHE STRING "Which benchmark data to use for Problem->Solution mapping")
-  set_property( CACHE Tensile_SCHEDULE PROPERTY STRINGS
-    Fiji_ROCm_1.3_full
-    Fiji_ROCm_1.3_min
-    Hawaii_Catalyst_15.201_min
+  set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
+    FijiROCm14
     )
+  option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" OFF)
+  option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF)
+  option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF)
 endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
@@ -121,11 +123,19 @@ if( BUILD_LIBRARY )
     # Tensile_INCLUDE_DIRS
     # TensileLib_LIBRARIES
     # TensileLogger_LIBRARIES
-
-    include( cmake/external-Tensile.cmake )
-    list( APPEND rocblas_dependencies Tensile )
-    message( STATUS "Tensile_ROOT=${Tensile_ROOT}" )
-    list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
+    if (Tensile_ROOT)
+      message(STATUS "Tensile_ROOT=${Tensile_ROOT} specified")
+    else()
+      find_package(Tensile QUIET)
+      if (Tensile_FOUND)
+        message(STATUS "Tensile package found.")
+      else()
+        include(cmake/external-Tensile.cmake )
+        list( APPEND rocblas_dependencies Tensile )
+        list( APPEND CMAKE_PREFIX_PATH ${Tensile_ROOT} )
+        message( STATUS "Tensile not installed; will download to Tensile_ROOT=${Tensile_ROOT}" )
+      endif()
+    endif()
   endif()
 
   # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
@@ -141,9 +151,17 @@ if( BUILD_LIBRARY )
     -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
-    -DTensile_SCHEDULE=${Tensile_SCHEDULE}
+    -DTensile_LOGIC=${Tensile_LOGIC}
+    -DTensile_MERGE_FILES=${Tensile_MERGE_FILES}
+    -DTensile_SHORT_FILENAMES=${Tensile_SHORT_FILENAMES}
+    -DTensile_PRINT_DEBUG=${Tensile_PRINT_DEBUG}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   )
+  if (Tensile_FOUND)
+    set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_FOUND=${Tensile_FOUND})
+  else()
+    set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_ROOT=${Tensile_ROOT})
+  endif()
 
   # Build the library as an external project
   ExternalProject_Add( rocblas
