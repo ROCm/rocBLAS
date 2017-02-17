@@ -12,7 +12,7 @@ include(FindPythonInterp)
 
 set( Tensile_REPO "https://github.com/guacamoleo/Tensile.git"
     CACHE STRING "URL to download Tensile from" )
-set( Tensile_TAG "v2" CACHE STRING "Tensile branch to download" )
+set( Tensile_TAG "develop" CACHE STRING "Tensile branch to download" )
 
 
 
