@@ -77,17 +77,13 @@ rocblas_status testing_trsm(Arguments argus)
     vector<rocblas_int> ipiv(K);
     cblas_getrf(K, K, hA.data(), lda, ipiv.data());
     rocblas_init<T>(hB, M, N, ldb);
-    /*
+    
     for(int i=0;i<K;i++){
-        for(int j=0;j<K;j++){
-            hA[i+j*lda] *= 0.01;
-            if(j % 2)  hA[i+j*lda] *= -1.0;
-            if(i == j) { 
-                if (diag == rocblas_diagonal_unit) hA[i+j*lda] = 1.0;
-                else  hA[i+j*lda] *= 10.0;
-            } 
+        for(int j=i;j<K;j++){
+            hA[i+j*lda] = hA[j+i*lda];
         }
     }
+    /*
     rocblas_init<T>(hB, M, N, ldb);
     hX = hB;//original solution hX
     //Calculate hB = hA*hX;
@@ -155,16 +151,18 @@ rocblas_status testing_trsm(Arguments argus)
         print_matrix(hB_copy, hB, min(M, 3), min(N,3), ldb);
         #endif
 
-        //enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check){
-            unit_check_general<T>(M, N, ldb, hB_copy.data(), hB.data());
-        }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
             rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
+        }
+
+        //enable unit check, notice unit check is not invasive, but norm check is,
+        // unit check and norm check can not be interchanged their order
+        if(argus.unit_check){
+            T tolerance = get_trsm_tolerance<T>();// see unit.h for the tolerance
+            unit_check_trsm<T>(M, N, ldb, rocblas_error, tolerance );
         }
     }
 
