@@ -45,16 +45,16 @@ const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, 1, 1},
                                         {10, 10, 20, 100},
-                                        {600,500, 600, 500},
+                                        {600, 500, 600, 600},
                                         {1024, 1024, 1024, 1024}
                                        };
 
 const
 vector<vector<int>> full_matrix_size_range = {
+                                        {192, 192, 192, 192},
+                                        {640, 640, 960, 960},
                                         {1000, 1000, 1000, 1000},
                                         {2000, 2000, 2000, 2000},
-                                        {4011, 4011, 4011, 4011},
-                                        {8000, 8000, 8000, 8000},
                                        };
 
 const
@@ -75,7 +75,6 @@ const
 vector<vector<char>> side_uplo_transA_diag_range = {
                                         {'L', 'L', 'N', 'N'},
                                         {'R', 'L', 'N', 'N'},
-                                        {'R', 'U', 'T', 'U'},
                                         {'L', 'U', 'C', 'N'},
                                        };
 
@@ -165,6 +164,34 @@ TEST_P(trsm_gtest, trsm_gtest_float)
     Arguments arg = setup_trsm_arguments( GetParam() );
 
     rocblas_status status = testing_trsm<float>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+
+        if( arg.M < 0 || arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.side_option == 'L' ? arg.lda < arg.M : arg.lda < arg.N){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldb < arg.M){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+
+}
+
+TEST_P(trsm_gtest, trsm_gtest_double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+
+    Arguments arg = setup_trsm_arguments( GetParam() );
+
+    rocblas_status status = testing_trsm<double>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){

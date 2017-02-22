@@ -35,4 +35,10 @@
     void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, T *hCPU, T *hGPU);
 
 
+    template<typename T>
+    void unit_check_trsm(rocblas_int M, rocblas_int N, rocblas_int lda, double hGPU, T tolerance);
+
+    template<typename T>
+    T get_trsm_tolerance();
+
 #endif

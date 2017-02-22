@@ -44,28 +44,18 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
         if (uplo == rocblas_fill_lower) {
             // left, lower no-transpose
             jb = min(BLOCK, m);
-            #ifndef NDEBUG
-            printf("1st gemm size %d, %d, %d, %d, %d, %d \n", jb, n, jb, BLOCK, ldb, ldb);
-            #endif 
             rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
             if (BLOCK < m) {
-                #ifndef NDEBUG
-                printf("2en gemm size %d, %d, %d, %d, %d, %d \n", m-BLOCK, n, BLOCK, lda, ldb, ldb);
-                #endif
                 rocblas_gemm_template<T>(handle, transA, transB, m-BLOCK, n, BLOCK, &negtive_one, A(BLOCK,0), lda, X, ldb, alpha, B(BLOCK,0), ldb);
 
                 // remaining blocks
                 for( i=BLOCK; i < m; i += BLOCK ) {
                     jb = min(m-i, BLOCK);
-                    #ifndef NDEBUG
-                    printf("3rd gemm size %d, %d, %d, %d, %d, %d \n", jb, n, jb, BLOCK, ldb, ldb);
-                    #endif
+
                     rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
                     if (i+BLOCK >= m)// this condition is not necessary at all and can be changed as if (i+BLOCK<m)
                         break;
-                    #ifndef NDEBUG
-                    printf("4th gemm size %d, %d, %d, %d, %d, %d \n", m-i-BLOCK, n, BLOCK, lda, ldb, ldb);
-                    #endif
+
                     rocblas_gemm_template<T>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negtive_one, A(i+BLOCK,i), lda, X(i,0), ldb, &one, B(i+BLOCK,0), ldb);
                 }
             }
