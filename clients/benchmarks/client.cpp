@@ -97,10 +97,7 @@ int main(int argc, char *argv[])
         printf("Invalide matrix dimension\n");
     }
 
-    //adjust dimension for BLAS-3 routines, may not appplicable to BLAS-1 and certain BLAS-2 routines
-    argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-    argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-    argus.ldc = argus.M;
+
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
 
 
@@ -160,12 +157,22 @@ int main(int argc, char *argv[])
     }
 #if BUILD_WITH_TENSILE
     else if (function == "gemm"){
+
+        //adjust dimension for GEMM routines
+        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+        argus.ldc = argus.M;
+
         if (precision == 's')
             testing_gemm<float>( argus );
         else if (precision == 'd')
             testing_gemm<double>( argus );
     }
     else if (function == "gemm_batched"){
+        //adjust dimension for GEMM routines
+        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+        argus.ldc = argus.M;
         if (precision == 's')
             testing_gemm_batched<float>( argus );
         else if (precision == 'd')

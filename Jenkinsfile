@@ -67,7 +67,7 @@ node('rocm-1.3 && hawaii')
               sh """#!/usr/bin/env bash
                 sudo apt-get update
                 sudo apt-get install python-yaml
-                cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
+                cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
                 -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON ${scm_dir}
                 """
           }
@@ -107,7 +107,7 @@ node('rocm-1.3 && hawaii')
             stage("unit tests") {
               sh '''#!/usr/bin/env bash
                     cd clients-build/tests-build/staging
-                    ./rocblas-test --gtest_output=xml 
+                    ./rocblas-test-d --gtest_output=xml 
                 '''
               junit 'clients-build/tests-build/staging/*.xml'
             }

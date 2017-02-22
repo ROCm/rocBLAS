@@ -139,13 +139,11 @@ rocblas_status testing_gemm(Arguments argus)
             cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
-    #ifndef NDEBUG
-        for(int i=0;i<min(N, 3);i++)
-            for(int j=0;j<min(M,3);j++)
-            {
-                printf("matrix C col %d, row %d, CPU result=%f, GPU result=%f\n", i, j,  hC_copy[j+i*ldc], hC[j+i*ldc]);
-            }
-    #endif
+
+        #ifndef NDEBUG
+        print_matrix(hC_copy, hC, min(M,3), min(N,3), ldc);
+        #endif
+
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check){
