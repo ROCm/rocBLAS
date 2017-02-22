@@ -1,24 +1,24 @@
-- FijiROCm14
+- Fiji
 - Batched: true
   ComplexConjugateA: false
   ComplexConjugateB: false
-  DataType: 1
+  DataType: 0
   HighPrecisionAccumulate: false
   Index0: 0
   Index01A: 0
   Index01B: 1
   Index1: 1
   IndexAssignmentsA:
-  - 0
   - 3
+  - 0
   - 2
   IndexAssignmentsB:
-  - 3
   - 1
+  - 3
   - 2
   IndexUnroll: 3
-  IndexUnrollA: 1
-  IndexUnrollB: 0
+  IndexUnrollA: 0
+  IndexUnrollB: 1
   IndicesBatch:
   - 2
   IndicesFree:
@@ -32,22 +32,22 @@
   NumIndicesFree: 2
   NumIndicesSummation: 1
   OperationType: GEMM
-  TLUA: true
-  TLUB: false
+  TLUA: false
+  TLUB: true
   Tensor0: 0
   Tensor1: 1
   TileA: 0
   TileB: 1
   TotalIndices: 4
-  TransposeA: false
-  TransposeB: false
+  TransposeA: true
+  TransposeB: true
   UseBeta: true
   UseInitialStrides: false
 - - AtomicAccumulate: false
     DepthU: 16
     EdgeMultiKernel: false
     EdgeType: Branch
-    KernelMaxSizes:
+    KernelMaxSizes: &id001
     - 0
     - 0
     - 0
@@ -61,33 +61,33 @@
     MacroTileMaxRatio: 2
     NumLoadsA: 4
     NumLoadsB: 4
-    NumLoadsCoalescedA: 1
-    NumLoadsCoalescedB: 4
-    NumLoadsPerpendicularA: 4
-    NumLoadsPerpendicularB: 1
+    NumLoadsCoalescedA: 4
+    NumLoadsCoalescedB: 1
+    NumLoadsPerpendicularA: 1
+    NumLoadsPerpendicularB: 4
     PadLDS: 1
     Prefetch: false
     ProblemType:
       Batched: true
       ComplexConjugateA: false
       ComplexConjugateB: false
-      DataType: 1
+      DataType: 0
       HighPrecisionAccumulate: false
       Index0: 0
       Index01A: 0
       Index01B: 1
       Index1: 1
       IndexAssignmentsA:
-      - 0
       - 3
+      - 0
       - 2
       IndexAssignmentsB:
-      - 3
       - 1
+      - 3
       - 2
       IndexUnroll: 3
-      IndexUnrollA: 1
-      IndexUnrollB: 0
+      IndexUnrollA: 0
+      IndexUnrollB: 1
       IndicesBatch:
       - 2
       IndicesFree:
@@ -101,15 +101,15 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
-      TLUA: true
-      TLUB: false
+      TLUA: false
+      TLUB: true
       Tensor0: 0
       Tensor1: 1
       TileA: 0
       TileB: 1
       TotalIndices: 4
-      TransposeA: false
-      TransposeB: false
+      TransposeA: true
+      TransposeB: true
       UseBeta: true
       UseInitialStrides: false
     SplitU: 1
@@ -131,10 +131,7 @@
     DepthU: 8
     EdgeMultiKernel: false
     EdgeType: Branch
-    KernelMaxSizes:
-    - 0
-    - 0
-    - 0
+    KernelMaxSizes: *id001
     KernelSerial: true
     LoadMacInterleave: 4
     LoopDoWhile: false
@@ -155,23 +152,23 @@
       Batched: true
       ComplexConjugateA: false
       ComplexConjugateB: false
-      DataType: 1
+      DataType: 0
       HighPrecisionAccumulate: false
       Index0: 0
       Index01A: 0
       Index01B: 1
       Index1: 1
       IndexAssignmentsA:
-      - 0
       - 3
+      - 0
       - 2
       IndexAssignmentsB:
-      - 3
       - 1
+      - 3
       - 2
       IndexUnroll: 3
-      IndexUnrollA: 1
-      IndexUnrollB: 0
+      IndexUnrollA: 0
+      IndexUnrollB: 1
       IndicesBatch:
       - 2
       IndicesFree:
@@ -185,15 +182,15 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
-      TLUA: true
-      TLUB: false
+      TLUA: false
+      TLUB: true
       Tensor0: 0
       Tensor1: 1
       TileA: 0
       TileB: 1
       TotalIndices: 4
-      TransposeA: false
-      TransposeB: false
+      TransposeA: true
+      TransposeB: true
       UseBeta: true
       UseInitialStrides: false
     SplitU: 1
@@ -214,18 +211,18 @@
 - []
 - []
 - - - 1
-    - - 224
-      - 224
+    - - 352
+      - 352
       - 2
       - 0
-    - 184.4969940185547
-    - 306.7690124511719
+    - 1210.3699951171875
+    - 1548.8599853515625
     - -1
   - - 0
     - - 32
       - 32
       - 2
       - 0
-    - 6.6815900802612305
-    - 104.16799926757812
-    - 86.5354995727539
+    - 13.35770034790039
+    - 627.8599853515625
+    - 557.3510131835938
