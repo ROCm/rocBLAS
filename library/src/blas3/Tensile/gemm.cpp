@@ -157,10 +157,10 @@
     TENSILE_CALLS(SCHEDULE, PREC) \
   }
 
-GEMM_API(s, S, float, FijiROCm14 )
-GEMM_API(d, D, double, FijiROCm14 )
-GEMM_API_BATCHED(s, S, float, FijiROCm14 )
-GEMM_API_BATCHED(d, D, double, FijiROCm14 )
+GEMM_API(s, S, float, Fiji )
+GEMM_API(d, D, double, Fiji )
+GEMM_API_BATCHED(s, S, float, Fiji )
+GEMM_API_BATCHED(d, D, double, Fiji )
 
 #if 0
 
@@ -425,9 +425,6 @@ rocblas_status xgemm_tensile(
          type_c, C, ls_c, ld_c, bs_c, b_c );
 }
 #endif
-
-GEMM_API(s, S, float, FijiROCm14 )
-GEMM_API(d, D, double, FijiROCm14 )
 
 
 rocblas_status rocblas_dgemm( ARGS(double) ) {
