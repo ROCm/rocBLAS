@@ -44,10 +44,11 @@
   UseBeta: true
   UseInitialStrides: false
 - - AtomicAccumulate: false
-    DepthU: 16
+    BenchmarkFork: 0
+    DepthU: 8
     EdgeMultiKernel: false
     EdgeType: Branch
-    KernelMaxSizes: &id001
+    KernelMaxSizes:
     - 0
     - 0
     - 0
@@ -55,14 +56,14 @@
     LoadMacInterleave: 4
     LoopDoWhile: false
     LoopTail: true
-    LoopUnroll: 16
-    MacroTile0: 16
-    MacroTile1: 16
+    LoopUnroll: 8
+    MacroTile0: 32
+    MacroTile1: 32
     MacroTileMaxRatio: 2
-    NumLoadsA: 4
-    NumLoadsB: 4
-    NumLoadsCoalescedA: 4
-    NumLoadsCoalescedB: 4
+    NumLoadsA: 1
+    NumLoadsB: 1
+    NumLoadsCoalescedA: 1
+    NumLoadsCoalescedB: 1
     NumLoadsPerpendicularA: 1
     NumLoadsPerpendicularB: 1
     PadLDS: 1
@@ -121,108 +122,18 @@
     VectorWidthGlobalStore: 4
     VectorWidthLocalLoad: 4
     VectorWidthLocalStore: 4
-    WorkGroup0: 8
-    WorkGroup1: 8
-    WorkGroupEdge: 8
-    WorkGroupMapping: 1
-    WorkGroupSchedule: 1
-    WorkGroupShape: 0
-  - AtomicAccumulate: false
-    DepthU: 8
-    EdgeMultiKernel: false
-    EdgeType: Branch
-    KernelMaxSizes: *id001
-    KernelSerial: true
-    LoadMacInterleave: 4
-    LoopDoWhile: false
-    LoopTail: true
-    LoopUnroll: 8
-    MacroTile0: 96
-    MacroTile1: 96
-    MacroTileMaxRatio: 2
-    NumLoadsA: 3
-    NumLoadsB: 3
-    NumLoadsCoalescedA: 1
-    NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 3
-    NumLoadsPerpendicularB: 3
-    PadLDS: 1
-    Prefetch: false
-    ProblemType:
-      Batched: true
-      ComplexConjugateA: false
-      ComplexConjugateB: false
-      DataType: 1
-      HighPrecisionAccumulate: false
-      Index0: 0
-      Index01A: 0
-      Index01B: 1
-      Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
-      IndexUnroll: 3
-      IndexUnrollA: 0
-      IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
-      NumDimensionsC: 2
-      NumIndicesBatch: 1
-      NumIndicesC: 3
-      NumIndicesFree: 2
-      NumIndicesSummation: 1
-      OperationType: GEMM
-      TLUA: false
-      TLUB: false
-      Tensor0: 0
-      Tensor1: 1
-      TileA: 0
-      TileB: 1
-      TotalIndices: 4
-      TransposeA: true
-      TransposeB: false
-      UseBeta: true
-      UseInitialStrides: false
-    SplitU: 1
-    ThreadTile0: 6
-    ThreadTile1: 6
-    ThreadTileEdge: 6
-    ThreadTileShape: 0
-    VectorWidthGlobalLoad: 4
-    VectorWidthGlobalStore: 4
-    VectorWidthLocalLoad: 4
-    VectorWidthLocalStore: 4
     WorkGroup0: 16
     WorkGroup1: 16
     WorkGroupEdge: 16
     WorkGroupMapping: 1
-    WorkGroupSchedule: 1
     WorkGroupShape: 0
 - []
 - []
-- - - 1
-    - - 704
-      - 704
-      - 2
-      - 0
-    - 199.96600341796875
-    - 214.7550048828125
-    - -1
-  - - 0
+- - - 0
     - - 32
       - 32
       - 2
       - 0
-    - 6.289949893951416
-    - 175.27999877929688
-    - 117.67500305175781
+    - 5.484809875488281
+    - 232.00399780273438
+    - -1
