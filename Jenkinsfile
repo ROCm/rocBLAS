@@ -8,7 +8,8 @@ properties([buildDiscarder(logRotator(
     numToKeepStr: '10')),
   disableConcurrentBuilds()])
 
-currentBuild.result = "SUCCESS"
+def build_type="Debug"
+def build_type_postfix="-d"
 
 // Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
 // They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
@@ -55,7 +56,7 @@ node('rocm-1.3 && hawaii')
             cmake --version
             hcc --version
             hipconfig --version
-      '''
+         '''
 
       //Jenkins plugin that adds color terminal support to output 'Console Output'; requires bash shell
       wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm'])
@@ -67,7 +68,7 @@ node('rocm-1.3 && hawaii')
               sh """#!/usr/bin/env bash
                 sudo apt-get update
                 sudo apt-get install python-yaml
-                cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
+                cmake -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
                 -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON ${scm_dir}
                 """
           }
@@ -105,16 +106,16 @@ node('rocm-1.3 && hawaii')
           timeout(time: 1, unit: 'HOURS')
           {
             stage("unit tests") {
-              sh '''#!/usr/bin/env bash
+              sh """#!/usr/bin/env bash
                     cd clients-build/tests-build/staging
-                    ./rocblas-test-d --gtest_output=xml 
-                '''
+                    ./rocblas-test${build_type_postfix} --gtest_output=xml
+                """
               junit 'clients-build/tests-build/staging/*.xml'
             }
 
             stage("samples")
             {
-              sh "cd clients-build/samples-build; ./example-sscal"
+              sh "cd clients-build/samples-build; ./example-sscal${build_type_postfix}"
             }
           }
 
@@ -125,8 +126,6 @@ node('rocm-1.3 && hawaii')
   }
   catch( err )
   {
-      currentBuild.result = "FAILURE"
-
       def email_list = emailextrecipients([
               [$class: 'CulpritsRecipientProvider']
       ])
@@ -138,7 +137,7 @@ node('rocm-1.3 && hawaii')
 
       // Disable email for now
       mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
-            subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
+            subject: "${env.JOB_NAME} finished with FAILUREs",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       throw err
