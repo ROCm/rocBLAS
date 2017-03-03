@@ -183,6 +183,7 @@
     WorkGroup1: 16
     WorkGroupEdge: 16
     WorkGroupMapping: 1
+    WorkGroupSchedule: 1
     WorkGroupShape: 0
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -258,6 +259,7 @@
     WorkGroup1: 8
     WorkGroupEdge: 8
     WorkGroupMapping: 1
+    WorkGroupSchedule: 1
     WorkGroupShape: 0
 - [2, 3, 0, 1]
 - - - -1
