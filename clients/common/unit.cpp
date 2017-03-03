@@ -88,7 +88,7 @@
 
     template<>
     float get_trsm_tolerance(){
-        return 1e-5;
+        return 5*1e-5;
     }
 
     template<>

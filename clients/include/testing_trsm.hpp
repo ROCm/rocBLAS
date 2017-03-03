@@ -81,9 +81,13 @@ rocblas_status testing_trsm(Arguments argus)
     for(int i=0;i<K;i++){
         for(int j=i;j<K;j++){
             hA[i+j*lda] = hA[j+i*lda];
+                if(diag == rocblas_diagonal_unit){
+                    if (i==j) hA[i+j*lda] = 1.0;
+                }
         }
     }
-    /*
+    
+
     rocblas_init<T>(hB, M, N, ldb);
     hX = hB;//original solution hX
     //Calculate hB = hA*hX;
@@ -94,7 +98,7 @@ rocblas_status testing_trsm(Arguments argus)
                 (const T*)hA.data(), lda,
                 hB.data(), ldb);
 
-    */
+    
     hB_copy = hB;
 
     //copy data from CPU to device
@@ -147,16 +151,15 @@ rocblas_status testing_trsm(Arguments argus)
             cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
-        #ifndef NDEBUG
+
         print_matrix(hB_copy, hB, min(M, 3), min(N,3), ldb);
-        #endif
+
 
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
-        }
+        rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
+
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order

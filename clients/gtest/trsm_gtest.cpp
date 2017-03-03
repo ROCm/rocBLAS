@@ -58,7 +58,7 @@ vector<vector<int>> full_matrix_size_range = {
                                        };
 
 const
-vector<double> alpha_range = {1.0, 0.0, -1.0};
+vector<double> alpha_range = {1.0, -5.0};
 
 
 //vector of vector, each pair is a {side, uplo, transA, diag};
