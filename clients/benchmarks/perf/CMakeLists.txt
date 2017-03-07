@@ -1,7 +1,7 @@
-/* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
- *
- * ************************************************************************ */
+# ########################################################################
+# Copyright 2016 Advanced Micro Devices, Inc.
+#
+# ########################################################################
 
 set(GRAPHING_SCRIPTS 	measurePerformance.py 
 						plotPerformance.py 
@@ -13,5 +13,5 @@ set(GRAPHING_SCRIPTS 	measurePerformance.py
 if( WIN32 )
 		install( FILES ${GRAPHING_SCRIPTS} DESTINATION bin${SUFFIX_BIN} )
 else ( )
-		install( FILES ${GRAPHING_SCRIPTS} DESTINATION share/clBLAS )
+		install( FILES ${GRAPHING_SCRIPTS} DESTINATION share/rocBLAS )
 endif( )

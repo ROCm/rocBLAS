@@ -1,17 +1,6 @@
 # ########################################################################
-# Copyright 2013 Advanced Micro Devices, Inc.
+# Copyright 2016 Advanced Micro Devices, Inc.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 # ########################################################################
 
 import itertools
@@ -90,17 +79,17 @@ def executable(library):
     if sys.platform != 'win32' and sys.platform != 'linux2':
         print 'ERROR: unknown operating system'
         quit()
-    if library == 'clblas':
+    if library == 'rocblas':
         if sys.platform == 'win32':
-            exe = 'clBLAS-client.exe'
+            exe = 'client.exe'
         elif sys.platform == 'linux2':
-            exe = './clBLAS-client'
+            exe = './client'
     if library == 'acmlblas':
         if sys.platform == 'win32':
             exe = 'ACMLBlas_client.exe'
         elif sys.platform == 'linux2':
             exe = './ACMLBlas_client'
-    if library!='null' and library!='clblas' and library!='acmlblas':
+    if library!='null' and library!='rocblas' and library!='acmlblas':
         print 'ERROR: unknown library -- cannot determine executable name ' + library
         quit()
 
