@@ -25,7 +25,7 @@ TIMOUT_VAL = 900  #In seconds
 define and parse parameters
 """
 devicevalues = ['gpu', 'cpu']
-libraryvalues = ['clblas','acmlblas']
+libraryvalues = ['rocblas','acmlblas']
 ordervalues = ['row','column']
 transvalues = ['none','transpose','conj']
 sidevalues = ['left','right']
@@ -36,7 +36,7 @@ precisionvalues = ['s', 'd', 'c', 'z']
 roundtripvalues = ['roundtrip','noroundtrip','both']
 memallocvalues = ['default','alloc_host_ptr','use_host_ptr','copy_host_ptr','use_persistent_mem_amd']
 
-parser = argparse.ArgumentParser(description='Measure performance of the clblas library')
+parser = argparse.ArgumentParser(description='Measure performance of the rocblas library')
 parser.add_argument('--device',
     dest='device', default='gpu',
     help='device(s) to run on; may be a comma-delimited list. choices are ' + str(devicevalues) + '. (default gpu)')
@@ -104,14 +104,14 @@ parser.add_argument('--diag',
     dest='diag', default='unit',
     help='select diag, whether set diagonal elements to one. may be a comma delimited list. choices are ' + str(diagvalues) + ' (default unit)')
 parser.add_argument('--library',
-    dest='library', default='clblas',
-    help='indicates the library to use. choices are ' + str(libraryvalues) + ' (default clblas)')
+    dest='library', default='rocblas',
+    help='indicates the library to use. choices are ' + str(libraryvalues) + ' (default rocblas)')
 parser.add_argument('--label',
     dest='label', default=None,
     help='a label to be associated with all transforms performed in this run. if LABEL includes any spaces, it must be in \"double quotes\". note that the label is not saved to an .ini file. e.g., --label cayman may indicate that a test was performed on a cayman card or --label \"Windows 32\" may indicate that the test was performed on Windows 32')
 parser.add_argument('--tablefile',
     dest='tableOutputFilename', default=None,
-    help='save the results to a plaintext table with the file name indicated. this can be used with clblas.plotPerformance.py to generate graphs of the data (default: table prints to screen)')
+    help='save the results to a plaintext table with the file name indicated. this can be used with rocblas.plotPerformance.py to generate graphs of the data (default: table prints to screen)')
 parser.add_argument('--roundtrip',
     dest='roundtrip', default='noroundtrip',
     help='whether measure the roundtrips or not. choices are ' + str(roundtripvalues) + '. (default noroundtrip); should not be specified when calling ACML')
@@ -121,7 +121,7 @@ parser.add_argument('--memalloc',
 ini_group = parser.add_mutually_exclusive_group()
 ini_group.add_argument('--createini',
     dest='createIniFilename', default=None, type=argparse.FileType('w'),
-    help='create an .ini file with the given name that saves the other parameters given at the command line, then quit. e.g., \'clblas.measurePerformance.py -m 10 -n 100 -k 1000-1010 -f sgemm --createini my_favorite_setup.ini\' will create an .ini file that will save the configuration for an sgemm of the indicated sizes.')
+    help='create an .ini file with the given name that saves the other parameters given at the command line, then quit. e.g., \'rocblas.measurePerformance.py -m 10 -n 100 -k 1000-1010 -f sgemm --createini my_favorite_setup.ini\' will create an .ini file that will save the configuration for an sgemm of the indicated sizes.')
 ini_group.add_argument('--ini',
     dest='useIniFilename', default=None, type=argparse.FileType('r'),
     help='use the parameters in the named .ini file instead of the command line parameters.')
@@ -339,25 +339,25 @@ for params in test_combinations:
         quit()
     
     if params.side == 'left':
-        side = str(0)
+        side = 'L'
     elif params.side == 'right':
-        side = str(1)
+        side = 'R'
     else:
         printLog( 'ERROR: unknown value for side')
         quit()
         
     if params.uplo == 'upper':
-        uplo = str(0)
+        uplo = 'U'
     elif params.uplo == 'lower':
-        uplo = str(1)
+        uplo = 'L'
     else:
         printLog( 'ERROR: unknown value for uplo')
         quit()
 
     if params.diag == 'unit':
-        diag = str(0)
+        diag = 'U'
     elif params.diag == 'nonunit':
-        diag = str(1)
+        diag = 'N'
     else:
         printLog( 'ERROR: unknown value for diag')
         quit()
@@ -378,35 +378,31 @@ for params in test_combinations:
         ldc = str(int(ldc.lstrip('+')) + int(sizem))
 
     if params.transa == 'none':
-        transa = str(0)
+        transa = 'N'
     elif params.transa == 'transpose':
-        transa = str(1)
+        transa = 'T'
     elif params.transa == 'conj':
-        transa = str(2)
+        transa = 'C'
     else:
         printLog( 'ERROR: unknown value for transa')
         
     if params.transb == 'none':
-        transb = str(0)
+        transb = 'N'
     elif params.transb == 'transpose':
-        transb = str(1)
+        transb = 'T'
     elif params.transb == 'conj':
-        transb = str(2)
+        transb = 'C'
     else:
         printLog( 'ERROR: unknown value for transb')
      
     if library == 'acmlblas':
         arguments = [executable(library),
-                     '--' + device,
                      '-m', sizem,
                      '-n', sizen,
                      '-k', sizek,
                      '--lda', lda,
                      '--ldb', ldb,
                      '--ldc', ldc,
-                     '--offA', offa,
-                     '--offBX', offb,
-                     '--offCY', offc,
                      '--alpha', alpha,
                      '--beta', beta,
                      '--order', order,
@@ -419,18 +415,14 @@ for params in test_combinations:
                      '--precision', precision,
                      '-p', '10',
 					 '--roundtrip', roundtrip]
-    elif library == 'clblas':
+    elif library == 'rocblas':
         arguments = [executable(library),
-                     '--' + device,
                      '-m', sizem,
                      '-n', sizen,
                      '-k', sizek,
                      '--lda', lda,
                      '--ldb', ldb,
                      '--ldc', ldc,
-                     '--offA', offa,
-                     '--offBX', offb,
-                     '--offCY', offc,
                      '--alpha', alpha,
                      '--beta', beta,
                      '--order', order,
@@ -440,10 +432,8 @@ for params in test_combinations:
                      '--uplo', uplo,
                      '--diag', diag,
                      '--function', function,
-                     '--precision', precision,
-                     '-p', '10',
-					 '--roundtrip', roundtrip,
-					 '--memalloc', memalloc]
+                     '--precision', precision]
+
     else:
         printLog( 'ERROR: unknown library:"' +library+ '" can\'t assemble command')
         quit()

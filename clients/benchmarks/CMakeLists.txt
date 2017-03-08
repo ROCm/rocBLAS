@@ -28,6 +28,7 @@ if( NOT Boost_FOUND )
 endif( )
 
 
+
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
@@ -38,6 +39,11 @@ set( rocblas_benchmark_common
     )
 
 add_executable( client client.cpp ${rocblas_benchmark_common} )
+
+
+add_subdirectory ( ./perf_script )
+
+
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( client PRIVATE BUILD_WITH_TENSILE=1 )
