@@ -2,19 +2,12 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# Downloads and builds Tensile. Defines:
-# Tensile_INCLUDE_DIRS
-# TensileLib_LIBRARIES
-# TensileLogger_LIBRARIES
-
 include(ExternalProject)
 include(FindPythonInterp)
 
 set( Tensile_REPO "https://github.com/RadeonOpenCompute/Tensile.git"
-    CACHE STRING "URL to download Tensile from" )
-set( Tensile_TAG "develop" CACHE STRING "Tensile branch to download" )
-
-
+    CACHE STRING "Tensile URL to download" )
+set( Tensile_TAG "v2.2.0" CACHE STRING "Tensile tag to download" )
 
 ExternalProject_Add(
   Tensile
@@ -27,9 +20,5 @@ ExternalProject_Add(
   INSTALL_COMMAND ""
 )
 
-#set_property( TARGET Tensile PROPERTY FOLDER "extern")
-#ExternalProject_Get_Property( Tensile install_dir )
-
 # For use by the user of external-Tensile.cmake
 set( Tensile_ROOT ${CMAKE_BINARY_DIR}/extern/Tensile/src/Tensile)
-#message( STATUS "Downloaded and installed Tensile" )
