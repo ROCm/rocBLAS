@@ -17,7 +17,6 @@ macro( project_version )
   if( NOT DEFINED PV_NAME )
     message( FATAL_ERROR "project_version(): PV_NAME argument missing")
   endif( )
-./client  -f gemv -r s -m 1024 -n 256
   if( POLICY CMP0048 )
     cmake_policy( SET CMP0048 NEW )
     project( ${PV_NAME} VERSION 0.3.0.0 LANGUAGES ${PV_LANGUAGES} )
