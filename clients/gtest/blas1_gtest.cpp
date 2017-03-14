@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * dotright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -9,6 +9,9 @@
 #include <stdexcept>
 #include <vector>
 #include "testing_scal.hpp"
+#include "testing_dot.hpp"
+#include "testing_asum.hpp"
+#include "testing_amax.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -52,7 +55,7 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-int N_range[] = {-1, 10, 500, 1000};
+int N_range[] = {-1, 10, 500, 1000, 7111, 10000};
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
@@ -73,7 +76,7 @@ vector<vector<int>> incx_incy_range = { {1, 1},
 
 
 /* =====================================================================
-     BLAS-1: Scal, Swap, Copy
+     BLAS-1: scal, dot, asum, amax
 =================================================================== */
 
 class blas1_gtest: public :: TestWithParam <blas1_tuple>
@@ -120,9 +123,7 @@ TEST_P(blas1_gtest, scal_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
-
     rocblas_status status = testing_scal<float>( arg );
-
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
         if( arg.N < 0 ){
@@ -132,26 +133,67 @@ TEST_P(blas1_gtest, scal_float)
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
-
 }
 
-
-
-TEST_P(blas1_gtest, swap_float)
+TEST_P(blas1_gtest, dot_float)
 {
-    // argument automatically transferred to testing_swap
-    //testing_swap<float>( GetParam() );
-    //testing_swap<double>( GetParam() );
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_dot<float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incy < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
 }
 
-
-TEST_P(blas1_gtest, copy_float)
+TEST_P(blas1_gtest, asum_float)
 {
-    // argument automatically transferred to testing_copy
-    //testing_copy<float>( GetParam() );
-    //testing_copy<double>( GetParam() );
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_asum<float, float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
 }
 
+TEST_P(blas1_gtest, amax_float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_amax<float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
 
 //Values is for a single item; ValuesIn is for an array
 //notice we are using vector of vector

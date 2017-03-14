@@ -93,6 +93,17 @@ using namespace std;
     template<typename T>
     char type2char();
 
+    /* ============================================================================================ */
+    /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
+    template<typename T>
+    void print_matrix(vector<T> CPU_result, vector<T> GPU_result, rocblas_int m, rocblas_int n, rocblas_int lda){  
+        for(int i=0;i<m;i++)
+            for(int j=0;j<n;j++)
+            {
+                printf("matrix  col %d, row %d, CPU result=%f, GPU result=%f\n", i, j, CPU_result[j+i*lda], GPU_result[j+i*lda]);
+            }
+    }
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -186,7 +197,7 @@ class Arguments {
 
     rocblas_int apiCallCount = 1;
     rocblas_int order_option = 0;// 0 is column  major, 1 is row major
-    rocblas_int batch_count = 1000;
+    rocblas_int batch_count = 10;
 
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;

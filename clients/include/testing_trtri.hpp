@@ -65,6 +65,19 @@ rocblas_status testing_trtri(Arguments argus)
     //Initial Data on CPU
     srand(1);
     rocblas_init_symmetric<T>(hA, N, lda);
+
+    //proprocess the matrix to avoid ill-conditioned matrix 
+    for(int i=0;i<N;i++){
+        for(int j=0;j<N;j++){
+            hA[i+j*lda] *= 0.01;
+
+            if(j % 2)  hA[i+j*lda] *= -1;
+            if(i == j) { 
+                if (diag == rocblas_diagonal_unit) hA[i+j*lda] = 1.0;
+                else  hA[i+j*lda] *= 100.0;
+            } 
+        }
+    }
     hB = hA;
 
     //copy data from CPU to device
@@ -83,13 +96,6 @@ rocblas_status testing_trtri(Arguments argus)
             N,
             dA,lda,
             dinvA,ldinvA);
-
-    if (status != rocblas_status_success) {
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dinvA));
-        rocblas_destroy_handle(handle);
-        return status;
-    }
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
@@ -118,6 +124,10 @@ rocblas_status testing_trtri(Arguments argus)
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
+
+        #ifndef NDEBUG
+        print_matrix(hB, hA,  N, N, lda);
+        #endif
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order

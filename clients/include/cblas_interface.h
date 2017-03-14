@@ -74,6 +74,13 @@
                      T beta, T *y, rocblas_int incy);
 
     template<typename T>
+    void cblas_ger( rocblas_int m, rocblas_int n,
+                     T alpha,
+                     T *x, rocblas_int incx,
+                     T *y, rocblas_int incy,
+                     T *A, rocblas_int lda);
+
+    template<typename T>
     void cblas_hemv( rocblas_fill uplo, rocblas_int n,
                      T alpha,
                      T *A, rocblas_int lda,
@@ -92,13 +99,27 @@
                      rocblas_operation transA, rocblas_diagonal diag,
                      rocblas_int m, rocblas_int n,
                      T alpha,
-                     T *A, rocblas_int lda,
+                     const T *A, rocblas_int lda,
                      T *B, rocblas_int ldb);
 
     template<typename T>
     rocblas_int cblas_trtri(char uplo, char diag,
                      rocblas_int n,
                      T *A, rocblas_int lda);
+
+    template<typename T>
+    void cblas_trmm( rocblas_side side, rocblas_fill uplo,
+                     rocblas_operation transA, rocblas_diagonal diag,
+                     rocblas_int m, rocblas_int n,
+                     T alpha,
+                     const T *A, rocblas_int lda,
+                     T *B, rocblas_int ldb);
+
+    template<typename T>
+    rocblas_int cblas_getrf(rocblas_int m,
+                            rocblas_int n,
+                            T *A, rocblas_int lda, 
+                            rocblas_int *ipiv);
     /* ============================================================================================ */
 
 

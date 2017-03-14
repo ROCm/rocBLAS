@@ -12,25 +12,21 @@ endif( )
 set( hip_git_repository "https://github.com/GPUOpen-ProfessionalCompute-Tools/HIP.git" CACHE STRING "URL to download hip from" )
 set( hip_git_tag "master" CACHE STRING "URL to download hip from" )
 
-set( HOST_TOOLCHAIN_FILE "${PROJECT_SOURCE_DIR}/cmake/${HOST_TOOLCHAIN_NAME}-toolchain.cmake" )
+set( hip_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release )
 
-set( hip_cmake_args -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>/package -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=${HOST_TOOLCHAIN_FILE} )
+if( DEFINED CMAKE_CXX_COMPILER )
+  list( APPEND hip_cmake_args -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+endif( )
 
-if( ${BUILD_SHARED_LIBS} )
-  message( STATUS "Compiling HIP as SHARED library")
-  # list( APPEND hip_cmake_args -DHIP_USE_SHARED_LIBRARY=1 )
-  list( APPEND hip_cmake_args -DCMAKE_CXX_FLAGS=-fPIC )
-endif()
-
-  ExternalProject_Add(
-    HIP
-    PREFIX ${CMAKE_BINARY_DIR}/extern/hip
+ExternalProject_Add(
+  HIP
+  PREFIX ${CMAKE_BINARY_DIR}/extern/hip
   GIT_REPOSITORY ${hip_git_repository}
   GIT_TAG ${hip_git_tag}
-    CMAKE_ARGS ${hip_cmake_args}
-    LOG_BUILD 1
-    LOG_INSTALL 1
-  )
+  CMAKE_ARGS ${hip_cmake_args}
+  LOG_BUILD 1
+  LOG_INSTALL 1
+)
 
 set_property( TARGET HIP PROPERTY FOLDER "extern")
 ExternalProject_Get_Property( HIP install_dir )

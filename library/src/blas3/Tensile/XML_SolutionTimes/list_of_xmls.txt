@@ -1,1 +1,0 @@
-The contents of this file isn't read; it only exists for CMake to check the timestamp for rebuilding target TensileGenBackend.py. TensileGenBackend.py will use all XMLs in this directory.

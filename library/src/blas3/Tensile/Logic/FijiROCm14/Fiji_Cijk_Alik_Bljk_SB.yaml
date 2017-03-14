@@ -1,0 +1,554 @@
+- Fiji
+- AssignedDerivedParameters: true
+  Batched: true
+  ComplexConjugateA: false
+  ComplexConjugateB: false
+  DataType: 0
+  HighPrecisionAccumulate: false
+  Index0: 0
+  Index01A: 0
+  Index01B: 1
+  Index1: 1
+  IndexAssignmentsA: [3, 0, 2]
+  IndexAssignmentsB: [3, 1, 2]
+  IndexUnroll: 3
+  IndexUnrollA: 0
+  IndexUnrollB: 0
+  IndicesBatch: [2]
+  IndicesFree: [0, 1]
+  IndicesSummation: [3]
+  NumDimensionsC: 2
+  NumIndicesBatch: 1
+  NumIndicesC: 3
+  NumIndicesFree: 2
+  NumIndicesSummation: 1
+  OperationType: GEMM
+  TLUA: false
+  TLUB: false
+  Tensor0: 0
+  Tensor1: 1
+  TileA: 0
+  TileB: 1
+  TotalIndices: 4
+  TransposeA: true
+  TransposeB: false
+  UseBeta: true
+  UseInitialStrides: false
+- - AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAccumulate: false
+    BenchmarkFork: 0
+    DepthU: 8
+    EdgeMultiKernel: false
+    EdgeType: Branch
+    KernelMaxSizes: [0, 0, 0]
+    KernelSerial: true
+    LoadMacInterleave: 4
+    LoopDoWhile: false
+    LoopTail: true
+    LoopUnroll: 8
+    MacroTile0: 64
+    MacroTile1: 128
+    NumLoadsA: 4
+    NumLoadsB: 8
+    NumLoadsCoalescedA: 4
+    NumLoadsCoalescedB: 8
+    NumLoadsPerpendicularA: 1
+    NumLoadsPerpendicularB: 1
+    NumThreads: 128
+    PadLDS: 1
+    Prefetch: false
+    ProblemType:
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      DataType: 0
+      HighPrecisionAccumulate: false
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexUnroll: 3
+      IndexUnrollA: 0
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      NumDimensionsC: 2
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      TLUA: false
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: true
+      TransposeB: false
+      UseBeta: true
+      UseInitialStrides: false
+    SplitU: 1
+    ThreadTile0: 8
+    ThreadTile1: 8
+    ThreadTileEdge: 8
+    ThreadTileShape: 0
+    Valid: true
+    VectorWidthGlobalLoad: 4
+    VectorWidthGlobalStore: 4
+    VectorWidthLocalLoad: 4
+    VectorWidthLocalStore: 4
+    WorkGroup0: 8
+    WorkGroup1: 16
+    WorkGroupEdge: 8
+    WorkGroupMapping: 1
+    WorkGroupShape: 2
+  - AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAccumulate: false
+    BenchmarkFork: 0
+    DepthU: 8
+    EdgeMultiKernel: false
+    EdgeType: Branch
+    KernelMaxSizes: [0, 0, 0]
+    KernelSerial: true
+    LoadMacInterleave: 4
+    LoopDoWhile: false
+    LoopTail: true
+    LoopUnroll: 8
+    MacroTile0: 64
+    MacroTile1: 256
+    NumLoadsA: 2
+    NumLoadsB: 8
+    NumLoadsCoalescedA: 2
+    NumLoadsCoalescedB: 8
+    NumLoadsPerpendicularA: 1
+    NumLoadsPerpendicularB: 1
+    NumThreads: 256
+    PadLDS: 1
+    Prefetch: false
+    ProblemType:
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      DataType: 0
+      HighPrecisionAccumulate: false
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexUnroll: 3
+      IndexUnrollA: 0
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      NumDimensionsC: 2
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      TLUA: false
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: true
+      TransposeB: false
+      UseBeta: true
+      UseInitialStrides: false
+    SplitU: 1
+    ThreadTile0: 8
+    ThreadTile1: 8
+    ThreadTileEdge: 8
+    ThreadTileShape: 0
+    Valid: true
+    VectorWidthGlobalLoad: 4
+    VectorWidthGlobalStore: 4
+    VectorWidthLocalLoad: 4
+    VectorWidthLocalStore: 4
+    WorkGroup0: 8
+    WorkGroup1: 32
+    WorkGroupEdge: 8
+    WorkGroupMapping: 1
+    WorkGroupShape: 4
+  - AssignedDerivedParameters: true
+    AssignedProblemIndependentDerivedParameters: true
+    AtomicAccumulate: false
+    BenchmarkFork: 0
+    DepthU: 8
+    EdgeMultiKernel: false
+    EdgeType: Branch
+    KernelMaxSizes: [0, 0, 0]
+    KernelSerial: true
+    LoadMacInterleave: 4
+    LoopDoWhile: false
+    LoopTail: true
+    LoopUnroll: 8
+    MacroTile0: 64
+    MacroTile1: 64
+    NumLoadsA: 8
+    NumLoadsB: 8
+    NumLoadsCoalescedA: 8
+    NumLoadsCoalescedB: 8
+    NumLoadsPerpendicularA: 1
+    NumLoadsPerpendicularB: 1
+    NumThreads: 64
+    PadLDS: 1
+    Prefetch: false
+    ProblemType:
+      AssignedDerivedParameters: true
+      Batched: true
+      ComplexConjugateA: false
+      ComplexConjugateB: false
+      DataType: 0
+      HighPrecisionAccumulate: false
+      Index0: 0
+      Index01A: 0
+      Index01B: 1
+      Index1: 1
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexUnroll: 3
+      IndexUnrollA: 0
+      IndexUnrollB: 0
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
+      NumDimensionsC: 2
+      NumIndicesBatch: 1
+      NumIndicesC: 3
+      NumIndicesFree: 2
+      NumIndicesSummation: 1
+      OperationType: GEMM
+      TLUA: false
+      TLUB: false
+      Tensor0: 0
+      Tensor1: 1
+      TileA: 0
+      TileB: 1
+      TotalIndices: 4
+      TransposeA: true
+      TransposeB: false
+      UseBeta: true
+      UseInitialStrides: false
+    SplitU: 1
+    ThreadTile0: 8
+    ThreadTile1: 8
+    ThreadTileEdge: 8
+    ThreadTileShape: 0
+    Valid: true
+    VectorWidthGlobalLoad: 4
+    VectorWidthGlobalStore: 4
+    VectorWidthLocalLoad: 4
+    VectorWidthLocalStore: 4
+    WorkGroup0: 8
+    WorkGroup1: 8
+    WorkGroupEdge: 8
+    WorkGroupMapping: 1
+    WorkGroupShape: 0
+- [2, 3, 0, 1]
+- - - -1
+    - - - -1
+        - - - 16
+            - - [-1, 2]
+          - - 32
+            - - [896, 2]
+              - [1072, 0]
+              - [1264, 2]
+              - [1472, 0]
+              - [-1, 2]
+          - - 64
+            - - [-1, 2]
+          - - 112
+            - - [7456, 2]
+              - [-1, 1]
+          - - 176
+            - - [-1, 2]
+          - - 256
+            - - [3712, 2]
+              - [4064, 1]
+              - [7456, 2]
+              - [-1, 1]
+          - - 352
+            - - [-1, 2]
+          - - 464
+            - - [1696, 2]
+              - [1936, 0]
+              - [3712, 2]
+              - [4064, 1]
+              - [-1, 2]
+          - - 592
+            - - [7456, 2]
+              - [-1, 1]
+          - - 736
+            - - [6064, 2]
+              - [6512, 1]
+              - [7456, 2]
+              - [-1, 1]
+          - - 896
+            - - [1696, 2]
+              - [1936, 0]
+              - [4064, 2]
+              - [4432, 1]
+              - [5216, 2]
+              - [5632, 1]
+              - [7456, 2]
+              - [-1, 1]
+          - - 1072
+            - - [1696, 2]
+              - [1936, 0]
+              - [6064, 2]
+              - [6512, 1]
+              - [6976, 2]
+              - [-1, 1]
+          - - 1264
+            - - [32, 2]
+              - [64, 0]
+              - [3712, 2]
+              - [4064, 1]
+              - [4432, 2]
+              - [4816, 1]
+              - [5216, 2]
+              - [5632, 1]
+              - [7456, 2]
+              - [-1, 0]
+          - - 1472
+            - - [2464, 2]
+              - [2752, 1]
+              - [3712, 2]
+              - [4064, 1]
+              - [5216, 2]
+              - [5632, 1]
+              - [-1, 2]
+          - - 1696
+            - - [32, 2]
+              - [64, 1]
+              - [1472, 2]
+              - [1936, 0]
+              - [3712, 2]
+              - [4064, 1]
+              - [4816, 2]
+              - [5216, 1]
+              - [5632, 2]
+              - [6976, 1]
+              - [7456, 2]
+              - [-1, 0]
+          - - 1936
+            - - [32, 2]
+              - [64, 0]
+              - [352, 2]
+              - [464, 0]
+              - [2192, 2]
+              - [2464, 1]
+              - [2752, 2]
+              - [3056, 1]
+              - [3712, 2]
+              - [4432, 1]
+              - [5632, 2]
+              - [6064, 1]
+              - [7456, 0]
+              - [-1, 1]
+          - - 2192
+            - - [32, 2]
+              - [64, 0]
+              - [736, 2]
+              - [896, 0]
+              - [1936, 2]
+              - [2192, 1]
+              - [3712, 2]
+              - [4432, 1]
+              - [6976, 2]
+              - [-1, 0]
+          - - 2464
+            - - [32, 2]
+              - [64, 0]
+              - [1264, 2]
+              - [1472, 0]
+              - [1696, 2]
+              - [1936, 0]
+              - [2192, 1]
+              - [2464, 2]
+              - [2752, 1]
+              - [3712, 2]
+              - [4064, 0]
+              - [4432, 2]
+              - [5216, 1]
+              - [6064, 0]
+              - [6512, 2]
+              - [-1, 0]
+          - - 2752
+            - - [1264, 2]
+              - [1472, 0]
+              - [3712, 2]
+              - [4064, 1]
+              - [4432, 2]
+              - [6512, 0]
+              - [6976, 2]
+              - [-1, 0]
+          - - 3056
+            - - [32, 2]
+              - [64, 0]
+              - [1696, 2]
+              - [2192, 1]
+              - [2464, 2]
+              - [2752, 1]
+              - [3712, 2]
+              - [5216, 0]
+              - [5632, 2]
+              - [6976, 0]
+              - [-1, 2]
+          - - 3376
+            - - [32, 2]
+              - [64, 0]
+              - [736, 2]
+              - [896, 0]
+              - [1264, 2]
+              - [1472, 0]
+              - [2752, 2]
+              - [3056, 1]
+              - [3712, 2]
+              - [4064, 0]
+              - [4432, 2]
+              - [6976, 0]
+              - [7456, 2]
+              - [-1, 0]
+          - - 3712
+            - - [16, 2]
+              - [32, 0]
+              - [1264, 2]
+              - [1696, 0]
+              - [1936, 2]
+              - [2192, 1]
+              - [2752, 2]
+              - [3056, 0]
+              - [3376, 1]
+              - [3712, 0]
+              - [4064, 2]
+              - [4432, 1]
+              - [5632, 0]
+              - [6512, 2]
+              - [-1, 0]
+          - - 4064
+            - - [32, 2]
+              - [64, 0]
+              - [176, 2]
+              - [256, 0]
+              - [352, 2]
+              - [464, 0]
+              - [592, 2]
+              - [736, 0]
+              - [1936, 2]
+              - [2192, 0]
+              - [2752, 2]
+              - [3376, 0]
+              - [3712, 1]
+              - [4064, 0]
+              - [4432, 2]
+              - [5632, 0]
+              - [6064, 2]
+              - [6512, 0]
+              - [6976, 2]
+              - [-1, 0]
+          - - 4432
+            - - [736, 2]
+              - [896, 0]
+              - [2464, 2]
+              - [2752, 1]
+              - [3056, 0]
+              - [3376, 2]
+              - [3712, 0]
+              - [4064, 2]
+              - [5216, 0]
+              - [5632, 2]
+              - [-1, 0]
+          - - 4816
+            - - [16, 2]
+              - [64, 0]
+              - [464, 2]
+              - [592, 0]
+              - [1264, 2]
+              - [1696, 0]
+              - [3056, 2]
+              - [4816, 0]
+              - [5216, 2]
+              - [-1, 0]
+          - - 5216
+            - - [16, 2]
+              - [64, 0]
+              - [256, 2]
+              - [352, 0]
+              - [592, 2]
+              - [736, 0]
+              - [1472, 2]
+              - [1696, 0]
+              - [2192, 2]
+              - [2464, 0]
+              - [2752, 2]
+              - [-1, 0]
+          - - 5632
+            - - [32, 2]
+              - [64, 0]
+              - [736, 2]
+              - [896, 0]
+              - [1072, 2]
+              - [1264, 0]
+              - [1472, 2]
+              - [1696, 0]
+              - [2192, 1]
+              - [2464, 2]
+              - [2752, 0]
+              - [3056, 2]
+              - [-1, 0]
+          - - 6064
+            - - [352, 2]
+              - [464, 0]
+              - [1072, 2]
+              - [1472, 0]
+              - [1696, 2]
+              - [1936, 0]
+              - [2192, 1]
+              - [2464, 2]
+              - [-1, 0]
+          - - 6512
+            - - [464, 2]
+              - [736, 0]
+              - [1072, 2]
+              - [1696, 0]
+              - [1936, 1]
+              - [2192, 2]
+              - [-1, 0]
+          - - 6976
+            - - [1264, 2]
+              - [1936, 0]
+              - [2464, 2]
+              - [2752, 1]
+              - [-1, 0]
+          - - 7456
+            - - [1264, 2]
+              - [1696, 0]
+              - [1936, 2]
+              - [-1, 0]
+          - - -1
+            - - [64, 2]
+              - [112, 0]
+              - [176, 2]
+              - [896, 0]
+              - [1072, 2]
+              - [1264, 0]
+              - [1472, 2]
+              - [2752, 0]
+              - [3056, 2]
+              - [-1, 0]

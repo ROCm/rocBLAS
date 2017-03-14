@@ -1,8 +1,24 @@
 #!/usr/bin/env groovy
 
-currentBuild.result = "SUCCESS"
-node('rocm-1.3 && fiji')
+// Generated from snippet generator 'properties; set job properties'
+properties([buildDiscarder(logRotator(
+    artifactDaysToKeepStr: '',
+    artifactNumToKeepStr: '',
+    daysToKeepStr: '',
+    numToKeepStr: '10')),
+  disableConcurrentBuilds()])
+
+def build_type="Debug"
+def build_type_postfix="-d"
+
+// Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
+// They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
+// Manually load balance by picking a particular machine
+node('rocm-1.3 && hawaii')
 {
+  def node_list = env.NODE_LABELS.tokenize()
+  // sh "echo node_list: ${node_list}"
+
   def scm_dir = pwd()
   def build_dir_debug = "${scm_dir}/../build/debug"
   def build_dir_release = "${scm_dir}/../build/release"
@@ -15,10 +31,23 @@ node('rocm-1.3 && fiji')
   try
   {
     dir("${scm_dir}") {
-      stage("Clone") {
+      stage("Clone")
+      {
         checkout scm
+
+        if( fileExists( 'cmake/build-version.cmake' ) )
+        {
+          def cmake_version_file = readFile( 'cmake/build-version.cmake' ).trim()
+          //echo "cmake_version_file:\n${cmake_version_file}"
+
+          cmake_version_file = cmake_version_file.replaceAll(/(\d+\.)(\d+\.)(\d+\.)\d+/, "\$1\$2\$3${env.BUILD_ID}")
+          cmake_version_file = cmake_version_file.replaceAll(/VERSION_TWEAK\s+\d+/, "VERSION_TWEAK ${env.BUILD_ID}")
+          //echo "cmake_version_file:\n${cmake_version_file}"
+          writeFile( file: 'cmake/build-version.cmake', text: cmake_version_file )
+        }
       }
     }
+
 
     withEnv(["PATH=${PATH}:/opt/rocm/bin"]) {
 
@@ -27,46 +56,76 @@ node('rocm-1.3 && fiji')
             cmake --version
             hcc --version
             hipconfig --version
-      '''
+         '''
 
-      dir("${build_dir_release}") {
-        stage("configure clang release") {
-          // withEnv(['CXXFLAGS=-I /usr/include/c++/4.8 -I /usr/include/x86_64-linux-gnu/c++/4.8  -I /usr/include/x86_64-linux-gnu', 'HIP_PATH=/opt/rocm/hip']) {
-          // --amdgpu-target=AMD:AMDGPU:8:0:3
-            sh "cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_LIBRARY=ON -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_WITH_TENSILE=ON -DHIP_ROOT=/opt/rocm/hip -DBOOST_ROOT=/opt/boost/clang ${scm_dir}"
-          // }
+      //Jenkins plugin that adds color terminal support to output 'Console Output'; requires bash shell
+      wrap([$class: 'AnsiColorBuildWrapper', 'colorMapName': 'XTerm'])
+      {
+
+        dir("${build_dir_release}")
+        {
+          stage("configure clang release") {
+              sh """#!/usr/bin/env bash
+                sudo apt-get update
+                sudo apt-get install python-yaml
+                cmake -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
+                -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON ${scm_dir}
+                """
+          }
+
+          stage("Build")
+          {
+              if (env.NODE_LABELS ==~ /.*fiji.*/)
+              {
+              sh 'echo Target Fiji ISA'
+                withEnv(['HCC_AMDGPU_TARGET=AMD:AMDGPU:8:0:3'])
+                {
+                  sh '''#!/usr/bin/env bash
+                        make -j 8
+                    '''
+                }
+              }
+              else if (env.NODE_LABELS ==~ /.*hawaii.*/)
+              {
+                sh 'echo Target Hawaii ISA'
+                withEnv(['HCC_AMDGPU_TARGET=AMD:AMDGPU:7:0:1'])
+                {
+                    sh '''#!/usr/bin/env bash
+                          make -j 8
+                      '''
+                }
+              }
+          }
+
+          stage("Package Debian") {
+            sh 'cd library-build; make package'
+            archive includes: 'library-build/*.deb'
+          }
+
+          // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
+          timeout(time: 1, unit: 'HOURS')
+          {
+            stage("unit tests") {
+              sh """#!/usr/bin/env bash
+                    cd clients-build/tests-build/staging
+                    ./rocblas-test${build_type_postfix} --gtest_output=xml
+                """
+              junit 'clients-build/tests-build/staging/*.xml'
+            }
+
+            stage("samples")
+            {
+              sh "cd clients-build/samples-build; ./example-sscal${build_type_postfix}"
+            }
+          }
+
         }
 
-        stage("Build") {
-          // withEnv(['HCC_AMDGPU_TARGET=AMD:AMDGPU:7:0:1,AMD:AMDGPU:8:0:3']) {
-            sh 'make -j 8'
-          // }
-        }
-
-        stage("Package Debian") {
-          sh 'cd library-build; make package'
-          archive includes: 'library-build/*.deb'
-        }
-
-        stage("unit tests") {
-          // To trim test time, only execute single digit tests
-          sh '''
-              cd clients-build/tests-build/staging
-              ./rocblas-test-d --gtest_output=xml --gtest_filter=*/?
-          '''
-          junit 'clients-build/tests-build/staging/*.xml'
-        }
-
-        stage("samples") {
-          sh "cd clients-build/samples-build; ./example-sscal-d"
-        }
       }
     }
   }
   catch( err )
   {
-      currentBuild.result = "FAILURE"
-
       def email_list = emailextrecipients([
               [$class: 'CulpritsRecipientProvider']
       ])
@@ -77,8 +136,8 @@ node('rocm-1.3 && fiji')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com",
-            subject: "${env.JOB_NAME} finished with ${currentBuild.result}",
+      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
+            subject: "${env.JOB_NAME} finished with FAILUREs",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       throw err

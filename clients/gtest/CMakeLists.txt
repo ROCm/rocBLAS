@@ -20,32 +20,8 @@ if( NOT MSVC_IDE AND NOT CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Debug CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-# Check if cmake supports the new VERSION tag for project() commands
-# rocblas becomes the name of the project with a particular version
-if( POLICY CMP0048 )
-  cmake_policy( SET CMP0048 NEW )
-  project( rocblas-test VERSION 0.0.2.0 LANGUAGES C CXX )
-else( )
-  project( rocblas-test CXX )
-  # Define a version for the code
-  if( NOT DEFINED rocblas_VERSION_MAJOR )
-    set( rocblas-test_VERSION_MAJOR 0 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_MINOR )
-    set( rocblas-test_VERSION_MINOR 0 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_PATCH )
-    set( rocblas-test_VERSION_PATCH 2 )
-  endif( )
-
-  if( NOT DEFINED rocblas_VERSION_TWEAK )
-    set( rocblas-test_VERSION_TWEAK 0 )
-  endif( )
-
-  set( rocblas-test_VERSION "${rocblas-test_VERSION_MAJOR}.${rocblas-test_VERSION_MINOR}.${rocblas-test_VERSION_PATCH}.${rocblas-test_VERSION_TWEAK}")
-endif( )
+include( build-version )
+project_version( NAME rocblas-test LANGUAGES CXX )
 
 # Modify the global find property to help us find libraries like Boost in the correct paths for 64-bit
 # Essentially, find_library calls will look for /lib64 instead of /lib; works for windows and linux
@@ -97,19 +73,26 @@ if( NOT Boost_FOUND )
   find_package( Boost REQUIRED COMPONENTS program_options )
 endif( )
 
+# message( STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}" )
+# message( STATUS "CMAKE_MODULE_PATH: ${CMAKE_MODULE_PATH}" )
+
 find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
 find_package( rocblas REQUIRED CONFIG )
+find_package( HIP REQUIRED )
 
-    set(Tensile_TEST_SRC
-        gemm_gtest.cpp
-        trsm_gtest.cpp
-        )
-
+if( BUILD_WITH_TENSILE )
+set(Tensile_TEST_SRC
+    gemm_gtest.cpp
+    trsm_gtest.cpp
+    )
+endif()
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     blas1_gtest.cpp
+    gemv_gtest.cpp
+    ger_gtest.cpp
     ${Tensile_TEST_SRC}
     )
 
@@ -120,9 +103,20 @@ set( rocblas_benchmark_common
       ../common/flops.cpp
       ../common/norm.cpp
       ../common/unit.cpp
+      ../common/rocblas_template_specialization.cpp
     )
 
+# link_directories( /opt/rocm/lib )
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
+
+if( BUILD_WITH_TENSILE )
+    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 )
+    message(STATUS, "Build Tensil equal 1")
+else()
+    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=0 )
+    message(STATUS, "Build Tensil equal 0")
+endif()
+
 
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
@@ -137,17 +131,19 @@ else( )
   endif( )
 endif( )
 
-target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST)
+# target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST -D__HIP_PLATFORM_HCC__)
+target_compile_definitions( rocblas-test PRIVATE GTEST_USE_OWN_TR1_TUPLE=1 -DGOOGLE_TEST )
 target_include_directories( rocblas-test
   PRIVATE
 #    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${HIP_ROOT_DIR}/include>
 )
 
-#target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} )
-target_link_libraries( rocblas-test rocblas gfortran lapack ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} )
+# target_link_libraries( rocblas-test rocblas ${Boost_LIBRARIES} ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} libmcwamp.a libhip_hcc.a CXLActivityLogger hsa-runtime64 hc_am hsakmt dl lapack c++ gfortran)
+target_link_libraries( rocblas-test rocblas ${CBLAS_LIBRARIES} ${GTEST_LIBRARIES} lapack gfortran)
 
 # Ubuntu systems need to explicitely link to pthreads lib because of --as-needed
 # https://github.com/google/googletest/issues/391#issuecomment-125645879
