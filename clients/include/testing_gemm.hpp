@@ -65,7 +65,7 @@ rocblas_status testing_gemm(Arguments argus)
     A_size = lda * A_col; B_size = ldb * B_col; C_size = ldc * N;
 
     //check here to prevent undefined memory allocation error
-    if( M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 ){
+    if( M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M ){
         return rocblas_status_invalid_size;
     }
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
@@ -109,13 +109,6 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
-    if (status != rocblas_status_success) {
-        hipFree(dA);
-        hipFree(dB);
-        hipFree(dC);
-        return status;
-    }
- //    sleep(1);
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6;
@@ -134,23 +127,22 @@ rocblas_status testing_gemm(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-
-        cblas_gemm<T>(
+        if(status != rocblas_status_invalid_size){//only valid size compare with cblas
+            cblas_gemm<T>(
                      transA, transB, M, N, K,
                      alpha, hA.data(), lda,
                      hB.data(), ldb,
                      beta, hC_copy.data(), ldc);
-
+        }
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
-        for(int i=0;i<min(N, 4);i++)
-            for(int j=0;j<min(M,4);j++)
-            {
-                printf("matrix C col %d, row %d, CPU result=%f, GPU result=%f\n", i, j,  hC_copy[j+i*ldc], hC[j+i*ldc]);
-            }
+
+        #ifndef NDEBUG
+        print_matrix(hC_copy, hC, min(M,3), min(N,3), ldc);
+        #endif
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
@@ -190,7 +182,7 @@ rocblas_status testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy_handle(handle);
-    return rocblas_status_success;
+    return status;
 }
 
 
@@ -298,13 +290,6 @@ rocblas_status range_testing_gemm(Arguments argus)
                         dB, size,
                         &beta, dC, size);
 
-        if (status != rocblas_status_success) {
-            hipFree(dA);
-            hipFree(dB);
-            hipFree(dC);
-            return status;
-        }
-
         gpu_time_used = get_time_us() - gpu_time_used;
 
         //copy output from device to CPU
@@ -357,7 +342,7 @@ rocblas_status range_testing_gemm(Arguments argus)
     CHECK_HIP_ERROR(hipFree(dC));
 
     rocblas_destroy_handle(handle);
-    return rocblas_status_success;
+    return status;
 }
 
 

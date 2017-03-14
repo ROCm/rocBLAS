@@ -54,7 +54,8 @@ rocblas_status testing_trsm(Arguments argus)
     vector<T> hA(A_size);
     vector<T> hB(B_size);
     vector<T> hB_copy(B_size);
-
+    vector<T> hX(B_size);
+    
     T *dA, *dB;
 
     double gpu_time_used, cpu_time_used;
@@ -72,12 +73,38 @@ rocblas_status testing_trsm(Arguments argus)
     //Initial Data on CPU
     srand(1);
     rocblas_init_symmetric<T>(hA, K, lda);
+    //proprocess the matrix to avoid ill-conditioned matrix 
+    vector<rocblas_int> ipiv(K);
+    cblas_getrf(K, K, hA.data(), lda, ipiv.data());
     rocblas_init<T>(hB, M, N, ldb);
+    
+    for(int i=0;i<K;i++){
+        for(int j=i;j<K;j++){
+            hA[i+j*lda] = hA[j+i*lda];
+                if(diag == rocblas_diagonal_unit){
+                    if (i==j) hA[i+j*lda] = 1.0;
+                }
+        }
+    }
+    
+
+    rocblas_init<T>(hB, M, N, ldb);
+    hX = hB;//original solution hX
+    //Calculate hB = hA*hX;
+    cblas_trmm<T>(
+                side, uplo,
+                transA, diag,
+                M, N, 1.0/alpha,
+                (const T*)hA.data(), lda,
+                hB.data(), ldb);
+
+    
     hB_copy = hB;
 
     //copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size,  hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size,  hipMemcpyHostToDevice));
+
 
     /* =====================================================================
            ROCBLAS
@@ -86,7 +113,7 @@ rocblas_status testing_trsm(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-/*
+
     status = rocblas_trsm<T>(handle,
             side, uplo,
             transA, diag,
@@ -94,13 +121,6 @@ rocblas_status testing_trsm(Arguments argus)
             &alpha,
             dA,lda,
             dB,ldb);
-*/
-    if (status != rocblas_status_success) {
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dB));
-        rocblas_destroy_handle(handle);
-        return status;
-    }
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
@@ -108,8 +128,8 @@ rocblas_status testing_trsm(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
     CHECK_HIP_ERROR(hipMemcpy(hB.data(), dB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
+
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -123,7 +143,7 @@ rocblas_status testing_trsm(Arguments argus)
                 side, uplo,
                 transA, diag,
                 M, N, alpha,
-                hA.data(), lda,
+                (const T*)hA.data(), lda,
                 hB_copy.data(), ldb);
 
         if(argus.timing){
@@ -131,28 +151,36 @@ rocblas_status testing_trsm(Arguments argus)
             cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
-        //enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check){
-            unit_check_general<T>(M, N, ldb, hB_copy.data(), hB.data());
-        }
+
+        print_matrix(hB_copy, hB, min(M, 3), min(N,3), ldb);
+
+
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
+        rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
+
+
+        //enable unit check, notice unit check is not invasive, but norm check is,
+        // unit check and norm check can not be interchanged their order
+        if(argus.unit_check){
+            T tolerance = get_trsm_tolerance<T>();// see unit.h for the tolerance
+            unit_check_trsm<T>(M, N, ldb, rocblas_error, tolerance );
         }
     }
 
+
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
-            cout << "M, N, lda, rocblas-Gflops (us) ";
+            cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
             if(argus.norm_check){
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
 
-            cout << M <<','<< N <<',' << lda <<','<< rocblas_gflops << "(" << gpu_time_used  << "),";
+            cout << M << ',' << N <<',' << lda <<','<< ldb <<',' << char_side << ',' << char_uplo << ',' 
+                 << char_transA << ','  << char_diag << ',' <<
+                 rocblas_gflops << "(" << gpu_time_used  << "),";
 
             if(argus.norm_check){
                 cout << cblas_gflops << "(" << cpu_time_used << "),";

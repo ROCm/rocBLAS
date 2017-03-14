@@ -1,36 +1,66 @@
 # rocBLAS
-Radeon Open Compute BLAS implementation on top of AMD [ROCm][] runtime. 
-rocBLAS is implemented with the [HIP][] programming language and optimized for AMD latest discrete GPUs.
-It can also run on Nvidia GPUs as long as the CUDA enviroment is configured correctly.
+A BLAS implementation on top of AMD's Radeon Open Compute [ROCm][] runtime and toolchains.  rocBLAS is implemented in
+the [HIP][] programming language, optimized for AMD's latest discrete GPUs and allowing it to run on CUDA enabled GPUs.
 
 ## Migrating libraries to ROCm from OpenCL
-A substantial investment has been made by AMD in developing and promoting OpenCL libraries to accelerate common math domains, such as [clBLAS][], [clFFT][], clRNG and clSparse.  These libraries have demonstrated significant performance benefits of data parallel (GPU) computation, but primarily remain in the domain of expert programmers. As AMD simplifies the programming model with ROCm, it would be beneficial to leverage the performance and learning present in the OpenCL libraries and carry that forward.
+[clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
+linear algebra problems, but OpenCL primarily remains in the domain of expert programmers. The ROCm model introduces a
+single source paradigm for integrating device and host code together in a single source file, thereby simplifying the
+entire development process for heterogeneous computing.  Compilers will get smarter, catching errors at compile/build time
+and native profilers/debuggers will better integrate into the development process.  As AMD simplifies the
+programming model with ROCm (using HCC and HIP), it is the intent of this library to expose that simplified programming
+model to end users.  
 
 ## rocBLAS interface
-In general, rocBLAS interface is compatible with [Netlib BLAS][] and cuBLAS-v2 API except Netlib BLAS does not have handle and cuBLAS' cublasHandle_t is replaced with rocblas_handle everywhere. Thus porting a CUDA application calling cuBLAS API to a HIP application calling rocBLAS API is straightforward. 
-For example, the rocBLAS SGEMV interface is
+In general, the rocBLAS interface is compatible with [Netlib BLAS][] and the cuBLAS-v2 API, with the explicit exception that
+Netlib BLAS does not have handle.  The cuBLAS' cublasHandle_t is replaced with rocblas_handle everywhere. Thus, porting a
+CUDA application which originally calls the cuBLAS API to a HIP application calling rocBLAS API should be relatively
+straightforward.  For example, the rocBLAS SGEMV interface is
 
 ```c
 rocblas_status
 rocblas_sgemv(rocblas_handle handle,
               rocblas_operation trans,
               rocblas_int m, rocblas_int n,
-              const float *alpha,
-              const float *A, rocblas_int lda,
-              const float *x, rocblas_int incx,
-              const float *beta,
-              float *y, rocblas_int incy);
+              const float* alpha,
+              const float* A, rocblas_int lda,
+              const float* x, rocblas_int incx,
+              const float* beta,
+              float* y, rocblas_int incy);
 
 ```
-where rocblas_int is an alias of int, rocblas_operation is a rocBLAS defined enum to specify the non/transpose operation in BLAS. rocBLAS assumed the required matrices A and vectors x, y are already allocated in the GPU memory space filled with data.
-Users are repsonsible for copying the data from/to the host CPU memory to/from the GPU memory. HIP provides API to offload and retrieve data from the GPU.
+
+rocBLAS assumes matrices A and vectors x, y are allocated in GPU memory space filled with data.  Users are
+responsible for copying data from/to the host and device memory.  HIP provides memcpy style API's to facilitate data
+management.
 
 ##Asynchronous API
-Except a few routines (like TRSM) having memory allocation inside preventing asynchronicity, most of the library routines (like BLAS-1 SCAL, BLAS-2 GEMV, BLAS-3 GEMM) are configured to operate in an asynchronous fashion to CPU, meaning that these library function calls will return to users immediately. 
+Except a few routines (like TRSM) having memory allocation inside preventing asynchronicity, most of the library routines
+(like BLAS-1 SCAL, BLAS-2 GEMV, BLAS-3 GEMM) are configured to operate in asynchronous fashion with respect to CPU,
+meaning that these library function calls return immediately.
+
+##Batched and strided GEMM API
+rocBLAS GEMM can process matrices in batches with regular strides.  There are several permutations of these API's, the
+following is an example that takes everything
+
+```c
+rocblas_status
+rocblas_sgemm_strided_batched(
+    rocblas_handle handle,
+    rocblas_order order,
+    rocblas_operation transa, rocblas_operation transb,
+    rocblas_int m, rocblas_int n, rocblas_int k,
+    const float* alpha,
+    const float* A, rocblas_int ls_a, rocblas_int ld_a, rocblas_int bs_a,
+    const float* B, rocblas_int ls_b, rocblas_int ld_b, rocblas_int bs_b,
+    const float* beta,
+          float* C, rocblas_int ls_c, rocblas_int ld_c, rocblas_int bs_c,
+    rocblas_int batch_count )
+```
 
 ##rocBLAS Wiki
 
-The [wiki][] has helpful information about building rocblas library, samples and testing files. 
+The [wiki][] has helpful information about building the rocblas library, samples and tests.
 
 [wiki]: https://github.com/RadeonOpenCompute/rocBLAS/wiki
 
@@ -41,6 +71,3 @@ The [wiki][] has helpful information about building rocblas library, samples and
 [Netlib BLAS]: http://www.netlib.org/blas/
 
 [clBLAS]: https://github.com/clMathLibraries/clBLAS
-
-[clFFT]: https://github.com/clMathLibraries/clFFT
-

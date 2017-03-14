@@ -1,13 +1,14 @@
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ *
+ * ************************************************************************ */
+
 #ifndef HANDLE_H
 #define HANDLE_H
 #include <hip/hip_runtime_api.h>
 #include <vector>
 
 #include "rocblas.h"
-
-#if BUILD_WITH_TENSILE
-    #include "Tensile.h"
-#endif
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -28,21 +29,6 @@ struct _rocblas_handle{
 
   // rocblas by default take the system default stream 0 users cannot create
   hipStream_t rocblas_stream = 0; 
-
-#if BUILD_WITH_TENSILE
-  /*****************************************************************************
-   * \brief Tensile Device Profile
-   * describes device to which this control is assigned so
-   * Tensile can lookup optimal solution
-   ****************************************************************************/
-  TensileDeviceProfile tensile_device_profile;
-
-  /*****************************************************************************
-   * \brief Tensile Control
-   * for passing control state (stream) to Tensile
-   ****************************************************************************/
-  TensileControl tensile_control;
-#endif
 
 };
 

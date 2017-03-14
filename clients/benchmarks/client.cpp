@@ -9,14 +9,21 @@
 
 #include "rocblas.h"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "testing_scal.hpp"
 #include "testing_dot.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_asum.hpp"
 #include "testing_amax.hpp"
 #include "testing_gemv.hpp"
+#include "testing_ger.hpp"
 #include "testing_trtri.hpp"
-#include "testing_gemm.hpp"
+#include "testing_trtri_batched.hpp"
+#if BUILD_WITH_TENSILE
+    #include "testing_gemm.hpp"
+    #include "testing_gemm_batched.hpp"
+    #include "testing_trsm.hpp"
+#endif
 
 namespace po = boost::program_options;
 
@@ -40,16 +47,20 @@ int main(int argc, char *argv[])
         ( "sizem,m", po::value<rocblas_int>( &argus.M )->default_value(128), "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "sizen,n", po::value<rocblas_int>( &argus.N )->default_value(128), "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & BLAS-3: the number of columns" )
         ( "sizek,k", po::value<rocblas_int>( &argus.K )->default_value(128), "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in A & C  and rows in B." )
+        ( "lda", po::value<rocblas_int>( &argus.lda )->default_value(128), "Specific leading dimension of matrix A, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldb", po::value<rocblas_int>( &argus.ldb )->default_value(128), "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
+        ( "ldc", po::value<rocblas_int>( &argus.ldc )->default_value(128), "Specific leading dimension of matrix C, is only applicable to BLAS-2 & BLAS-3: the number of rows." )
         ( "alpha",   po::value<double>( &argus.alpha)->default_value(1.0), "specifies the scalar alpha" )
         ( "beta",    po::value<double>( &argus.beta )->default_value(0.0), "specifies the scalar beta" )
         ( "order,o", po::value<rocblas_int>(&argus.order_option )->default_value(1), "0 = row major, 1 = column major. Right now, only column major is supported" )
-        ( "function,f", po::value<std::string>( &function )->default_value("gemv"), "BLAS function to test. Options: gemv, trsm, trmm, gemv, symv, syrk, syr2k" )
+        ( "function,f", po::value<std::string>( &function )->default_value("gemv"), "BLAS function to test. Options: gemv, ger, trsm, trmm, symv, syrk, syr2k" )
         ( "precision,r", po::value<char>( &precision )->default_value('s'), "Options: s,d,c,z" )
         ( "transposeA", po::value<char>( &argus.transA_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
         ( "transposeB", po::value<char>( &argus.transB_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
         ( "side", po::value<char>( &argus.side_option )->default_value('L'), "L = left, R = right. Only applicable to certain routines" )
         ( "uplo", po::value<char>( &argus.uplo_option )->default_value('U'), "U = upper, L = lower. Only applicable to certain routines" )    // xsymv xsyrk xsyr2k xtrsm xtrmm
         ( "diag", po::value<char>( &argus.diag_option )->default_value('N'), "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines" ) // xtrsm xtrmm
+        ( "batch", po::value<rocblas_int>( &argus.batch_count )->default_value(10), "Number of matrices. Only applicable to batched routines" ) // xtrsm xtrmm
         ( "verify,v", po::value<rocblas_int>(&argus.norm_check)->default_value(0), "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
         ( "device", po::value<rocblas_int>(&device_id)->default_value(0), "Set default device to be used for subsequent program runs")
         ;
@@ -86,11 +97,9 @@ int main(int argc, char *argv[])
         printf("Invalide matrix dimension\n");
     }
 
-    //adjust dimension for BLAS-3 routines, may not appplicable to BLAS-1 and certain BLAS-2 routines
-    argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-    argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-    argus.ldc = argus.M;
+
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
+
 
     if (function == "scal"){
         if (precision == 's')
@@ -128,11 +137,11 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_gemv<double>( argus );
     }
-    else if (function == "gemm"){
+    else if (function == "ger"){
         if (precision == 's')
-            testing_gemm<float>( argus );
+            testing_ger<float>( argus );
         else if (precision == 'd')
-            testing_gemm<double>( argus );
+            testing_ger<double>( argus );
     }
     else if (function == "trtri"){
         if (precision == 's')
@@ -140,10 +149,47 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_trtri<double>( argus );
     }
+    else if (function == "trtri_batched"){
+        if (precision == 's')
+            testing_trtri_batched<float>( argus );
+        else if (precision == 'd')
+            testing_trtri_batched<double>( argus );
+    }
+#if BUILD_WITH_TENSILE
+    else if (function == "gemm"){
+
+        //adjust dimension for GEMM routines
+        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+        argus.ldc = argus.M;
+
+        if (precision == 's')
+            testing_gemm<float>( argus );
+        else if (precision == 'd')
+            testing_gemm<double>( argus );
+    }
+    else if (function == "gemm_batched"){
+        //adjust dimension for GEMM routines
+        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
+        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
+        argus.ldc = argus.M;
+        if (precision == 's')
+            testing_gemm_batched<float>( argus );
+        else if (precision == 'd')
+            testing_gemm_batched<double>( argus );
+    }
+    else if (function == "trsm"){
+        if (precision == 's')
+            testing_trsm<float>( argus );
+        else if (precision == 'd')
+            testing_trsm<double>( argus );
+    }
+#endif
     else{
         printf("Invalid value for --function \n");
         return -1;
     }
+
 
     return 0;
 }

@@ -6,6 +6,11 @@
 # PUBLIC keywords
 cmake_minimum_required( VERSION 2.8.12 )
 
+# MACOSX_RPATH is enabled by default policy
+if( POLICY CMP0042 )
+	cmake_policy( SET CMP0042 NEW )
+endif( )
+
 # CMP0063: Honor visibility properties for all target types [cmake 3.3]
 if( POLICY CMP0063 )
   cmake_policy( SET CMP0063 NEW )
@@ -22,48 +27,12 @@ endif( )
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT CMAKE_CONFIGURATION_TYPES )
+if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-if( DEFINED HOST_TOOLCHAIN_FILE )
-endif( )
-
-if( DEFINED DEVICE_TOOLCHAIN_FILE )
-	set( CMAKE_TOOLCHAIN_FILE "${DEVICE_TOOLCHAIN_FILE}" )
-endif( )
-
-# Check if cmake supports the new VERSION tag for project() commands
-# rocblas becomes the name of the project with a particular version
-if( POLICY CMP0048 )
-	cmake_policy( SET CMP0048 NEW )
-	project( rocblas VERSION 0.0.2.0 LANGUAGES CXX C )
-else( )
-	project( rocblas CXX C )
-	# Define a version for the code
-	if( NOT DEFINED rocblas_VERSION_MAJOR )
-		set( rocblas_VERSION_MAJOR 0 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_MINOR )
-		set( rocblas_VERSION_MINOR 0 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_PATCH )
-		set( rocblas_VERSION_PATCH 2 )
-	endif( )
-
-	if( NOT DEFINED rocblas_VERSION_TWEAK )
-		set( rocblas_VERSION_TWEAK 0 )
-	endif( )
-
-	set( rocblas_VERSION "${rocblas_VERSION_MAJOR}.${rocblas_VERSION_MINOR}.${rocblas_VERSION_PATCH}.${rocblas_VERSION_TWEAK}")
-endif( )
-
-# MACOSX_RPATH is enabled by default policy
-if( POLICY CMP0042 )
-	cmake_policy( SET CMP0042 NEW )
-endif( )
+include( build-version )
+project_version( NAME rocblas LANGUAGES CXX )
 
 message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
 message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
@@ -94,7 +63,9 @@ if( MSVC )
 	string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}" )
 endif( )
 
-include ( build-bitness )
+set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
+
+include( build-bitness )
 
 # Print out compiler flags for viewing/debug
 message( STATUS "CMAKE_CXX_COMPILER flags: " ${CMAKE_CXX_FLAGS} )
@@ -110,7 +81,7 @@ configure_file( "${PROJECT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_
 
 set( rocblas_headers_public
   include/rocblas.h
-  include/rocblas.hpp
+  #  include/rocblas.hpp
   include/rocblas_types.h
   include/rocblas_auxiliary.h
   include/rocblas_functions.h

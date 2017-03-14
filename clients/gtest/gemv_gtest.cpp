@@ -44,8 +44,8 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1},
-                                        {10, 10, 2},
-                                        {600,500, 500},
+                                    /*  {10, 10, 2},       */
+                                    /*  {600,500, 500},    */
                                         {1000, 1000, 1000},
                                         {2000, 2000, 2000},
                                         {4011, 4011, 4011},
@@ -59,7 +59,7 @@ vector<vector<int>> incx_incy_range = {
                                             {1, 1},
                                             {0, -1},
                                             {2, 1},
-                                            {10, 100}
+                                            {10, 100},
                                           };
 
 //vector of vector, each pair is a {alpha, beta};
@@ -69,16 +69,16 @@ vector<vector<double>> alpha_beta_range = {
                                             {1.0, 0.0},
                                             {-1.0, -1.0},
                                             {2.0, 1.0},
-                                            {0.0, 1.0}
+                                            {0.0, 1.0},
                                           };
 
 
 //for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemv/dgemv,
 const
 vector<char> transA_range = {
-                                        {'N'},
-                                        {'T'},
-                                        {'C'},
+                                        'N',
+                                        'T',
+                                        'C',
                                        };
 
 

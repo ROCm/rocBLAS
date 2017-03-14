@@ -5,10 +5,6 @@
 # Natively available on including Ubuntu 14.04, OpenSUSE 13.2, CentOS 6.6
 cmake_minimum_required( VERSION 2.8.12 )
 
-# if( NOT CMAKE_TOOLCHAIN_FILE )
-#   message( FATAL_ERROR "This project expects to know what compilers it should use through CMAKE_TOOLCHAIN_FILE" )
-# endif( )
-
 # This project may compile dependencies for clients
 project( rocblas-clients CXX )
 
@@ -22,39 +18,70 @@ set( rocblas_clients_dependencies )
 
 # If the user does not explicitely specify BOOST_ROOT, build our
 # own on the fly
-if( NOT DEFINED BOOST_ROOT )
-  include( external-boost )
-  list( APPEND rocblas_clients_dependencies boost )
-endif( )
+#if( BUILD_CLIENTS_BENCHMARKS )
+#  if( NOT DEFINED BOOST_ROOT )
+#    include( external-boost )
+#    list( APPEND rocblas_clients_dependencies boost )
+#  endif( )
+#endif()
 
-if( NOT DEFINED GTEST_ROOT )
-  include( external-gtest )
-  list( APPEND rocblas_clients_dependencies googletest )
-endif( )
+if( BUILD_CLIENTS_TESTS )
+  if( NOT DEFINED GTEST_ROOT )
+    include( external-gtest )
+    list( APPEND rocblas_clients_dependencies googletest )
+  endif( )
+endif()
 
-if( NOT DEFINED LAPACK )
-  include( external-lapack )
-  list( APPEND rocblas_clients_dependencies lapack )
-endif( )
+if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
+  if( NOT DEFINED LAPACK_ROOT )
+    include( external-lapack )
+    list( APPEND rocblas_clients_dependencies lapack )
+  endif( )
+endif()
 
-list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
+# if( DEFINED HIP_ROOT )
+#   list( APPEND CMAKE_MODULE_PATH ${HIP_ROOT}/cmake )
+# #  list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
+# endif( )
 
 # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
 string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
 string(REGEX REPLACE ";" "^^" CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH}" )
-string(REGEX REPLACE ";" "^^" CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}" )
-string(REGEX REPLACE ";" "^^" CMAKE_C_FLAGS "${CMAKE_C_FLAGS}" )
 
 set( CLIENTS_CMAKE_ARGS
-  -DCMAKE_TOOLCHAIN_FILE=${DEVICE_TOOLCHAIN_FILE}
   -DCMAKE_MODULE_PATH=${CMAKE_MODULE_PATH}
-  -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
-  -DCMAKE_C_FLAGS=${CMAKE_C_FLAGS}
   -DBUILD_64=${BUILD_64}
   )
 
-if( NOT CMAKE_CONFIGURATION_TYPES )
+# Linking rocblas dynamically should allow the user to use any host compiler
+# Linking rocblas statically requires the user to use the hcc compiler
+if( BUILD_SHARED_LIBS )
+  # Pass through compiler if explicitely set, otherwise let default handling
+  if( DEFINED CMAKE_CXX_COMPILER )
+    list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
+  endif()
+else()
+  if( DEFINED DEVICE_CXX_COMPILER )
+    list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER} )
+  else()
+    message( FATAL_ERROR "Statically linking rocblas requires DEVICE_CXX_COMPILER to be defined, typically hipcc")
+  endif()
+endif( )
+
+if( DEFINED CMAKE_C_COMPILER )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
+endif( )
+
+if( DEFINED CMAKE_CXX_FLAGS )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+endif( )
+
+if( DEFINED CMAKE_C_FLAGS )
+  list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
+endif( )
+
+if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND DEFINED CMAKE_BUILD_TYPE )
   list( APPEND CLIENTS_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
 endif( )
 
@@ -69,7 +96,6 @@ if( BUILD_CLIENTS_SAMPLES )
     )
 
   ExternalProject_Add( samples
-    DEPENDS ${rocblas_clients_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/samples
     BINARY_DIR samples-build
     CMAKE_ARGS ${SAMPLES_CMAKE_ARGS}
@@ -82,6 +108,7 @@ if( BUILD_CLIENTS_BENCHMARKS )
     set( BENCH_CMAKE_ARGS
           ${CLIENTS_CMAKE_ARGS}
           -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}^^${BOOST_ROOT}
+          -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
       )
 
   ExternalProject_Add( benchmarks
@@ -98,6 +125,7 @@ if( BUILD_CLIENTS_TESTS )
   set( TESTS_CMAKE_ARGS
         ${CLIENTS_CMAKE_ARGS}
         -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}^^${BOOST_ROOT}^^${GTEST_ROOT}^^${LAPACK_ROOT}
+        -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     )
 
   ExternalProject_Add( tests

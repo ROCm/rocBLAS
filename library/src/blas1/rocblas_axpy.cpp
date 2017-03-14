@@ -7,7 +7,7 @@
  
 
 #include "rocblas.h"
-#include "rocblas.hpp"
+ 
 #include "definitions.h"
 
 #define NB_X 256
@@ -117,59 +117,6 @@ rocblas_axpy_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    template interface
-     *    template specialization
-     * ===========================================================================
-     */
-
-
-template<>
-rocblas_status
-rocblas_axpy<float>(rocblas_handle handle,
-    rocblas_int n,
-    const float *alpha,
-    const float *x, rocblas_int incx,
-    float *y,  rocblas_int incy){
-
-    return rocblas_axpy_template<float>(handle, n, alpha, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_axpy<double>(rocblas_handle handle,
-    rocblas_int n,
-    const double *alpha,
-    const double *x, rocblas_int incx,
-    double *y,  rocblas_int incy){
-
-    return rocblas_axpy_template<double>(handle, n, alpha, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_axpy<rocblas_float_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *alpha,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex *y,  rocblas_int incy){
-
-    return rocblas_axpy_template<rocblas_float_complex>(handle, n, alpha, x, incx, y, incy);
-}
-
-template<>
-rocblas_status
-rocblas_axpy<rocblas_double_complex>(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *alpha,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex *y,  rocblas_int incy){
-
-    return rocblas_axpy_template<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
-}
 
 
 /* ============================================================================================ */
@@ -189,7 +136,7 @@ rocblas_saxpy(rocblas_handle handle,
     const float *x, rocblas_int incx,
     float *y,  rocblas_int incy){
 
-    return rocblas_axpy<float>(handle, n, alpha, x, incx, y, incy);
+    return rocblas_axpy_template<float>(handle, n, alpha, x, incx, y, incy);
 }
 
 extern "C"
@@ -200,7 +147,7 @@ rocblas_daxpy(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *y,  rocblas_int incy){
 
-    return rocblas_axpy<double>(handle, n, alpha, x, incx, y, incy);
+    return rocblas_axpy_template<double>(handle, n, alpha, x, incx, y, incy);
 }
 
 extern "C"
@@ -211,7 +158,7 @@ rocblas_caxpy(rocblas_handle handle,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_float_complex *y,  rocblas_int incy){
 
-    return rocblas_axpy<rocblas_float_complex>(handle, n, alpha, x, incx, y, incy);
+    return rocblas_axpy_template<rocblas_float_complex>(handle, n, alpha, x, incx, y, incy);
 }
 
 extern "C"
@@ -222,7 +169,7 @@ rocblas_zaxpy(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex *y,  rocblas_int incy){
 
-    return rocblas_axpy<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
+    return rocblas_axpy_template<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
 }
 
 

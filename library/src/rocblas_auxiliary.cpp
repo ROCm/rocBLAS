@@ -18,13 +18,13 @@
  *  can not recoginize it is on host or not
  ******************************************************************************/
 rocblas_mem_location rocblas_get_pointer_location(void *ptr){
-  hipPointerAttribute_t attribute;
-  hipPointerGetAttributes(&attribute, ptr);
-  if (ptr == attribute.devicePointer) {
-    return rocblas_mem_location_device;
-  } else {
-    return rocblas_mem_location_host;
-  }
+    hipPointerAttribute_t attribute;
+    hipPointerGetAttributes(&attribute, ptr);
+    if (ptr == attribute.devicePointer) {
+        return rocblas_mem_location_device;
+    } else {
+        return rocblas_mem_location_host;
+    }
 }
 
 
@@ -34,19 +34,19 @@ rocblas_mem_location rocblas_get_pointer_location(void *ptr){
 extern "C"
 rocblas_status rocblas_create_handle(rocblas_handle *handle){
 
-  // if handle not valid
-  if (handle == nullptr) {
-    return rocblas_status_invalid_pointer;
-  }
+    // if handle not valid
+    if (handle == nullptr) {
+        return rocblas_status_invalid_pointer;
+    }
 
-  // allocate on heap
-  try {
-    *handle = new _rocblas_handle();
-  } catch (rocblas_status status) {
-    return status;
-  }
+    // allocate on heap
+    try {
+      *handle = new _rocblas_handle();
+    } catch (rocblas_status status) {
+        return status;
+    }
 
-  return rocblas_status_success;
+    return rocblas_status_success;
 }
 
 
@@ -55,13 +55,13 @@ rocblas_status rocblas_create_handle(rocblas_handle *handle){
  ******************************************************************************/
 extern "C"
 rocblas_status rocblas_destroy_handle(rocblas_handle handle){
-  // call destructor
-  try {
-    delete handle;
-  } catch (rocblas_status status) {
-    return status;
-  }
-  return rocblas_status_success;
+    // call destructor
+    try {
+        delete handle;
+    } catch (rocblas_status status) {
+        return status;
+    }
+    return rocblas_status_success;
 }
 
 
@@ -73,7 +73,7 @@ rocblas_status rocblas_destroy_handle(rocblas_handle handle){
 extern "C"
 rocblas_status
 rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id){
-  return handle->set_stream( stream_id );
+    return handle->set_stream( stream_id );
 }
 
 
@@ -84,8 +84,5 @@ rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id){
 extern "C"
 rocblas_status
 rocblas_get_stream(rocblas_handle handle, hipStream_t *stream_id){
-  return handle->get_stream( stream_id );
+    return handle->get_stream( stream_id );
 }
-
-
-
