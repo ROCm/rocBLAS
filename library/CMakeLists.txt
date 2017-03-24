@@ -65,6 +65,10 @@ endif( )
 
 set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
 
+if( COMPILE_WITH_FPIC )
+	SET(CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS} -fPIC)
+endif( )
+
 include( build-bitness )
 
 # Print out compiler flags for viewing/debug

@@ -54,6 +54,7 @@ endif()
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" OFF )
+option( COMPILE_WITH_FPIC "Compile with -fPIC" ON )
 
 set( HIP_ROOT /opt/rocm/hip CACHE PATH "Specify hip installation dir")
 set( BOOST_ROOT /opt/boost  CACHE PATH "Specify boost installation dir")
@@ -151,6 +152,7 @@ if( BUILD_LIBRARY )
     -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
+    -DCOMPILE_WITH_FPIC=${COMPILE_WITH_FPIC}
     -DTensile_LOGIC=${Tensile_LOGIC}
     -DTensile_MERGE_FILES=${Tensile_MERGE_FILES}
     -DTensile_SHORT_FILENAMES=${Tensile_SHORT_FILENAMES}
@@ -201,6 +203,7 @@ if( BUILD_CLIENTS )
     -DBUILD_CLIENTS_BENCHMARKS=${BUILD_CLIENTS_BENCHMARKS}
     -DBUILD_CLIENTS_TESTS=${BUILD_CLIENTS_TESTS}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
+    -DCOMPILE_WITH_FPIC=${COMPILE_WITH_FPIC}
     -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
 
