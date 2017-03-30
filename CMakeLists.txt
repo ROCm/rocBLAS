@@ -43,9 +43,9 @@ option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 # which benchmark solution schedule
 set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
 if ( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
+  set( Tensile_LOGIC "FijiROCm15" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
-    FijiROCm14
+    FijiROCm15
     )
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" OFF)
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF)
