@@ -22,7 +22,8 @@ endfunction( )
 
 # Set up Tensile  Dependency 
 if( BUILD_WITH_TENSILE )
-  set(Tensile_BACKEND "HIP")
+  set(Tensile_RUNTIME_LANGUAGE "HIP")
+  set(Tensile_KERNEL_LANGUAGE "HIP")
   message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
   message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
   if (Tensile_FOUND) # was it found at the top level
@@ -30,7 +31,8 @@ if( BUILD_WITH_TENSILE )
     message(STATUS "Tensile package found")
     TensileCreateLibrary(
         ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_BACKEND}
+        ${Tensile_RUNTIME_LANGUAGE}
+        ${Tensile_KERNEL_LANGUAGE}
         ${Tensile_MERGE_FILES}
         ${Tensile_SHORT_FILENAMES}
         ${Tensile_PRINT_DEBUG}
@@ -40,7 +42,8 @@ if( BUILD_WITH_TENSILE )
     include(${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake)
     TensileCreateLibrary(
         ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_BACKEND}
+        ${Tensile_RUNTIME_LANGUAGE}
+        ${Tensile_KERNEL_LANGUAGE}
         ${Tensile_MERGE_FILES}
         ${Tensile_SHORT_FILENAMES}
         ${Tensile_PRINT_DEBUG}
