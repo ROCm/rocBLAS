@@ -140,27 +140,22 @@ gemm_trsm_kernel(hipLaunchParm lp,
 
     //shared_tep = B * C; shared_tep is of m * n, C is of n * n
     for(int col=0;col<n;col++){
-        //load C's column in shared vec
-        if(tx < n){ 
-            vec[tx] = C[col * ldc + tx];
-        }
-        else{
-            vec[tx] = 0.0;
-        }        
+        //load C's column in vec
+        if (tx < n) vec[tx] = C[col * ldc + tx];
         __syncthreads();
 
         T reg_tep = 0;
         //perform reduction
-        if(tx < m){
-            for(int i=0; i<n; i++){
-                reg_tep += reg[i] * vec[i];
-            }
+        for(int i=0; i<n; i++){
+            reg_tep += reg[i] * vec[i];
+        }
 
+        if(tx < m){
             shared_tep[tx + col * IB] = reg_tep;
         }
-        __syncthreads();
     }
 
+    __syncthreads();
 
     //read A into registers A is of m * m
     if(tx < m){
@@ -169,15 +164,15 @@ gemm_trsm_kernel(hipLaunchParm lp,
         }
     }
 
-    //D = A * shared_tep; shared_tep is of m * n, D is of m * n
+    //D = A * shared_tep; shared_tep is of m * n
     for(int col=0;col<n;col++){
 
         T reg_tep = 0;
-        if(tx < m){
-            for(int i=0; i<m; i++){
-                reg_tep += reg[i] * shared_tep[i + col * IB];
-            }
+        for(int i=0; i<m; i++){
+            reg_tep += reg[i] * shared_tep[i + col * IB];
+        }
 
+        if(tx < m){
             D[tx + col * ldd] = (-1) * reg_tep;
         }
     }
