@@ -101,7 +101,7 @@
     ThreadTileNumElements: 4
     ThreadTileShape: 0
     Valid: true
-    VectorWidth: 2
+    VectorWidth: 1
     WorkGroupMapping: 1
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -170,7 +170,7 @@
     ThreadTileNumElements: 4
     ThreadTileShape: 0
     Valid: true
-    VectorWidth: 2
+    VectorWidth: 1
     WorkGroupMapping: 1
 - [2, 3, 0, 1]
 - - - -1
