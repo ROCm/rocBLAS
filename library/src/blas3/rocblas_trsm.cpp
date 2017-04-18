@@ -45,18 +45,29 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
             // left, lower no-transpose
             jb = min(BLOCK, m);
             rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
+            #ifndef NDEBUG
+            printf("gemm sync"); hipDeviceSynchronize();
+            #endif
             if (BLOCK < m) {
                 rocblas_gemm_template<T>(handle, transA, transB, m-BLOCK, n, BLOCK, &negtive_one, A(BLOCK,0), lda, X, ldb, alpha, B(BLOCK,0), ldb);
-
+                #ifndef NDEBUG
+                printf("gemm sync"); hipDeviceSynchronize();
+                #endif
                 // remaining blocks
                 for( i=BLOCK; i < m; i += BLOCK ) {
                     jb = min(m-i, BLOCK);
 
                     rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
+                    #ifndef NDEBUG
+                    printf("gemm sync"); hipDeviceSynchronize();
+                    #endif
                     if (i+BLOCK >= m)// this condition is not necessary at all and can be changed as if (i+BLOCK<m)
                         break;
 
                     rocblas_gemm_template<T>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negtive_one, A(i+BLOCK,i), lda, X(i,0), ldb, &one, B(i+BLOCK,0), ldb);
+                    #ifndef NDEBUG
+                    printf("gemm sync"); hipDeviceSynchronize();
+                    #endif
                 }
             }
 
@@ -79,17 +90,28 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
 
             //if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35} 
             rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
+            #ifndef NDEBUG
+            printf("gemm sync"); hipDeviceSynchronize();
+            #endif
             if (i-BLOCK >= 0) {
 
                 rocblas_gemm_template<T>(handle, transA, transB, i, n, jb, &negtive_one, A(0,i), lda, X(i,0), ldb, alpha, B, ldb);
+                #ifndef NDEBUG
+                printf("gemm sync"); hipDeviceSynchronize();
+                #endif
 
                 // remaining blocks
                 for( i=m-jb-BLOCK; i >= 0; i -= BLOCK ) {
-                    //{32, 35, 32, 32, 35, 35}
                     rocblas_gemm_template<T>(handle, transA, transB, BLOCK, n, BLOCK, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
+                    #ifndef NDEBUG
+                    printf("gemm sync"); hipDeviceSynchronize();
+                    #endif
                     if (i-BLOCK < 0)
                         break;
                     rocblas_gemm_template<T>(handle, transA, transB, i, n, BLOCK, &negtive_one, A(0,i), lda, X(i,0), ldb, &one, B, ldb);
+                    #ifndef NDEBUG
+                    printf("gemm sync"); hipDeviceSynchronize();
+                    #endif
                 }
             }
         }
