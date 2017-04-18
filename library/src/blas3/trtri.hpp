@@ -141,16 +141,16 @@ gemm_trsm_kernel(hipLaunchParm lp,
     //shared_tep = B * C; shared_tep is of m * n, C is of n * n
     for(int col=0;col<n;col++){
         //load C's column in vec
-        vec[tx] = C[col * ldc + tx];
+        if(tx < n) vec[tx] = C[col * ldc + tx];
         __syncthreads();
 
         T reg_tep = 0;
         //perform reduction
-        for(int i=0; i<n; i++){
-            reg_tep += reg[i] * vec[i];
-        }
-
         if(tx < m){
+            for(int i=0; i<n; i++){
+                reg_tep += reg[i] * vec[i];
+            }
+
             shared_tep[tx + col * IB] = reg_tep;
         }
     }
@@ -164,15 +164,15 @@ gemm_trsm_kernel(hipLaunchParm lp,
         }
     }
 
-    //D = A * shared_tep; shared_tep is of m * n
+    //D = A * shared_tep; shared_tep is of m * n, D is of m * n
     for(int col=0;col<n;col++){
 
         T reg_tep = 0;
-        for(int i=0; i<m; i++){
-            reg_tep += reg[i] * shared_tep[i + col * IB];
-        }
-
         if(tx < m){
+            for(int i=0; i<m; i++){
+                reg_tep += reg[i] * shared_tep[i + col * IB];
+            }
+
             D[tx + col * ldd] = (-1) * reg_tep;
         }
     }
@@ -242,6 +242,7 @@ rocblas_trtri_large(rocblas_handle handle,
 
     rocblas_int m_gemm;
     rocblas_int n_gemm;
+
     T *A_gemm;
     T *B_gemm;
     T *C_gemm;
