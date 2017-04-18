@@ -140,8 +140,13 @@ gemm_trsm_kernel(hipLaunchParm lp,
 
     //shared_tep = B * C; shared_tep is of m * n, C is of n * n
     for(int col=0;col<n;col++){
-        //load C's column in vec
-        if(tx < n) vec[tx] = C[col * ldc + tx];
+        //load C's column in shared vec
+        if(tx < n){ 
+            vec[tx] = C[col * ldc + tx];
+        }
+        else{
+            vec[tx] = 0.0;
+        }        
         __syncthreads();
 
         T reg_tep = 0;
@@ -153,9 +158,9 @@ gemm_trsm_kernel(hipLaunchParm lp,
 
             shared_tep[tx + col * IB] = reg_tep;
         }
+        __syncthreads();
     }
 
-    __syncthreads();
 
     //read A into registers A is of m * m
     if(tx < m){
