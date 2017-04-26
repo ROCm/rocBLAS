@@ -6,7 +6,9 @@ properties([buildDiscarder(logRotator(
     artifactNumToKeepStr: '',
     daysToKeepStr: '',
     numToKeepStr: '10')),
-  disableConcurrentBuilds()])
+    disableConcurrentBuilds(),
+    [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
+   ])
 
 def build_type="Debug"
 def build_type_postfix="-d"
@@ -136,7 +138,7 @@ node('rocm-1.5 && fiji')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
+      mail  to: "kent.knox@amd.com", // david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
             subject: "${env.JOB_NAME} finished with FAILUREs",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
