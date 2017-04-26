@@ -1,4 +1,4 @@
-#include "rocblas_types.h"
+#include "rocblas-types.h"
 #include "Tensile.h"
 
 /*******************************************************************************
