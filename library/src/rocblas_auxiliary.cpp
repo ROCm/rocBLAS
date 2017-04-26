@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <hip/hip_runtime_api.h>
 #include "definitions.h"
-#include "rocblas_types.h"
+#include "rocblas-types.h"
 #include "handle.h"
-#include "rocblas_auxiliary.h"
+#include "rocblas-auxiliary.h"
 
     /* ============================================================================================ */
 
