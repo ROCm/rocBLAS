@@ -47,7 +47,7 @@ rocblas_status testing_trsm(Arguments argus)
     rocblas_status status = rocblas_status_success;
 
     //check here to prevent undefined memory allocation error
-    if( M < 0 || N < 0 || lda < 0 || ldb < 0){
+    if( M < 0 || N < 0 || lda < K || ldb < M){
         return rocblas_status_invalid_size;
     }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
@@ -70,14 +70,18 @@ rocblas_status testing_trsm(Arguments argus)
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
     CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
 
-    //Initial Data on CPU
+    //Initial hA on CPU
     srand(1);
     rocblas_init_symmetric<T>(hA, K, lda);
+    //pad untouched area into zero
+    for(int i=K;i<lda;i++){
+        for(int j=0;j<K;j++){
+            hA[i+j*lda] = 0.0;
+        }
+    }
     //proprocess the matrix to avoid ill-conditioned matrix 
     vector<rocblas_int> ipiv(K);
     cblas_getrf(K, K, hA.data(), lda, ipiv.data());
-    rocblas_init<T>(hB, M, N, ldb);
-    
     for(int i=0;i<K;i++){
         for(int j=i;j<K;j++){
             hA[i+j*lda] = hA[j+i*lda];
@@ -87,9 +91,16 @@ rocblas_status testing_trsm(Arguments argus)
         }
     }
     
-
+    //Initial hB, hX on CPU
     rocblas_init<T>(hB, M, N, ldb);
+    //pad untouched area into zero
+    for(int i=M;i<ldb;i++){
+        for(int j=0;j<N;j++){
+            hB[i+j*ldb] = 0.0;
+        }
+    }    
     hX = hB;//original solution hX
+
     //Calculate hB = hA*hX;
     cblas_trmm<T>(
                 side, uplo,
@@ -97,7 +108,6 @@ rocblas_status testing_trsm(Arguments argus)
                 M, N, 1.0/alpha,
                 (const T*)hA.data(), lda,
                 hB.data(), ldb);
-
     
     hB_copy = hB;
 
