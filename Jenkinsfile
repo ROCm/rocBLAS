@@ -14,7 +14,7 @@ def build_type_postfix="-d"
 // Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
 // They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
 // Manually load balance by picking a particular machine
-node('rocm-1.3 && hawaii')
+node('rocm-1.5 && fiji')
 {
   def node_list = env.NODE_LABELS.tokenize()
   // sh "echo node_list: ${node_list}"
@@ -78,7 +78,7 @@ node('rocm-1.3 && hawaii')
               if (env.NODE_LABELS ==~ /.*fiji.*/)
               {
               sh 'echo Target Fiji ISA'
-                withEnv(['HCC_AMDGPU_TARGET=AMD:AMDGPU:8:0:3'])
+                withEnv(['HCC_AMDGPU_TARGET=gfx803'])
                 {
                   sh '''#!/usr/bin/env bash
                         make -j 8
@@ -88,7 +88,7 @@ node('rocm-1.3 && hawaii')
               else if (env.NODE_LABELS ==~ /.*hawaii.*/)
               {
                 sh 'echo Target Hawaii ISA'
-                withEnv(['HCC_AMDGPU_TARGET=AMD:AMDGPU:7:0:1'])
+                withEnv(['HCC_AMDGPU_TARGET=gfx701'])
                 {
                     sh '''#!/usr/bin/env bash
                           make -j 8
