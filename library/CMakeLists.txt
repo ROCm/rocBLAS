@@ -82,9 +82,9 @@ configure_file( "${PROJECT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_
 set( rocblas_headers_public
   include/rocblas.h
   #  include/rocblas.hpp
-  include/rocblas_types.h
-  include/rocblas_auxiliary.h
-  include/rocblas_functions.h
+  include/rocblas-types.h
+  include/rocblas-auxiliary.h
+  include/rocblas-functions.h
   ${PROJECT_BINARY_DIR}/include/rocblas-version.h
 )
 

@@ -79,30 +79,9 @@ node('rocm-1.5 && fiji')
 
           stage("Build")
           {
-              // if (env.NODE_LABELS ==~ /.*fiji.*/)
-              // {
-              // sh 'echo Target Fiji ISA'
-              //   withEnv(['HCC_AMDGPU_TARGET=gfx803'])
-              //   {
-              //     sh '''#!/usr/bin/env bash
-              //           make -j 8
-              //       '''
-              //   }
-              // }
-              // else if (env.NODE_LABELS ==~ /.*hawaii.*/)
-              // {
-              //   sh 'echo Target Hawaii ISA'
-              //   withEnv(['HCC_AMDGPU_TARGET=gfx701'])
-              //   {
-              //       sh '''#!/usr/bin/env bash
-              //             make -j 8
-              //         '''
-              //   }
-              // }
               sh '''#!/usr/bin/env bash
                     make -j $(nproc)
                 '''
-
           }
 
           stage("Package Debian") {
