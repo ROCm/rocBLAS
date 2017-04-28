@@ -7,7 +7,7 @@ include(FindPythonInterp)
 
 set( Tensile_REPO "https://github.com/RadeonOpenCompute/Tensile.git"
     CACHE STRING "Tensile URL to download" )
-set( Tensile_TAG "v2.2.3" CACHE STRING "Tensile tag to download" )
+set( Tensile_TAG "v2.4.5" CACHE STRING "Tensile tag to download" )
 
 ExternalProject_Add(
   Tensile
