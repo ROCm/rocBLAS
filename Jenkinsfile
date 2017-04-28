@@ -10,8 +10,10 @@ properties([buildDiscarder(logRotator(
     [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
    ])
 
-def build_type="Debug"
-def build_type_postfix="-d"
+// def build_type="Debug"
+// def build_type_postfix="-d"
+def build_type="Release"
+def build_type_postfix=""
 
 // Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
 // They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
@@ -69,7 +71,7 @@ node('rocm-1.5 && fiji')
           stage("configure clang release") {
               sh """#!/usr/bin/env bash
                 sudo apt-get update
-                sudo apt-get install python-yaml
+                sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y rpm
                 cmake -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang-3.8 -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
                 -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON ${scm_dir}
                 """
@@ -77,32 +79,38 @@ node('rocm-1.5 && fiji')
 
           stage("Build")
           {
-              if (env.NODE_LABELS ==~ /.*fiji.*/)
-              {
-              sh 'echo Target Fiji ISA'
-                withEnv(['HCC_AMDGPU_TARGET=gfx803'])
-                {
-                  sh '''#!/usr/bin/env bash
-                        make -j 8
-                    '''
-                }
-              }
-              else if (env.NODE_LABELS ==~ /.*hawaii.*/)
-              {
-                sh 'echo Target Hawaii ISA'
-                withEnv(['HCC_AMDGPU_TARGET=gfx701'])
-                {
-                    sh '''#!/usr/bin/env bash
-                          make -j 8
-                      '''
-                }
-              }
+              // if (env.NODE_LABELS ==~ /.*fiji.*/)
+              // {
+              // sh 'echo Target Fiji ISA'
+              //   withEnv(['HCC_AMDGPU_TARGET=gfx803'])
+              //   {
+              //     sh '''#!/usr/bin/env bash
+              //           make -j 8
+              //       '''
+              //   }
+              // }
+              // else if (env.NODE_LABELS ==~ /.*hawaii.*/)
+              // {
+              //   sh 'echo Target Hawaii ISA'
+              //   withEnv(['HCC_AMDGPU_TARGET=gfx701'])
+              //   {
+              //       sh '''#!/usr/bin/env bash
+              //             make -j 8
+              //         '''
+              //   }
+              // }
+              sh '''#!/usr/bin/env bash
+                    make -j $(nproc)
+                '''
+
           }
 
           stage("Package Debian") {
             sh 'cd library-build; make package'
-            archive includes: 'library-build/*.deb'
-          }
+            archiveArtifacts artifacts: 'library-build/*.deb', fingerprint: true
+            archiveArtifacts artifacts: 'library-build/*.rpm', fingerprint: true
+            sh "sudo dpkg -c library-build/*.deb"
+         }
 
           // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
           timeout(time: 1, unit: 'HOURS')

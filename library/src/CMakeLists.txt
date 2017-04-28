@@ -20,7 +20,7 @@ endfunction( )
 # Main
 # ########################################################################
 
-# Set up Tensile  Dependency 
+# Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   set(Tensile_RUNTIME_LANGUAGE "HIP")
   set(Tensile_KERNEL_LANGUAGE "HIP")
@@ -68,8 +68,8 @@ if( BUILD_WITH_TENSILE )
   #    ${Tensile_ROOT}
   #    )
 
-  #rocblas_gemm and rocblas_trsm require tensile 
-    set( Tensile_SRC 
+  #rocblas_gemm and rocblas_trsm require tensile
+    set( Tensile_SRC
       blas3/Tensile/gemm.cpp
       blas3/rocblas_trsm.cpp
       )
@@ -201,13 +201,15 @@ if( BUILD_WITH_TENSILE )
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 else()
-    install( TARGETS rocblas 
+    install( TARGETS rocblas
         EXPORT rocblas-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
         LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
         ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 endif()
 
@@ -219,11 +221,12 @@ install( EXPORT rocblas-targets
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake
-  DESTINATION
-    ${config_package_location} )
+  DESTINATION ${config_package_location}
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
 
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-export.h
-  DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )
