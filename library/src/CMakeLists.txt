@@ -26,6 +26,13 @@ if( BUILD_WITH_TENSILE )
   set(Tensile_KERNEL_LANGUAGE "HIP")
   message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
   message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
+
+  # If we want to build a shared rocblas lib, we want to force Tensile to build as a static lib
+  if( BUILD_SHARED_LIBS )
+    set( ROCBLAS_SHARED_LIBS ON )
+    set( BUILD_SHARED_LIBS OFF )
+  endif()
+
   if (Tensile_FOUND) # was it found at the top level
     find_package(Tensile)
     message(STATUS "Tensile package found")
@@ -49,6 +56,14 @@ if( BUILD_WITH_TENSILE )
         ${Tensile_PRINT_DEBUG}
         Tensile_ROOT ${Tensile_ROOT}
         )
+  endif()
+
+  # Create a unique name for Tensile compiled for rocBLAS
+  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas )
+
+  if( ROCBLAS_SHARED_LIBS )
+    set( BUILD_SHARED_LIBS ON )
+    set_target_properties( Tensile PROPERTIES POSITION_INDEPENDENT_CODE ON )
   endif()
 
   #message(STATUS "Tensile_ROOT=${Tensile_ROOT}")
@@ -195,7 +210,8 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-if( BUILD_WITH_TENSILE )
+if( BUILD_WITH_TENSILE AND NOT BUILD_SHARED_LIBS )
+    message (STATUS "Packaging rocblas and tensile")
     install( TARGETS rocblas Tensile
         EXPORT rocblas-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
@@ -204,6 +220,7 @@ if( BUILD_WITH_TENSILE )
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 else()
+    message (STATUS "Only packaging rocblas")
     install( TARGETS rocblas
         EXPORT rocblas-targets
         RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

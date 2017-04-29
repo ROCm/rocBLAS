@@ -111,7 +111,6 @@ if( WIN32 )
     set( CPACK_GENERATOR "ZIP" )
 else( )
     set( CPACK_SOURCE_GENERATOR "TGZ" )
-
     set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
     #set( CPACK_DEBIAN_PACKAGE_ARCHITECTURE "amd64" )
     #set( CPACK_DEBIAN_COMPRESSION_TYPE "xz" )
@@ -126,8 +125,12 @@ set( CPACK_PACKAGE_VERSION_PATCH ${rocblas_VERSION_PATCH} )
 set( CPACK_PACKAGE_VERSION_TWEAK ${rocblas_VERSION_TWEAK} )
 set( CPACK_PACKAGE_VERSION ${rocblas_VERSION} )
 set( CPACK_PACKAGE_VENDOR "AMD")
+set( CPACK_DEBIAN_PACKAGE_DEPENDS "hsa-rocr-dev (>= 1.5.0)" )
+set( CPACK_RPM_PACKAGE_REQUIRES "hsa-rocr-dev >= 1.5.0" )
+
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/../LICENSE.md" )
 set( CPACK_SOURCE_IGNORE_FILES "/\\\\.git/" )
+
 
 # Define all variables that influence CPack before including CPack, such as install targets
 include( CPack )
