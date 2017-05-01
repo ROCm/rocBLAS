@@ -73,7 +73,7 @@ node('rocm-1.5 && fiji')
                 sudo apt-get update
                 sudo DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y rpm
                 cmake -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang-3.8 -DBUILD_SHARED_LIBS=ON -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
-                -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ${scm_dir}
+                -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm/rocblas ${scm_dir}
                 """
           }
 
@@ -125,7 +125,7 @@ node('rocm-1.5 && fiji')
       //       body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 
       // Disable email for now
-      mail  to: "kent.knox@amd.com", // david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
+      mail  to: "kent.knox@amd.com, david.tanner@amd.com, tingxing.dong@amd.com, andrew.chapman@amd.com",
             subject: "${env.JOB_NAME} finished with FAILUREs",
             body: "Node: ${env.NODE_NAME}\nSee ${env.BUILD_URL}\n\n" + err.toString()
 

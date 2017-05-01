@@ -178,7 +178,7 @@ set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas
 include( GenerateExportHeader )
 if( CMAKE_VERSION VERSION_LESS "3.0" )
   add_compiler_export_flags( )
-else()
+else( )
   set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 endif( )
 GENERATE_EXPORT_HEADER( rocblas EXPORT_FILE_NAME rocblas-export.h )
@@ -193,8 +193,6 @@ endif( )
 # https://cmake.org/cmake/help/v3.0/module/CMakePackageConfigHelpers.html
 include( CMakePackageConfigHelpers )
 
-set( LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} )
-set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 set( config_package_location ${LIB_INSTALL_DIR}/cmake/rocblas )
 
 configure_package_config_file(
@@ -211,28 +209,25 @@ write_basic_package_version_file(
 )
 
 if( BUILD_WITH_TENSILE AND NOT BUILD_SHARED_LIBS )
-    message (STATUS "Packaging rocblas and tensile")
     install( TARGETS rocblas Tensile
         EXPORT rocblas-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 else()
-    message (STATUS "Only packaging rocblas")
     install( TARGETS rocblas
         EXPORT rocblas-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 endif()
 
 install( EXPORT rocblas-targets
-  DESTINATION
-    ${config_package_location}
+  DESTINATION ${config_package_location}
 )
 
 install( FILES
@@ -243,7 +238,12 @@ install( FILES
 )
 
 install( FILES
+    ${relative_rocblas_headers_public}
+    DESTINATION ${INCLUDE_INSTALL_DIR}
+)
+
+install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-export.h
-  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+  DESTINATION ${INCLUDE_INSTALL_DIR}
   PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )
