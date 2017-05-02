@@ -97,60 +97,6 @@ set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 # Build into subdirectories
 add_subdirectory( src )
 
-# Generate packaging scripts to register libraries with system
-file( WRITE ${PROJECT_BINARY_DIR}/postinst "
-#!/bin/bash
-
-set -e
-
-do_ldconfig() {
-  echo ${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR} > /etc/ld.so.conf.d/rocblas-dev.conf && ldconfig
-}
-
-do_softlinks() {
-    ln -sr ${CPACK_PACKAGING_INSTALL_PREFIX}/${INCLUDE_INSTALL_DIR} ${CPACK_PACKAGING_INSTALL_PREFIX}/../include/rocblas
-    ln -sr ${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}/librocblas-hcc.so.1 ${CPACK_PACKAGING_INSTALL_PREFIX}/../lib/librocblas-hcc.so
-}
-
-case \"\$1\" in
-   configure)
-        do_ldconfig
-        do_softlinks
-   ;;
-   abort-upgrade|abort-remove|abort-deconfigure)
-        echo \"\$1\"
-   ;;
-   *)
-        exit 0
-   ;;
-esac
-" )
-
-file( WRITE ${PROJECT_BINARY_DIR}/prerm "
-#!/bin/bash
-
-set -e
-
-rm_ldconfig() {
-    rm -f /etc/ld.so.conf.d/rocblas-dev.conf && ldconfig
-}
-
-do_softlinks() {
-    rm -f ${CPACK_PACKAGING_INSTALL_PREFIX}/../include/rocblas
-    rm -f ${CPACK_PACKAGING_INSTALL_PREFIX}/../lib/librocblas-hcc.so
-}
-
-case \"\$1\" in
-   remove|purge)
-       rm_ldconfig
-       do_softlinks
-   ;;
-   *)
-        exit 0
-   ;;
-esac
-" )
-
 # The following code is setting variables to control the behavior of CPack to generate our
 if( WIN32 )
     set( CPACK_SOURCE_GENERATOR "ZIP" )
@@ -178,6 +124,9 @@ set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip_hcc (>= 1.0.17174)" )
 set( CPACK_RPM_PACKAGE_REQUIRES "hip_hcc >= 1.0.17174" )
 
 if( "${CPACK_PACKAGING_INSTALL_PREFIX}" MATCHES "^/opt/rocm.*$")
+    include( package-functions )
+    write_rocm_package_script_files( ${PROJECT_BINARY_DIR} "rocblas" "librocblas-hcc.so" )
+
     set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_BINARY_DIR}/postinst;${PROJECT_BINARY_DIR}/prerm")
     set( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${PROJECT_BINARY_DIR}/postinst" )
     set( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${PROJECT_BINARY_DIR}/prerm" )
