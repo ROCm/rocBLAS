@@ -43,9 +43,9 @@ option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 # which benchmark solution schedule
 set( Tensile_ROOT "" CACHE STRING "Local path of Tensile.")
 if ( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "FijiROCm14" CACHE STRING "Tensile to use which logic?")
+  set( Tensile_LOGIC "FijiROCm15" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
-    FijiROCm14
+    FijiROCm15
     )
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" OFF)
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF)
@@ -149,6 +149,7 @@ if( BUILD_LIBRARY )
     -DCMAKE_MODULE_PATH=${LIBRARY_MODULE_PATH}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
     -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DTensile_LOGIC=${Tensile_LOGIC}
@@ -157,6 +158,11 @@ if( BUILD_LIBRARY )
     -DTensile_PRINT_DEBUG=${Tensile_PRINT_DEBUG}
     -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
   )
+
+  if( DEFINED CPACK_PACKAGING_INSTALL_PREFIX )
+    list( APPEND LIBRARY_CMAKE_ARGS -DCPACK_PACKAGING_INSTALL_PREFIX=${CPACK_PACKAGING_INSTALL_PREFIX} )
+  endif()
+
   if (Tensile_FOUND)
     set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_FOUND=${Tensile_FOUND})
   else()
@@ -195,6 +201,7 @@ if( BUILD_CLIENTS )
     -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DDEVICE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
+    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
     -DCMAKE_PREFIX_PATH=${CLIENT_PREFIX_PATH}
     -DCMAKE_MODULE_PATH=${CLIENT_MODULE_PATH}
     -DBUILD_CLIENTS_SAMPLES=${BUILD_CLIENTS_SAMPLES}

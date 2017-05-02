@@ -20,17 +20,26 @@ endfunction( )
 # Main
 # ########################################################################
 
-# Set up Tensile  Dependency 
+# Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
-  set(Tensile_BACKEND "HIP")
+  set(Tensile_RUNTIME_LANGUAGE "HIP")
+  set(Tensile_KERNEL_LANGUAGE "HIP")
   message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
   message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
+
+  # If we want to build a shared rocblas lib, we want to force Tensile to build as a static lib
+  if( BUILD_SHARED_LIBS )
+    set( ROCBLAS_SHARED_LIBS ON )
+    set( BUILD_SHARED_LIBS OFF )
+  endif()
+
   if (Tensile_FOUND) # was it found at the top level
     find_package(Tensile)
     message(STATUS "Tensile package found")
     TensileCreateLibrary(
         ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_BACKEND}
+        ${Tensile_RUNTIME_LANGUAGE}
+        ${Tensile_KERNEL_LANGUAGE}
         ${Tensile_MERGE_FILES}
         ${Tensile_SHORT_FILENAMES}
         ${Tensile_PRINT_DEBUG}
@@ -40,12 +49,21 @@ if( BUILD_WITH_TENSILE )
     include(${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake)
     TensileCreateLibrary(
         ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_BACKEND}
+        ${Tensile_RUNTIME_LANGUAGE}
+        ${Tensile_KERNEL_LANGUAGE}
         ${Tensile_MERGE_FILES}
         ${Tensile_SHORT_FILENAMES}
         ${Tensile_PRINT_DEBUG}
         Tensile_ROOT ${Tensile_ROOT}
         )
+  endif()
+
+  # Create a unique name for Tensile compiled for rocBLAS
+  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas )
+
+  if( ROCBLAS_SHARED_LIBS )
+    set( BUILD_SHARED_LIBS ON )
+    set_target_properties( Tensile PROPERTIES POSITION_INDEPENDENT_CODE ON )
   endif()
 
   #message(STATUS "Tensile_ROOT=${Tensile_ROOT}")
@@ -65,8 +83,8 @@ if( BUILD_WITH_TENSILE )
   #    ${Tensile_ROOT}
   #    )
 
-  #rocblas_gemm and rocblas_trsm require tensile 
-    set( Tensile_SRC 
+  #rocblas_gemm and rocblas_trsm require tensile
+    set( Tensile_SRC
       blas3/Tensile/gemm.cpp
       blas3/rocblas_trsm.cpp
       )
@@ -160,7 +178,7 @@ set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas
 include( GenerateExportHeader )
 if( CMAKE_VERSION VERSION_LESS "3.0" )
   add_compiler_export_flags( )
-else()
+else( )
   set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 endif( )
 GENERATE_EXPORT_HEADER( rocblas EXPORT_FILE_NAME rocblas-export.h )
@@ -175,8 +193,6 @@ endif( )
 # https://cmake.org/cmake/help/v3.0/module/CMakePackageConfigHelpers.html
 include( CMakePackageConfigHelpers )
 
-set( LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} )
-set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 set( config_package_location ${LIB_INSTALL_DIR}/cmake/rocblas )
 
 configure_package_config_file(
@@ -192,35 +208,42 @@ write_basic_package_version_file(
   COMPATIBILITY SameMajorVersion
 )
 
-if( BUILD_WITH_TENSILE )
+if( BUILD_WITH_TENSILE AND NOT BUILD_SHARED_LIBS )
     install( TARGETS rocblas Tensile
         EXPORT rocblas-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 else()
-    install( TARGETS rocblas 
+    install( TARGETS rocblas
         EXPORT rocblas-targets
-        RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
+        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
+        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
+        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
     )
 endif()
 
 install( EXPORT rocblas-targets
-  DESTINATION
-    ${config_package_location}
+  DESTINATION ${config_package_location}
 )
 
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake
-  DESTINATION
-    ${config_package_location} )
+  DESTINATION ${config_package_location}
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
+)
+
+install( FILES
+    ${relative_rocblas_headers_public}
+    DESTINATION ${INCLUDE_INSTALL_DIR}
+)
 
 install( FILES
   ${CMAKE_CURRENT_BINARY_DIR}/rocblas-export.h
-  DESTINATION
-    ${CMAKE_INSTALL_INCLUDEDIR}
+  DESTINATION ${INCLUDE_INSTALL_DIR}
+  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
 )

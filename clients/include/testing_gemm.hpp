@@ -167,10 +167,10 @@ rocblas_status testing_gemm(Arguments argus)
             cout << endl;
 
             cout << argus.transA_option << argus.transB_option << ',' << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<','
-                 << ldc <<',' << rocblas_gflops << "(" << gpu_time_used << "),";
+                 << ldc <<',' << rocblas_gflops << " (" << gpu_time_used << "), ";
 
             if(argus.norm_check){
-                cout << cblas_gflops << "(" << cpu_time_used << "),";
+                cout << cblas_gflops << " (" << cpu_time_used << "), ";
                 cout << rocblas_error;
             }
 
