@@ -44,10 +44,10 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1, -1, 1, 1},
-                                        {10, 10, 20, 100, 10, 10},
-                                        {128, 128, 64, 128, 128, 128},
-                                        {600,500, 500, 500, 600, 500},
-                                        {1024, 1024, 1024, 1024, 1024, 1024}
+                                        {32, 32, 32, 100, 100, 100},
+                                        {64, 64, 64, 128, 128, 128},
+                                        {128, 128, 128, 128, 128, 128},
+                                        {500, 500, 500, 500, 600, 500},
                                        };
 
 
@@ -75,11 +75,11 @@ vector<vector<char>> transA_transB_range = {
 //number of gemms in batched gemm
 const
 vector<int> batch_count_range = {
-                                        {-1},
-                                        {0},
-                                        {1},
-                                        {10},
-                                        {100},
+                                        -1,
+                                        0,
+                                        1,
+                                        10,
+                                        100,
                                        };
 
 
