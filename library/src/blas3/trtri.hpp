@@ -5,7 +5,7 @@
 
 #pragma once
 #ifndef _TRTRI_HPP_
-#define _TRTRI_HPP_  
+#define _TRTRI_HPP_
 
 #include <hip/hip_runtime.h>
 #include "trtri_device.h"
@@ -33,7 +33,7 @@ trtri_small_kernel(hipLaunchParm lp,
 }
 
 
- 
+
 template<typename T, rocblas_int IB>
 rocblas_status
 rocblas_trtri_small(rocblas_handle handle,
@@ -141,7 +141,7 @@ gemm_trsm_kernel(hipLaunchParm lp,
     //shared_tep = B * C; shared_tep is of m * n, C is of n * n
     for(int col=0;col<n;col++){
         //load C's column in vec
-        vec[tx] = C[col * ldc + tx];
+        if(tx < n) vec[tx] = C[col * ldc + tx];
         __syncthreads();
 
         T reg_tep = 0;
