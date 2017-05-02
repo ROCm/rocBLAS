@@ -16,8 +16,8 @@
 /* library headers */
 #include "rocblas-export.h"
 #include "rocblas-version.h"
-#include "rocblas_types.h"
-#include "rocblas_auxiliary.h"
-#include "rocblas_functions.h"
+#include "rocblas-types.h"
+#include "rocblas-auxiliary.h"
+#include "rocblas-functions.h"
 
 #endif // _ROCBLAS_H_

@@ -8,10 +8,10 @@
 #define _ROCBLAS_AUXILIARY_H_
 
 #include <hip/hip_runtime_api.h>
-#include "rocblas_types.h"
+#include "rocblas-types.h"
 
 /*!\file
- * \brief rocblas_auxiliary.h provides auxilary functions in rocblas
+ * \brief rocblas-auxiliary.h provides auxilary functions in rocblas
 */
 
 

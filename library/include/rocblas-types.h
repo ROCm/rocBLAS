@@ -4,7 +4,7 @@
  * ************************************************************************ */
 
 /*! \file
- * \brief rocblas_types.h defines data types used by rocblas
+ * \brief rocblas-types.h defines data types used by rocblas
  */
 
 #pragma once
