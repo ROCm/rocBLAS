@@ -91,6 +91,7 @@ endif()
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
+    auxiliary_gtest.cpp
     blas1_gtest.cpp
     gemv_gtest.cpp
     ger_gtest.cpp

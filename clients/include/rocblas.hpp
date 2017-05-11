@@ -25,6 +25,19 @@
      * ===========================================================================
      */
 
+     rocblas_status
+     rocblas_set_vector(
+         rocblas_int n,
+         rocblas_int elem_size,
+         const void *x, rocblas_int incx,
+         void *y, rocblas_int incy);
+
+     rocblas_status
+     rocblas_get_vector(
+         rocblas_int n,
+         rocblas_int elem_size,
+         const void *x, rocblas_int incx,
+         void *y, rocblas_int incy);
 
      template<typename T>
      rocblas_status
