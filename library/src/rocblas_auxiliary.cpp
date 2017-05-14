@@ -142,10 +142,17 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     {
         int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
         void *b_h = malloc(buffer_byte_size);
+        if (!b_h) 
+        {
+            return rocblas_status_memory_error;
+        }   
         void *b_d;
         if (incy != 0)
         {
             PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
+            if (!b_d) {
+                return rocblas_status_memory_error;
+            }
         }
         int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number of elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
@@ -239,10 +246,16 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     {
         int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
         void *b_h = malloc(buffer_byte_size);
-        void *b_d; 
+        if (!b_h) {
+            return rocblas_status_memory_error;
+        }
+        void *b_d;
         if (incx != 0)
         { 
             PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
+            if (!b_d) {
+                return rocblas_status_memory_error;
+            }
         }
         int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
