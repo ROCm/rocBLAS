@@ -141,8 +141,14 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     else                          // either non-contiguous host vector or non-contiguous device vector
     {
         int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
+        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number of elements in buffer
+        int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
+        int blocks = (n_elem-1)/ NB_X + 1;
+        dim3 grid( blocks, 1, 1 );
+        dim3 threads( NB_X, 1, 1 );
+        
         void *b_h;
-        if (incx != 0)
+        if (incx != 1)
         {
             b_h = malloc(buffer_byte_size);
             if (!b_h)
@@ -150,28 +156,21 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
                 return rocblas_status_memory_error;
             }
         }
+        
         void *b_d;
-        if (incy != 0)
+        hipStream_t rocblas_stream;
+        if (incy != 1)
         {
             PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
-            if (!b_d) {
+            if (!b_d)
+            {
                 return rocblas_status_memory_error;
             }
+            rocblas_handle handle;
+            rocblas_create_handle(&handle);
+            RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number of elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
-
-        rocblas_handle handle;
-        rocblas_create_handle(&handle);
-
-        int blocks = (n_elem-1)/ NB_X + 1;
-
-        dim3 grid( blocks, 1, 1 );
-        dim3 threads( NB_X, 1, 1 );
-
-        hipStream_t rocblas_stream;
-        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
+        
         size_t x_h_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_d_byte_stride = (size_t) elem_size * (size_t) incy;
         size_t b_h_byte_stride = (size_t) elem_size;
@@ -258,36 +257,36 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     else                                   // either device or host vector is non-contiguous 
     {
         int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
+        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number elements in buffer
+        int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
+        int blocks = (n_elem-1)/ NB_X + 1;
+        dim3 grid( blocks, 1, 1 );
+        dim3 threads( NB_X, 1, 1 );
+        
         void *b_h;
-        if (incy != 0)
+        if (incy != 1)
         {
-            void *b_h = malloc(buffer_byte_size);
+            b_h = malloc(buffer_byte_size);
             if (!b_h)
             {
                 return rocblas_status_memory_error;
             }
         }
+        
         void *b_d;
-        if (incx != 0)
-        { 
+        hipStream_t rocblas_stream;
+        if (incx != 1)
+        {
             PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
-            if (!b_d) {
+            if (!b_d)
+            {
                 return rocblas_status_memory_error;
             }
+            rocblas_handle handle;
+            rocblas_create_handle(&handle);
+            RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
-
-        rocblas_handle handle;
-        rocblas_create_handle(&handle);
-
-        int blocks = (n_elem-1)/ NB_X + 1;
-        dim3 grid( blocks, 1, 1 );
-        dim3 threads( NB_X, 1, 1 );
-
-        hipStream_t rocblas_stream;
-        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
+        
         size_t x_d_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_h_byte_stride = (size_t) elem_size * (size_t) incy;
         size_t b_h_byte_stride = (size_t) elem_size;
