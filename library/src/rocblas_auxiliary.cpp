@@ -216,8 +216,11 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
                 PRINT_IF_HIP_ERROR(hipMemcpy(y_d_copy, b_h, elem_size * ib_max, hipMemcpyHostToDevice));
             }
         }
-        free(b_h);
-        if (incy != 0)
+        if (incx != 1)
+        {
+            free(b_h);
+        }
+        if (incy != 1)
         {
             hipFree(b_d);
         }
@@ -334,8 +337,11 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
                     b_d, elem_size * ib_max, hipMemcpyDeviceToHost));
             }
         }
-        free(b_h);
-        if (incx != 0) 
+        if (incy != 1) 
+        {
+            free(b_h);
+        }
+        if (incx != 1) 
         {
             hipFree(b_d);
         }
