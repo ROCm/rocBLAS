@@ -130,9 +130,9 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     if ( elem_size <= 0 ) 
         return rocblas_status_invalid_size;
     if ( x_h == nullptr )
-        return rocblas_status_invalid_handle;
+        return rocblas_status_invalid_pointer;
     if ( y_d == nullptr )
-        return rocblas_status_invalid_handle;
+        return rocblas_status_invalid_pointer;
 
     if ( incx == 1 && incy == 1)  // contiguous host vector -> contiguous device vector
     {
@@ -140,29 +140,30 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     }
     else                          // either non-contiguous host vector or non-contiguous device vector
     {
-        int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
-        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number of elements in buffer
+        int temp_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
+        int n_elem = ((temp_byte_size - 1 ) / elem_size) + 1; // number of elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
+
         int blocks = (n_elem-1)/ NB_X + 1;
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
         
-        void *b_h;
+        void *t_h;
         if (incx != 1)
         {
-            b_h = malloc(buffer_byte_size);
-            if (!b_h)
+            t_h = malloc(temp_byte_size);
+            if (!t_h)
             {
                 return rocblas_status_memory_error;
             }
         }
         
-        void *b_d;
+        void *t_d;
         hipStream_t rocblas_stream;
         if (incy != 1)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
-            if (!b_d)
+            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
+            if (!t_d)
             {
                 return rocblas_status_memory_error;
             }
@@ -173,56 +174,57 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
         
         size_t x_h_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_d_byte_stride = (size_t) elem_size * (size_t) incy;
-        size_t b_h_byte_stride = (size_t) elem_size;
+        size_t t_h_byte_stride = (size_t) elem_size;
 
         for (int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            int i_zero = i_copy * n_elem;
-            int ib_max = n_elem < n - (n_elem * i_copy) ? n_elem : n - (n_elem * i_copy);
-            void *y_d_copy = (void *)((size_t)y_d + ((size_t) i_zero * y_d_byte_stride));
+            int i_start = i_copy * n_elem;
+            int n_elem_max = n_elem < n - (n_elem * i_copy) ? n_elem : n - (n_elem * i_copy);
+            int contig_size = n_elem_max * elem_size;
+            void *y_d_start = (void *)((size_t)y_d + ((size_t) i_start * y_d_byte_stride));
+            void *x_h_start = (void *)((size_t)x_h + ((size_t) i_start * x_h_byte_stride));
 
             if((incx != 1) && (incy != 1))
             {
                 // non-contiguous host vector -> host buffer
-                for (int i_b = 0, i_x = i_zero; i_b < ib_max; i_b++, i_x++)
+                for (int i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
                 {
-                    memcpy((void *)((size_t)b_h + ((size_t) i_b * b_h_byte_stride)),
-                           (void *)((size_t)x_h + ((size_t) i_x * x_h_byte_stride)), elem_size);
+                    memcpy((void *)((size_t)t_h + (size_t)(i_b * t_h_byte_stride)),
+                           (void *)((size_t)x_h + (size_t)(i_x * x_h_byte_stride)), elem_size);
                 }
                 // host buffer -> device buffer 
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_d, b_h, elem_size * ib_max, hipMemcpyHostToDevice));
+                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device vector
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_kernel), dim3(grid), dim3(threads), 0,
-                    rocblas_stream, ib_max, elem_size, b_d, 1, y_d_copy, incy);
+                    rocblas_stream, n_elem_max, elem_size, t_d, 1, y_d_start, incy);
             }
             else if (incx == 1 && incy != 1)
             {
                 // contiguous host vector -> device buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_d, (void *)((size_t)x_h + ((size_t) i_zero * x_h_byte_stride)),
-                    elem_size * ib_max, hipMemcpyHostToDevice));
+                PRINT_IF_HIP_ERROR(hipMemcpy(t_d, x_h_start, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device vector
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_kernel), dim3(grid), dim3(threads), 0,
-                    rocblas_stream, ib_max, elem_size, b_d, 1, y_d_copy, incy);
+                    rocblas_stream, n_elem_max, elem_size, t_d, 1, y_d_start, incy);
             }
             else if (incx != 1 && incy == 1)
             {
                 // non-contiguous host vector -> host buffer
-                for (int i_b = 0, i_x = i_zero; i_b < ib_max; i_b++, i_x++)
+                for (int i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
                 {
-                    memcpy((void *)((size_t)b_h + ((size_t) i_b * b_h_byte_stride)),
+                    memcpy((void *)((size_t)t_h + ((size_t) i_b * t_h_byte_stride)),
                            (void *)((size_t)x_h + ((size_t) i_x * x_h_byte_stride)), elem_size);
                 }
                 // host buffer -> contiguous device vector
-                PRINT_IF_HIP_ERROR(hipMemcpy(y_d_copy, b_h, elem_size * ib_max, hipMemcpyHostToDevice));
+                PRINT_IF_HIP_ERROR(hipMemcpy(y_d_start, t_h, contig_size, hipMemcpyHostToDevice));
             }
         }
         if (incx != 1)
         {
-            free(b_h);
+            free(t_h);
         }
         if (incy != 1)
         {
-            hipFree(b_d);
+            hipFree(t_d);
         }
     }
     return rocblas_status_success;
@@ -249,9 +251,9 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     if ( elem_size <= 0 ) 
         return rocblas_status_invalid_size;
     if ( x_d == nullptr )
-        return rocblas_status_invalid_handle;
+        return rocblas_status_invalid_pointer;
     if ( y_h == nullptr )
-        return rocblas_status_invalid_handle;
+        return rocblas_status_invalid_pointer;
 
     if ( incx == 1 && incy == 1)           // congiguous device vector -> congiguous host vector
     {
@@ -259,29 +261,30 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     }
     else                                   // either device or host vector is non-contiguous 
     {
-        int buffer_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
-        int n_elem = ((buffer_byte_size - 1 ) / elem_size) + 1; // number elements in buffer
+        int temp_byte_size = elem_size * n < MAX_BUFFER_BYTE_SIZE ? elem_size * n : MAX_BUFFER_BYTE_SIZE;
+        int n_elem = ((temp_byte_size - 1 ) / elem_size) + 1; // number elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;                    // number of times buffer is copied
+
         int blocks = (n_elem-1)/ NB_X + 1;
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
         
-        void *b_h;
+        void *t_h;
         if (incy != 1)
         {
-            b_h = malloc(buffer_byte_size);
-            if (!b_h)
+            t_h = malloc(temp_byte_size);
+            if (!t_h)
             {
                 return rocblas_status_memory_error;
             }
         }
         
-        void *b_d;
+        void *t_d;
         hipStream_t rocblas_stream;
         if (incx != 1)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&b_d, buffer_byte_size));
-            if (!b_d)
+            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
+            if (!t_d)
             {
                 return rocblas_status_memory_error;
             }
@@ -292,58 +295,57 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
         
         size_t x_d_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_h_byte_stride = (size_t) elem_size * (size_t) incy;
-        size_t b_h_byte_stride = (size_t) elem_size;
+        size_t t_h_byte_stride = (size_t) elem_size;
 
         for (int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            int i_zero = i_copy * n_elem;
-            int ib_max = n_elem < n - (n_elem * i_copy) ? n_elem : n - (n_elem * i_copy);
-
-            void *x_d_copy = (void *)((size_t)x_d + ((size_t) i_zero * x_d_byte_stride));
+            int i_start = i_copy * n_elem;
+            int n_elem_max = n_elem < n - (n_elem * i_copy) ? n_elem : n - (n_elem * i_copy);
+            int contig_size = elem_size * n_elem_max;
+            void *x_d_start = (void *)((size_t)x_d + (size_t)(i_start * x_d_byte_stride));
+            void *y_h_start = (void *)((size_t)y_h + (size_t)(i_start * y_h_byte_stride));
                      
             if (incx !=1 && incy != 1)
             {
                 // non-contiguous device vector -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_kernel), dim3(grid), dim3(threads), 0,
-                    rocblas_stream, ib_max, elem_size, x_d_copy, incx, b_d, 1);
+                    rocblas_stream, n_elem_max, elem_size, x_d_start, incx, t_d, 1);
                 // device buffer -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_h, b_d, elem_size * ib_max, hipMemcpyDeviceToHost));
+                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, t_d, contig_size, hipMemcpyDeviceToHost));
                 // host buffer -> non-contiguous host vector
-                for (int i_b = 0, i_y = i_zero; i_b < ib_max; i_b++, i_y++)
+                for (int i_b = 0, i_y = i_start; i_b < n_elem_max; i_b++, i_y++)
                 {
                     memcpy((void *)((size_t)y_h + (size_t)(i_y * y_h_byte_stride)),
-                           (void *)((size_t)b_h + (size_t)(i_b * b_h_byte_stride)), elem_size);
+                           (void *)((size_t)t_h + (size_t)(i_b * t_h_byte_stride)), elem_size);
                 }
             }
             else if (incx == 1 && incy != 1)
             {
                 // congiguous device vector -> host buffer
-                PRINT_IF_HIP_ERROR(hipMemcpy(b_h, x_d_copy, elem_size * ib_max, hipMemcpyDeviceToHost));
-
+                PRINT_IF_HIP_ERROR(hipMemcpy(t_h, x_d_start, contig_size, hipMemcpyDeviceToHost));
                 // host buffer -> non-contiguous host vector
-                for (int i_b = 0, i_y = i_zero; i_b < ib_max; i_b++, i_y++)
+                for (int i_b = 0, i_y = i_start; i_b < n_elem_max; i_b++, i_y++)
                 {
                     memcpy((void *)((size_t)y_h + (size_t)(i_y * y_h_byte_stride)),
-                           (void *)((size_t)b_h + (size_t)(i_b * b_h_byte_stride)), elem_size);
+                           (void *)((size_t)t_h + (size_t)(i_b * t_h_byte_stride)), elem_size);
                 }
             }
             else if (incx != 1 && incy == 1)
             {
                 // non-contiguous device vector -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_kernel), dim3(grid), dim3(threads), 0,
-                    rocblas_stream, ib_max, elem_size, x_d_copy, incx, b_d, 1);
+                    rocblas_stream, n_elem_max, elem_size, x_d_start, incx, t_d, 1);
                 // device buffer -> contiguous host vector
-                PRINT_IF_HIP_ERROR(hipMemcpy((void *)((size_t)y_h + (size_t)(i_zero * y_h_byte_stride)),
-                    b_d, elem_size * ib_max, hipMemcpyDeviceToHost));
+                PRINT_IF_HIP_ERROR(hipMemcpy(y_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
             }
         }
         if (incy != 1) 
         {
-            free(b_h);
+            free(t_h);
         }
         if (incx != 1) 
         {
-            hipFree(b_d);
+            hipFree(t_d);
         }
     }
     return rocblas_status_success;

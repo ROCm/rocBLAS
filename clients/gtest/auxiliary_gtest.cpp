@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_auxiliary.hpp"
+#include "testing_set_get_vector.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -124,7 +124,7 @@ class auxiliary_gtest: public :: TestWithParam <auxiliary_tuple>
 };
 
 
-TEST_P(auxiliary_gtest, auxiliary_gtest_float)
+TEST_P(auxiliary_gtest, set_get_vector_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -134,7 +134,7 @@ TEST_P(auxiliary_gtest, auxiliary_gtest_float)
 
     Arguments arg = setup_auxiliary_arguments( GetParam() );
 
-    rocblas_status status = testing_auxiliary<float>( arg );
+    rocblas_status status = testing_set_get_vector<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
