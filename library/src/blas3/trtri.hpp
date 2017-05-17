@@ -242,6 +242,7 @@ rocblas_trtri_large(rocblas_handle handle,
 
     rocblas_int m_gemm;
     rocblas_int n_gemm;
+
     T *A_gemm;
     T *B_gemm;
     T *C_gemm;
