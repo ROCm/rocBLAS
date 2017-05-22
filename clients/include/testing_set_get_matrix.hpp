@@ -119,43 +119,6 @@ rocblas_status testing_set_get_matrix(Arguments argus)
                 hb_ref[i1 + i2 * ldb ] = ha[i1 + i2 * lda];
             }
         }
-/*
-        cout << "rows cols  lda ldb ldc = ";
-        cout << rows << " " << cols  << "   " << lda << " " << ldb << " " << ldc << endl;
-        cout << "matrix ha" << std::endl;
-        for (int i1 = 0; i1 < lda; i1++) {
-            for (int i2 = 0; i2 < cols; i2++) {
-                cout << ha[i1 + i2 * lda] << "  ";
-            }
-            cout << std::endl;
-        }
-
-
-        cout << "matrix hb_ref" << std::endl;
-        for (int i1 = 0; i1 < ldb; i1++) {
-            for (int i2 = 0; i2 < cols; i2++) {
-                cout << hb_ref[i1 + i2 * ldb] << "  ";
-            }
-            cout << std::endl;
-        }
-
-        cout << "matrix hb" << std::endl;
-        for (int i1 = 0; i1 < ldb; i1++) {
-            for (int i2 = 0; i2 < cols; i2++) {
-                cout << hb[i1 + i2 * ldb] << "  ";
-            }
-            cout << std::endl;
-        }
-
-        CHECK_HIP_ERROR(hipMemcpy(hc.data(), dc, sizeof(T) * ldc * cols, hipMemcpyDeviceToHost));
-        cout << "matrix hc" << std::endl;
-        for (int i1 = 0; i1 < ldc; i1++) {
-            for (int i2 = 0; i2 < cols; i2++) {
-                cout << hc[i1 + i2 * ldb] << "  ";
-            }
-            cout << std::endl;
-        }
-*/
 
         if (argus.timing) {
             cpu_time_used = get_time_us() - cpu_time_used;

@@ -38,19 +38,19 @@
          rocblas_int elem_size,
          const void *x, rocblas_int incx,
          void *y, rocblas_int incy);
-/*
+
      rocblas_status
      rocblas_set_matrix( rocblas_int rows, rocblas_int cols, 
          rocblas_int elem_size,
          const void *a, rocblas_int lda,
-         void b, rocblas_int ldb);
+         void *b, rocblas_int ldb);
 
      rocblas_status
      rocblas_get_matrix( rocblas_int rows, rocblas_int cols, 
          rocblas_int elem_size,
          const void *a, rocblas_int lda, 
-         void b, rocblas_int ldb);
-*/
+         void *b, rocblas_int ldb);
+
      template<typename T>
      rocblas_status
      rocblas_scal(rocblas_handle handle,
