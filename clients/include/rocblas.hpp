@@ -24,7 +24,7 @@
      *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
      * ===========================================================================
      */
-
+/*
      rocblas_status
      rocblas_set_vector(
          rocblas_int n,
@@ -50,7 +50,7 @@
          rocblas_int elem_size,
          const void *a, rocblas_int lda, 
          void *b, rocblas_int ldb);
-
+*/
      template<typename T>
      rocblas_status
      rocblas_scal(rocblas_handle handle,

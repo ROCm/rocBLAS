@@ -166,6 +166,9 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
             if (!t_d)
             {
+                if (t_h) {
+                    free(t_h);
+                }
                 return rocblas_status_memory_error;
             }
             rocblas_handle handle;
@@ -287,6 +290,9 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
             if (!t_d)
             {
+                if (t_h) {
+                    free(t_h);
+                }
                 return rocblas_status_memory_error;
             }
             rocblas_handle handle;
@@ -455,6 +461,9 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
             if (!t_d)
             {
+                if (t_h) {
+                    free(t_h);
+                }
                 return rocblas_status_memory_error;
             }
             rocblas_handle handle;
@@ -600,6 +609,9 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
             if (!t_d)
             {
+                if (t_h) {
+                    free(t_h);
+                }
                 return rocblas_status_memory_error;
             }
             rocblas_handle handle;
