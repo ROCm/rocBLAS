@@ -8,9 +8,12 @@
 #include "definitions.h"
 #include "rocblas-types.h"
 #include "handle.h"
+#include "manage_ptr.hpp"
 #include "rocblas-auxiliary.h"
 
     /* ============================================================================================ */
+using ManageHostDataPtr = ROCBLAS_MANAGE_PTR(void, std::free);
+using ManageDeviceDataPtr = ROCBLAS_MANAGE_PTR(void, hipFree);
 
 /*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.
@@ -158,6 +161,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
                 return rocblas_status_memory_error;
             }
         }
+        auto managed_t_h = ManageHostDataPtr(t_h);
         
         void *t_d;   // temp buffer on device
         hipStream_t rocblas_stream;
@@ -165,7 +169,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
         {
             PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
             if (!t_d)
-            {
+            {    
                 if (t_h) {
                     free(t_h);
                 }
@@ -175,6 +179,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
+        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t x_h_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_d_byte_stride = (size_t) elem_size * (size_t) incy;
@@ -282,6 +287,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
                 return rocblas_status_memory_error;
             }
         }
+        auto managed_t_h = ManageHostDataPtr(t_h);
         
         void *t_d;    // temp buffer on device
         hipStream_t rocblas_stream;
@@ -299,6 +305,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
+        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t x_d_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_h_byte_stride = (size_t) elem_size * (size_t) incy;
@@ -453,6 +460,7 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
                 return rocblas_status_memory_error;
             }
         }
+        auto managed_t_h = ManageDeviceDataPtr(t_h);
         
         void *t_d;   // temp device buffer
         hipStream_t rocblas_stream;
@@ -470,6 +478,7 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
+        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t lda_h_byte = (size_t) elem_size * (size_t) lda;
         size_t ldb_d_byte = (size_t) elem_size * (size_t) ldb;
@@ -601,6 +610,7 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
                 return rocblas_status_memory_error;
             }
         }
+        auto managed_t_h = ManageDeviceDataPtr(t_h);
         
         void *t_d;   // temp buffer on device
         hipStream_t rocblas_stream;
@@ -618,6 +628,7 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
+        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t lda_d_byte = (size_t) elem_size * (size_t) lda;
         size_t ldb_h_byte = (size_t) elem_size * (size_t) ldb;
