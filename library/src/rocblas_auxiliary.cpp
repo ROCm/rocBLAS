@@ -8,12 +8,10 @@
 #include "definitions.h"
 #include "rocblas-types.h"
 #include "handle.h"
-#include "manage_ptr.hpp"
+#include "rocblas_unique_ptr.hpp"
 #include "rocblas-auxiliary.h"
 
     /* ============================================================================================ */
-using ManageHostDataPtr = ROCBLAS_MANAGE_PTR(void, std::free);
-using ManageDeviceDataPtr = ROCBLAS_MANAGE_PTR(void, hipFree);
 
 /*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.
@@ -112,7 +110,6 @@ copy_void_ptr_vector_kernel(hipLaunchParm lp,
     }
 }
 
-
 /*******************************************************************************
  *! \brief   copies void* vector x with stride incx on host to void* vector 
      y with stride incy on device. Vectors have n elements of size elem_size.
@@ -138,6 +135,9 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     if ( y_d == nullptr )
         return rocblas_status_invalid_pointer;
 
+    try 
+    {
+
     if ( incx == 1 && incy == 1)  // contiguous host vector -> contiguous device vector
     {
         PRINT_IF_HIP_ERROR(hipMemcpy(y_d, x_h, elem_size * n, hipMemcpyHostToDevice));
@@ -151,35 +151,14 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
         int blocks = (n_elem-1)/ NB_X + 1;
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
-        
-        void *t_h;   // temp buffer on host
-        if (incx != 1)
-        {
-            t_h = malloc(temp_byte_size);
-            if (!t_h)
-            {
-                return rocblas_status_memory_error;
-            }
-        }
-        auto managed_t_h = ManageHostDataPtr(t_h);
-        
-        void *t_d;   // temp buffer on device
+
         hipStream_t rocblas_stream;
         if (incy != 1)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
-            if (!t_d)
-            {    
-                if (t_h) {
-                    free(t_h);
-                }
-                return rocblas_status_memory_error;
-            }
             rocblas_handle handle;
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t x_h_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_d_byte_stride = (size_t) elem_size * (size_t) incy;
@@ -195,6 +174,18 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
 
             if((incx != 1) && (incy != 1))
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous host vector -> host buffer
                 for (int i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
                 {
@@ -209,6 +200,12 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx == 1 && incy != 1)
             {
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // contiguous host vector -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, x_h_start, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device vector
@@ -217,6 +214,12 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx != 1 && incy == 1)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous host vector -> host buffer
                 for (int i_b = 0, i_x = i_start; i_b < n_elem_max; i_b++, i_x++)
                 {
@@ -227,16 +230,14 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
                 PRINT_IF_HIP_ERROR(hipMemcpy(y_d_start, t_h, contig_size, hipMemcpyHostToDevice));
             }
         }
-        if (incx != 1)
-        {
-            free(t_h);
-        }
-        if (incy != 1)
-        {
-            hipFree(t_d);
-        }
     }
     return rocblas_status_success;
+
+    }
+    catch(...)
+    {
+        return rocblas_status_internal_error;
+    }
 }
 
 /*******************************************************************************
@@ -264,6 +265,8 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     if ( y_h == nullptr )
         return rocblas_status_invalid_pointer;
 
+    try 
+    {
     if ( incx == 1 && incy == 1)  // congiguous device vector -> congiguous host vector
     {
         PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, elem_size * n, hipMemcpyDeviceToHost));
@@ -278,34 +281,13 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
         
-        void *t_h;    // temp buffer on host
-        if (incy != 1)
-        {
-            t_h = malloc(temp_byte_size);
-            if (!t_h)
-            {
-                return rocblas_status_memory_error;
-            }
-        }
-        auto managed_t_h = ManageHostDataPtr(t_h);
-        
-        void *t_d;    // temp buffer on device
         hipStream_t rocblas_stream;
         if (incx != 1)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
-            if (!t_d)
-            {
-                if (t_h) {
-                    free(t_h);
-                }
-                return rocblas_status_memory_error;
-            }
             rocblas_handle handle;
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t x_d_byte_stride = (size_t) elem_size * (size_t) incx;
         size_t y_h_byte_stride = (size_t) elem_size * (size_t) incy;
@@ -321,6 +303,18 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
                      
             if (incx !=1 && incy != 1)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous device vector -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_vector_kernel), dim3(grid), dim3(threads), 0,
                     rocblas_stream, n_elem_max, elem_size, x_d_start, incx, t_d, 1);
@@ -335,6 +329,12 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx == 1 && incy != 1)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // congiguous device vector -> host buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_h, x_d_start, contig_size, hipMemcpyDeviceToHost));
 
@@ -347,6 +347,12 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx != 1 && incy == 1)
             {
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous device vector -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_vector_kernel), dim3(grid), dim3(threads), 0,
                     rocblas_stream, n_elem_max, elem_size, x_d_start, incx, t_d, 1);
@@ -354,16 +360,13 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
                 PRINT_IF_HIP_ERROR(hipMemcpy(y_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
             }
         }
-        if (incy != 1) 
-        {
-            free(t_h);
-        }
-        if (incx != 1) 
-        {
-            hipFree(t_d);
-        }
     }
     return rocblas_status_success;
+
+    }
+    catch(...){
+        return rocblas_status_internal_error;
+    }
 }
 
 /*******************************************************************************
@@ -423,6 +426,8 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     if ( b_d == nullptr )
         return rocblas_status_invalid_pointer;
 
+    try 
+    {
     // contiguous host matrix -> contiguous device matrix
     if ( lda == rows && ldb == rows)
     {
@@ -451,34 +456,13 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
         dim3 grid(blocksX, blocksY, 1);
         dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1);
 
-        void *t_h;   // temp host buffer
-        if (lda != rows)
-        {
-            t_h = malloc(temp_byte_size);
-            if (!t_h)
-            {
-                return rocblas_status_memory_error;
-            }
-        }
-        auto managed_t_h = ManageDeviceDataPtr(t_h);
-        
-        void *t_d;   // temp device buffer
         hipStream_t rocblas_stream;
         if (ldb != rows)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
-            if (!t_d)
-            {
-                if (t_h) {
-                    free(t_h);
-                }
-                return rocblas_status_memory_error;
-            }
             rocblas_handle handle;
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t lda_h_byte = (size_t) elem_size * (size_t) lda;
         size_t ldb_d_byte = (size_t) elem_size * (size_t) ldb;
@@ -494,6 +478,18 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
 
             if((lda != rows) && (ldb != rows))
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous host matrix -> host buffer
                 for (int i_t = 0, i_a = i_start; i_t < n_cols_max; i_t++, i_a++)
                 {
@@ -508,6 +504,12 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda == rows && ldb != rows)
             {
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // contiguous host matrix -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, a_h_start, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device matrix
@@ -516,6 +518,12 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda != rows && ldb == rows)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous host matrix -> host buffer
                 for (int i_t = 0, i_a = i_start; i_t < n_cols_max; i_t++, i_a++)
                 {
@@ -526,17 +534,13 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
                 PRINT_IF_HIP_ERROR(hipMemcpy(b_d_start, t_h, contig_size, hipMemcpyHostToDevice));
             }
         }
-        if (lda != rows)
-        {
-            free(t_h);
-        }
-        if (ldb != rows)
-        {
-            PRINT_IF_HIP_ERROR(hipFree(t_d));
-        }
     }
-
     return rocblas_status_success;
+
+    }
+    catch(...){
+        return rocblas_status_internal_error;
+    }
 }
 
 /*******************************************************************************
@@ -572,6 +576,8 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     if ( b_h == nullptr )
         return rocblas_status_invalid_pointer;
 
+    try 
+    {
     // congiguous device matrix -> congiguous host matrix
     if (lda == rows && ldb == rows)
     {
@@ -601,34 +607,13 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
         dim3 grid( blocksX, blocksY, 1 );
         dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1 );
         
-        void *t_h;   // temp buffer on host
-        if (ldb != rows)
-        {
-            t_h = malloc(temp_byte_size);
-            if (!t_h)
-            {
-                return rocblas_status_memory_error;
-            }
-        }
-        auto managed_t_h = ManageDeviceDataPtr(t_h);
-        
-        void *t_d;   // temp buffer on device
         hipStream_t rocblas_stream;
         if (lda != rows)
         {
-            PRINT_IF_HIP_ERROR(hipMalloc(&t_d, temp_byte_size));
-            if (!t_d)
-            {
-                if (t_h) {
-                    free(t_h);
-                }
-                return rocblas_status_memory_error;
-            }
             rocblas_handle handle;
             rocblas_create_handle(&handle);
             RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
         }
-        auto managed_t_d = ManageDeviceDataPtr(t_d);
         
         size_t lda_d_byte = (size_t) elem_size * (size_t) lda;
         size_t ldb_h_byte = (size_t) elem_size * (size_t) ldb;
@@ -643,6 +628,18 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             void *b_h_start = (void *)((size_t)b_h + (size_t)(i_start * ldb_h_byte));
             if (lda !=rows && ldb != rows)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) 
+                {
+                    return rocblas_status_memory_error;
+                }
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous device matrix -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_matrix_kernel), dim3(grid), dim3(threads), 0,
                     rocblas_stream, rows, n_cols_max, elem_size, a_d_start, lda, t_d, rows);
@@ -657,6 +654,11 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda == rows && ldb != rows)
             {
+                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
+                void *t_h = t_h_managed.get();
+                if(!t_h) {
+                    return rocblas_status_memory_error;
+                }
                 // congiguous device matrix -> host buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_h, a_d_start, contig_size, hipMemcpyDeviceToHost));
                 // host buffer -> non-contiguous host matrix
@@ -668,6 +670,12 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda != rows && ldb == rows)
             {
+                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
+                void *t_d = t_d_managed.get();
+                if(!t_d) 
+                {
+                    return rocblas_status_memory_error;
+                }
                 // non-contiguous device matrix -> device buffer
                 hipLaunchKernel(HIP_KERNEL_NAME(copy_void_ptr_matrix_kernel), dim3(grid), dim3(threads), 0,
                     rocblas_stream, rows, n_cols_max, elem_size, a_d_start, lda, t_d, rows);
@@ -675,16 +683,12 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
                 PRINT_IF_HIP_ERROR(hipMemcpy(b_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
             }
         }
-        if (ldb != rows) 
-        {
-            free(t_h);
-        }
-        if (lda != rows) 
-        {
-            hipFree(t_d);
-        }
     }
-
     return rocblas_status_success;
+
+    }
+    catch(...){
+        return rocblas_status_internal_error;
+    }
 }
 
