@@ -104,7 +104,8 @@ copy_void_ptr_vector_kernel(hipLaunchParm lp,
     void *y,  rocblas_int incy)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    if ( tid < n ) {
+    if ( tid < n ) 
+    {
         memcpy((void *)((size_t)y + (size_t)(tid * incy * elem_size)), 
                (void *)((size_t)x + (size_t)(tid * incx * elem_size)), elem_size);
     }
@@ -135,7 +136,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     if ( y_d == nullptr )
         return rocblas_status_invalid_pointer;
 
-    try 
+    try  // trap any exceptions
     {
 
     if ( incx == 1 && incy == 1)  // contiguous host vector -> contiguous device vector
@@ -148,7 +149,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
         int n_elem = temp_byte_size / elem_size; // number of elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
 
-        int blocks = (n_elem-1)/ NB_X + 1;
+        int blocks = (n_elem-1)/ NB_X + 1;       // parameters for device kernel
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
 
@@ -174,6 +175,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
 
             if((incx != 1) && (incy != 1))
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -200,6 +202,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx == 1 && incy != 1)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
                 void *t_d = t_d_managed.get();
                 if(!t_d) 
@@ -214,6 +217,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx != 1 && incy == 1)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -234,7 +238,7 @@ rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     return rocblas_status_success;
 
     }
-    catch(...)
+    catch(...)    // catch all exceptions
     {
         return rocblas_status_internal_error;
     }
@@ -265,8 +269,9 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     if ( y_h == nullptr )
         return rocblas_status_invalid_pointer;
 
-    try 
+    try  // trap any exceptions
     {
+
     if ( incx == 1 && incy == 1)  // congiguous device vector -> congiguous host vector
     {
         PRINT_IF_HIP_ERROR(hipMemcpy(y_h, x_d, elem_size * n, hipMemcpyDeviceToHost));
@@ -277,7 +282,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
         int n_elem = temp_byte_size / elem_size; // number elements in buffer
         int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
 
-        int blocks = (n_elem-1)/ NB_X + 1;
+        int blocks = (n_elem-1)/ NB_X + 1;       // parameters for device kernel
         dim3 grid( blocks, 1, 1 );
         dim3 threads( NB_X, 1, 1 );
         
@@ -303,6 +308,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
                      
             if (incx !=1 && incy != 1)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -329,6 +335,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx == 1 && incy != 1)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -347,6 +354,7 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
             }
             else if (incx != 1 && incy == 1)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
                 void *t_d = t_d_managed.get();
                 if(!t_d) 
@@ -364,7 +372,8 @@ rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     return rocblas_status_success;
 
     }
-    catch(...){
+    catch(...)    // catch all exceptions
+    {
         return rocblas_status_internal_error;
     }
 }
@@ -387,7 +396,8 @@ copy_void_ptr_matrix_kernel(hipLaunchParm lp,
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
-    if (tx < rows && ty < cols) {
+    if (tx < rows && ty < cols) 
+    {
         memcpy((void *)((size_t)b + (size_t)((tx + ldb*ty) * elem_size)), 
                (void *)((size_t)a + (size_t)((tx + lda*ty) * elem_size)), elem_size);
     }
@@ -426,8 +436,9 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     if ( b_d == nullptr )
         return rocblas_status_invalid_pointer;
 
-    try 
+    try  // trap any exceptions
     {
+
     // contiguous host matrix -> contiguous device matrix
     if ( lda == rows && ldb == rows)
     {
@@ -448,10 +459,10 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     else
     {
         int temp_byte_size = elem_size * rows * cols < MAT_BUFF_MAX_BYTES ? elem_size * rows * cols : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1;           // number of times buffer is copied
+        int n_cols = temp_byte_size / (elem_size * rows);      // number of columns in buffer
+        int n_copy = ((cols - 1) / n_cols) + 1;                // number of times buffer is copied
 
-        rocblas_int blocksX = ((rows-1) / MATRIX_DIM_X) + 1;
+        rocblas_int blocksX = ((rows-1) / MATRIX_DIM_X) + 1;   // parameters for device kernel
         rocblas_int blocksY = ((n_cols-1) / MATRIX_DIM_Y) + 1;
         dim3 grid(blocksX, blocksY, 1);
         dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1);
@@ -478,6 +489,7 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
 
             if((lda != rows) && (ldb != rows))
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -504,6 +516,7 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda == rows && ldb != rows)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
                 void *t_d = t_d_managed.get();
                 if(!t_d) 
@@ -518,6 +531,7 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda != rows && ldb == rows)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -538,7 +552,8 @@ rocblas_set_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     return rocblas_status_success;
 
     }
-    catch(...){
+    catch(...)    // catch all exceptions
+    {
         return rocblas_status_internal_error;
     }
 }
@@ -576,8 +591,9 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     if ( b_h == nullptr )
         return rocblas_status_invalid_pointer;
 
-    try 
+    try  // trap any exceptions
     {
+
     // congiguous device matrix -> congiguous host matrix
     if (lda == rows && ldb == rows)
     {
@@ -599,10 +615,10 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     {
         int temp_byte_size = elem_size * rows * cols < MAT_BUFF_MAX_BYTES ? 
             elem_size * rows * cols : MAT_BUFF_MAX_BYTES;
-        int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1;           // number times buffer copied
+        int n_cols = temp_byte_size / (elem_size * rows);      // number of columns in buffer
+        int n_copy = ((cols - 1) / n_cols) + 1;                // number times buffer copied
 
-        rocblas_int blocksX = ((rows-1) / MATRIX_DIM_X) + 1;
+        rocblas_int blocksX = ((rows-1) / MATRIX_DIM_X) + 1;   // parameters for device kernel
         rocblas_int blocksY = ((n_cols-1) / MATRIX_DIM_Y) + 1;
         dim3 grid( blocksX, blocksY, 1 );
         dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1 );
@@ -628,6 +644,7 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             void *b_h_start = (void *)((size_t)b_h + (size_t)(i_start * ldb_h_byte));
             if (lda !=rows && ldb != rows)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
                 if(!t_h) 
@@ -654,9 +671,11 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda == rows && ldb != rows)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size),free};
                 void *t_h = t_h_managed.get();
-                if(!t_h) {
+                if(!t_h) 
+                {
                     return rocblas_status_memory_error;
                 }
                 // congiguous device matrix -> host buffer
@@ -670,6 +689,7 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
             }
             else if (lda != rows && ldb == rows)
             {
+                // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),rocblas::device_free};
                 void *t_d = t_d_managed.get();
                 if(!t_d) 
@@ -687,7 +707,8 @@ rocblas_get_matrix(rocblas_int rows, rocblas_int cols, rocblas_int elem_size,
     return rocblas_status_success;
 
     }
-    catch(...){
+    catch(...)    // catch all exceptions
+    {
         return rocblas_status_internal_error;
     }
 }
