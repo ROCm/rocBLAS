@@ -21,7 +21,7 @@
 #include "testing_trtri_batched.hpp"
 #if BUILD_WITH_TENSILE
     #include "testing_gemm.hpp"
-    #include "testing_gemm_batched.hpp"
+    #include "testing_gemm_strided_batched.hpp"
     #include "testing_trsm.hpp"
 #endif
 
@@ -168,15 +168,15 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_gemm<double>( argus );
     }
-    else if (function == "gemm_batched"){
+    else if (function == "gemm_strided_batched"){
         //adjust dimension for GEMM routines
         argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
         argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
         argus.ldc = argus.M;
         if (precision == 's')
-            testing_gemm_batched<float>( argus );
+            testing_gemm_strided_batched<float>( argus );
         else if (precision == 'd')
-            testing_gemm_batched<double>( argus );
+            testing_gemm_strided_batched<double>( argus );
     }
     else if (function == "trsm"){
         if (precision == 's')

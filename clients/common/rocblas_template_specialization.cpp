@@ -452,7 +452,7 @@
         const float *B, rocblas_int ldb,
         const float *beta,
         float *C, rocblas_int ldc){
-        return rocblas_sgemm(handle, rocblas_order_column_major, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+        return rocblas_sgemm(handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
     }
 
     template<>
@@ -464,12 +464,12 @@
         const double *B, rocblas_int ldb,
         const double *beta,
         double *C, rocblas_int ldc){
-        return rocblas_dgemm(handle, rocblas_order_column_major, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+        return rocblas_dgemm(handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
     }
 
 
     template<>
-    rocblas_status rocblas_gemm_batched<float>(
+    rocblas_status rocblas_gemm_strided_batched<float>(
         rocblas_handle handle,
         rocblas_operation transA, rocblas_operation transB,
         rocblas_int m, rocblas_int n, rocblas_int k,
@@ -480,11 +480,11 @@
         float *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count){
 
-        return rocblas_sgemm_batched(handle, rocblas_order_column_major, transA, transB, m, n, k, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+        return rocblas_sgemm_strided_batched(handle, transA, transB, m, n, k, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
     }
 
     template<>
-    rocblas_status rocblas_gemm_batched<double>(
+    rocblas_status rocblas_gemm_strided_batched<double>(
         rocblas_handle handle,
         rocblas_operation transA, rocblas_operation transB,
         rocblas_int m, rocblas_int n, rocblas_int k,
@@ -495,7 +495,7 @@
         double *C, rocblas_int ldc, rocblas_int bsc,
         rocblas_int batch_count){
 
-        return rocblas_dgemm_batched(handle, rocblas_order_column_major,  transA, transB, m, n, k, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+        return rocblas_dgemm_strided_batched(handle, transA, transB, m, n, k, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
     }
 
 

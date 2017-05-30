@@ -146,7 +146,7 @@
         T *C, rocblas_int ldc);
 
     template<typename T>
-    rocblas_status rocblas_gemm_batched(
+    rocblas_status rocblas_gemm_strided_batched(
         rocblas_handle handle,
         rocblas_operation transA, rocblas_operation transB,
         rocblas_int m, rocblas_int n, rocblas_int k,

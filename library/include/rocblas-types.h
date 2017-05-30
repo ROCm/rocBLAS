@@ -43,13 +43,6 @@ extern "C" {
      *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
      */
 
-    /*! \brief Used to specify whether the matrix is in row major or column major storage format. */
-    typedef enum rocblas_order_{
-        rocblas_order_row_major         = 101,
-        rocblas_order_column_major      = 102
-    } rocblas_order;
-
-
     /*! \brief Used to specify whether the matrix is to be transposed or not. */
     typedef enum rocblas_operation_ {
         rocblas_operation_none                = 111, /**< Operate with the matrix. */

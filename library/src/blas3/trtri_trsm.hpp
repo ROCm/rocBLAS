@@ -208,7 +208,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         #endif
         // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
         // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C of size IB * IB
-        status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
+        status = rocblas_gemm_strided_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                         IB, IB, IB,
                                         &one,
                                         (const T*)(A + ((uplo == rocblas_fill_lower) ? IB : IB*lda) ), lda, stride_A,
@@ -222,7 +222,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         #endif
         // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
         // distance between each invA21 or invA12 is stride_invA,
-        status = rocblas_gemm_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
+        status = rocblas_gemm_strided_batched_template<T>(handle, rocblas_operation_none, rocblas_operation_none,
                                         IB, IB, IB,
                                         &negative_one,
                                         (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB*NB+IB : 0)), NB, stride_invA,
