@@ -47,7 +47,6 @@ following is an example that takes everything
 rocblas_status
 rocblas_sgemm_strided_batched(
     rocblas_handle handle,
-    rocblas_order order,
     rocblas_operation transa, rocblas_operation transb,
     rocblas_int m, rocblas_int n, rocblas_int k,
     const float* alpha,

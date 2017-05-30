@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_gemm_batched.hpp"
+#include "testing_gemm_strided_batched.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -19,7 +19,7 @@ using namespace std;
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, vector<double>, vector<char>, int> gemm_batched_tuple;
+typedef std::tuple<vector<int>, vector<double>, vector<char>, int> gemm_strided_batched_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -63,7 +63,7 @@ vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
 
 //vector of vector, each pair is a {transA, transB};
 //add/delete this list in pairs, like {'N', 'T'}
-//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm_batched/dgemm_batched,
+//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemm_strided_batched/dgemm_strided_batched,
 const
 vector<vector<char>> transA_transB_range = {
                                         {'N', 'N'},
@@ -88,7 +88,7 @@ vector<int> batch_count_range = {
 
 
 /* =====================================================================
-     BLAS-3 gemm_batched:
+     BLAS-3 gemm_strided_batched:
 =================================================================== */
 
 /* ============================Setup Arguments======================================= */
@@ -100,7 +100,7 @@ vector<int> batch_count_range = {
 //Do not use std::tuple to directly pass parameters to testers
 //by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
 
-Arguments setup_gemm_batched_arguments(gemm_batched_tuple tup)
+Arguments setup_gemm_strided_batched_arguments(gemm_strided_batched_tuple tup)
 {
 
     vector<int> matrix_size = std::get<0>(tup);
@@ -132,17 +132,17 @@ Arguments setup_gemm_batched_arguments(gemm_batched_tuple tup)
 }
 
 
-class gemm_batched_gtest: public :: TestWithParam <gemm_batched_tuple>
+class gemm_strided_batched_gtest: public :: TestWithParam <gemm_strided_batched_tuple>
 {
     protected:
-        gemm_batched_gtest(){}
-        virtual ~gemm_batched_gtest(){}
+        gemm_strided_batched_gtest(){}
+        virtual ~gemm_strided_batched_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(gemm_batched_gtest, gemm_batched_gtest_float)
+TEST_P(gemm_strided_batched_gtest, gemm_strided_batched_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -150,9 +150,9 @@ TEST_P(gemm_batched_gtest, gemm_batched_gtest_float)
     // while the tuple is non-intuitive.
 
 
-    Arguments arg = setup_gemm_batched_arguments( GetParam() );
+    Arguments arg = setup_gemm_strided_batched_arguments( GetParam() );
 
-    rocblas_status status = testing_gemm_batched<float>( arg );
+    rocblas_status status = testing_gemm_strided_batched<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
@@ -181,8 +181,8 @@ TEST_P(gemm_batched_gtest, gemm_batched_gtest_float)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB}, {batch_count} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_batched,
-                        gemm_batched_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_strided_batched,
+                        gemm_strided_batched_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(alpha_beta_range), ValuesIn(transA_transB_range), ValuesIn(batch_count_range)
                                )
