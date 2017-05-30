@@ -103,40 +103,43 @@
 /*******************************************************************************
  * Calling Tensile
  ******************************************************************************/
-#define TENSILE_NN(SCHEDULE, PREC) \
-  tensile_ ## SCHEDULE ##_Cijk_Ailk_Bljk_ ## PREC ## B
-#define TENSILE_NT(SCHEDULE, PREC) \
-  tensile_ ## SCHEDULE ##_Cijk_Ailk_Bjlk_ ## PREC ## B
-#define TENSILE_TN(SCHEDULE, PREC) \
-  tensile_ ## SCHEDULE ##_Cijk_Alik_Bljk_ ## PREC ## B
-#define TENSILE_TT(SCHEDULE, PREC) \
-  tensile_ ## SCHEDULE ##_Cijk_Alik_Bjlk_ ## PREC ## B
+#ifndef NDEBUG
 
-#define TENSILE_CALLS(SCHEDULE, PREC) \
+#define PRINT_SOLUTION_NAME(PREC,TRANS) \
+  std::cout << "Solution Name: " << tensileGetSolutionName_ ## TRANS ## _ ## PREC ## B(  \
+      strideC1, strideC2, strideA1, strideA2, \
+      strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+      handle->rocblas_stream ) << std::endl;
+
+#define PRINT_RETURN_STATUS \
+  std::cout << "Return Status: " << status << std::endl;
+
+#else
+#define PRINT_SOLUTION_NAME(PREC,TRANS)
+#define PRINT_RETURN_STATUS
+#endif
+
+#define CALL_TENSILE(PREC, TRANS) \
+  PRINT_SOLUTION_NAME(PREC,TRANS) \
+  status = tensile_ ## TRANS ## _ ## PREC ## B( C, A, B, *alpha, *beta, \
+      0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
+      strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
+      handle->rocblas_stream, 0, nullptr, nullptr); \
+  PRINT_RETURN_STATUS
+
+#define TENSILE_TRANSPOSES(PREC) \
   hipError_t status; \
   if ( trans_a == rocblas_operation_none) { \
     if (trans_b == rocblas_operation_none) { /*NN*/ \
-      status = TENSILE_NN(SCHEDULE,PREC)( C, A, B, *alpha, *beta, \
-          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
-          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
-          handle->rocblas_stream, 0, nullptr, nullptr); \
+      CALL_TENSILE(PREC,Cijk_Ailk_Bljk) \
     } else { /*NT*/ \
-      status = TENSILE_NT(SCHEDULE,PREC)( C, A, B, *alpha, *beta, \
-          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
-          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
-          handle->rocblas_stream, 0, nullptr, nullptr); \
+      CALL_TENSILE(PREC,Cijk_Ailk_Bjlk) \
     } \
   } else { /*TN*/ \
     if (trans_b == rocblas_operation_none) { \
-      status = TENSILE_TN(SCHEDULE,PREC)( C, A, B, *alpha, *beta, \
-          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
-          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
-          handle->rocblas_stream, 0, nullptr, nullptr); \
+      CALL_TENSILE(PREC,Cijk_Alik_Bljk) \
     } else { /*TT*/ \
-      status = TENSILE_TT(SCHEDULE,PREC)( C, A, B, *alpha, *beta, \
-          0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
-          strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
-          handle->rocblas_stream, 0, nullptr, nullptr); \
+      CALL_TENSILE(PREC,Cijk_Alik_Bjlk) \
     } \
   } \
   return get_rocblas_status_for_hip_status( status );
@@ -145,22 +148,22 @@
 /*******************************************************************************
  * GEMM APIs
  ******************************************************************************/
-#define GEMM_API(prec, PREC, TYPE, SCHEDULE) \
+#define GEMM_API(prec, PREC, TYPE) \
   rocblas_status rocblas_ ## prec ## gemm( ARGS(TYPE) ) { \
     PREAMBLE \
-    TENSILE_CALLS(SCHEDULE, PREC) \
+    TENSILE_TRANSPOSES(PREC) \
   }
 
-#define GEMM_API_BATCHED(prec, PREC, TYPE, SCHEDULE) \
+#define GEMM_API_BATCHED(prec, PREC, TYPE) \
   rocblas_status rocblas_ ## prec ## gemm_batched( ARGS_BATCHED(TYPE) ) { \
     PREAMBLE_BATCHED \
-    TENSILE_CALLS(SCHEDULE, PREC) \
+    TENSILE_TRANSPOSES(PREC) \
   }
 
-GEMM_API(s, S, float, Fiji )
-GEMM_API(d, D, double, Fiji )
-GEMM_API_BATCHED(s, S, float, Fiji )
-GEMM_API_BATCHED(d, D, double, Fiji )
+GEMM_API(s, S, float )
+GEMM_API(d, D, double )
+GEMM_API_BATCHED(s, S, float )
+GEMM_API_BATCHED(d, D, double )
 
 #if 0
 
