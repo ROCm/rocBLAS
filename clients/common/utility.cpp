@@ -80,7 +80,6 @@ extern "C" {
                          props.totalGlobalMem/1e9, (int)(props.clockRate/1000), props.major, props.minor);
                 printf ("maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
                          props.maxGridSize[0], props.sharedMemPerBlock/1e3, props.maxThreadsPerBlock, props.warpSize);
-
                 printf("-------------------------------------------------------------------------\n");
             }
         }
