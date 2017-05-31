@@ -200,7 +200,6 @@ class Arguments {
     char diag_option = 'N';
 
     rocblas_int apiCallCount = 1;
-    rocblas_int order_option = 0;// 0 is column  major, 1 is row major
     rocblas_int batch_count = 10;
 
     rocblas_int norm_check = 0;
@@ -235,7 +234,6 @@ class Arguments {
         diag_option = rhs.diag_option;
 
         apiCallCount = rhs.apiCallCount;
-        order_option = rhs.order_option;
         batch_count = rhs.batch_count;
 
         norm_check = rhs.norm_check;
