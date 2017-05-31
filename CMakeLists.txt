@@ -47,7 +47,7 @@ if ( BUILD_WITH_TENSILE )
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
     FijiROCm15
     )
-  option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" OFF)
+  option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON)
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF)
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF)
 endif()
