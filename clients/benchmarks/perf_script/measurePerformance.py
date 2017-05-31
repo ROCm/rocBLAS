@@ -26,7 +26,6 @@ define and parse parameters
 """
 devicevalues = ['gpu', 'cpu']
 libraryvalues = ['rocblas','acmlblas']
-ordervalues = ['row','column']
 transvalues = ['none','transpose','conj']
 sidevalues = ['left','right']
 uplovalues = ['upper','lower']
@@ -85,9 +84,6 @@ parser.add_argument('-f', '--function',
 parser.add_argument('-r', '--precision',
     dest='precision', default='s',
     help='specifies the precision for the function. may be a comma delimited list. choices are ' + str(precisionvalues) + ' (default s)')
-parser.add_argument('-o', '--order',
-    dest='order', default='row',
-    help='select row or column major. may be a comma delimited list. choices are ' + str(ordervalues) + ' (default row)')
 parser.add_argument('--transa',
     dest='transa', default='none',
     help='select none, transpose, or conjugate transpose for matrix A. may be a comma delimited list. choices are ' + str(transvalues) + ' (default none)')
@@ -288,7 +284,7 @@ problem_size_combinations = problem_size_combinations + manual_test_combinations
 """
 create final list of all transformations (with problem sizes and transform properties)
 """
-test_combinations = itertools.product(problem_size_combinations, args.offa, args.offb, args.offc, args.alpha, args.beta, args.order, args.transa, args.transb, args.side, args.uplo, args.diag, args.function, args.precision, args.device, args.library)
+test_combinations = itertools.product(problem_size_combinations, args.offa, args.offb, args.offc, args.alpha, args.beta, args.transa, args.transb, args.side, args.uplo, args.diag, args.function, args.precision, args.device, args.library)
 test_combinations = list(itertools.islice(test_combinations, None))
 
 test_combinations = [BlasTestCombination(params[0][0], params[0][1], params[0][2], params[0][3], params[0][4], params[0][5], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10], params[11], params[12], params[13], params[14], params[15], label) for params in test_combinations]
@@ -330,14 +326,6 @@ for params in test_combinations:
     library = params.library
     label = params.label
 
-    if params.order == 'row':
-        order = str(0)
-    elif params.order == 'column':
-        order = str(1)
-    else:
-        printLog( 'ERROR: unknown value for order')
-        quit()
-    
     if params.side == 'left':
         side = 'L'
     elif params.side == 'right':
@@ -405,7 +393,6 @@ for params in test_combinations:
                      '--ldc', ldc,
                      '--alpha', alpha,
                      '--beta', beta,
-                     '--order', order,
                      '--transposeA', transa,
                      '--transposeB', transb,
                      '--side', side,
@@ -425,7 +412,6 @@ for params in test_combinations:
                      '--ldc', ldc,
                      '--alpha', alpha,
                      '--beta', beta,
-                     '--order', order,
                      '--transposeA', transa,
                      '--transposeB', transb,
                      '--side', side,
@@ -497,7 +483,6 @@ for params in test_combinations:
                           params.offc,
                           params.alpha,
                           params.beta,
-                          params.order,
                           params.transa,
                           params.transb,
                           params.side,

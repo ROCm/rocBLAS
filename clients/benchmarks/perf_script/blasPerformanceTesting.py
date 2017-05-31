@@ -237,14 +237,14 @@ def decode_parameter_problemsize(problemsize):
     return problemsize
 
 def blas_table_header():
-    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,beta,order,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
+    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,beta,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
 
 class BlasTestCombination:
     def __init__(self,
                  sizem, sizen, sizek,
                  lda, ldb, ldc,
                  offa, offb, offc,
-                 alpha, beta, order,
+                 alpha, beta,
                  transa, transb,
                  side, uplo, diag,
                  function, precision,
@@ -260,7 +260,6 @@ class BlasTestCombination:
         self.offc = str(offc)
         self.alpha = str(alpha)
         self.beta = str(beta)
-        self.order = order
         self.transa = transa
         self.transb = transb
         self.side = side
@@ -273,14 +272,14 @@ class BlasTestCombination:
         self.label = label
 
     def __str__(self):
-        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), beta(' + self.beta + '), order(' + self.order + '), transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
+        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), beta(' + self.beta + '), transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
 
 class BlasGraphPoint:
     def __init__(self,
                  sizem, sizen, sizek,
                  lda, ldb, ldc,
                  offa, offb, offc,
-                 device, order, transa, transb,
+                 device, transa, transb,
                  function, library, label,
                  gflops):
         self.sizem = sizem
@@ -293,7 +292,6 @@ class BlasGraphPoint:
         self.offb = offb
         self.offc = offc
         self.device = device
-        self.order = order
         self.transa = transa
         self.transb = transb
         self.function = function
@@ -303,7 +301,7 @@ class BlasGraphPoint:
 
     def __str__(self):
         # ALL members must be represented here (x, y, z, batch, device, label, ldsfraction, etc)
-        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.device + ', ' + self.function + ', ' + self.library + ', order(' + self.order + '), transa(' + self.transa + '), transb(' + self.transb + ') -- ' + self.label + '; ' + self.gflops + ' gflops'
+        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.device + ', ' + self.function + ', ' + self.library + ', transa(' + self.transa + '), transb(' + self.transb + ') -- ' + self.label + '; ' + self.gflops + ' gflops'
 
 def open_file( filename ):
     if type(filename) == list:
