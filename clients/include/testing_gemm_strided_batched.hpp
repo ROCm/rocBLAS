@@ -22,7 +22,7 @@ using namespace std;
 /* ============================================================================================ */
 
 template<typename T>
-rocblas_status testing_gemm_batched(Arguments argus)
+rocblas_status testing_gemm_strided_batched(Arguments argus)
 {
 
     rocblas_int M = argus.M;
@@ -109,7 +109,7 @@ rocblas_status testing_gemm_batched(Arguments argus)
     }
 
     //library interface
-    status = rocblas_gemm_batched<T>(handle, transA, transB,
+    status = rocblas_gemm_strided_batched<T>(handle, transA, transB,
                     M, N, K,
                     &alpha, dA, lda, bsa,
                     dB, ldb, bsb,

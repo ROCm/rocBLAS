@@ -21,7 +21,7 @@
         T *C, rocblas_int ldc);
 
     template<typename T>
-    rocblas_status rocblas_gemm_batched_template(
+    rocblas_status rocblas_gemm_strided_batched_template(
         rocblas_handle handle,
         rocblas_operation transA, rocblas_operation transB,
         rocblas_int m, rocblas_int n, rocblas_int k,
@@ -111,7 +111,7 @@ rocblas_gemm_template<float>(rocblas_handle handle,
     const float *beta,
     float *C, rocblas_int ldc)
 {
-    return rocblas_sgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    return rocblas_sgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
 template<>
@@ -126,7 +126,7 @@ rocblas_gemm_template<double>(rocblas_handle handle,
     const double *beta,
     double *C, rocblas_int ldc)
 {
-    return rocblas_dgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    return rocblas_dgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
 #if COMPLEX
@@ -143,7 +143,7 @@ rocblas_gemm_template<rocblas_float_complex>(rocblas_handle handle,
     const rocblas_float_complex *beta,
     rocblas_float_complex *C, rocblas_int ldc)
 {
-    return rocblas_cgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    return rocblas_cgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
 
@@ -159,7 +159,7 @@ rocblas_gemm_template<rocblas_double_complex>(rocblas_handle handle,
     const rocblas_double_complex *beta,
     rocblas_double_complex *C, rocblas_int ldc)
 {
-    return rocblas_zgemm(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+    return rocblas_zgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
 #endif
@@ -238,7 +238,7 @@ rocblas_gemm_template<rocblas_double_complex>(rocblas_handle handle,
 
 template<>
 rocblas_status
-rocblas_gemm_batched_template<float>(rocblas_handle handle,
+rocblas_gemm_strided_batched_template<float>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -249,12 +249,12 @@ rocblas_gemm_batched_template<float>(rocblas_handle handle,
     float *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count)
 {
-    return rocblas_sgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+    return rocblas_sgemm_strided_batched(handle, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
 
 template<>
 rocblas_status
-rocblas_gemm_batched_template<double>(rocblas_handle handle,
+rocblas_gemm_strided_batched_template<double>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -265,14 +265,14 @@ rocblas_gemm_batched_template<double>(rocblas_handle handle,
     double *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count)
 {
-    return rocblas_dgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+    return rocblas_dgemm_strided_batched(handle, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
 
 #if COMPLEX
 
 template<>
 rocblas_status
-rocblas_gemm_batched_template<rocblas_float_complex>(rocblas_handle handle,
+rocblas_gemm_strided_batched_template<rocblas_float_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -283,12 +283,12 @@ rocblas_gemm_batched_template<rocblas_float_complex>(rocblas_handle handle,
     rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count)
 {
-    return rocblas_cgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+    return rocblas_cgemm_strided_batched(handle, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
 
 template<>
 rocblas_status
-rocblas_gemm_batched_template<rocblas_double_complex>(rocblas_handle handle,
+rocblas_gemm_strided_batched_template<rocblas_double_complex>(rocblas_handle handle,
     rocblas_operation transA,
     rocblas_operation transB,
     rocblas_int M, rocblas_int N, rocblas_int K,
@@ -299,7 +299,7 @@ rocblas_gemm_batched_template<rocblas_double_complex>(rocblas_handle handle,
     rocblas_double_complex *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count)
 {
-    return rocblas_zgemm_batched(handle, rocblas_order_column_major, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
+    return rocblas_zgemm_strided_batched(handle, transA, transB, M, N, K, alpha, A, lda, bsa, B, ldb, bsb, beta, C, ldc, bsc, batch_count);
 }
 
 #endif
