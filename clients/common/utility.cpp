@@ -78,8 +78,8 @@ extern "C" {
                 printf("Device ID %d : %s ------------------------------------------------------\n", i, props.name);
                 printf ("with %3.1f GB memory, clock rate %dMHz @ computing capability %d.%d \n",
                          props.totalGlobalMem/1e9, (int)(props.clockRate/1000), props.major, props.minor);
-                printf ("regsPerBlock %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
-                         props.regsPerBlock, props.sharedMemPerBlock/1e3, props.maxThreadsPerBlock, props.warpSize);
+                printf ("maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
+                         props.maxGridSize[0], props.sharedMemPerBlock/1e3, props.maxThreadsPerBlock, props.warpSize);
 
                 printf("-------------------------------------------------------------------------\n");
             }
