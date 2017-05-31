@@ -70,8 +70,7 @@ rocblas_get_stream( rocblas_handle handle, hipStream_t *stream );
  * \brief copy vector from host to device
  *******************************************************************************/
 ROCBLAS_EXPORT rocblas_status
-rocblas_set_vector(
-    rocblas_int n, rocblas_int elem_size,
+rocblas_set_vector(rocblas_int n, rocblas_int elem_size,
     const void *x, rocblas_int incx,
     void *y, rocblas_int incy);
 
@@ -80,10 +79,30 @@ rocblas_set_vector(
  * \brief copy vector from device to host
  *******************************************************************************/
 ROCBLAS_EXPORT rocblas_status
-rocblas_get_vector(
-    rocblas_int n, rocblas_int elem_size,
+rocblas_get_vector(rocblas_int n, rocblas_int elem_size,
     const void *x, rocblas_int incx,
     void *y, rocblas_int incy);
+
+
+/********************************************************************************
+ * \brief copy matrix from host to device
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_set_matrix(rocblas_int rows, rocblas_int cols,
+    rocblas_int elem_size,
+    const void *a, rocblas_int lda,
+    void *b, rocblas_int ldb);
+
+
+/********************************************************************************
+ * \brief copy matrix from device to host
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_get_matrix(rocblas_int rows, rocblas_int cols,
+    rocblas_int elem_size,
+    const void *a, rocblas_int lda,
+    void *b, rocblas_int ldb);
+
 
 #ifdef __cplusplus
 }

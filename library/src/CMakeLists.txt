@@ -100,6 +100,7 @@ set( rocblas_auxiliary_source
   include/handle.h
   include/definitions.h
   include/status.h
+  include/rocblas_unique_ptr.hpp
   handle.cpp
   rocblas_auxiliary.cpp
   status.cpp
