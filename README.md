@@ -64,19 +64,19 @@ management.
 7. The return value of all functions is rocblas_status, defined in rocblas_types.h. It is
    used to check for errors.
 
-8. The rocBLAS library is LP64, so rocblas_int arguments are 32 bit and rocblas_long
-   arguments are 64 bit.
-
 
 #### Additional notes
+
+  * The rocBLAS library is LP64, so rocblas_int arguments are 32 bit and rocblas_long
+    arguments are 64 bit.
 
   * rocBLAS uses column-major storage for 2D arrays, and 1 based indexing for
     the functions xMAX and xMIN. This is the same as Legacy BLAS and cuBLAS. 
     If you need row-major and 0 based indexing (used in C language arrays) 
     download the [CBLAS](http://www.netlib.org/blas/#_cblas) file cblas.tgz.
-    Look at the routines that provide a thin interface to Legacy BLAS. They 
-    convert from row-major, 0 based to column-major, 1 based. This is done by 
-    swapping the order of function arguments which is less costly than transposing 
+    Look at the CBLAS functions that provide a thin interface to Legacy BLAS. They 
+    convert from row-major, 0 based, to column-major, 1 based. This is done by 
+    swapping the order of function arguments. It is not necessary to transpose
     matrices.
 
   * The auxiliary functions rocblas_set_pointer and rocblas_get_pointer are used 
