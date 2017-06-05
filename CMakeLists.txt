@@ -13,7 +13,7 @@ endif( )
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE "Debug" CACHE STRINGS "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel.")
+  set( CMAKE_BUILD_TYPE "Release" CACHE STRINGS "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel.")
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS None Debug Release RelWithDebInfo MinSizeRel)
 endif()
 
@@ -34,9 +34,10 @@ endif( )
 # The superbuild does not build anything itself, all compiling is done in external projects
 project( rocblas-superbuild NONE )
 
-# Everything is initially off, so that cache is not initialized until user elects to build
-option( BUILD_LIBRARY "Build rocBLAS library" OFF )
-option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
+# Default ON settings so cmake builds library and samples
+option( BUILD_LIBRARY "Build rocBLAS library" ON )
+option( BUILD_CLIENTS "Build rocBLAS clients" ON )
+option( BUILD_CLIENTS_SAMPLES "Build rocBLAS client samples" ON )
 
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON)
 
