@@ -162,7 +162,7 @@ rocblas_gemv_template(rocblas_handle handle,
         dim3 gemvn_grid( blocks, 1, 1 );
         dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y, 1 );
 
-        if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device &&   rocblas_get_pointer_location((void*)beta) == rocblas_mem_location_device ){
+        if( rocblas_get_pointer_location((void*)alpha) == rocblas_pointer_mode_device &&   rocblas_get_pointer_location((void*)beta) == rocblas_pointer_mode_device ){
             hipLaunchKernel(HIP_KERNEL_NAME(gemvn_kernel_device_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>), dim3(gemvn_grid), dim3(gemvn_threads), 0, rocblas_stream,
                                             m, n, alpha, A, lda, x, incx, beta, y, incy);
         }
@@ -180,7 +180,7 @@ rocblas_gemv_template(rocblas_handle handle,
         dim3 gemvc_grid( n, 1, 1 );
         dim3 gemvc_threads( 256, 1, 1 );
 
-        if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device &&   rocblas_get_pointer_location((void*)beta) == rocblas_mem_location_device ){
+        if( rocblas_get_pointer_location((void*)alpha) == rocblas_pointer_mode_device &&   rocblas_get_pointer_location((void*)beta) == rocblas_pointer_mode_device ){
             hipLaunchKernel(HIP_KERNEL_NAME(gemvc_kernel_device_pointer<T, 256>), dim3(gemvc_grid), dim3(gemvc_threads), 0, rocblas_stream,
                                             transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
         }

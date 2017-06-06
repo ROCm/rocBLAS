@@ -18,13 +18,13 @@
  * currently HIP API can only recoginize the input ptr on deive or not
  *  can not recoginize it is on host or not
  ******************************************************************************/
-rocblas_mem_location rocblas_get_pointer_location(void *ptr){
+rocblas_pointer_mode rocblas_get_pointer_location(void *ptr){
     hipPointerAttribute_t attribute;
     hipPointerGetAttributes(&attribute, ptr);
     if (ptr == attribute.devicePointer) {
-        return rocblas_mem_location_device;
+        return rocblas_pointer_mode_device;
     } else {
-        return rocblas_mem_location_host;
+        return rocblas_pointer_mode_host;
     }
 }
 
