@@ -30,6 +30,36 @@ rocblas_pointer_mode rocblas_get_pointer_location(void *ptr){
 
 
 /*******************************************************************************
+ * ! \brief get pointer mode, can be host or device
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_get_pointer_mode(rocblas_handle handle, rocblas_pointer_mode *mode)
+{
+    // if handle not valid
+    if (handle == nullptr) {
+        return rocblas_status_invalid_pointer;
+    }
+    *mode = handle->pointer_mode;
+    return rocblas_status_success; 
+}
+
+
+/*******************************************************************************
+ * ! \brief set pointer mode to host or device
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
+{
+    // if handle not valid
+    if (handle == nullptr) {
+        return rocblas_status_invalid_pointer;
+    }
+    handle->pointer_mode = mode;
+    return rocblas_status_success; 
+}
+
+
+/*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
 extern "C"

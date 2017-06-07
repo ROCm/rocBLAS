@@ -67,6 +67,20 @@ rocblas_get_stream( rocblas_handle handle, hipStream_t *stream );
 
 
 /********************************************************************************
+ * \brief set rocblas_pointer_mode
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_set_pointer_mode( rocblas_handle handle, rocblas_pointer_mode pointer_mode);
+
+
+/********************************************************************************
+ * \brief get rocblas_pointer_mode
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_get_pointer_mode( rocblas_handle handle, rocblas_pointer_mode *pointer_mode);
+
+
+/********************************************************************************
  * \brief copy vector from host to device
  *******************************************************************************/
 ROCBLAS_EXPORT rocblas_status

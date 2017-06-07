@@ -111,7 +111,7 @@ extern "C" {
     typedef enum rocblas_pointer_mode_ {
       rocblas_pointer_mode_host   = 0,
       rocblas_pointer_mode_device = 1
-  } rocblas_pointer_mode;
+    } rocblas_pointer_mode;
 
 #ifdef __cplusplus
 }
