@@ -94,7 +94,7 @@ rocblas_scal_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    if( rocblas_get_pointer_location((void*)alpha) == rocblas_pointer_mode_device ){
+    if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device ){
         hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, alpha, x, incx);
     }
     else{// alpha is on host

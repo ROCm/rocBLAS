@@ -20,7 +20,7 @@
 /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
 can not recoginize it is on host or not */
 ROCBLAS_EXPORT rocblas_pointer_mode
-rocblas_get_pointer_location(void *ptr);
+rocblas_pointer_to_mode(void *ptr);
 
 
 #ifdef __cplusplus

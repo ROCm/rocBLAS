@@ -118,7 +118,7 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy, workspace);
 
-    if( rocblas_get_pointer_location(result) == rocblas_pointer_mode_device ){
+    if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream, blocks, workspace, result);
     }
@@ -191,7 +191,7 @@ rocblas_dot_template(rocblas_handle handle,
      */
 
     if ( n <= 0 ){
-        if( rocblas_get_pointer_location(result) == rocblas_pointer_mode_device ){
+        if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T)));
         }
         else{
