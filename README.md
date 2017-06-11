@@ -2,6 +2,9 @@
 A BLAS implementation on top of AMD's Radeon Open Compute [ROCm][] runtime and toolchains.  rocBLAS is implemented in
 the [HIP][] programming language, optimized for AMD's latest discrete GPUs and allowing it to run on CUDA enabled GPUs.
 
+## rocBLAS Wiki
+The [wiki][] has helpful information about building the rocblas library, samples and tests.
+
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
 linear algebra problems, but OpenCL primarily remains in the domain of expert programmers. The ROCm model introduces a
@@ -109,9 +112,7 @@ rocblas_sgemm_strided_batched(
     rocblas_int batch_count )
 ```
 
-## rocBLAS Wiki
 
-The [wiki][] has helpful information about building the rocblas library, samples and tests.
 
 [wiki]: https://github.com/RadeonOpenCompute/rocBLAS/wiki
 
