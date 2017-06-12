@@ -19,8 +19,8 @@
 /* ============================================================================================ */
 /*! \brief  indicates whether the pointer is on the host or device. currently HIP API can only recoginize the input ptr on deive or not
 can not recoginize it is on host or not */
-ROCBLAS_EXPORT rocblas_mem_location
-rocblas_get_pointer_location(void *ptr);
+ROCBLAS_EXPORT rocblas_pointer_mode
+rocblas_pointer_to_mode(void *ptr);
 
 
 #ifdef __cplusplus
@@ -64,6 +64,20 @@ rocblas_set_stream( rocblas_handle handle, hipStream_t stream );
  *******************************************************************************/
 ROCBLAS_EXPORT rocblas_status
 rocblas_get_stream( rocblas_handle handle, hipStream_t *stream );
+
+
+/********************************************************************************
+ * \brief set rocblas_pointer_mode
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_set_pointer_mode( rocblas_handle handle, rocblas_pointer_mode pointer_mode);
+
+
+/********************************************************************************
+ * \brief get rocblas_pointer_mode
+ *******************************************************************************/
+ROCBLAS_EXPORT rocblas_status
+rocblas_get_pointer_mode( rocblas_handle handle, rocblas_pointer_mode *pointer_mode);
 
 
 /********************************************************************************

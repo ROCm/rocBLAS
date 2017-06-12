@@ -30,6 +30,9 @@ struct _rocblas_handle{
   // rocblas by default take the system default stream 0 users cannot create
   hipStream_t rocblas_stream = 0; 
 
+  // default pointer_mode is on host
+  rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
+
 };
 
 #endif
