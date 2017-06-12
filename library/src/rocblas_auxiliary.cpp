@@ -18,14 +18,44 @@
  * currently HIP API can only recoginize the input ptr on deive or not
  *  can not recoginize it is on host or not
  ******************************************************************************/
-rocblas_mem_location rocblas_get_pointer_location(void *ptr){
+rocblas_pointer_mode rocblas_pointer_to_mode(void *ptr){
     hipPointerAttribute_t attribute;
     hipPointerGetAttributes(&attribute, ptr);
     if (ptr == attribute.devicePointer) {
-        return rocblas_mem_location_device;
+        return rocblas_pointer_mode_device;
     } else {
-        return rocblas_mem_location_host;
+        return rocblas_pointer_mode_host;
     }
+}
+
+
+/*******************************************************************************
+ * ! \brief get pointer mode, can be host or device
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_get_pointer_mode(rocblas_handle handle, rocblas_pointer_mode *mode)
+{
+    // if handle not valid
+    if (handle == nullptr) {
+        return rocblas_status_invalid_pointer;
+    }
+    *mode = handle->pointer_mode;
+    return rocblas_status_success; 
+}
+
+
+/*******************************************************************************
+ * ! \brief set pointer mode to host or device
+ ******************************************************************************/
+extern "C"
+rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
+{
+    // if handle not valid
+    if (handle == nullptr) {
+        return rocblas_status_invalid_pointer;
+    }
+    handle->pointer_mode = mode;
+    return rocblas_status_success; 
 }
 
 

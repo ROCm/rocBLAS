@@ -108,10 +108,10 @@ extern "C" {
 
 
     /*! \brief Indicates the pointer is device pointer or host pointer */
-    typedef enum rocblas_mem_location_ {
-      rocblas_mem_location_host   = 0,
-      rocblas_mem_location_device = 1
-  } rocblas_mem_location;
+    typedef enum rocblas_pointer_mode_ {
+      rocblas_pointer_mode_host   = 0,
+      rocblas_pointer_mode_device = 1
+    } rocblas_pointer_mode;
 
 #ifdef __cplusplus
 }

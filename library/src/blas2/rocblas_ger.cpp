@@ -121,7 +121,7 @@ rocblas_ger_template(rocblas_handle handle,
     dim3 ger_grid( blocksX, blocksY, 1 );
     dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y, 1 );
 
-    if( rocblas_get_pointer_location((void*)alpha) == rocblas_mem_location_device ) 
+    if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device ) 
     {
         hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_device_pointer<T, GEMV_DIM_X, GEMV_DIM_Y>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
                                         m, n, alpha, x, incx, y, incy, A, lda);
