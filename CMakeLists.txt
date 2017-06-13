@@ -170,12 +170,18 @@ if( BUILD_LIBRARY )
     set( LIBRARY_CMAKE_ARGS ${LIBRARY_CMAKE_ARGS} -DTensile_ROOT=${Tensile_ROOT})
   endif()
 
+  if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
+    set( LIBRARY_INSTALL_DIR library-package )
+  else( )
+    set( LIBRARY_INSTALL_DIR ${CMAKE_INSTALL_PREFIX} )
+  endif( )
+
   # Build the library as an external project
   ExternalProject_Add( rocblas
     DEPENDS ${rocblas_dependencies}
     SOURCE_DIR ${PROJECT_SOURCE_DIR}/library
     BINARY_DIR library-build
-    INSTALL_DIR library-package
+    INSTALL_DIR ${LIBRARY_INSTALL_DIR}
     LIST_SEPARATOR ^^
     CMAKE_ARGS ${LIBRARY_CMAKE_ARGS}
     ${rocblas_INSTALL_COMMAND}
