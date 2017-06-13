@@ -78,7 +78,7 @@ endif( )
 
 find_package( GTest REQUIRED )
 find_package( cblas REQUIRED CONFIG  )
-find_package( rocblas REQUIRED CONFIG )
+find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
 find_package( HIP REQUIRED )
 
 if( BUILD_WITH_TENSILE )

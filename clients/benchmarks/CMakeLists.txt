@@ -11,7 +11,7 @@ project_version( NAME rocblas-client LANGUAGES CXX )
 #==================================NEW============================
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-find_package( rocblas REQUIRED CONFIG )
+find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
 
 # set( Boost_DEBUG ON )
 set( Boost_USE_MULTITHREADED ON )
