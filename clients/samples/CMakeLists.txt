@@ -48,7 +48,7 @@ endif( )
 # This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-find_package( rocblas REQUIRED CONFIG )
+find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
 
 set( rocblas_samples_common
       ../common/utility.cpp
