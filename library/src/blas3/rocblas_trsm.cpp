@@ -10,6 +10,7 @@
 #include "definitions.h"
 #include "gemm.hpp"
 #include "trtri_trsm.hpp"
+#include "rocblas_unique_ptr.hpp"
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
@@ -348,12 +349,22 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if (m == 0 || n == 0)
         return rocblas_status_success;
 
-    T* invA;
-    T* X;
     //invA is of size BLOCK*k, BLOCK is the blocking size
-    PRINT_IF_HIP_ERROR(hipMalloc( &invA, BLOCK*k*sizeof(T) ));
+    // used unique_ptr to avoid memory leak
+    auto invA_managed = rocblas_unique_ptr{rocblas::device_malloc(BLOCK*k*sizeof(T)),rocblas::device_free};
+    T *invA = (T*) invA_managed.get();
+    if(!invA)
+    {
+        return rocblas_status_memory_error;
+    }
+
     //X is the same size of B
-    PRINT_IF_HIP_ERROR(hipMalloc( &X, ldb*n * sizeof(T) ));
+    auto X_managed = rocblas_unique_ptr{rocblas::device_malloc(ldb*n * sizeof(T)),rocblas::device_free};
+    T *X = (T*) X_managed.get();
+    if(!X)
+    {
+        return rocblas_status_memory_error;
+    }
 
     //intialize invA and X to be &zero
     PRINT_IF_HIP_ERROR(hipMemset(invA, 0, BLOCK*k*sizeof(T)));
@@ -377,8 +388,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     printf("copy x to b\n");
     #endif
     PRINT_IF_HIP_ERROR(hipMemcpy(B, X, ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
-    PRINT_IF_HIP_ERROR(hipFree(invA));
-    PRINT_IF_HIP_ERROR(hipFree(X));
 
     return status;
 }

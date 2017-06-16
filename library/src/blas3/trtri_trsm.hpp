@@ -3,7 +3,6 @@
  *
  * ************************************************************************ */
 
-
 #pragma once
 #ifndef __TRTRI_TRSM_HPP__
 #define __TRTRI_TRSM_HPP__  
@@ -14,6 +13,7 @@
 #include "status.h"
 #include "trtri.hpp"
 #include "gemm.hpp"
+#include "rocblas_unique_ptr.hpp"
 
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB
@@ -174,11 +174,14 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
         hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB>), dim3(grid), dim3(threads), 0, rocblas_stream,
                                             uplo, diag, (blocks)*NB, A, lda, invA);
 
-
-
         T one = 1;  T zero = 0; T negative_one = -1;
-        T* C;
-        PRINT_IF_HIP_ERROR(hipMalloc(&C, sizeof(T) * IB * IB * blocks));
+
+        auto C_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * IB * IB * blocks),rocblas::device_free};
+        T *C = (T*) C_managed.get();
+        if(!C)
+        {
+            return rocblas_status_memory_error;
+        }
 
         rocblas_int stride_A = NB*lda + NB;
         rocblas_int stride_invA = NB*NB;
@@ -230,9 +233,6 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
                                         &zero,
                                         (invA + ((uplo == rocblas_fill_lower) ? IB : IB*NB)), NB, stride_invA,
                                         blocks );
-
-
-        PRINT_IF_HIP_ERROR(hipFree(C));
 
     }//end if
     
