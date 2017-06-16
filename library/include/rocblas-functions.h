@@ -704,6 +704,22 @@ rocblas_dger(rocblas_handle handle,
                  const double *y, rocblas_int incy,
                        double *A, rocblas_int lda);
 
+ROCBLAS_EXPORT rocblas_status
+rocblas_cger(rocblas_handle handle,
+                 rocblas_int m, rocblas_int n,
+                 const rocblas_float_complex *alpha,
+                 const rocblas_float_complex *x, rocblas_int incx,
+                 const rocblas_float_complex *y, rocblas_int incy,
+                       rocblas_float_complex *A, rocblas_int lda);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_zger(rocblas_handle handle,
+                 rocblas_int m, rocblas_int n,
+                 const rocblas_double_complex *alpha,
+                 const rocblas_double_complex *x, rocblas_int incx,
+                 const rocblas_double_complex *y, rocblas_int incy,
+                       rocblas_double_complex *A, rocblas_int lda);
+
 /*
  * ===========================================================================
  *    level 3 BLAS
