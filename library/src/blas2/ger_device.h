@@ -12,7 +12,7 @@
 
 
 
-template<typename T, const rocblas_int DIM_X, const rocblas_int DIM_Y>
+template<typename T>
 static __device__ void
 ger_device(
     rocblas_int m, rocblas_int n,

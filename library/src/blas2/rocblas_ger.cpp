@@ -11,7 +11,7 @@
 #include "definitions.h"
 #include "ger_device.h"
 
-template<typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
+template<typename T>
 __global__ void
 ger_kernel_host_pointer(hipLaunchParm lp,
     rocblas_int m, rocblas_int n,
@@ -20,10 +20,10 @@ ger_kernel_host_pointer(hipLaunchParm lp,
     const T * __restrict__ y, rocblas_int incy,
           T *              A, rocblas_int lda)
 {
-    ger_device<T, NB_X, NB_Y>(m, n, alpha, x, incx, y, incy, A, lda);
+    ger_device<T>(m, n, alpha, x, incx, y, incy, A, lda);
 }
 
-template<typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
+template<typename T>
 __global__ void
 ger_kernel_device_pointer(hipLaunchParm lp,
     rocblas_int m, rocblas_int n,
@@ -32,7 +32,7 @@ ger_kernel_device_pointer(hipLaunchParm lp,
     const T * __restrict__ y, rocblas_int incy,
           T *              A, rocblas_int lda)
 {
-    ger_device<T, NB_X, NB_Y>(m, n, *alpha, x, incx, y, incy, A, lda);
+    ger_device<T>(m, n, *alpha, x, incx, y, incy, A, lda);
 }
 
 
@@ -123,12 +123,12 @@ rocblas_ger_template(rocblas_handle handle,
 
     if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device ) 
     {
-        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_device_pointer<T, GEMV_DIM_X, GEMV_DIM_Y>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
+        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_device_pointer<T>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
                                         m, n, alpha, x, incx, y, incy, A, lda);
     }
     else{
         T h_alpha_scalar = *alpha;
-        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_host_pointer<T, GEMV_DIM_X, GEMV_DIM_Y>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
+        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_host_pointer<T>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
                                         m, n, h_alpha_scalar, x, incx, y, incy, A, lda);
     }
     #undef GEMV_DIM_X
