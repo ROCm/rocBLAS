@@ -78,41 +78,6 @@ include( ExternalProject )
 # This captures all of the dependencies cmake builds itself
 set( rocblas_dependencies )
 
-set( BASE_CMAKE_ARGS )
-
-# Noramlize the different ways of specifying a c++ compiler through -DCMAKE_CXX_COMPILER
-if( DEFINED CMAKE_CXX_COMPILER )
-  message( STATUS "CMAKE_CXX_COMPILER: ${CMAKE_CXX_COMPILER} " )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER} )
-elseif( DEFINED ENV{CXX} )
-  message( STATUS "ENV{CXX}: $ENV{CXX} " )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_COMPILER=$ENV{CXX} )
-endif( )
-
-# Noramlize the different ways of specifying a c compiler through -DCMAKE_C_COMPILER
-if( DEFINED CMAKE_C_COMPILER )
-  message( STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER}" )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER} )
-elseif( DEFINED ENV{CC} )
-  message( STATUS "ENV{CC}: $ENV{CC} " )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_C_COMPILER=$ENV{CC} )
-endif( )
-
-if( DEFINED CMAKE_CXX_FLAGS )
-  message( STATUS "CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS} " )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
-endif( )
-
-if( DEFINED CMAKE_C_FLAGS )
-  message( STATUS "CMAKE_C_FLAGS: ${CMAKE_C_FLAGS}" )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS} )
-endif( )
-
-# CMAKE_BUILD_TYPE only applies to single configuration build systems
-if( DEFINED CMAKE_BUILD_TYPE )
-  list( APPEND BASE_CMAKE_ARGS -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} )
-endif( )
-
 if( NOT DEFINED DEVICE_CXX_COMPILER )
   find_package( HIP REQUIRED )
   set( DEVICE_CXX_COMPILER ${HIP_ROOT_DIR}/bin/hipcc )
@@ -139,6 +104,8 @@ if( BUILD_LIBRARY )
     endif()
   endif()
 
+  set( LIBRARY_CXX_FLAGS "--amdgpu-target=gfx803 --amdgpu-target=gfx900" CACHE STRING "hcc specific compiler flags for rocblas" )
+
   # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
   # Replace all occurances of ; with ^^, which we elect to use a path seperator
   string(REGEX REPLACE ";" "^^" LIBRARY_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
@@ -150,7 +117,7 @@ if( BUILD_LIBRARY )
     -DCMAKE_MODULE_PATH=${LIBRARY_MODULE_PATH}
     -DBUILD_SHARED_LIBS=${BUILD_SHARED_LIBS}
     -DCMAKE_CXX_COMPILER=${DEVICE_CXX_COMPILER}
-    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}
+    -DCMAKE_CXX_FLAGS=${CMAKE_CXX_FLAGS}${LIBRARY_CXX_FLAGS}
     -DCMAKE_C_COMPILER=${CMAKE_C_COMPILER}
     -DBUILD_WITH_TENSILE=${BUILD_WITH_TENSILE}
     -DTensile_LOGIC=${Tensile_LOGIC}
