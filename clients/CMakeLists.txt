@@ -18,12 +18,13 @@ set( rocblas_clients_dependencies )
 
 # If the user does not explicitely specify BOOST_ROOT, build our
 # own on the fly
-if( BUILD_CLIENTS_BENCHMARKS )
-  if( NOT DEFINED BOOST_ROOT )
-    include( external-boost )
-    list( APPEND rocblas_clients_dependencies boost )
-  endif( )
-endif()
+# disable the download, as it often fails
+#if( BUILD_CLIENTS_BENCHMARKS )
+#  if( NOT DEFINED BOOST_ROOT )
+#    include( external-boost )
+#    list( APPEND rocblas_clients_dependencies boost )
+#  endif( )
+#endif()
 
 if( BUILD_CLIENTS_TESTS )
   if( NOT DEFINED GTEST_ROOT )
