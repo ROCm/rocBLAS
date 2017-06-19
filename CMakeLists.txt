@@ -104,7 +104,8 @@ if( BUILD_LIBRARY )
     endif()
   endif()
 
-  set( LIBRARY_CXX_FLAGS "--amdgpu-target=gfx803 --amdgpu-target=gfx900" CACHE STRING "hcc specific compiler flags for rocblas" )
+  # Make sure LIBRARY_CXX_FLAGS begins with whitespace so that the flags do not merge with CMAKE_CXX_FLAGS
+  set( LIBRARY_CXX_FLAGS " --amdgpu-target=gfx803 --amdgpu-target=gfx900" CACHE STRING "hcc specific compiler flags for rocblas" )
 
   # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
   # Replace all occurances of ; with ^^, which we elect to use a path seperator
