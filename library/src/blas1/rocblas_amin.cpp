@@ -204,21 +204,19 @@ rocblas_amin_template(rocblas_handle handle,
 
     rocblas_status status;
 
-    auto workspace_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T2) * blocks),rocblas::device_free};
-    T2 *workspace = (T2 *) workspace_managed.get();
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T2) * blocks),rocblas::device_free};
     if(!workspace)
     {
         return rocblas_status_memory_error;
     }
 
-    auto workspace_index_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(rocblas_int) * blocks),rocblas::device_free};
-    rocblas_int *workspace_index = (rocblas_int*) workspace_index_managed.get();
+    auto workspace_index = rocblas_unique_ptr{rocblas::device_malloc(sizeof(rocblas_int) * blocks),rocblas::device_free};
     if(!workspace_index)
     {
         return rocblas_status_memory_error;
     }
 
-    status = rocblas_amin_template_workspace<T1, T2>(handle, n, x, incx, result, workspace, workspace_index, blocks);
+    status = rocblas_amin_template_workspace<T1, T2>(handle, n, x, incx, result, (T2*)workspace.get(), (rocblas_int*)workspace_index.get(), blocks);
 
     return status;
 }

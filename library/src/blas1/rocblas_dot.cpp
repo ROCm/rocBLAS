@@ -200,15 +200,13 @@ rocblas_dot_template(rocblas_handle handle,
 
     rocblas_status status;
 
-    auto workspace_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks),rocblas::device_free};
-
-    T *workspace = (T *) workspace_managed.get();
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks),rocblas::device_free};
     if(!workspace)
     {
         return rocblas_status_memory_error;
     }
 
-    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
+    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
 
     return status;
 }

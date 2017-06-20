@@ -351,43 +351,41 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     //invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
-    auto invA_managed = rocblas_unique_ptr{rocblas::device_malloc(BLOCK*k*sizeof(T)),rocblas::device_free};
-    T *invA = (T*) invA_managed.get();
+    auto invA = rocblas_unique_ptr{rocblas::device_malloc(BLOCK*k*sizeof(T)),rocblas::device_free};
     if(!invA)
     {
         return rocblas_status_memory_error;
     }
 
     //X is the same size of B
-    auto X_managed = rocblas_unique_ptr{rocblas::device_malloc(ldb*n * sizeof(T)),rocblas::device_free};
-    T *X = (T*) X_managed.get();
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(ldb*n * sizeof(T)),rocblas::device_free};
     if(!X)
     {
         return rocblas_status_memory_error;
     }
 
     //intialize invA and X to be &zero
-    PRINT_IF_HIP_ERROR(hipMemset(invA, 0, BLOCK*k*sizeof(T)));
+    PRINT_IF_HIP_ERROR(hipMemset((T*)invA.get(), 0, BLOCK*k*sizeof(T)));
     //potential bug, may use hipMemcpy B to X
-    PRINT_IF_HIP_ERROR(hipMemset(X, 0, ldb*n*sizeof(T)));
+    PRINT_IF_HIP_ERROR(hipMemset((T*)X.get(), 0, ldb*n*sizeof(T)));
 
     //batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(handle, uplo, diag,
                                     k, A, lda,
-                                    invA);
+                                    (T*)invA.get());
 
 
     if (side == rocblas_side_left) {
-        status = rocblas_trsm_left<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, X);
+        status = rocblas_trsm_left<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
     else {  // side == rocblas_side_right
-        status = rocblas_trsm_right<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, X);
+        status = rocblas_trsm_right<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
 
     #ifndef NDEBUG
     printf("copy x to b\n");
     #endif
-    PRINT_IF_HIP_ERROR(hipMemcpy(B, X, ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
+    PRINT_IF_HIP_ERROR(hipMemcpy(B, (T*)X.get(), ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
 
     return status;
 }

@@ -176,8 +176,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
 
         T one = 1;  T zero = 0; T negative_one = -1;
 
-        auto C_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * IB * IB * blocks),rocblas::device_free};
-        T *C = (T*) C_managed.get();
+        auto C = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * IB * IB * blocks),rocblas::device_free};
         if(!C)
         {
             return rocblas_status_memory_error;
@@ -217,7 +216,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
                                         (const T*)(A + ((uplo == rocblas_fill_lower) ? IB : IB*lda) ), lda, stride_A,
                                         (const T*)(invA +  ((uplo == rocblas_fill_lower) ? 0 : IB*NB+IB) ) , NB, stride_invA,
                                         &zero,
-                                        C, IB, stride_C,
+                                        (T*)C.get(), IB, stride_C,
                                         blocks );
 
         #ifndef NDEBUG
@@ -229,7 +228,7 @@ rocblas_trtri_trsm_template(rocblas_handle handle,
                                         IB, IB, IB,
                                         &negative_one,
                                         (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB*NB+IB : 0)), NB, stride_invA,
-                                        (const T*)C, IB, stride_C,
+                                        (const T*)C.get(), IB, stride_C,
                                         &zero,
                                         (invA + ((uplo == rocblas_fill_lower) ? IB : IB*NB)), NB, stride_invA,
                                         blocks );
