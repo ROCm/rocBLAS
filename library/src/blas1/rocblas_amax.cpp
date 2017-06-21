@@ -4,15 +4,13 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
-
-
 #include "rocblas.h"
  
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
 #include "fetch_template.h"
-
+#include "rocblas_unique_ptr.hpp"
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
@@ -206,20 +204,22 @@ rocblas_amax_template(rocblas_handle handle,
 
     rocblas_status status;
 
-    T2 *workspace;
-    rocblas_int *workspace_index;
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T2) * blocks),rocblas::device_free};
+    if(!workspace)
+    {
+        return rocblas_status_memory_error;
+    }
 
-    RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T2) * blocks));//potential error may rise here, blocking device operation
-    RETURN_IF_HIP_ERROR(hipMalloc(&workspace_index, sizeof(rocblas_int) * blocks));//potential error may rise here, blocking device operation
+    auto workspace_index = rocblas_unique_ptr{rocblas::device_malloc(sizeof(rocblas_int) * blocks),rocblas::device_free};
+    if(!workspace_index)
+    {
+        return rocblas_status_memory_error;
+    }
 
-    status = rocblas_amax_template_workspace<T1, T2>(handle, n, x, incx, result, workspace, workspace_index, blocks);
-
-    RETURN_IF_HIP_ERROR(hipFree(workspace));
-    RETURN_IF_HIP_ERROR(hipFree(workspace_index));
+    status = rocblas_amax_template_workspace<T1, T2>(handle, n, x, incx, result, (T2*)workspace.get(), (rocblas_int*)workspace_index.get(), blocks);
 
     return status;
 }
-
 
 
 /* ============================================================================================ */

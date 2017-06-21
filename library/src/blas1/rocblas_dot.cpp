@@ -4,13 +4,12 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
- 
-
 #include "rocblas.h"
  
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
+#include "rocblas_unique_ptr.hpp"
 
 template<typename T, rocblas_int NB>
 __global__ void
@@ -37,9 +36,6 @@ dot_kernel_part1(hipLaunchParm lp,
 
     if(tx == 0) workspace[hipBlockIdx_x] = shared_tep[0];
 }
-
-
-
 
 template<typename T, rocblas_int NB, rocblas_int flag>
 __global__ void
@@ -204,28 +200,23 @@ rocblas_dot_template(rocblas_handle handle,
 
     rocblas_status status;
 
-    T *workspace;
-    RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T) * blocks));//potential error may rise here, blocking device operation
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks),rocblas::device_free};
+    if(!workspace)
+    {
+        return rocblas_status_memory_error;
+    }
 
-    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, workspace, blocks);
-
-    RETURN_IF_HIP_ERROR(hipFree(workspace));
+    status = rocblas_dot_template_workspace<T>(handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
 
     return status;
 }
 
 
-
-
-
-
-/* ============================================================================================ */
-
-    /*
-     * ===========================================================================
-     *    C wrapper
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *    C wrapper
+ * ===========================================================================
+ */
 
 
 extern "C"
