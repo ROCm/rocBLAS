@@ -12,7 +12,7 @@ include( ExternalProject )
 # ExternalProject
 
 # Change this one line to upgrade to newer versions of boost
-set( ext.Boost_VERSION "1.61.0" CACHE STRING "Boost version to download/use" )
+set( ext.Boost_VERSION "1.63.0" CACHE STRING "Boost version to download/use" )
 mark_as_advanced( ext.Boost_VERSION )
 string( REPLACE "." "_" ext.Boost_Version_Underscore ${ext.Boost_VERSION} )
 
