@@ -4,15 +4,13 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
- 
-
 #include "rocblas.h"
  
 #include "status.h"
 #include "definitions.h"
 #include "device_template.h"
 #include "fetch_template.h"
-
+#include "rocblas_unique_ptr.hpp"
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
@@ -192,12 +190,13 @@ rocblas_nrm2_template(rocblas_handle handle,
 
     rocblas_status status;
 
-    T2 *workspace;
-    RETURN_IF_HIP_ERROR(hipMalloc(&workspace, sizeof(T2) * blocks));//potential error may rise here, blocking device operation
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T2) * blocks),rocblas::device_free};
+    if(!workspace)
+    {
+        return rocblas_status_memory_error;
+    }
 
-    status = rocblas_nrm2_template_workspace<T1, T2>(handle, n, x, incx, result, workspace, blocks);
-
-    RETURN_IF_HIP_ERROR(hipFree(workspace));
+    status = rocblas_nrm2_template_workspace<T1, T2>(handle, n, x, incx, result, (T2*)workspace.get(), blocks);
 
     return status;
 }
