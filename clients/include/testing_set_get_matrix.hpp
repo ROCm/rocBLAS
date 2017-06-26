@@ -13,6 +13,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
@@ -33,7 +34,48 @@ rocblas_status testing_set_get_matrix(Arguments argus)
     rocblas_status status_set = rocblas_status_success;
     rocblas_status status_get = rocblas_status_success;
 
+    T *dc;
+
+    rocblas_handle handle;
+
+    rocblas_create_handle(&handle);
+
+    void *void_a, *void_b;
+
     //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
+    if ( rows < 0 || cols < 0 || lda <= 0 || ldb <= 0 || ldc <= 0 ){
+
+        vector<T> ha(100);
+        vector<T> hb(100);
+        vector<T> hb_ref(100);
+        vector<T> hc(100);
+
+        CHECK_HIP_ERROR(hipMalloc(&dc, cols * ldc * sizeof(T)));
+
+        status_set = rocblas_set_matrix(rows, cols, sizeof(T), (void *) ha.data(), lda, (void *) dc, ldc);
+        status_get = rocblas_get_matrix(rows, cols, sizeof(T), (void *) dc, ldc, (void *) hb.data(), ldb);
+
+        set_get_matrix_arg_check(status_set, rows, cols, lda, ldb, ldc);
+        set_get_matrix_arg_check(status_get, rows, cols, lda, ldb, ldc);
+
+        return status_set;
+    }
+    else if ( nullptr == handle )
+    {
+        vector<T> ha(100);
+        vector<T> hb(100);
+        vector<T> hb_ref(100);
+        vector<T> hc(100);
+
+        status_set = rocblas_set_matrix(rows, cols, sizeof(T), (void *) ha.data(), lda, (void *) dc, ldc);
+        status_get = rocblas_get_matrix(rows, cols, sizeof(T), (void *) dc, ldc, (void *) hb.data(), ldb);
+
+        handle_check(status_set);
+        handle_check(status_get);
+
+        return status_set;
+    }
+
     if ( rows < 0 ){
         status = rocblas_status_invalid_size;
         return status;
@@ -61,15 +103,9 @@ rocblas_status testing_set_get_matrix(Arguments argus)
     vector<T> hb_ref(cols * ldb);
     vector<T> hc(cols * ldc);
 
-    T *dc;
-
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
-
-    rocblas_handle handle;
-
-    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dc, cols * ldc * sizeof(T)));

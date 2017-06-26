@@ -69,21 +69,15 @@ rocblas_scal_template(rocblas_handle handle,
     const T *alpha,
     T *x, rocblas_int incx)
 {
-
-    if(handle == nullptr)
-        return rocblas_status_invalid_handle;
-    else if ( n < 0 )
-        return rocblas_status_invalid_size;
-    else if ( x == nullptr )
+    if ( nullptr == x )
         return rocblas_status_invalid_pointer;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
+    else if(nullptr == handle )
+        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible. Not Argument error
      */
-
-    if ( n == 0 )
+    if (n <= 0 || incx <= 0)
         return rocblas_status_success;
 
     rocblas_int blocks = (n-1)/ NB_X + 1;

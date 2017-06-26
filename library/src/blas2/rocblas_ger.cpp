@@ -83,32 +83,39 @@ rocblas_ger_template(rocblas_handle handle,
     const T * y, rocblas_int incy,
           T * A, rocblas_int lda)
 {
-
-    if(handle == nullptr)
-        return rocblas_status_invalid_handle;
-    else if ( m < 0 )
+    if ( m < 0 )
         return rocblas_status_invalid_size;
     else if ( n < 0 )
         return rocblas_status_invalid_size;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( incx < 0 )
+    else if (0 == incx)
         return rocblas_status_invalid_size;
-    else if ( y == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( incy < 0 )
+    else if (0 == incy)
         return rocblas_status_invalid_size;
-    else if ( A == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( lda < m )
+    else if ( lda < m || lda < 1)
         return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible. Not Argument error
      */
 
-    if ( m==0 || n == 0 )
+    if ( m == 0 || n == 0 || alpha == 0)
         return rocblas_status_success;
+
+    if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == y)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == A)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+//  TODO: remove this restriction. Reference code allows incx<0 and/or incy<0
+    if(incx < 0)
+        return rocblas_status_invalid_size;
+    else if(incy < 0)
+        return rocblas_status_invalid_size;
+    
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));

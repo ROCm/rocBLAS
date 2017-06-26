@@ -13,6 +13,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
@@ -29,6 +30,8 @@ rocblas_status testing_gemv(Arguments argus)
     rocblas_int lda = argus.lda;
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
+    T alpha = (T)argus.alpha;
+    T beta = (T)argus.beta;
 
     rocblas_int A_size = lda * N;
     rocblas_int X_size ;
@@ -45,48 +48,76 @@ rocblas_status testing_gemv(Arguments argus)
         Y_size = N ;
     }
 
+    rocblas_handle handle;
+
+    T *dA, *dx, *dy;
+
+    rocblas_create_handle(&handle);
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if ( M < 0 ){
-        status = rocblas_status_invalid_size;
+    //argument sanity check before allocating invalid memory
+    if (M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy)
+    {
+        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));  //  100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+
+        status = rocblas_gemv<T>(handle,
+                     transA, M, N,
+                     (T*)&alpha,
+                     dA, lda,
+                     dx, incx,
+                     (T*)&beta,
+                     dy, incy);
+
+        gemv_ger_arg_check(status, M, N, lda, incx, incy);
+
         return status;
     }
-    if ( N < 0 ){
-        status = rocblas_status_invalid_size;
+    else if (nullptr == dx || nullptr == dy || nullptr == dA)
+    {
+        status = rocblas_gemv<T>(handle,
+                     transA, M, N,
+                     (T*)&alpha,
+                     dA, lda,
+                     dx, incx,
+                     (T*)&beta,
+                     dy, incy);
+
+        pointer_check(status,"ERROR: A or x or y is null pointer");
+
         return status;
     }
-    else if ( lda < 0 ){
-        status = rocblas_status_invalid_size;
+    else if (nullptr == handle)
+    {
+        status = rocblas_gemv<T>(handle,
+                     transA, M, N,
+                     (T*)&alpha,
+                     dA, lda,
+                     dx, incx,
+                     (T*)&beta,
+                     dy, incy);
+
+        handle_check(status);
+
         return status;
     }
-    else if ( incx <= 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
-    else if ( incy <= 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
+//  TODO: Remove this restriction, see reference implementation
+    else if (incx < 0 || incy < 0)
+    {
+        return rocblas_status_invalid_size;
     }
 
+  
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
     vector<T> hx(X_size * incx);
     vector<T> hy(Y_size * incy);
     vector<T> hz(Y_size * incy);
 
-    T *dA, *dx, *dy;
-
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error;
-
-    T alpha = (T)argus.alpha;
-    T beta = (T)argus.beta;
-
-    rocblas_handle handle;
-
-    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

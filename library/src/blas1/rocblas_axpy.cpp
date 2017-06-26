@@ -75,26 +75,24 @@ rocblas_axpy_template(rocblas_handle handle,
     const T *x, rocblas_int incx,
     T *y,  rocblas_int incy)
 {
-
-    if(handle == nullptr)
-        return rocblas_status_invalid_handle;
-    else if ( n < 0 )
+    if ( n < 0 )
+        return rocblas_status_invalid_size;
+    else if ( incx < 0 )
+        return rocblas_status_invalid_size;
+    else if ( incy < 0 )
         return rocblas_status_invalid_size;
     else if ( alpha == nullptr )
         return rocblas_status_invalid_pointer;
     else if ( x == nullptr )
         return rocblas_status_invalid_pointer;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
     else if ( y == nullptr )
         return rocblas_status_invalid_pointer;
-    else if ( incy < 0 )
-        return rocblas_status_invalid_size;
+    else if(handle == nullptr)
+        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible. Not Argument error
      */
-
     if ( n == 0 )
         return rocblas_status_success;
 
@@ -111,6 +109,7 @@ rocblas_axpy_template(rocblas_handle handle,
     }
     else{// alpha is on host
         T scalar = *alpha;
+        if (0 == scalar) return rocblas_status_success;
         hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_host_scalar), dim3(blocks), dim3(threads), 0, rocblas_stream, n, scalar, x, incx, y, incy);
     }
 

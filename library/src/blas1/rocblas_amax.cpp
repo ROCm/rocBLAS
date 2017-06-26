@@ -165,8 +165,9 @@ rocblas_amax_template_workspace(rocblas_handle handle,
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amax product. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              index of max element. either on the host CPU or device GPU.
+              return is 0 if n, incx<=0. Note that 1 based Fortran
+              indexing is used, not 0 based C indexing.
     ********************************************************************/
 
 
@@ -179,23 +180,22 @@ rocblas_amax_template(rocblas_handle handle,
     const T1 *x, rocblas_int incx,
     rocblas_int *result)
 {
-    if(handle == nullptr)
+    if ( nullptr == x )
+        return rocblas_status_invalid_pointer;
+    else if ( nullptr == result )
+        return rocblas_status_invalid_pointer;
+    else if( nullptr == handle )
         return rocblas_status_invalid_handle;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( result == nullptr )
-        return rocblas_status_invalid_pointer;
 
     /*
      * Quick return if possible.
      */
-
     if ( n <= 0 || incx <= 0){
         if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
-            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));
+            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(rocblas_int)));
         }
         else{
-            *result = 0.0;
+            *result = 0;
         }
         return rocblas_status_success;
     }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * dotright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -8,10 +8,12 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_scal.hpp"
-#include "testing_dot.hpp"
-#include "testing_asum.hpp"
 #include "testing_amax.hpp"
+#include "testing_asum.hpp"
+#include "testing_axpy.hpp"
+#include "testing_dot.hpp"
+#include "testing_nrm2.hpp"
+#include "testing_scal.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -55,7 +57,7 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-int N_range[] = {-1, 10, 500, 1000, 7111, 10000};
+int N_range[] = {-1, 0, 10, 500, 1000, 7111, 10000};
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
@@ -68,6 +70,8 @@ vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
 //incx , incy must > 0, otherwise there is no real computation taking place,
 //but throw a message, which will still be detected by gtest
 vector<vector<int>> incx_incy_range = { {1, 1},
+                                        {1, 2},
+                                        {2, 1},
                                         {-1, -1},
                                        };
 
@@ -126,14 +130,37 @@ TEST_P(blas1_gtest, scal_float)
     rocblas_status status = testing_scal<float>( arg );
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
+        if( 0 == arg.N ){
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+        if( arg.N < 0 || arg.incx <= 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+TEST_P(blas1_gtest, axpy_float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_axpy<float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
         if( arg.N < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if( arg.incx < 0){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
+        else if( arg.incy < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
     }
 }
+
 
 TEST_P(blas1_gtest, dot_float)
 {
@@ -194,6 +221,30 @@ TEST_P(blas1_gtest, amax_float)
         }
     }
 }
+
+TEST_P(blas1_gtest, nrm2_float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_nrm2<float, float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incy < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+
 
 //Values is for a single item; ValuesIn is for an array
 //notice we are using vector of vector

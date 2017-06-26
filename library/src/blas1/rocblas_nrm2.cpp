@@ -165,18 +165,17 @@ rocblas_nrm2_template(rocblas_handle handle,
     const T1 *x, rocblas_int incx,
     T2 *result)
 {
-    if(handle == nullptr)
+    if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == result)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
         return rocblas_status_invalid_handle;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( result == nullptr )
-        return rocblas_status_invalid_pointer;
 
     /*
      * Quick return if possible.
      */
-
-    if ( n <= 0 || incx <= 0){
+    if (n <= 0 || incx <= 0){
         if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));
         }
