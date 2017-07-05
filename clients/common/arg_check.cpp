@@ -27,7 +27,7 @@ void set_get_matrix_arg_check(rocblas_status status, rocblas_int rows, rocblas_i
     ASSERT_EQ(status, rocblas_status_invalid_size);
 #endif
 #ifndef GOOGLE_TEST
-    std::cout << "check arguments rows, cols, lda, ldb, ldc: ";
+    std::cout << "ERROR in arguments rows, cols, lda, ldb, ldc: ";
     std::cout << rows << ',' << cols << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
 #endif
 }
@@ -39,7 +39,7 @@ void gemv_ger_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, roc
     ASSERT_EQ(status, rocblas_status_invalid_size);
 #endif
 #ifndef GOOGLE_TEST
-    std::cout << "check arguments M, N, lda, incx, incy: ";
+    std::cout << "ERROR in arguments M, N, lda, incx, incy: ";
     std::cout << M << ',' << N << ',' << lda << ',' << incx << ',' << incy << std::endl;
 #endif
 }
@@ -50,7 +50,7 @@ void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas
     ASSERT_EQ(status, rocblas_status_invalid_size);
 #endif
 #ifndef GOOGLE_TEST
-    std::cout << "check arguments M, N, K, lda, ldb, ldc: ";
+    std::cout << "ERROR in arguments M, N, K, lda, ldb, ldc: ";
     std::cout << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
 #endif
 }
@@ -61,7 +61,7 @@ void trsm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
     ASSERT_EQ(status, rocblas_status_invalid_size);
 #endif
 #ifndef GOOGLE_TEST
-    std::cout << "check arguments M, N, lda, ldb: ";
+    std::cout << "ERROR in arguments M, N, lda, ldb: ";
     std::cout << M << ',' << N << ',' << lda << ',' << ldb << std::endl;
 #endif
 }
@@ -71,7 +71,7 @@ void symv_arg_check(rocblas_status status, rocblas_int N, rocblas_int lda, rocbl
     ASSERT_EQ(status, rocblas_status_invalid_size);
 #endif
 #ifndef GOOGLE_TEST
-    std::cout << "check arguments N, lda, incx, incy: ";
+    std::cout << "ERROR in arguments N, lda, incx, incy: ";
     std::cout << N << ',' << lda << ',' << incx << ',' << incy << std::endl;
 #endif
 }

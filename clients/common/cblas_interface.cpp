@@ -102,6 +102,43 @@ extern "C" {
         cblas_zcopy(n, x, incx, y, incy);
     }
 
+    //axpy
+    template<>
+    void cblas_axpy<float>( rocblas_int n,
+                            float alpha,
+                            float *x, rocblas_int incx,
+                            float *y, rocblas_int incy)
+    {
+        cblas_saxpy(n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    void cblas_axpy<double>(rocblas_int n,
+                            double alpha,
+                            double *x, rocblas_int incx,
+                            double *y, rocblas_int incy)
+    {
+        cblas_daxpy(n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    void cblas_axpy<rocblas_float_complex>( rocblas_int n,
+                            rocblas_float_complex alpha,
+                            rocblas_float_complex *x, rocblas_int incx,
+                            rocblas_float_complex *y, rocblas_int incy)
+    {
+        cblas_caxpy(n, &alpha, x, incx, y, incy);
+    }
+
+    template<>
+    void cblas_axpy<rocblas_double_complex>( rocblas_int n,
+                            rocblas_double_complex alpha,
+                            rocblas_double_complex *x, rocblas_int incx,
+                            rocblas_double_complex *y, rocblas_int incy)
+    {
+        cblas_zaxpy(n, &alpha, x, incx, y, incy);
+    }
+
     //swap
     template<>
     void cblas_swap<float>( rocblas_int n,

@@ -68,7 +68,7 @@
                             const float *x, rocblas_int incx,
                                   float *y, rocblas_int incy)
     {
-        return rocblas_axpy(handle, n, alpha, x, incx, y, incy);
+        return rocblas_saxpy(handle, n, alpha, x, incx, y, incy);
     }
 
     template<>
@@ -109,7 +109,7 @@
                             float *x, rocblas_int incx,
                             float *y, rocblas_int incy)
     {
-        return rocblas_swap(handle, n, x, incx, y, incy);
+        return rocblas_sswap(handle, n, x, incx, y, incy);
     }
 
     template<>

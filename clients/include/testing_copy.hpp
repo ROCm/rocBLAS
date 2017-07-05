@@ -20,32 +20,26 @@ using namespace std;
 /* ============================================================================================ */
 
 template<typename T>
-rocblas_status testing_axpy(Arguments argus)
+rocblas_status testing_copy(Arguments argus)
 {
 
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
-    T alpha = argus.alpha;
     T *dx, *dy;
 
     rocblas_status status = rocblas_status_success;
     rocblas_handle handle;
 
-    status = rocblas_create_handle(&handle);
-    if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
-        return status;
-    }
+    rocblas_create_handle(&handle);
 
     //argument sanity check before allocating invalid memory
-    if ( 0 == N )
+    if ( N <= 0 )
     {
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
 
-        status = rocblas_axpy<T>(handle,
+        status = rocblas_copy<T>(handle,
                     N,
-                    &alpha,
                     dx, incx,
                     dy, incy);
 
@@ -55,9 +49,8 @@ rocblas_status testing_axpy(Arguments argus)
     {
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
 
-        status = rocblas_axpy<T>(handle,
+        status = rocblas_copy<T>(handle,
                     N,
-                    &alpha,
                     dx, incx,
                     dy, incy);
 
@@ -65,9 +58,8 @@ rocblas_status testing_axpy(Arguments argus)
     }
     else if ( nullptr == dx || nullptr == dy )
     {
-        status = rocblas_axpy<T>(handle,
+        status = rocblas_copy<T>(handle,
                     N,
-                    &alpha,
                     dx, incx,
                     dy, incy);
 
@@ -77,9 +69,8 @@ rocblas_status testing_axpy(Arguments argus)
     }
     else if ( nullptr == handle )
     {
-        status = rocblas_axpy<T>(handle,
+        status = rocblas_copy<T>(handle,
                     N,
-                    &alpha,
                     dx, incx,
                     dy, incy);
 
@@ -123,9 +114,8 @@ rocblas_status testing_axpy(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-        status = rocblas_axpy<T>(handle,
+        status = rocblas_copy<T>(handle,
                     N,
-                    &alpha,
                     dx, incx,
                     dy, incy);
 
@@ -143,6 +133,7 @@ rocblas_status testing_axpy(Arguments argus)
         //copy output from device to CPU
     CHECK_HIP_ERROR(hipMemcpy(hy.data(), dy, sizeof(T)*N*incy, hipMemcpyDeviceToHost));
 
+
     if(argus.unit_check || argus.norm_check){
 
      /* =====================================================================
@@ -152,14 +143,14 @@ rocblas_status testing_axpy(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-        cblas_axpy<T>( N,
-                    alpha,
-                    hx.data(), incx,
-                    hy_gold.data(), incy);
+        cblas_copy<T>( N,
+                       hx.data(),      incx,
+                       hy_gold.data(), incy);
 
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
         }
+
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
@@ -168,7 +159,7 @@ rocblas_status testing_axpy(Arguments argus)
         }
 
         //for(int i=0; i<10; i++){
-        //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hy_ref[i], i, hx[i]);
+        //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hy_gold[i], i, hx[i]);
         //}
 
         //if enable norm check, norm check is invasive

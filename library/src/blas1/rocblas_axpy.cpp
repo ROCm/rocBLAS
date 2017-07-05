@@ -81,13 +81,13 @@ rocblas_axpy_template(rocblas_handle handle,
         return rocblas_status_invalid_size;
     else if ( incy < 0 )
         return rocblas_status_invalid_size;
-    else if ( alpha == nullptr )
+    else if (nullptr == alpha)
         return rocblas_status_invalid_pointer;
-    else if ( x == nullptr )
+    else if (nullptr == x)
         return rocblas_status_invalid_pointer;
-    else if ( y == nullptr )
+    else if (nullptr == y)
         return rocblas_status_invalid_pointer;
-    else if(handle == nullptr)
+    else if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
     /*
