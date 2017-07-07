@@ -60,6 +60,48 @@
         return rocblas_zscal(handle, n, alpha, x, incx);
     }
 
+    //axpy
+    template<>
+    rocblas_status
+    rocblas_axpy<float>(    rocblas_handle handle, rocblas_int n,
+                            const float *alpha,
+                            const float *x, rocblas_int incx,
+                                  float *y, rocblas_int incy)
+    {
+        return rocblas_saxpy(handle, n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_axpy<double>(   rocblas_handle handle, rocblas_int n,
+                            const double *alpha,
+                            const double *x, rocblas_int incx,
+                                  double *y, rocblas_int incy)
+    {
+        return rocblas_daxpy(handle, n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_axpy<rocblas_float_complex>(    rocblas_handle handle, rocblas_int n,
+                            const rocblas_float_complex *alpha,
+                            const rocblas_float_complex *x, rocblas_int incx,
+                                  rocblas_float_complex *y, rocblas_int incy)
+    {
+        return rocblas_caxpy(handle, n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_axpy<rocblas_double_complex>(    rocblas_handle handle, rocblas_int n,
+                            const rocblas_double_complex *alpha,
+                            const rocblas_double_complex *x, rocblas_int incx,
+                                  rocblas_double_complex *y, rocblas_int incy)
+    {
+        return rocblas_zaxpy(handle, n, alpha, x, incx, y, incy);
+    }
+
+
     //swap
     template<>
     rocblas_status
@@ -67,7 +109,7 @@
                             float *x, rocblas_int incx,
                             float *y, rocblas_int incy)
     {
-        return rocblas_swap(handle, n, x, incx, y, incy);
+        return rocblas_sswap(handle, n, x, incx, y, incy);
     }
 
     template<>
@@ -361,6 +403,32 @@
         return rocblas_dgemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
     }
 
+
+/*  not implemented yet
+    template<>
+    rocblas_status
+    rocblas_symv<float>(    rocblas_handle handle,
+                            rocblas_fill uplo, rocblas_int n,
+                            const float *alpha,
+                            const float *A, rocblas_int lda,
+                            const float *x, rocblas_int incx,
+                            const float *beta, float *y, rocblas_int incy)
+    {
+        return rocblas_ssymv(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_symv<double>(   rocblas_handle handle,
+                            rocblas_fill uplo, rocblas_int n,
+                            const double *alpha,
+                            const double *A, rocblas_int lda,
+                            const double *x, rocblas_int incx,
+                            const double *beta, double *y, rocblas_int incy)
+    {
+        return rocblas_dsymv(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+    }
+*/
 
 
     template<>

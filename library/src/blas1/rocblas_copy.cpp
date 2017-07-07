@@ -58,7 +58,6 @@ rocblas_copy_template(rocblas_handle handle,
     const T *x, rocblas_int incx,
     T* y,       rocblas_int incy)
 {
-
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
     else if ( n < 0 )

@@ -35,6 +35,8 @@ set( rocblas_benchmark_common
       ../common/flops.cpp
       ../common/norm.cpp
       ../common/unit.cpp
+      ../common/near.cpp
+      ../common/arg_check.cpp
       ../common/rocblas_template_specialization.cpp
     )
 

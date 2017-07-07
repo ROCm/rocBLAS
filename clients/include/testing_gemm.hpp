@@ -14,6 +14,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include "flops.h"
 #include <typeinfo>
 
@@ -35,6 +36,8 @@ rocblas_status testing_gemm(Arguments argus)
 
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
     rocblas_operation transB = char2rocblas_operation(argus.transB_option);
+
+    T *dA, *dB, *dC;
 
     rocblas_int  A_size, B_size, C_size, A_row, A_col, B_row, B_col;
     T alpha = argus.alpha;
@@ -66,15 +69,51 @@ rocblas_status testing_gemm(Arguments argus)
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M ){
-        return rocblas_status_invalid_size;
+
+        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T))); // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dB, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&dC, 100 * sizeof(T)));
+
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        gemm_arg_check(status, M, N, K, lda, ldb, ldc);
+
+        return status;
     }
+    else if (nullptr == dA || nullptr == dB || nullptr == dC )
+    {
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        pointer_check(status, "ERROR: A or B or C is nullptr");
+
+        return status;
+    }
+    else if (nullptr == handle )
+    {
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        handle_check(status);
+
+        return status;
+    }
+
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hA(A_size);
     vector<T> hB(B_size);
     vector<T> hC(C_size);
     vector<T> hC_copy(C_size);
-
-    T *dA, *dB, *dC;
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

@@ -43,7 +43,13 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //add/delete as a group
 const
 vector<vector<int>> matrix_size_range = {
-                                        {-1, -1, -1},
+                                        {-1,  1,  1},
+                                        { 1, -1,  1},
+                                        { 1,  1, -1},
+                                        {10,  1,  9},
+                                        { 0,  1,  1},
+                                        { 1,  0,  1},
+                                        { 1,  1,  0},
                                         {11, 11, 11},
                                         {16, 16, 16},
                                         {32, 32, 32},
@@ -60,9 +66,11 @@ vector<vector<int>> matrix_size_range = {
 //add/delete this list in pairs, like {1, 1}
 const
 vector<vector<int>> incx_incy_range = {
-                                            {1, 1},
-                                            {0, -1},
-                                            {2, 1},
+                                            { 1,   1},
+                                            { 0,  -1},
+                                            { 0,   1},
+                                            { 1,   0},
+                                            { 2,   1},
                                             {10, 100}
                                           };
 
@@ -71,8 +79,8 @@ vector<vector<int>> incx_incy_range = {
 const
 vector<double> alpha_range = {
                                             -0.5,
-                                            2.0,
-                                            0.0
+                                             2.0,
+                                             0.0
                                           };
 
 
