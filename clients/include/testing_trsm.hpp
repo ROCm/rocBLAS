@@ -13,6 +13,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
@@ -35,6 +36,8 @@ rocblas_status testing_trsm(Arguments argus)
     char char_diag = argus.diag_option;
     T alpha = argus.alpha;
 
+    T *dA, *dB;
+
     rocblas_side side = char2rocblas_side(char_side);
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
@@ -44,11 +47,55 @@ rocblas_status testing_trsm(Arguments argus)
     rocblas_int A_size = lda * K;
     rocblas_int B_size = ldb * N;
 
+    rocblas_handle handle;
+    rocblas_create_handle(&handle);
+
     rocblas_status status = rocblas_status_success;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || lda < K || ldb < M){
-        return rocblas_status_invalid_size;
+        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&dB, 100 * sizeof(T)));
+
+        status = rocblas_trsm<T>(handle,
+            side, uplo,
+            transA, diag,
+            M, N,
+            &alpha,
+            dA,lda,
+            dB,ldb);
+
+        trsm_arg_check(status, M, N, lda, ldb);
+
+        return status;
+    }
+    else if (nullptr == dA || nullptr == dB )
+    {
+        status = rocblas_trsm<T>(handle,
+            side, uplo,
+            transA, diag,
+            M, N,
+            &alpha,
+            dA,lda,
+            dB,ldb);
+
+        pointer_check(status, "ERROR: A or B or C is nullptr");
+
+        return status;
+    }
+    else if (nullptr == handle )
+    {
+        status = rocblas_trsm<T>(handle,
+            side, uplo,
+            transA, diag,
+            M, N,
+            &alpha,
+            dA,lda,
+            dB,ldb);
+
+        handle_check(status);
+
+        return status;
     }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
@@ -56,15 +103,9 @@ rocblas_status testing_trsm(Arguments argus)
     vector<T> hB_copy(B_size);
     vector<T> hX(B_size);
     
-    T *dA, *dB;
-
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
-
-    rocblas_handle handle;
-
-    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

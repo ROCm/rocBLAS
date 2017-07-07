@@ -13,6 +13,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
@@ -29,13 +30,41 @@ rocblas_status testing_symv(Arguments argus)
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
 
+    T alpha = (T)argus.alpha;
+    T beta = (T)argus.beta;
+
+    rocblas_fill uplo = char2rocblas_fill(argus.uplo_option);
+
+    T *dA, *dx, *dy;
+
     rocblas_int A_size = lda * N;
     rocblas_int X_size = N * incx;
     rocblas_int Y_size = N * incy;
 
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
+    rocblas_handle handle;
+    rocblas_create_handle(&handle);
+
+    //argument sanity check before allocating invalid memory
+    if( N < 0 || lda < 0 || incx < 0 || incy < 0){
+        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+
+        status = rocblas_symv<T>(handle,
+                     uplo, N,
+                     (T*)&alpha,
+                     dA, lda,
+                     dx, incx,
+                     (T*)&beta,
+                     dy, incy);
+
+        symv_arg_check(status, N, lda, incx, incy);
+
+        return status;
+    }
+
     if ( N < 0 ){
         status = rocblas_status_invalid_size;
         return status;
@@ -56,21 +85,13 @@ rocblas_status testing_symv(Arguments argus)
     vector<T> hy(Y_size);
     vector<T> hz(Y_size);
 
-    T *dA, *dx, *dy;
-
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
 
-    T alpha = (T)argus.alpha;
-    T beta = (T)argus.beta;
-
-    rocblas_handle handle;
-
     char char_fill = argus.uplo_option;
-    rocblas_fill uplo = char2rocblas_fill(char_fill);
-
-    rocblas_create_handle(&handle);
+//  rocblas_fill uplo = char2rocblas_fill(char_fill);
+//  rocblas_fill uplo = char2rocblas_fill(argus.uplo_option);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

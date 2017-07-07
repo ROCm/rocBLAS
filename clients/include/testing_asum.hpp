@@ -12,6 +12,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include <complex.h>
 
 using namespace std;
@@ -25,30 +26,63 @@ rocblas_status testing_asum(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
 
+    T1 *dx;
+    T2 *d_rocblas_result;
+
+    rocblas_handle handle;
+    rocblas_create_handle(&handle);
+
     rocblas_status status = rocblas_status_success;
 
     //check to prevent undefined memory allocation error
-    if( N < 0 || incx < 0 ){
-        status = rocblas_status_invalid_size;
+    if( N <= 0 || incx <= 0 ){
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T1)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T2)));
+
+        status = rocblas_asum<T1, T2>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        asum_arg_check(status, d_rocblas_result);
+
         return status;
     }
+    else if ( nullptr == dx || nullptr == d_rocblas_result)
+    {
+        status = rocblas_asum<T1, T2>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        pointer_check(status,"Error: dx is nullptr");
+
+        return status;
+    }
+    else if ( nullptr == handle )
+    {
+        status = rocblas_asum<T1, T2>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        handle_check(status);
+
+        return status;
+    }
+
 
     rocblas_int sizeX = N * incx;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T1> hx(sizeX);
 
-    T1 *dx;
-    T2 *d_rocblas_result;
     T2 cpu_result, rocblas_result;
 
     rocblas_int device_pointer = 1;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error;
-
-    rocblas_handle handle;
-    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T1)));

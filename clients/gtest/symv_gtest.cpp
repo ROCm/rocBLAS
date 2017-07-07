@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_gemv.hpp"
+#include "testing_symv.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -19,7 +19,7 @@ using namespace std;
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, vector<int>, vector<double>, char> gemv_tuple;
+typedef std::tuple<vector<int>, vector<int>, vector<double>, char> symv_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -39,36 +39,26 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 =================================================================== */
 
 
-//vector of vector, each vector is a {M, N, lda};
+//vector of vector, each vector is a {N, lda};
 //add/delete as a group
 const
 vector<vector<int>> matrix_size_range = {
-                                        {-1,  1,  1},
-                                        { 1, -1,  1},
-                                        { 1,  1,  0},
-                                        {10, 10,  9},
-                                        { 0,  1,  1},
-                                        { 1,  0,  1},
-                                        {-1, -1, -1},
-                                    /*  {10, 10, 2},       */
-                                    /*  {600,500, 500},    */
-                                        {1000, 1000, 1000},
-                                        {2000, 2000, 2000},
-                                        {4011, 4011, 4011},
-                                        {8000, 8000, 8000},
+                                        {-1, -1},
+                                    /*  {10, 2},       */
+                                    /*  {500, 500},    */
+                                        {1000, 1000},
+                                        {2000, 2000},
+                                        {4011, 4011},
+                                        {8000, 8000},
                                        };
 
 //vector of vector, each pair is a {incx, incy};
 //add/delete this list in pairs, like {1, 1}
 const
 vector<vector<int>> incx_incy_range = {
-                                            { 1,   1},
-                                            { 0,   1},
-                                            { 1,   0},
-                                            {-1,   1},
-                                            { 1,  -1},
-                                            { 0,  -1},
-                                            { 2,   1},
+                                            {1, 1},
+                                            {0, -1},
+                                            {2, 1},
                                             {10, 100},
                                           };
 
@@ -76,19 +66,17 @@ vector<vector<int>> incx_incy_range = {
 //add/delete this list in pairs, like {2.0, 4.0}
 const
 vector<vector<double>> alpha_beta_range = {
-                                            { 1.0,  0.0},
+                                            {1.0, 0.0},
                                             {-1.0, -1.0},
-                                            { 2.0,  1.0},
-                                            { 0.0,  1.0},
+                                            {2.0, 1.0},
+                                            {0.0, 1.0},
                                           };
 
 
-//for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in sgemv/dgemv,
 const
-vector<char> transA_range = {
-                                        'N',
-                                        'T',
-                                        'C',
+vector<char> uplo_range = {
+                                        'U',
+                                        'L',
                                        };
 
 
@@ -98,32 +86,31 @@ vector<char> transA_range = {
 
 
 /* =====================================================================
-     BLAS-3 gemv:
+     BLAS-3 symv:
 =================================================================== */
 
 /* ============================Setup Arguments======================================= */
 
 //Please use "class Arguments" (see utility.hpp) to pass parameters to templated testers;
 //Some routines may not touch/use certain "members" of objects "argus".
-//like BLAS-1 Scal does not have lda, BLAS-2 GEMV does not have ldb, ldc;
+//like BLAS-1 Scal does not have lda, BLAS-2 SYMV does not have ldb, ldc;
 //That is fine. These testers & routines will leave untouched members alone.
 //Do not use std::tuple to directly pass parameters to testers
 //by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is not intuitive and error-prone
 
-Arguments setup_gemv_arguments(gemv_tuple tup)
+Arguments setup_symv_arguments(symv_tuple tup)
 {
 
     vector<int> matrix_size = std::get<0>(tup);
     vector<int> incx_incy = std::get<1>(tup);
     vector<double> alpha_beta = std::get<2>(tup);
-    char transA = std::get<3>(tup);
+    char uplo = std::get<3>(tup);
 
     Arguments arg;
 
     // see the comments about matrix_size_range above
-    arg.M = matrix_size[0];
-    arg.N = matrix_size[1];
-    arg.lda = matrix_size[2];
+    arg.N = matrix_size[0];
+    arg.lda = matrix_size[1];
 
     // see the comments about matrix_size_range above
     arg.incx = incx_incy[0];
@@ -133,7 +120,7 @@ Arguments setup_gemv_arguments(gemv_tuple tup)
     arg.alpha = alpha_beta[0];
     arg.beta = alpha_beta[1];
 
-    arg.transA_option = transA;
+    arg.uplo_option = uplo;
 
     arg.timing = 0;
 
@@ -141,17 +128,17 @@ Arguments setup_gemv_arguments(gemv_tuple tup)
 }
 
 
-class gemv_gtest: public :: TestWithParam <gemv_tuple>
+class symv_gtest: public :: TestWithParam <symv_tuple>
 {
     protected:
-        gemv_gtest(){}
-        virtual ~gemv_gtest(){}
+        symv_gtest(){}
+        virtual ~symv_gtest(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(gemv_gtest, gemv_gtest_float)
+TEST_P(symv_gtest, symv_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -159,14 +146,14 @@ TEST_P(gemv_gtest, gemv_gtest_float)
     // while the tuple is non-intuitive.
 
 
-    Arguments arg = setup_gemv_arguments( GetParam() );
+    Arguments arg = setup_symv_arguments( GetParam() );
 
-    rocblas_status status = testing_gemv<float>( arg );
+    rocblas_status status = testing_symv<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
 
-        if( arg.M < 0 || arg.N < 0 ){
+        if( arg.N < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
         else if(arg.lda < arg.M){
@@ -185,11 +172,11 @@ TEST_P(gemv_gtest, gemv_gtest_float)
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { {M, N, lda}, {incx,incy} {alpha, beta}, {transA} }
+// The combinations are  { {M, N, lda}, {incx,incy} {alpha, beta}, {uplo} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemv,
-                        gemv_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_symv,
+                        symv_gtest,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_beta_range), ValuesIn(transA_range)
+                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_beta_range), ValuesIn(uplo_range)
                                )
                         );

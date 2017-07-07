@@ -124,31 +124,35 @@ rocblas_gemv_template(rocblas_handle handle,
     const T *beta,
     T * y, rocblas_int incy)
 {
+    if (m < 0)
+        return rocblas_status_invalid_size;
+    else if (n < 0)
+        return rocblas_status_invalid_size;
+    else if (lda < m || lda < 1)
+        return rocblas_status_invalid_size;
+    else if (0 == incx)
+        return rocblas_status_invalid_size;
+    else if (0 == incy)
+        return rocblas_status_invalid_size;
 
-    if(handle == nullptr)
+    if (nullptr == A)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == y)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
         return rocblas_status_invalid_handle;
-    else if ( m < 0 )
-        return rocblas_status_invalid_size;
-    else if ( n < 0 )
-        return rocblas_status_invalid_size;
-    else if ( A == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( lda < m )
-        return rocblas_status_invalid_size;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
-    else if ( y == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( incy < 0 )
+
+//  TODO: remove this restriction. See reference implemention
+    if (incx < 0 || incy < 0)
         return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible. Not Argument error
      */
 
-    if ( m==0 || n == 0 )
+    if (0 == m || 0 == n)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream;
@@ -167,6 +171,7 @@ rocblas_gemv_template(rocblas_handle handle,
                                             m, n, alpha, A, lda, x, incx, beta, y, incy);
         }
         else{
+            if ( 0.0 == *alpha && 1.0 == *beta) return rocblas_status_success;
             T h_alpha_scalar = *alpha; T h_beta_scalar = *beta;
             hipLaunchKernel(HIP_KERNEL_NAME(gemvn_kernel_host_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>), dim3(gemvn_grid), dim3(gemvn_threads), 0, rocblas_stream,
                                             m, n, h_alpha_scalar, A, lda, x, incx, h_beta_scalar, y, incy);
@@ -185,6 +190,7 @@ rocblas_gemv_template(rocblas_handle handle,
                                             transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
         }
         else{
+            if ( 0.0 == *alpha && 1.0 == *beta) return rocblas_status_success;
             T h_alpha_scalar = *alpha; T h_beta_scalar = *beta;
             hipLaunchKernel(HIP_KERNEL_NAME(gemvc_kernel_host_pointer<T, 256>), dim3(gemvc_grid), dim3(gemvc_threads), 0, rocblas_stream,
                                             transA, m, n, h_alpha_scalar, A, lda, x, incx, h_beta_scalar, y, incy);

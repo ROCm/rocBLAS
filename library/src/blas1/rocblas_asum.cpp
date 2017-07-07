@@ -138,8 +138,8 @@ rocblas_asum_template_workspace(rocblas_handle handle,
 /*! \brief BLAS Level 1 API
 
     \details
-    asum computes the sum of the magnitudes of elements of a real vector x,
-         or the sum of magnitudes of the real and imaginary parts of elements if x is a complex vector
+    asum computes the sum of the absolute values of elements of a real vector x,
+         or the sum of absolute values of the real and imaginary parts of elements if x is a complex vector
 
     @param[in]
     handle    rocblas_handle.
@@ -165,18 +165,17 @@ rocblas_asum_template(rocblas_handle handle,
     const T1 *x, rocblas_int incx,
     T2 *result)
 {
-    if(handle == nullptr)
+    if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == result)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
         return rocblas_status_invalid_handle;
-    else if ( x == nullptr )
-        return rocblas_status_invalid_pointer;
-    else if ( result == nullptr )
-        return rocblas_status_invalid_pointer;
 
     /*
      * Quick return if possible.
      */
-
-    if ( n <= 0 || incx <= 0){
+    if (n <= 0 || incx <= 0){
         if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));
         }

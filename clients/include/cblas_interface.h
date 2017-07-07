@@ -19,17 +19,29 @@
      *    level 1 BLAS
      * ===========================================================================
      */
+    template<typename T>
+    void cblas_amax( rocblas_int n,
+                     const T *x, rocblas_int incx,
+                     rocblas_int *result);
 
     template<typename T>
-    void cblas_scal( rocblas_int n,
-                     const T alpha,
-                     T *x, rocblas_int incx);
+    void cblas_amin( rocblas_int n,
+                     const T *x, rocblas_int incx,
+                     rocblas_int *result);
+
+    template<typename T1, typename T2>
+    void cblas_asum( rocblas_int n,
+                     const T1 *x, rocblas_int incx,
+                     T2 *result);
+
+    template<typename T>
+    void cblas_axpy(rocblas_int n,
+                    const T alpha,
+                    T *x, rocblas_int incx,
+                    T *y, rocblas_int incy);
+
     template<typename T>
     void cblas_copy( rocblas_int n,
-                     T *x, rocblas_int incx,
-                     T *y, rocblas_int incy);
-    template<typename T>
-    void cblas_swap( rocblas_int n,
                      T *x, rocblas_int incx,
                      T *y, rocblas_int incy);
 
@@ -44,20 +56,15 @@
                      const T1 *x, rocblas_int incx,
                      T2 *result);
 
-    template<typename T1, typename T2>
-    void cblas_asum( rocblas_int n,
-                     const T1 *x, rocblas_int incx,
-                     T2 *result);
+    template<typename T>
+    void cblas_scal( rocblas_int n,
+                     const T alpha,
+                     T *x, rocblas_int incx);
 
     template<typename T>
-    void cblas_amax( rocblas_int n,
-                     const T *x, rocblas_int incx,
-                     rocblas_int *result);
-
-    template<typename T>
-    void cblas_amin( rocblas_int n,
-                     const T *x, rocblas_int incx,
-                     rocblas_int *result);
+    void cblas_swap( rocblas_int n,
+                     T *x, rocblas_int incx,
+                     T *y, rocblas_int incy);
 
     template<typename T>
     void cblas_gemv( rocblas_operation transA, rocblas_int m, rocblas_int n,

@@ -189,7 +189,6 @@ rocblas_amin_template(rocblas_handle handle,
     /*
      * Quick return if possible.
      */
-
     if ( n <= 0 || incx <= 0){
         if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));

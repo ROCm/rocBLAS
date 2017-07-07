@@ -12,6 +12,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "arg_check.h"
 #include <complex.h>
 
 using namespace std;
@@ -26,22 +27,53 @@ rocblas_status testing_dot(Arguments argus)
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
 
+    T *dx, *dy, *d_rocblas_result;
     rocblas_status status = rocblas_status_success;
 
-    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
-    if ( N < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
-    else if ( incx < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
-    else if ( incy < 0 ){
-        status = rocblas_status_invalid_size;
-        return status;
-    }
+    rocblas_handle handle;
+    rocblas_create_handle(&handle);
 
+    //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
+    if ( N <= 0 ){
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));    // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T)));
+
+        status = rocblas_dot<T>(handle,
+                        N,
+                        dx, incx,
+                        dy, incy, d_rocblas_result);
+
+        nrm2_dot_arg_check(status, d_rocblas_result);
+
+        return status;
+    }
+//TODO: dot must change to give standard behavior for incx < 0 and incy < 0
+    else if(incx < 0 || incy < 0){
+         return rocblas_status_invalid_size;
+    }
+    else if ( nullptr == dx || nullptr == dy || nullptr == d_rocblas_result)
+    {
+        status = rocblas_dot<T>(handle,
+                        N,
+                        dx, incx,
+                        dy, incy, d_rocblas_result);
+
+        pointer_check(status,"Error: x, y, or result is nullptr");
+
+        return status;
+    }
+    else if ( nullptr == handle )
+    {
+        status = rocblas_dot<T>(handle,
+                        N,
+                        dx, incx,
+                        dy, incy, d_rocblas_result);
+
+        handle_check(status);
+
+        return status;
+    }
 
     rocblas_int sizeX = N * incx;
     rocblas_int sizeY = N * incy;
@@ -51,14 +83,10 @@ rocblas_status testing_dot(Arguments argus)
     vector<T> hy(sizeY);
 
     T cpu_result, rocblas_result;
-    T *dx, *dy, *d_rocblas_result;
     rocblas_int device_pointer = 1;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error;
-
-    rocblas_handle handle;
-    rocblas_create_handle(&handle);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));

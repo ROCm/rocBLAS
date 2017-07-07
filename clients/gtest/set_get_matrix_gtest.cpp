@@ -61,7 +61,7 @@ vector<vector<int>> lda_ldb_ldc_range = {
       {5,3,3}, {5,3,4}, {5,3,5}, {5,4,3}, {5,4,4}, {5,4,5}, {5,5,3}, {5,5,4}, {5,5,5}
                                         };
 
-// large sizes
+// large sizes   {{rows, cols},{lda,ldb,ldc}}
 set_get_matrix_tuple gemm_values1 {{300000, 21}, {300000,300000,300000}};
 set_get_matrix_tuple gemm_values2 {{300001, 22}, {300001,300001,300010}};
 set_get_matrix_tuple gemm_values3 {{300002, 23}, {300002,300020,300002}};
