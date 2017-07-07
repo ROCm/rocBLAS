@@ -177,10 +177,6 @@ rocblas_dot_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(nullptr == handle)
         return rocblas_status_invalid_handle;
-    else if (incx < 0)
-        return rocblas_status_invalid_size;
-    else if (incy < 0)
-        return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible.
@@ -194,6 +190,11 @@ rocblas_dot_template(rocblas_handle handle,
         }
         return rocblas_status_success;
     }
+
+    if (incx < 0)
+        return rocblas_status_invalid_size;
+    else if (incy < 0)
+        return rocblas_status_invalid_size;
 
     rocblas_int blocks = (n-1)/ NB_X + 1;
 
