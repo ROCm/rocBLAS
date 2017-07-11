@@ -26,37 +26,21 @@ rocblas_status testing_copy(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     T *dx, *dy;
 
     rocblas_status status = rocblas_status_success;
+
     rocblas_handle handle;
+    status = rocblas_create_handle(&handle);
 
-    rocblas_create_handle(&handle);
-
-    //argument sanity check before allocating invalid memory
-    if ( N <= 0 )
-    {
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
-
-        status = rocblas_copy<T>(handle,
-                    N,
-                    dx, incx,
-                    dy, incy);
-
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
         return status;
     }
-    else if ( N < 0 || incx <= 0 || incy <= 0 )
-    {
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
 
-        status = rocblas_copy<T>(handle,
-                    N,
-                    dx, incx,
-                    dy, incy);
-
-        return status;
-    }
-    else if ( nullptr == dx || nullptr == dy )
+    if ( nullptr == dx || nullptr == dy )
     {
         status = rocblas_copy<T>(handle,
                     N,
@@ -65,10 +49,15 @@ rocblas_status testing_copy(Arguments argus)
 
         pointer_check(status,"Error: x, y, is nullptr");
 
+        rocblas_destroy_handle(handle);
+
         return status;
     }
     else if ( nullptr == handle )
     {
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+
         status = rocblas_copy<T>(handle,
                     N,
                     dx, incx,
@@ -76,11 +65,34 @@ rocblas_status testing_copy(Arguments argus)
 
         handle_check(status);
 
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        rocblas_destroy_handle(handle);
+
         return status;
     }
 
-    rocblas_int sizeX = N * incx;
-    rocblas_int sizeY = N * incy;
+    //argument sanity check before allocating invalid memory
+    if ( N <= 0 )
+    {
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+
+        status = rocblas_copy<T>(handle,
+                    N,
+                    dx, incx,
+                    dy, incy);
+
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        rocblas_destroy_handle(handle);
+
+        return status;
+    }
+
+
+    rocblas_int sizeX = N * abs_incx;
+    rocblas_int sizeY = N * abs_incy;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hx(sizeX);
@@ -96,15 +108,15 @@ rocblas_status testing_copy(Arguments argus)
 
     //Initial Data on CPU
     srand(1);
-    rocblas_init<T>(hx, 1, N, incx);
-    rocblas_init<T>(hy, 1, N, incy);
+    rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
 
     //copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU BLAS
     hy_gold = hy;
 
-    //copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N*incy, hipMemcpyHostToDevice));
+    //copy data from CPU to device
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*sizeX, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*sizeY, hipMemcpyHostToDevice));
 
 
     /* =====================================================================
@@ -131,7 +143,7 @@ rocblas_status testing_copy(Arguments argus)
     }
 
         //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hy.data(), dy, sizeof(T)*N*incy, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hy.data(), dy, sizeof(T)*sizeY, hipMemcpyDeviceToHost));
 
 
     if(argus.unit_check || argus.norm_check){
@@ -155,7 +167,7 @@ rocblas_status testing_copy(Arguments argus)
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check){
-            unit_check_general<T>(1, N, incy, hy_gold.data(), hy.data());
+            unit_check_general<T>(1, N, abs_incy, hy_gold.data(), hy.data());
         }
 
         //for(int i=0; i<10; i++){
@@ -165,7 +177,7 @@ rocblas_status testing_copy(Arguments argus)
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            rocblas_error = norm_check_general<T>('F', 1, N, incy, hy_gold.data(), hy.data());
+            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold.data(), hy.data());
         }
 
     }// end of if unit/norm check

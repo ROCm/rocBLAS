@@ -166,11 +166,9 @@ rocblas_amax_template_workspace(rocblas_handle handle,
     @param[inout]
     result
               index of max element. either on the host CPU or device GPU.
-              return is 0 if n, incx<=0. Note that 1 based Fortran
-              indexing is used, not 0 based C indexing.
+              return is 0 if n <= 0 or incx <= 0. Note that 1 based indexing
+              (Fortran) is used, not 0 based indexing (C).
     ********************************************************************/
-
-
 
 //allocate workspace inside this API
 template<typename T1, typename T2>

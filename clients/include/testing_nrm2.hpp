@@ -37,29 +37,14 @@ rocblas_status testing_nrm2(Arguments argus)
     rocblas_status status = rocblas_status_success;
 
     //check to prevent undefined memory allocation error
-    if( N <= 0 || incx <= 0 ){
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T1)));      // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T2)));
-
-        status = rocblas_nrm2<T1, T2>(handle,
-                        N,
-                        dx, incx,
-                        d_rocblas_result);
-
-        nrm2_dot_arg_check(status, d_rocblas_result);
-
-        status = rocblas_status_invalid_size;
-
-        return status;
-    }
-    else if ( nullptr == dx || nullptr == d_rocblas_result)
+    if ( nullptr == dx || nullptr == d_rocblas_result)
     {
         status = rocblas_nrm2<T1, T2>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: x, y, or result is nullptr");
+        pointer_check(status,"Error: x or result is nullptr");
 
         return status;
     }
@@ -71,6 +56,21 @@ rocblas_status testing_nrm2(Arguments argus)
                         d_rocblas_result);
 
         handle_check(status);
+
+        return status;
+    }
+    else if( N <= 0 || incx <= 0 ){
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T1)));      // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T2)));
+
+        status = rocblas_nrm2<T1, T2>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        nrm2_dot_arg_check(status, d_rocblas_result);
+
+        status = rocblas_status_invalid_size;
 
         return status;
     }
@@ -158,6 +158,9 @@ rocblas_status testing_nrm2(Arguments argus)
 //      square root of a sum. It is assumed that the sum will have accuracy =approx=
 //      precision, so nrm2 will have accuracy =approx= sqrt(precision) 
         T2 abs_error = pow(10.0, -(std::numeric_limits<T2>::digits10/2.0)) * cpu_result;
+        T2 tolerance = 2.0;  //  accounts for rounding in reduction sum. depends on n. 
+                             //  If test fails, try decreasing n or increasing tolerance.
+        abs_error = abs_error * tolerance;
         if(argus.unit_check){
             near_check_general<T1,T2>(1, 1, 1, &cpu_result, &rocblas_result, abs_error);
         }

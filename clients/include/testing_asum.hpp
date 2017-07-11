@@ -34,28 +34,14 @@ rocblas_status testing_asum(Arguments argus)
 
     rocblas_status status = rocblas_status_success;
 
-    //check to prevent undefined memory allocation error
-    if( N <= 0 || incx <= 0 ){
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T1)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T2)));
-
-        status = rocblas_asum<T1, T2>(handle,
-                        N,
-                        dx, incx,
-                        d_rocblas_result);
-
-        asum_arg_check(status, d_rocblas_result);
-
-        return status;
-    }
-    else if ( nullptr == dx || nullptr == d_rocblas_result)
+    if ( nullptr == dx || nullptr == d_rocblas_result)
     {
         status = rocblas_asum<T1, T2>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: dx is nullptr");
+        pointer_check(status,"Error: dx or result is nullptr");
 
         return status;
     }
@@ -67,6 +53,20 @@ rocblas_status testing_asum(Arguments argus)
                         d_rocblas_result);
 
         handle_check(status);
+
+        return status;
+    }
+    //check to prevent undefined memory allocation error
+    else if( N <= 0 || incx <= 0 ){
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T1)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(T2)));
+
+        status = rocblas_asum<T1, T2>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        asum_arg_check(status, d_rocblas_result);
 
         return status;
     }
