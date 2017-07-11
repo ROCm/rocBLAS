@@ -22,8 +22,33 @@ axpy_kernel_host_scalar(hipLaunchParm lp,
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
-    if ( tid < n ) {
-        y[tid * incy] +=  (alpha) * (x[tid * incx]);
+    if(incx >= 0 && incy >= 0)
+    {
+        if ( tid < n )
+        {
+            y[tid*incy] +=  (alpha) * x[tid * incx];
+        }
+    }
+    else if(incx < 0 && incy < 0)
+    {
+        if (tid < n)
+        {
+            y[(1 - n + tid) * incy] +=  (alpha) * x[(1 - n + tid) * incx];
+        }
+    }
+    else if (incx >=0)
+    {
+        if (tid < n)
+        {
+            y[(1 - n + tid) * incy] +=  (alpha) * x[tid * incx];
+        }
+    }
+    else
+    {
+        if (tid < n)
+        {
+            y[tid * incy] +=  (alpha) * x[(1 - n + tid) * incx];
+        }
     }
 }
 
@@ -37,8 +62,33 @@ axpy_kernel_device_scalar(hipLaunchParm lp,
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
-    if ( tid < n ) {
-        y[tid * incy] +=  (*alpha) * (x[tid * incx]);
+    if(incx >= 0 && incy >= 0)
+    {
+        if ( tid < n )
+        {
+            y[tid*incy] +=  (*alpha) * x[tid * incx];
+        }
+    }
+    else if(incx < 0 && incy < 0)
+    {
+        if (tid < n)
+        {
+            y[(1 - n + tid) * incy] +=  (*alpha) * x[(1 - n + tid) * incx];
+        }
+    }
+    else if (incx >=0)
+    {
+        if (tid < n)
+        {
+            y[(1 - n + tid) * incy] +=  (*alpha) * x[tid * incx];
+        }
+    }
+    else
+    {
+        if (tid < n)
+        {
+            y[tid * incy] +=  (*alpha) * x[(1 - n + tid) * incx];
+        }
     }
 }
 
@@ -52,6 +102,7 @@ axpy_kernel_device_scalar(hipLaunchParm lp,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              if n <= 0 quick return with rocblas_status_success
     @param[in]
     alpha     specifies the scalar alpha.
     @param[in]
@@ -75,13 +126,7 @@ rocblas_axpy_template(rocblas_handle handle,
     const T *x, rocblas_int incx,
     T *y,  rocblas_int incy)
 {
-    if ( n < 0 )
-        return rocblas_status_invalid_size;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
-    else if ( incy < 0 )
-        return rocblas_status_invalid_size;
-    else if (nullptr == alpha)
+    if (nullptr == alpha)
         return rocblas_status_invalid_pointer;
     else if (nullptr == x)
         return rocblas_status_invalid_pointer;
@@ -93,7 +138,7 @@ rocblas_axpy_template(rocblas_handle handle,
     /*
      * Quick return if possible. Not Argument error
      */
-    if ( n == 0 )
+    if ( n <= 0 )
         return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;

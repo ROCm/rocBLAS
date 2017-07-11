@@ -154,7 +154,7 @@ rocblas_nrm2_template_workspace(rocblas_handle handle,
     @param[inout]
     result
               store the nrm2 product. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              return is 0.0 if n <= 0 or incx <= 0.
     ********************************************************************/
 
 //allocate workspace inside this API

@@ -165,11 +165,10 @@ rocblas_amin_template_workspace(rocblas_handle handle,
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amin product. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              index of min element. either on the host CPU or device GPU.
+              return is 0 if n <= 0 or incx <= 0. Note that 1 based indexing
+              (Fortran) is used, not 0 based indexing (C).
     ********************************************************************/
-
-
 
 //allocate workspace inside this API
 template<typename T1, typename T2>

@@ -52,12 +52,14 @@ scal_kernel_device_scalar(hipLaunchParm lp,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              quick return if n <= 0.
     @param[in]
     alpha     specifies the scalar alpha.
     @param[inout]
     x         pointer storing vector x on the GPU.
     @param[in]
     incx      specifies the increment for the elements of x.
+              quick return if incx <= 0.
 
 
     ********************************************************************/
@@ -69,9 +71,11 @@ rocblas_scal_template(rocblas_handle handle,
     const T *alpha,
     T *x, rocblas_int incx)
 {
-    if ( nullptr == x )
+    if (nullptr == x)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle )
+    if (nullptr == alpha)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
     /*

@@ -1,10 +1,7 @@
 /* ************************************************************************
- * swapright 2016 Advanced Micro Devices, Inc.
- *
+ * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
-
- 
 
 #include "rocblas.h"
  
@@ -23,11 +20,41 @@ swap_kernel(hipLaunchParm lp,
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     T tmp;
-    //bound
-    if ( tid < n ) {
-        tmp = y[tid*incy];
-        y[tid*incy] =  x[tid * incx];
-        x[tid*incx] =  tmp;
+    if(incx >= 0 && incy >= 0)
+    {
+        if (tid < n)
+        {
+            tmp = y[tid*incy];
+            y[tid*incy] =  x[tid * incx];
+            x[tid*incx] =  tmp;
+        }
+    }
+    else if(incx < 0 && incy < 0)
+    {
+        if (tid < n)
+        {
+            tmp = y[(1 - n + tid) * incy];
+            y[(1 - n + tid) * incy] =  x[(1 - n + tid) * incx];
+            x[(1 - n + tid) * incx] =  tmp;
+        }
+    }
+    else if (incx >=0)
+    {
+        if (tid < n)
+        {
+            tmp = y[(1 - n + tid) * incy];
+            y[(1 - n + tid) * incy] =  x[tid * incx];
+            x[tid * incx] =  tmp;
+        }
+    }
+    else
+    {
+        if (tid < n)
+        {
+            tmp = y[tid * incy];
+            y[tid * incy] =  x[(1 - n + tid) * incx];
+            x[(1 - n + tid) * incx] =  tmp;
+        }
     }
 }
 
@@ -44,6 +71,7 @@ swap_kernel(hipLaunchParm lp,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              if n <= 0 quick return with rocblas_status_success
     @param[inout]
     x         pointer storing vector x on the GPU.
     @param[in]
@@ -63,23 +91,17 @@ rocblas_swap_template(rocblas_handle handle,
     T *x, rocblas_int incx,
     T* y, rocblas_int incy)
 {
-    if(handle == nullptr)
-        return rocblas_status_invalid_handle;
-    else if ( n < 0 )
-        return rocblas_status_invalid_size;
-    else if ( x == nullptr )
+    if ( x == nullptr )
         return rocblas_status_invalid_pointer;
-    else if ( incx < 0 )
-        return rocblas_status_invalid_size;
     else if ( y == nullptr )
         return rocblas_status_invalid_pointer;
-    else if ( incy < 0 )
-        return rocblas_status_invalid_size;
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible.
      */
-    if ( n == 0)
+    if ( n <= 0)
         return rocblas_status_success;
 
     int blocks = (n-1)/ NB_X + 1;
