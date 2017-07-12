@@ -18,7 +18,7 @@ def build_type_postfix=""
 // Currently, YADP (yet-another-docker-plugin v0.1.0-rc30) does not load balance between clouds with the same label
 // They recommend to use docker swarm, but not yet work with docker 1.12 'swarm mode'
 // Manually load balance by picking a particular machine
-node('rocm-1.5 && fiji')
+node('rocm-1.6 && fiji')
 {
   def node_list = env.NODE_LABELS.tokenize()
   // sh "echo node_list: ${node_list}"
