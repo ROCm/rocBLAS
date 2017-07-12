@@ -1,6 +1,6 @@
 # rocBLAS
 A BLAS implementation on top of AMD's Radeon Open Compute [ROCm][] runtime and toolchains.  rocBLAS is implemented in
-the [HIP][] programming language, optimized for AMD's latest discrete GPUs and allowing it to run on CUDA enabled GPUs.
+the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 
 ## rocBLAS Wiki
 The [wiki][] has helpful information about building the rocblas library, samples and tests.
@@ -116,7 +116,7 @@ rocblas_sgemm_strided_batched(
 
 [wiki]: https://github.com/RadeonOpenCompute/rocBLAS/wiki
 
-[ROCm]: https://radeonopencompute.github.io/
+[ROCm]: https://github.com/RadeonOpenCompute/ROCm
 
 [HIP]: https://github.com/GPUOpen-ProfessionalCompute-Tools/HIP/
 
