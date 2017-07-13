@@ -36,7 +36,18 @@ void set_get_matrix_arg_check(rocblas_status status, rocblas_int rows, rocblas_i
 void gemv_ger_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int lda, 
     rocblas_int incx, rocblas_int incy){
 #ifdef GOOGLE_TEST
-    ASSERT_EQ(status, rocblas_status_invalid_size);
+    if (M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy)
+    {
+        ASSERT_EQ(status, rocblas_status_invalid_size);
+    }
+    else if (0 == M || 0 == N)
+    {
+        ASSERT_EQ(status, rocblas_status_success);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "error in gemv_ger_arg_check";
+    }
 #endif
 #ifndef GOOGLE_TEST
     std::cout << "ERROR in arguments M, N, lda, incx, incy: ";

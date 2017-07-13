@@ -18,6 +18,82 @@
 using namespace std;
 
 /* ============================================================================================ */
+template<typename T>
+void testing_axpy_bad_arg()
+{
+    rocblas_int N = 100;
+    rocblas_int incx = 1;
+    rocblas_int incy = 1;
+    T alpha = 0.6;
+
+    rocblas_handle handle;
+    T *dx, *dy;
+
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        return;
+    }
+
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    rocblas_int sizeX = N * abs_incx;
+    rocblas_int sizeY = N * abs_incy;
+
+    vector<T> hx(sizeX);
+    vector<T> hy(sizeY);
+
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, sizeY * sizeof(T)));
+
+    srand(1);
+    rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
+
+    //copy data from CPU to device, does not work for incx != 1
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*sizeX, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*sizeY, hipMemcpyHostToDevice));
+
+    // testing for (nullptr == dx)
+    {
+        T *dx_null = nullptr;
+
+        status = rocblas_axpy<T>(handle,
+                    N,
+                    &alpha,
+                    dx_null, incx,
+                    dy, incy);
+
+        pointer_check(status,"Error: x, y, is nullptr");
+    }
+    // testing for (nullptr == dy)
+    {
+        T *dy_null = nullptr;
+
+        status = rocblas_axpy<T>(handle,
+                    N,
+                    &alpha,
+                    dx, incx,
+                    dy_null, incy);
+
+        pointer_check(status,"Error: x, y, is nullptr");
+    }
+    // testing (nullptr == handle)
+    {
+        rocblas_handle handle_null = nullptr;
+
+        status = rocblas_axpy<T>(handle_null,
+                    N,
+                    &alpha,
+                    dx, incx,
+                    dy, incy);
+
+        handle_check(status);
+    }
+    return;
+}
 
 template<typename T>
 rocblas_status testing_axpy(Arguments argus)
@@ -26,21 +102,63 @@ rocblas_status testing_axpy(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     T alpha = argus.alpha;
+
+    rocblas_handle handle;
     T *dx, *dy;
 
-    rocblas_status status = rocblas_status_success;
-    rocblas_handle handle;
-
+    rocblas_status status;
     status = rocblas_create_handle(&handle);
+
     if(status != rocblas_status_success) {
         printf("ERROR: rocblas_create_handle status = %d\n",status);
         return status;
     }
 
     //argument sanity check before allocating invalid memory
+    if ( N <= 0 )
+    {
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+
+        status = rocblas_axpy<T>(handle,
+                    N,
+                    &alpha,
+                    dx, incx,
+                    dy, incy);
+
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        rocblas_destroy_handle(handle);
+
+        return status;
+    }
+
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    rocblas_int sizeX = N * abs_incx;
+    rocblas_int sizeY = N * abs_incy;
+
+    //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
+    vector<T> hx(sizeX);
+    vector<T> hy(sizeY);
+    vector<T> hy_gold(sizeY);
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, sizeY * sizeof(T)));
+
+    //Initial Data on CPU
+    srand(1);
+    rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
+
+    //copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU BLAS
+    hy_gold = hy;
+
+    //copy data from CPU to device, does not work for incx != 1
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*sizeX, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*sizeY, hipMemcpyHostToDevice));
 
     if ( nullptr == dx || nullptr == dy )
     {
@@ -67,52 +185,8 @@ rocblas_status testing_axpy(Arguments argus)
         return status;
     }
 
-    //argument sanity check before allocating invalid memory
-    if ( N <= 0 )
-    {
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
-
-        status = rocblas_axpy<T>(handle,
-                    N,
-                    &alpha,
-                    dx, incx,
-                    dy, incy);
-
-        CHECK_HIP_ERROR(hipFree(dx));
-        CHECK_HIP_ERROR(hipFree(dy));
-        rocblas_destroy_handle(handle);
-
-        return status;
-    }
-
-    rocblas_int sizeX = N * abs_incx;
-    rocblas_int sizeY = N * abs_incy;
-
-    //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hx(sizeX);
-    vector<T> hy(sizeY);
-    vector<T> hy_gold(sizeY);
-
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
-
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dy, sizeY * sizeof(T)));
-
-    //Initial Data on CPU
-    srand(1);
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy, 1, N, abs_incy);
-
-    //copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU BLAS
-    hy_gold = hy;
-
-    //copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*sizeX, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*sizeY, hipMemcpyHostToDevice));
-
 
     /* =====================================================================
          ROCBLAS

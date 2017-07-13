@@ -47,7 +47,6 @@ asum_kernel_part2(hipLaunchParm lp,
     T* workspace,
     T* result)
 {
-
     rocblas_int tx  = hipThreadIdx_x;
 
     __shared__ T shared_tep[NB];
@@ -97,7 +96,6 @@ rocblas_asum_template_workspace(rocblas_handle handle,
     const T1 *x, rocblas_int incx,
     T2* result, T2* workspace, rocblas_int lworkspace)
 {
-
     rocblas_int blocks = (n-1)/ NB_X + 1;
 
     //At least two kernels are needed to finish the reduction
