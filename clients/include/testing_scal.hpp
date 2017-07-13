@@ -34,7 +34,29 @@ rocblas_status testing_scal(Arguments argus)
     rocblas_create_handle(&handle);
 
     //argument sanity check before allocating invalid memory
-    if ( N <= 0 || incx <= 0 )
+    if (nullptr == dx)
+    {
+        status = rocblas_scal<T>(handle,
+                    N,
+                    &alpha,
+                    dx, incx);
+
+        pointer_check(status,"Error: x or alpha is nullptr");
+
+        return status;
+    }
+    else if (nullptr == handle)
+    {
+        status = rocblas_scal<T>(handle,
+                    N,
+                    &alpha,
+                    dx, incx);
+
+        handle_check(status);
+
+        return status;
+    }
+    else if (N <= 0 || incx <= 0)
     {
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
 
@@ -44,28 +66,6 @@ rocblas_status testing_scal(Arguments argus)
                     dx, incx);
 
         rocblas_status_success_check(status);
-
-        return status;
-    }
-    else if ( nullptr == dx )
-    {
-        status = rocblas_scal<T>(handle,
-                    N,
-                    &alpha,
-                    dx, incx);
-
-        pointer_check(status,"Error: x, y, or result is nullptr");
-
-        return status;
-    }
-    else if ( nullptr == handle )
-    {
-        status = rocblas_scal<T>(handle,
-                    N,
-                    &alpha,
-                    dx, incx);
-
-        handle_check(status);
 
         return status;
     }
