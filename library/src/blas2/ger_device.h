@@ -26,10 +26,32 @@ ger_device(
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
-    if (tx < m && ty < n) {
-        A[tx + lda*ty] += (alpha) * x[tx*incx] * y[ty*incy];
+    if(incx >= 0 && incy >= 0)
+    {
+        if (tx < m && ty < n)
+        {
+            A[tx + lda*ty] += (alpha) * x[tx*incx] * y[ty*incy];
+        }
+    }
+    else if(incx < 0 && incy < 0)
+    {
+        if (tx < m && ty < n)
+        {
+            A[tx + lda*ty] += (alpha) * x[(1 - m + tx)*incx] * y[(1 - n + ty)*incy];
+        }
+    }
+    else if (incx >=0)
+    {
+        if (tx < m && ty < n)
+        {
+            A[tx + lda*ty] += (alpha) * x[tx*incx] * y[(1 - n + ty)*incy];
+        }
+    }
+    else
+    {
+        if (tx < m && ty < n)
+        {
+            A[tx + lda*ty] += (alpha) * x[(1 - m + tx)*incx] * y[ty*incy];
+        }
     }
 }
-
-
-

@@ -18,8 +18,99 @@
 
 using namespace std;
 
-
 /* ============================================================================================ */
+template<typename T>
+void testing_ger_bad_arg()
+{
+    rocblas_int M = 100;
+    rocblas_int N = 100;
+    rocblas_int incx = 1;
+    rocblas_int incy = 1;
+    rocblas_int lda = 100;
+    T alpha = 0.6;
+
+    rocblas_handle handle;
+    T *dA, *dx, *dy;
+
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
+        return;
+    }
+
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    rocblas_int sizeA = lda * N;
+
+    //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
+    vector<T> hA(sizeA);
+    vector<T> hB(sizeA);
+    vector<T> hx(M * abs_incx);
+    vector<T> hy(N * abs_incy);
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dA, sizeA * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, M * abs_incx * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, N * abs_incy * sizeof(T)));
+
+    // test if (nullptr == dx)
+    {
+        T *dx_null = nullptr;
+        status = rocblas_ger<T>(handle,
+                     M, N,
+                     (T*)&alpha,
+                     dx_null, incx,
+                     dy, incy,
+                     dA, lda);
+
+        pointer_check(status,"ERROR: A or x or y is null pointer");
+    }
+    // test if (nullptr == dy)
+    {
+        T *dy_null = nullptr;
+        status = rocblas_ger<T>(handle,
+                     M, N,
+                     (T*)&alpha,
+                     dx, incx,
+                     dy_null, incy,
+                     dA, lda);
+
+        pointer_check(status,"ERROR: A or x or y is null pointer");
+    }
+    // test if (nullptr == dA)
+    {
+        T *dA_null = nullptr;
+        status = rocblas_ger<T>(handle,
+                     M, N,
+                     (T*)&alpha,
+                     dx, incx,
+                     dy, incy,
+                     dA_null, lda);
+
+        pointer_check(status,"ERROR: A or x or y is null pointer");
+    }
+    // test if (handle == nullptr)
+    {
+        rocblas_handle handle_null = nullptr;
+        status = rocblas_ger<T>(handle_null,
+                     M, N,
+                     (T*)&alpha,
+                     dx, incx,
+                     dy, incy,
+                     dA, lda);
+
+        handle_check(status);
+    }
+
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dy));
+    CHECK_HIP_ERROR(hipFree(dA));
+    rocblas_destroy_handle(handle);
+    return;
+}
 
 template<typename T>
 rocblas_status testing_ger(Arguments argus)
@@ -31,17 +122,19 @@ rocblas_status testing_ger(Arguments argus)
     rocblas_int lda = argus.lda;
     T alpha = (T)argus.alpha;
 
-    rocblas_int A_size = lda * N;
-
     rocblas_handle handle;
-
     T *dA, *dx, *dy;
 
-    rocblas_create_handle(&handle);
-    rocblas_status status = rocblas_status_success;
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        return status;
+    }
 
     //argument check before allocating invalid memory
-    if ( M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy )
+    if ( M <= 0 || N <= 0 || lda < M || lda < 1 || 0 == incx || 0 == incy )
     {
         CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));  //  100 is arbitary
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));
@@ -56,9 +149,29 @@ rocblas_status testing_ger(Arguments argus)
 
         gemv_ger_arg_check(status, M, N, lda, incx, incy);
 
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        CHECK_HIP_ERROR(hipFree(dA));
+        rocblas_destroy_handle(handle);
         return status;
     }
-    else if (dx == nullptr || dy == nullptr || dA == nullptr)
+
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    rocblas_int sizeA = lda * N;
+
+    //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
+    vector<T> hA(sizeA);
+    vector<T> hB(sizeA);
+    vector<T> hx(M * abs_incx);
+    vector<T> hy(N * abs_incy);
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dA, sizeA * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, M * abs_incx * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, N * abs_incy * sizeof(T)));
+
+    if (nullptr == dx || nullptr == dy || nullptr == dA)
     {
         status = rocblas_ger<T>(handle,
                      M, N,
@@ -69,6 +182,10 @@ rocblas_status testing_ger(Arguments argus)
 
         pointer_check(status,"ERROR: A or x or y is null pointer");
 
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        CHECK_HIP_ERROR(hipFree(dA));
+        rocblas_destroy_handle(handle);
         return status;
     }
     else if (handle == nullptr)
@@ -82,27 +199,16 @@ rocblas_status testing_ger(Arguments argus)
 
         handle_check(status);
 
+        CHECK_HIP_ERROR(hipFree(dx));
+        CHECK_HIP_ERROR(hipFree(dy));
+        CHECK_HIP_ERROR(hipFree(dA));
+        rocblas_destroy_handle(handle);
         return status;
     }
-    else if (incx < 0 || incy < 0)
-    {
-        return rocblas_status_invalid_size;
-    }
-
-    //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(A_size);
-    vector<T> hB(A_size);
-    vector<T> hx(M * incx);
-    vector<T> hy(N * incy);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error;
-
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dx, M * incx * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dy, N * incy * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -110,16 +216,16 @@ rocblas_status testing_ger(Arguments argus)
     {
         rocblas_init<T>(hA, M, N, lda);
     }
-    rocblas_init<T>(hx, 1, M, incx);
-    rocblas_init<T>(hy, 1, N, incy);
+    rocblas_init<T>(hx, 1, M, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
 
     //copy matrix is easy in STL; hB = hA: save a copy in hB which will be output of CPU BLAS
     hB = hA;
 
     //copy data from CPU to device
     hipMemcpy(dA, hA.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice);
-    hipMemcpy(dx, hx.data(), sizeof(T)*M * incx, hipMemcpyHostToDevice);
-    hipMemcpy(dy, hy.data(), sizeof(T)*N * incy, hipMemcpyHostToDevice);
+    hipMemcpy(dx, hx.data(), sizeof(T)*M * abs_incx, hipMemcpyHostToDevice);
+    hipMemcpy(dy, hy.data(), sizeof(T)*N * abs_incy, hipMemcpyHostToDevice);
 
     /* =====================================================================
            ROCBLAS

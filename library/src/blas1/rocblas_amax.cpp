@@ -106,7 +106,6 @@ rocblas_amax_template_workspace(rocblas_handle handle,
     rocblas_int *workspace_index,
     rocblas_int lworkspace)
 {
-
     rocblas_int blocks = (n-1)/ NB_X + 1;
 
     //At least two kernels are needed to finish the reduction
