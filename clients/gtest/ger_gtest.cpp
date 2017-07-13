@@ -3,7 +3,6 @@
  *
  * ************************************************************************ */
 
-
 #include <gtest/gtest.h>
 #include <math.h>
 #include <stdexcept>
@@ -57,6 +56,10 @@ vector<vector<int>> matrix_size_range = {
                                    /*   {10, 10, 2},       */
                                    /*   {600,500, 500},    */
                                         {1000, 1000, 1000},
+                                       };
+
+const
+vector<vector<int>> large_matrix_size_range = {
                                         {2000, 2000, 2000},
                                         {4011, 4011, 4011},
                                         {8000, 8000, 8000}
@@ -67,11 +70,20 @@ vector<vector<int>> matrix_size_range = {
 const
 vector<vector<int>> incx_incy_range = {
                                             { 1,   1},
+                                            {-1,   1},
+                                            { 1,  -1},
+                                            {-1,  -1},
                                             { 0,  -1},
                                             { 0,   1},
                                             { 1,   0},
                                             { 2,   1},
                                             {10, 100}
+                                          };
+const
+vector<vector<int>> limited_incx_incy_range = {
+                                            { 1,   1},
+                                            {-1,   1},
+                                            { 1,   2},
                                           };
 
 //vector, each entry is  {alpha};
@@ -82,6 +94,12 @@ vector<double> alpha_range = {
                                              2.0,
                                              0.0
                                           };
+const
+vector<double> limited_alpha_range = {
+                                             0.6,
+                                          };
+
+
 
 
 /* ===============Google Unit Test==================================================== */
@@ -135,6 +153,11 @@ class ger_gtest: public :: TestWithParam <ger_tuple>
         virtual void TearDown(){}
 };
 
+TEST(blas2_gtest, ger_float_bad_arg)
+{
+    testing_ger_bad_arg<float>();
+}
+
 
 TEST_P(ger_gtest, ger_gtest_float)
 {
@@ -172,9 +195,17 @@ TEST_P(ger_gtest, ger_gtest_float)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_ger,
+INSTANTIATE_TEST_CASE_P(rocblas_blas2,
                         ger_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_range)
                                )
                         );
+
+INSTANTIATE_TEST_CASE_P(large_rocblas_blas2,
+                        ger_gtest,
+                        Combine(
+                                  ValuesIn(large_matrix_size_range), ValuesIn(limited_incx_incy_range), ValuesIn(limited_alpha_range)
+                               )
+                        );
+

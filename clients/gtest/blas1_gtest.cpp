@@ -124,6 +124,38 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
     return arg;
 }
 
+TEST(blas1_gtest, amax_float_bad_arg)
+{
+    testing_amax_bad_arg<float>();
+}
+
+TEST(blas1_gtest, asum_float_bad_arg)
+{
+    testing_asum_bad_arg<float, float>();
+}
+
+TEST(blas1_gtest, axpy_float_bad_arg)
+{
+    testing_axpy_bad_arg<float>();
+}
+TEST(blas1_gtest, copy_float_bad_arg)
+{
+    testing_copy_bad_arg<float>();
+}
+TEST(blas1_gtest, dot_float_bad_arg)
+{
+    testing_dot_bad_arg<float>();
+}
+TEST(blas1_gtest, scal_float_bad_arg)
+{
+    testing_scal_bad_arg<float>();
+}
+TEST(blas1_gtest, swap_float_bad_arg)
+{
+    testing_swap_bad_arg<float>();
+}
+
+
 TEST_P(blas1_gtest, amax_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -290,7 +322,6 @@ TEST_P(blas1_gtest, swap_float)
         }
     }
 }
-
 
 
 //Values is for a single item; ValuesIn is for an array

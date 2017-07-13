@@ -4,8 +4,6 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
- 
-
 #include "rocblas.h"
 #include "status.h"
 #include "definitions.h"
@@ -51,8 +49,10 @@ ger_kernel_device_pointer(hipLaunchParm lp,
               handle to the rocblas library context queue.
     @param[in]
     m         rocblas_int
+              m > 0
     @param[in]
     n         rocblas_int
+              n > 0
     @param[in]
     alpha
               specifies the scalar alpha.
@@ -61,16 +61,19 @@ ger_kernel_device_pointer(hipLaunchParm lp,
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
+              incx != 0
     @param[in]
     y         pointer storing vector y on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
+              incy != 0
     @param[inout]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
+              lda >= m && lda > 0
 
     ********************************************************************/
 
@@ -83,6 +86,17 @@ rocblas_ger_template(rocblas_handle handle,
     const T * y, rocblas_int incy,
           T * A, rocblas_int lda)
 {
+    if (nullptr == alpha)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == y)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == A)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
     if ( m < 0 )
         return rocblas_status_invalid_size;
     else if ( n < 0 )
@@ -97,25 +111,8 @@ rocblas_ger_template(rocblas_handle handle,
     /*
      * Quick return if possible. Not Argument error
      */
-
     if ( m == 0 || n == 0 || alpha == 0)
         return rocblas_status_success;
-
-    if (nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if (nullptr == y)
-        return rocblas_status_invalid_pointer;
-    else if (nullptr == A)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
-
-//  TODO: remove this restriction. Reference code allows incx<0 and/or incy<0
-    if(incx < 0)
-        return rocblas_status_invalid_size;
-    else if(incy < 0)
-        return rocblas_status_invalid_size;
-    
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));

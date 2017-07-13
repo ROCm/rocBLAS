@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -18,23 +17,123 @@
 using namespace std;
 
 /* ============================================================================================ */
-
 template<typename T>
-rocblas_status testing_amax(Arguments argus)
+void testing_amax_bad_arg()
 {
-
-    rocblas_int N = argus.N;
-    rocblas_int incx = argus.incx;
+    rocblas_int N = 100;
+    rocblas_int incx = 1;
     rocblas_int *d_rocblas_result;
-    rocblas_int cpu_result, rocblas_result;
 
     rocblas_handle handle;
     T *dx;
 
-    rocblas_create_handle(&handle);
-    rocblas_status status = rocblas_status_success;
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        return;
+    }
+
+    rocblas_int sizeX = N * incx;
+
+    vector<T> hx(sizeX);
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
+    srand(1);
+    rocblas_init<T>(hx, 1, N, incx);
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
+
+    // testing for (nullptr == dx)
+    {
+        T *dx_null = nullptr;
+
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx_null, incx,
+                        d_rocblas_result);
+
+        pointer_check(status,"Error: x is nullptr");
+    }
+    // testing for (nullptr == d_rocblas_result)
+    {
+        rocblas_int *d_rocblas_result_null = nullptr;
+
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result_null);
+
+        pointer_check(status,"Error: result is nullptr");
+    }
+    // testing for (nullptr == handle)
+    {
+        rocblas_handle handle_null = nullptr;
+
+        status = rocblas_amax<T>(handle_null,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        handle_check(status);
+    }
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(d_rocblas_result));
+    rocblas_destroy_handle(handle);
+}
+
+template<typename T>
+rocblas_status testing_amax(Arguments argus)
+{
+    rocblas_int N = argus.N;
+    rocblas_int incx = argus.incx;
+    rocblas_int *d_rocblas_result;
+    rocblas_int rocblas_result;
+    rocblas_int cpu_result;
+
+    rocblas_handle handle;
+    T *dx;
+
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+
+    if(status != rocblas_status_success) {
+        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        return status;
+    }
 
     //check to prevent undefined memory allocation error
+    if( N <= 0 || incx <= 0 )
+    {
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
+
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        amax_arg_check(status, d_rocblas_result);
+
+        return status;
+    }
+
+    rocblas_int sizeX = N * incx;
+
+    //Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
+    vector<T> hx(sizeX);
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
+
+    //Initial Data on CPU
+    srand(1);
+    rocblas_init<T>(hx, 1, N, incx);
+
+    //copy data from CPU to device
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
+
     if ( nullptr == dx || nullptr == d_rocblas_result)
     {
         status = rocblas_amax<T>(handle,
@@ -57,46 +156,14 @@ rocblas_status testing_amax(Arguments argus)
 
         return status;
     }
-    else if( N <= 0 || incx <= 0 )
-    {
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
-
-        status = rocblas_amax<T>(handle,
-                        N,
-                        dx, incx,
-                        d_rocblas_result);
-
-        amax_arg_check(status, d_rocblas_result);
-
-        return status;
-    }
-
-
-    rocblas_int sizeX = N * incx;
-
-    //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hx(sizeX);
 
     rocblas_int device_pointer = 1;
 
     double gpu_time_used, cpu_time_used;
 
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
-
-    //Initial Data on CPU
-    srand(1);
-    rocblas_init<T>(hx, 1, N, incx);
-
-    //copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*N*incx, hipMemcpyHostToDevice));
-
     if(argus.timing){
         printf("Idamax: N    rocblas(us)     CPU(us)     error\n");
     }
-
 
     /* =====================================================================
          ROCBLAS
