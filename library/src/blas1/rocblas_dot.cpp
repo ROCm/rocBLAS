@@ -24,13 +24,51 @@ dot_kernel_part1(hipLaunchParm lp,
 
     __shared__ T shared_tep[NB];
     //bound
-    if ( tid < n ) {
-        shared_tep[tx] =  x[tid * incx] * y[tid * incy];
+    if(incx >= 0 && incy >= 0)
+    {
+        if ( tid < n )
+        {
+            shared_tep[tx] = y[tid*incy] * x[tid * incx];
+        }
+        else
+        {   //pad with zero
+            shared_tep[tx] = 0.0;
+        }
+    }
+    else if(incx < 0 && incy < 0)
+    {
+        if (tid < n)
+        {
+            shared_tep[tx] = y[(1 - n + tid) * incy] * x[(1 - n + tid) * incx];
+        }
+        else
+        {   //pad with zero
+            shared_tep[tx] = 0.0;
+        }
+    }
+    else if (incx >=0)
+    {
+        if (tid < n)
+        {
+            shared_tep[tx] = y[(1 - n + tid) * incy] * x[tid * incx];
+        }
+        else
+        {   //pad with zero
+            shared_tep[tx] = 0.0;
+        }
     }
     else
-    {   //pad with zero
-        shared_tep[tx] =  0.0;
+    {
+        if (tid < n)
+        {
+            shared_tep[tx] = y[tid * incy] * x[(1 - n + tid) * incx];
+        }
+        else
+        {   //pad with zero
+            shared_tep[tx] = 0.0;
+        }
     }
+
 
     rocblas_sum_reduce<NB, T>(tx, shared_tep);
 

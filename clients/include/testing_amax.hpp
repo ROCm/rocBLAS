@@ -35,21 +35,7 @@ rocblas_status testing_amax(Arguments argus)
     rocblas_status status = rocblas_status_success;
 
     //check to prevent undefined memory allocation error
-    if( N <= 0 || incx <= 0 )
-    {
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
-
-        status = rocblas_amax<T>(handle,
-                        N,
-                        dx, incx,
-                        d_rocblas_result);
-
-        amax_arg_check(status, d_rocblas_result);
-
-        return status;
-    }
-    else if ( nullptr == dx || nullptr == d_rocblas_result)
+    if ( nullptr == dx || nullptr == d_rocblas_result)
     {
         status = rocblas_amax<T>(handle,
                         N,
@@ -68,6 +54,20 @@ rocblas_status testing_amax(Arguments argus)
                         d_rocblas_result);
 
         handle_check(status);
+
+        return status;
+    }
+    else if( N <= 0 || incx <= 0 )
+    {
+        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
+        CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
+
+        status = rocblas_amax<T>(handle,
+                        N,
+                        dx, incx,
+                        d_rocblas_result);
+
+        amax_arg_check(status, d_rocblas_result);
 
         return status;
     }
