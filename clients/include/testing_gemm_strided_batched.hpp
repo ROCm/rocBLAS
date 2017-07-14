@@ -52,9 +52,16 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     double rocblas_gflops, cblas_gflops;
 
     T rocblas_error = 0.0;
+
     rocblas_handle handle;
-    rocblas_status status = rocblas_status_success;
-    rocblas_create_handle(&handle);
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     if(transA == rocblas_operation_none){
         A_row =  M; A_col = K;

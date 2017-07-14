@@ -158,7 +158,6 @@ TEST(blas2_gtest, ger_float_bad_arg)
     testing_ger_bad_arg<float>();
 }
 
-
 TEST_P(ger_gtest, ger_gtest_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple

@@ -4,8 +4,6 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
- 
-
 #include "rocblas.h"
  
 #include "status.h"
@@ -38,8 +36,6 @@ gemvn_kernel_device_pointer(hipLaunchParm lp,
     gemvn_device<T, NB_X, NB_Y>(m, n, *alpha, A, lda, x, incx, *beta, y, incy);
 }
 
-
-
 template<typename T, const rocblas_int NB_X>
 __global__ void
 gemvc_kernel_host_pointer(hipLaunchParm lp,
@@ -54,8 +50,6 @@ gemvc_kernel_host_pointer(hipLaunchParm lp,
     gemvc_device<T, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
-
-
 template<typename T, const rocblas_int NB_X>
 __global__ void
 gemvc_kernel_device_pointer(hipLaunchParm lp,
@@ -69,7 +63,6 @@ gemvc_kernel_device_pointer(hipLaunchParm lp,
 {
     gemvc_device<T, NB_X>(m, n, *alpha, A, lda, x, incx, *beta, y, incy);
 }
-
 
 /*! \brief BLAS Level 2 API
 
@@ -124,6 +117,15 @@ rocblas_gemv_template(rocblas_handle handle,
     const T *beta,
     T * y, rocblas_int incy)
 {
+    if (nullptr == A)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == x)
+        return rocblas_status_invalid_pointer;
+    else if (nullptr == y)
+        return rocblas_status_invalid_pointer;
+    else if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
     if (m < 0)
         return rocblas_status_invalid_size;
     else if (n < 0)
@@ -135,18 +137,9 @@ rocblas_gemv_template(rocblas_handle handle,
     else if (0 == incy)
         return rocblas_status_invalid_size;
 
-    if (nullptr == A)
-        return rocblas_status_invalid_pointer;
-    else if (nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if (nullptr == y)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
-
 //  TODO: remove this restriction. See reference implemention
-    if (incx < 0 || incy < 0)
-        return rocblas_status_invalid_size;
+//  if (incx < 0 || incy < 0)
+//      return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible. Not Argument error

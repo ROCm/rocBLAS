@@ -32,8 +32,6 @@ rocblas_status testing_trtri(Arguments argus)
 
     rocblas_int A_size = lda * N;
 
-    rocblas_status status = rocblas_status_success;
-
     //check here to prevent undefined memory allocation error
     if( N < 0 || lda < 0 ){
         return rocblas_status_invalid_size;
@@ -48,8 +46,6 @@ rocblas_status testing_trtri(Arguments argus)
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
 
-    rocblas_handle handle;
-
     char char_uplo = argus.uplo_option;
     char char_diag = argus.diag_option;
 
@@ -57,7 +53,15 @@ rocblas_status testing_trtri(Arguments argus)
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    rocblas_create_handle(&handle);
+    rocblas_handle handle;
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

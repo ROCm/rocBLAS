@@ -40,7 +40,7 @@ ger_device(
             A[tx + lda*ty] += (alpha) * x[(1 - m + tx)*incx] * y[(1 - n + ty)*incy];
         }
     }
-    else if (incx >=0)
+    else if (incx >= 0)
     {
         if (tx < m && ty < n)
         {

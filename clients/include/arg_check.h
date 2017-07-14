@@ -53,10 +53,10 @@
     template<typename T> 
     void nrm2_dot_arg_check(rocblas_status status, T d_rocblas_result);
 
-    void rocblas_status_success_check(rocblas_status status);
+    void verify_rocblas_status_invalid_pointer(rocblas_status status, const char* message);
 
-    void pointer_check(rocblas_status status, const char* message);
+    void verify_rocblas_status_invalid_handle(rocblas_status status);
 
-    void handle_check(rocblas_status status);
+    void verify_rocblas_status_success(rocblas_status status, const char* message);
 
 #endif

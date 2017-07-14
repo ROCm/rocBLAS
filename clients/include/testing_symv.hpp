@@ -41,10 +41,16 @@ rocblas_status testing_symv(Arguments argus)
     rocblas_int X_size = N * incx;
     rocblas_int Y_size = N * incy;
 
-    rocblas_status status = rocblas_status_success;
-
+    rocblas_status status;
     rocblas_handle handle;
     rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
+
 
     //argument sanity check before allocating invalid memory
     if( N < 0 || lda < 0 || incx < 0 || incy < 0){

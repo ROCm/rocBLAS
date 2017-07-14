@@ -30,15 +30,20 @@ rocblas_status testing_set_get_matrix(Arguments argus)
     rocblas_int ldb = argus.ldb;
     rocblas_int ldc = argus.ldc;
 
-    rocblas_status status     = rocblas_status_success;
     rocblas_status status_set = rocblas_status_success;
     rocblas_status status_get = rocblas_status_success;
 
     T *dc;
 
     rocblas_handle handle;
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    rocblas_create_handle(&handle);
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     void *void_a, *void_b;
 
@@ -70,8 +75,8 @@ rocblas_status testing_set_get_matrix(Arguments argus)
         status_set = rocblas_set_matrix(rows, cols, sizeof(T), (void *) ha.data(), lda, (void *) dc, ldc);
         status_get = rocblas_get_matrix(rows, cols, sizeof(T), (void *) dc, ldc, (void *) hb.data(), ldb);
 
-        handle_check(status_set);
-        handle_check(status_get);
+        verify_rocblas_status_invalid_handle(status_set);
+        verify_rocblas_status_invalid_handle(status_get);
 
         return status_set;
     }
