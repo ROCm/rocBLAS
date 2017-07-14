@@ -1,4 +1,3 @@
-
     /*
      * ===========================================================================
      *    This file provide common device function for gemv routines
@@ -7,10 +6,7 @@
 
 /* ============================================================================================ */
 
-
 #include "../blas1/device_template.h"
-
-
 
 template<typename T, const rocblas_int DIM_X, const rocblas_int DIM_Y>
 static __device__ void
@@ -22,8 +18,6 @@ gemvn_device(
     T beta,
     T       * y, rocblas_int incy)
 {
-    if (m <= 0 || n <= 0) return;
-
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
 
     if (DIM_X * DIM_Y != num_threads) return; // need to launch exactly the same number of threads as template parameters indicate
@@ -54,10 +48,20 @@ gemvn_device(
     for (col=ty*4; col < (n - n_tail); col += 4 * DIM_Y)
     {
 
-        res_x[0] = x[(col+0)*incx];
-        res_x[1] = x[(col+1)*incx];
-        res_x[2] = x[(col+2)*incx];
-        res_x[3] = x[(col+3)*incx];
+        if(incx >= 0)
+        {
+            res_x[0] = x[(col+0)*incx];
+            res_x[1] = x[(col+1)*incx];
+            res_x[2] = x[(col+2)*incx];
+            res_x[3] = x[(col+3)*incx];
+        }
+        else
+        {
+            res_x[0] = x[(col+1-n)*incx];
+            res_x[1] = x[(col+2-n)*incx];
+            res_x[2] = x[(col+3-n)*incx];
+            res_x[3] = x[(col+4-n)*incx];
+        }
 
         if(ind < m){
             res_A[0] += A[ind + (col+0)*lda] * res_x[0];
@@ -91,10 +95,20 @@ gemvn_device(
     // if n  is not multiple of (DIM_Y * 4)
     if(n_tail > 0)
     {
-        res_x[0] = (col < n) ? x[(col+0)*incx] : 0 ;
-        res_x[1] = (col + 1 < n) ? x[(col+1)*incx] : 0;
-        res_x[2] = (col + 2 < n) ? x[(col+2)*incx] : 0;
-        res_x[3] = (col + 3 < n) ? x[(col+3)*incx] : 0;
+        if(incx >= 0)
+        {
+            res_x[0] = (col     < n) ? x[(col+0)*incx] : 0;
+            res_x[1] = (col + 1 < n) ? x[(col+1)*incx] : 0;
+            res_x[2] = (col + 2 < n) ? x[(col+2)*incx] : 0;
+            res_x[3] = (col + 3 < n) ? x[(col+3)*incx] : 0;
+        }
+        else
+        {
+            res_x[0] = (col     < n) ? x[(col+1-n)*incx] : 0;
+            res_x[1] = (col + 1 < n) ? x[(col+2-n)*incx] : 0;
+            res_x[2] = (col + 2 < n) ? x[(col+3-n)*incx] : 0;
+            res_x[3] = (col + 3 < n) ? x[(col+4-n)*incx] : 0;
+        }
 
         if(ind < m){
             res_A[0] += A[ind + (col+0)*lda*(col+0 < n)] * res_x[0];
@@ -144,7 +158,14 @@ gemvn_device(
 
         if(ind < m)
         {
-            y[ind*incy] = alpha*sdata[thread_id] + beta*y[ind*incy];
+            if(incy >= 0)
+            {
+                y[ind*incy] = alpha*sdata[thread_id] + beta*y[ind*incy];
+            }
+            else
+            {
+                y[(1 - m + ind)*incy] = alpha*sdata[thread_id] + beta*y[(1 - m + ind)*incy];
+            }
         }
     }
 
@@ -162,8 +183,6 @@ gemvc_device(
     T beta,
     T       * y, rocblas_int incy)
 {
-    if (m <= 0 || n <= 0) return;
-
     rocblas_int tx = hipThreadIdx_x;
     if (tx < m) A += tx;
 
@@ -178,13 +197,29 @@ gemvc_device(
     // partial sums
     rocblas_int m_full = (m / NB_X) * NB_X;
 
-    for (rocblas_int i=0; i < m_full; i += NB_X) {
-        res += (A[i]) * x[(tx + i)*incx];
+    if(incx >= 0) 
+    {
+        for (rocblas_int i=0; i < m_full; i += NB_X) 
+        {
+            res += (A[i]) * x[(tx + i)*incx];
+        }
+        if ( tx + m_full < m ) 
+        {
+            res += (A[m_full]) * x[(tx + m_full)*incx];
+        }
+    }
+    else
+    {
+        for (rocblas_int i=0; i < m_full; i += NB_X) 
+        {
+            res += (A[i]) * x[(1 - m + tx + i)*incx];
+        }
+        if ( tx + m_full < m ) 
+        {
+            res += (A[m_full]) * x[(1 - m + tx + m_full)*incx];
+        }
     }
 
-    if ( tx + m_full < m ) {
-        res += (A[m_full]) * x[(tx + m_full)*incx];
-    }
 
     sdata[tx] = res;
 
@@ -207,8 +242,15 @@ gemvc_device(
         __syncthreads();
     }
 
-    if ( tx == 0) {
-        y[col*incy] = alpha*sdata[0] + beta*y[col*incy];
+    if ( tx == 0) 
+    {
+        if(incy >= 0)
+        {
+            y[col*incy] = alpha*sdata[0] + beta*y[col*incy];
+        }
+        else
+        {
+            y[(1 - n + col)*incy] = alpha*sdata[0] + beta*y[(1 - n + col)*incy];
+        }
     }
-
 }

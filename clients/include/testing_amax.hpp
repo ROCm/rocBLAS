@@ -29,9 +29,10 @@ void testing_amax_bad_arg()
 
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return;
     }
 
@@ -53,7 +54,7 @@ void testing_amax_bad_arg()
                         dx_null, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: x is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x is nullptr");
     }
     // testing for (nullptr == d_rocblas_result)
     {
@@ -64,7 +65,7 @@ void testing_amax_bad_arg()
                         dx, incx,
                         d_rocblas_result_null);
 
-        pointer_check(status,"Error: result is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: result is nullptr");
     }
     // testing for (nullptr == handle)
     {
@@ -75,7 +76,7 @@ void testing_amax_bad_arg()
                         dx, incx,
                         d_rocblas_result);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
     }
     CHECK_HIP_ERROR(hipFree(dx));
     CHECK_HIP_ERROR(hipFree(d_rocblas_result));
@@ -96,9 +97,10 @@ rocblas_status testing_amax(Arguments argus)
 
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return status;
     }
 
@@ -141,7 +143,7 @@ rocblas_status testing_amax(Arguments argus)
                         dx, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: x or result is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
 
         return status;
     }
@@ -152,7 +154,7 @@ rocblas_status testing_amax(Arguments argus)
                         dx, incx,
                         d_rocblas_result);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }
