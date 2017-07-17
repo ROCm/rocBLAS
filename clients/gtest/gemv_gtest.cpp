@@ -3,7 +3,6 @@
  *
  * ************************************************************************ */
 
-
 #include <gtest/gtest.h>
 #include <math.h>
 #include <stdexcept>
@@ -63,12 +62,14 @@ vector<vector<int>> matrix_size_range = {
 const
 vector<vector<int>> incx_incy_range = {
                                             { 1,   1},
-                                            { 0,   1},
-                                            { 1,   0},
                                             {-1,   1},
                                             { 1,  -1},
+                                            {-1,  -1},
+                                            { 0,   1},
+                                            { 1,   0},
                                             { 0,  -1},
                                             { 2,   1},
+                                            { 1,   2},
                                             {10, 100},
                                           };
 
@@ -76,7 +77,7 @@ vector<vector<int>> incx_incy_range = {
 //add/delete this list in pairs, like {2.0, 4.0}
 const
 vector<vector<double>> alpha_beta_range = {
-                                            { 1.0,  0.0},
+                                            { 2.0,  0.0},
                                             {-1.0, -1.0},
                                             { 2.0,  1.0},
                                             { 0.0,  1.0},
@@ -150,6 +151,10 @@ class gemv_gtest: public :: TestWithParam <gemv_tuple>
         virtual void TearDown(){}
 };
 
+TEST(blas2_gtest, gemv_float_bad_arg)
+{
+    testing_gemv_bad_arg<float>();
+}
 
 TEST_P(gemv_gtest, gemv_gtest_float)
 {
@@ -169,13 +174,13 @@ TEST_P(gemv_gtest, gemv_gtest_float)
         if( arg.M < 0 || arg.N < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda < arg.M){
+        else if(arg.lda < arg.M || arg.lda < 1){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.incx <= 0){
+        else if(0 == arg.incx){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.incy <= 0){
+        else if(0 == arg.incy){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
@@ -187,7 +192,7 @@ TEST_P(gemv_gtest, gemv_gtest_float)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha, beta}, {transA} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemv,
+INSTANTIATE_TEST_CASE_P(rocblas_blas2,
                         gemv_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_beta_range), ValuesIn(transA_range)

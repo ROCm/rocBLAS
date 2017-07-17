@@ -25,15 +25,17 @@ void testing_asum_bad_arg()
     rocblas_int N = 100;
     rocblas_int incx = 1;
 
-    rocblas_handle handle;
     T1 *dx;
     T2 *d_rocblas_result;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
+        return;
     }
 
     rocblas_int sizeX = N * incx;
@@ -54,7 +56,7 @@ void testing_asum_bad_arg()
                         dx_null, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: dx is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: dx is nullptr");
     }
     // testing for (nullptr == d_rocblas_result)
     {
@@ -65,7 +67,7 @@ void testing_asum_bad_arg()
                         dx, incx,
                         d_rocblas_result_null);
 
-        pointer_check(status,"Error: result is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: result is nullptr");
     }
     // testing for ( nullptr == handle )
     {
@@ -76,7 +78,7 @@ void testing_asum_bad_arg()
                         dx, incx,
                         d_rocblas_result);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
     }
 }
 
@@ -87,17 +89,18 @@ rocblas_status testing_asum(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
 
-    rocblas_handle handle;
     T1 *dx;
     T2 *d_rocblas_result;
     T2 rocblas_result;
     T2 cpu_result;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return status;
     }
 
@@ -139,7 +142,7 @@ rocblas_status testing_asum(Arguments argus)
                         dx, incx,
                         d_rocblas_result);
 
-        pointer_check(status,"Error: dx or result is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: dx or result is nullptr");
 
         return status;
     }
@@ -150,7 +153,7 @@ rocblas_status testing_asum(Arguments argus)
                         dx, incx,
                         d_rocblas_result);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }

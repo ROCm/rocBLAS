@@ -29,14 +29,14 @@ void testing_ger_bad_arg()
     rocblas_int lda = 100;
     T alpha = 0.6;
 
-    rocblas_handle handle;
     T *dA, *dx, *dy;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
         rocblas_destroy_handle(handle);
         return;
     }
@@ -66,7 +66,7 @@ void testing_ger_bad_arg()
                      dy, incy,
                      dA, lda);
 
-        pointer_check(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
     }
     // test if (nullptr == dy)
     {
@@ -78,7 +78,7 @@ void testing_ger_bad_arg()
                      dy_null, incy,
                      dA, lda);
 
-        pointer_check(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
     }
     // test if (nullptr == dA)
     {
@@ -90,7 +90,7 @@ void testing_ger_bad_arg()
                      dy, incy,
                      dA_null, lda);
 
-        pointer_check(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
     }
     // test if (handle == nullptr)
     {
@@ -102,7 +102,7 @@ void testing_ger_bad_arg()
                      dy, incy,
                      dA, lda);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
     }
 
     CHECK_HIP_ERROR(hipFree(dx));
@@ -122,14 +122,15 @@ rocblas_status testing_ger(Arguments argus)
     rocblas_int lda = argus.lda;
     T alpha = (T)argus.alpha;
 
-    rocblas_handle handle;
     T *dA, *dx, *dy;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return status;
     }
 
@@ -180,7 +181,7 @@ rocblas_status testing_ger(Arguments argus)
                      dy, incy,
                      dA, lda);
 
-        pointer_check(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
 
         CHECK_HIP_ERROR(hipFree(dx));
         CHECK_HIP_ERROR(hipFree(dy));
@@ -197,7 +198,7 @@ rocblas_status testing_ger(Arguments argus)
                      dy, incy,
                      dA, lda);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         CHECK_HIP_ERROR(hipFree(dx));
         CHECK_HIP_ERROR(hipFree(dy));

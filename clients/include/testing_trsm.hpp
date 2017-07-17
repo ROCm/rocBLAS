@@ -48,9 +48,14 @@ rocblas_status testing_trsm(Arguments argus)
     rocblas_int B_size = ldb * N;
 
     rocblas_handle handle;
-    rocblas_create_handle(&handle);
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    rocblas_status status = rocblas_status_success;
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || lda < K || ldb < M){
@@ -79,7 +84,7 @@ rocblas_status testing_trsm(Arguments argus)
             dA,lda,
             dB,ldb);
 
-        pointer_check(status, "ERROR: A or B or C is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
 
         return status;
     }
@@ -93,7 +98,7 @@ rocblas_status testing_trsm(Arguments argus)
             dA,lda,
             dB,ldb);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }

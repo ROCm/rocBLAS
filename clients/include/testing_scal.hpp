@@ -26,14 +26,14 @@ void testing_scal_bad_arg()
     rocblas_int incx = 1;
     T alpha = 0.6;
 
-    rocblas_handle handle;
     T *dx;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
         rocblas_destroy_handle(handle);
         return;
     }
@@ -65,7 +65,7 @@ void testing_scal_bad_arg()
                     &alpha,
                     dx_null, incx);
 
-        pointer_check(status,"Error: x or alpha is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x or alpha is nullptr");
     }
     // test if (nullptr == handle)
     {
@@ -75,7 +75,7 @@ void testing_scal_bad_arg()
                     &alpha,
                     dx, incx);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
     }
 
     CHECK_HIP_ERROR(hipFree(dx));
@@ -90,14 +90,15 @@ rocblas_status testing_scal(Arguments argus)
     rocblas_int incx = argus.incx;
     T alpha = argus.alpha;
 
-    rocblas_handle handle;
     T *dx;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return status;
     }
 
@@ -111,7 +112,7 @@ rocblas_status testing_scal(Arguments argus)
                     &alpha,
                     dx, incx);
 
-        rocblas_status_success_check(status);
+        verify_rocblas_status_success(status,"ERROR rocblas_scal: (N <= 0 || incx <= 0)");
 
         return status;
     }
@@ -142,7 +143,7 @@ rocblas_status testing_scal(Arguments argus)
                     &alpha,
                     dx, incx);
 
-        pointer_check(status,"Error: x or alpha is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x or alpha is nullptr");
 
         return status;
     }
@@ -153,7 +154,7 @@ rocblas_status testing_scal(Arguments argus)
                     &alpha,
                     dx, incx);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }

@@ -63,8 +63,14 @@ rocblas_status testing_set_get_vector(Arguments argus)
     double rocblas_error = 0.0;
 
     rocblas_handle handle;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    rocblas_create_handle(&handle);
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
+
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&db, M * incd * sizeof(T)));

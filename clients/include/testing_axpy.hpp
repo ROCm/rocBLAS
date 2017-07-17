@@ -26,14 +26,15 @@ void testing_axpy_bad_arg()
     rocblas_int incy = 1;
     T alpha = 0.6;
 
-    rocblas_handle handle;
     T *dx, *dy;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return;
     }
 
@@ -66,7 +67,7 @@ void testing_axpy_bad_arg()
                     dx_null, incx,
                     dy, incy);
 
-        pointer_check(status,"Error: x, y, is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x, y, is nullptr");
     }
     // testing for (nullptr == dy)
     {
@@ -78,7 +79,7 @@ void testing_axpy_bad_arg()
                     dx, incx,
                     dy_null, incy);
 
-        pointer_check(status,"Error: x, y, is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x, y, is nullptr");
     }
     // testing (nullptr == handle)
     {
@@ -90,8 +91,11 @@ void testing_axpy_bad_arg()
                     dx, incx,
                     dy, incy);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
     }
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dy));
+    rocblas_destroy_handle(handle);
     return;
 }
 
@@ -104,14 +108,15 @@ rocblas_status testing_axpy(Arguments argus)
     rocblas_int incy = argus.incy;
     T alpha = argus.alpha;
 
-    rocblas_handle handle;
     T *dx, *dy;
 
+    rocblas_handle handle;
     rocblas_status status;
     status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
     if(status != rocblas_status_success) {
-        printf("ERROR: rocblas_create_handle status = %d\n",status);
+        rocblas_destroy_handle(handle);
         return status;
     }
 
@@ -168,7 +173,7 @@ rocblas_status testing_axpy(Arguments argus)
                     dx, incx,
                     dy, incy);
 
-        pointer_check(status,"Error: x, y, is nullptr");
+        verify_rocblas_status_invalid_pointer(status,"Error: x, y, is nullptr");
 
         return status;
     }
@@ -180,7 +185,7 @@ rocblas_status testing_axpy(Arguments argus)
                     dx, incx,
                     dy, incy);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }
