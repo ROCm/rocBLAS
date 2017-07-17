@@ -64,8 +64,13 @@ rocblas_status testing_trmm(Arguments argus)
     double rocblas_error;
 
     rocblas_handle handle;
-
     rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

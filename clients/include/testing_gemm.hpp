@@ -47,9 +47,16 @@ rocblas_status testing_gemm(Arguments argus)
     double rocblas_gflops, cblas_gflops;
 
     T rocblas_error = 0.0;
+
     rocblas_handle handle;
-    rocblas_status status = rocblas_status_success;
-    rocblas_create_handle(&handle);
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     if(transA == rocblas_operation_none){
         A_row =  M; A_col = K;
@@ -92,7 +99,7 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
-        pointer_check(status, "ERROR: A or B or C is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
 
         return status;
     }
@@ -104,7 +111,7 @@ rocblas_status testing_gemm(Arguments argus)
                     dB, ldb,
                     &beta, dC, ldc);
 
-        handle_check(status);
+        verify_rocblas_status_invalid_handle(status);
 
         return status;
     }
@@ -250,8 +257,6 @@ rocblas_status range_testing_gemm(Arguments argus)
     double gpu_time_used, cpu_time_used;
 
     T rocblas_error = 0.0;
-    rocblas_handle handle;
-    rocblas_status status = rocblas_status_success;
 
     //argument sanity check, quick return if input parameters are invalid before allocating invalid memory
     if( start < 0 || end < 0 || step < 0 || end < start ){
@@ -270,7 +275,15 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     T *dA, *dB, *dC;
 
-    rocblas_create_handle(&handle);
+    rocblas_handle handle;
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));

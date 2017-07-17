@@ -47,8 +47,13 @@ rocblas_status testing_bandwidth(Arguments argus)
     double gpu_time_used, gpu_bandwidth;
 
     rocblas_handle handle;
-
     rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return status;
+    }
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
