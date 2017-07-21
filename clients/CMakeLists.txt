@@ -40,11 +40,6 @@ if( BUILD_CLIENTS_BENCHMARKS OR BUILD_CLIENTS_TESTS )
   endif( )
 endif()
 
-# if( DEFINED HIP_ROOT )
-#   list( APPEND CMAKE_MODULE_PATH ${HIP_ROOT}/cmake )
-# #  list( APPEND CMAKE_PREFIX_PATH ${HIP_ROOT} )
-# endif( )
-
 # WARNING: do not surround CMAKE_PREFIX_PATH with quotes, it breaks
 # Replace all occurances of ; with ^^, which we elect to use a path seperator
 string(REGEX REPLACE ";" "^^" CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH}" )
