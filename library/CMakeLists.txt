@@ -35,7 +35,8 @@ include( build-version )
 project_version( NAME rocblas LANGUAGES CXX )
 
 message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
-message( STATUS "CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
+message( STATUS "\t==>CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
+message( STATUS "\t==>CMAKE_INSTALL_PREFIX link: " ${CMAKE_INSTALL_PREFIX} )
 
 # This is incremented when the ABI to the library changes
 set( rocblas_SOVERSION 1 )
