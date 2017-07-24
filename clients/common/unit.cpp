@@ -95,12 +95,12 @@
 
 template<>
 float get_trsm_tolerance(){
-    return 5*1e-5;
+    return 5*1e-4;
 }
 
 template<>
 double get_trsm_tolerance(){
-    return 1e-12;
+    return 1e-10;
 }
 
 /*! \brief Template: gtest unit compare two matrices float/double/complex */
