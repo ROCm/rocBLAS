@@ -19,7 +19,7 @@ macro( project_version )
   endif( )
   if( POLICY CMP0048 )
     cmake_policy( SET CMP0048 NEW )
-    project( ${PV_NAME} VERSION 0.5.2.0 LANGUAGES ${PV_LANGUAGES} )
+    project( ${PV_NAME} VERSION 0.4.3.0 LANGUAGES ${PV_LANGUAGES} )
 
   else( )
     project( ${PV_NAME} ${PV_LANGUAGES} )
@@ -29,11 +29,11 @@ macro( project_version )
     endif( )
 
     if( NOT DEFINED ${PV_NAME}_VERSION_MINOR )
-      set( ${PV_NAME}_VERSION_MINOR 5 )
+      set( ${PV_NAME}_VERSION_MINOR 4 )
     endif( )
 
     if( NOT DEFINED ${PV_NAME}_VERSION_PATCH )
-      set( ${PV_NAME}_VERSION_PATCH 2 )
+      set( ${PV_NAME}_VERSION_PATCH 3 )
     endif( )
 
     if( NOT DEFINED ${PV_NAME}_VERSION_TWEAK )
