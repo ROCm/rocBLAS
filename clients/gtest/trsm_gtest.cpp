@@ -137,7 +137,7 @@ Arguments setup_trsm_arguments(trsm_tuple tup)
     arg.transA_option = side_uplo_transA_diag[2];
     arg.diag_option   = side_uplo_transA_diag[3];
 
-    arg.timing = 1;
+    arg.timing = 0;
 
     return arg;
 }
@@ -224,10 +224,13 @@ INSTANTIATE_TEST_CASE_P(rocblas_trsm_matrix_size,
                                )
                         );
 
+
 //THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of matrix_size_range is small
+
 INSTANTIATE_TEST_CASE_P(rocblas_trsm_scalar_transpose,
                         trsm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), ValuesIn(alpha_range), ValuesIn(full_side_uplo_transA_diag_range)
                                )
                         );
+

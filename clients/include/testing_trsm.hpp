@@ -7,6 +7,8 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <limits>    // std::numeric_limits<T>::epsilon();
+#include <cmath>     // std::abs
 
 #include "rocblas.hpp"
 #include "utility.h"
@@ -16,15 +18,27 @@
 #include "arg_check.h"
 #include "flops.h"
 
+#define FORWARD_TOLERANCE 40
+#define BACKWARD_TOLERANCE 10
+
 using namespace std;
 
+template <typename T>
+void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda) {
+    printf("---------- %s ----------\n", name);
+    for( int i = 0; i < m; i++) {
+        for( int j = 0; j < n; j++) {
+            printf("%f ",A[i + j * lda]);
+        }
+        printf("\n");
+    }
+}
 
 /* ============================================================================================ */
 
 template<typename T>
 rocblas_status testing_trsm(Arguments argus)
 {
-
     rocblas_int M = argus.M;
     rocblas_int N = argus.N;
     rocblas_int lda = argus.lda;
@@ -52,13 +66,15 @@ rocblas_status testing_trsm(Arguments argus)
     status = rocblas_create_handle(&handle);
     verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) {
+    if(status != rocblas_status_success)
+    {
         rocblas_destroy_handle(handle);
         return status;
     }
 
     //check here to prevent undefined memory allocation error
-    if( M < 0 || N < 0 || lda < K || ldb < M){
+    if( M < 0 || N < 0 || lda < K || ldb < M)
+    {
         CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));
         CHECK_HIP_ERROR(hipMalloc(&dB, 100 * sizeof(T)));
 
@@ -104,6 +120,7 @@ rocblas_status testing_trsm(Arguments argus)
     }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
+    vector<T> hC(A_size);
     vector<T> hB(B_size);
     vector<T> hB_copy(B_size);
     vector<T> hX(B_size);
@@ -111,37 +128,79 @@ rocblas_status testing_trsm(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
+    T forward_tolerance =  FORWARD_TOLERANCE;
+    T backward_tolerance =  BACKWARD_TOLERANCE;
+    T eps = std::numeric_limits<T>::epsilon();
+
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
     CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
 
-    //Initial hA on CPU
-    srand(1);
-    rocblas_init_symmetric<T>(hA, K, lda);
-    //pad untouched area into zero
-    for(int i=K;i<lda;i++){
-        for(int j=0;j<K;j++){
+//  Random lower triangular matrices have condition number
+//  that grows exponentially with matrix size. Random full
+//  matrices have condition that grows linearly with 
+//  matrix size. To generate a lower triangular matrix
+//  with condition number that grows with matrix size 
+//  start with full random matrix A. Calculate B <- A A^T. 
+//  Make B strictly diagonal dominant. Next use Cholesky 
+//  factorization to calculate L L^T = B. These L factors 
+//  should have condition number approximately equal to
+//  the condition number of the original matrix.
+
+//  initialize full random matrix hA with all entries in [1, 10]
+    rocblas_init<T>(hA, K, K, lda);
+
+// printMatrix<T>("initialized hA", hA.data(), 4, 4, lda);
+
+//  //pad untouched area into zero
+    for(int i = K; i < lda; i++)
+    {
+        for(int j = 0; j < K; j++)
+        {
             hA[i+j*lda] = 0.0;
         }
     }
-    //proprocess the matrix to avoid ill-conditioned matrix 
-    vector<rocblas_int> ipiv(K);
-    cblas_getrf(K, K, hA.data(), lda, ipiv.data());
-    for(int i=0;i<K;i++){
-        for(int j=i;j<K;j++){
-            hA[i+j*lda] = hA[j+i*lda];
-                if(diag == rocblas_diagonal_unit){
-                    if (i==j) hA[i+j*lda] = 1.0;
-                }
+
+//  calculate hC = hA * hA ^ T
+    cblas_gemm(rocblas_operation_none, rocblas_operation_transpose, 
+        K, K, K, (T)1.0, hA.data(), lda, hA.data(), lda, (T)0.0, hC.data(), lda);
+
+//  copy hC into hA, make hA strictly diagonal dominant, and therefore SPD
+    for(int i = 0; i < K; i++)
+    {
+        T t = 0.0;
+        for(int j = 0; j < K; j++)
+        {
+            hA[i + j * lda] = hC[i + j * lda];
+            t += hC[i + j * lda] > 0 ? hC[i + j * lda] : -hC[i + j * lda];
+        }
+        hA[i+i*lda] = t;
+    }
+
+//  calculate Cholesky factorization of SPD matrix hA
+    cblas_potrf(char_uplo, K, hA.data(), lda);
+
+//  make unit diagonal if diag == rocblas_diagonal_unit
+    if(char_diag == 'U' || char_diag == 'u')
+    {
+        for(int i = 0; i < K; i++)
+        {
+            T diag = hA[i + i * lda];
+            for(int j = 0; j < K; j++)
+            {
+                hA[i+j*lda] = hA[i+j*lda] / diag;
+            }
         }
     }
-    
+
     //Initial hB, hX on CPU
     rocblas_init<T>(hB, M, N, ldb);
     //pad untouched area into zero
-    for(int i=M;i<ldb;i++){
-        for(int j=0;j<N;j++){
+    for(int i=M;i<ldb;i++)
+    {
+        for(int j=0;j<N;j++)
+        {
             hB[i+j*ldb] = 0.0;
         }
     }    
@@ -165,10 +224,10 @@ rocblas_status testing_trsm(Arguments argus)
     /* =====================================================================
            ROCBLAS
     =================================================================== */
-    if(argus.timing){
+    if(argus.timing)
+    {
         gpu_time_used = get_time_us();// in microseconds
     }
-
 
     status = rocblas_trsm<T>(handle,
             side, uplo,
@@ -178,7 +237,8 @@ rocblas_status testing_trsm(Arguments argus)
             dA,lda,
             dB,ldb);
 
-    if(argus.timing){
+    if(argus.timing)
+    {
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
     }
@@ -187,11 +247,13 @@ rocblas_status testing_trsm(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(hB.data(), dB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
 
 
-    if(argus.unit_check || argus.norm_check){
+    if(argus.unit_check || argus.norm_check)
+    {
         /* =====================================================================
            CPU BLAS
         =================================================================== */
-        if(argus.timing){
+        if(argus.timing)
+        {
             cpu_time_used = get_time_us();
         }
 
@@ -202,34 +264,42 @@ rocblas_status testing_trsm(Arguments argus)
                 (const T*)hA.data(), lda,
                 hB_copy.data(), ldb);
 
-        if(argus.timing){
+        if(argus.timing)
+        {
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
 
+        // Forward Error Check
+        //      error is the one norm of the scaled error for each column
 
-        print_matrix(hB_copy, hB, min(M, 3), min(N,3), ldb);
-
-
-
-        //if enable norm check, norm check is invasive
-        //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy.data(), hB.data());
-
-
-        //enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check){
-            T tolerance = get_trsm_tolerance<T>();// see unit.h for the tolerance
-            unit_check_trsm<T>(M, N, ldb, rocblas_error, tolerance );
+        T max_error = 0.0;
+        for (int i = 0; i < N; i++)
+        {
+            T error = 0.0;
+            for (int j = 0; j < M; j++)
+            {
+                if(hB_copy[j + i*ldb] != 0)
+                {
+                    error += std::abs((hB_copy[j + i*ldb] - hB[j + i*ldb]) / hB_copy[j + i*ldb]); 
+                }
+                else
+                {
+                    error += std::abs(hB[j + i*ldb]);
+                }
+            }
+            max_error = max_error > error ? max_error : error;
         }
+        trsm_forward_error_check<T>(max_error, M, forward_tolerance, eps);
     }
 
 
-    if(argus.timing){
+    if(argus.timing)
+    {
         //only norm_check return an norm error, unit check won't return anything
             cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
-            if(argus.norm_check){
+            if(argus.norm_check)
+            {
                 cout << "CPU-Gflops(us), norm-error" ;
             }
             cout << endl;
@@ -238,7 +308,8 @@ rocblas_status testing_trsm(Arguments argus)
                  << char_transA << ','  << char_diag << ',' <<
                  rocblas_gflops << "(" << gpu_time_used  << "),";
 
-            if(argus.norm_check){
+            if(argus.norm_check)
+            {
                 cout << cblas_gflops << "(" << cpu_time_used << "),";
                 cout << rocblas_error;
             }
