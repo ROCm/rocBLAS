@@ -41,4 +41,7 @@
     template<typename T>
     T get_trsm_tolerance();
 
+    template<typename T>
+    void trsm_forward_error_check(T max_error, rocblas_int M, T forward_tolerance, T eps);
+
 #endif

@@ -124,3 +124,19 @@ void unit_check_trsm(rocblas_int M, rocblas_int N, rocblas_int lda, double hGPU,
 #endif
 }
 
+template<>
+void trsm_forward_error_check(float max_error, rocblas_int M, float forward_tolerance, float eps)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_LE(max_error, forward_tolerance * eps * M);
+#endif
+}
+
+template<>
+void trsm_forward_error_check(double max_error, rocblas_int M, double forward_tolerance, double eps)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_LE(max_error, forward_tolerance * eps * M);
+#endif
+}
+

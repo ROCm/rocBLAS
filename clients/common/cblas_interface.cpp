@@ -27,6 +27,11 @@ extern "C" {
     void    cgetrf_(int* m, int* n, rocblas_float_complex* A, int* lda, int* ipiv, int *info);
     void    zgetrf_(int* m, int* n, rocblas_double_complex* A, int* lda, int* ipiv, int *info);
 
+    void    spotrf_(char* uplo, int* m, float* A, int* lda, int *info);
+    void    dpotrf_(char* uplo, int* m, double* A, int* lda, int *info);
+    void    cpotrf_(char* uplo, int* m, rocblas_float_complex* A, int* lda, int *info);
+    void    zpotrf_(char* uplo, int* m, rocblas_double_complex* A, int* lda, int *info);
+
 #ifdef __cplusplus
 }
 #endif
@@ -631,6 +636,47 @@ extern "C" {
     {
         rocblas_int info;
         zgetrf_(&m, &n, A, &lda, ipiv, &info);
+        return info;
+    }
+
+    //potrf
+    template<>
+    rocblas_int cblas_potrf<float>(char uplo,
+                            rocblas_int m,
+                            float *A, rocblas_int lda)
+    {
+        rocblas_int info;
+        spotrf_(&uplo, &m, A, &lda, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_potrf<double>(char uplo,
+                            rocblas_int m,
+                            double *A, rocblas_int lda)
+    {
+        rocblas_int info;
+        dpotrf_(&uplo, &m, A, &lda, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_potrf<rocblas_float_complex>(char uplo,
+                            rocblas_int m,
+                            rocblas_float_complex *A, rocblas_int lda)
+    {
+        rocblas_int info;
+        cpotrf_(&uplo, &m, A, &lda, &info);
+        return info;
+    }
+
+    template<>
+    rocblas_int cblas_potrf<rocblas_double_complex>(char uplo,
+                            rocblas_int m,
+                            rocblas_double_complex *A, rocblas_int lda)
+    {
+        rocblas_int info;
+        zpotrf_(&uplo, &m, A, &lda, &info);
         return info;
     }
 

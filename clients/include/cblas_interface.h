@@ -127,6 +127,11 @@
                             rocblas_int n,
                             T *A, rocblas_int lda, 
                             rocblas_int *ipiv);
+
+    template<typename T>
+    rocblas_int cblas_potrf(char uplo,
+                            rocblas_int m,
+                            T *A, rocblas_int lda);
     /* ============================================================================================ */
 
 

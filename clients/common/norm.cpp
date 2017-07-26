@@ -51,7 +51,10 @@ extern "C" {
 template<>
 double norm_check_general<float>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, float *hCPU, float *hGPU)
 {
-//norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
+//norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+//one norm is max column sum
+//infinity norm is max row sum
+//Frobenius is l2 norm of matrix entries
 
     float work;
     rocblas_int incx = 1;
@@ -70,7 +73,10 @@ double norm_check_general<float>(char norm_type, rocblas_int M, rocblas_int N, r
 template<>
 double norm_check_general<double>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, double *hCPU, double *hGPU)
 {
-//norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
+//norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+//one norm is max column sum
+//infinity norm is max row sum
+//Frobenius is l2 norm of matrix entries
 
     double work[1];
     rocblas_int incx = 1;
@@ -89,7 +95,10 @@ double norm_check_general<double>(char norm_type, rocblas_int M, rocblas_int N, 
 template<>
 double norm_check_general<rocblas_float_complex>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_float_complex *hCPU, rocblas_float_complex *hGPU)
 {
-//norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
+//norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+//one norm is max column sum
+//infinity norm is max row sum
+//Frobenius is l2 norm of matrix entries
 
     float work[1];
     rocblas_int incx = 1;
@@ -109,7 +118,10 @@ template<>
 double norm_check_general<rocblas_double_complex>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_double_complex *hCPU,
 rocblas_double_complex *hGPU)
 {
-//norm type can be M', 'I', 'F', 'l': 'F' (Frobenius norm) is used mostly
+//norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+//one norm is max column sum
+//infinity norm is max row sum
+//Frobenius is l2 norm of matrix entries
 
     double work[1];
     rocblas_int incx = 1;
