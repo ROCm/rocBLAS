@@ -70,7 +70,7 @@ node('rocm-1.6 && fiji')
         {
           stage("configure clang release") {
               sh """#!/usr/bin/env bash
-                cmake -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_SHARED_LIBS=ON -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
+                cmake -DCMAKE_CXX_COMPILER=clang++-3.8 -DCMAKE_C_COMPILER=clang-3.8 -DCMAKE_BUILD_TYPE=${build_type} -DCMAKE_PREFIX_PATH=/opt/boost/clang -DBUILD_SHARED_LIBS=ON -DBUILD_LIBRARY=ON -DBUILD_WITH_TENSILE=ON \
                 -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm/rocblas ${scm_dir}
                 """
           }
