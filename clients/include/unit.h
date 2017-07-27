@@ -34,14 +34,7 @@
     template<typename T>
     void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, T *hCPU, T *hGPU);
 
-
     template<typename T>
-    void unit_check_trsm(rocblas_int M, rocblas_int N, rocblas_int lda, double hGPU, T tolerance);
-
-    template<typename T>
-    T get_trsm_tolerance();
-
-    template<typename T>
-    void trsm_forward_error_check(T max_error, rocblas_int M, T forward_tolerance, T eps);
+    void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps);
 
 #endif

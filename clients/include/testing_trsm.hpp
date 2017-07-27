@@ -18,8 +18,8 @@
 #include "arg_check.h"
 #include "flops.h"
 
-#define FORWARD_TOLERANCE 40
-#define BACKWARD_TOLERANCE 10
+#define ERROR_EPS_MULTIPLIER 40
+#define RESIDUAL_EPS_MULTIPLIER 20
 
 using namespace std;
 
@@ -50,7 +50,7 @@ rocblas_status testing_trsm(Arguments argus)
     char char_diag = argus.diag_option;
     T alpha = argus.alpha;
 
-    T *dA, *dB;
+    T *dA, *dXorB;
 
     rocblas_side side = char2rocblas_side(char_side);
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
@@ -76,7 +76,7 @@ rocblas_status testing_trsm(Arguments argus)
     if( M < 0 || N < 0 || lda < K || ldb < M)
     {
         CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));
-        CHECK_HIP_ERROR(hipMalloc(&dB, 100 * sizeof(T)));
+        CHECK_HIP_ERROR(hipMalloc(&dXorB, 100 * sizeof(T)));
 
         status = rocblas_trsm<T>(handle,
             side, uplo,
@@ -84,13 +84,16 @@ rocblas_status testing_trsm(Arguments argus)
             M, N,
             &alpha,
             dA,lda,
-            dB,ldb);
+            dXorB,ldb);
 
         trsm_arg_check(status, M, N, lda, ldb);
 
+        CHECK_HIP_ERROR(hipFree(dA));
+        CHECK_HIP_ERROR(hipFree(dXorB));
+
         return status;
     }
-    else if (nullptr == dA || nullptr == dB )
+    else if (nullptr == dA || nullptr == dXorB )
     {
         status = rocblas_trsm<T>(handle,
             side, uplo,
@@ -98,7 +101,7 @@ rocblas_status testing_trsm(Arguments argus)
             M, N,
             &alpha,
             dA,lda,
-            dB,ldb);
+            dXorB,ldb);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
 
@@ -112,7 +115,7 @@ rocblas_status testing_trsm(Arguments argus)
             M, N,
             &alpha,
             dA,lda,
-            dB,ldb);
+            dXorB,ldb);
 
         verify_rocblas_status_invalid_handle(status);
 
@@ -120,38 +123,39 @@ rocblas_status testing_trsm(Arguments argus)
     }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
-    vector<T> hC(A_size);
+    vector<T> AAT(A_size);
     vector<T> hB(B_size);
-    vector<T> hB_copy(B_size);
     vector<T> hX(B_size);
+    vector<T> hXorB(B_size);
+    vector<T> cpuXorB(B_size);
     
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
-    T forward_tolerance =  FORWARD_TOLERANCE;
-    T backward_tolerance =  BACKWARD_TOLERANCE;
+    T error_eps_multiplier =  ERROR_EPS_MULTIPLIER;
+    T residual_eps_multiplier =  RESIDUAL_EPS_MULTIPLIER;
     T eps = std::numeric_limits<T>::epsilon();
 
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dXorB, B_size * sizeof(T)));
 
 //  Random lower triangular matrices have condition number
 //  that grows exponentially with matrix size. Random full
 //  matrices have condition that grows linearly with 
-//  matrix size. To generate a lower triangular matrix
-//  with condition number that grows with matrix size 
-//  start with full random matrix A. Calculate B <- A A^T. 
-//  Make B strictly diagonal dominant. Next use Cholesky 
-//  factorization to calculate L L^T = B. These L factors 
+//  matrix size. 
+//
+//  We want a triangular matrix with condition number that grows 
+//  lineary with matrix size. We start with full random matrix A. 
+//  Calculate symmetric AAT <- A A^T. Make AAT strictly diagonal 
+//  dominant. A strictly diagonal dominant matrix is SPD so we 
+//  can use Cholesky to calculate L L^T = AAT. These L factors 
 //  should have condition number approximately equal to
-//  the condition number of the original matrix.
+//  the condition number of the original matrix A.
 
 //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_init<T>(hA, K, K, lda);
-
-// printMatrix<T>("initialized hA", hA.data(), 4, 4, lda);
 
 //  //pad untouched area into zero
     for(int i = K; i < lda; i++)
@@ -162,18 +166,18 @@ rocblas_status testing_trsm(Arguments argus)
         }
     }
 
-//  calculate hC = hA * hA ^ T
+//  calculate AAT = hA * hA ^ T
     cblas_gemm(rocblas_operation_none, rocblas_operation_transpose, 
-        K, K, K, (T)1.0, hA.data(), lda, hA.data(), lda, (T)0.0, hC.data(), lda);
+        K, K, K, (T)1.0, hA.data(), lda, hA.data(), lda, (T)0.0, AAT.data(), lda);
 
-//  copy hC into hA, make hA strictly diagonal dominant, and therefore SPD
+//  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
     for(int i = 0; i < K; i++)
     {
         T t = 0.0;
         for(int j = 0; j < K; j++)
         {
-            hA[i + j * lda] = hC[i + j * lda];
-            t += hC[i + j * lda] > 0 ? hC[i + j * lda] : -hC[i + j * lda];
+            hA[i + j * lda] = AAT[i + j * lda];
+            t += AAT[i + j * lda] > 0 ? AAT[i + j * lda] : -AAT[i + j * lda];
         }
         hA[i+i*lda] = t;
     }
@@ -184,29 +188,43 @@ rocblas_status testing_trsm(Arguments argus)
 //  make unit diagonal if diag == rocblas_diagonal_unit
     if(char_diag == 'U' || char_diag == 'u')
     {
-        for(int i = 0; i < K; i++)
+        if('L' == char_uplo || 'l' == char_uplo)
         {
-            T diag = hA[i + i * lda];
+            for(int i = 0; i < K; i++)
+            {
+                T diag = hA[i + i * lda];
+                for(int j = 0; j <= i; j++)
+                {
+                    hA[i+j*lda] = hA[i+j*lda] / diag;
+                }
+            }
+        }
+        else
+        {
             for(int j = 0; j < K; j++)
             {
-                hA[i+j*lda] = hA[i+j*lda] / diag;
+                T diag = hA[j + j * lda];
+                for(int i = 0; i <= j; i++)
+                {
+                    hA[i+j*lda] = hA[i+j*lda] / diag;
+                }
             }
         }
     }
 
-    //Initial hB, hX on CPU
-    rocblas_init<T>(hB, M, N, ldb);
+    //Initial hX
+    rocblas_init<T>(hX, M, N, ldb);
     //pad untouched area into zero
     for(int i=M;i<ldb;i++)
     {
         for(int j=0;j<N;j++)
         {
-            hB[i+j*ldb] = 0.0;
+            hX[i+j*ldb] = 0.0;
         }
     }    
-    hX = hB;//original solution hX
+    hB = hX;
 
-    //Calculate hB = hA*hX;
+    // Calculate hB = hA*hX;
     cblas_trmm<T>(
                 side, uplo,
                 transA, diag,
@@ -214,12 +232,12 @@ rocblas_status testing_trsm(Arguments argus)
                 (const T*)hA.data(), lda,
                 hB.data(), ldb);
     
-    hB_copy = hB;
+    hXorB = hB;          // hXorB <- B
+    cpuXorB = hB;        // cpuXorB <- B
 
     //copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size,  hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size,  hipMemcpyHostToDevice));
-
+    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB.data(), sizeof(T)*B_size,  hipMemcpyHostToDevice));
 
     /* =====================================================================
            ROCBLAS
@@ -235,7 +253,7 @@ rocblas_status testing_trsm(Arguments argus)
             M, N,
             &alpha,
             dA,lda,
-            dB,ldb);
+            dXorB,ldb);     // dXorB <- A^(-1) B
 
     if(argus.timing)
     {
@@ -244,81 +262,104 @@ rocblas_status testing_trsm(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hB.data(), dB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hXorB.data(), dXorB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
 
-
+    T max_err = 0.0;
+    T max_res = 0.0;
     if(argus.unit_check || argus.norm_check)
     {
-        /* =====================================================================
-           CPU BLAS
-        =================================================================== */
-        if(argus.timing)
+        // Error Check
+        // hXorB contains calculated X, so error is hX - hXorB 
+
+        // err is the one norm of the scaled error for a single column
+        // max_err is the maximum of err for all columns
+        for (int i = 0; i < N; i++)
         {
-            cpu_time_used = get_time_us();
+            T err = 0.0;
+            for (int j = 0; j < M; j++)
+            {
+                if(hX[j + i*ldb] != 0)
+                {
+                    err += std::abs((hX[j + i*ldb] - hXorB[j + i*ldb]) / hX[j + i*ldb]); 
+                }
+                else
+                {
+                    err += std::abs(hXorB[j + i*ldb]);
+                }
+            }
+            max_err = max_err > err ? max_err : err;
         }
+        trsm_err_res_check<T>(max_err, M, error_eps_multiplier, eps);
+
+
+        // Residual Check
+        cblas_trmm<T>(
+                side, uplo,
+                transA, diag,
+                M, N, 1.0/alpha,
+                (const T*)hA.data(), lda,
+                hXorB.data(), ldb);        // hXorB <- hA * (A^(-1) B) ;
+
+        // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
+        //                                                = hXorB - hB 
+        // res is the one norm of the scaled residual for each column
+        for (int i = 0; i < N; i++)
+        {
+            T res = 0.0;
+            for (int j = 0; j < M; j++)
+            {
+                if(hB[j + i*ldb] != 0)
+                {
+                    res += std::abs((hXorB[j + i*ldb] - hB[j + i*ldb]) / hB[j + i*ldb]); 
+                }
+                else
+                {
+                    res += std::abs(hXorB[j + i*ldb]);
+                }
+            }
+            max_res = max_res > res ? max_res : res;
+        }
+
+        trsm_err_res_check<T>(max_res, M, residual_eps_multiplier, eps);
+    }
+
+    if(argus.timing)
+    {
+        cpu_time_used = get_time_us();
 
         cblas_trsm<T>(
                 side, uplo,
                 transA, diag,
                 M, N, alpha,
                 (const T*)hA.data(), lda,
-                hB_copy.data(), ldb);
+                cpuXorB.data(), ldb);
 
-        if(argus.timing)
-        {
-            cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
-        }
+        cpu_time_used = get_time_us() - cpu_time_used;
+        cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
-        // Forward Error Check
-        //      error is the one norm of the scaled error for each column
-
-        T max_error = 0.0;
-        for (int i = 0; i < N; i++)
-        {
-            T error = 0.0;
-            for (int j = 0; j < M; j++)
-            {
-                if(hB_copy[j + i*ldb] != 0)
-                {
-                    error += std::abs((hB_copy[j + i*ldb] - hB[j + i*ldb]) / hB_copy[j + i*ldb]); 
-                }
-                else
-                {
-                    error += std::abs(hB[j + i*ldb]);
-                }
-            }
-            max_error = max_error > error ? max_error : error;
-        }
-        trsm_forward_error_check<T>(max_error, M, forward_tolerance, eps);
-    }
-
-
-    if(argus.timing)
-    {
         //only norm_check return an norm error, unit check won't return anything
-            cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
-            if(argus.norm_check)
-            {
-                cout << "CPU-Gflops(us), norm-error" ;
-            }
-            cout << endl;
+        cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
+        if(argus.norm_check)
+        {
+            cout << "CPU-Gflops(us), norm-error" ;
+        }
+        cout << endl;
 
-            cout << M << ',' << N <<',' << lda <<','<< ldb <<',' << char_side << ',' << char_uplo << ',' 
-                 << char_transA << ','  << char_diag << ',' <<
-                 rocblas_gflops << "(" << gpu_time_used  << "),";
+        cout << M << ',' << N <<',' << lda <<','<< ldb <<',' << char_side << ',' << char_uplo << ',' 
+             << char_transA << ','  << char_diag << ',' <<
+             rocblas_gflops << "(" << gpu_time_used  << "),";
 
-            if(argus.norm_check)
-            {
-                cout << cblas_gflops << "(" << cpu_time_used << "),";
-                cout << rocblas_error;
-            }
+        if(argus.norm_check)
+        {
+            cout << cblas_gflops << "(" << cpu_time_used << "),";
+            cout << max_err;
+        }
 
-            cout << endl;
+        cout << endl;
     }
 
     CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dXorB));
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }
