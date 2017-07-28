@@ -2,9 +2,8 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# We require 2.8.12 for linking libraries we specify PRIVATE, INTERFACE and
-# PUBLIC keywords
-cmake_minimum_required( VERSION 2.8.12 )
+# The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
+cmake_minimum_required( VERSION 3.5 )
 
 # MACOSX_RPATH is enabled by default policy
 if( POLICY CMP0042 )

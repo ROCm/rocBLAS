@@ -4,8 +4,8 @@
 # Helper cmake script to automate building dependencies for rocblas
 # This script can be invoked manually by the user with 'cmake -P'
 
-# Natively available on including Ubuntu 14.04, OpenSUSE 13.2, CentOS 6.6
-cmake_minimum_required( VERSION 2.8.12 )
+# The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
+cmake_minimum_required( VERSION 3.5 )
 
 # On windows, it's convenient to change the default install prefix such that it does NOT point to 'program files'
 if( CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
