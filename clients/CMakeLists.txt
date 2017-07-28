@@ -2,8 +2,8 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# Natively available on including Ubuntu 14.04, OpenSUSE 13.2, CentOS 6.6
-cmake_minimum_required( VERSION 2.8.12 )
+# The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
+cmake_minimum_required( VERSION 3.5 )
 
 # This project may compile dependencies for clients
 project( rocblas-clients CXX )
