@@ -9,10 +9,10 @@ if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
   string( REGEX MATCH "-m(64|32)" mflag_c "${CMAKE_C_FLAGS}" )
 
   # If user specified no bitness flags at configure time, default to 64-bit
-  if( NOT( mflag_cxx OR mflag_c ) )
-    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64" )
-    set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64" )
-  endif( )
+  # if( NOT( mflag_cxx OR mflag_c ) )
+  #   set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64" )
+  #   set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64" )
+  # endif( )
 
   # Explicitely check if user wants 32-bit libraries
   string( REGEX MATCH "-m64" mflag_cxx_x64 "${CMAKE_CXX_FLAGS}" )
@@ -29,13 +29,6 @@ elseif( MSVC_IDE )
   set( BUILD_64 ${CMAKE_CL_64} )
   set_property( GLOBAL PROPERTY USE_FOLDERS TRUE )
 else( )
-  # Compiler is not recognized or is not defined; default to 64-bit
-  # default handling is to pretend the compiler understands gnu like flags
-  message( STATUS "build-bitness.cmake: Compiler not identified, emulating gnu 64-bit")
-
-  set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64" )
-  set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64" )
-
-  set( BUILD_64 ON )
-
+  # Compiler is not recognized or is not defined
+  message( AUTHOR_WARNING "build-bitness.cmake: Compiler not identified; using cmake compiler defaults ")
 endif( )
