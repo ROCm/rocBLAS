@@ -4,6 +4,12 @@
 
 message( STATUS "Configuring boost external dependency" )
 include( ExternalProject )
+set( PREFIX_BOOST ${CMAKE_INSTALL_PREFIX} CACHE PATH "Location where boost should install, defaults to /usr/local" )
+
+# We need to detect the compiler the user is attempting to invoke with CMake,
+# we do our best to translate cmake parameters into bjam parameters
+enable_language( CXX )
+include( build-bitness )
 
 # TODO:  Options should be added to allow downloading Boost straight from github
 
@@ -79,18 +85,8 @@ elseif( MSVC14 )
   list( APPEND Boost.Command toolset=msvc-14.0 )
 elseif( XCODE_VERSION OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
   list( APPEND Boost.Command toolset=clang )
-elseif( NOT "$ENV{CC}" STREQUAL "" )
-  # CMake apprarently puts the full path of the compiler into CC
-  # The user might specify a non-default gcc compiler through ENV
-  message( STATUS "ENV{CC}=$ENV{CC}" )
-  get_filename_component( gccToolset $ENV{CC} NAME )
-
-  # see: https://svn.boost.org/trac/boost/ticket/5917
-  string( TOLOWER ${gccToolset} gccToolset )
-  if( gccToolset STREQUAL "cc")
-    set( gccToolset "gcc" )
-  endif( )
-  list( APPEND Boost.Command toolset=${gccToolset} )
+elseif( CMAKE_COMPILER_IS_GNUCXX )
+  list( APPEND Boost.Command toolset=gcc )
 endif( )
 
 if( WIN32 AND (ext.Boost_VERSION VERSION_LESS "1.60.0") )
@@ -126,7 +122,7 @@ endif( )
 mark_as_advanced( ext.Boost_LAYOUT )
 mark_as_advanced( ext.Boost_VARIANT )
 
-list( APPEND Boost.Command link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} --layout=${ext.Boost_LAYOUT} install )
+list( APPEND Boost.Command --layout=${ext.Boost_LAYOUT} link=${ext.Boost_LINK} variant=${ext.Boost_VARIANT} )
 
 message( STATUS "Boost.Command: ${Boost.Command}" )
 
@@ -170,7 +166,7 @@ ExternalProject_Add(
   UPDATE_COMMAND ${Boost.Bootstrap}
   LOG_UPDATE 1
   CONFIGURE_COMMAND ""
-  BUILD_COMMAND ${Boost.Command}
+  BUILD_COMMAND ${Boost.Command} stage
   BUILD_IN_SOURCE 1
   LOG_BUILD 1
   INSTALL_COMMAND ""

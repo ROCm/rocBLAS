@@ -5,6 +5,32 @@ the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 ## rocBLAS Wiki
 The [wiki][] has helpful information about building the rocblas library, samples and tests.
 
+## Building rocblas
+### Dependencies (only necessary for rocblas clients)
+The rocblas library has no 3rd-party dependencies ( we do link in a 1st-party dependency Tensile, which provides our GEMM implementation).
+There is no need to build the following external dependencies if you are only building the library.  However, the repository also has
+source for clients, such as unit test programs and benchmarking applications.  These clients introduce the following dependencies:
+1.  [boost](http://www.boost.org/)
+2.  [googletest](https://github.com/google/googletest)
+3.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+
+Linux distros typically have an easy installation mechanism for through the native package manager.  The following
+command should install a compatible boost & lapack packages for known distros:
+* Ubuntu: `sudo apt update && sudo apt install libboost-program-options-dev liblapack-dev`
+
+Many distros do not provide a Googletest package with pre-compiled libraries, as it is typically
+statically linked and the binaries are very heavily dependent on compiler flags.  Usually, it is necessary to compile googletest from
+source.  Our repo provide a cmake script that build dependencies from source, if so desired.  This is an optional step, but
+can be handy to help automate the googletest build.  It is recommended to use the ccmake tool to discover all of the available
+build options, but following is a quick sequence of steps to build all of the dependencies as a cut-and-pasteable example:
+1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
+2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
+3.  `cmake -DCMAKE_INSTALL_PREFIX=package -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-m64" [ROCBLAS_SOURCE]`
+4.  `make -j$(nproc) install`
+
+### Library
+rocblas build...
+
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
 linear algebra problems, but OpenCL primarily remains in the domain of expert programmers. The ROCm model introduces a
@@ -12,13 +38,13 @@ single source paradigm for integrating device and host code together in a single
 entire development process for heterogeneous computing.  Compilers will get smarter, catching errors at compile/build time
 and native profilers/debuggers will better integrate into the development process.  As AMD simplifies the
 programming model with ROCm (using HCC and HIP), it is the intent of this library to expose that simplified programming
-model to end users.  
+model to end users.
 
 ## rocBLAS interface
-In general, the rocBLAS interface is compatible with Legacy [Netlib BLAS][] and the cuBLAS-v2 API, with 
-the explicit exception that Legacy BLAS does not have handle.  The cuBLAS' cublasHandle_t is replaced 
-with rocblas_handle everywhere. Thus, porting a CUDA application which originally calls the cuBLAS API 
-to a HIP application calling rocBLAS API should be relatively straightforward. For example, the rocBLAS 
+In general, the rocBLAS interface is compatible with Legacy [Netlib BLAS][] and the cuBLAS-v2 API, with
+the explicit exception that Legacy BLAS does not have handle.  The cuBLAS' cublasHandle_t is replaced
+with rocblas_handle everywhere. Thus, porting a CUDA application which originally calls the cuBLAS API
+to a HIP application calling rocBLAS API should be relatively straightforward. For example, the rocBLAS
 SGEMV interface is
 
 ```c
@@ -31,7 +57,6 @@ rocblas_sgemv(rocblas_handle handle,
               const float* x, rocblas_int incx,
               const float* beta,
               float* y, rocblas_int incy);
-
 ```
 
 rocBLAS assumes matrices A and vectors x, y are allocated in GPU memory space filled with data.  Users are
@@ -52,16 +77,16 @@ management.
 
 6. Scalar arguments are passed by value on the host with the following two exceptions:
 
-  * Scalar values alpha and beta are passed by reference on either the host or 
+  * Scalar values alpha and beta are passed by reference on either the host or
     the device. The rocBLAS functions will check to see it the value is on
     the device. If this is true, it is used, else the value on the host is
     used.
 
   * Where Legacy BLAS functions have return values, the return value is instead
     added as the last function argument. It is returned by reference on either
-    the host or the device. The rocBLAS functions will check to see it the value 
-    is on the device. If this is true, it is used, else the value is returned 
-    on the host. This applies to the following functions: xDOT, xDOTU, xNRM2, 
+    the host or the device. The rocBLAS functions will check to see it the value
+    is on the device. If this is true, it is used, else the value is returned
+    on the host. This applies to the following functions: xDOT, xDOTU, xNRM2,
     xASUM, IxAMAX, IxAMIN.
 
 7. The return value of all functions is rocblas_status, defined in rocblas_types.h. It is
@@ -74,19 +99,19 @@ management.
     arguments are 64 bit.
 
   * rocBLAS uses column-major storage for 2D arrays, and 1 based indexing for
-    the functions xMAX and xMIN. This is the same as Legacy BLAS and cuBLAS. 
-    If you need row-major and 0 based indexing (used in C language arrays) 
+    the functions xMAX and xMIN. This is the same as Legacy BLAS and cuBLAS.
+    If you need row-major and 0 based indexing (used in C language arrays)
     download the [CBLAS](http://www.netlib.org/blas/#_cblas) file cblas.tgz.
-    Look at the CBLAS functions that provide a thin interface to Legacy BLAS. They 
-    convert from row-major, 0 based, to column-major, 1 based. This is done by 
+    Look at the CBLAS functions that provide a thin interface to Legacy BLAS. They
+    convert from row-major, 0 based, to column-major, 1 based. This is done by
     swapping the order of function arguments. It is not necessary to transpose
     matrices.
 
-  * The auxiliary functions rocblas_set_pointer and rocblas_get_pointer are used 
+  * The auxiliary functions rocblas_set_pointer and rocblas_get_pointer are used
     to set and get the value of the state variable rocblas_pointer_mode. This
-    variable is not used, it is added for compatibility with cuBLAS. rocBLAS 
-    will check if your scalar argument passed by reference is on the device. 
-    If this is true it will pass by reference on the device, else it passes 
+    variable is not used, it is added for compatibility with cuBLAS. rocBLAS
+    will check if your scalar argument passed by reference is on the device.
+    If this is true it will pass by reference on the device, else it passes
     by reference on the host.
 
 ## Asynchronous API
