@@ -8,6 +8,7 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <limits>
 
 #include "rocblas.hpp"
 #include "utility.h"
@@ -21,6 +22,222 @@
 using namespace std;
 
 /* ============================================================================================ */
+
+template<typename T>
+void testing_gemm_NaN()
+{
+    const rocblas_int M = 100;
+    const rocblas_int N = 100;
+    const rocblas_int K = 100;
+
+    const rocblas_int lda = 100;
+    const rocblas_int ldb = 100;
+    const rocblas_int ldc = 100;
+
+    T alpha;
+    T beta;
+
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_operation transB = rocblas_operation_none;
+
+    rocblas_handle handle;
+    T *dA, *dB, *dC;
+
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return;
+    }
+
+    rocblas_int A_size = M * lda;
+    rocblas_int B_size = K * ldb;
+    rocblas_int C_size = M * ldc;
+
+    vector<T> hA(A_size);
+    vector<T> hB(B_size);
+    vector<T> hC(C_size);
+
+    srand(1);
+    rocblas_init<T>(hA, M, K, lda);
+    rocblas_init<T>(hB, K, N, ldb);
+    rocblas_init<T>(hC, M, N, ldc);
+    for (int i = 0; i < C_size; i++)
+    {
+        hC[i] = std::numeric_limits<T>::quiet_NaN();
+    }
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
+
+    //copy data from CPU to device, does not work for lda != A_row
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*C_size, hipMemcpyHostToDevice));
+
+    {
+        alpha = 1.2;
+        beta = 0.0;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        for (int i = 0; i < C_size; i++)
+        {
+            verify_not_nan(hC[i]);
+            if(hC[i] != hC[i]) break;
+        }
+    }
+    {
+        alpha = 0.0;
+        beta = 0.0;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        for (int i = 0; i < C_size; i++)
+        {
+            verify_not_nan(hC[i]);
+            if(hC[i] != hC[i]) break;
+        }
+    }
+
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dC));
+
+    rocblas_destroy_handle(handle);
+    return;
+}
+
+template<typename T>
+void testing_gemm_bad_arg()
+{
+    const rocblas_int M = 100;
+    const rocblas_int N = 100;
+    const rocblas_int K = 100;
+
+    const rocblas_int lda = 100;
+    const rocblas_int ldb = 100;
+    const rocblas_int ldc = 100;
+
+    const T alpha = 1.0;
+    const T beta = 1.0;
+
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_operation transB = rocblas_operation_none;
+
+    rocblas_handle handle;
+    T *dA, *dB, *dC;
+
+    rocblas_status status;
+    status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+
+    if(status != rocblas_status_success) {
+        rocblas_destroy_handle(handle);
+        return;
+    }
+
+    rocblas_int A_size = M * lda;
+    rocblas_int B_size = K * ldb;
+    rocblas_int C_size = M * ldc;
+
+    vector<T> hA(A_size);
+    vector<T> hB(B_size);
+    vector<T> hC(C_size);
+
+    srand(1);
+    rocblas_init<T>(hA, M, K, lda);
+    rocblas_init<T>(hB, K, N, ldb);
+    rocblas_init<T>(hC, M, N, ldc);
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
+
+    //copy data from CPU to device, does not work for lda != A_row
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*C_size, hipMemcpyHostToDevice));
+
+    {
+        T *dA_null = nullptr;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA_null, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
+    }
+    {
+        T *dB_null = nullptr;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB_null, ldb,
+                    &beta, dC, ldc);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
+    }
+    {
+        T *dC_null = nullptr;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC_null, ldc);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        T *alpha_null = nullptr;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    alpha_null, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        T *beta_null= nullptr;
+        status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    beta_null, dC, ldc);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        rocblas_handle handle_null = nullptr;
+        status = rocblas_gemm<T>(handle_null, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+
+        verify_rocblas_status_invalid_handle(status);
+    }
+
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dB));
+    CHECK_HIP_ERROR(hipFree(dC));
+
+    rocblas_destroy_handle(handle);
+    return;
+}
 
 template<typename T>
 rocblas_status testing_gemm(Arguments argus)
@@ -230,7 +447,6 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_destroy_handle(handle);
     return status;
 }
-
 
 /* ============================================================================================ */
 /*! \brief   Bencharking GEMM, allocate a large matrix once.

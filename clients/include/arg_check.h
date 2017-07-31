@@ -59,4 +59,7 @@
 
     void verify_rocblas_status_success(rocblas_status status, const char* message);
 
+    template<typename T>
+    void verify_not_nan(T arg);
+
 #endif

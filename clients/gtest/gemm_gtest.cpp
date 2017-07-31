@@ -134,6 +134,15 @@ class gemm_gtest: public :: TestWithParam <gemm_tuple>
         virtual void TearDown(){}
 };
 
+TEST(rocblas_blas3, gemm_float_bad_arg)
+{
+    testing_gemm_bad_arg<float>();
+}
+
+TEST(rocblas_blas3, gemm_float_NaN_test)
+{
+    testing_gemm_NaN<float>();
+}
 
 TEST_P(gemm_gtest, gemm_gtest_float)
 {
