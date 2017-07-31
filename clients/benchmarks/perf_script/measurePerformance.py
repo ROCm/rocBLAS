@@ -287,7 +287,7 @@ create final list of all transformations (with problem sizes and transform prope
 test_combinations = itertools.product(problem_size_combinations, args.offa, args.offb, args.offc, args.alpha, args.beta, args.transa, args.transb, args.side, args.uplo, args.diag, args.function, args.precision, args.device, args.library)
 test_combinations = list(itertools.islice(test_combinations, None))
 
-test_combinations = [BlasTestCombination(params[0][0], params[0][1], params[0][2], params[0][3], params[0][4], params[0][5], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10], params[11], params[12], params[13], params[14], params[15], label) for params in test_combinations]
+test_combinations = [BlasTestCombination(params[0][0], params[0][1], params[0][2], params[0][3], params[0][4], params[0][5], params[1], params[2], params[3], params[4], params[5], params[6], params[7], params[8], params[9], params[10], params[11], params[12], params[13], params[14], label) for params in test_combinations]
 
 
 """
