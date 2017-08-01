@@ -19,6 +19,7 @@
 #include "flops.h"
 #include <typeinfo>
 
+
 using namespace std;
 
 /* ============================================================================================ */
@@ -60,14 +61,9 @@ void testing_gemm_NaN()
     vector<T> hB(B_size);
     vector<T> hC(C_size);
 
-    srand(1);
-    rocblas_init<T>(hA, M, K, lda);
-    rocblas_init<T>(hB, K, N, ldb);
-    rocblas_init<T>(hC, M, N, ldc);
-    for (int i = 0; i < C_size; i++)
-    {
-        hC[i] = std::numeric_limits<T>::quiet_NaN();
-    }
+    for (int i = 0; i < A_size; i++) hA[i] = 1.0;
+    for (int i = 0; i < B_size; i++) hB[i] = 1.0;
+    for (int i = 0; i < C_size; i++) hC[i] = std::numeric_limits<T>::quiet_NaN();
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
@@ -82,11 +78,18 @@ void testing_gemm_NaN()
     {
         alpha = 1.2;
         beta = 0.0;
+
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*C_size, hipMemcpyHostToDevice));
+
         status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
                     &alpha, dA, lda,
                     dB, ldb,
                     &beta, dC, ldc);
+
+        verify_rocblas_status_success(status,"ERROR: rocblas_gemm");
+
+        CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T)*C_size, hipMemcpyDeviceToHost));
 
         for (int i = 0; i < C_size; i++)
         {
@@ -97,11 +100,18 @@ void testing_gemm_NaN()
     {
         alpha = 0.0;
         beta = 0.0;
+
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*C_size, hipMemcpyHostToDevice));
+
         status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
                     &alpha, dA, lda,
                     dB, ldb,
                     &beta, dC, ldc);
+
+        verify_rocblas_status_success(status,"ERROR: rocblas_gemm");
+
+        CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T)*C_size, hipMemcpyDeviceToHost));
 
         for (int i = 0; i < C_size; i++)
         {
