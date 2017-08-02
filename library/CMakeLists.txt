@@ -2,43 +2,8 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
-cmake_minimum_required( VERSION 3.5 )
-
-# MACOSX_RPATH is enabled by default policy
-if( POLICY CMP0042 )
-    cmake_policy( SET CMP0042 NEW )
-endif( )
-
-# CMP0063: Honor visibility properties for all target types [cmake 3.3]
-if( POLICY CMP0063 )
-  cmake_policy( SET CMP0063 NEW )
-endif( )
-
-if( CMAKE_GENERATOR MATCHES "NMake" )
-    option( NMAKE_COMPILE_VERBOSE "Print VERBOSE compile/link msgs to the console" OFF )
-    if( NMAKE_COMPILE_VERBOSE )
-        set( CMAKE_START_TEMP_FILE "" )
-        set( CMAKE_END_TEMP_FILE "" )
-        set( CMAKE_VERBOSE_MAKEFILE 1 )
-    endif( )
-endif( )
-
-# This has to be initialized before the project() command appears
-# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
-if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
-  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
-endif()
-
-include( build-version )
-project_version( NAME rocblas LANGUAGES CXX )
-
-message( STATUS "rocblas_VERSION= ${rocblas_VERSION}" )
-message( STATUS "\t==>CMAKE_BUILD_TYPE= ${CMAKE_BUILD_TYPE}" )
-message( STATUS "\t==>CMAKE_INSTALL_PREFIX link: " ${CMAKE_INSTALL_PREFIX} )
-
 # This is incremented when the ABI to the library changes
-set( rocblas_SOVERSION 1 )
+set( rocblas_SOVERSION 0 )
 
 list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 
@@ -46,36 +11,31 @@ list( APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake )
 # This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-# On windows, it's convenient to change the default install prefix such that it does NOT point to 'program files'
-# Need to check out CMAKE_RUNTIME_OUTPUT_DIRECTORY variable, and see if that eliminates the need to modify install path
-if( WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
-    set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" FORCE )
-endif( )
+# set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
 
-# Set common compile and link options
-if( MSVC )
-    # Following options for nMake
-    message( STATUS "Detected MSVS Ver: " ${MSVC_VERSION} )
-
-    # CMake uses huge stack frames for windows, we would like to remove.
-    string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}" )
-    string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS}" )
-    string( REGEX REPLACE "/STACK:[0-9]+" "" CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS}" )
-endif( )
-
-set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
-
-include( build-bitness )
+# include( build-bitness )
 
 # Print out compiler flags for viewing/debug
-message( STATUS "CMAKE_CXX_COMPILER flags: " ${CMAKE_CXX_FLAGS} )
-message( STATUS "CMAKE_CXX_COMPILER debug flags: " ${CMAKE_CXX_FLAGS_DEBUG} )
-message( STATUS "CMAKE_CXX_COMPILER release flags: " ${CMAKE_CXX_FLAGS_RELEASE} )
-message( STATUS "CMAKE_CXX_COMPILER relwithdebinfo flags: " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} )
-message( STATUS "CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
+if( BUILD_VERBOSE )
+  message( STATUS "rocblas_VERSION: ${rocblas_VERSION}" )
+  message( STATUS "\t==>CMAKE_BUILD_TYPE: ${CMAKE_BUILD_TYPE}" )
+  message( STATUS "\t==>BUILD_SHARED_LIBS: ${BUILD_SHARED_LIBS}" )
+  message( STATUS "\t==>CMAKE_INSTALL_PREFIX link: " ${CMAKE_INSTALL_PREFIX} )
+  message( STATUS "\t==>CMAKE_MODULE_PATH link: " ${CMAKE_MODULE_PATH} )
+  message( STATUS "\t==>CMAKE_PREFIX_PATH link: " ${CMAKE_PREFIX_PATH} )
+
+
+  message( STATUS "\t==>CMAKE_CXX_COMPILER flags: " ${CMAKE_CXX_FLAGS} )
+  message( STATUS "\t==>CMAKE_CXX_COMPILER debug flags: " ${CMAKE_CXX_FLAGS_DEBUG} )
+  message( STATUS "\t==>CMAKE_CXX_COMPILER release flags: " ${CMAKE_CXX_FLAGS_RELEASE} )
+  message( STATUS "\t==>CMAKE_CXX_COMPILER relwithdebinfo flags: " ${CMAKE_CXX_FLAGS_RELWITHDEBINFO} )
+  message( STATUS "\t==>CMAKE_EXE_LINKER link flags: " ${CMAKE_EXE_LINKER_FLAGS} )
+endif( )
+
+find_package( hip REQUIRED CONFIG PATHS /opt/rocm/hip )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${PROJECT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/rocblas-version.h" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/rocblas-version.h" )
 
 set( rocblas_headers_public
   include/rocblas.h
@@ -116,7 +76,7 @@ set( CPACK_PACKAGE_VERSION_PATCH ${rocblas_VERSION_PATCH} )
 set( CPACK_PACKAGE_VERSION_TWEAK ${rocblas_VERSION_TWEAK} )
 set( CPACK_PACKAGE_VERSION ${rocblas_VERSION} )
 set( CPACK_PACKAGE_VENDOR "AMD")
-set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_SOURCE_DIR}/../LICENSE.md" )
+set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 set( CPACK_SOURCE_IGNORE_FILES "/\\\\.git/" )
 
 # Package specific CPACK vars

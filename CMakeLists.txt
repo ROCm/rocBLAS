@@ -13,31 +13,48 @@ else( )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
 endif( )
 
-# Append our library helper cmake path and the cmake path for hip (for convenience)
-# Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
-list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+# This has to be initialized before the project() command appears
+# Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
+if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
+  set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
+endif()
+
+# if( CMAKE_GENERATOR MATCHES "NMake" )
+#     option( NMAKE_COMPILE_VERBOSE "Print VERBOSE compile/link msgs to the console" OFF )
+#     if( NMAKE_COMPILE_VERBOSE )
+#         set( CMAKE_START_TEMP_FILE "" )
+#         set( CMAKE_END_TEMP_FILE "" )
+#         set( CMAKE_VERBOSE_MAKEFILE 1 )
+#     endif( )
+# endif( )
 
 # include( build-version )
 # project_version( NAME rocblas LANGUAGES CXX )
 project( rocblas VERSION 0.5.4.0 LANGUAGES CXX )
 
+# Append our library helper cmake path and the cmake path for hip (for convenience)
+# Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
+list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
+
 # Building tensile can add significant compile time; this option allows to build
 # library without tensile to allow for rapid iteration without GEMM functionality
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" OFF )
-
 option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
+option( BUILD_VERBOSE "Output additional build information" OFF )
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
-# Find HIP dependency
-find_package( hip REQUIRED CONFIG PATHS /opt/rocm/hip )
+# Find HCC/HIP dependencies
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm/hcc )
+else( )
+  message( AUTHOR_WARNING "rocblas library probably won't build without the hcc compiler" )
+endif( )
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "FijiROCm15" CACHE STRING "Tensile to use which logic?")
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS
-    FijiROCm15
-    )
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS FijiROCm15 )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
@@ -73,6 +90,9 @@ if( BUILD_WITH_TENSILE )
 
 endif()
 
+# CMake list of machine targets
+set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
+
 add_subdirectory( library )
 
 # Build clients of the library
@@ -81,10 +101,3 @@ if( BUILD_CLIENTS )
 
   add_subdirectory( clients )
 endif( )
-
-# CMake list of machine targets
-set( AMDGPU_TARGETS "gfx803;gfx900" CACHE STRING "List of specific machine types for library to target" )
-
-foreach( target ${AMDGPU_TARGET} )
-  target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
-endforeach( )

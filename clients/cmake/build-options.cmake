@@ -18,5 +18,5 @@ if( NOT BUILD_CLIENTS_BENCHMARKS )
 endif( )
 
 if( NOT BUILD_CLIENTS_SAMPLES )
-  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" OFF )
+  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" ON )
 endif( )

@@ -11,25 +11,28 @@ The rocblas library has no 3rd-party dependencies ( we do link in a 1st-party de
 There is no need to build the following external dependencies if you are only building the library.  However, the repository also has
 source for clients, such as unit test programs and benchmarking applications.  These clients introduce the following dependencies:
 1.  [boost](http://www.boost.org/)
-2.  [googletest](https://github.com/google/googletest)
-3.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+3.  [googletest](https://github.com/google/googletest)
 
-Linux distros typically have an easy installation mechanism for through the native package manager.  The following
-command should install a compatible boost & lapack packages for known distros:
+Linux distros typically have an easy installation mechanism through the native package manager.  The following
+command should install a compatible boost & lapack packages for supported distros:
 * Ubuntu: `sudo apt update && sudo apt install libboost-program-options-dev liblapack-dev`
 
-Many distros do not provide a Googletest package with pre-compiled libraries, as it is typically
+Unfortunately, many distros do not provide a googletest package with pre-compiled libraries, as it is typically
 statically linked and the binaries are very heavily dependent on compiler flags.  Usually, it is necessary to compile googletest from
 source.  Our repo provide a cmake script that build dependencies from source, if so desired.  This is an optional step, but
 can be handy to help automate the googletest build.  It is recommended to use the ccmake tool to discover all of the available
 build options, but following is a quick sequence of steps to build all of the dependencies as a cut-and-pasteable example:
 1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
 2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
-3.  `cmake -DCMAKE_INSTALL_PREFIX=package -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-m64" [ROCBLAS_SOURCE]`
+3.  `cmake -DCMAKE_INSTALL_PREFIX=package -DCMAKE_BUILD_TYPE=Release [ROCBLAS_SOURCE]/deps`
 4.  `make -j$(nproc) install`
 
 ### Library
-rocblas build...
+1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release`
+2.  `cd [ROCBLAS_BUILD_DIR]/release`
+3.  `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]`
+4.  `make -j$(nproc) install`
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
