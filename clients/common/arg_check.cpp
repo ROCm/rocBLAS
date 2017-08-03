@@ -263,3 +263,26 @@ void verify_rocblas_status_success(rocblas_status status, const char* message)
     }
 }
 
+template<>
+void verify_not_nan(float arg)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(arg, arg);
+#endif
+    if(arg != arg)
+    {
+        std::cout << "ERROR: argument is NaN" << std::endl;
+    }
+}
+
+template<>
+void verify_not_nan(double arg)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(arg, arg);
+#endif
+    if(arg != arg)
+    {
+        std::cout << "ERROR: argument is NaN" << std::endl;
+    }
+}

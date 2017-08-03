@@ -123,6 +123,8 @@ rocblas_gemv_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if (nullptr == y)
         return rocblas_status_invalid_pointer;
+    else if (nullptr == beta)
+        return rocblas_status_invalid_pointer;
     else if(nullptr == handle)
         return rocblas_status_invalid_handle;
 

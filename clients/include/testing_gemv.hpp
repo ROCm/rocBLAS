@@ -24,14 +24,14 @@ using namespace std;
 template<typename T>
 void testing_gemv_bad_arg()
 {
-    rocblas_int M = 100;
-    rocblas_int N = 100;
-    rocblas_int lda = 100;
-    rocblas_int incx = 1;
-    rocblas_int incy = 1;
-    T alpha = 1.0;
-    T beta = 1.0;
-    rocblas_operation transA = rocblas_operation_none;
+    const rocblas_int M = 100;
+    const rocblas_int N = 100;
+    const rocblas_int lda = 100;
+    const rocblas_int incx = 1;
+    const rocblas_int incy = 1;
+    const T alpha = 1.0;
+    const T beta = 1.0;
+    const rocblas_operation transA = rocblas_operation_none;
 
     rocblas_handle handle;
     T *dA, *dx, *dy;
@@ -46,48 +46,30 @@ void testing_gemv_bad_arg()
     }
 
     rocblas_int A_size = lda * N;
-    rocblas_int X_size;
-    rocblas_int Y_size;
+    rocblas_int X_size = N;
+    rocblas_int Y_size = M;
 
-    //transA = rocblas_operation_transpose;
-    if(transA == rocblas_operation_none){
-        X_size = N ;
-        Y_size = M ;
-    }
-    else{
-        X_size = M ;
-        Y_size = N ;
-    }
-
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-  
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
-    vector<T> hx(X_size * abs_incx);
-    vector<T> hy(Y_size * abs_incy);
-    vector<T> hz(Y_size * abs_incy);
+    vector<T> hx(X_size * incx);
+    vector<T> hy(Y_size * incy);
 
     //allocate memory on device
     CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dx, X_size * abs_incx * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dy, Y_size * abs_incy * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dx, X_size * incx * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dy, Y_size * incy * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
     rocblas_init<T>(hA, M, N, lda);
-    rocblas_init<T>(hx, 1, X_size, abs_incx);
-    rocblas_init<T>(hy, 1, Y_size, abs_incy);
-
-    //copy vector is easy in STL; hz = hy: save a copy in hz which will be output of CPU BLAS
-    hz = hy;
+    rocblas_init<T>(hx, 1, X_size, incx);
+    rocblas_init<T>(hy, 1, Y_size, incy);
 
     //copy data from CPU to device
     hipMemcpy(dA, hA.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice);
-    hipMemcpy(dx, hx.data(), sizeof(T)*X_size * abs_incx, hipMemcpyHostToDevice);
-    hipMemcpy(dy, hy.data(), sizeof(T)*Y_size * abs_incy, hipMemcpyHostToDevice);
+    hipMemcpy(dx, hx.data(), sizeof(T)*X_size * incx, hipMemcpyHostToDevice);
+    hipMemcpy(dy, hy.data(), sizeof(T)*Y_size * incy, hipMemcpyHostToDevice);
 
-    if (nullptr == dx || nullptr == dy || nullptr == dA)
     {
         T *dA_null = nullptr;
         
@@ -99,7 +81,7 @@ void testing_gemv_bad_arg()
                      (T*)&beta,
                      dy, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: A is null pointer");
     }
     {
         T *dx_null = nullptr;
@@ -111,7 +93,7 @@ void testing_gemv_bad_arg()
                      (T*)&beta,
                      dy, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: x is null pointer");
     }
     {
         T *dy_null = nullptr;
@@ -123,7 +105,19 @@ void testing_gemv_bad_arg()
                      (T*)&beta,
                      dy_null, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: A or x or y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"ERROR: y is null pointer");
+    }
+    {
+        T *beta_null = nullptr;
+        status = rocblas_gemv<T>(handle,
+                     transA, M, N,
+                     (T*)&alpha,
+                     dA, lda,
+                     dx, incx,
+                     beta_null,
+                     dy, incy);
+
+        verify_rocblas_status_invalid_pointer(status,"ERROR: beta is null pointer");
     }
     {
         rocblas_handle handle_null = nullptr;
