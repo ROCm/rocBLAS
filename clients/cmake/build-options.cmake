@@ -9,14 +9,15 @@
 # presented in the superbuild GUI, but then passed into the ExternalProject as -D
 # parameters, which would already define them.
 
+# Samples have no other dependencies except for rocblas, so are enabled by default
+if( NOT BUILD_CLIENTS_SAMPLES )
+  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" ON )
+endif( )
+
 if( NOT BUILD_CLIENTS_TESTS )
   option( BUILD_CLIENTS_TESTS "Build rocBLAS unit tests" OFF )
 endif( )
 
 if( NOT BUILD_CLIENTS_BENCHMARKS )
   option( BUILD_CLIENTS_BENCHMARKS "Build rocBLAS benchmarks" OFF )
-endif( )
-
-if( NOT BUILD_CLIENTS_SAMPLES )
-  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" ON )
 endif( )

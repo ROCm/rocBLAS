@@ -124,7 +124,7 @@ add_library( rocblas
 # NOTE: 2 issues below
 # 1.  rocblas header 'rocblas-types.h' exposes the hip header hip/hip_vector_types.h, requiring exposing hip::hip_hcc as PUBLIC
 # 2.  hcc requires -Wl,-Bsymbolic for rocm v1.6.1, should be able to remove in future
-target_link_libraries( rocblas PUBLIC hip::hip_hcc PRIVATE hip::hip_device -Wl,-Bsymbolic )
+target_link_libraries( rocblas PUBLIC hip::hip_hcc PRIVATE hip::hip_device hcc::hccshared )
 
 # Test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )

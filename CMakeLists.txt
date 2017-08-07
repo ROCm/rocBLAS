@@ -36,6 +36,10 @@ project( rocblas VERSION 0.5.4.0 LANGUAGES CXX )
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
+# NOTE:  workaround until hcc & hip cmake modules fixes symlink logic in their config files
+# remove later
+list( APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip )
+
 # Building tensile can add significant compile time; this option allows to build
 # library without tensile to allow for rapid iteration without GEMM functionality
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" OFF )
@@ -47,7 +51,7 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
 # Find HCC/HIP dependencies
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm/hcc )
+  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm )
 else( )
   message( AUTHOR_WARNING "rocblas library probably won't build without the hcc compiler" )
 endif( )

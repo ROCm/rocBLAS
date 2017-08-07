@@ -4,13 +4,10 @@
 
 set( rocblas_samples_common ../common/utility.cpp )
 
-#add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ../common/rocblas_template_specialization.cpp ${rocblas_samples_common} )
 
-#target_link_libraries( example-openmp rocblas )
-#set_target_properties( example-openmp PROPERTIES DEBUG_POSTFIX "-d" )
-# set_target_properties( example-openmp PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+#add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
 
 if( NOT TARGET rocblas )
   find_package( rocblas CONFIG PATHS /opt/rocm/rocblas )
