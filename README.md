@@ -5,34 +5,44 @@ the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 ## rocBLAS Wiki
 The [wiki][] has helpful information about building the rocblas library, samples and tests.
 
-## Building rocblas
-### Dependencies (only necessary for rocblas clients)
-The rocblas library has no 3rd-party dependencies ( we do link in a 1st-party dependency Tensile, which provides our GEMM implementation).
-There is no need to build the following external dependencies if you are only building the library.  However, the repository also has
-source for clients, such as unit test programs and benchmarking applications.  These clients introduce the following dependencies:
-1.  [boost](http://www.boost.org/)
-2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
-3.  [googletest](https://github.com/google/googletest)
-
-Linux distros typically have an easy installation mechanism through the native package manager.  The following
-command should install a compatible boost & lapack packages for supported distros:
-* Ubuntu: `sudo apt update && sudo apt install libboost-program-options-dev liblapack-dev`
-
-Unfortunately, many distros do not provide a googletest package with pre-compiled libraries, as it is typically
-statically linked and the binaries are very heavily dependent on compiler flags.  Usually, it is necessary to compile googletest from
-source.  Our repo provide a cmake script that build dependencies from source, if so desired.  This is an optional step, but
-can be handy to help automate the googletest build.  It is recommended to use the ccmake tool to discover all of the available
-build options, but following is a quick sequence of steps to build all of the dependencies as a cut-and-pasteable example:
-1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
-2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
-3.  `cmake -DCMAKE_INSTALL_PREFIX=package -DCMAKE_BUILD_TYPE=Release [ROCBLAS_SOURCE]/deps`
-4.  `make -j$(nproc) install`
+## Building rocBLAS
+The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v1.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
+* Ubuntu: `sudo apt update && sudo apt install cmake-qt-gui`
+* Fedora: `sudo dnf update && sudo dnf install cmake-gui`
 
 ### Library
+The rocBLAS library has one dependency in the form of [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration, and automatically configured as part of the build.  rocBLAS contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize the build tools.  Example steps to build rocblas:
+
 1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release`
 2.  `cd [ROCBLAS_BUILD_DIR]/release`
 3.  `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]`
 4.  `make -j$(nproc) install`
+
+### rocBLAS clients
+The repository contains source for clients that serve as samples, tests and benchmarks.  Clients source can be found in the clients subdir.
+### Dependencies (only necessary for rocblas clients)
+The rocBLAS samples have no external dependencies, but our unit test and benchmarking applications do.  These clients introduce the following dependencies:
+1.  [boost](http://www.boost.org/)
+2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+3.  [googletest](https://github.com/google/googletest)
+
+Linux distros typically have an easy installation mechanism for boost through the native package manager.
+
+* Ubuntu: `sudo apt update && sudo apt install libboost-program-options-dev`
+* Fedora: `sudo dnf update && sudo dnf install boost-program-options`
+
+Unfortunately, googletest and lapack are not so easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files to easily link.  Our repo provide a cmake script that builds dependencies from source, if desired.  This is an optional step, but helps automate the googletest & lapack builds.  The following is a sequence of steps to build all dependencies and installs them to the cmake default /usr/local:
+
+1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
+2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
+3.  `cmake [ROCBLAS_SOURCE]/deps`
+4.  `make -j$(nproc) install`
+
+Once dependencies are available, however they were installed, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script:
+* `-DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON`
+
+If the dependencies are not installed into system defaults (like /usr/local ), you can optionally pass the CMAKE_PREFIX_PATH to cmake to help it find them.
+* `-DCMAKE_PREFIX_PATH="<semicolon separated install list>"`
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense

@@ -32,7 +32,7 @@ ExternalProject_Add(
   GIT_REPOSITORY ${lapack_git_repository}
   GIT_TAG ${lapack_git_tag}
   CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF
-  LOG_BUILD 0
+  LOG_BUILD 1
   INSTALL_COMMAND ""
   LOG_INSTALL 1
 )
