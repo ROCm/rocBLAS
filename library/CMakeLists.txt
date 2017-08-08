@@ -67,30 +67,14 @@ else( )
     # set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
 endif( )
 
-# Package agnostic CPACK vars
-set( CPACK_PACKAGE_CONTACT "Kent Knox <kent.knox@amd.com>" )
-set( CPACK_PACKAGE_DESCRIPTION_SUMMARY "Radeon Open Compute BLAS library")
-set( CPACK_PACKAGE_VERSION_MAJOR ${rocblas_VERSION_MAJOR} )
-set( CPACK_PACKAGE_VERSION_MINOR ${rocblas_VERSION_MINOR} )
-set( CPACK_PACKAGE_VERSION_PATCH ${rocblas_VERSION_PATCH} )
-set( CPACK_PACKAGE_VERSION_TWEAK ${rocblas_VERSION_TWEAK} )
-set( CPACK_PACKAGE_VERSION ${rocblas_VERSION} )
-set( CPACK_PACKAGE_VENDOR "AMD")
-set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
-set( CPACK_SOURCE_IGNORE_FILES "/\\\\.git/" )
-
 # Package specific CPACK vars
 set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip_hcc (>= 1.0.17174)" )
 set( CPACK_RPM_PACKAGE_REQUIRES "hip_hcc >= 1.0.17174" )
+set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 
-if( "${CPACK_PACKAGING_INSTALL_PREFIX}" MATCHES "^/opt/rocm.*$")
-    include( package-functions )
-    write_rocm_package_script_files( ${PROJECT_BINARY_DIR} "rocblas" "librocblas-hcc.so" )
-
-    set( CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${PROJECT_BINARY_DIR}/postinst;${PROJECT_BINARY_DIR}/prerm")
-    set( CPACK_RPM_POST_INSTALL_SCRIPT_FILE "${PROJECT_BINARY_DIR}/postinst" )
-    set( CPACK_RPM_PRE_UNINSTALL_SCRIPT_FILE "${PROJECT_BINARY_DIR}/prerm" )
-endif( )
-
-# Define all variables that influence CPack before including CPack, such as install targets
-include( CPack )
+rocm_create_package(
+    NAME rocblas
+    DESCRIPTION "Radeon Open Compute BLAS library"
+    MAINTAINER "Kent Knox <kent.knox@amd.com>"
+    LDCONFIG
+)

@@ -95,12 +95,12 @@ target_include_directories( rocblas-test
 )
 
 if( TARGET rocblas )
-  target_link_libraries( rocblas-test rocblas )
+  target_link_libraries( rocblas-test PRIVATE rocblas )
 else( )
-  target_link_libraries( rocblas-test roc::rocblas )
+  target_link_libraries( rocblas-test PRIVATE roc::rocblas )
 endif( )
 
-target_link_libraries( rocblas-test cblas lapack ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+target_link_libraries( rocblas-test PRIVATE cblas lapack ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
@@ -108,7 +108,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   target_compile_options( rocblas-test PRIVATE -Wno-unused-command-line-argument )
 
   foreach( target ${AMDGPU_TARGETS} )
-    target_compile_options( rocblas-test PRIVATE --amdgpu-target=${target} )
+    target_link_libraries( rocblas-test PRIVATE --amdgpu-target=${target} )
   endforeach( )
 endif( )
 

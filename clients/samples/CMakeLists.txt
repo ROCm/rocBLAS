@@ -19,9 +19,9 @@ endif( )
 
 foreach( exe example-sscal;example-scal-template )
   if( TARGET rocblas )
-    target_link_libraries( ${exe} rocblas )
+    target_link_libraries( ${exe} PRIVATE rocblas )
   else( )
-    target_link_libraries( ${exe} roc::rocblas )
+    target_link_libraries( ${exe} PRIVATE roc::rocblas )
   endif( )
 
   # Try to test for specific compiler features if cmake version is recent enough
@@ -44,7 +44,7 @@ foreach( exe example-sscal;example-scal-template )
     target_compile_options( ${exe} PRIVATE -Wno-unused-command-line-argument )
 
     foreach( target ${AMDGPU_TARGETS} )
-      target_compile_options( ${exe} PRIVATE --amdgpu-target=${target} )
+      target_link_libraries( ${exe} PRIVATE --amdgpu-target=${target} )
     endforeach( )
   endif( )
 endforeach( )
