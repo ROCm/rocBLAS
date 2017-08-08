@@ -19,47 +19,47 @@ endfunction( )
 # ########################################################################
 # Main
 # ########################################################################
+# package_targets is used as a list of install target
+set( package_targets rocblas )
 
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
-  set(Tensile_RUNTIME_LANGUAGE "HIP")
-  set(Tensile_KERNEL_LANGUAGE "HIP")
-  message(STATUS "Tensile_LOGIC=${Tensile_LOGIC}")
-  message(STATUS "Tensile_FOUND=${Tensile_FOUND}")
-
-  # If we want to build a shared rocblas lib, we want to force Tensile to build as a static lib
+  # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
   if( BUILD_SHARED_LIBS )
     set( ROCBLAS_SHARED_LIBS ON )
     set( BUILD_SHARED_LIBS OFF )
-  endif()
+  else( )
+    list( APPEND package_targets Tensile )
+  endif( )
 
-  if (Tensile_FOUND) # was it found at the top level
-    find_package(Tensile)
-    message(STATUS "Tensile package found")
-    TensileCreateLibrary(
-        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_RUNTIME_LANGUAGE}
-        ${Tensile_KERNEL_LANGUAGE}
-        ${Tensile_MERGE_FILES}
-        ${Tensile_SHORT_FILENAMES}
-        ${Tensile_PRINT_DEBUG}
-        )
-  else()
-    message(STATUS "Tensile_ROOT=${Tensile_ROOT} specified; manually including TensileConfig.cmake")
-    include(${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake)
-    TensileCreateLibrary(
-        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
-        ${Tensile_RUNTIME_LANGUAGE}
-        ${Tensile_KERNEL_LANGUAGE}
-        ${Tensile_MERGE_FILES}
-        ${Tensile_SHORT_FILENAMES}
-        ${Tensile_PRINT_DEBUG}
-        Tensile_ROOT ${Tensile_ROOT}
-        )
-  endif()
+  include( ${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake )
+
+  set( Tensile_RUNTIME_LANGUAGE "HIP" )
+  set( Tensile_KERNEL_LANGUAGE "HIP" )
+  TensileCreateLibrary(
+      ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
+      ${Tensile_RUNTIME_LANGUAGE}
+      ${Tensile_KERNEL_LANGUAGE}
+      ${Tensile_MERGE_FILES}
+      ${Tensile_SHORT_FILENAMES}
+      ${Tensile_PRINT_DEBUG}
+      Tensile_ROOT ${Tensile_ROOT}
+  )
 
   # Create a unique name for Tensile compiled for rocBLAS
-  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas )
+  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
+  target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+
+  if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+    # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
+    # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+    target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument )
+
+    foreach( target ${AMDGPU_TARGETS} )
+      target_link_libraries( Tensile PRIVATE --amdgpu-target=${target} )
+    endforeach( )
+  endif( )
 
   if( ROCBLAS_SHARED_LIBS )
     set( BUILD_SHARED_LIBS ON )
@@ -67,15 +67,15 @@ if( BUILD_WITH_TENSILE )
   endif()
 
   #rocblas_gemm and rocblas_trsm require tensile
-    set( Tensile_SRC
-      blas3/Tensile/gemm.cpp
-      blas3/rocblas_trsm.cpp
-      )
+  set( Tensile_SRC
+    blas3/Tensile/gemm.cpp
+    blas3/rocblas_trsm.cpp
+  )
 
-    set(Tensile_INC
-        ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
-        )
-endif()
+  set( Tensile_INC
+    ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
+  )
+endif( )
 
 set( rocblas_auxiliary_source
   include/handle.h
@@ -136,13 +136,13 @@ else( )
   endif( )
 endif( )
 
-# Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-# "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
+  # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument )
 
   foreach( target ${AMDGPU_TARGETS} )
-    target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
+    target_link_libraries( rocblas PRIVATE --amdgpu-target=${target} )
   endforeach( )
 endif( )
 
@@ -165,11 +165,7 @@ set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
-if( CMAKE_VERSION VERSION_LESS "3.0" )
-  add_compiler_export_flags( )
-else( )
-  set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
-endif( )
+set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
@@ -177,63 +173,23 @@ if( NOT BUILD_SHARED_LIBS )
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
 endif( )
 
-# The following is cmake code to generate a config file package for rocblas
-# Documentation for how to use the following package:
-# https://cmake.org/cmake/help/v3.0/module/CMakePackageConfigHelpers.html
-include( CMakePackageConfigHelpers )
+############################################################
+# Installation
 
-set( config_package_location ${LIB_INSTALL_DIR}/cmake/rocblas )
-
-configure_package_config_file(
-  rocblas-config.cmake.in
-  ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake
-  INSTALL_DESTINATION ${config_package_location}
-  PATH_VARS INCLUDE_INSTALL_DIR LIB_INSTALL_DIR
+rocm_install_targets(
+  TARGETS ${package_targets}
+  INCLUDE
+    ${CMAKE_SOURCE_DIR}/library/include
+    ${CMAKE_BINARY_DIR}/include
+  PREFIX rocblas
 )
+#         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 
-write_basic_package_version_file(
-  ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake
-  VERSION ${rocblas_VERSION}
-  COMPATIBILITY SameMajorVersion
-)
-
-if( BUILD_WITH_TENSILE AND NOT BUILD_SHARED_LIBS )
-    install( TARGETS rocblas Tensile
-        EXPORT rocblas-targets
-        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
-    )
-else()
-    install( TARGETS rocblas
-        EXPORT rocblas-targets
-        RUNTIME DESTINATION ${BIN_INSTALL_DIR}
-        LIBRARY DESTINATION ${LIB_INSTALL_DIR}
-        ARCHIVE DESTINATION ${LIB_INSTALL_DIR}
-        PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
-    )
-endif()
-
-install( EXPORT rocblas-targets
-  DESTINATION ${config_package_location}
+rocm_export_targets(
+  TARGETS rocblas-targets
+  PREFIX rocblas
+  DEPENDS PACKAGE hip
   NAMESPACE roc::
-)
+ )
 
-install( FILES
-  ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config.cmake
-  ${CMAKE_CURRENT_BINARY_DIR}/rocblas-config-version.cmake
-  DESTINATION ${config_package_location}
-  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-)
-
-install( FILES
-    ${relative_rocblas_headers_public}
-    DESTINATION ${INCLUDE_INSTALL_DIR}
-)
-
-install( FILES
-  ${PROJECT_BINARY_DIR}/include/rocblas-export.h
-  DESTINATION ${INCLUDE_INSTALL_DIR}
-  PERMISSIONS OWNER_WRITE OWNER_READ GROUP_READ WORLD_READ
-)
+rocm_install_symlink_subdir( rocblas )
