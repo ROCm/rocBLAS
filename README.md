@@ -11,17 +11,19 @@ The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v1.
 * Fedora: `sudo dnf install cmake-gui`
 
 ### Library
-The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile itself is predominately written in python, so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocblas:
+The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile is predominately written in python2.7 (not python3), so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocblas:
 
 #### (One time only)
 * Ubuntu: `sudo apt install python2.7 python-yaml`
 * Fedora: `sudo dnf install python PyYAML`
 
 #### Configure and build steps
-1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release`
-2.  `cd [ROCBLAS_BUILD_DIR]/release`
-3.  `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]`
-4.  `make -j$(nproc) install`
+```
+mkdir -p [ROCBLAS_BUILD_DIR]/release
+cd [ROCBLAS_BUILD_DIR]/release
+CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]
+make -j$(nproc) install # sudo required if installing into system directory; uses /opt/rocm by default
+```
 
 ### rocBLAS clients
 The repository contains source for clients that serve as samples, tests and benchmarks.  Clients source can be found in the clients subdir.
