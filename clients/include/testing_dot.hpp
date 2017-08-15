@@ -205,9 +205,6 @@ rocblas_status testing_dot(Arguments argus)
         gpu_time_used = get_time_us();// in microseconds
     }
 
-     /* =====================================================================
-                 CPU BLAS
-     =================================================================== */
      //rocblas_dot accept both dev/host pointer for the scalar
      if(device_pointer){
         status = rocblas_dot<T>(handle,

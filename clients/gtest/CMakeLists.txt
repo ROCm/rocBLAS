@@ -26,8 +26,10 @@ if( NOT cblas_FOUND )
   message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
 endif( )
 
+
 if( NOT TARGET rocblas )
   find_package( rocblas CONFIG PATHS /opt/rocm/rocblas )
+
 
   if( NOT rocblas_FOUND )
     message( FATAL_ERROR "rocBLAS is a required dependency and is not found; try adding rocblas path to CMAKE_PREFIX_PATH")

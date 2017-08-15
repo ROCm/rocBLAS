@@ -72,7 +72,7 @@ void testing_gemv_bad_arg()
 
     {
         T *dA_null = nullptr;
-        
+
         status = rocblas_gemv<T>(handle,
                      transA, M, N,
                      (T*)&alpha,
@@ -201,7 +201,7 @@ rocblas_status testing_gemv(Arguments argus)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-  
+
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(A_size);
     vector<T> hx(X_size * abs_incx);
@@ -307,7 +307,7 @@ rocblas_status testing_gemv(Arguments argus)
         }
         cout << endl;
 
-        cout << "GGG,"<< M << ',' << N <<',' << lda <<','<< rocblas_gflops << ',' << rocblas_bandwidth << ','  ;
+        cout << "GEMV,"<< M << ',' << N <<',' << lda <<','<< rocblas_gflops << ',' << rocblas_bandwidth << ','  ;
 
         if(argus.norm_check){
             cout << cblas_gflops << ',';

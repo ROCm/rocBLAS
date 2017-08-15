@@ -95,7 +95,7 @@ double norm_check_general<float>(char norm_type, rocblas_int M, rocblas_int N, r
     float cpu_norm = slange_(&norm_type, &M, &N, hCPU, &lda, &work);
     saxpy_(&size, &alpha, hCPU, &incx, hGPU, &incx);
 
-     float error = slange_(&norm_type, &M, &N, hGPU, &lda, &work)/cpu_norm;
+    float error = slange_(&norm_type, &M, &N, hGPU, &lda, &work)/cpu_norm;
 
     return (double)error;
 }

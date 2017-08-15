@@ -5,7 +5,7 @@
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
- 
+
 #include "status.h"
 #include "definitions.h"
 #include "gemv_device.h"
@@ -185,6 +185,7 @@ rocblas_gemv_template(rocblas_handle handle,
                                             transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
         }
         else{
+
             if ( 0.0 == *alpha && 1.0 == *beta) return rocblas_status_success;
             T h_alpha_scalar = *alpha; T h_beta_scalar = *beta;
             hipLaunchKernel(HIP_KERNEL_NAME(gemvc_kernel_host_pointer<T, 256>), dim3(gemvc_grid), dim3(gemvc_threads), 0, rocblas_stream,

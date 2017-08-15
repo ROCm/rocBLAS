@@ -384,6 +384,48 @@
         return rocblas_dzamax(handle, n, x, incx, result);
     }
 
+    //transpose
+    template<>
+    rocblas_status
+    rocblas_transpose<float>(rocblas_handle handle,
+        rocblas_int m, rocblas_int n,
+        const float *A, rocblas_int lda,
+        float *B, rocblas_int ldb){
+
+        return rocblas_stranspose(handle, m, n, A, lda, B, ldb);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_transpose<double>(rocblas_handle handle,
+        rocblas_int m, rocblas_int n,
+        const double *A, rocblas_int lda,
+        double *B, rocblas_int ldb){
+
+        return rocblas_dtranspose(handle, m, n, A, lda, B, ldb);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_transpose<rocblas_float_complex>(rocblas_handle handle,
+        rocblas_int m, rocblas_int n,
+        const rocblas_float_complex *A, rocblas_int lda,
+        rocblas_float_complex *B, rocblas_int ldb){
+
+        return rocblas_ctranspose(handle, m, n, A, lda, B, ldb);
+    }
+
+    template<>
+    rocblas_status
+    rocblas_transpose<rocblas_double_complex>(rocblas_handle handle,
+        rocblas_int m, rocblas_int n,
+        const rocblas_double_complex *A, rocblas_int lda,
+        rocblas_double_complex *B, rocblas_int ldb){
+
+        return rocblas_ztranspose(handle, m, n, A, lda, B, ldb);
+    }
+
+
     /*
      * ===========================================================================
      *    level 2 BLAS

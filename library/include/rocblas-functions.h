@@ -488,6 +488,47 @@ rocblas_dzamin(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);
 
+
+
+/*! \brief BLAS Extension API
+
+    \details
+    transpose matrix A of size (m by n) to matrix B (n by m) 
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    m         rocblas_int.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    A     pointer storing A matrix on the GPU.
+    @param[in]
+    lda 
+              rocblas_int
+              specifies the leading dimension for the matrix A
+    @param[inout]
+    B    pointer storing B matrix on the GPU.
+    @param[in]
+    ldb
+              rocblas_int
+              specifies the leading dimension for the matrix B
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_stranspose(rocblas_handle handle, rocblas_int m, rocblas_int n, const float* A, rocblas_int lda, float* B, rocblas_int ldb);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_dtranspose(rocblas_handle handle, rocblas_int m, rocblas_int n, const double* A, rocblas_int lda, double* B, rocblas_int ldb);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_ctranspose(rocblas_handle handle, rocblas_int m, rocblas_int n, const rocblas_float_complex* A, rocblas_int lda, rocblas_float_complex* B, rocblas_int ldb);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_ztranspose(rocblas_handle handle, rocblas_int m, rocblas_int n, const rocblas_double_complex* A, rocblas_int lda, rocblas_double_complex* B, rocblas_int ldb);
+
+
     /*
      * ===========================================================================
      *    level 2 BLAS
