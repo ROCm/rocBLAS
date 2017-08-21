@@ -1,5 +1,11 @@
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
 
-#
+#pragma once
+#ifndef TRANSPOSE_DEVICE_H
+#define TRANSPOSE_DEVICE_H
+
 /*
    transpose input of size m * n (up to DIM_X * DIM_X) to output of size n * m
    input, output are in device memory 
@@ -68,7 +74,7 @@ transpose_kernel( hipLaunchParm lp, int m, int n, const T* input, T* output, int
 }
 
 
-
+#endif //TRANSPOSE_DEVICE_H
 
 
 
