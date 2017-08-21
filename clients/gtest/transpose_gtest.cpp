@@ -21,7 +21,7 @@ using namespace std;
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>> transpose_tuple;
+typedef std::tuple<vector<int>, int> transpose_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -57,7 +57,7 @@ vector<vector<int>> size_range = {
                                                                                    
 };
 
-
+int dummy_range[] = {1};
 
 
 /* ===============Google Unit Test==================================================== */
@@ -168,8 +168,8 @@ TEST_P(transpose_gtest, float2)
 INSTANTIATE_TEST_CASE_P(rocblas_transpose,
                         transpose_gtest,
                         Combine(
-                                  ValuesIn(size_range)
-                               )
+                            ValuesIn(size_range), ValuesIn(dummy_range)
+                        )
                        );
 
 
