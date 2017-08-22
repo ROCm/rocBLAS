@@ -44,14 +44,17 @@ Unfortunately, googletest and lapack are not as easy to install.  Many distros d
 #### (optional, one time only)
 1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
 2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
-3.  `cmake [ROCBLAS_SOURCE]/deps`
-4.  `make -j$(nproc) install`
+3.  `cmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps`
+4.  `sudo make -j$(nproc) install`
 
 Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script:
 * `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]`
 
 If the dependencies are not installed into system defaults (like /usr/local ), you can optionally pass the CMAKE_PREFIX_PATH to cmake to help find them.
 * `-DCMAKE_PREFIX_PATH="<semicolon separated install list>"`
+
+Build with
+'make -j$(nproc)'
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
