@@ -63,6 +63,17 @@
     //axpy
     template<>
     rocblas_status
+    rocblas_axpy<rocblas_half>(rocblas_handle handle, 
+                             rocblas_int n,
+                             const rocblas_half *alpha,
+                             const rocblas_half *x, rocblas_int incx,
+                                   rocblas_half *y, rocblas_int incy)
+    {
+        return rocblas_haxpy(handle, n, alpha, x, incx, y, incy);
+    }
+
+    template<>
+    rocblas_status
     rocblas_axpy<float>(    rocblas_handle handle, rocblas_int n,
                             const float *alpha,
                             const float *x, rocblas_int incx,

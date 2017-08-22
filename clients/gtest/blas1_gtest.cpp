@@ -59,7 +59,16 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-  int N_range[] = {-1, 0, 10, 500, 1000, 7111, 10000};
+  int N_range[] = {
+                    -1,
+                    0,
+                    5,
+                    10,
+                    500,
+                    1000,
+                    7111,
+                    10000,
+                  };
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
@@ -202,6 +211,50 @@ TEST_P(blas1_gtest, axpy_float)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
     rocblas_status status = testing_axpy<float>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incy < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+TEST_P(blas1_gtest, axpy_double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_axpy<double>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incx < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if( arg.incy < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+TEST_P(blas1_gtest, axpy_half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_axpy<rocblas_half>( arg );
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
         if( arg.N < 0 ){
