@@ -251,11 +251,29 @@ TEST_P(blas1_gtest, dot_float)
         if( arg.N < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if( arg.incx < 0){
+        else 
+        {
+            ASSERT_EQ(status, rocblas_status_success) << "incorrect return status";
+        }
+    }
+}
+
+TEST_P(blas1_gtest, dot_double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_dot<double>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+        if( arg.N < 0 ){
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
+        else 
+        {
+            ASSERT_EQ(status, rocblas_status_success) << "incorrect return status";
         }
     }
 }
