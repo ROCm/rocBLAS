@@ -131,7 +131,7 @@ TEST_P(transpose_gtest, float)
     }
 }
 
-TEST_P(transpose_gtest, float2)
+TEST_P(transpose_gtest, double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -140,7 +140,7 @@ TEST_P(transpose_gtest, float2)
 
     Arguments arg = setup_transpose_arguments( GetParam() );
 
-    rocblas_status status = testing_transpose<float2>( arg );
+    rocblas_status status = testing_transpose<double>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){

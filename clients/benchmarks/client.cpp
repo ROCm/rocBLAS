@@ -147,10 +147,10 @@ int main(int argc, char *argv[])
             testing_transpose<float>( argus );
         else if (precision == 'd')
             testing_transpose<double>( argus );
-        if (precision == 'c')
+        /*if (precision == 'c')
             testing_transpose<rocblas_float_complex>( argus );
         else if (precision == 'z')
-            testing_transpose<rocblas_double_complex>( argus );
+            testing_transpose<rocblas_double_complex>( argus );*/
     }
     else if (function == "bandwidth"){
         if (precision == 's')

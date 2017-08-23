@@ -122,27 +122,29 @@ rocblas_status testing_transpose(Arguments argus)
                      hA.data(), lda,
                      hB_copy.data(), ldb,
                      1);
-        }
+  
+            #ifndef NDEBUG
+            print_matrix(hB_copy, hB, min(N,3), min(M,3), ldb);
+            #endif
 
-        #ifndef NDEBUG
-        print_matrix(hB_copy, hB, min(N,3), min(M,3), ldb);
-        #endif
+            //enable unit check, notice unit check is not invasive, but norm check is,
+            // unit check and norm check can not be interchanged their order
+            if(argus.unit_check)
+            {
+                unit_check_general<T>(N, M, ldb, hB_copy.data(), hB.data());
+            }
 
-        //enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check)
-        {
-            unit_check_general<T>(N, M, ldb, hB_copy.data(), hB.data());
-        }
-
-        //if enable norm check, norm check is invasive
-        //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
-        {
-            rocblas_error = norm_check_general<T>('F', N, M, ldb, hB_copy.data(), hB.data());
+            //if enable norm check, norm check is invasive
+            //any typeinfo(T) will not work here, because template deduction is matched in compilation time
+            if(argus.norm_check)
+            {
+                rocblas_error = norm_check_general<T>('F', N, M, ldb, hB_copy.data(), hB.data());
+            }
         }
 
     }// end of if unit/norm check
+
+            print_matrix(hB_copy, hB, min(N,3), min(M,3), ldb);
 
     if(argus.timing){
         //only norm_check return an norm error, unit check won't return anything
