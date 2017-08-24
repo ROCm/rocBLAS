@@ -63,8 +63,10 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 # Find HCC/HIP dependencies
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   find_package( hcc REQUIRED CONFIG PATHS /opt/rocm )
+elseif( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
 else( )
-  message( AUTHOR_WARNING "rocblas library probably won't build without the hcc compiler" )
+  message( AUTHOR_WARNING "rocblas library probably won't build without either the hcc or hipcc compilers. Set the CXX environment variable to specify your desired compiler" )
 endif( )
 
 if( BUILD_WITH_TENSILE )
