@@ -4,6 +4,7 @@
  * ************************************************************************ */
 
 #include <stdio.h>
+#include <memory>
 #include "rocblas.h"
 #include "norm.h"
 #include "cblas.h"
@@ -48,6 +49,36 @@ extern "C" {
 /* ============================Norm Check for General Matrix: float/double/complex template speciliazation ======================================= */
 
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
+template<>
+double norm_check_general<rocblas_half>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_half *hCPU, rocblas_half *hGPU)
+{
+//norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+//one norm is max column sum
+//infinity norm is max row sum
+//Frobenius is l2 norm of matrix entries
+
+    std::unique_ptr<float []> hCPU_float(new float[N*lda]());
+    std::unique_ptr<float []> hGPU_float(new float[N*lda]());
+    for (int i = 0; i < N*lda; i++)
+    {
+        hCPU_float[i] = static_cast<float>(hCPU[i]);
+        hGPU_float[i] = static_cast<float>(hGPU[i]);
+    }
+
+    float work;
+    rocblas_int incx = 1;
+    float alpha = -1.0f;
+    rocblas_int size = lda * N;
+
+    float cpu_norm = slange_(&norm_type, &M, &N, hCPU_float.get(), &lda, &work);
+    saxpy_(&size, &alpha, hCPU_float.get(), &incx, hGPU_float.get(), &incx);
+
+    float error = slange_(&norm_type, &M, &N, hGPU_float.get(), &lda, &work)/cpu_norm;
+
+    return static_cast<double>(error);
+}
+
+
 template<>
 double norm_check_general<float>(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, float *hCPU, float *hGPU)
 {
