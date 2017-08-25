@@ -14,6 +14,18 @@
  * thereby it can include top-level definitions included by all
  ******************************************************************************/
 
+// half vectors
+typedef __fp16 half8 __attribute__((ext_vector_type(8)));
+typedef __fp16 half2 __attribute__((ext_vector_type(2)));
+extern "C" half2 __v_pk_fma_f16(half2, half2, half2) __asm("llvm.fma.v2f16");
+
+__global__
+inline half2 rocblas_fmadd_half2(half2 multiplier, half2 multiplicand, half2 addend)
+{
+    half2 result;
+    result = __v_pk_fma_f16(multiplier, multiplicand, addend);
+    return result;
+};
 
 #define RETURN_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK) { \
     hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
