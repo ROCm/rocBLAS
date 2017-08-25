@@ -264,6 +264,13 @@ rocblas_zswap(rocblas_handle handle,
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status
+rocblas_haxpy(rocblas_handle handle,
+    rocblas_int n,
+    const rocblas_half *alpha,
+    const rocblas_half *x, rocblas_int incx,
+    rocblas_half *y,  rocblas_int incy);
+
+ROCBLAS_EXPORT rocblas_status
 rocblas_saxpy(rocblas_handle handle,
     rocblas_int n,
     const float *alpha,

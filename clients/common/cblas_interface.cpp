@@ -5,6 +5,7 @@
 
 
 #include <typeinfo>
+#include <memory>
 #include "rocblas.h"
 #include "cblas_interface.h"
 #include "cblas.h"
@@ -108,6 +109,32 @@ extern "C" {
     }
 
     //axpy
+    template<>
+    void cblas_axpy<rocblas_half>( rocblas_int n,
+                            rocblas_half alpha,
+                            rocblas_half *x, rocblas_int incx,
+                            rocblas_half *y, rocblas_int incy)
+    {
+        rocblas_int abs_incx = incx >=0 ? incx : -incx;
+        rocblas_int abs_incy = incy >=0 ? incy : -incy;
+        float alpha_float = static_cast<float>(alpha);
+        std::unique_ptr<float []> x_float(new float[n*abs_incx]());
+        std::unique_ptr<float []> y_float(new float[n*abs_incy]());
+        for (int i = 0; i < n; i++)
+        {
+            x_float[i*abs_incx] = static_cast<float>(x[i*abs_incx]);
+            y_float[i*abs_incy] = static_cast<float>(y[i*abs_incy]);
+        }
+
+        cblas_saxpy(n, alpha_float, x_float.get(), incx, y_float.get(), incy);
+
+        for (int i = 0; i < n; i++)
+        {
+            x[i*abs_incx] = static_cast<rocblas_half>(x_float[i*abs_incx]);
+            y[i*abs_incy] = static_cast<rocblas_half>(y_float[i*abs_incy]);
+        }
+    }
+
     template<>
     void cblas_axpy<float>( rocblas_int n,
                             float alpha,
