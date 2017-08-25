@@ -6,8 +6,6 @@
 #include "rocblas.h"
 #include "definitions.h"
 
-extern "C" half2 __v_pk_fma_f16(half2, half2, half2) __asm("llvm.fma.v2f16");
-
 #define NB_X 256
 
 template<typename T>
@@ -143,10 +141,10 @@ haxpy_mlt_8_device_scalar(int n_mlt_8, const __fp16 *alpha, half8 *x, half8 *y)
         x3[0] = x[tid][6];
         x3[1] = x[tid][7];
 
-        z0 = __v_pk_fma_f16(alpha_h2, x0, y0);
-        z1 = __v_pk_fma_f16(alpha_h2, x1, y1);
-        z2 = __v_pk_fma_f16(alpha_h2, x2, y2);
-        z3 = __v_pk_fma_f16(alpha_h2, x3, y3);
+        z0 = rocblas_fmadd_half2(alpha_h2, x0, y0);
+        z1 = rocblas_fmadd_half2(alpha_h2, x1, y1);
+        z2 = rocblas_fmadd_half2(alpha_h2, x2, y2);
+        z3 = rocblas_fmadd_half2(alpha_h2, x3, y3);
 
         y[tid][0] = z0[0];
         y[tid][1] = z0[1];
@@ -188,10 +186,10 @@ haxpy_mlt_8_host_scalar(int n_mlt_8, half2 alpha, half8 *x, half8 *y)
         x3[0] = x[tid][6];
         x3[1] = x[tid][7];
 
-        z0 = __v_pk_fma_f16(alpha, x0, y0);
-        z1 = __v_pk_fma_f16(alpha, x1, y1);
-        z2 = __v_pk_fma_f16(alpha, x2, y2);
-        z3 = __v_pk_fma_f16(alpha, x3, y3);
+        z0 = rocblas_fmadd_half2(alpha, x0, y0);
+        z1 = rocblas_fmadd_half2(alpha, x1, y1);
+        z2 = rocblas_fmadd_half2(alpha, x2, y2);
+        z3 = rocblas_fmadd_half2(alpha, x3, y3);
 
         y[tid][0] = z0[0];
         y[tid][1] = z0[1];

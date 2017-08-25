@@ -30,9 +30,6 @@ typedef double2 rocblas_double_complex;
 // half type TODO put name of half here
 typedef __fp16   rocblas_half;
 typedef float2   rocblas_half_complex;
-// half vectors
-typedef __fp16 half8 __attribute__((ext_vector_type(8)));
-typedef __fp16 half2 __attribute__((ext_vector_type(2)));
 
 typedef struct _rocblas_handle * rocblas_handle;
 
