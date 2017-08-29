@@ -469,45 +469,47 @@ hcc_1_6:
       // docker_clean_images( job_name, rocblas_image_name )
     }
   }
-},
-nvcc:
-{
-  node( 'docker && cuda' )
-  {
-    ////////////////////////////////////////////////////////////////////////
-    // Block of string constants customizing behavior for cuda
-    String nvcc_ver = 'nvcc-8.0'
-    String from_image = 'nvidia/cuda:8.0-devel'
-    String docker_file = 'dockerfile-build-nvidia-cuda-8'
-
-    ansiColor( 'vga' )
-    {
-      // This unfortunately hardcodes the driver version nvidia_driver_375.74 in the volume mount.  Research if a way
-      // exists to get volume driver to customize the volume names to leave out driver version
-      String inside_args = '''--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools
-          --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro''';
-
-      // Checkout source code, dependencies and version files
-      String rocblas_src_rel = rocblas_checkout_and_version( 'src', nvcc_ver )
-
-      // We pull public nvidia images
-      def rocblas_build_image = docker_build_image( docker_file, nvcc_ver, 'rocblas', ' --pull', rocblas_src_rel, from_image )
-
-      // Print system information for the log
-      rocblas_build_image.inside( inside_args )
-      {
-        sh  """#!/usr/bin/env bash
-            set -x
-            nvidia-smi
-            nvcc --version
-          """
-      }
-
-      // Conctruct a binary directory path based on build config
-      String rocblas_bin_rel = build_directory_rel( 'build', build_config );
-
-      // Build rocblas inside of the build environment
-      docker_build_inside_image( rocblas_build_image, inside_args, nvcc_ver, '', '/opt/rocm/bin/hipcc', build_config, rocblas_src_rel, rocblas_bin_rel )
-    }
-  }
 }
+//,
+// Right now, nvcc fails cmake configure because nvcc identifies itself as gnu 5.4 compiler, but fails feature checks
+// nvcc:
+// {
+//   node( 'docker && cuda' )
+//   {
+//     ////////////////////////////////////////////////////////////////////////
+//     // Block of string constants customizing behavior for cuda
+//     String nvcc_ver = 'nvcc-8.0'
+//     String from_image = 'nvidia/cuda:8.0-devel'
+//     String docker_file = 'dockerfile-build-nvidia-cuda-8'
+
+//     ansiColor( 'vga' )
+//     {
+//       // This unfortunately hardcodes the driver version nvidia_driver_375.74 in the volume mount.  Research if a way
+//       // exists to get volume driver to customize the volume names to leave out driver version
+//       String inside_args = '''--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools
+//           --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro''';
+
+//       // Checkout source code, dependencies and version files
+//       String rocblas_src_rel = rocblas_checkout_and_version( 'src', nvcc_ver )
+
+//       // We pull public nvidia images
+//       def rocblas_build_image = docker_build_image( docker_file, nvcc_ver, 'rocblas', ' --pull', rocblas_src_rel, from_image )
+
+//       // Print system information for the log
+//       rocblas_build_image.inside( inside_args )
+//       {
+//         sh  """#!/usr/bin/env bash
+//             set -x
+//             nvidia-smi
+//             nvcc --version
+//           """
+//       }
+
+//       // Conctruct a binary directory path based on build config
+//       String rocblas_bin_rel = build_directory_rel( 'build', build_config );
+
+//       // Build rocblas inside of the build environment
+//       docker_build_inside_image( rocblas_build_image, inside_args, nvcc_ver, '', '/opt/rocm/bin/hipcc', build_config, rocblas_src_rel, rocblas_bin_rel )
+//     }
+//   }
+// }
