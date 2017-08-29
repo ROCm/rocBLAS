@@ -6,7 +6,7 @@ the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 The [wiki][] has helpful information about building the rocblas library, samples and tests.
 
 ## Building rocBLAS
-The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v1.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
+The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v3.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
 * Ubuntu: `sudo apt install cmake-qt-gui`
 * Fedora: `sudo dnf install cmake-gui`
 
@@ -18,7 +18,7 @@ The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSo
 * Fedora: `sudo dnf install python PyYAML`
 
 #### Configure and build steps
-```
+```bash
 mkdir -p [ROCBLAS_BUILD_DIR]/release
 cd [ROCBLAS_BUILD_DIR]/release
 CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]
@@ -42,13 +42,17 @@ Linux distros typically have an easy installation mechanism for boost through th
 Unfortunately, googletest and lapack are not as easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files for cmake to configure linking the library.  rocBLAS provide a cmake script that builds these dependencies from source.  This is an optional step, but helps automate the googletest & lapack builds.  The following is a sequence of steps to build dependencies and install them to the cmake default /usr/local.
 
 #### (optional, one time only)
-1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
-2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
-3.  `cmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps`
-4.  `sudo make -j$(nproc) install`
+```bash
+mkdir -p [ROCBLAS_BUILD_DIR]/release/deps
+cd [ROCBLAS_BUILD_DIR]/release/deps
+cmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps
+make -j$(nproc) install
+```
 
 Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script:
-* `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]`
+```bash
+CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]
+```
 
 If the dependencies are not installed into system defaults (like /usr/local ), you can optionally pass the CMAKE_PREFIX_PATH to cmake to help find them.
 * `-DCMAKE_PREFIX_PATH="<semicolon separated install list>"`
