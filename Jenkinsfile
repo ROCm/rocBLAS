@@ -13,7 +13,7 @@ properties([buildDiscarder(logRotator(
 
 ////////////////////////////////////////////////////////////////////////
 // -- AUXILLARY HELPER FUNCTIONS
-import hudson.FilePath;
+// import hudson.FilePath;
 import java.nio.file.Path;
 
 ////////////////////////////////////////////////////////////////////////
@@ -54,15 +54,15 @@ String g_relativize( String root_string, String rel_source, String rel_build )
 
 ////////////////////////////////////////////////////////////////////////
 // Construct the relative path of the build directory
-String build_directory_rel( project_paths paths, compiler_args hcc_args )
+void build_directory_rel( project_paths paths, compiler_data hcc_args )
 {
   if( hcc_args.build_config.equalsIgnoreCase( 'release' ) )
   {
-    return paths.build_prefix + "/${paths.project_name}" + '/release';
+    paths.project_build_prefix = paths.build_prefix + paths.project_name + '/release';
   }
   else
   {
-    return paths.build_prefix + "/${paths.project_name}" + '/debug';
+    paths.project_build_prefix = paths.build_prefix + paths.project_name + '/debug';
   }
 }
 
@@ -87,11 +87,11 @@ def docker_clean_images( String org, String image_name )
 ////////////////////////////////////////////////////////////////////////
 // Checkout source code, source dependencies and update version number numbers
 // Returns a relative path to the directory where the source exists in the workspace
-String rocblas_checkout_and_version( project_paths paths )
+void checkout_and_version( project_paths paths )
 {
-  String src_rel = paths.src_prefix + "/${paths.project_name}"
+  paths.project_src_prefix = paths.src_prefix + paths.project_name
 
-  dir( "${src_rel}" )
+  dir( paths.project_src_prefix )
   {
     // checkout rocblas
     checkout([
@@ -113,19 +113,18 @@ String rocblas_checkout_and_version( project_paths paths )
     }
   }
 
-  return src_rel
 }
 
 
 ////////////////////////////////////////////////////////////////////////
 // This creates the docker image that we use to build the project in
 // The docker images contains all dependencies, including OS platform, to build
-def docker_build_image( docker_args d_args, project_paths paths )
+def docker_build_image( docker_data d_args, project_paths paths )
 {
   String build_image_name = "build-rocblas-hip-artifactory"
   def build_image = null
 
-  dir( paths.src_relpath )
+  dir( paths.project_src_prefix )
   {
     def user_uid = sh( script: 'id -u', returnStdout: true ).trim()
 
@@ -144,10 +143,10 @@ def docker_build_image( docker_args d_args, project_paths paths )
 ////////////////////////////////////////////////////////////////////////
 // This encapsulates the cmake configure, build and package commands
 // Leverages docker containers to encapsulate the build in a fixed environment
-def docker_build_inside_image( def build_image, compiler_args c_args, docker_args d_args, project_paths paths )
+def docker_build_inside_image( def build_image, compiler_data c_args, docker_data d_args, project_paths paths )
 {
   // Construct a relative path from build directory to src directory; used to invoke cmake
-  String rel_path_to_src = g_relativize( pwd( ), paths.src_relpath, paths.build_relpath )
+  String rel_path_to_src = g_relativize( pwd( ), paths.project_src_prefix, paths.project_build_prefix )
 
   String build_type_postfix = null
   if( c_args.build_config.equalsIgnoreCase( 'release' ) )
@@ -166,9 +165,9 @@ def docker_build_inside_image( def build_image, compiler_args c_args, docker_arg
         // Build library & clients
         sh  """#!/usr/bin/env bash
             set -x
-            rm -rf ${paths.build_relpath} && mkdir -p ${paths.build_relpath} && cd ${paths.build_relpath}
-            cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
-            make -j \$(nproc) install
+            rm -rf ${paths.project_build_prefix} && mkdir -p ${paths.project_build_prefix} && cd ${paths.project_build_prefix}
+            cmake -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
+            make -j \$(nproc)
           """
       }
 
@@ -179,14 +178,14 @@ def docker_build_inside_image( def build_image, compiler_args c_args, docker_arg
       {
         sh """#!/usr/bin/env bash
               set -x
-              cd ${paths.build_relpath}/clients/staging
+              cd ${paths.project_build_prefix}/clients/staging
               ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
           """
-        junit "${paths.build_relpath}/clients/staging/*.xml"
+        junit "${paths.project_build_prefix}/clients/staging/*.xml"
 
         sh """#!/usr/bin/env bash
               set -x
-              cd ${paths.build_relpath}/clients/staging; ./example-sscal${build_type_postfix}
+              cd ${paths.project_build_prefix}/clients/staging; ./example-sscal${build_type_postfix}
         """
       }
 
@@ -195,13 +194,13 @@ def docker_build_inside_image( def build_image, compiler_args c_args, docker_arg
       {
         sh  """#!/usr/bin/env bash
             set -x
-            cd ${paths.build_relpath}
+            cd ${paths.project_build_prefix}
             make package
           """
 
         sh  """#!/usr/bin/env bash
             mkdir -p ${c_args.build_config}/${c_args.compiler_name}
-            mv ${paths.build_relpath}/*.deb ${c_args.build_config}/${c_args.compiler_name}
+            mv ${paths.project_build_prefix}/*.deb ${c_args.build_config}/${c_args.compiler_name}
             dpkg -c ${c_args.build_config}/${c_args.compiler_name}/*.deb
         """
 
@@ -233,7 +232,7 @@ String docker_upload_artifactory( String hcc_ver, String artifactory_org, String
     // rocblas_install_image = docker.build( "${artifactory_org}/${image_name}:${env.BUILD_NUMBER}", "--pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}" )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh "docker build -t ${artifactory_org}/${image_name} --pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}"
+    sh "docker build -t ${artifactory_org}/${image_name} --pull -f ${build_dir_rel}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}"
     rocblas_install_image = docker.image( "${artifactory_org}/${image_name}" )
 
     // The connection to artifactory can fail sometimes, but this should not be treated as a build fail
@@ -348,21 +347,8 @@ String hip_integration_testing( String inside_args, String job, String build_con
   docker_clean_images( testing_org_name, '*' )
 }
 
-////////////////////////////////////////////////////////////////////////
-// -- MAIN
-// Following this line is the start of MAIN of this Jenkinsfile
-//String job_name = env.JOB_NAME.toLowerCase( )
-
-// sh  """
-//     set -x
-// # printf '\033[31mHello World\033[0m'
-// # echo "TERM=${env.TERM}"
-// # echo "LANG=${env.LANG}"
-// # echo "SHELL=${env.SHELL}"
-// """
-
 // Docker related variables gathered together to reduce parameter bloat on function calls
-class docker_args implements Serializable
+class docker_data implements Serializable
 {
   String from_image
   String docker_file
@@ -371,7 +357,7 @@ class docker_args implements Serializable
 }
 
 // Docker related variables gathered together to reduce parameter bloat on function calls
-class compiler_args implements Serializable
+class compiler_data implements Serializable
 {
   String compiler_name
   String build_config
@@ -383,25 +369,73 @@ class project_paths implements Serializable
 {
   String project_name
   String src_prefix
-  String src_relpath
+  String project_src_prefix
   String build_prefix
-  String build_relpath
+  String project_build_prefix
 }
+
+////////////////////////////////////////////////////////////////////////
+// -- MAIN
+// Following this line is the start of MAIN of this Jenkinsfile
+
+// sh  """
+//     set -x
+// # printf '\033[31mHello World\033[0m'
+// # echo "TERM=${env.TERM}"
+// # echo "LANG=${env.LANG}"
+// # echo "SHELL=${env.SHELL}"
+// """
 
 // Integration testing is a special path which implies testing of an upsteam build of hcc,
 // but does not need testing across older builds of hcc or cuda.
 // params.hip_integration_test is set in HIP build
 // NOTE: hip does not currently set this bit; this is non-functioning at this time
-if( params.hip_integration_test )
-{
-  println "Enabling rocblas integration testing pass"
+// if( params.hip_integration_test )
+// {
+//   println "Enabling rocblas integration testing pass"
 
-  node('docker && rocm')
+//   node('docker && rocm')
+//   {
+//     hip_integration_testing( '--device=/dev/kfd', 'hip-ctu', 'Release' )
+//   }
+
+//   return
+// }
+
+// This defines a common build pipeline used by most targets
+def build_pipeline( compiler_data compiler_args, docker_data docker_args, project_paths paths, def docker_inside_closure )
+{
+  ansiColor( 'vga' )
   {
-    hip_integration_testing( '--device=/dev/kfd', 'hip-ctu', 'Release' )
+    stage( "Build ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+    {
+      // Checkout source code, dependencies and version files
+      checkout_and_version( paths )
+
+      // Conctruct a binary directory path based on build config
+      build_directory_rel( paths, compiler_args );
+
+      // Create/reuse a docker image that represents the rocblas build environment
+      def rocblas_build_image = docker_build_image( docker_args, paths )
+
+      // Print system information for the log
+      rocblas_build_image.inside( docker_args.docker_run_args, docker_inside_closure )
+
+      // Build rocblas inside of the build environment
+      docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, paths )
   }
 
-  return
+    // // After a successful build, upload a docker image of the results
+    // String job_name = env.JOB_NAME.toLowerCase( )
+    // String rocblas_image_name = docker_upload_artifactory( hcc_ver, job_name, from_image, rocblas_src_rel, rocblas_bin_rel )
+
+    // if( params.push_image_to_docker_hub )
+    // {
+    //   docker_upload_dockerhub( job_name, rocblas_image_name, 'rocm' )
+    //   docker_clean_images( 'rocm', rocblas_image_name )
+    // }
+    // docker_clean_images( job_name, rocblas_image_name )
+  }
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
@@ -409,155 +443,95 @@ parallel hcc_ctu:
 {
   node( 'docker && rocm' )
   {
-    def hcc_docker_args = new docker_args(
+    def docker_args = new docker_data(
         from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
         docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
         docker_run_args:'--device=/dev/kfd',
         docker_build_args:' --pull' )
 
-    def hcc_compiler_args = new compiler_args(
+    def compiler_args = new compiler_data(
         compiler_name:'hcc-ctu',
         build_config:'Release',
         compiler_path:'/opt/rocm/bin/hcc' )
 
-    def paths = new project_paths(
+    def rocblas_paths = new project_paths(
         project_name:'rocblas',
         src_prefix:'src',
         build_prefix:'build' )
 
-    ansiColor( 'vga' )
-    {
-      stage( "Build ${hcc_compiler_args.compiler_name} ${hcc_compiler_args.build_config}" )
-      {
-        // Checkout source code, dependencies and version files
-        paths.src_relpath = rocblas_checkout_and_version( paths )
-
-        // Conctruct a binary directory path based on build config
-        paths.build_relpath = build_directory_rel( paths, hcc_compiler_args );
-
-        // Create/reuse a docker image that represents the rocblas build environment
-        def rocblas_build_image = docker_build_image( hcc_docker_args, paths )
-
-        // Print system information for the log
-        rocblas_build_image.inside( hcc_docker_args.docker_run_args )
-        {
-          sh  """
-              set -x
-              /opt/rocm/bin/rocm_agent_enumerator -t ALL
-              /opt/rocm/bin/hcc --version
-            """
-        }
-
-        // Build rocblas inside of the build environment
-        docker_build_inside_image( rocblas_build_image, hcc_compiler_args, hcc_docker_args, paths )
+    def print_version_closure = {
+      sh  """
+          set -x
+          /opt/rocm/bin/rocm_agent_enumerator -t ALL
+          /opt/rocm/bin/hcc --version
+        """
     }
 
-      // // After a successful build, upload a docker image of the results
-      // String rocblas_image_name = docker_upload_artifactory( hcc_ver, job_name, from_image, rocblas_src_rel, rocblas_bin_rel )
-
-      // if( params.push_image_to_docker_hub )
-      // {
-      //   docker_upload_dockerhub( job_name, rocblas_image_name, 'rocm' )
-      //   docker_clean_images( 'rocm', rocblas_image_name )
-      // }
-      // docker_clean_images( job_name, rocblas_image_name )
-    }
+    build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
   }
 },
-hcc_1_6:
+hcc_rocm:
 {
   node( 'docker && rocm' )
   {
-    def hcc_docker_args = new docker_args(
+    def hcc_docker_args = new docker_data(
         from_image:'rocm/rocm-terminal:latest',
         docker_file:'dockerfile-build-rocm-terminal',
         docker_run_args:'--device=/dev/kfd',
         docker_build_args:' --pull' )
 
-    def hcc_compiler_args = new compiler_args(
-        compiler_name:'hcc-1.6',
+    def hcc_compiler_args = new compiler_data(
+        compiler_name:'hcc-rocm',
         build_config:'Release',
         compiler_path:'/opt/rocm/bin/hcc' )
 
-    def paths = new project_paths(
+    def rocblas_paths = new project_paths(
         project_name:'rocblas',
         src_prefix:'src',
         build_prefix:'build' )
 
-    ansiColor( 'vga' )
-    {
-      stage( "Build ${hcc_compiler_args.compiler_name} ${hcc_compiler_args.build_config}" )
-      {
-        // Checkout source code, dependencies and version files
-        paths.src_relpath = rocblas_checkout_and_version( paths )
-
-        // Conctruct a binary directory path based on build config
-        paths.build_relpath = build_directory_rel( paths, hcc_compiler_args );
-
-        // Create/reuse a docker image that represents the rocblas build environment
-        def rocblas_build_image = docker_build_image( hcc_docker_args, paths )
-
-        // Print system information for the log
-        rocblas_build_image.inside( hcc_docker_args.docker_run_args )
-        {
-          sh  """#!/usr/bin/env bash
-              set -x
-
-              /opt/rocm/bin/rocm_agent_enumerator -t ALL
-              /opt/rocm/bin/hcc --version
-            """
-        }
-
-        // Build rocblas inside of the build environment
-        docker_build_inside_image( rocblas_build_image, hcc_compiler_args, hcc_docker_args, paths )
-      }
-
-      // Not pushing rocblas-hcc-1.6 builds at this time; saves a minute and nobody needs?
-      // String rocblas_image_name = docker_upload_artifactory( hcc_ver, job_name, from_image, rocblas_src_rel, rocblas_bin_rel )
-      // docker_clean_images( job_name, rocblas_image_name )
+    def print_version_closure = {
+      sh  """
+          set -x
+          /opt/rocm/bin/rocm_agent_enumerator -t ALL
+          /opt/rocm/bin/hcc --version
+        """
     }
+
+    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
   }
 }
-//,
-// Disabling: nvcc fails cmake configure because nvcc identifies itself as gnu 5.4 compiler, but fails feature checks
+
+// ,
+// // Disabling: nvcc fails cmake configure because nvcc identifies itself as gnu 5.4 compiler, but fails feature checks
 // nvcc:
 // {
 //   node( 'docker && cuda' )
 //   {
-//     ////////////////////////////////////////////////////////////////////////
-//     // Block of string constants customizing behavior for cuda
-//     String nvcc_ver = 'nvcc-8.0'
-//     String from_image = 'nvidia/cuda:8.0-devel'
-//     String docker_file = 'dockerfile-build-nvidia-cuda-8'
+//     def hcc_docker_args = new docker_data(
+//         from_image:'nvidia/cuda:8.0-devel',
+//         docker_file:'dockerfile-build-nvidia-cuda-8',
+//         docker_run_args:'--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro',
+//         docker_build_args:' --pull' )
 
-//     ansiColor( 'vga' )
-//     {
-//       // This unfortunately hardcodes the driver version nvidia_driver_375.74 in the volume mount.  Research if a way
-//       // exists to get volume driver to customize the volume names to leave out driver version
-//       String inside_args = '''--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools
-//           --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro''';
+//     def hcc_compiler_args = new compiler_data(
+//         compiler_name:'nvcc-8.0',
+//         build_config:'Release',
+//         compiler_path:'/opt/rocm/bin/hipcc' )
 
-//       // Checkout source code, dependencies and version files
-//       String rocblas_src_rel = rocblas_checkout_and_version( 'src', nvcc_ver )
+//     def rocblas_paths = new project_paths(
+//         project_name:'rocblas',
+//         src_prefix:'src',
+//         build_prefix:'build' )
 
-//       // We pull public nvidia images
-//       def rocblas_build_image = docker_build_image( docker_file, nvcc_ver, 'rocblas', ' --pull', rocblas_src_rel, from_image )
-
-//       // Print system information for the log
-//       rocblas_build_image.inside( inside_args )
-//       {
-//         sh  """#!/usr/bin/env bash
-//             set -x
-//             nvidia-smi
-//             nvcc --version
-//           """
-//       }
-
-//       // Conctruct a binary directory path based on build config
-//       String rocblas_bin_rel = build_directory_rel( 'build', build_config );
-
-//       // Build rocblas inside of the build environment
-//       docker_build_inside_image( rocblas_build_image, inside_args, nvcc_ver, '', '/opt/rocm/bin/hipcc', build_config, rocblas_src_rel, rocblas_bin_rel )
+//     def print_version_closure = {
+//       sh  """
+//           set -x
+//           nvidia-smi
+//           nvcc --version
+//         """
 //     }
+
+//     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
 //   }
 // }
