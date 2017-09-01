@@ -115,11 +115,10 @@ void checkout_and_version( project_paths paths )
 
 }
 
-
 ////////////////////////////////////////////////////////////////////////
 // This creates the docker image that we use to build the project in
 // The docker images contains all dependencies, including OS platform, to build
-def docker_build_image( docker_data d_args, project_paths paths )
+def docker_build_image( docker_data docker_args, project_paths paths )
 {
   String build_image_name = "build-rocblas-hip-artifactory"
   def build_image = null
@@ -133,7 +132,7 @@ def docker_build_image( docker_data d_args, project_paths paths )
     // build_image = docker.build( "${paths.project_name}/${build_image_name}:latest", "--pull -f docker/${docker_file} --build-arg user_uid=${user_uid} --build-arg base_image=${from_image} ." )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh "docker build -t ${paths.project_name}/${build_image_name}:latest -f docker/${d_args.docker_file} ${d_args.docker_build_args} --build-arg user_uid=${user_uid} --build-arg base_image=${d_args.from_image} ."
+    sh "docker build -t ${paths.project_name}/${build_image_name}:latest -f docker/${docker_args.docker_file} ${docker_args.docker_build_args} --build-arg user_uid=${user_uid} --build-arg base_image=${docker_args.from_image} ."
     build_image = docker.image( "${paths.project_name}/${build_image_name}:latest" )
   }
 
@@ -143,13 +142,13 @@ def docker_build_image( docker_data d_args, project_paths paths )
 ////////////////////////////////////////////////////////////////////////
 // This encapsulates the cmake configure, build and package commands
 // Leverages docker containers to encapsulate the build in a fixed environment
-def docker_build_inside_image( def build_image, compiler_data c_args, docker_data d_args, project_paths paths )
+def docker_build_inside_image( def build_image, compiler_data compiler_args, docker_data docker_args, project_paths paths )
 {
   // Construct a relative path from build directory to src directory; used to invoke cmake
   String rel_path_to_src = g_relativize( pwd( ), paths.project_src_prefix, paths.project_build_prefix )
 
   String build_type_postfix = null
-  if( c_args.build_config.equalsIgnoreCase( 'release' ) )
+  if( compiler_args.build_config.equalsIgnoreCase( 'release' ) )
   {
     build_type_postfix = ""
   }
@@ -158,20 +157,20 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
     build_type_postfix = "-d"
   }
 
-  build_image.inside( d_args.docker_run_args )
+  build_image.inside( docker_args.docker_run_args )
   {
-      withEnv(["CXX=${c_args.compiler_path}", 'CLICOLOR_FORCE=1'])
+      withEnv(["CXX=${compiler_args.compiler_path}", 'CLICOLOR_FORCE=1'])
       {
         // Build library & clients
         sh  """#!/usr/bin/env bash
             set -x
             rm -rf ${paths.project_build_prefix} && mkdir -p ${paths.project_build_prefix} && cd ${paths.project_build_prefix}
-            cmake -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
+            cmake -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
             make -j \$(nproc)
           """
       }
 
-    stage( "Test ${c_args.compiler_name} ${c_args.build_config}" )
+    stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
       timeout(time: 1, unit: 'HOURS')
@@ -189,8 +188,8 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
         """
       }
 
-      // Only upload 1 set of packages, so we don't have a race condition uploading packages
-      if( c_args.compiler_name.toLowerCase( ).startsWith( 'hcc-' ) )
+      String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
+      if( compiler_args.compiler_name.toLowerCase( ).startsWith( 'hcc-' ) )
       {
         sh  """#!/usr/bin/env bash
             set -x
@@ -200,12 +199,12 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
 
         sh  """#!/usr/bin/env bash
             set -x
-            rm -rf ${c_args.build_config}/${c_args.compiler_name} && mkdir -p ${c_args.build_config}/${c_args.compiler_name}
-            mv ${paths.project_build_prefix}/*.deb ${c_args.build_config}/${c_args.compiler_name}
-            dpkg -c ${c_args.build_config}/${c_args.compiler_name}/*.deb
+            rm -rf ${docker_context} && mkdir -p ${docker_context}
+            mv ${paths.project_build_prefix}/*.deb ${docker_context}
+            dpkg -c ${docker_context}/*.deb
         """
 
-        archiveArtifacts artifacts: "${c_args.build_config}/${c_args.compiler_name}/*.deb", fingerprint: true
+        archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
       }
     }
   }
@@ -220,20 +219,21 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
 String docker_upload_artifactory( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, String job_name )
 {
   def rocblas_install_image = null
-  String image_name = "rocblas-${compiler_args.compiler_name}-hip-hcc-ctu-ubuntu-16.04"
+  String image_name = "rocblas-hip-${compiler_args.compiler_name}-ubuntu-16.04"
+  String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
 
   stage( "Artifactory ${compiler_args.compiler_name} ${compiler_args.build_config}" )
   {
     //  We copy the docker files into the bin directory where the .deb lives so that it's a clean build everytime
-    sh "cp -r ${rocblas_paths.project_src_prefix}/docker/* ${c_args.build_config}/${c_args.compiler_name}"
+    sh "cp -r ${rocblas_paths.project_src_prefix}/docker/* ${docker_context}"
 
     // Docker 17.05 introduced the ability to use ARG values in FROM statements
     // Docker inspect failing on FROM statements with ARG https://issues.jenkins-ci.org/browse/JENKINS-44836
     // rocblas_install_image = docker.build( "${job_name}/${image_name}:${env.BUILD_NUMBER}", "--pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}" )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh """docker build -t ${job_name}/${image_name} --pull -f ${rocblas_paths.project_build_prefix}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 \
-        --build-arg base_image=${docker_args.from_image} ${c_args.build_config}/${c_args.compiler_name}"""
+    sh """docker build -t ${job_name}/${image_name} --pull -f ${docker_context}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 \
+        --build-arg base_image=${docker_args.from_image} ${docker_context}"""
     rocblas_install_image = docker.image( "${job_name}/${image_name}" )
 
   // NOTE: Don't push to artifactory yet, just test install package

@@ -3,15 +3,20 @@ A BLAS implementation on top of AMD's Radeon Open Compute [ROCm][] runtime and t
 the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 
 ## rocBLAS Wiki
-The [wiki][] has helpful information about building the rocblas library, samples and tests.
+The [wiki][] has helpful information about building the rocBLAS library, samples and tests.
 
 ## Building rocBLAS
+#### Bash helper build script (Ubuntu only)
+The root of this repository has a helper bash script `install.sh` to build and install rocBLAS on Ubuntu with a single command.  A few commands in the script will need sudo access, so it may prompt you for a password.
+*  `./install --install --dependencies ` or `./install -id`
+
+### Manual build (all supported platforms)
 The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v3.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
 * Ubuntu: `sudo apt install cmake-qt-gui`
 * Fedora: `sudo dnf install cmake-gui`
 
 ### Library
-The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile is predominately written in python2.7 (not python3), so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocblas:
+The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile is predominately written in python2.7 (not python3), so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocBLAS:
 
 #### (One time only)
 * Ubuntu: `sudo apt install python2.7 python-yaml`
@@ -31,7 +36,7 @@ sudo make install # sudo required if installing into system directory such as /o
 ### rocBLAS clients
 The repository contains source for clients that serve as samples, tests and benchmarks.  Clients source can be found in the clients subdir.
 
-### Dependencies (only necessary for rocblas clients)
+### Dependencies (only necessary for rocBLAS clients)
 The rocBLAS samples have no external dependencies, but our unit test and benchmarking applications do.  These clients introduce the following dependencies:
 1.  [boost](http://www.boost.org/)
 2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
@@ -62,9 +67,9 @@ make -j$(nproc)
 sudo make install   # sudo required if installing into system directory such as /opt/rocm
 ```
 
-
 #### CUDA build errata
-Since rocBLAS is written with HiP kernels, it should build and run on CUDA platforms.  However, currently the build
+rocBLAS is written with HiP kernels, so it should build and run on CUDA platforms.  However, currently the build is broken
+with a CUDA backend.
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
