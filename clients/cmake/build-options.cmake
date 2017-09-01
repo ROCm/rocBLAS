@@ -11,7 +11,7 @@
 
 # Samples have no other dependencies except for rocblas, so are enabled by default
 if( NOT BUILD_CLIENTS_SAMPLES )
-  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" ON )
+  option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" OFF )
 endif( )
 
 if( NOT BUILD_CLIENTS_TESTS )

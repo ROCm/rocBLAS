@@ -54,7 +54,6 @@ list( APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip )
 # Building tensile can add significant compile time; this option allows to build
 # library without tensile to allow for rapid iteration without GEMM functionality
 option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
-option( BUILD_CLIENTS "Build rocBLAS clients" OFF )
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
@@ -98,7 +97,7 @@ set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types f
 add_subdirectory( library )
 
 # Build clients of the library
-if( BUILD_CLIENTS )
+if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
   include( clients/cmake/build-options.cmake )
 
   add_subdirectory( clients )
