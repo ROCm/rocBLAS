@@ -96,9 +96,9 @@ set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types f
 
 add_subdirectory( library )
 
+include( clients/cmake/build-options.cmake )
+
 # Build clients of the library
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
-  include( clients/cmake/build-options.cmake )
-
   add_subdirectory( clients )
 endif( )
