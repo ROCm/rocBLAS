@@ -58,11 +58,11 @@ void build_directory_rel( project_paths paths, compiler_data hcc_args )
 {
   if( hcc_args.build_config.equalsIgnoreCase( 'release' ) )
   {
-    paths.project_build_prefix = paths.build_prefix + paths.project_name + '/release';
+    paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/release';
   }
   else
   {
-    paths.project_build_prefix = paths.build_prefix + paths.project_name + '/debug';
+    paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/debug';
   }
 }
 
@@ -89,7 +89,7 @@ def docker_clean_images( String org, String image_name )
 // Returns a relative path to the directory where the source exists in the workspace
 void checkout_and_version( project_paths paths )
 {
-  paths.project_src_prefix = paths.src_prefix + paths.project_name
+  paths.project_src_prefix = paths.src_prefix + '/' + paths.project_name
 
   dir( paths.project_src_prefix )
   {
@@ -166,7 +166,7 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
         sh  """#!/usr/bin/env bash
             set -x
             rm -rf ${paths.project_build_prefix} && mkdir -p ${paths.project_build_prefix} && cd ${paths.project_build_prefix}
-            cmake -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
+            cmake -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
             make -j \$(nproc)
           """
       }
@@ -199,7 +199,8 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
           """
 
         sh  """#!/usr/bin/env bash
-            mkdir -p ${c_args.build_config}/${c_args.compiler_name}
+            set -x
+            rm -rf ${c_args.build_config}/${c_args.compiler_name} && mkdir -p ${c_args.build_config}/${c_args.compiler_name}
             mv ${paths.project_build_prefix}/*.deb ${c_args.build_config}/${c_args.compiler_name}
             dpkg -c ${c_args.build_config}/${c_args.compiler_name}/*.deb
         """
@@ -215,47 +216,49 @@ def docker_build_inside_image( def build_image, compiler_data c_args, docker_dat
 ////////////////////////////////////////////////////////////////////////
 // This builds a fresh docker image FROM a clean base image, with no build dependencies included
 // Uploads the new docker image to internal artifactory
-String docker_upload_artifactory( String hcc_ver, String artifactory_org, String from_image, String rocblas_src_rel, String build_dir_rel )
+// String docker_upload_artifactory( String hcc_ver, String artifactory_org, String from_image, String rocblas_src_rel, String build_dir_rel )
+String docker_upload_artifactory( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, String job_name )
 {
   def rocblas_install_image = null
-  String image_name = "rocblas-${hcc_ver}-ubuntu-16.04"
+  String image_name = "rocblas-${compiler_args.compiler_name}-hip-hcc-ctu-ubuntu-16.04"
 
-  stage( 'artifactory' )
+  stage( "Artifactory ${compiler_args.compiler_name} ${compiler_args.build_config}" )
   {
-    println "artifactory_org: ${artifactory_org}"
-
     //  We copy the docker files into the bin directory where the .deb lives so that it's a clean build everytime
-    sh "cp -r ${rocblas_src_rel}/docker/* ${build_dir_rel}"
+    sh "cp -r ${rocblas_paths.project_src_prefix}/docker/* ${c_args.build_config}/${c_args.compiler_name}"
 
     // Docker 17.05 introduced the ability to use ARG values in FROM statements
     // Docker inspect failing on FROM statements with ARG https://issues.jenkins-ci.org/browse/JENKINS-44836
-    // rocblas_install_image = docker.build( "${artifactory_org}/${image_name}:${env.BUILD_NUMBER}", "--pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}" )
+    // rocblas_install_image = docker.build( "${job_name}/${image_name}:${env.BUILD_NUMBER}", "--pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}" )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh "docker build -t ${artifactory_org}/${image_name} --pull -f ${build_dir_rel}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}"
-    rocblas_install_image = docker.image( "${artifactory_org}/${image_name}" )
+    sh """docker build -t ${job_name}/${image_name} --pull -f ${rocblas_paths.project_build_prefix}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 \
+        --build-arg base_image=${docker_args.from_image} ${c_args.build_config}/${c_args.compiler_name}"""
+    rocblas_install_image = docker.image( "${job_name}/${image_name}" )
 
-    // The connection to artifactory can fail sometimes, but this should not be treated as a build fail
-    try
-    {
-      // Don't push pull requests to artifactory, these tend to accumulate over time
-      if( env.BRANCH_NAME.toLowerCase( ).startsWith( 'pr-' ) )
-      {
-        println 'Pull Request (PR-xxx) detected; NOT pushing to artifactory'
-      }
-      else
-      {
-        docker.withRegistry('http://compute-artifactory:5001', 'artifactory-cred' )
-        {
-          rocblas_install_image.push( "${env.BUILD_NUMBER}" )
-          rocblas_install_image.push( 'latest' )
-        }
-      }
-    }
-    catch( err )
-    {
-      currentBuild.result = 'SUCCESS'
-    }
+  // NOTE: Don't push to artifactory yet, just test install package
+
+  // The connection to artifactory can fail sometimes, but this should not be treated as a build fail
+  //   try
+  //   {
+  //     // Don't push pull requests to artifactory, these tend to accumulate over time
+  //     if( env.BRANCH_NAME.toLowerCase( ).startsWith( 'pr-' ) )
+  //     {
+  //       println 'Pull Request (PR-xxx) detected; NOT pushing to artifactory'
+  //     }
+  //     else
+  //     {
+  //       docker.withRegistry('http://compute-artifactory:5001', 'artifactory-cred' )
+  //       {
+  //         rocblas_install_image.push( "${env.BUILD_NUMBER}" )
+  //         rocblas_install_image.push( 'latest' )
+  //       }
+  //     }
+  //   }
+  //   catch( err )
+  //   {
+  //     currentBuild.result = 'SUCCESS'
+  //   }
   }
 
   return image_name
@@ -403,38 +406,38 @@ class project_paths implements Serializable
 // }
 
 // This defines a common build pipeline used by most targets
-def build_pipeline( compiler_data compiler_args, docker_data docker_args, project_paths paths, def docker_inside_closure )
+def build_pipeline( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, def docker_inside_closure )
 {
   ansiColor( 'vga' )
   {
     stage( "Build ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Checkout source code, dependencies and version files
-      checkout_and_version( paths )
+      checkout_and_version( rocblas_paths )
 
       // Conctruct a binary directory path based on build config
-      build_directory_rel( paths, compiler_args );
+      build_directory_rel( rocblas_paths, compiler_args );
 
       // Create/reuse a docker image that represents the rocblas build environment
-      def rocblas_build_image = docker_build_image( docker_args, paths )
+      def rocblas_build_image = docker_build_image( docker_args, rocblas_paths )
 
       // Print system information for the log
       rocblas_build_image.inside( docker_args.docker_run_args, docker_inside_closure )
 
       // Build rocblas inside of the build environment
-      docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, paths )
+      docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, rocblas_paths )
   }
 
-    // // After a successful build, upload a docker image of the results
-    // String job_name = env.JOB_NAME.toLowerCase( )
-    // String rocblas_image_name = docker_upload_artifactory( hcc_ver, job_name, from_image, rocblas_src_rel, rocblas_bin_rel )
+    // After a successful build, upload a docker image of the results
+    String job_name = env.JOB_NAME.toLowerCase( )
+    String rocblas_image_name = docker_upload_artifactory( compiler_args, docker_args, rocblas_paths, job_name )
 
     // if( params.push_image_to_docker_hub )
     // {
     //   docker_upload_dockerhub( job_name, rocblas_image_name, 'rocm' )
     //   docker_clean_images( 'rocm', rocblas_image_name )
     // }
-    // docker_clean_images( job_name, rocblas_image_name )
+    docker_clean_images( job_name, rocblas_image_name )
   }
 }
 

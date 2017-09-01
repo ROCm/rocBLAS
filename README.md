@@ -21,8 +21,11 @@ The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSo
 ```bash
 mkdir -p [ROCBLAS_BUILD_DIR]/release
 cd [ROCBLAS_BUILD_DIR]/release
-CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]
-make -j$(nproc) install # sudo required if installing into system directory; uses /opt/rocm by default
+# Default install location is in /opt/rocm, define -DCMAKE_INSTALL_PREFIX=<path> to specify other
+# Default build config is 'Release', define -DCMAKE_BUILD_TYPE=<config> to specify other
+CXX=/opt/rocm/bin/hcc ccmake [ROCBLAS_SOURCE]
+make -j$(nproc)
+sudo make install # sudo required if installing into system directory such as /opt/rocm
 ```
 
 ### rocBLAS clients
@@ -32,6 +35,7 @@ The repository contains source for clients that serve as samples, tests and benc
 The rocBLAS samples have no external dependencies, but our unit test and benchmarking applications do.  These clients introduce the following dependencies:
 1.  [boost](http://www.boost.org/)
 2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+  * lapack itself brings a dependency on a fortran compiler
 3.  [googletest](https://github.com/google/googletest)
 
 Linux distros typically have an easy installation mechanism for boost through the native package manager.
@@ -39,26 +43,28 @@ Linux distros typically have an easy installation mechanism for boost through th
 * Ubuntu: `sudo apt install libboost-program-options-dev`
 * Fedora: `sudo dnf install boost-program-options`
 
-Unfortunately, googletest and lapack are not as easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files for cmake to configure linking the library.  rocBLAS provide a cmake script that builds these dependencies from source.  This is an optional step, but helps automate the googletest & lapack builds.  The following is a sequence of steps to build dependencies and install them to the cmake default /usr/local.
+Unfortunately, googletest and lapack are not as easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files for cmake to configure linking the cblas library.  rocBLAS provide a cmake script that builds the above dependencies from source.  This is an optional step; users can provide their own builds of these dependencies and help cmake find them by setting the CMAKE_PREFIX_PATH definition.  The following is a sequence of steps to build dependencies and install them to the cmake default /usr/local.
 
 #### (optional, one time only)
 ```bash
 mkdir -p [ROCBLAS_BUILD_DIR]/release/deps
 cd [ROCBLAS_BUILD_DIR]/release/deps
-cmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps
+ccmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps   # assuming boost is installed through package manager as above
 make -j$(nproc) install
 ```
 
-Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script:
+Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script. If the dependencies are not installed into system defaults (like /usr/local ), you should pass the CMAKE_PREFIX_PATH to cmake to help find them.
+* `-DCMAKE_PREFIX_PATH="<semicolon separated paths>"`
 ```bash
-CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]
+# Default install location is in /opt/rocm, use -DCMAKE_INSTALL_PREFIX=<path> to specify other
+CXX=/opt/rocm/bin/hcc ccmake -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]
+make -j$(nproc)
+sudo make install   # sudo required if installing into system directory such as /opt/rocm
 ```
 
-If the dependencies are not installed into system defaults (like /usr/local ), you can optionally pass the CMAKE_PREFIX_PATH to cmake to help find them.
-* `-DCMAKE_PREFIX_PATH="<semicolon separated install list>"`
 
-Build with
-'make -j$(nproc)'
+#### CUDA build errata
+Since rocBLAS is written with HiP kernels, it should build and run on CUDA platforms.  However, currently the build
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
