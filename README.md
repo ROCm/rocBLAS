@@ -7,8 +7,9 @@ The [wiki][] has helpful information about building the rocBLAS library, samples
 
 ## Building rocBLAS
 #### Bash helper build script (Ubuntu only)
-The root of this repository has a helper bash script `install.sh` to build and install rocBLAS on Ubuntu with a single command.  A few commands in the script will need sudo access, so it may prompt you for a password.
-*  `./install --install --dependencies ` or `./install -id`
+The root of this repository has a helper bash script `install.sh` to build and install rocBLAS on Ubuntu with a single command.  It does not take a lot of options and hard-codes configuration that can be specified through invoking cmake directly, but it's a great way to get started quickly and can serve as an example of how to build/install.  A few commands in the script need sudo access, so it may prompt you for a password.
+*  `./install -h` -- shows help
+*  `./install -id` -- common install flags
 
 ### Manual build (all supported platforms)
 The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v3.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
@@ -68,8 +69,8 @@ sudo make install   # sudo required if installing into system directory such as 
 ```
 
 #### CUDA build errata
-rocBLAS is written with HiP kernels, so it should build and run on CUDA platforms.  However, currently the build is broken
-with a CUDA backend.
+rocBLAS is written with HiP kernels, so it should build and run on CUDA platforms.  However, currently the cmake infrastructure is broken
+with a CUDA backend.  However, a BLAS marshalling library that presents a common interface for both ROCm and CUDA backends can be found with [hipBLAS](https://github.com/ROCmSoftwarePlatform/hipBLAS).
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense

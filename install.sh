@@ -90,7 +90,7 @@ while true; do
 done
 
 build_dir=build
-printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
+printf "\033[32mCreating project build directory in: \033[33m./${build_dir}\033[0m\n"
 
 # #################################################
 # prep
@@ -103,14 +103,14 @@ rm -rf ${build_dir}
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
   # dependencies needed for rocblas and clients to build
-  library_dependencies_ubuntu=( "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "hcc" "pkg-config" )
+  library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "hcc" "pkg-config" )
   client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
 
   sudo apt update
 
   # Dependencies required by main library
   for package in "${library_dependencies_ubuntu[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}' ${package} ) -ne 0 ]]; then
+    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
       sudo apt install -y --no-install-recommends ${package}
     fi
@@ -119,7 +119,7 @@ if [[ "${install_dependencies}" == true ]]; then
   # Dependencies required by library client apps
   if [[ "${build_clients}" == true ]]; then
     for package in "${client_dependencies_ubuntu[@]}"; do
-      if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}' ${package} ) -ne 0 ]]; then
+    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
         printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
         sudo apt install -y --no-install-recommends ${package}
       fi
@@ -127,6 +127,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
     # The following builds googletest & lapack from source, installs into cmake default /usr/local
     pushd .
+      printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
       mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
       cmake -DBUILD_BOOST=OFF ../../deps
       make -j$(nproc)

@@ -129,10 +129,10 @@ def docker_build_image( docker_data docker_args, project_paths paths )
 
     // Docker 17.05 introduced the ability to use ARG values in FROM statements
     // Docker inspect failing on FROM statements with ARG https://issues.jenkins-ci.org/browse/JENKINS-44836
-    // build_image = docker.build( "${paths.project_name}/${build_image_name}:latest", "--pull -f docker/${docker_file} --build-arg user_uid=${user_uid} --build-arg base_image=${from_image} ." )
+    // build_image = docker.build( "${paths.project_name}/${build_image_name}:latest", "--pull -f docker/${build_docker_file} --build-arg user_uid=${user_uid} --build-arg base_image=${from_image} ." )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh "docker build -t ${paths.project_name}/${build_image_name}:latest -f docker/${docker_args.docker_file} ${docker_args.docker_build_args} --build-arg user_uid=${user_uid} --build-arg base_image=${docker_args.from_image} ."
+    sh "docker build -t ${paths.project_name}/${build_image_name}:latest -f docker/${docker_args.build_docker_file} ${docker_args.docker_build_args} --build-arg user_uid=${user_uid} --build-arg base_image=${docker_args.from_image} ."
     build_image = docker.image( "${paths.project_name}/${build_image_name}:latest" )
   }
 
@@ -232,7 +232,7 @@ String docker_upload_artifactory( compiler_data compiler_args, docker_data docke
     // rocblas_install_image = docker.build( "${job_name}/${image_name}:${env.BUILD_NUMBER}", "--pull -f ${build_dir_rel}/dockerfile-rocblas-ubuntu-16.04 --build-arg base_image=${from_image} ${build_dir_rel}" )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
-    sh """docker build -t ${job_name}/${image_name} --pull -f ${docker_context}/dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04 \
+    sh """docker build -t ${job_name}/${image_name} --pull -f ${docker_context}/${docker_args.install_docker_file} \
         --build-arg base_image=${docker_args.from_image} ${docker_context}"""
     rocblas_install_image = docker.image( "${job_name}/${image_name}" )
 
@@ -354,7 +354,8 @@ String hip_integration_testing( String inside_args, String job, String build_con
 class docker_data implements Serializable
 {
   String from_image
-  String docker_file
+  String build_docker_file
+  String install_docker_file
   String docker_run_args
   String docker_build_args
 }
@@ -426,7 +427,7 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 
       // Build rocblas inside of the build environment
       docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, rocblas_paths )
-  }
+    }
 
     // After a successful build, upload a docker image of the results
     String job_name = env.JOB_NAME.toLowerCase( )
@@ -448,7 +449,8 @@ parallel hcc_ctu:
   {
     def docker_args = new docker_data(
         from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
-        docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
+        build_docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
+        install_docker_file:'dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04',
         docker_run_args:'--device=/dev/kfd',
         docker_build_args:' --pull' )
 
@@ -479,7 +481,8 @@ hcc_rocm:
   {
     def hcc_docker_args = new docker_data(
         from_image:'rocm/rocm-terminal:latest',
-        docker_file:'dockerfile-build-rocm-terminal',
+        build_docker_file:'dockerfile-build-rocm-terminal',
+        install_docker_file:'dockerfile-rocblas-rocm-terminal',
         docker_run_args:'--device=/dev/kfd',
         docker_build_args:' --pull' )
 
@@ -513,7 +516,8 @@ hcc_rocm:
 //   {
 //     def hcc_docker_args = new docker_data(
 //         from_image:'nvidia/cuda:8.0-devel',
-//         docker_file:'dockerfile-build-nvidia-cuda-8',
+//         build_docker_file:'dockerfile-build-nvidia-cuda-8',
+//         install_docker_file:'dockerfile-rocblas-nvidia-cuda-8'
 //         docker_run_args:'--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro',
 //         docker_build_args:' --pull' )
 
