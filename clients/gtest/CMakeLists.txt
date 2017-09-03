@@ -75,6 +75,10 @@ else()
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=0 )
 endif()
 
+set( THREADS_PREFER_PTHREAD_FLAG ON )
+find_package( Threads REQUIRED )
+target_link_libraries( rocblas-test PRIVATE Threads::Threads )
+
 # Try to test for specific compiler features if cmake version is recent enough
 if( CMAKE_VERSION VERSION_GREATER "3.0" )
     target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type)

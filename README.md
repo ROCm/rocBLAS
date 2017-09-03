@@ -3,35 +3,45 @@ A BLAS implementation on top of AMD's Radeon Open Compute [ROCm][] runtime and t
 the [HIP][] programming language and optimized for AMD's latest discrete GPUs.
 
 ## rocBLAS Wiki
-The [wiki][] has helpful information about building the rocblas library, samples and tests.
+The [wiki][] has helpful information about building the rocBLAS library, samples and tests.
 
 ## Building rocBLAS
-The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v1.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
+#### Bash helper build script (Ubuntu only)
+The root of this repository has a helper bash script `install.sh` to build and install rocBLAS on Ubuntu with a single command.  It does not take a lot of options and hard-codes configuration that can be specified through invoking cmake directly, but it's a great way to get started quickly and can serve as an example of how to build/install.  A few commands in the script need sudo access, so it may prompt you for a password.
+*  `./install -h` -- shows help
+*  `./install -id` -- common install flags
+
+### Manual build (all supported platforms)
+The build infrastructure for rocBLAS is based on [Cmake](https://cmake.org/) v3.5.  This is the version of cmake available on ROCm supported platforms.  Examples of installing cmake:
 * Ubuntu: `sudo apt install cmake-qt-gui`
 * Fedora: `sudo dnf install cmake-gui`
 
 ### Library
-The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile is predominately written in python2.7 (not python3), so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocblas:
+The rocBLAS library has one dependency named [Tensile](https://github.com/ROCmSoftwarePlatform/Tensile), which supplies the high-performance implementation of xGEMM.  Tensile is downloaded by cmake during library configuration and automatically configured as part of the build, so no further action is required by the user to set it up.  Tensile is predominately written in python2.7 (not python3), so it does bring python dependencies which can easily be installed with distro package managers.  The rocBLAS library contains both host and device code, so the HCC compiler must be specified during cmake configuration to properly initialize build tools.  Example steps to build rocBLAS:
 
 #### (One time only)
 * Ubuntu: `sudo apt install python2.7 python-yaml`
 * Fedora: `sudo dnf install python PyYAML`
 
 #### Configure and build steps
-```
+```bash
 mkdir -p [ROCBLAS_BUILD_DIR]/release
 cd [ROCBLAS_BUILD_DIR]/release
-CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package [ROCBLAS_SOURCE]
-make -j$(nproc) install # sudo required if installing into system directory; uses /opt/rocm by default
+# Default install location is in /opt/rocm, define -DCMAKE_INSTALL_PREFIX=<path> to specify other
+# Default build config is 'Release', define -DCMAKE_BUILD_TYPE=<config> to specify other
+CXX=/opt/rocm/bin/hcc ccmake [ROCBLAS_SOURCE]
+make -j$(nproc)
+sudo make install # sudo required if installing into system directory such as /opt/rocm
 ```
 
 ### rocBLAS clients
 The repository contains source for clients that serve as samples, tests and benchmarks.  Clients source can be found in the clients subdir.
 
-### Dependencies (only necessary for rocblas clients)
+### Dependencies (only necessary for rocBLAS clients)
 The rocBLAS samples have no external dependencies, but our unit test and benchmarking applications do.  These clients introduce the following dependencies:
 1.  [boost](http://www.boost.org/)
 2.  [lapack](https://github.com/Reference-LAPACK/lapack-release)
+  * lapack itself brings a dependency on a fortran compiler
 3.  [googletest](https://github.com/google/googletest)
 
 Linux distros typically have an easy installation mechanism for boost through the native package manager.
@@ -39,22 +49,28 @@ Linux distros typically have an easy installation mechanism for boost through th
 * Ubuntu: `sudo apt install libboost-program-options-dev`
 * Fedora: `sudo dnf install boost-program-options`
 
-Unfortunately, googletest and lapack are not as easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files for cmake to configure linking the library.  rocBLAS provide a cmake script that builds these dependencies from source.  This is an optional step, but helps automate the googletest & lapack builds.  The following is a sequence of steps to build dependencies and install them to the cmake default /usr/local.
+Unfortunately, googletest and lapack are not as easy to install.  Many distros do not provide a googletest package with pre-compiled libraries, and the lapack packages do not have the necessary cmake config files for cmake to configure linking the cblas library.  rocBLAS provide a cmake script that builds the above dependencies from source.  This is an optional step; users can provide their own builds of these dependencies and help cmake find them by setting the CMAKE_PREFIX_PATH definition.  The following is a sequence of steps to build dependencies and install them to the cmake default /usr/local.
 
 #### (optional, one time only)
-1.  `mkdir -p [ROCBLAS_BUILD_DIR]/release/deps`
-2.  `cd [ROCBLAS_BUILD_DIR]/release/deps`
-3.  `cmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps`
-4.  `sudo make -j$(nproc) install`
+```bash
+mkdir -p [ROCBLAS_BUILD_DIR]/release/deps
+cd [ROCBLAS_BUILD_DIR]/release/deps
+ccmake -DBUILD_BOOST=OFF [ROCBLAS_SOURCE]/deps   # assuming boost is installed through package manager as above
+make -j$(nproc) install
+```
 
-Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script:
-* `CXX=/opt/rocm/bin/hcc cmake -DCMAKE_INSTALL_PREFIX=package -DBUILD_CLIENTS=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]`
+Once dependencies are available on the system, it is possible to configure the clients to build.  This requires a few extra cmake flags to the library cmake configure script. If the dependencies are not installed into system defaults (like /usr/local ), you should pass the CMAKE_PREFIX_PATH to cmake to help find them.
+* `-DCMAKE_PREFIX_PATH="<semicolon separated paths>"`
+```bash
+# Default install location is in /opt/rocm, use -DCMAKE_INSTALL_PREFIX=<path> to specify other
+CXX=/opt/rocm/bin/hcc ccmake -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON [ROCBLAS_SOURCE]
+make -j$(nproc)
+sudo make install   # sudo required if installing into system directory such as /opt/rocm
+```
 
-If the dependencies are not installed into system defaults (like /usr/local ), you can optionally pass the CMAKE_PREFIX_PATH to cmake to help find them.
-* `-DCMAKE_PREFIX_PATH="<semicolon separated install list>"`
-
-Build with
-'make -j$(nproc)'
+#### CUDA build errata
+rocBLAS is written with HiP kernels, so it should build and run on CUDA platforms.  However, currently the cmake infrastructure is broken
+with a CUDA backend.  However, a BLAS marshalling library that presents a common interface for both ROCm and CUDA backends can be found with [hipBLAS](https://github.com/ROCmSoftwarePlatform/hipBLAS).
 
 ## Migrating libraries to ROCm from OpenCL
 [clBLAS][] demonstrated significant performance benefits of data parallel (GPU) computation when applied to solving dense
