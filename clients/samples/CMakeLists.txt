@@ -5,6 +5,8 @@
 set( rocblas_samples_common ../common/utility.cpp )
 
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
+add_executable( example_sgemm example_sgemm.cpp ${rocblas_samples_common} )
+add_executable( example_sgemm_strided_batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ../common/rocblas_template_specialization.cpp ${rocblas_samples_common} )
 
 #add_executable( example-openmp example_openmp.cpp ${rocblas_samples_common} )
@@ -17,7 +19,7 @@ if( NOT TARGET rocblas )
   endif( )
 endif( )
 
-foreach( exe example-sscal;example-scal-template )
+foreach( exe example-sscal;example-scal-template;example_sgemm;example_sgemm_strided_batched )
   if( TARGET rocblas )
     target_link_libraries( ${exe} PRIVATE rocblas )
   else( )
