@@ -11,8 +11,27 @@
 #include <typeinfo>
 
 /*!\file
- * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 2 and 3. No flops counts for Level 1 BLAS
+ * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 1, 2, 3.
 */
+
+    /*
+     * ===========================================================================
+     *    level 1 BLAS
+     * ===========================================================================
+     */
+    template<typename T>
+    double  axpy_gflop_count(rocblas_int n){
+        return (2.0 * n)/1e9;
+    }
+    template<typename T>
+    double  dot_gflop_count(rocblas_int n){
+        return (2.0 * n)/1e9;
+    }
+    template<typename T>
+    double  scal_gflop_count(rocblas_int n){
+        return (1.0 * n)/1e9;
+    }
+
 
     /*
      * ===========================================================================
