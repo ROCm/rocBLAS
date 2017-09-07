@@ -13,6 +13,7 @@
 #include "norm.h"
 #include "unit.h"
 #include "arg_check.h"
+#include "flops.h"
 #include <complex.h>
 
 using namespace std;
@@ -218,6 +219,7 @@ rocblas_status testing_axpy(Arguments argus)
     }
 
     double gpu_time_used, cpu_time_used;
+    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error = 0.0;
 
     /* =====================================================================
@@ -239,6 +241,8 @@ rocblas_status testing_axpy(Arguments argus)
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = axpy_gflop_count<T> (N) / gpu_time_used * 1e6 * 1;
+        rocblas_bandwidth = (3.0 * N) * sizeof(T)/ gpu_time_used / 1e3;
     }
 
     CHECK_HIP_ERROR(hipMalloc(&alpha_devptr, sizeof(T)));
@@ -276,6 +280,7 @@ rocblas_status testing_axpy(Arguments argus)
         if(argus.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
+            cblas_gflops = axpy_gflop_count<T> (N) / cpu_time_used * 1e6 * 1;
         }
 
         //enable unit check, notice unit check is not invasive, but norm check is,
@@ -295,7 +300,22 @@ rocblas_status testing_axpy(Arguments argus)
         }
     }// end of if unit/norm check
 
-    BLAS_1_RESULT_PRINT
+    if(argus.timing){
+        //only norm_check return an norm error, unit check won't return anything
+        cout << "N, rocblas-Gflops, rocblas-GB/s, rocblas-us";
+        if(argus.norm_check){
+            cout << "CPU-Gflops, norm-error" ;
+        }
+        cout << endl;
+        
+        cout << N << ", " << rocblas_gflops << ", " << rocblas_bandwidth << ", " << gpu_time_used;
+       
+        if(argus.norm_check){
+            cout << cblas_gflops << ',';
+            cout << rocblas_error;
+        }
+     cout << endl;
+     }
 
     CLEANUP();    
     return rocblas_status_success;
