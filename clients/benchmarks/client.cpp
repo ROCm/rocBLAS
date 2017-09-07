@@ -10,13 +10,15 @@
 #include "rocblas.h"
 #include "utility.h"
 #include "rocblas.hpp"
-#include "testing_scal.hpp"
-#include "testing_dot.hpp"
-#include "testing_nrm2.hpp"
-#include "testing_asum.hpp"
 #include "testing_amax.hpp"
+#include "testing_asum.hpp"
+#include "testing_axpy.hpp"
+#include "testing_copy.hpp"
+#include "testing_dot.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
+#include "testing_nrm2.hpp"
+#include "testing_scal.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #if BUILD_WITH_TENSILE
@@ -53,7 +55,7 @@ int main(int argc, char *argv[])
         ( "alpha",   po::value<double>( &argus.alpha)->default_value(1.0), "specifies the scalar alpha" )
         ( "beta",    po::value<double>( &argus.beta )->default_value(0.0), "specifies the scalar beta" )
         ( "function,f", po::value<std::string>( &function )->default_value("gemv"), "BLAS function to test. Options: gemv, ger, trsm, trmm, symv, syrk, syr2k" )
-        ( "precision,r", po::value<char>( &precision )->default_value('s'), "Options: s,d,c,z" )
+        ( "precision,r", po::value<char>( &precision )->default_value('s'), "Options: h,s,d,c,z" )
         ( "transposeA", po::value<char>( &argus.transA_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
         ( "transposeB", po::value<char>( &argus.transB_option )->default_value('N'), "N = no transpose, T = transpose, C = conjugate transpose" )
         ( "side", po::value<char>( &argus.side_option )->default_value('L'), "L = left, R = right. Only applicable to certain routines" )
@@ -75,7 +77,7 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    if( precision != 's' && precision != 'd' && precision != 'c' && precision != 'z' ){
+    if( precision != 'h' && precision != 's' && precision != 'd' && precision != 'c' && precision != 'z' ){
         std::cerr << "Invalid value for --precision" << std::endl;
         return -1;
     }
@@ -129,6 +131,14 @@ int main(int argc, char *argv[])
             testing_amax<float>( argus );
         else if (precision == 'd')
             testing_amax<double>( argus );
+    }
+    else if (function == "axpy"){
+        if (precision == 'h')
+            testing_axpy<rocblas_half>( argus );
+        else if (precision == 's')
+            testing_axpy<float>( argus );
+        else if (precision == 'd')
+            testing_axpy<double>( argus );
     }
     else if (function == "gemv"){
         if (precision == 's')
