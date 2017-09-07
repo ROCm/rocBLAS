@@ -67,14 +67,25 @@ int main()
     hipMemcpy(hx.data(), dx, sizeof(float)*N, hipMemcpyDeviceToHost);
 
     //verify rocblas_scal result
+    bool error_in_element = false;
     for(rocblas_int i=0;i<N;i++){
         if(hz[i] * alpha != hx[i]){
             printf("error in element %d: CPU=%f, GPU=%f ", i, hz[i]*alpha, hx[i]);
+            error_in_element = true;
             break;
         }
     }
 
     printf("%d    %8.2f        \n", (int)N, gpu_time_used);
+
+    if (error_in_element)
+    {
+        printf("SSCAL TEST FAILS\n");
+    }
+    else
+    {
+        printf("SSCAL TEST PASSES\n");
+    }
 
 
     hipFree(dx);
