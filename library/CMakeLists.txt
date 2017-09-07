@@ -71,8 +71,15 @@ set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip_hcc (>= 1.0.17174)" )
 set( CPACK_RPM_PACKAGE_REQUIRES "hip_hcc >= 1.0.17174" )
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 
+# Give rocblas compiled for CUDA backend a different name
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+    set( package_name rocblas )
+else( )
+    set( package_name rocblas-alt )
+endif( )
+
 rocm_create_package(
-    NAME rocblas
+    NAME ${package_name}
     DESCRIPTION "Radeon Open Compute BLAS library"
     MAINTAINER "Kent Knox <kent.knox@amd.com>"
     LDCONFIG

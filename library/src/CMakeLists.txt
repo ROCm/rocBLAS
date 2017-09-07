@@ -56,9 +56,9 @@ if( BUILD_WITH_TENSILE )
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
     target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument )
 
-    foreach( target ${AMDGPU_TARGETS} )
-      target_link_libraries( Tensile PRIVATE --amdgpu-target=${target} )
-    endforeach( )
+    # foreach( target ${AMDGPU_TARGETS} )
+    #   target_link_libraries( Tensile PRIVATE --amdgpu-target=${target} )
+    # endforeach( )
   endif( )
 
   if( ROCBLAS_SHARED_LIBS )
@@ -161,7 +161,7 @@ endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" OUTPUT_NAME rocblas-hcc )
+set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
