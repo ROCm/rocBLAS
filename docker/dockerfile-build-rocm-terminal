@@ -24,6 +24,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     python-yaml \
     gfortran \
     libboost-program-options-dev \
+    rpm \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
