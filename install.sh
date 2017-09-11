@@ -38,6 +38,19 @@ function display_help()
   echo "    [-i|--install] install after build"
   echo "    [-d|--dependencies] install build dependencies"
   echo "    [-c|--clients] build library clients too (combines with -i & -d)"
+#  echo "    [--cuda] build library for cuda backend"
+}
+
+# This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
+elevate_if_not_root( )
+{
+  local uid=$(id -u)
+
+  if (( ${uid} )); then
+    sudo $@
+  else
+    $@
+  fi
 }
 
 # #################################################
@@ -46,6 +59,7 @@ function display_help()
 install_package=false
 install_dependencies=false
 build_clients=false
+build_cuda=false
 
 # #################################################
 # Parameter parsing
@@ -54,7 +68,7 @@ build_clients=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies: --options hicd -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies --options hicd -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -82,6 +96,9 @@ while true; do
     -c|--clients)
         build_clients=true
         shift ;;
+    --cuda)
+        build_cuda=true
+        shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -89,8 +106,8 @@ while true; do
   esac
 done
 
-build_dir=build
-printf "\033[32mCreating project build directory in: \033[33m./${build_dir}\033[0m\n"
+build_dir=./build
+printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
 
 # #################################################
 # prep
@@ -103,25 +120,32 @@ rm -rf ${build_dir}
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
   # dependencies needed for rocblas and clients to build
-  library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "hcc" "pkg-config" )
+  library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
+  if [[ "${build_cuda}" == false ]]; then
+    library_dependencies_ubuntu+=( "hcc" )
+  else
+    # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
+    library_dependencies_ubuntu+=( "cuda" )
+  fi
+
   client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
 
-  sudo apt update
+  elevate_if_not_root apt update
 
   # Dependencies required by main library
   for package in "${library_dependencies_ubuntu[@]}"; do
     if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      sudo apt install -y --no-install-recommends ${package}
+      elevate_if_not_root apt install -y --no-install-recommends ${package}
     fi
   done
 
   # Dependencies required by library client apps
   if [[ "${build_clients}" == true ]]; then
     for package in "${client_dependencies_ubuntu[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
+      if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
         printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-        sudo apt install -y --no-install-recommends ${package}
+        elevate_if_not_root apt install -y --no-install-recommends ${package}
       fi
     done
 
@@ -131,35 +155,39 @@ if [[ "${install_dependencies}" == true ]]; then
       mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
       cmake -DBUILD_BOOST=OFF ../../deps
       make -j$(nproc)
-      sudo make install
+      elevate_if_not_root make install
     popd
   fi
 
 fi
 
 pushd .
-# #################################################
-# configure
-# #################################################
+  # #################################################
+  # configure
+  # #################################################
   mkdir -p ${build_dir}/release && cd ${build_dir}/release
-  export CXX=/opt/rocm/bin/hcc
+
+  if [[ "${build_cuda}" == false ]]; then
+    export CXX=/opt/rocm/bin/hcc
+  fi
+
   if [[ "${build_clients}" == true ]]; then
     cmake -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ../..
   else
     cmake ../..
   fi
 
-# #################################################
-# build
-# #################################################
+  # #################################################
+  # build
+  # #################################################
   make -j$(nproc)
 
-# #################################################
-# install
-# #################################################
-# installing through package manager, which makes uninstalling easy
+  # #################################################
+  # install
+  # #################################################
+  # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    sudo dpkg -i rocblas-*.deb
+    elevate_if_not_root dpkg -i rocblas-*.deb
   fi
 popd

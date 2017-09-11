@@ -201,10 +201,12 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
             set -x
             rm -rf ${docker_context} && mkdir -p ${docker_context}
             mv ${paths.project_build_prefix}/*.deb ${docker_context}
+            mv ${paths.project_build_prefix}/*.rpm ${docker_context}
             dpkg -c ${docker_context}/*.deb
         """
 
         archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
+        archiveArtifacts artifacts: "${docker_context}/*.rpm", fingerprint: true
       }
     }
   }
