@@ -83,7 +83,7 @@ def executable(library):
         if sys.platform == 'win32':
             exe = 'client.exe'
         elif sys.platform == 'linux2':
-            exe = './client'
+            exe = './rocblas-bench'
     if library == 'acmlblas':
         if sys.platform == 'win32':
             exe = 'ACMLBlas_client.exe'
