@@ -11,11 +11,12 @@ Our code contriubtion guidelines closely follows the model of [GitHub pull-reque
 
 ## Pull-request guidelines
 * target the **develop** branch for integration
-* ensure code [builds properly]( https://github.com/kknox/clSPARSE/wiki/Build ) across Windows, Linux and MacOSX
-  * Cloud based build services will verify pull requests
+* ensure code builds successfully.
 * do not break existing test cases
-* new functionality will only be merged with new test cases
-  * new tests should integrate within the existing [googletest framework](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+* new functionality will only be merged with new unit tests
+  * new unit tests should integrate within the existing [googletest framework](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+  * tests must have good code coverage
+  * code must also have benchmark tests, and performance must approach the compute bound limit or memory bound limit.
 
 ## StyleGuide
 This project follows the [CPP Core guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md), with few modifications or additions noted below.  All pull-requests should in good faith attempt to follow the guidelines stated therein, but we recognize that the content is lengthy.  Below we list our primary concerns when reviewing pull-requests.  
@@ -23,7 +24,7 @@ This project follows the [CPP Core guidelines](https://github.com/isocpp/CppCore
 ### Interface
 -  All public APIs are C89 compatible; all other library code should use c++14
   - Our minimum supported compiler is clang 3.6
--  [NL.10](https://github.com/kknox/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rl-camel): Avoid CamelCase
+-  Avoid CamelCase
   - This rule applies specifically to publicly visible APIs, but is also encouraged (not mandated) for internal code
 
 ### Philosophy
