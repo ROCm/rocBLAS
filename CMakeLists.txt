@@ -42,7 +42,7 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-rocm_setup_version( VERSION 0.6.0.0 )
+rocm_setup_version( VERSION 0.7.0.0 )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -69,8 +69,8 @@ else( )
 endif( )
 
 if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "FijiROCm15" CACHE STRING "Tensile to use which logic?")
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS FijiROCm15 )
+  set( Tensile_LOGIC "gfx900-rocm-1.6" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS gfx803-rocm-1.5 gfx803-rocm-1.6 gfx900-rocm-1.6 )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
