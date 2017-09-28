@@ -142,7 +142,7 @@ class gemm_strided_batched_gtest: public :: TestWithParam <gemm_strided_batched_
 };
 
 
-TEST_P(gemm_strided_batched_gtest, gemm_strided_batched_gtest_float)
+TEST_P(gemm_strided_batched_gtest, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -153,6 +153,41 @@ TEST_P(gemm_strided_batched_gtest, gemm_strided_batched_gtest_float)
     Arguments arg = setup_gemm_strided_batched_arguments( GetParam() );
 
     rocblas_status status = testing_gemm_strided_batched<float>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+
+        if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.batch_count < 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+
+}
+
+
+TEST_P(gemm_strided_batched_gtest, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+
+    Arguments arg = setup_gemm_strided_batched_arguments( GetParam() );
+
+    rocblas_status status = testing_gemm_strided_batched<double>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
