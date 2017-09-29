@@ -276,6 +276,8 @@ void testing_gemm_bad_arg()
 template<typename T>
 rocblas_status testing_gemm(Arguments argus)
 {
+    rocblas_operation transA = char2rocblas_operation(argus.transA_option);
+    rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
     rocblas_int M = argus.M;
     rocblas_int N = argus.N;
@@ -285,14 +287,12 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_int ldb = argus.ldb;
     rocblas_int ldc = argus.ldc;
 
-    rocblas_operation transA = char2rocblas_operation(argus.transA_option);
-    rocblas_operation transB = char2rocblas_operation(argus.transB_option);
+    T alpha = argus.alpha;
+    T beta = argus.beta;
 
     T *dA, *dB, *dC;
 
     rocblas_int  A_size, B_size, C_size, A_row, A_col, B_row, B_col;
-    T alpha = argus.alpha;
-    T beta = argus.beta;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -311,7 +311,7 @@ rocblas_status testing_gemm(Arguments argus)
     }
     if(transA == rocblas_operation_none)
     {
-        A_row =  M; A_col = K;
+        A_row = M; A_col = K;
     }
     else
     {
@@ -319,7 +319,7 @@ rocblas_status testing_gemm(Arguments argus)
     }
     if(transB == rocblas_operation_none)
     {
-        B_row =  K; B_col = N;
+        B_row = K; B_col = N;
     }
     else
     {
@@ -343,9 +343,21 @@ rocblas_status testing_gemm(Arguments argus)
 
         gemm_arg_check(status, M, N, K, lda, ldb, ldc);
 
+        CHECK_HIP_ERROR(hipFree(dA));
+        CHECK_HIP_ERROR(hipFree(dB));
+        CHECK_HIP_ERROR(hipFree(dC));
+
+        rocblas_destroy_handle(handle);
+
         return status;
     }
-    else if (nullptr == dA || nullptr == dB || nullptr == dC )
+
+    //allocate memory on device
+    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
+
+    if (nullptr == dA || nullptr == dB || nullptr == dC )
     {
         status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
@@ -354,6 +366,12 @@ rocblas_status testing_gemm(Arguments argus)
                     &beta, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
+
+        CHECK_HIP_ERROR(hipFree(dA));
+        CHECK_HIP_ERROR(hipFree(dB));
+        CHECK_HIP_ERROR(hipFree(dC));
+
+        rocblas_destroy_handle(handle);
 
         return status;
     }
@@ -367,6 +385,12 @@ rocblas_status testing_gemm(Arguments argus)
 
         verify_rocblas_status_invalid_handle(status);
 
+        CHECK_HIP_ERROR(hipFree(dA));
+        CHECK_HIP_ERROR(hipFree(dB));
+        CHECK_HIP_ERROR(hipFree(dC));
+
+        rocblas_destroy_handle(handle);
+
         return status;
     }
 
@@ -376,11 +400,6 @@ rocblas_status testing_gemm(Arguments argus)
     vector<T> hC(C_size);
     vector<T> hC_copy(C_size);
 
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
-
     //Initial Data on CPU
     srand(1);
     rocblas_init<T>(hA, A_row, A_col, lda);
@@ -389,53 +408,40 @@ rocblas_status testing_gemm(Arguments argus)
 
     hC_copy = hC;
 
-    //copy data from CPU to device, does not work for lda != A_row
+    //copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * A_size, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * B_size, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * C_size, hipMemcpyHostToDevice));
 
-    /* =====================================================================
-         ROCBLAS
-    =================================================================== */
-    if(argus.timing){
-        gpu_time_used = get_time_us();// in microseconds
-    }
 
-    //library interface
-    status = rocblas_gemm<T>(handle, transA, transB,
+    if(argus.unit_check || argus.norm_check)
+    {
+        /* =====================================================================
+             ROCBLAS
+        =================================================================== */
+        status = rocblas_gemm<T>(handle, transA, transB,
                     M, N, K,
                     &alpha, dA, lda,
                     dB, ldb,
                     &beta, dC, ldc);
 
-    if(argus.timing){
-        gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6;
-    }
 
-    //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
+        //copy output from device to CPU
+        CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
 
-    if(argus.unit_check || argus.norm_check)
-    {
-
-     /* =====================================================================
+         /* =====================================================================
                  CPU BLAS
-     =================================================================== */
-        if(argus.timing)
-        {
-            cpu_time_used = get_time_us();
-        }
+         =================================================================== */
         if(status != rocblas_status_invalid_size) //only valid size compare with cblas
         {
+            cpu_time_used = get_time_us();
+
             cblas_gemm<T>(
-                     transA, transB, M, N, K,
-                     alpha, hA.data(), lda,
-                     hB.data(), ldb,
-                     beta, hC_copy.data(), ldc);
-        }
-        if(argus.timing)
-        {
+                transA, transB, M, N, K,
+                alpha, hA.data(), lda,
+                hB.data(), ldb,
+                beta, hC_copy.data(), ldc);
+
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
@@ -452,33 +458,60 @@ rocblas_status testing_gemm(Arguments argus)
         }
 
         //if enable norm check, norm check is invasive
-        //any typeinfo(T) will not work here, because template deduction is matched in compilation time
+        //any typeinfo(T) will not work here, because template deduction is matched 
+        //in compilation time
         if(argus.norm_check)
         {
+            cout << ", norm-error";
             rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_copy.data(), hC.data());
         }
 
     }// end of if unit/norm check
 
-    if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything,
-            cout << "Shape, M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
-            if(argus.norm_check)
-            {
-                cout << "CPU-Gflops(us), norm-error" ;
-            }
-            cout << endl;
+    if(argus.timing)
+    {
+        int number_cold_calls = 2;
+        int number_hot_calls = 10;
 
-            cout << argus.transA_option << argus.transB_option << ',' << M <<','<< N <<',' << K <<',' << lda <<','<< ldb <<','
-                 << ldc <<',' << rocblas_gflops << " (" << gpu_time_used << "), ";
+        for (int i = 0; i < number_cold_calls; i++)
+        {
+            status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+        }
 
-            if(argus.norm_check)
-            {
-                cout << cblas_gflops << " (" << cpu_time_used << "), ";
-                cout << rocblas_error;
-            }
+        gpu_time_used = get_time_us();   // in microseconds
+        for (int i = 0; i < number_hot_calls; i++)
+        {
+            status = rocblas_gemm<T>(handle, transA, transB,
+                    M, N, K,
+                    &alpha, dA, lda,
+                    dB, ldb,
+                    &beta, dC, ldc);
+        }
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = gemm_gflop_count<T> (M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-            cout << endl;
+        cout << "Shape, M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
+        if(argus.unit_check || argus.norm_check)
+        {
+            cout << "CPU-Gflops(us), norm-error" ;
+        }
+        cout << endl;
+
+        cout << argus.transA_option << argus.transB_option << ',' 
+            << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc <<',' 
+            << rocblas_gflops << " (" << gpu_time_used << "), ";
+
+        if(argus.unit_check || argus.norm_check)
+        {
+            cout << cblas_gflops << " (" << cpu_time_used << "), ";
+            cout << rocblas_error;
+        }
+
+        cout << endl;
     }
 
     CHECK_HIP_ERROR(hipFree(dA));
@@ -658,7 +691,6 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_destroy_handle(handle);
     return status;
 }
-
 
 template<typename T>
 rocblas_status benchmark_gemm(Arguments argus)
