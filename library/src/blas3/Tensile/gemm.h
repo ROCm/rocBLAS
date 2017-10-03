@@ -40,17 +40,12 @@ inline rocblas_status validateArgs(
     ) {
 
   // quick return 0 is valid in BLAS
-  if ( m == 0 || n == 0 || k == 0 || b_c == 0) {
+  if (m == 0 || n == 0 || k == 0 || b_c == 0) {
     return rocblas_status_success;
   }
 
   // sizes must not be negative
-  if ( m < 0 || n < 0 || k < 0 || b_c < 0) {
-    return rocblas_status_invalid_size;
-  }
-
-  // strides must not be negative
-  if ( m < 0 || n < 0 || k < 0 || b_c < 0) {
+  if (m < 0 || n < 0 || k < 0 || b_c < 0) {
     return rocblas_status_invalid_size;
   }
 
@@ -75,7 +70,7 @@ inline rocblas_status validateArgs(
   rocblas_int num_cols_b = (trans_b == rocblas_operation_none) ? n : k;
   rocblas_int num_rows_b = (trans_b == rocblas_operation_none) ? k : n;
 
-  // valid strides
+  // leading dimensions must be valid
   if( num_rows_a > ld_a
       || num_rows_b > ld_b
       || num_rows_c > ld_c) {
