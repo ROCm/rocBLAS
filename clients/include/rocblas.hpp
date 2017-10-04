@@ -121,6 +121,16 @@
              T *y, rocblas_int incy);
 
     template<typename T>
+    rocblas_status rocblas_geam(rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n,
+        const T *alpha,
+        const T *A, rocblas_int lda,
+        const T *B, rocblas_int ldb,
+        const T *beta,
+        T *C, rocblas_int ldc);
+
+    template<typename T>
     rocblas_status rocblas_gemm(rocblas_handle handle,
         rocblas_operation transA, rocblas_operation transB,
         rocblas_int m, rocblas_int n, rocblas_int k,

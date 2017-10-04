@@ -70,6 +70,12 @@
         return (2.0 * m * n * k)/1e9;
     }
 
+    /* \brief floating point counts of GEAM */
+    template<typename T>
+    double  geam_gflop_count(rocblas_int m, rocblas_int n){
+        return (3.0 * m * n)/1e9;
+    }
+
     /* \brief floating point counts of TRSM */
     template<typename T>
     double  trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k){

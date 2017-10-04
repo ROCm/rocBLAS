@@ -21,6 +21,7 @@
 #include "testing_scal.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
+#include "testing_geam.hpp"
 #if BUILD_WITH_TENSILE
     #include "testing_gemm.hpp"
     #include "testing_gemm_strided_batched.hpp"
@@ -163,6 +164,12 @@ int main(int argc, char *argv[])
             testing_trtri_batched<float>( argus );
         else if (precision == 'd')
             testing_trtri_batched<double>( argus );
+    }
+    else if (function == "geam"){
+        if (precision == 's')
+            testing_geam<float>( argus );
+        else if (precision == 'd')
+            testing_geam<double>( argus );
     }
 #if BUILD_WITH_TENSILE
     else if (function == "gemm"){

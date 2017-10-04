@@ -520,6 +520,31 @@
         return rocblas_dtrtri_batched(handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
     }
 
+    template<>
+    rocblas_status rocblas_geam<float>(rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n,
+        const float *alpha,
+        const float *A, rocblas_int lda,
+        const float *B, rocblas_int ldb,
+        const float *beta,
+        float *C, rocblas_int ldc){
+        return rocblas_sgeam(handle, transA, transB, m, n, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    template<>
+    rocblas_status rocblas_geam<double>(rocblas_handle handle,
+        rocblas_operation transA, rocblas_operation transB,
+        rocblas_int m, rocblas_int n,
+        const double *alpha,
+        const double *A, rocblas_int lda,
+        const double *B, rocblas_int ldb,
+        const double *beta,
+        double *C, rocblas_int ldc){
+        return rocblas_dgeam(handle, transA, transB, m, n, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+
 #if BUILD_WITH_TENSILE
 
     template<>

@@ -90,6 +90,7 @@ set( rocblas_auxiliary_source
 set( rocblas_blas3_source
   blas3/rocblas_trtri.cpp
   blas3/rocblas_trtri_batched.cpp
+  blas3/rocblas_geam.cpp
   ${Tensile_SRC}
 )
 
