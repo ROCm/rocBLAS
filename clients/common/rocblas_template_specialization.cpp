@@ -40,6 +40,7 @@
         return rocblas_dscal(handle, n, alpha, x, incx);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_scal<rocblas_float_complex>(rocblas_handle handle,
@@ -59,6 +60,7 @@
 
         return rocblas_zscal(handle, n, alpha, x, incx);
     }
+*/
 
     //axpy
     template<>
@@ -92,6 +94,7 @@
         return rocblas_daxpy(handle, n, alpha, x, incx, y, incy);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_axpy<rocblas_float_complex>(    rocblas_handle handle, rocblas_int n,
@@ -111,6 +114,7 @@
     {
         return rocblas_zaxpy(handle, n, alpha, x, incx, y, incy);
     }
+*/
 
 
     //swap
@@ -132,6 +136,7 @@
         return rocblas_dswap(handle, n, x, incx, y, incy);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_swap<rocblas_float_complex>(    rocblas_handle handle, rocblas_int n,
@@ -149,6 +154,7 @@
     {
         return rocblas_zswap(handle, n, x, incx, y, incy);
     }
+*/
 
     //copy
     template<>
@@ -169,6 +175,7 @@
         return rocblas_dcopy(handle, n, x, incx, y, incy);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_copy<rocblas_float_complex>(    rocblas_handle handle, rocblas_int n,
@@ -186,6 +193,7 @@
     {
         return rocblas_zcopy(handle, n, x, incx, y, incy);
     }
+*/
 
     //dot
     template<>
@@ -208,6 +216,7 @@
         return rocblas_ddot(handle, n, x, incx, y, incy, result);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_dot<rocblas_float_complex>(    rocblas_handle handle, rocblas_int n,
@@ -227,6 +236,7 @@
     {
         return rocblas_zdotu(handle, n, x, incx, y, incy, result);
     }
+*/
 
 
     //asum
@@ -250,6 +260,7 @@
         return rocblas_dasum(handle, n, x, incx, result);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_asum<rocblas_float_complex, float>(rocblas_handle handle,
@@ -259,6 +270,7 @@
 
         return rocblas_scasum(handle, n, x, incx, result);
     }
+*/
 
     //nrm2
     template<>
@@ -281,6 +293,7 @@
         return rocblas_dnrm2(handle, n, x, incx, result);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_nrm2<rocblas_float_complex, float>(rocblas_handle handle,
@@ -300,6 +313,7 @@
 
         return rocblas_dznrm2(handle, n, x, incx, result);
     }
+*/
 
 
     //amin
@@ -323,6 +337,7 @@
         return rocblas_damin(handle, n, x, incx, result);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_amin<rocblas_float_complex>(rocblas_handle handle,
@@ -342,6 +357,7 @@
 
         return rocblas_dzamin(handle, n, x, incx, result);
     }
+*/
 
     //amax
     template<>
@@ -364,6 +380,7 @@
         return rocblas_damax(handle, n, x, incx, result);
     }
 
+/* not implemented
     template<>
     rocblas_status
     rocblas_amax<rocblas_float_complex>(rocblas_handle handle,
@@ -383,6 +400,7 @@
 
         return rocblas_dzamax(handle, n, x, incx, result);
     }
+*/
 
     /*
      * ===========================================================================
@@ -415,7 +433,7 @@
     }
 
 
-/*  not implemented yet
+/* not implemented
     template<>
     rocblas_status
     rocblas_symv<float>(    rocblas_handle handle,
