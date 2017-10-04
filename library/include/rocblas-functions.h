@@ -70,6 +70,7 @@ rocblas_dscal(rocblas_handle handle,
     const double *alpha,
     double *x, rocblas_int incx);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cscal(rocblas_handle handle,
     rocblas_int n,
@@ -81,6 +82,7 @@ rocblas_zscal(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *alpha,
     rocblas_double_complex *x, rocblas_int incx);
+*/
 
 
 /*! \brief BLAS Level 1 API
@@ -119,6 +121,7 @@ rocblas_dcopy(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double* y,       rocblas_int incy);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_ccopy(rocblas_handle handle,
     rocblas_int n,
@@ -130,7 +133,7 @@ rocblas_zcopy(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex* y,       rocblas_int incy);
-
+*/
 
 /*! \brief BLAS Level 1 API
 
@@ -174,6 +177,7 @@ rocblas_ddot(rocblas_handle handle,
     const double *y, rocblas_int incy,
     double *result);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cdotu(rocblas_handle handle,
     rocblas_int n,
@@ -187,6 +191,7 @@ rocblas_zdotu(rocblas_handle handle,
     const rocblas_double_complex *x, rocblas_int incx,
     const rocblas_double_complex *y, rocblas_int incy,
     rocblas_double_complex *result);
+*/
 
 
 /*! \brief BLAS Level 1 API
@@ -225,6 +230,7 @@ rocblas_dswap(rocblas_handle handle,
     double *x, rocblas_int incx,
     double* y, rocblas_int incy);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cswap(rocblas_handle handle,
     rocblas_int n,
@@ -236,7 +242,7 @@ rocblas_zswap(rocblas_handle handle,
     rocblas_int n,
     rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex* y, rocblas_int incy);
-
+*/
 
 /*! \brief BLAS Level 1 API
 
@@ -284,6 +290,7 @@ rocblas_daxpy(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *y,  rocblas_int incy);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_caxpy(rocblas_handle handle,
     rocblas_int n,
@@ -297,7 +304,7 @@ rocblas_zaxpy(rocblas_handle handle,
     const rocblas_double_complex *alpha,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_double_complex *y,  rocblas_int incy);
-
+*/
 
 /*! \brief BLAS Level 1 API
 
@@ -334,6 +341,7 @@ rocblas_dasum(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *result);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_scasum(rocblas_handle handle,
     rocblas_int n,
@@ -345,7 +353,7 @@ rocblas_dzasum(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     double *result);
-
+*/
 
 
 /*! \brief BLAS Level 1 API
@@ -383,6 +391,7 @@ rocblas_dnrm2(rocblas_handle handle,
     const double *x, rocblas_int incx,
     double *result);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_scnrm2(rocblas_handle handle,
     rocblas_int n,
@@ -394,7 +403,7 @@ rocblas_dznrm2(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     double *result);
-
+*/
 
 /*! \brief BLAS Level 1 API
 
@@ -430,6 +439,7 @@ rocblas_damax(rocblas_handle handle,
     const double *x, rocblas_int incx,
     rocblas_int *result);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_scamax(rocblas_handle handle,
     rocblas_int n,
@@ -441,6 +451,7 @@ rocblas_dzamax(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);
+*/
 
 /*! \brief BLAS Level 1 API
 
@@ -476,6 +487,7 @@ rocblas_damin(rocblas_handle handle,
     const double *x, rocblas_int incx,
     rocblas_int *result);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_scamin(rocblas_handle handle,
     rocblas_int n,
@@ -487,6 +499,7 @@ rocblas_dzamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);
+*/
 
     /*
      * ===========================================================================
@@ -556,6 +569,7 @@ rocblas_dgemv(rocblas_handle handle,
                  const double *beta,
                  double *y, rocblas_int incy);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cgemv(rocblas_handle handle,
                  rocblas_operation trans,
@@ -575,6 +589,7 @@ rocblas_zgemv(rocblas_handle handle,
                  const rocblas_double_complex *x, rocblas_int incx,
                  const rocblas_double_complex *beta,
                  rocblas_double_complex *y, rocblas_int incy);
+*/
 
 
 /*! \brief BLAS Level 2 API
@@ -616,6 +631,7 @@ rocblas_zgemv(rocblas_handle handle,
               specifies the increment for the elements of y.
 
     ********************************************************************/
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_ssymv(rocblas_handle handle,
                  rocblas_fill uplo,
@@ -635,7 +651,9 @@ rocblas_dsymv(rocblas_handle handle,
                  const double *x, rocblas_int incx,
                  const double *beta,
                  double *y, rocblas_int incy);
+*/
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_chemv(rocblas_handle handle,
                  rocblas_fill uplo,
@@ -655,7 +673,7 @@ rocblas_zhemv(rocblas_handle handle,
                  const rocblas_double_complex *x, rocblas_int incx,
                  const rocblas_double_complex *beta,
                  rocblas_double_complex *y, rocblas_int incy);
-
+*/
 
 /*! \brief BLAS Level 2 API
 
@@ -711,6 +729,7 @@ rocblas_dger(rocblas_handle handle,
                  const double *y, rocblas_int incy,
                        double *A, rocblas_int lda);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cger(rocblas_handle handle,
                  rocblas_int m, rocblas_int n,
@@ -726,6 +745,7 @@ rocblas_zger(rocblas_handle handle,
                  const rocblas_double_complex *x, rocblas_int incx,
                  const rocblas_double_complex *y, rocblas_int incy,
                        rocblas_double_complex *A, rocblas_int lda);
+*/
 
 /*
  * ===========================================================================
@@ -992,6 +1012,7 @@ rocblas_dtrsm(rocblas_handle handle,
               specifies the leading dimension of C.
 
     ********************************************************************/
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_hgemm(
     rocblas_handle handle,
@@ -1002,6 +1023,7 @@ rocblas_hgemm(
     const rocblas_half *B, rocblas_int ldb,
     const rocblas_half *beta,
           rocblas_half *C, rocblas_int ldc);
+*/
 
 ROCBLAS_EXPORT rocblas_status
 rocblas_sgemm(
@@ -1025,6 +1047,7 @@ rocblas_dgemm(
     const double *beta,
           double *C, rocblas_int ldc);
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_qgemm(
     rocblas_handle handle,
@@ -1035,7 +1058,9 @@ rocblas_qgemm(
     const rocblas_half_complex *B, rocblas_int ldb,
     const rocblas_half_complex *beta,
           rocblas_half_complex *C, rocblas_int ldc);
+*/
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cgemm(
     rocblas_handle handle,
@@ -1057,6 +1082,7 @@ rocblas_zgemm(
     const rocblas_double_complex *B, rocblas_int ldb,
     const rocblas_double_complex *beta,
           rocblas_double_complex *C, rocblas_int ldc);
+*/
 
 
 /***************************************************************************
@@ -1066,6 +1092,7 @@ rocblas_zgemm(
  * bsc
  * batch_count - numbers of gemm's in the batch
  **************************************************************************/
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_hgemm_strided_batched(
     rocblas_handle handle,
@@ -1077,6 +1104,7 @@ rocblas_hgemm_strided_batched(
     const rocblas_half *beta,
           rocblas_half *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count );
+*/
 
 ROCBLAS_EXPORT rocblas_status
 rocblas_sgemm_strided_batched(
@@ -1102,6 +1130,7 @@ rocblas_dgemm_strided_batched(
           double *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count );
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_qgemm_strided_batched(
     rocblas_handle handle,
@@ -1113,7 +1142,9 @@ rocblas_qgemm_strided_batched(
     const rocblas_half_complex *beta,
           rocblas_half_complex *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count );
+*/
 
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_cgemm_strided_batched(
     rocblas_handle handle,
@@ -1137,6 +1168,7 @@ rocblas_zgemm_strided_batched(
     const rocblas_double_complex *beta,
           rocblas_double_complex *C, rocblas_int ldc, rocblas_int bsc,
     rocblas_int batch_count );
+*/
 
 #ifdef __cplusplus
 }
