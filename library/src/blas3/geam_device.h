@@ -41,8 +41,7 @@ geam_device(
             b_index = tx*ldb + ty;
         }
 
-        C[c_index] = alpha * A[a_index];
-        C[c_index] = fma(beta, B[b_index], C[c_index]);
+        C[c_index] = fma(beta, B[b_index], alpha * A[a_index]);
     }
 }
 
@@ -107,8 +106,7 @@ geam_1D_device(
         }
         else
         {
-            C[tx] = alpha * A[tx];
-            C[tx] = fma(beta, B[tx], C[tx]);
+            C[tx] = fma(beta, B[tx], alpha * A[tx]);
         }
     }
 }
