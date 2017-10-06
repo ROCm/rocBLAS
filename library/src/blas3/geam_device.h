@@ -19,22 +19,30 @@ geam_device(
 
     if (tx < m && ty < n)
     {
-        if (transA == rocblas_operation_none && transB == rocblas_operation_none)
+        int a_index;
+        int b_index;
+        int c_index = tx + ldc*ty;
+
+        if (transA == rocblas_operation_none)
         {
-            C[tx + ldc*ty] = (alpha) * A[tx + lda*ty] + beta * B[tx + ldb*ty];
+            a_index = tx + ty*lda;
         }
-        else if (transA == rocblas_operation_none && transB == rocblas_operation_transpose)
+        else
         {
-            C[tx + ldc*ty] = (alpha) * A[tx + lda*ty] + beta * B[ldb*tx + ty];
+            a_index = tx*lda + ty;
         }
-        else if (transA == rocblas_operation_transpose && transB == rocblas_operation_none)
+
+        if (transB == rocblas_operation_none)
         {
-            C[tx + ldc*ty] = (alpha) * A[lda*tx + ty] + beta * B[tx + ldb*ty];
+            b_index = tx + ty*ldb;
         }
-        else if (transA == rocblas_operation_transpose && transB == rocblas_operation_transpose)
+        else
         {
-            C[tx + ldc*ty] = (alpha) * A[lda*tx + ty] + beta * B[ldb*tx + ty];
+            b_index = tx*ldb + ty;
         }
+
+        C[c_index] = alpha * A[a_index];
+        C[c_index] += beta * B[b_index];
     }
 }
 
@@ -54,17 +62,24 @@ geam_2matrix_device(
 
     if (tx < m && ty < n)
     {
+        int c_index = tx + ldc*ty;
         if (alpha == 0)
         {
-            C[tx + ldc*ty] = 0;
-        }
-        else if (transA == rocblas_operation_none)
-        {
-            C[tx + ldc*ty] = (alpha) * A[tx + lda*ty];
+            C[c_index] = 0;
         }
         else
         {
-            C[tx + ldc*ty] = (alpha) * A[lda*tx + ty];
+            int a_index;
+
+            if (transA == rocblas_operation_none)
+            {
+                a_index = tx + ty*lda;
+            }
+            else
+            {
+                a_index = tx*lda + ty;
+            }
+            C[c_index] = alpha * A[a_index];
         }
     }
 }
@@ -92,7 +107,8 @@ geam_1D_device(
         }
         else
         {
-            C[tx] = alpha * A[tx] + beta * B[tx];
+            C[tx] = alpha * A[tx];
+            C[tx] += beta * B[tx];
         }
     }
 }
