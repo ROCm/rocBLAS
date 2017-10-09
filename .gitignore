@@ -34,3 +34,6 @@ tags
 
 # Editors
 .vscode
+
+# build-in-source directory
+build
