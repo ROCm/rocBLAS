@@ -204,7 +204,6 @@ TEST_P(geam_gtest, geam_gtest_double)
     }
 }
 
-
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p

@@ -208,6 +208,7 @@ rocblas_geam_template(rocblas_handle handle,
         dim1_A = n;
         dim2_A = m;
     }
+
     if (transB == rocblas_operation_none)
     {
         dim1_B = m;
@@ -218,14 +219,17 @@ rocblas_geam_template(rocblas_handle handle,
         dim1_B = n;
         dim2_B = m;
     }
+
     if (m < 0 || n < 0 || lda < dim1_A || ldb < dim1_B || ldc < m)
     {
         return rocblas_status_invalid_size;
     }
+
     if (nullptr == A || nullptr == B || nullptr == C || nullptr == alpha || nullptr == beta) 
     {
         return rocblas_status_invalid_pointer;
     }
+
     if (nullptr == handle) 
     {
         return rocblas_status_invalid_handle;
@@ -234,8 +238,10 @@ rocblas_geam_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    if (rocblas_pointer_to_mode((void*)alpha) != rocblas_pointer_mode_device && *alpha == 0 &&
-        rocblas_pointer_to_mode((void*)beta ) != rocblas_pointer_mode_device && *beta  == 0)
+    bool alpha_pointer_mode_host = (rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_host);
+    bool beta_pointer_mode_host = (rocblas_pointer_to_mode((void*)beta) == rocblas_pointer_mode_host);
+
+    if ((alpha_pointer_mode_host && *alpha == 0) && (beta_pointer_mode_host && *beta  == 0))
     {
         // call hipMemset to set matrix C to zero because alpha and beta on host 
         // and alpha = beta = zero
@@ -255,7 +261,7 @@ rocblas_geam_template(rocblas_handle handle,
             }
         }
     }
-    else if (rocblas_pointer_to_mode((void*)beta ) != rocblas_pointer_mode_device && *beta  == 0)
+    else if (beta_pointer_mode_host && (*beta  == 0))
     {
         if ((m == lda) && (transA == rocblas_operation_none) &&
             (m == ldc))
@@ -304,7 +310,7 @@ rocblas_geam_template(rocblas_handle handle,
             #undef GEAM_DIM_Y
         }
     }
-    else if (rocblas_pointer_to_mode((void*)alpha) != rocblas_pointer_mode_device && *alpha == 0)
+    else if (rocblas_pointer_mode_host && (*alpha == 0))
     {
         if ((m == ldb) && (transB == rocblas_operation_none) &&
             (m == ldc))
@@ -369,19 +375,19 @@ rocblas_geam_template(rocblas_handle handle,
         hipStream_t rocblas_stream;
         RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-        if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device )
-        {
-            hipLaunchKernel(geam_1D_kernel_device_pointer<T>,            // unit-test-covered
-                dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
-                size, alpha, A, B, beta, C);
-        }
-        else
+        if (alpha_pointer_mode_host)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
             hipLaunchKernel(geam_1D_kernel_host_pointer<T>,              // unit-test-covered
                 dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
                 size, h_alpha_scalar, A, B, h_beta_scalar, C);
+        }
+        else
+        {
+            hipLaunchKernel(geam_1D_kernel_device_pointer<T>,            // unit-test-covered
+                dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
+                size, alpha, A, B, beta, C);
         }
         #undef GEAM_DIM
     }
@@ -397,19 +403,19 @@ rocblas_geam_template(rocblas_handle handle,
         dim3 geam_grid( blocksX, blocksY, 1 );
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y, 1 );
 
-        if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device )
-        {
-            hipLaunchKernel(geam_kernel_device_pointer<T>,                                // unit-test-covered
-                dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
-                transA, transB, m, n, alpha, A, lda, B, ldb, beta, C, ldc);
-        }
-        else
+        if (alpha_pointer_mode_host)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
             hipLaunchKernel(geam_kernel_host_pointer<T>,                                     // unit-test-covered
                 dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
                 transA, transB, m, n, h_alpha_scalar, A, lda, B, ldb, h_beta_scalar, C, ldc);
+        }
+        else
+        {
+            hipLaunchKernel(geam_kernel_device_pointer<T>,                                // unit-test-covered
+                dim3(geam_grid), dim3(geam_threads), 0, rocblas_stream,
+                transA, transB, m, n, alpha, A, lda, B, ldb, beta, C, ldc);
         }
         #undef GEAM_DIM_X
         #undef GEAM_DIM_Y
