@@ -38,6 +38,7 @@ function display_help()
   echo "    [-i|--install] install after build"
   echo "    [-d|--dependencies] install build dependencies"
   echo "    [-c|--clients] build library clients too (combines with -i & -d)"
+  echo "    [-g|--debug] -DCMAKE_BUILD_TYPE=Debug (default is =Release)"
 #  echo "    [--cuda] build library for cuda backend"
 }
 
@@ -60,6 +61,7 @@ install_package=false
 install_dependencies=false
 build_clients=false
 build_cuda=false
+build_release=true
 
 # #################################################
 # Parameter parsing
@@ -68,7 +70,7 @@ build_cuda=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies --options hicd -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies --options hicdg -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -96,6 +98,9 @@ while true; do
     -c|--clients)
         build_clients=true
         shift ;;
+    -g|--debug)
+        build_release=false
+        shift ;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -113,7 +118,11 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 # prep
 # #################################################
 # ensure a clean build environment
-rm -rf ${build_dir}
+if [[ "${build_release}" == true ]]; then
+  rm -rf ${build_dir}/release
+else
+  rm -rf ${build_dir}/debug
+fi
 
 # #################################################
 # install build dependencies on request
@@ -165,21 +174,31 @@ pushd .
   # #################################################
   # configure
   # #################################################
-  mkdir -p ${build_dir}/release && cd ${build_dir}/release
+  cmake_options=""
 
+  # build type
+  if [[ "${build_release}" == true ]]; then
+    mkdir -p ${build_dir}/release && cd ${build_dir}/release
+    cmake_options="${cmake_options} -DCMAKE_BUILD_TYPE=Release"
+  else
+    mkdir -p ${build_dir}/debug && cd ${build_dir}/debug
+    cmake_options="${cmake_options} -DCMAKE_BUILD_TYPE=Debug"
+  fi
+
+  # compiler
   if [[ "${build_cuda}" == false ]]; then
     export CXX=/opt/rocm/bin/hcc
   fi
 
+  # clients
   if [[ "${build_clients}" == true ]]; then
-    cmake -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ../..
-  else
-    cmake ../..
+    cmake_options="${cmake_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
   fi
 
   # #################################################
   # build
   # #################################################
+  cmake ${cmake_options} ../..
   make -j$(nproc)
 
   # #################################################
