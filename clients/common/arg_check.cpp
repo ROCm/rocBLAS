@@ -85,6 +85,25 @@ void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas
 #endif
 }
 
+void geam_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
+    rocblas_int lda, rocblas_int ldb, rocblas_int ldc)
+{
+#ifdef GOOGLE_TEST
+    if (M == 0 || N == 0)
+    {
+        ASSERT_EQ(status, rocblas_status_success);
+    }
+    else
+    {
+        ASSERT_EQ(status, rocblas_status_invalid_size);
+    }
+#endif
+#ifndef GOOGLE_TEST
+    std::cout << "ERROR in arguments M, N, lda, ldb, ldc: ";
+    std::cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
+#endif
+}
+
 void trsm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
     rocblas_int lda, rocblas_int ldb)
 {
