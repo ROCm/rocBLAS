@@ -91,6 +91,13 @@
 
      template<typename T>
      rocblas_status
+     rocblas_transpose(rocblas_handle handle,
+         rocblas_int m, rocblas_int n,
+         const T *A, rocblas_int lda,
+         T *B, rocblas_int ldb);
+
+     template<typename T>
+     rocblas_status
      rocblas_ger(rocblas_handle handle,
               rocblas_int m, rocblas_int n,
               const T *alpha,

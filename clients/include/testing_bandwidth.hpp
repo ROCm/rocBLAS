@@ -23,14 +23,14 @@ template<typename T>
 rocblas_status testing_bandwidth(Arguments argus)
 {
 
-    rocblas_int N = 25*1e7;
+    rocblas_int N = 26e7;
 
     rocblas_int incx = 1;
 
     rocblas_status status = rocblas_status_success;
 
     rocblas_int sizeX = N * incx;
-    T alpha = 2.0;
+    T alpha = 1.0;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hx(sizeX);
@@ -74,52 +74,20 @@ rocblas_status testing_bandwidth(Arguments argus)
     /* =====================================================================
          Bandwidth
     =================================================================== */
+    for(size_t size = 2000; size <= 16000; size += 1000){ 
+    //for(size_t size = 1e6; size <= N; size += 1e7){
 
-    for(size_t size = 1e6; size <= N; size *= 2){
-
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*size*incx, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*size*size*incx, hipMemcpyHostToDevice));
 
         gpu_time_used = get_time_us();// in microseconds
 
-        //scal dx
-        status = rocblas_scal<T>(handle,
-                        N, &alpha,
-                        dx, incx);
-        if (status != rocblas_status_success) {
-            CHECK_HIP_ERROR(hipFree(dx));
-            CHECK_HIP_ERROR(hipFree(dy));
-            rocblas_destroy_handle(handle);
-            break;
-            return status;
-        }
-
-//       hipMemcpy(dy, dx, sizeof(T)*size*incx, hipMemcpyDeviceToDevice);
-
-//       hipMemset(dx, 0, size*sizeof(T));
+        hipMemcpy(dy, dx, sizeof(T)*size*size*incx, hipMemcpyDeviceToDevice);
 
         gpu_time_used = get_time_us() - gpu_time_used;
 
-        gpu_bandwidth = 2 * size * sizeof(T) / 1e6 / (gpu_time_used); //in GB/s
+        gpu_bandwidth = 2 * size * size * sizeof(T) / (1e3 * gpu_time_used); //in GB/s
 
-        //CPU result, before GPU result copy back to CPU
-        #pragma unroll
-        for(size_t i=0; i<size; i++){
-            hz[i] = alpha * hx[i];
-        }
-
-        //copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hx.data(), dx, sizeof(T)*size*incx, hipMemcpyDeviceToHost));
-
-        //check error with CPU result
-        for(size_t i=0; i<size; i++){
-            T error = fabs(hz[i] - hx[i]);
-            if(error > 0){
-                printf("error is %f, CPU=%f, GPU=%f, at elment %zu", error, hz[i], hx[i], i);
-                break;
-            }
-        }
-
-        printf("              %6.2f     %8.2f  %8.2f        \n", (int)size*sizeof(T)/1e6, gpu_bandwidth, gpu_time_used);
+        printf("              %6.2f     %8.2f  %8.2f        \n", (int)size*(size)*sizeof(T)/1e6, gpu_bandwidth, gpu_time_used);
 
     }
 

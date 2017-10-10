@@ -15,6 +15,8 @@
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
+#include "testing_transpose.hpp"
+#include "testing_bandwidth.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
 #include "testing_nrm2.hpp"
@@ -140,6 +142,26 @@ int main(int argc, char *argv[])
             testing_axpy<float>( argus );
         else if (precision == 'd')
             testing_axpy<double>( argus );
+    }
+    else if (function == "transpose"){
+        if (precision == 's')
+            testing_transpose<float>( argus );
+        else if (precision == 'd')
+            testing_transpose<double>( argus );
+        /*if (precision == 'c')
+            testing_transpose<rocblas_float_complex>( argus );
+        else if (precision == 'z')
+            testing_transpose<rocblas_double_complex>( argus );*/
+    }
+    else if (function == "bandwidth"){
+        if (precision == 's')
+            testing_bandwidth<float>( argus );
+        else if (precision == 'd')
+            testing_bandwidth<double>( argus );
+        if (precision == 'c')
+            testing_bandwidth<rocblas_float_complex>( argus );
+        else if (precision == 'z')
+            testing_bandwidth<rocblas_double_complex>( argus );
     }
     else if (function == "gemv"){
         if (precision == 's')
