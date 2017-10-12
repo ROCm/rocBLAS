@@ -6,7 +6,7 @@
 namespace rocblas
 {
     // device_malloc wraps hipMalloc and provides same API as malloc
-    void* device_malloc(size_t byte_size)
+    static void* device_malloc(size_t byte_size)
     {
         void *pointer;
         PRINT_IF_HIP_ERROR(hipMalloc(&pointer, byte_size));
@@ -14,7 +14,7 @@ namespace rocblas
     }
 
     // device_free wraps hipFree and provides same API as free
-    void device_free(void *ptr)
+    static void device_free(void *ptr)
     {   
         PRINT_IF_HIP_ERROR(hipFree(ptr));
     }
