@@ -136,3 +136,48 @@ geam_1D_2matrix_device(
         }
     }
 }
+// special case
+// inplace
+template<typename T>
+static __device__ void
+geam_inplace_device(
+    rocblas_operation transB,
+    rocblas_int m, rocblas_int n,
+    T alpha,
+    const T * __restrict__ B, rocblas_int ldb,
+    T beta,
+          T *              C, rocblas_int ldc)
+{
+    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+    if (tx < m && ty < n)
+    {
+        int b_index;
+        int c_index = tx + ldc*ty;
+
+        if (beta == 0)
+        {
+            C[c_index] = alpha * C[c_index];
+        }
+        else
+        {
+            if (transB == rocblas_operation_none)
+            {
+                b_index = tx + ty*ldb;
+            }
+            else
+            {
+                b_index = tx*ldb + ty;
+            }
+            if (alpha == 0)
+            {
+                C[c_index] = beta * B[b_index];
+            }
+            else
+            {
+                C[c_index] = fma(beta, B[b_index], alpha * C[c_index]);
+            }
+        }
+    }
+}
