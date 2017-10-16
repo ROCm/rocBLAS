@@ -57,6 +57,8 @@
 
     void verify_rocblas_status_invalid_pointer(rocblas_status status, const char* message);
 
+    void verify_rocblas_status_invalid_size(rocblas_status status, const char* message);
+
     void verify_rocblas_status_invalid_handle(rocblas_status status);
 
     void verify_rocblas_status_success(rocblas_status status, const char* message);
