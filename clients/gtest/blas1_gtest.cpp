@@ -8,7 +8,7 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_amax.hpp"
+#include "testing_iamax.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
@@ -94,7 +94,7 @@ vector<vector<int>> incx_incy_range = {
 
 
 /* =====================================================================
-     BLAS-1:  amax, asum, axpy, copy, dot, nrm2, scal, swap 
+     BLAS-1:  iamax, asum, axpy, copy, dot, nrm2, scal, swap 
 =================================================================== */
 
 class blas1_gtest: public :: TestWithParam <blas1_tuple>
@@ -133,9 +133,9 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
     return arg;
 }
 
-TEST(blas1_gtest, amax_float_bad_arg)
+TEST(blas1_gtest, iamax_float_bad_arg)
 {
-    testing_amax_bad_arg<float>();
+    testing_iamax_bad_arg<float>();
 }
 
 TEST(blas1_gtest, asum_float_bad_arg)
@@ -165,14 +165,14 @@ TEST(blas1_gtest, swap_float_bad_arg)
 }
 
 
-TEST_P(blas1_gtest, amax_float)
+TEST_P(blas1_gtest, iamax_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
-    rocblas_status status = testing_amax<float>( arg );
+    rocblas_status status = testing_iamax<float>( arg );
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success){
         if( arg.N < 0 ){

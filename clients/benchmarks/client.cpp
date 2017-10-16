@@ -10,7 +10,7 @@
 #include "rocblas.h"
 #include "utility.h"
 #include "rocblas.hpp"
-#include "testing_amax.hpp"
+#include "testing_iamax.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
@@ -127,11 +127,11 @@ int main(int argc, char *argv[])
         else if (precision == 'd')
             testing_nrm2<double, double>( argus );
     }
-    else if (function == "amax"){
+    else if (function == "iamax"){
         if (precision == 's')
-            testing_amax<float>( argus );
+            testing_iamax<float>( argus );
         else if (precision == 'd')
-            testing_amax<double>( argus );
+            testing_iamax<double>( argus );
     }
     else if (function == "axpy"){
         if (precision == 'h')

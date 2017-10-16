@@ -20,12 +20,12 @@
      * ===========================================================================
      */
     template<typename T>
-    void cblas_amax( rocblas_int n,
+    void cblas_iamax( rocblas_int n,
                      const T *x, rocblas_int incx,
                      rocblas_int *result);
 
     template<typename T>
-    void cblas_amin( rocblas_int n,
+    void cblas_iamin( rocblas_int n,
                      const T *x, rocblas_int incx,
                      rocblas_int *result);
 
