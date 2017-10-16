@@ -316,89 +316,89 @@
 */
 
 
-    //amin
+    //iamin
     template<>
     rocblas_status
-    rocblas_amin<float>(rocblas_handle handle,
+    rocblas_iamin<float>(rocblas_handle handle,
         rocblas_int n,
         const float *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_samin(handle, n, x, incx, result);
+        return rocblas_isamin(handle, n, x, incx, result);
     }
 
     template<>
     rocblas_status
-    rocblas_amin<double>(rocblas_handle handle,
+    rocblas_iamin<double>(rocblas_handle handle,
         rocblas_int n,
         const double *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_damin(handle, n, x, incx, result);
+        return rocblas_idamin(handle, n, x, incx, result);
     }
 
 /* not implemented
     template<>
     rocblas_status
-    rocblas_amin<rocblas_float_complex>(rocblas_handle handle,
+    rocblas_iamin<rocblas_float_complex>(rocblas_handle handle,
         rocblas_int n,
         const rocblas_float_complex *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_scamin(handle, n, x, incx, result);
+        return rocblas_iscamin(handle, n, x, incx, result);
     }
 
     template<>
     rocblas_status
-    rocblas_amin<rocblas_double_complex>(rocblas_handle handle,
+    rocblas_iamin<rocblas_double_complex>(rocblas_handle handle,
         rocblas_int n,
         const rocblas_double_complex *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_dzamin(handle, n, x, incx, result);
+        return rocblas_idzamin(handle, n, x, incx, result);
     }
 */
 
-    //amax
+    //iamax
     template<>
     rocblas_status
-    rocblas_amax<float>(rocblas_handle handle,
+    rocblas_iamax<float>(rocblas_handle handle,
         rocblas_int n,
         const float *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_samax(handle, n, x, incx, result);
+        return rocblas_isamax(handle, n, x, incx, result);
     }
 
     template<>
     rocblas_status
-    rocblas_amax<double>(rocblas_handle handle,
+    rocblas_iamax<double>(rocblas_handle handle,
         rocblas_int n,
         const double *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_damax(handle, n, x, incx, result);
+        return rocblas_idamax(handle, n, x, incx, result);
     }
 
 /* not implemented
     template<>
     rocblas_status
-    rocblas_amax<rocblas_float_complex>(rocblas_handle handle,
+    rocblas_iamax<rocblas_float_complex>(rocblas_handle handle,
         rocblas_int n,
         const rocblas_float_complex *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_scamax(handle, n, x, incx, result);
+        return rocblas_iscamax(handle, n, x, incx, result);
     }
 
     template<>
     rocblas_status
-    rocblas_amax<rocblas_double_complex>(rocblas_handle handle,
+    rocblas_iamax<rocblas_double_complex>(rocblas_handle handle,
         rocblas_int n,
         const rocblas_double_complex *x, rocblas_int incx,
         rocblas_int *result){
 
-        return rocblas_dzamax(handle, n, x, incx, result);
+        return rocblas_idzamax(handle, n, x, incx, result);
     }
 */
 

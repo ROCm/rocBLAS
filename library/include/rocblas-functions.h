@@ -423,31 +423,31 @@ rocblas_dznrm2(rocblas_handle handle,
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amax product. either on the host CPU or device GPU.
+              store the amax index. either on the host CPU or device GPU.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_samax(rocblas_handle handle,
+rocblas_isamax(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     rocblas_int *result);
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_damax(rocblas_handle handle,
+rocblas_idamax(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     rocblas_int *result);
 
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
-rocblas_scamax(rocblas_handle handle,
+rocblas_iscamax(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result);
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_dzamax(rocblas_handle handle,
+rocblas_idzamax(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);
@@ -471,31 +471,31 @@ rocblas_dzamax(rocblas_handle handle,
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amin product. either on the host CPU or device GPU.
+              store the amin index. either on the host CPU or device GPU.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_samin(rocblas_handle handle,
+rocblas_isamin(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     rocblas_int *result);
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_damin(rocblas_handle handle,
+rocblas_idamin(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     rocblas_int *result);
 
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
-rocblas_scamin(rocblas_handle handle,
+rocblas_iscamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result);
 
 ROCBLAS_EXPORT rocblas_status
-rocblas_dzamin(rocblas_handle handle,
+rocblas_idzamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result);

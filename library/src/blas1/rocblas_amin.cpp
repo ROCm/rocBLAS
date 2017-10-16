@@ -14,7 +14,7 @@
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
-amin_kernel_part1(hipLaunchParm lp,
+iamin_kernel_part1(hipLaunchParm lp,
     rocblas_int n,
     const T1* x, rocblas_int incx,
     T2* workspace,
@@ -50,7 +50,7 @@ amin_kernel_part1(hipLaunchParm lp,
 
 template<typename T, rocblas_int NB, rocblas_int flag>
 __global__ void
-amin_kernel_part2(hipLaunchParm lp,
+iamin_kernel_part2(hipLaunchParm lp,
     rocblas_int n,
     T* workspace,
     rocblas_int* workspace_index,
@@ -95,10 +95,10 @@ amin_kernel_part2(hipLaunchParm lp,
 //HIP support up to 1024 threads/work itmes per thread block/work group
 #define NB_X 1024
 
-//assume workspace has already been allocated, recommened for repeated calling of amin product routine
+//assume workspace has already been allocated, recommened for repeated calling of iamin product routine
 template<typename T1, typename T2>
 rocblas_status
-rocblas_amin_template_workspace(rocblas_handle handle,
+rocblas_iamin_template_workspace(rocblas_handle handle,
     rocblas_int n,
     const T1 *x, rocblas_int incx,
     rocblas_int *result,
@@ -124,12 +124,12 @@ rocblas_amin_template_workspace(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream,
+    hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream,
                                                                       n, x, incx, workspace, workspace_index);
 
     if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
         //the last argument 1 indicate the result is a device pointer, not memcpy is required
-        hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
+        hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                          blocks, workspace, workspace_index, result);
     }
     else{
@@ -137,7 +137,7 @@ rocblas_amin_template_workspace(rocblas_handle handle,
         // workspace[0] has a copy of the final result, if the result pointer is on host, a memory copy is required
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
-        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(amin_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
+        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                                           blocks, workspace, workspace_index, result);
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
     }
@@ -150,7 +150,7 @@ rocblas_amin_template_workspace(rocblas_handle handle,
 /*! \brief BLAS Level 1 API
 
     \details
-    amin finds the first index of the element of minimum magnitude of real vector x
+    iamin finds the first index of the element of minimum magnitude of real vector x
          or the sum of magnitude of the real and imaginary parts of elements if x is a complex vector
 
     @param[in]
@@ -173,7 +173,7 @@ rocblas_amin_template_workspace(rocblas_handle handle,
 //allocate workspace inside this API
 template<typename T1, typename T2>
 rocblas_status
-rocblas_amin_template(rocblas_handle handle,
+rocblas_iamin_template(rocblas_handle handle,
     rocblas_int n,
     const T1 *x, rocblas_int incx,
     rocblas_int *result)
@@ -214,7 +214,7 @@ rocblas_amin_template(rocblas_handle handle,
         return rocblas_status_memory_error;
     }
 
-    status = rocblas_amin_template_workspace<T1, T2>(handle, n, x, incx, result, (T2*)workspace.get(), (rocblas_int*)workspace_index.get(), blocks);
+    status = rocblas_iamin_template_workspace<T1, T2>(handle, n, x, incx, result, (T2*)workspace.get(), (rocblas_int*)workspace_index.get(), blocks);
 
     return status;
 }
@@ -233,42 +233,42 @@ rocblas_amin_template(rocblas_handle handle,
 
 extern "C"
 rocblas_status
-rocblas_samin(rocblas_handle handle,
+rocblas_isamin(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amin_template<float, float>(handle, n, x, incx, result);
+    return rocblas_iamin_template<float, float>(handle, n, x, incx, result);
 }
 
 
 extern "C"
 rocblas_status
-rocblas_damin(rocblas_handle handle,
+rocblas_idamin(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amin_template<double, double>(handle, n, x, incx, result);
+    return rocblas_iamin_template<double, double>(handle, n, x, incx, result);
 }
 
 
 extern "C"
 rocblas_status
-rocblas_scamin(rocblas_handle handle,
+rocblas_iscamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amin_template<rocblas_float_complex, float>(handle, n, x, incx, result);
+    return rocblas_iamin_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
 extern "C"
 rocblas_status
-rocblas_dzamin(rocblas_handle handle,
+rocblas_idzamin(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     rocblas_int *result){
 
-    return rocblas_amin_template<rocblas_double_complex, double>(handle, n, x, incx, result);
+    return rocblas_iamin_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
