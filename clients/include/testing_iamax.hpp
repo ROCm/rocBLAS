@@ -18,7 +18,7 @@ using namespace std;
 
 /* ============================================================================================ */
 template<typename T>
-void testing_amax_bad_arg()
+void testing_iamax_bad_arg()
 {
     rocblas_int N = 100;
     rocblas_int incx = 1;
@@ -49,7 +49,7 @@ void testing_amax_bad_arg()
     {
         T *dx_null = nullptr;
 
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx_null, incx,
                         d_rocblas_result);
@@ -60,7 +60,7 @@ void testing_amax_bad_arg()
     {
         rocblas_int *d_rocblas_result_null = nullptr;
 
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result_null);
@@ -71,7 +71,7 @@ void testing_amax_bad_arg()
     {
         rocblas_handle handle_null = nullptr;
 
-        status = rocblas_amax<T>(handle_null,
+        status = rocblas_iamax<T>(handle_null,
                         N,
                         dx, incx,
                         d_rocblas_result);
@@ -84,7 +84,7 @@ void testing_amax_bad_arg()
 }
 
 template<typename T>
-rocblas_status testing_amax(Arguments argus)
+rocblas_status testing_iamax(Arguments argus)
 {
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
@@ -110,12 +110,12 @@ rocblas_status testing_amax(Arguments argus)
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
         CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
 
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        amax_arg_check(status, d_rocblas_result);
+        iamax_arg_check(status, d_rocblas_result);
 
         return status;
     }
@@ -138,7 +138,7 @@ rocblas_status testing_amax(Arguments argus)
 
     if ( nullptr == dx || nullptr == d_rocblas_result)
     {
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
@@ -149,7 +149,7 @@ rocblas_status testing_amax(Arguments argus)
     }
     else if ( nullptr == handle )
     {
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
@@ -177,15 +177,15 @@ rocblas_status testing_amax(Arguments argus)
      /* =====================================================================
                  CPU BLAS
      =================================================================== */
-     //rocblas_amax accept both dev/host pointer for the scalar
+     //rocblas_iamax accept both dev/host pointer for the scalar
     if(device_pointer){
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
     }
     else{
-        status = rocblas_amax<T>(handle,
+        status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         &rocblas_result);
@@ -214,7 +214,7 @@ rocblas_status testing_amax(Arguments argus)
             cpu_time_used = get_time_us();
         }
 
-        cblas_amax<T>(N,
+        cblas_iamax<T>(N,
                     hx.data(), incx,
                     &cpu_result);
 

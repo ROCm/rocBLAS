@@ -310,7 +310,7 @@ extern "C" {
 
     //amax
     template<>
-    void cblas_amax<float>( rocblas_int n,
+    void cblas_iamax<float>( rocblas_int n,
                             const float *x, rocblas_int incx,
                             rocblas_int *result)
     {
@@ -318,7 +318,7 @@ extern "C" {
     }
 
     template<>
-    void cblas_amax<double>( rocblas_int n,
+    void cblas_iamax<double>( rocblas_int n,
                             const double *x, rocblas_int incx,
                             rocblas_int *result)
     {
@@ -326,7 +326,7 @@ extern "C" {
     }
 
     template<>
-    void cblas_amax<rocblas_float_complex>( rocblas_int n,
+    void cblas_iamax<rocblas_float_complex>( rocblas_int n,
                             const rocblas_float_complex *x, rocblas_int incx,
                             rocblas_int *result)
     {
@@ -334,7 +334,7 @@ extern "C" {
     }
 
     template<>
-    void cblas_amax<rocblas_double_complex>( rocblas_int n,
+    void cblas_iamax<rocblas_double_complex>( rocblas_int n,
                             const rocblas_double_complex *x, rocblas_int incx,
                             rocblas_int *result)
     {
