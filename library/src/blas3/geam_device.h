@@ -10,8 +10,8 @@ geam_device(
     rocblas_int m, rocblas_int n,
     T alpha,
     const T * __restrict__ A, rocblas_int lda,
-    const T * __restrict__ B, rocblas_int ldb,
     T beta,
+    const T * __restrict__ B, rocblas_int ldb,
           T *              C, rocblas_int ldc)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -92,8 +92,8 @@ geam_1D_device(
     rocblas_int size,
     T alpha,
     const T * __restrict__ A,
-    const T * __restrict__ B,
     T beta,
+    const T * __restrict__ B,
           T *              C)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -144,8 +144,8 @@ geam_inplace_device(
     rocblas_operation transB,
     rocblas_int m, rocblas_int n,
     T alpha,
-    const T * __restrict__ B, rocblas_int ldb,
     T beta,
+    const T * __restrict__ B, rocblas_int ldb,
           T *              C, rocblas_int ldc)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

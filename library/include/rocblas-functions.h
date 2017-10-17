@@ -1207,12 +1207,12 @@ rocblas_zgemm_strided_batched(
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
+    beta      specifies the scalar beta.
+    @param[in]
     B         pointer storing matrix B on the GPU.
     @param[in]
     ldb       rocblas_int
               specifies the leading dimension of B.
-    @param[in]
-    beta      specifies the scalar beta.
     @param[in, out]
     C         pointer storing matrix C on the GPU.
     @param[in]
@@ -1228,8 +1228,8 @@ rocblas_sgeam(
     rocblas_int m, rocblas_int n,
     const float *alpha,
     const float *A, rocblas_int lda,
-    const float *B, rocblas_int ldb,
     const float *beta,
+    const float *B, rocblas_int ldb,
           float *C, rocblas_int ldc);
 
 ROCBLAS_EXPORT rocblas_status
@@ -1239,8 +1239,8 @@ rocblas_dgeam(
     rocblas_int m, rocblas_int n,
     const double *alpha,
     const double *A, rocblas_int lda,
-    const double *B, rocblas_int ldb,
     const double *beta,
+    const double *B, rocblas_int ldb,
           double *C, rocblas_int ldc);
 
 
