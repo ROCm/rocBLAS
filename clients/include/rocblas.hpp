@@ -126,8 +126,8 @@
         rocblas_int m, rocblas_int n,
         const T *alpha,
         const T *A, rocblas_int lda,
-        const T *B, rocblas_int ldb,
         const T *beta,
+        const T *B, rocblas_int ldb,
         T *C, rocblas_int ldc);
 
     template<typename T>

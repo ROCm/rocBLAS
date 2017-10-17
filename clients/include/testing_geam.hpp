@@ -79,8 +79,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA_null, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
     }
@@ -89,8 +89,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB_null, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB_null, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
     }
@@ -99,8 +99,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC_null, ldc);
+                    &h_beta, dB, ldb,
+                    dC_null, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -109,8 +109,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     h_alpha_null, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: h_alpha is nullptr");
     }
@@ -119,8 +119,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    h_beta_null, dC, ldc);
+                    h_beta_null, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: h_beta is nullptr");
     }
@@ -129,8 +129,8 @@ void testing_geam_bad_arg()
         status = rocblas_geam<T>(handle_null, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_handle(status);
     }
@@ -213,8 +213,8 @@ rocblas_status testing_geam(Arguments argus)
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         geam_arg_check(status, M, N, lda, ldb, ldc);
 
@@ -239,8 +239,8 @@ rocblas_status testing_geam(Arguments argus)
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
 
@@ -257,8 +257,8 @@ rocblas_status testing_geam(Arguments argus)
         status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         verify_rocblas_status_invalid_handle(status);
 
@@ -301,8 +301,8 @@ rocblas_status testing_geam(Arguments argus)
         status_h = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
 
         CHECK_HIP_ERROR(hipMemcpy(hC_h.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
 
@@ -311,8 +311,8 @@ rocblas_status testing_geam(Arguments argus)
         status_d = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     d_alpha, dA, lda,
-                    dB, ldb,
-                    d_beta, dC, ldc);
+                    d_beta, dB, ldb,
+                    dC, ldc);
 
         CHECK_HIP_ERROR(hipMemcpy(hC_d.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
 
@@ -373,8 +373,8 @@ rocblas_status testing_geam(Arguments argus)
             status_h = rocblas_geam<T>(handle, transA, transB,
                         M, N,
                         &h_alpha, dA, lda,
-                        dB, ldb,
-                        &h_beta, dC_in_place, ldc);
+                        &h_beta, dB, ldb,
+                        dC_in_place, ldc);
 
             if (lda != ldc || transA != rocblas_operation_none)
             {
@@ -428,8 +428,8 @@ rocblas_status testing_geam(Arguments argus)
             status_h = rocblas_geam<T>(handle, transA, transB,
                         M, N,
                         &h_alpha, dA, lda,
-                        dB, ldb,
-                        &h_beta, dC_in_place, ldc);
+                        &h_beta, dB, ldb,
+                        dC_in_place, ldc);
 
             if (ldb != ldc || transB != rocblas_operation_none)
             {
@@ -489,8 +489,8 @@ rocblas_status testing_geam(Arguments argus)
             status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
         }
 
         gpu_time_used = get_time_us();   // in microseconds
@@ -499,8 +499,8 @@ rocblas_status testing_geam(Arguments argus)
             status = rocblas_geam<T>(handle, transA, transB,
                     M, N,
                     &h_alpha, dA, lda,
-                    dB, ldb,
-                    &h_beta, dC, ldc);
+                    &h_beta, dB, ldb,
+                    dC, ldc);
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = geam_gflop_count<T> (M, N) * number_hot_calls / gpu_time_used * 1e6;
