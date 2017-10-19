@@ -28,10 +28,19 @@ find_package( ROCM CONFIG QUIET PATHS /opt/rocm )
 if( NOT ROCM_FOUND )
   set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
   file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
-    ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip )
+      ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip SHOW_PROGRESS)
 
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
+  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
+
+  if( NOT EXISTS ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag})
+      message("************************************************************************")
+      message("***ERROR*** Failed to create ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}")
+      message("***ERROR*** try to use cmake 3.5.1 not cmake 3.5.2")
+      message("***ERROR*** try command    PATH=/usr/bin:$PATH ./install.sh -idc")
+      execute_process( COMMAND ${CMAKE_COMMAND} cmake --version)
+      message("************************************************************************")
+  endif()
 
   find_package( ROCM REQUIRED CONFIG PATHS ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag} )
 endif( )
