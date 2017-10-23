@@ -462,7 +462,6 @@ rocblas_status testing_gemm(Arguments argus)
         //in compilation time
         if(argus.norm_check)
         {
-            cout << ", norm-error";
             rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_copy.data(), hC.data());
         }
 
