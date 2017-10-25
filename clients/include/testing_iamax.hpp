@@ -89,19 +89,21 @@ rocblas_status testing_iamax(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
     rocblas_int *d_rocblas_result;
-    rocblas_int rocblas_result;
+    rocblas_int rocblas_h_result;
+    rocblas_int rocblas_d_result;
     rocblas_int cpu_result;
 
     rocblas_handle handle;
     T *dx;
 
-    rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
+    rocblas_status h_status;
+    rocblas_status d_status;
+    h_status = rocblas_create_handle(&handle);
+    verify_rocblas_status_success(h_status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) {
+    if(h_status != rocblas_status_success) {
         rocblas_destroy_handle(handle);
-        return status;
+        return h_status;
     }
 
     //check to prevent undefined memory allocation error
@@ -110,14 +112,14 @@ rocblas_status testing_iamax(Arguments argus)
         CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
         CHECK_HIP_ERROR(hipMalloc(&d_rocblas_result, sizeof(rocblas_int)));
 
-        status = rocblas_iamax<T>(handle,
+        d_status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        iamax_arg_check(status, d_rocblas_result);
+        iamax_arg_check(d_status, d_rocblas_result);
 
-        return status;
+        return d_status;
     }
 
     rocblas_int sizeX = N * incx;
@@ -138,28 +140,26 @@ rocblas_status testing_iamax(Arguments argus)
 
     if ( nullptr == dx || nullptr == d_rocblas_result)
     {
-        status = rocblas_iamax<T>(handle,
+        d_status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
+        verify_rocblas_status_invalid_pointer(d_status,"Error: x or result is nullptr");
 
-        return status;
+        return d_status;
     }
     else if ( nullptr == handle )
     {
-        status = rocblas_iamax<T>(handle,
+        d_status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
 
-        verify_rocblas_status_invalid_handle(status);
+        verify_rocblas_status_invalid_handle(d_status);
 
-        return status;
+        return d_status;
     }
-
-    rocblas_int device_pointer = 1;
 
     double gpu_time_used, cpu_time_used;
 
@@ -175,35 +175,35 @@ rocblas_status testing_iamax(Arguments argus)
     }
 
      /* =====================================================================
-                 CPU BLAS
+                 GPU BLAS
      =================================================================== */
      //rocblas_iamax accept both dev/host pointer for the scalar
-    if(device_pointer){
-        status = rocblas_iamax<T>(handle,
+    {
+        d_status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
                         d_rocblas_result);
     }
-    else{
-        status = rocblas_iamax<T>(handle,
+    {
+        h_status = rocblas_iamax<T>(handle,
                         N,
                         dx, incx,
-                        &rocblas_result);
+                        &rocblas_h_result);
     }
 
-    if (status != rocblas_status_success) {
+    if ((h_status != rocblas_status_success) || (d_status != rocblas_status_success)) {
         CHECK_HIP_ERROR(hipFree(dx));
         CHECK_HIP_ERROR(hipFree(d_rocblas_result));
         rocblas_destroy_handle(handle);
-        return status;
+        if (h_status != rocblas_status_success) return h_status;
+        if (d_status != rocblas_status_success) return d_status;
     }
 
-    if(device_pointer)    CHECK_HIP_ERROR(hipMemcpy(&rocblas_result, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(&rocblas_d_result, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
     }
-
 
     if(argus.unit_check || argus.norm_check){
 
@@ -218,19 +218,24 @@ rocblas_status testing_iamax(Arguments argus)
                     hx.data(), incx,
                     &cpu_result);
 
+        // make index 1 based as in Fortran BLAS, not 0 based as in CBLAS
+        cpu_result += 1;
+
         if(argus.timing){
             cpu_time_used = get_time_us() - cpu_time_used;
         }
 
 
         if(argus.unit_check){
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &rocblas_result);
+            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &rocblas_h_result);
+            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &rocblas_d_result);
         }
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check){
-            printf("The maximum index cpu=%d, gpu=%d\n", cpu_result, rocblas_result);
+            printf("----------------------- The maximum index cpu=%d, gpu=%d\n", cpu_result, rocblas_h_result);
+            printf("----------------------- The maximum index cpu=%d, gpu=%d\n", cpu_result, rocblas_d_result);
         }
 
     }// end of if unit/norm check

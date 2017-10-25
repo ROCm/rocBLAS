@@ -83,7 +83,8 @@ iamax_kernel_part2(hipLaunchParm lp,
     if(tx == 0){
         if(flag){
             //flag == 1, write the result on device memory
-            *result = index[0]; //result[0] works, too
+            // return Fortran 1 based index as in BLAS standard, not C zero based index
+            *result = index[0] + 1; //result[0] works, too
         }
         else{ //if flag == 0, cannot write to result which is in host memory, instead write to worksapce
             workspace_index[0] = index[0];
@@ -139,6 +140,9 @@ rocblas_iamax_template_workspace(rocblas_handle handle,
         if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                                           blocks, workspace, workspace_index, result);
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
+
+        // return Fortran 1 based index as in the BLAS standard, not C zero based index
+        *result += 1;
     }
 
     return rocblas_status_success;
