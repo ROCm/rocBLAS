@@ -25,6 +25,20 @@ using namespace std;
       exit(EXIT_FAILURE);\
     }
 
+#define CHECK_ROCBLAS_ERROR(error) \
+    if (error != rocblas_status_success) { \
+            fprintf(stderr, "rocBLAS error: "); \
+            if(error == rocblas_status_invalid_handle){fprintf(stderr, "rocblas_status_invalid_handle");} \
+            else if(error == rocblas_status_not_implemented ){fprintf(stderr, " rocblas_status_not_implemented");} \
+            else if(error == rocblas_status_invalid_pointer){fprintf(stderr, "rocblas_status_invalid_pointer");} \
+            else if(error == rocblas_status_invalid_size){fprintf(stderr, "rocblas_status_invalid_size");} \
+            else if(error == rocblas_status_memory_error){fprintf(stderr, "rocblas_status_memory_error");} \
+            else if(error == rocblas_status_internal_error){fprintf(stderr, "rocblas_status_internal_error");} \
+            else {fprintf(stderr, "rocblas_status error");} \
+            fprintf(stderr, "\n"); \
+            return error; \
+    }
+
 #define BLAS_1_RESULT_PRINT                                                      \
     if(argus.timing){                                                            \
         cout << "N, rocblas (us), ";                                             \
