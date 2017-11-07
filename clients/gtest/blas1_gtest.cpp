@@ -72,7 +72,8 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
-vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
+vector<vector<double>> alpha_beta_range = { 
+                                            {1.0, 0.0},
                                             {2.0, -1.0}
                                           };
 
@@ -211,18 +212,7 @@ TEST_P(blas1_gtest, axpy_float)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
     rocblas_status status = testing_axpy<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, axpy_double)
@@ -233,18 +223,7 @@ TEST_P(blas1_gtest, axpy_double)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
     rocblas_status status = testing_axpy<double>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, axpy_half)
@@ -255,18 +234,7 @@ TEST_P(blas1_gtest, axpy_half)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
     rocblas_status status = testing_axpy<rocblas_half>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, copy_float)
