@@ -94,8 +94,9 @@ rocblas_status testing_ger(Arguments argus)
     rocblas_int lda = argus.lda;
     T h_alpha = (T)argus.alpha;
 
-    rocblas_status status;
     rocblas_int safe_size = 100;    // arbitrarily set to 100
+
+    rocblas_status status;
 
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
@@ -174,19 +175,15 @@ rocblas_status testing_ger(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*M * abs_incx, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N * abs_incy, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
-    /* =====================================================================
-           ROCBLAS
-    =================================================================== */
-    if(argus.timing)
+    if (argus.timing)
     {
         int number_timing_iterations = 1;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         gpu_time_used = get_time_us();// in microseconds
 
-        for(int iter=0; iter < number_timing_iterations; iter++)
+        for (int iter = 0; iter < number_timing_iterations; iter++)
         {
             rocblas_ger<T>(handle, M, N, (T*)&h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
@@ -196,12 +193,12 @@ rocblas_status testing_ger(Arguments argus)
         rocblas_bandwidth = (2.0 * M * N) * sizeof(T)/ gpu_time_used / 1e3;
     }
 
-
     if(argus.unit_check || argus.norm_check)
     {
         //copy data from CPU to device
-        hipMemcpy(dA_1, hA_1.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice);
-        hipMemcpy(dA_2, hA_2.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice);
+        CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_ger<T>(handle, M, N, (T*)&h_alpha, dx, incx, dy, incy, dA_1, lda));
@@ -213,9 +210,7 @@ rocblas_status testing_ger(Arguments argus)
         hipMemcpy(hA_1.data(), dA_1, sizeof(T)*N*lda, hipMemcpyDeviceToHost);
         hipMemcpy(hA_2.data(), dA_2, sizeof(T)*N*lda, hipMemcpyDeviceToHost);
 
-        /* =====================================================================
-           CPU BLAS
-        =================================================================== */
+        // CPU BLAS
         cpu_time_used = get_time_us();
 
         cblas_ger<T>(M, N, h_alpha, hx.data(), incx, hy.data(), incy, hA_gold.data(), lda);
