@@ -90,10 +90,10 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "v3.3.2" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "v3.3.3" CACHE STRING "Tensile tag to download" )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    EXPECTED_HASH SHA256=345937ff2344ecf2fd67209d85744633a7cf48ce57055f92d32a3315a99aecb8 # v3.3.2
+    EXPECTED_HASH SHA256=f0a6036319bb2c0f7dfecab8fe57a860b0c6f76fb1f5f0ac50a595a6075dfcf9 # v3.3.3
   )
 
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
