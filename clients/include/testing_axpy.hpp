@@ -30,7 +30,6 @@ void testing_axpy_bad_arg()
     rocblas_status status;
 
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-
     rocblas_handle handle = unique_ptr_handle->handle;
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
@@ -108,10 +107,15 @@ rocblas_status testing_axpy(Arguments argus)
     //argument sanity check before allocating invalid memory
     if ( N <= 0 )
     {
-        T *dx = NULL, *dy = NULL;
-
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * 100),rocblas_test::device_free};
+        auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * 100),rocblas_test::device_free};
+        T* dx = (T*) dx_managed.get();
+        T* dy = (T*) dy_managed.get();
+        if (!dx || !dy)
+        {
+            verify_rocblas_status_success(rocblas_status_memory_error, "!dx || !dy");
+            return rocblas_status_memory_error;
+        }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy, incy));
@@ -231,7 +235,7 @@ rocblas_status testing_axpy(Arguments argus)
         cout << "N,rocblas-Gflops,rocblas-GB/s,rocblas-us";
         if(argus.norm_check)
         {
-            cout << "CPU-Gflops,norm-error_host_ptr,norm-error_dev_ptr" ;
+            cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr" ;
         }
         cout << endl;
         
