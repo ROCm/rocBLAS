@@ -157,9 +157,6 @@ rocblas_status testing_axpy(Arguments argus)
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
-    /* =====================================================================
-         ROCBLAS
-    =================================================================== */
     if (argus.timing)
     {
         int number_timing_iterations = 1;
@@ -167,7 +164,7 @@ rocblas_status testing_axpy(Arguments argus)
 
         gpu_time_used = get_time_us();// in microseconds
 
-        for(int iter=0; iter < number_timing_iterations; iter++)
+        for (int iter = 0; iter < number_timing_iterations; iter++)
         {
             rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy_1, incy);
         }
@@ -183,9 +180,11 @@ rocblas_status testing_axpy(Arguments argus)
         CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2.data(), sizeof(T)*size_y, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
+        // ROCBLAS pointer mode host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy_1, incy));
 
+        // ROCBLAS pointer mode device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, d_alpha, dx, incx, dy_2, incy));
 
@@ -203,7 +202,7 @@ rocblas_status testing_axpy(Arguments argus)
 
         //enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
-        if(argus.unit_check)
+        if (argus.unit_check)
         {
             unit_check_general<T>(1, N, abs_incy, hy_gold.data(), hy_1.data());
             unit_check_general<T>(1, N, abs_incy, hy_gold.data(), hy_2.data());
@@ -211,18 +210,18 @@ rocblas_status testing_axpy(Arguments argus)
 
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
-        if(argus.norm_check)
+        if (argus.norm_check)
         {
             rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold.data(), hy_1.data());
             rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold.data(), hy_2.data());
         }
-    }// end of if unit/norm check
+    }
 
-    if(argus.timing)
+    if (argus.timing)
     {
         //only norm_check return an norm error, unit check won't return anything
         cout << "N,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-        if(argus.norm_check)
+        if (argus.norm_check)
         {
             cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr" ;
         }
@@ -230,12 +229,11 @@ rocblas_status testing_axpy(Arguments argus)
         
         cout << N << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
        
-        if(argus.norm_check)
+        if (argus.norm_check)
         {
             cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
         }
         cout << endl;
     }
-
     return rocblas_status_success;
 }
