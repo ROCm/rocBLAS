@@ -134,7 +134,7 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
     return arg;
 }
 
-TEST(blas1_gtest, iamax_float_bad_arg)
+TEST(blas1_gtest, iamax_bad_arg_float)
 {
     testing_iamax_bad_arg<float>();
 }
@@ -175,13 +175,24 @@ TEST_P(blas1_gtest, iamax_float)
     Arguments arg = setup_blas1_arguments( GetParam() );
     rocblas_status status = testing_iamax<float>( arg );
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
+    if(status != rocblas_status_success)
+    {
+        EXPECT_EQ(rocblas_status_success, status);
+    }
+}
+
+TEST_P(blas1_gtest, iamax_double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+    rocblas_status status = testing_iamax<double>( arg );
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        EXPECT_EQ(rocblas_status_success, status);
     }
 }
 
