@@ -16,8 +16,6 @@
 
 using namespace std;
 
-/* ============================================================================================ */
-
 template<typename T>
 void testing_scal_bad_arg()
 {
@@ -134,9 +132,6 @@ rocblas_status testing_scal(Arguments argus)
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
-    /* =====================================================================
-         ROCBLAS
-    =================================================================== */
     if (argus.timing)
     {
         int number_timing_iterations = 1;
@@ -160,9 +155,11 @@ rocblas_status testing_scal(Arguments argus)
         CHECK_HIP_ERROR(hipMemcpy(dx_2, hx_2.data(), sizeof(T)*size_x, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
+        // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host))
         CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, &h_alpha, dx_1, incx));
 
+        // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device))
         CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, d_alpha, dx_2, incx));
 
@@ -172,9 +169,7 @@ rocblas_status testing_scal(Arguments argus)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-
         cblas_scal<T>(N, h_alpha, hy_gold.data(), incx);
-
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops = axpy_gflop_count<T> (N) / cpu_time_used * 1e6 * 1;
 
@@ -186,10 +181,6 @@ rocblas_status testing_scal(Arguments argus)
             unit_check_general<T>(1, N, incx, hy_gold.data(), hx_2.data());
         }
 
-        //for(int i=0; i<10; i++){
-        //    printf("CPU[%d]=%f, GPU[%d]=%f\n", i, hy_gold[i], i, hx[i]);
-        //}
-
         //if enable norm check, norm check is invasive
         //any typeinfo(T) will not work here, because template deduction is matched in compilation time
         if(argus.norm_check)
@@ -200,20 +191,18 @@ rocblas_status testing_scal(Arguments argus)
 
     }// end of if unit/norm check
 
-    if(argus.timing){
-        //only norm_check return an norm error, unit check won't return anything
+    if(argus.timing)
+    {
         cout << "N,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-        if(argus.norm_check){
-            cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr" ;
-        }
+
+        if(argus.norm_check) cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr" ;
+
         cout << endl;
 
         cout << N << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
 
-        if(argus.norm_check){
-            cout << cblas_gflops << ',';
-            cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
+        if(argus.norm_check) cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+
         cout << endl;
     }
 
