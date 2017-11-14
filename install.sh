@@ -15,15 +15,16 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# lsb-release file describes the system
-if [[ ! -e "/etc/lsb-release" ]]; then
-  echo "This script depends on the /etc/lsb-release file"
+# os-release file describes the system on centos
+if [[ -e "/etc/os-release" ]]; then
+  source /etc/os-release
+else
+  echo "This script depends on the /etc/os-release file"
   exit 2
 fi
-source /etc/lsb-release
 
-if [[ ${DISTRIB_ID} != Ubuntu ]]; then
-  echo "This script only validated with Ubuntu"
+if [[ ${ID} != ubuntu && ${ID} != centos && ${ID} != fedora ]]; then
+  echo "This script supported on Ubuntu, CentOS and Fedora"
   exit 2
 fi
 
@@ -124,50 +125,79 @@ else
   rm -rf ${build_dir}/debug
 fi
 
+# Default cmake executable is called cmake
+cmake_executable=cmake
+
+if [[ ${ID} == centos ]]; then
+  cmake_executable=cmake3
+fi
+
 # #################################################
 # install build dependencies on request
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
   # dependencies needed for rocblas and clients to build
   library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
-  if [[ "${build_cuda}" == false ]]; then
-    library_dependencies_ubuntu+=( "hcc" )
-  else
+  library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "hip_hcc" "gcc-c++" )
+  if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
     library_dependencies_ubuntu+=( "cuda" )
+    library_dependencies_centos+=( "" ) # how to install cuda on centos?
   fi
 
   client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
+  client_dependencies_centos=( "gcc-gfortran" "boost-devel" )
 
-  elevate_if_not_root apt update
+  if [[ ${ID} == ubuntu ]]; then
+    elevate_if_not_root apt update
 
-  # Dependencies required by main library
-  for package in "${library_dependencies_ubuntu[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt install -y --no-install-recommends ${package}
-    fi
-  done
-
-  # Dependencies required by library client apps
-  if [[ "${build_clients}" == true ]]; then
-    for package in "${client_dependencies_ubuntu[@]}"; do
+    # Dependencies required by main library
+    for package in "${library_dependencies_ubuntu[@]}"; do
       if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
         printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
         elevate_if_not_root apt install -y --no-install-recommends ${package}
       fi
     done
 
-    # The following builds googletest & lapack from source, installs into cmake default /usr/local
-    pushd .
-      printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
-      mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-      cmake -DBUILD_BOOST=OFF ../../deps
-      make -j$(nproc)
-      elevate_if_not_root make install
-    popd
+    # Dependencies required by library client apps
+    if [[ "${build_clients}" == true ]]; then
+      for package in "${client_dependencies_ubuntu[@]}"; do
+        if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
+          printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+          elevate_if_not_root apt install -y --no-install-recommends ${package}
+        fi
+      done
+    fi
   fi
 
+  if [[ ${ID} == centos || ${ID} == fedora ]]; then
+    elevate_if_not_root yum -y update
+
+    # Dependencies required by main library
+    for package in "${library_dependencies_centos[@]}"; do
+      if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+        printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+        elevate_if_not_root yum install -y ${package}
+      fi
+    done
+
+    # Dependencies required by library client apps
+    for package in "${client_dependencies_centos[@]}"; do
+      if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+        printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+        elevate_if_not_root yum install -y ${package}
+      fi
+    done
+  fi
+
+  # The following builds googletest & lapack from source, installs into cmake default /usr/local
+  pushd .
+    printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
+    mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
+    ${cmake_executable} -DBUILD_BOOST=OFF ../../deps
+    make -j$(nproc)
+    elevate_if_not_root make install
+  popd
 fi
 
 pushd .
@@ -199,7 +229,7 @@ pushd .
   # #################################################
   # build
   # #################################################
-  cmake ${cmake_options} ../..
+  ${cmake_executable} ${cmake_options} ../..
   make -j$(nproc)
 
   # #################################################
