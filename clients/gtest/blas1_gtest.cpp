@@ -1,8 +1,6 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
-
 
 #include <gtest/gtest.h>
 #include <math.h>
@@ -23,7 +21,6 @@ using ::testing::Values;
 using ::testing::ValuesIn;
 using ::testing::Combine;
 using namespace std;
-
 
 
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
@@ -52,9 +49,7 @@ to ‘testing::internal::ParamGenerator<std::tuple<int, std::vector<double, std:
 
 
 /* =====================================================================
-Advance users only: BrainStorm the parameters but do not make artificial one which invalidates the matrix.
-like lda pairs with M, and "lda must >= M". case "lda < M" will be guarded by argument-checkers inside API of course.
-Yet, the goal of this file is to verify result correctness not argument-checkers.
+Advance users only: BrainStorm the parameters
 
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
@@ -72,7 +67,8 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
-vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
+vector<vector<double>> alpha_beta_range = { 
+                                            {1.0, 0.0},
                                             {2.0, -1.0}
                                           };
 
@@ -109,7 +105,6 @@ class blas1_gtest: public :: TestWithParam <blas1_tuple>
 
 Arguments setup_blas1_arguments(blas1_tuple tup)
 {
-
     int N = std::get<0>(tup);
     vector<double> alpha_beta = std::get<1>(tup);
     vector<int> incx_incy = std::get<2>(tup);
@@ -133,16 +128,14 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
     return arg;
 }
 
-TEST(blas1_gtest, iamax_float_bad_arg)
+TEST(blas1_gtest, iamax_bad_arg_float)
 {
     testing_iamax_bad_arg<float>();
 }
-
 TEST(blas1_gtest, asum_float_bad_arg)
 {
     testing_asum_bad_arg<float, float>();
 }
-
 TEST(blas1_gtest, axpy_float_bad_arg)
 {
     testing_axpy_bad_arg<float>();
@@ -164,7 +157,6 @@ TEST(blas1_gtest, swap_float_bad_arg)
     testing_swap_bad_arg<float>();
 }
 
-
 TEST_P(blas1_gtest, iamax_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -172,16 +164,23 @@ TEST_P(blas1_gtest, iamax_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_iamax<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
+}
+
+TEST_P(blas1_gtest, iamax_double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+    Arguments arg = setup_blas1_arguments( GetParam() );
+
+    rocblas_status status = testing_iamax<double>( arg );
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, asum_float)
@@ -191,16 +190,10 @@ TEST_P(blas1_gtest, asum_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_asum<float, float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, axpy_float)
@@ -210,19 +203,10 @@ TEST_P(blas1_gtest, axpy_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_axpy<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, axpy_double)
@@ -232,19 +216,10 @@ TEST_P(blas1_gtest, axpy_double)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_axpy<double>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, axpy_half)
@@ -254,19 +229,10 @@ TEST_P(blas1_gtest, axpy_half)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_axpy<rocblas_half>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, copy_float)
@@ -276,19 +242,10 @@ TEST_P(blas1_gtest, copy_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_copy<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, dot_float)
@@ -298,17 +255,10 @@ TEST_P(blas1_gtest, dot_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_dot<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else 
-        {
-            ASSERT_EQ(status, rocblas_status_success) << "incorrect return status";
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, dot_double)
@@ -318,17 +268,10 @@ TEST_P(blas1_gtest, dot_double)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_dot<double>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else 
-        {
-            ASSERT_EQ(status, rocblas_status_success) << "incorrect return status";
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, nrm2_float)
@@ -338,19 +281,10 @@ TEST_P(blas1_gtest, nrm2_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_nrm2<float, float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, scal_float)
@@ -360,16 +294,10 @@ TEST_P(blas1_gtest, scal_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
+
     rocblas_status status = testing_scal<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( 0 == arg.N ){
-            EXPECT_EQ(rocblas_status_success, status);
-        }
-        if( arg.N < 0 || arg.incx <= 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
+
+    EXPECT_EQ(rocblas_status_success, status);
 }
 
 TEST_P(blas1_gtest, swap_float)
@@ -379,21 +307,11 @@ TEST_P(blas1_gtest, swap_float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments( GetParam() );
-    rocblas_status status = testing_swap<float>( arg );
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.N < 0 ){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incx < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if( arg.incy < 0){
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
-}
 
+    rocblas_status status = testing_swap<float>( arg );
+
+    EXPECT_EQ(rocblas_status_success, status);
+}
 
 //Values is for a single item; ValuesIn is for an array
 //notice we are using vector of vector
@@ -403,6 +321,8 @@ TEST_P(blas1_gtest, swap_float)
 INSTANTIATE_TEST_CASE_P(rocblas_blas1,
                         blas1_gtest,
                         Combine(
-                                  ValuesIn(N_range), ValuesIn(alpha_beta_range), ValuesIn(incx_incy_range)
+                                  ValuesIn(N_range), 
+                                  ValuesIn(alpha_beta_range), 
+                                  ValuesIn(incx_incy_range)
                                )
                         );

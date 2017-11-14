@@ -66,4 +66,7 @@
     template<typename T>
     void verify_not_nan(T arg);
 
+    template<typename T> 
+    void verify_equal(T arg1, T arg2, const char* message);
+
 #endif

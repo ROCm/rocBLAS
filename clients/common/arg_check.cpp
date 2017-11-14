@@ -316,3 +316,17 @@ void verify_not_nan(double arg)
     }
     #endif
 }
+
+template<>
+void verify_equal(int arg1, int arg2, const char* message)
+{
+    #ifdef GOOGLE_TEST
+    ASSERT_EQ(arg1, arg2);
+    #else
+    if(arg1 != arg2)
+    {
+        std::cerr << message << std::endl;
+        std::cerr << "ERROR: arguments not equal" << std::endl;
+    }
+    #endif
+}
