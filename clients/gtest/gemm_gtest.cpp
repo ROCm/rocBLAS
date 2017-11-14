@@ -263,7 +263,7 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size, gemm_gtest,
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
   
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(DISABLED_rocblas_gemm_scalar_transpose, gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
@@ -271,7 +271,7 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose, gemm_gtest,
                                )
                         );
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_small_size, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(DISABLED_rocblas_gemm_small_size, gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_small_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
