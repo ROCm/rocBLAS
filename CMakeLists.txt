@@ -83,7 +83,7 @@ else( )
 endif( )
 
 if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "vega10_std" CACHE STRING "Tensile to use which logic?")
+  set( Tensile_LOGIC "mi25_deepbench" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_deepbench vega10_deepbench vega10_std r9nano_std )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
