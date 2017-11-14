@@ -36,6 +36,14 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 //vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 //add/delete as a group
 const
+vector<vector<int>> matrix_small_size_range = {
+                                             {1, 1, 1, 1, 1, 1},
+                                             {2, 2, 2, 2, 2, 2},
+                                             {3, 3, 3, 3, 3, 3},
+                                             {1, 2, 3, 4, 5, 6},
+                                       };
+
+const
 vector<vector<int>> matrix_size_range = {
                                              {-1, -1, -1, -1, 1, 1},
                                              { 3, 33,  3,  33, 35, 35},
@@ -258,6 +266,14 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size, gemm_gtest,
 INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose, gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), 
+                                  ValuesIn(full_alpha_beta_range), 
+                                  ValuesIn(transA_transB_range)
+                               )
+                        );
+
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_small_size, gemm_gtest,
+                        Combine(
+                                  ValuesIn(matrix_small_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )
