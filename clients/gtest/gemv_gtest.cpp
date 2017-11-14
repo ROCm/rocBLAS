@@ -151,7 +151,7 @@ class gemv_gtest: public :: TestWithParam <gemv_tuple>
         virtual void TearDown(){}
 };
 
-TEST(rocblas_blas2, gemv_float_bad_arg)
+TEST(rocblas_blas2, gemv_bad_arg_float)
 {
     testing_gemv_bad_arg<float>();
 }
