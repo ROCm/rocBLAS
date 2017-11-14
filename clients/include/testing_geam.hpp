@@ -143,7 +143,9 @@ rocblas_status testing_geam(Arguments argus)
     T rocblas_error_2 = std::numeric_limits<T>::max();
     T rocblas_error = std::numeric_limits<T>::max();
 
-    rocblas_status status, status_h, status_d;
+    rocblas_status status = rocblas_status_success;
+    rocblas_status status_h = rocblas_status_success;
+    rocblas_status status_d = rocblas_status_success;
 
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;

@@ -168,6 +168,10 @@ TEST_P(geam_gtest, geam_gtest_float)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
     }
 }
 
@@ -200,6 +204,10 @@ TEST_P(geam_gtest, geam_gtest_double)
         else if(arg.ldc < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
         }
     }
 }
