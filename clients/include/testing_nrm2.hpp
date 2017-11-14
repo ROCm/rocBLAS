@@ -103,8 +103,6 @@ rocblas_status testing_nrm2(Arguments argus)
 
         nrm2_dot_arg_check(status, d_rocblas_result);
 
-        status = rocblas_status_invalid_size;
-
         return status;
     }
 
