@@ -25,6 +25,7 @@ void testing_axpy_bad_arg()
     rocblas_int N = 100;
     rocblas_int incx = 1;
     rocblas_int incy = 1;
+    rocblas_int safe_size = 100;
     T alpha = 0.6;
 
     rocblas_status status;
@@ -32,13 +33,8 @@ void testing_axpy_bad_arg()
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    rocblas_int size_x = N * abs_incx;
-    rocblas_int size_y = N * abs_incy;
-
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_y),rocblas_test::device_free};
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
     T* dx = (T*) dx_managed.get();
     T* dy = (T*) dy_managed.get();
     if (!dx || !dy)
