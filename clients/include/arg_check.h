@@ -37,6 +37,8 @@
 
     void set_get_matrix_arg_check(rocblas_status status, rocblas_int rows, rocblas_int cols, rocblas_int lda, rocblas_int ldb, rocblas_int ldc);
 
+    void set_get_vector_arg_check(rocblas_status status, rocblas_int M, rocblas_int incx, rocblas_int incy, rocblas_int incd);
+
     void gemv_ger_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_int incx, rocblas_int incy);
 
     void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int K, rocblas_int lda, rocblas_int ldb, rocblas_int ldc);
