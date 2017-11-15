@@ -199,6 +199,7 @@ class Arguments {
     rocblas_int incx = 1 ;
     rocblas_int incy = 1 ;
     rocblas_int incd = 1 ;
+    rocblas_int incb = 1 ;
 
     rocblas_int start = 1024;
     rocblas_int end   = 10240;
@@ -233,6 +234,7 @@ class Arguments {
         incx = rhs.incx;
         incy = rhs.incy;
         incd = rhs.incd;
+        incb = rhs.incb;
 
         start = rhs.start;
         end = rhs.end;
