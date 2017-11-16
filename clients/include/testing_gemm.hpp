@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <sys/time.h>
@@ -11,11 +10,12 @@
 #include <limits>
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include "flops.h"
 #include <typeinfo>
 
@@ -36,41 +36,21 @@ void testing_gemm_NaN(Arguments argus)
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
     rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
-    T *dA, *dB, *dC;
-
-    rocblas_int  A_size, B_size, C_size, A_row, A_col, B_row, B_col;
+    rocblas_int  size_A, size_B, size_C, A_row, A_col, B_row, B_col;
     T alpha = argus.alpha;
     T beta = argus.beta;
 
-    rocblas_handle handle;
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) 
-    {
-        rocblas_destroy_handle(handle);
-        return;
-    }
-    if(transA == rocblas_operation_none)
-    {
-        A_row =  M; A_col = K;
-    }
-    else
-    {
-        A_row = K; A_col = M;
-    }
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
-    if(transB == rocblas_operation_none)
-    {
-        B_row =  K; B_col = N;
-    }
-    else
-    {
-        B_row = N; B_col = K;
-    }
+    A_row = transA == rocblas_operation_none ? M : K;
+    A_col = transA == rocblas_operation_none ? K : M;
+    B_row = transB == rocblas_operation_none ? K : N;
+    B_col = transB == rocblas_operation_none ? N : K;
 
-    A_size = lda * A_col; B_size = ldb * B_col; C_size = ldc * N;
+    size_A = lda * A_col; size_B = ldb * B_col; size_C = ldc * N;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M )
@@ -78,31 +58,29 @@ void testing_gemm_NaN(Arguments argus)
         // bad arguments are tested in other tests
         return;
     }
-    else if (nullptr == dA || nullptr == dB || nullptr == dC )
-    {
-        verify_rocblas_status_invalid_pointer(rocblas_status_success, "ERROR: A or B or C is nullptr");
-        return;
-    }
-    else if (nullptr == handle )
-    {
-        verify_rocblas_status_invalid_handle(rocblas_status_success);
-        return;
-    }
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory.
-    vector<T> hA(A_size);
-    vector<T> hB(B_size);
-    vector<T> hC(C_size);
+    vector<T> hA(size_A);
+    vector<T> hB(size_B);
+    vector<T> hC(size_C);
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dB = (T*) dB_managed.get();
+    T* dC = (T*) dC_managed.get();
+    if (!dA || !dB || !dC)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
 
     //Initial Data on CPU
-    for (int i = 0; i < A_size; i++) hA[i] = 1.0;
-    for (int i = 0; i < B_size; i++) hB[i] = 1.0;
-    for (int i = 0; i < C_size; i++) hC[i] = 1.0;
+    for (int i = 0; i < size_A; i++) hA[i] = 1.0;
+    for (int i = 0; i < size_B; i++) hB[i] = 1.0;
+    for (int i = 0; i < size_C; i++) hC[i] = 1.0;
 
     for (int i = 0; i < N; i++) 
     {
@@ -113,25 +91,17 @@ void testing_gemm_NaN(Arguments argus)
     }
 
     //copy data from CPU to device, does not work for lda != A_row
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * A_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * B_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * C_size, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
 
-    /* =====================================================================
-         ROCBLAS
-    =================================================================== */
+    // ROCBLAS
+    status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc);
 
-    //library interface
-    status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
-
-    verify_rocblas_status_success(status,"ERROR: rocblas_gemm");
+    verify_rocblas_status_success(status, "rocblas_gemm return error in testing_gemm_NaN");
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
     for (int i = 0; i < N; i++) 
     {
@@ -143,11 +113,6 @@ void testing_gemm_NaN(Arguments argus)
     }
     finish_nested_loops:
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dB));
-    CHECK_HIP_ERROR(hipFree(dC));
-
-    rocblas_destroy_handle(handle);
     return;
 }
 
@@ -165,111 +130,72 @@ void testing_gemm_bad_arg()
     const T alpha = 1.0;
     const T beta = 1.0;
 
+    const rocblas_int safe_size = 100;
+
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_handle handle;
-    T *dA, *dB, *dC;
-
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) 
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    //allocate memory on device
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dB = (T*) dB_managed.get();
+    T* dC = (T*) dC_managed.get();
+    if (!dA || !dB || !dC)
     {
-        rocblas_destroy_handle(handle);
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    rocblas_int A_size = M * lda;
-    rocblas_int B_size = K * ldb;
-    rocblas_int C_size = M * ldc;
-
-    vector<T> hA(A_size);
-    vector<T> hB(B_size);
-    vector<T> hC(C_size);
-
-    srand(1);
-    rocblas_init<T>(hA, M, K, lda);
-    rocblas_init<T>(hB, K, N, ldb);
-    rocblas_init<T>(hC, M, N, ldc);
-
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
-
-    //copy data from CPU to device, does not work for lda != A_row
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T)*B_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T)*C_size, hipMemcpyHostToDevice));
-
     {
         T *dA_null = nullptr;
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA_null, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA_null, lda, dB, ldb, &beta, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
     }
     {
         T *dB_null = nullptr;
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB_null, ldb,
-                    &beta, dC, ldc);
+
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB_null, ldb, &beta, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
     }
     {
         T *dC_null = nullptr;
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC_null, ldc);
+
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC_null, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
     {
         T *alpha_null = nullptr;
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    alpha_null, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, alpha_null, dA, lda, dB, ldb, &beta, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
     {
         T *beta_null= nullptr;
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    beta_null, dC, ldc);
+
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, beta_null, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
     {
         rocblas_handle handle_null = nullptr;
-        status = rocblas_gemm<T>(handle_null, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+
+        status = rocblas_gemm<T>(handle_null, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc);
 
         verify_rocblas_status_invalid_handle(status);
     }
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dB));
-    CHECK_HIP_ERROR(hipFree(dC));
-
-    rocblas_destroy_handle(handle);
     return;
 }
 
@@ -290,115 +216,67 @@ rocblas_status testing_gemm(Arguments argus)
     T alpha = argus.alpha;
     T beta = argus.beta;
 
-    T *dA, *dB, *dC;
-
-    rocblas_int  A_size, B_size, C_size, A_row, A_col, B_row, B_col;
+    rocblas_int safe_size = 100;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
     T rocblas_error = 0.0;
 
-    rocblas_handle handle;
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) 
-    {
-        rocblas_destroy_handle(handle);
-        return status;
-    }
-    if(transA == rocblas_operation_none)
-    {
-        A_row = M; A_col = K;
-    }
-    else
-    {
-        A_row = K; A_col = M;
-    }
-    if(transB == rocblas_operation_none)
-    {
-        B_row = K; B_col = N;
-    }
-    else
-    {
-        B_row = N; B_col = K;
-    }
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
-    A_size = lda * A_col; B_size = ldb * B_col; C_size = ldc * N;
+    rocblas_int A_row = transA == rocblas_operation_none ? M : K;
+    rocblas_int A_col = transA == rocblas_operation_none ? K : M;
+    rocblas_int B_row = transB == rocblas_operation_none ? K : N;
+    rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M )
     {
-        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T))); // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&dB, 100 * sizeof(T)));
-        CHECK_HIP_ERROR(hipMalloc(&dC, 100 * sizeof(T)));
+        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        T* dA = (T*) dA_managed.get();
+        T* dB = (T*) dB_managed.get();
+        T* dC = (T*) dC_managed.get();
+        if (!dA || !dB || !dC)
+        {
+            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+            return rocblas_status_memory_error;
+        }
 
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+        status = rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc);
 
         gemm_arg_check(status, M, N, K, lda, ldb, ldc);
 
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dB));
-        CHECK_HIP_ERROR(hipFree(dC));
-
-        rocblas_destroy_handle(handle);
-
         return status;
     }
+
+    rocblas_int size_A = lda * A_col;
+    rocblas_int size_B = ldb * B_col;
+    rocblas_int size_C = ldc * N;
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
-
-    if (nullptr == dA || nullptr == dB || nullptr == dC )
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dB = (T*) dB_managed.get();
+    T* dC = (T*) dC_managed.get();
+    if (!dA || !dB || !dC)
     {
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
-
-        verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
-
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dB));
-        CHECK_HIP_ERROR(hipFree(dC));
-
-        rocblas_destroy_handle(handle);
-
-        return status;
-    }
-    else if (nullptr == handle )
-    {
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
-
-        verify_rocblas_status_invalid_handle(status);
-
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dB));
-        CHECK_HIP_ERROR(hipFree(dC));
-
-        rocblas_destroy_handle(handle);
-
-        return status;
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return rocblas_status_memory_error;
     }
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(A_size);
-    vector<T> hB(B_size);
-    vector<T> hC(C_size);
-    vector<T> hC_copy(C_size);
+    vector<T> hA(size_A);
+    vector<T> hB(size_B);
+    vector<T> hC(size_C);
+    vector<T> hC_copy(size_C);
 
     //Initial Data on CPU
     srand(1);
@@ -409,42 +287,25 @@ rocblas_status testing_gemm(Arguments argus)
     hC_copy = hC;
 
     //copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * A_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * B_size, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * C_size, hipMemcpyHostToDevice));
-
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
 
     if(argus.unit_check || argus.norm_check)
     {
-        /* =====================================================================
-             ROCBLAS
-        =================================================================== */
-        status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
-
+        // ROCBLAS
+        CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc));
 
         //copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * C_size, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
-         /* =====================================================================
-                 CPU BLAS
-         =================================================================== */
-        if(status != rocblas_status_invalid_size) //only valid size compare with cblas
-        {
-            cpu_time_used = get_time_us();
+        // CPU BLAS
+        cpu_time_used = get_time_us();
 
-            cblas_gemm<T>(
-                transA, transB, M, N, K,
-                alpha, hA.data(), lda,
-                hB.data(), ldb,
-                beta, hC_copy.data(), ldc);
+        cblas_gemm<T>(transA, transB, M, N, K, alpha, hA.data(), lda, hB.data(), ldb, beta, hC_copy.data(), ldc);
 
-            cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
-        }
+        cpu_time_used = get_time_us() - cpu_time_used;
+        cblas_gflops = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         #ifndef NDEBUG
         print_matrix(hC_copy, hC, min(M,3), min(N,3), ldc);
@@ -464,8 +325,7 @@ rocblas_status testing_gemm(Arguments argus)
         {
             rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_copy.data(), hC.data());
         }
-
-    }// end of if unit/norm check
+    }
 
     if(argus.timing)
     {
@@ -474,50 +334,35 @@ rocblas_status testing_gemm(Arguments argus)
 
         for (int i = 0; i < number_cold_calls; i++)
         {
-            status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+            rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc);
         }
 
         gpu_time_used = get_time_us();   // in microseconds
         for (int i = 0; i < number_hot_calls; i++)
         {
-            status = rocblas_gemm<T>(handle, transA, transB,
-                    M, N, K,
-                    &alpha, dA, lda,
-                    dB, ldb,
-                    &beta, dC, ldc);
+            rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc);
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<T> (M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        cout << "Shape, M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
-        if(argus.unit_check || argus.norm_check)
-        {
-            cout << "CPU-Gflops(us), norm-error" ;
-        }
+        cout << "Shape,M,N,K,lda,ldb,ldc,rocblas-Gflops,us";
+
+        if(argus.unit_check || argus.norm_check) cout << ",CPU-Gflops(us),norm-error";
+
         cout << endl;
 
         cout << argus.transA_option << argus.transB_option << ',' 
             << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc <<',' 
-            << rocblas_gflops << " (" << gpu_time_used << "), ";
+            << rocblas_gflops << "," << gpu_time_used;
 
         if(argus.unit_check || argus.norm_check)
         {
-            cout << cblas_gflops << " (" << cpu_time_used << "), ";
-            cout << rocblas_error;
+            cout << cblas_gflops << "," << cpu_time_used << ',' << rocblas_error;
         }
 
         cout << endl;
     }
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dB));
-    CHECK_HIP_ERROR(hipFree(dC));
-
-    rocblas_destroy_handle(handle);
     return status;
 }
 
@@ -537,7 +382,7 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
     rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
-    rocblas_int  A_size, B_size, C_size;
+    rocblas_int  size_A, size_B, size_C;
     T alpha = argus.alpha;
     T beta = argus.beta;
 
@@ -553,13 +398,13 @@ rocblas_status range_testing_gemm(Arguments argus)
         return rocblas_status_invalid_size;
     }
 
-    A_size = B_size = C_size = end * end;
+    size_A = size_B = size_C = end * end;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hA(A_size);
-    vector<T> hB(B_size);
-    vector<T> hC(C_size);
-    vector<T> hC_copy(C_size);
+    vector<T> hA(size_A);
+    vector<T> hB(size_B);
+    vector<T> hC(size_C);
+    vector<T> hC_copy(size_C);
 
     T *dA, *dB, *dC;
 
@@ -575,9 +420,9 @@ rocblas_status range_testing_gemm(Arguments argus)
     }
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, B_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, C_size * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dA, size_A * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dB, size_B * sizeof(T)));
+    CHECK_HIP_ERROR(hipMalloc(&dC, size_C * sizeof(T)));
 
     //rocblas_malloc_device(&dx, sizeX * sizeof(T));
 
