@@ -44,10 +44,10 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 vector<vector<int>> matrix_size_range = {
                                         {-1, -1, -1, -1, 1, 1},
-                                        {32, 32, 32, 100, 100, 100},
-                                        {64, 64, 64, 128, 128, 128},
-                                        {128, 128, 128, 128, 128, 128},
-                                        {500, 500, 500, 500, 600, 500},
+                                        {31, 33, 35, 101, 102, 103},
+                                        {59, 61, 63, 129, 131, 137},
+                                        {129, 130, 131, 132, 133, 134},
+                                        {501, 502, 103, 504, 605, 506},
                                        };
 
 
@@ -77,9 +77,7 @@ const
 vector<int> batch_count_range = {
                                         -1,
                                         0,
-                                        1,
-                                        10,
-                                        100,
+                                        3,
                                        };
 
 
