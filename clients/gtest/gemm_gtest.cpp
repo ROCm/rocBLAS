@@ -38,37 +38,32 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 const
 vector<vector<int>> matrix_small_size_range = {
                                              {1, 1, 1, 1, 1, 1},
-                                             {2, 2, 2, 2, 2, 2},
-                                             {3, 3, 3, 3, 3, 3},
                                              {1, 2, 3, 4, 5, 6},
+                                             {7, 9, 15, 17, 18, 19},
                                        };
 
 const
 vector<vector<int>> matrix_size_range = {
                                              {-1, -1, -1, -1, 1, 1},
                                              { 3, 33,  3,  33, 35, 35},
-                                             { 5,  5,  5,  5, 5, 5},
+                                             { 5,  6,  7,  9, 11, 13},
                                              {10, 10, 20, 100, 10, 10},
-                                             {600,500, 500, 500, 600, 500},
-                                             {1024, 1024, 1024, 1024, 1024, 1024}
+                                             {600,501, 502, 503, 604, 505},
+                                             {1025, 1026, 1027, 1028, 1029, 1031}
                                        };
 
 const
 vector<vector<int>> full_matrix_size_range = {
-                                             {192, 192, 192, 192, 192, 192},
-                                             {640, 640, 640, 960, 960, 960},
-                                             {1000, 1000, 1000, 1000, 1000, 1000},
-                                             {4011, 4011, 4011, 4011, 4011, 4011},
+                                             {191, 193, 194, 195, 196, 197},
+                                             {640, 640, 347, 960, 960, 960},
+                                             {1000, 1001, 101, 1002, 1003, 1004},
+                                             {4011, 4012, 103, 4014, 4015, 4016},
                                              };
 
 const
 vector<vector<int>> NaN_matrix_size_range = {
-                                             { 5,  5,  5,  5, 5, 5},
-                                             {10, 10, 20, 100, 10, 10},
-                                             {192, 192, 192, 192, 192, 192},
-                                             {640, 640, 640, 960, 960, 960},
-                                             {1000, 1000, 1000, 1000, 1000, 1000},
-                                             {4011, 4011, 4011, 4011, 4011, 4011},
+                                             { 5,  6,  7,  8, 9, 10},
+                                             {4011, 4012, 111, 4013, 4014, 4015},
                                             };
 
 //vector of vector, each pair is a {alpha, beta};
@@ -263,7 +258,7 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size, gemm_gtest,
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
   
-INSTANTIATE_TEST_CASE_P(DISABLED_rocblas_gemm_scalar_transpose, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose, gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
@@ -271,7 +266,7 @@ INSTANTIATE_TEST_CASE_P(DISABLED_rocblas_gemm_scalar_transpose, gemm_gtest,
                                )
                         );
 
-INSTANTIATE_TEST_CASE_P(DISABLED_rocblas_gemm_small_size, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(rocblas_gemm_small_size, gemm_gtest,
                         Combine(
                                   ValuesIn(matrix_small_size_range), 
                                   ValuesIn(full_alpha_beta_range), 

@@ -83,17 +83,17 @@ else( )
 endif( )
 
 if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "mi25_deepbench" CACHE STRING "Tensile to use which logic?")
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_deepbench vega10_deepbench vega10_std r9nano_std )
+  set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_full mi25_lite vega10_full vega10_lite r9nano_full r9nano_lite )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "v3.3.4" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "v3.3.5" CACHE STRING "Tensile tag to download" )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    EXPECTED_HASH SHA256=43b4928050aeb3c5df6c2909ea24434d89e7522720dc13ce25acc6611de65075
+    EXPECTED_HASH SHA256=bb8d692287979d22f3ed2a6e889f7b384e08107bb3ced1ee9669aacdbb59ace8
   )
 
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
