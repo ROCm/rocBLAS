@@ -98,6 +98,24 @@ void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas
     #endif
 }
 
+void gemm_strided_batched_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int K, 
+    rocblas_int lda, rocblas_int ldb, rocblas_int ldc, rocblas_int batch_count)
+{
+    #ifdef GOOGLE_TEST
+    if (M == 0 || N == 0 || K == 0 || batch_count == 0)
+    {
+        ASSERT_EQ(status, rocblas_status_success);
+    }
+    else
+    {
+        ASSERT_EQ(status, rocblas_status_invalid_size);
+    }
+    #else
+    std::cerr << "ERROR in arguments M, N, K, lda, ldb, ldc, batch_count: ";
+    std::cerr << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << batch_count << std::endl;
+    #endif
+}
+
 void geam_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
     rocblas_int lda, rocblas_int ldb, rocblas_int ldc)
 {

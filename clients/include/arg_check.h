@@ -43,6 +43,8 @@
 
     void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int K, rocblas_int lda, rocblas_int ldb, rocblas_int ldc);
 
+    void gemm_strided_batched_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int K, rocblas_int lda, rocblas_int ldb, rocblas_int ldc, rocblas_int batch_count);
+
     void geam_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_int ldb, rocblas_int ldc);
 
     void trsm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_int ldb);
