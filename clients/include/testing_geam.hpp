@@ -76,36 +76,42 @@ void testing_geam_bad_arg()
 
     {
         T *dA_null = nullptr;
+
         status = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA_null, lda, &h_beta, dB, ldb, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
     }
     {
         T *dB_null = nullptr;
+
         status = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB_null, ldb, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
     }
     {
         T *dC_null = nullptr;
+
         status = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC_null, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
     {
         T *h_alpha_null = nullptr;
+
         status = rocblas_geam<T>(handle, transA, transB, M, N, h_alpha_null, dA, lda, &h_beta, dB, ldb, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: h_alpha is nullptr");
     }
     {
         T *h_beta_null= nullptr;
+
         status = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, h_beta_null, dB, ldb, dC, ldc);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: h_beta is nullptr");
     }
     {
         rocblas_handle handle_null = nullptr;
+
         status = rocblas_geam<T>(handle_null, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc);
 
         verify_rocblas_status_invalid_handle(status);
