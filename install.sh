@@ -175,6 +175,7 @@ pushd .
   # configure
   # #################################################
   cmake_options=""
+  #cmake_options="${cmake_options} -DTensile_LOGIC=mi25_lite"
 
   # build type
   if [[ "${build_release}" == true ]]; then
