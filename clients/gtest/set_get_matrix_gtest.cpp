@@ -159,21 +159,43 @@ TEST_P(set_matrix_get_matrix_gtest, float)
     rocblas_status status = testing_set_get_matrix<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.rows < 0 ){
+    if (status != rocblas_status_success)
+    {
+        if (arg.rows < 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.cols <= 0){
+        else if (arg.cols <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda <= 0){
+        else if (arg.lda <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldb <= 0){
+        else if (arg.ldb <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldc <= 0){
+        else if (arg.ldc <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.lda < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldb < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldc < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
         }
     }
 }

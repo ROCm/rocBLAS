@@ -22,6 +22,8 @@
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "testing_geam.hpp"
+#include "testing_set_get_vector.hpp"
+#include "testing_set_get_matrix.hpp"
 #if BUILD_WITH_TENSILE
     #include "testing_gemm.hpp"
     #include "testing_gemm_strided_batched.hpp"
@@ -170,6 +172,18 @@ int main(int argc, char *argv[])
             testing_geam<float>( argus );
         else if (precision == 'd')
             testing_geam<double>( argus );
+    }
+    else if (function == "set_get_vector"){
+        if (precision == 's')
+            testing_set_get_vector<float>( argus );
+        else if (precision == 'd')
+            testing_set_get_vector<double>( argus );
+    }
+    else if (function == "set_get_matrix"){
+        if (precision == 's')
+            testing_set_get_matrix<float>( argus );
+        else if (precision == 'd')
+            testing_set_get_matrix<double>( argus );
     }
 #if BUILD_WITH_TENSILE
     else if (function == "gemm"){

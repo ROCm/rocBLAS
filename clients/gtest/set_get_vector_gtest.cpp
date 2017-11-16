@@ -43,10 +43,10 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 int M_range[] = { 600, 6000000 };
 
-//vector of vector, each triple is a {incx, incy, incd};
+//vector of vector, each triple is a {incx, incy, incb};
 //add/delete this list in pairs, like {1, 1, 1}
 const
-vector<vector<int>> incx_incy_incd_range = {
+vector<vector<int>> incx_incy_incb_range = {
                                             {1, 1, 1},
                                             {1, 1, 2},
                                             {1, 1, 3},
@@ -87,7 +87,7 @@ Arguments setup_set_get_vector_arguments(set_get_vector_tuple tup)
 {
 
     int M = std::get<0>(tup);
-    vector<int> incx_incy_incd = std::get<1>(tup);
+    vector<int> incx_incy_incb = std::get<1>(tup);
 
     Arguments arg;
 
@@ -95,9 +95,9 @@ Arguments setup_set_get_vector_arguments(set_get_vector_tuple tup)
     arg.M = M;
 
     // see the comments about matrix_size_range above
-    arg.incx = incx_incy_incd[0];
-    arg.incy = incx_incy_incd[1];
-    arg.incd = incx_incy_incd[2];
+    arg.incx = incx_incy_incb[0];
+    arg.incy = incx_incy_incb[1];
+    arg.incb = incx_incy_incb[2];
 
     return arg;
 }
@@ -126,18 +126,27 @@ TEST_P(set_vector_get_vector_gtest, float)
     rocblas_status status = testing_set_get_vector<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-        if( arg.M < 0 ){
+    if(status != rocblas_status_success)
+    {
+        if( arg.M < 0 )
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.incx <= 0){
+        else if(arg.incx <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.incy <= 0){
+        else if(arg.incy <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.incd <= 0){
+        else if(arg.incb <= 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
         }
     }
 }
@@ -150,6 +159,6 @@ TEST_P(set_vector_get_vector_gtest, float)
 INSTANTIATE_TEST_CASE_P(rocblas_auxiliary_small,
                         set_vector_get_vector_gtest,
                         Combine(
-                                  ValuesIn(M_range), ValuesIn(incx_incy_incd_range)
+                                  ValuesIn(M_range), ValuesIn(incx_incy_incb_range)
                                )
                         );
