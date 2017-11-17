@@ -26,13 +26,20 @@ list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 include( build-options )
 
-get_target_property( rocblas_type rocblas TYPE )
+# This option only works for make/nmake and the ninja generators, but no reason it shouldn't be on all the time
+# This tells cmake to create a compile_commands.json file that can be used with clang tooling or vim
+set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
-if( rocblas_type MATCHES "STATIC_LIBRARY" )
-  if( NOT CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-    message( AUTHOR_WARNING "Linking static rocblas library probably requires hcc compiler" )
-  endif( )
+if( NOT TARGET rocblas )
+  find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
 endif( )
+
+# Hip headers required of all clients; clients use hip to allocate device memory
+find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
+
+# Quietly look for CUDA, but if not found it's not an error
+# The presense of hip is not sufficient to determine if we want a rocm or cuda backend
+find_package( CUDA QUIET )
 
 if( BUILD_CLIENTS_SAMPLES )
   add_subdirectory( samples )
