@@ -19,6 +19,7 @@ endfunction( )
 # ########################################################################
 # Main
 # ########################################################################
+
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
@@ -122,20 +123,12 @@ add_library( rocblas
   ${rocblas_auxiliary_source}
 )
 
-# NOTE: 2 issues below
-# 1.  rocblas header 'rocblas-types.h' exposes the hip header hip/hip_vector_types.h, requiring exposing hip::hip_hcc as PUBLIC
-# 2.  hcc requires -Wl,-Bsymbolic for rocm v1.6.1, should be able to remove in future
-target_link_libraries( rocblas PUBLIC hip::hip_hcc PRIVATE hip::hip_device hcc::hccshared )
+add_library( roc::rocblas ALIAS rocblas )
+
+target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
 
 # Test for specific compiler features if cmake version is recent enough
-if( CMAKE_VERSION VERSION_GREATER "3.0" )
-  target_compile_features( rocblas PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
-else( )
-  # Otherwise, just try to compile the library with a standards flag
-  if( CMAKE_COMPILER_IS_GNUCXX OR ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" ) )
-    target_compile_options( rocblas PRIVATE -std=c++11 )
-  endif( )
-endif( )
+target_compile_features( rocblas PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
@@ -153,7 +146,11 @@ target_include_directories( rocblas
           $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
-)
+          )
+
+# NOTE:
+# 1.  rocblas header 'rocblas-types.h' exposes the hip header hip/hip_vector_types.h, requiring clients to find hip headers
+# target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
 
 if( BUILD_WITH_TENSILE )
   target_link_libraries( rocblas PRIVATE Tensile )
