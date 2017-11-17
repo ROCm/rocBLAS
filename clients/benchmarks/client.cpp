@@ -105,35 +105,11 @@ int main(int argc, char *argv[])
     argus.start = range[0]; argus.step = range[1]; argus.end = range[2];
 
 
-    if (function == "scal"){
-        if (precision == 's')
-            testing_scal<float>( argus );
-        else if (precision == 'd')
-            testing_scal<double>( argus );
-    }
-    else if (function == "dot"){
-        if (precision == 's')
-            testing_dot<float>( argus );
-        else if (precision == 'd')
-            testing_dot<double>( argus );
-    }
-    else if (function == "asum"){
+    if (function == "asum"){
         if (precision == 's')
             testing_asum<float, float>( argus );
         else if (precision == 'd')
             testing_asum<double, double>( argus );
-    }
-    else if (function == "nrm2"){
-        if (precision == 's')
-            testing_nrm2<float, float>( argus );
-        else if (precision == 'd')
-            testing_nrm2<double, double>( argus );
-    }
-    else if (function == "iamax"){
-        if (precision == 's')
-            testing_iamax<float>( argus );
-        else if (precision == 'd')
-            testing_iamax<double>( argus );
     }
     else if (function == "axpy"){
         if (precision == 'h')
@@ -142,6 +118,36 @@ int main(int argc, char *argv[])
             testing_axpy<float>( argus );
         else if (precision == 'd')
             testing_axpy<double>( argus );
+    }
+    else if (function == "copy"){
+        if (precision == 's')
+            testing_copy<float>( argus );
+        else if (precision == 'd')
+            testing_copy<double>( argus );
+    }
+    else if (function == "dot"){
+        if (precision == 's')
+            testing_dot<float>( argus );
+        else if (precision == 'd')
+            testing_dot<double>( argus );
+    }
+    else if (function == "iamax"){
+        if (precision == 's')
+            testing_iamax<float>( argus );
+        else if (precision == 'd')
+            testing_iamax<double>( argus );
+    }
+    else if (function == "nrm2"){
+        if (precision == 's')
+            testing_nrm2<float, float>( argus );
+        else if (precision == 'd')
+            testing_nrm2<double, double>( argus );
+    }
+    else if (function == "scal"){
+        if (precision == 's')
+            testing_scal<float>( argus );
+        else if (precision == 'd')
+            testing_scal<double>( argus );
     }
     else if (function == "gemv"){
         if (precision == 's')

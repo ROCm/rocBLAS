@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -135,18 +134,6 @@ rocblas_status testing_copy(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
 
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-
-        gpu_time_used = get_time_us();// in microseconds
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            status = rocblas_copy<T>(handle, N, dx, incx, dy, incy);
-        }
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
-    }
-
     if(argus.unit_check || argus.norm_check)
     {
         // GPU BLAS
@@ -172,10 +159,33 @@ rocblas_status testing_copy(Arguments argus)
         {
             rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold.data(), hy.data());
         }
-
     }
 
-    BLAS_1_RESULT_PRINT
+    if(argus.timing)
+    {
+        int number_timing_iterations = 1;
+
+        gpu_time_used = get_time_us();// in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
+        {
+            status = rocblas_copy<T>(handle, N, dx, incx, dy, incy);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+
+        cout << "N,rocblas-us";
+
+        if (argus.norm_check) cout << ",CPU-us,error";
+
+        cout << endl;
+
+        cout << N << "," << gpu_time_used;
+
+        if (argus.norm_check) cout << "," << cpu_time_used << "," << rocblas_error;
+
+        cout << endl;
+    }
 
     return rocblas_status_success;
 }
