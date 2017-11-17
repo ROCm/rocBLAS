@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -9,22 +8,19 @@
 #include <vector>
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
 
-
-/* ============================================================================================ */
-
 template<typename T>
 rocblas_status testing_symv(Arguments argus)
 {
-
     rocblas_int N = argus.N;
     rocblas_int lda = argus.lda;
     rocblas_int incx = argus.incx;
@@ -33,30 +29,35 @@ rocblas_status testing_symv(Arguments argus)
     T alpha = (T)argus.alpha;
     T beta = (T)argus.beta;
 
+    rocblas_int safe_size = 100;
+
     rocblas_fill uplo = char2rocblas_fill(argus.uplo_option);
 
     T *dA, *dx, *dy;
 
-    rocblas_int A_size = lda * N;
-    rocblas_int X_size = N * incx;
-    rocblas_int Y_size = N * incy;
+    rocblas_int size_A = lda * N;
+    rocblas_int size_X = N * incx;
+    rocblas_int size_Y = N * incy;
 
     rocblas_status status;
-    rocblas_handle handle;
-    rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) {
-        rocblas_destroy_handle(handle);
-        return status;
-    }
-
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
     //argument sanity check before allocating invalid memory
-    if( N < 0 || lda < 0 || incx < 0 || incy < 0){
-        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));  // 100 is arbitary
-        CHECK_HIP_ERROR(hipMalloc(&dx, 100 * sizeof(T)));
-        CHECK_HIP_ERROR(hipMalloc(&dy, 100 * sizeof(T)));
+    if( N < 0 || lda < 0 || incx < 0 || incy < 0)
+    {
+        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        T* dA = (T*) dA_managed.get();
+        T* dx = (T*) dx_managed.get();
+        T* dy = (T*) dy_managed.get();
+        if (!dA || !dx || !dy)
+        {
+            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
 
         status = rocblas_symv<T>(handle,
                      uplo, N,
@@ -86,23 +87,28 @@ rocblas_status testing_symv(Arguments argus)
 
 
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(A_size);
-    vector<T> hx(X_size);
-    vector<T> hy(Y_size);
-    vector<T> hz(Y_size);
+    vector<T> hA(size_A);
+    vector<T> hx(size_X);
+    vector<T> hy(size_Y);
+    vector<T> hz(size_Y);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
 
     char char_fill = argus.uplo_option;
-//  rocblas_fill uplo = char2rocblas_fill(char_fill);
-//  rocblas_fill uplo = char2rocblas_fill(argus.uplo_option);
 
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dx, X_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dy, Y_size * sizeof(T)));
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_X),rocblas_test::device_free};
+    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_Y),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dx = (T*) dx_managed.get();
+    T* dy = (T*) dy_managed.get();
+    if (!dA || !dx || !dy)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
 
     //Initial Data on CPU
     srand(1);
@@ -135,13 +141,7 @@ rocblas_status testing_symv(Arguments argus)
                      (T*)&beta,
                      dy, incy);
 
-        if (status != rocblas_status_success) {
-            CHECK_HIP_ERROR(hipFree(dA));
-            CHECK_HIP_ERROR(hipFree(dx));
-            CHECK_HIP_ERROR(hipFree(dy));
-            rocblas_destroy_handle(handle);
-            return status;
-        }
+        if (status != rocblas_status_success) return status;
     }
     if(argus.timing){
         gpu_time_used = get_time_us() - gpu_time_used;
@@ -205,9 +205,5 @@ rocblas_status testing_symv(Arguments argus)
             cout << endl;
     }
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dx));
-    CHECK_HIP_ERROR(hipFree(dy));
-    rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

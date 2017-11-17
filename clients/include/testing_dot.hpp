@@ -7,11 +7,12 @@
 #include <vector>
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include <complex.h>
 
 using namespace std;

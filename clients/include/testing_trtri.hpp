@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -9,38 +8,33 @@
 #include <vector>
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include "flops.h"
 
 using namespace std;
 
-
-/* ============================================================================================ */
-
 template<typename T>
 rocblas_status testing_trtri(Arguments argus)
 {
-
     rocblas_int N = argus.N;
     rocblas_int lda;
     rocblas_int ldinvA;
     ldinvA = lda = argus.lda;
 
-    rocblas_int A_size = lda * N;
+    rocblas_int size_A = lda * N;
 
     //check here to prevent undefined memory allocation error
     if( N < 0 || lda < 0 ){
         return rocblas_status_invalid_size;
     }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(A_size);
-    vector<T> hB(A_size);
-
-    T *dA, *dinvA;
+    vector<T> hA(size_A);
+    vector<T> hB(size_A);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -53,19 +47,21 @@ rocblas_status testing_trtri(Arguments argus)
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    rocblas_handle handle;
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) {
-        rocblas_destroy_handle(handle);
-        return status;
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dinvA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dinvA = (T*) dinvA_managed.get();
+    if (!dA || !dinvA)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return rocblas_status_memory_error;
     }
 
-    //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dinvA, A_size * sizeof(T)));
 
     //Initial Data on CPU
     srand(1);
@@ -86,7 +82,7 @@ rocblas_status testing_trtri(Arguments argus)
     hB = hA;
 
     //copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*size_A,  hipMemcpyHostToDevice));
 
     /* =====================================================================
            ROCBLAS
@@ -108,7 +104,7 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T)*A_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T)*size_A, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check){
         /* =====================================================================
@@ -167,8 +163,5 @@ rocblas_status testing_trtri(Arguments argus)
             cout << endl;
     }
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dinvA));
-    rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

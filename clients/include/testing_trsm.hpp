@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -11,11 +10,12 @@
 #include <cmath>     // std::abs
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include "flops.h"
 
 #define ERROR_EPS_MULTIPLIER 40
@@ -34,8 +34,6 @@ void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_i
     }
 }
 
-/* ============================================================================================ */
-
 template<typename T>
 rocblas_status testing_trsm(Arguments argus)
 {
@@ -50,84 +48,49 @@ rocblas_status testing_trsm(Arguments argus)
     char char_diag = argus.diag_option;
     T alpha = argus.alpha;
 
-    T *dA, *dXorB;
+    rocblas_int safe_size = 100;  // arbitrarily set to 100
 
     rocblas_side side = char2rocblas_side(char_side);
     rocblas_fill uplo = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K = (side == rocblas_side_left ? M : N);
-    rocblas_int A_size = lda * K;
-    rocblas_int B_size = ldb * N;
+    rocblas_int K = side == rocblas_side_left ? M : N;
+    rocblas_int size_A = lda * K;
+    rocblas_int size_B = ldb * N;
 
-    rocblas_handle handle;
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success)
-    {
-        rocblas_destroy_handle(handle);
-        return status;
-    }
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
     //check here to prevent undefined memory allocation error
     if( M < 0 || N < 0 || lda < K || ldb < M)
     {
-        CHECK_HIP_ERROR(hipMalloc(&dA, 100 * sizeof(T)));
-        CHECK_HIP_ERROR(hipMalloc(&dXorB, 100 * sizeof(T)));
+        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        auto dXorB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
+        T* dA = (T*) dA_managed.get();
+        T* dXorB = (T*) dXorB_managed.get();
+        if (!dA || !dXorB)
+        {
+            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+            return rocblas_status_memory_error;
+        }
 
-        status = rocblas_trsm<T>(handle,
-            side, uplo,
-            transA, diag,
-            M, N,
-            &alpha,
-            dA,lda,
-            dXorB,ldb);
+        status = rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha, dA,lda, dXorB,ldb);
 
         trsm_arg_check(status, M, N, lda, ldb);
 
-        CHECK_HIP_ERROR(hipFree(dA));
-        CHECK_HIP_ERROR(hipFree(dXorB));
-
         return status;
     }
-    else if (nullptr == dA || nullptr == dXorB )
-    {
-        status = rocblas_trsm<T>(handle,
-            side, uplo,
-            transA, diag,
-            M, N,
-            &alpha,
-            dA,lda,
-            dXorB,ldb);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: A or B or C is nullptr");
-
-        return status;
-    }
-    else if (nullptr == handle )
-    {
-        status = rocblas_trsm<T>(handle,
-            side, uplo,
-            transA, diag,
-            M, N,
-            &alpha,
-            dA,lda,
-            dXorB,ldb);
-
-        verify_rocblas_status_invalid_handle(status);
-
-        return status;
-    }
     //Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(A_size);
-    vector<T> AAT(A_size);
-    vector<T> hB(B_size);
-    vector<T> hX(B_size);
-    vector<T> hXorB(B_size);
-    vector<T> cpuXorB(B_size);
+    vector<T> hA(size_A);
+    vector<T> AAT(size_A);
+    vector<T> hB(size_B);
+    vector<T> hX(size_B);
+    vector<T> hXorB(size_B);
+    vector<T> cpuXorB(size_B);
     
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -138,8 +101,16 @@ rocblas_status testing_trsm(Arguments argus)
 
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, A_size * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dXorB, B_size * sizeof(T)));
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dXorB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dXorB = (T*) dXorB_managed.get();
+    if (!dA || !dXorB)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return rocblas_status_memory_error;
+    }
+
 
 //  Random lower triangular matrices have condition number
 //  that grows exponentially with matrix size. Random full
@@ -157,7 +128,7 @@ rocblas_status testing_trsm(Arguments argus)
 //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_init<T>(hA, K, K, lda);
 
-//  //pad untouched area into zero
+//  pad untouched area into zero
     for(int i = K; i < lda; i++)
     {
         for(int j = 0; j < K; j++)
@@ -185,7 +156,7 @@ rocblas_status testing_trsm(Arguments argus)
 //  calculate Cholesky factorization of SPD matrix hA
     cblas_potrf(char_uplo, K, hA.data(), lda);
 
-//  make unit diagonal if diag == rocblas_diagonal_unit
+//  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(char_diag == 'U' || char_diag == 'u')
     {
         if('L' == char_uplo || 'l' == char_uplo)
@@ -236,33 +207,28 @@ rocblas_status testing_trsm(Arguments argus)
     cpuXorB = hB;        // cpuXorB <- B
 
     //copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*A_size,  hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB.data(), sizeof(T)*B_size,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*size_A,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
 
     /* =====================================================================
            ROCBLAS
     =================================================================== */
-    if(argus.timing)
-    {
-        gpu_time_used = get_time_us();// in microseconds
-    }
+    gpu_time_used = get_time_us();// in microseconds
 
-    status = rocblas_trsm<T>(handle,
-            side, uplo,
-            transA, diag,
-            M, N,
-            &alpha,
-            dA,lda,
-            dXorB,ldb);     // dXorB <- A^(-1) B
+    // calculate dXorB <- A^(-1) B
+    CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(handle,
+                                        side, uplo,
+                                        transA, diag,
+                                        M, N,
+                                        &alpha,
+                                        dA,lda,
+                                        dXorB,ldb));
 
-    if(argus.timing)
-    {
-        gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
-    }
+    gpu_time_used = get_time_us() - gpu_time_used;
+    rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
 
     //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hXorB.data(), dXorB, sizeof(T)*B_size, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hXorB.data(), dXorB, sizeof(T)*size_B, hipMemcpyDeviceToHost));
 
     T max_err = 0.0;
     T max_res = 0.0;
@@ -338,28 +304,20 @@ rocblas_status testing_trsm(Arguments argus)
         cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         //only norm_check return an norm error, unit check won't return anything
-        cout << "M, N, lda, ldb, side, uplo, transA, diag, rocblas-Gflops (us) ";
-        if(argus.norm_check)
-        {
-            cout << "CPU-Gflops(us), norm-error" ;
-        }
+        cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+
+        if(argus.norm_check) cout << ",CPU-Gflops,us,norm-error" ;
+
         cout << endl;
 
         cout << M << ',' << N <<',' << lda <<','<< ldb <<',' << char_side << ',' << char_uplo << ',' 
              << char_transA << ','  << char_diag << ',' <<
-             rocblas_gflops << "(" << gpu_time_used  << "),";
+             rocblas_gflops << "," << gpu_time_used;
 
-        if(argus.norm_check)
-        {
-            cout << cblas_gflops << "(" << cpu_time_used << "),";
-            cout << max_err;
-        }
+        if(argus.norm_check) cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err;
 
         cout << endl;
     }
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dXorB));
-    rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }
