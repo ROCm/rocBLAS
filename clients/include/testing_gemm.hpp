@@ -406,25 +406,23 @@ rocblas_status range_testing_gemm(Arguments argus)
     vector<T> hC(size_C);
     vector<T> hC_copy(size_C);
 
-    T *dA, *dB, *dC;
-
-    rocblas_handle handle;
     rocblas_status status;
-    status = rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
 
-    if(status != rocblas_status_success) 
-    {
-        rocblas_destroy_handle(handle);
-        return status;
-    }
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dA, size_A * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dB, size_B * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dC, size_C * sizeof(T)));
-
-    //rocblas_malloc_device(&dx, sizeX * sizeof(T));
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),rocblas_test::device_free};
+    T* dA = (T*) dA_managed.get();
+    T* dB = (T*) dB_managed.get();
+    T* dC = (T*) dC_managed.get();
+    if (!dA || !dB || !dC)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return rocblas_status_memory_error;
+    }
 
     //Initial Data on CPU
     srand(1);
@@ -528,11 +526,6 @@ rocblas_status range_testing_gemm(Arguments argus)
 
     if (myfile.is_open()) myfile.close();
 
-    CHECK_HIP_ERROR(hipFree(dA));
-    CHECK_HIP_ERROR(hipFree(dB));
-    CHECK_HIP_ERROR(hipFree(dC));
-
-    rocblas_destroy_handle(handle);
     return status;
 }
 
