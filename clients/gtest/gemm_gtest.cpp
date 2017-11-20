@@ -24,11 +24,6 @@ README: This file contains testers to verify the correctness of
         Normal users only need to get the library routines without testers
      =================================================================== */
 
-TEST(rocblas_blas3, gemm_float_bad_arg)
-{
-    testing_gemm_bad_arg<float>();
-}
-
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
 typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
@@ -36,49 +31,57 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 //vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 //add/delete as a group
 const
-vector<vector<int>> matrix_small_size_range = {
-                                             {1, 1, 1, 1, 1, 1},
-                                             {1, 2, 3, 4, 5, 6},
+vector<vector<int>> tiny_matrix_size_range = {
+                                             {1, 1,  1,  1,  1,  1},
+                                             {1, 2,  3,  4,  5,  6},
                                              {7, 9, 15, 17, 18, 19},
                                        };
 
 const
-vector<vector<int>> matrix_size_range = {
-                                             {-1, -1, -1, -1, 1, 1},
-                                             { 3, 33,  3,  33, 35, 35},
-                                             { 5,  6,  7,  9, 11, 13},
-                                             {10, 10, 20, 100, 10, 10},
-                                             {600,501, 502, 503, 604, 505},
-                                             {1025, 1026, 1027, 1028, 1029, 1031}
+vector<vector<int>> small_matrix_size_range = {
+                                             {  -1,   -1,   -1,   -1,    1,    1},
+                                             {   3,   33,    3,   33,   35,   35},
+                                             {   5,    6,    7,    9,   11,   13},
+                                             {  10,   10,   20,  100,   21,   22},
+                                             { 500,  501,  502,  503,  604,  505},
+                                             { 500,  501,  502,  203,  204,  205},
                                        };
 
 const
-vector<vector<int>> full_matrix_size_range = {
-                                             {191, 193, 194, 195, 196, 197},
-                                             {640, 640, 347, 960, 960, 960},
+vector<vector<int>> large_matrix_size_range = {
+                                             { 191,  193, 194,  195,  196,  197},
+                                             { 640,  640, 347,  960,  961,  962},
                                              {1000, 1001, 101, 1002, 1003, 1004},
+                                             {1025, 1026, 1027, 1028, 1029, 1031},
                                              {4011, 4012, 103, 4014, 4015, 4016},
                                              };
 
 const
 vector<vector<int>> NaN_matrix_size_range = {
-                                             { 5,  6,  7,  8, 9, 10},
+                                             {   5,    6,  7,     8,    9,   10},
                                              {4011, 4012, 111, 4013, 4014, 4015},
                                             };
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
 const
-vector<vector<double>> alpha_beta_range = { 
+vector<vector<double>> NaN_alpha_beta_range = { 
                                             {1.0, 0.0},
                                           };
 
 const
+vector<vector<double>> alpha_beta_range = { 
+                                            {5.0, 0.0},
+                                            {0.0, 3.0},
+                                            {1.0, 3.0},
+                                          };
+
+const
 vector<vector<double>> full_alpha_beta_range = {
-                                                    {1.0, 0.0},
+                                                    { 1.0,  0.0},
                                                     {-1.0, -1.0},
-                                                    {2.0, 1.0},
-                                                    {0.0, 1.0}
+                                                    { 2.0,  1.0},
+                                                    { 0.0,  1.0}
                                                };
 
 //vector of vector, each pair is a {transA, transB};
@@ -134,48 +137,39 @@ Arguments setup_gemm_arguments(gemm_tuple tup)
     return arg;
 }
 
-class gemm_NaN: public :: TestWithParam <gemm_tuple>
+class parameterized_gemm_NaN: public :: TestWithParam <gemm_tuple>
 {
     protected:
-        gemm_NaN(){}
-        virtual ~gemm_NaN(){}
+        parameterized_gemm_NaN(){}
+        virtual ~parameterized_gemm_NaN(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
-TEST_P(gemm_NaN, gemm_NaN_float)
+TEST_P(parameterized_gemm_NaN, float)
 {
     Arguments arg = setup_gemm_arguments( GetParam() );
 
     testing_gemm_NaN<float>(arg);
 }
   
-TEST_P(gemm_NaN, gemm_NaN_double)
+TEST_P(parameterized_gemm_NaN, double)
 {
     Arguments arg = setup_gemm_arguments( GetParam() );
 
     testing_gemm_NaN<double>(arg);
 }
   
-// The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_beta_eq_0, gemm_NaN,
-                        Combine(
-                                  ValuesIn(NaN_matrix_size_range), 
-                                  ValuesIn(alpha_beta_range), 
-                                  ValuesIn(transA_transB_range)
-                               )
-                        );
-
-class gemm_gtest: public :: TestWithParam <gemm_tuple>
+class parameterized_gemm: public :: TestWithParam <gemm_tuple>
 {
     protected:
-        gemm_gtest(){}
-        virtual ~gemm_gtest(){}
+        parameterized_gemm(){}
+        virtual ~parameterized_gemm(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
-TEST_P(gemm_gtest, gemm_gtest_float)
+TEST_P(parameterized_gemm, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -209,7 +203,7 @@ TEST_P(gemm_gtest, gemm_gtest_float)
     }
 }
 
-TEST_P(gemm_gtest, gemm_gtest_double)
+TEST_P(parameterized_gemm, double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -242,15 +236,34 @@ TEST_P(gemm_gtest, gemm_gtest_double)
     }
 }
 
+TEST(checkin_blas3_bad_arg, gemm_float)
+{
+    testing_gemm_bad_arg<float>();
+}
+
+TEST(checkin_blas3_bad_arg, gemm_double)
+{
+    testing_gemm_bad_arg<double>();
+}
+
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
 
-//THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is small
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size, gemm_gtest,
+// INSTANTIATE_TEST_CASE_P(rocblas_gemm_beta_eq_0, parameterized_gemm_NaN,
+INSTANTIATE_TEST_CASE_P(checkin_blas3_NaN, parameterized_gemm_NaN,
                         Combine(
-                                  ValuesIn(full_matrix_size_range), 
+                                  ValuesIn(NaN_matrix_size_range), 
+                                  ValuesIn(NaN_alpha_beta_range), 
+                                  ValuesIn(transA_transB_range)
+                               )
+                        );
+
+//THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is small
+INSTANTIATE_TEST_CASE_P(daily_blas3_large, parameterized_gemm,
+                        Combine(
+                                  ValuesIn(large_matrix_size_range), 
                                   ValuesIn(alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )
@@ -258,17 +271,17 @@ INSTANTIATE_TEST_CASE_P(rocblas_gemm_matrix_size, gemm_gtest,
 
 //THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
   
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_scalar_transpose, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_blas3_small, parameterized_gemm,
                         Combine(
-                                  ValuesIn(matrix_size_range), 
+                                  ValuesIn(small_matrix_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )
                         );
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_small_size, gemm_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny, parameterized_gemm,
                         Combine(
-                                  ValuesIn(matrix_small_size_range), 
+                                  ValuesIn(tiny_matrix_size_range), 
                                   ValuesIn(full_alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )

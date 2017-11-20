@@ -1,8 +1,6 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
-
 
 #include <gtest/gtest.h>
 #include <math.h>
@@ -16,8 +14,6 @@ using ::testing::Values;
 using ::testing::ValuesIn;
 using ::testing::Combine;
 using namespace std;
-
-//only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
 typedef std::tuple<vector<int>, vector<double>, vector<char>, int> gemm_strided_batched_tuple;
 
@@ -43,23 +39,19 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //add/delete as a group, in batched gemm, the matrix is much smaller than standard gemm
 const
 vector<vector<int>> matrix_size_range = {
-                                        {-1, -1, -1, -1, 1, 1},
-                                        {31, 33, 35, 101, 102, 103},
-                                        {59, 61, 63, 129, 131, 137},
+                                        { -1,  -1,  -1,  -1,   1,   1},
+                                        { 31,  33,  35, 101, 102, 103},
+                                        { 59,  61,  63, 129, 131, 137},
                                         {129, 130, 131, 132, 133, 134},
                                         {501, 502, 103, 504, 605, 506},
                                        };
 
-
-
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
 const
-vector<vector<double>> alpha_beta_range = { {1.0, 0.0},
+vector<vector<double>> alpha_beta_range = { { 1.0,  0.0},
                                             {-1.0, -1.0},
                                           };
-
-
 
 //vector of vector, each pair is a {transA, transB};
 //add/delete this list in pairs, like {'N', 'T'}
@@ -76,11 +68,10 @@ vector<vector<char>> transA_transB_range = {
 const
 vector<int> batch_count_range = {
                                         -1,
-                                        0,
-                                        3,
+                                         0,
+                                         1,
+                                         3,
                                        };
-
-
 
 /* ===============Google Unit Test==================================================== */
 
@@ -130,17 +121,17 @@ Arguments setup_gemm_strided_batched_arguments(gemm_strided_batched_tuple tup)
 }
 
 
-class gemm_strided_batched_gtest: public :: TestWithParam <gemm_strided_batched_tuple>
+class gemm_strided_batched: public :: TestWithParam <gemm_strided_batched_tuple>
 {
     protected:
-        gemm_strided_batched_gtest(){}
-        virtual ~gemm_strided_batched_gtest(){}
+        gemm_strided_batched(){}
+        virtual ~gemm_strided_batched(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(gemm_strided_batched_gtest, float)
+TEST_P(gemm_strided_batched, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -153,29 +144,32 @@ TEST_P(gemm_strided_batched_gtest, float)
     rocblas_status status = testing_gemm_strided_batched<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-
-        if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
+    if(status != rocblas_status_success)
+    {
+        if( arg.M < 0 || arg.N < 0 || arg.K < 0 )
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldc < arg.M){
+        else if(arg.ldc < arg.M)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.batch_count < 0){
+        else if(arg.batch_count < 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
-
 }
 
-
-TEST_P(gemm_strided_batched_gtest, double)
+TEST_P(gemm_strided_batched, double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -188,25 +182,33 @@ TEST_P(gemm_strided_batched_gtest, double)
     rocblas_status status = testing_gemm_strided_batched<double>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-
-        if( arg.M < 0 || arg.N < 0 || arg.K < 0 ){
+    if(status != rocblas_status_success)
+    {
+        if( arg.M < 0 || arg.N < 0 || arg.K < 0 )
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K){
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N){
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldc < arg.M){
+        else if(arg.ldc < arg.M)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.batch_count < 0){
+        else if(arg.batch_count < 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else 
+        {
+            EXPECT_EQ(rocblas_status_success, status);
         }
     }
-
 }
 
 //notice we are using vector of vector
@@ -214,9 +216,12 @@ TEST_P(gemm_strided_batched_gtest, double)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB}, {batch_count} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_gemm_strided_batched,
-                        gemm_strided_batched_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_blas3,
+                        gemm_strided_batched,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(alpha_beta_range), ValuesIn(transA_transB_range), ValuesIn(batch_count_range)
+                                  ValuesIn(matrix_size_range), 
+                                  ValuesIn(alpha_beta_range), 
+                                  ValuesIn(transA_transB_range), 
+                                  ValuesIn(batch_count_range)
                                )
                         );
