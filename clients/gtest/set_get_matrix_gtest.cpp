@@ -1,8 +1,6 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
-
 
 #include <gtest/gtest.h>
 #include <math.h>
@@ -40,7 +38,6 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-
 // small sizes
 
 //vector of vector, each triple is a {rows, cols};
@@ -49,7 +46,8 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const
 vector<vector<int>> rows_cols_range = {
                                             { 3,  3},
-                                            { 3, 30}
+                                            { 3, 30},
+                                            { 30, 3}
                                       };
 
 //vector of vector, each triple is a {lda, ldb, ldc};
@@ -58,11 +56,12 @@ vector<vector<int>> rows_cols_range = {
 const
 vector<vector<int>> lda_ldb_ldc_range = {
       {3,3,3}, {3,3,4}, {3,3,5}, {3,4,3}, {3,4,4}, {3,4,5}, {3,5,3}, {3,5,4}, {3,5,5},
-      {5,3,3}, {5,3,4}, {5,3,5}, {5,4,3}, {5,4,4}, {5,4,5}, {5,5,3}, {5,5,4}, {5,5,5}
+      {5,3,3}, {5,3,4}, {5,3,5}, {5,4,3}, {5,4,4}, {5,4,5}, {5,5,3}, {5,5,4}, {5,5,5},
+      {30,30,30}, {31,32,33}
                                         };
 
 // large sizes   {{rows, cols},{lda,ldb,ldc}}
-set_get_matrix_tuple gemm_values1 {{300000, 21}, {300000,300000,300000}};
+set_get_matrix_tuple gemm_values1 {{300000, 21}, {300000,300001,300002}};
 set_get_matrix_tuple gemm_values2 {{300001, 22}, {300001,300001,300010}};
 set_get_matrix_tuple gemm_values3 {{300002, 23}, {300002,300020,300002}};
 set_get_matrix_tuple gemm_values4 {{300003, 24}, {300003,300021,300011}};
@@ -71,7 +70,7 @@ set_get_matrix_tuple gemm_values6 {{300005, 26}, {300031,300005,300012}};
 set_get_matrix_tuple gemm_values7 {{300006, 27}, {300032,300022,300006}};
 set_get_matrix_tuple gemm_values8 {{300007, 28}, {300033,300023,300013}};
 
-set_get_matrix_tuple gemm_values11 {{20,300000},{ 20, 20, 20}};
+set_get_matrix_tuple gemm_values11 {{20,300000},{ 20, 21, 22}};
 set_get_matrix_tuple gemm_values12 {{21,300001},{ 21, 21, 40}};
 set_get_matrix_tuple gemm_values13 {{22,300011},{ 22, 31, 22}};
 set_get_matrix_tuple gemm_values14 {{23,300111},{ 23, 32, 33}};
@@ -82,7 +81,12 @@ set_get_matrix_tuple gemm_values18 {{27,300022},{ 39, 40, 41}};
 
 set_get_matrix_tuple gemm_values21 {{3,3000222},{  4,  4,  4}};
 
-const vector<set_get_matrix_tuple> gemm_values_vec = {
+const vector<set_get_matrix_tuple> small_gemm_values_vec = {
+                                        gemm_values1, 
+                                        gemm_values11 
+                                                           };
+
+const vector<set_get_matrix_tuple> large_gemm_values_vec = {
                                         gemm_values1, 
                                         gemm_values2,
                                         gemm_values3,
@@ -100,7 +104,7 @@ const vector<set_get_matrix_tuple> gemm_values_vec = {
                                         gemm_values17,
                                         gemm_values18,
                                         gemm_values21
-                                                     };
+                                                           };
 
 /* ===============Google Unit Test==================================================== */
 
@@ -137,17 +141,17 @@ Arguments setup_set_get_matrix_arguments(set_get_matrix_tuple tup)
 }
 
 
-class set_matrix_get_matrix_gtest: public :: TestWithParam <set_get_matrix_tuple>
+class parameterized_set_matrix_get_matrix: public :: TestWithParam <set_get_matrix_tuple>
 {
     protected:
-        set_matrix_get_matrix_gtest(){}
-        virtual ~set_matrix_get_matrix_gtest(){}
+        parameterized_set_matrix_get_matrix(){}
+        virtual ~parameterized_set_matrix_get_matrix(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-TEST_P(set_matrix_get_matrix_gtest, float)
+TEST_P(parameterized_set_matrix_get_matrix, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -200,19 +204,79 @@ TEST_P(set_matrix_get_matrix_gtest, float)
     }
 }
 
+
+TEST_P(parameterized_set_matrix_get_matrix, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_set_get_matrix_arguments( GetParam() );
+
+    rocblas_status status = testing_set_get_matrix<double>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if (status != rocblas_status_success)
+    {
+        if (arg.rows < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.cols <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.lda <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldb <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldc <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.lda < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldb < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if (arg.ldc < arg.rows)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+    }
+}
+
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_auxiliary_small,
-                        set_matrix_get_matrix_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_auxilliary,
+                        parameterized_set_matrix_get_matrix,
                         Combine(
-                                  ValuesIn(rows_cols_range),ValuesIn(lda_ldb_ldc_range)
+                                  ValuesIn(rows_cols_range),
+                                  ValuesIn(lda_ldb_ldc_range)
                                )
                        );
 
-INSTANTIATE_TEST_CASE_P(rocblas_auxiliary_large,
-                        set_matrix_get_matrix_gtest,
-                        ValuesIn(gemm_values_vec)
+INSTANTIATE_TEST_CASE_P(checkin_auxilliary_2,
+                        parameterized_set_matrix_get_matrix,
+                        ValuesIn(small_gemm_values_vec)
+                       );
+
+INSTANTIATE_TEST_CASE_P(daily_auxilliary,
+                        parameterized_set_matrix_get_matrix,
+                        ValuesIn(large_gemm_values_vec)
                        );

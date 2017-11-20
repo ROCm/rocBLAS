@@ -105,21 +105,6 @@ rocblas_status testing_set_get_matrix(Arguments argus)
     rocblas_init<T>(hc, rows, cols, ldc);
     hb_gold = hb;
 
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-        gpu_time_used = get_time_us();// in microseconds
-
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_set_matrix(rows, cols, sizeof(T), (void *) ha.data(), lda, (void *) dc, ldc);
-            rocblas_get_matrix(rows, cols, sizeof(T), (void *) dc, ldc, (void *) hb.data(), ldb);
-        }
-
-        gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_bandwidth = (rows*cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
-    }
-
     if (argus.unit_check || argus.norm_check) 
     {
         // ROCBLAS
@@ -158,6 +143,18 @@ rocblas_status testing_set_get_matrix(Arguments argus)
 
     if(argus.timing) 
     {
+        int number_timing_iterations = 1;
+        gpu_time_used = get_time_us();// in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
+        {
+            rocblas_set_matrix(rows, cols, sizeof(T), (void *) ha.data(), lda, (void *) dc, ldc);
+            rocblas_get_matrix(rows, cols, sizeof(T), (void *) dc, ldc, (void *) hb.data(), ldb);
+        }
+
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_bandwidth = (rows*cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
+
         cout << "rows,cols,lda,ldb,rocblas-GB/s";
 
         if(argus.norm_check) cout << ",CPU-GB/s" ;

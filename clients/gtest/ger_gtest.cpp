@@ -41,7 +41,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //vector of vector, each vector is a {M, N, lda};
 //add/delete as a group
 const
-vector<vector<int>> matrix_size_range = {
+vector<vector<int>> small_matrix_size_range = {
                                         {-1,  1,  1},
                                         { 1, -1,  1},
                                         { 1,  1, -1},
@@ -49,10 +49,10 @@ vector<vector<int>> matrix_size_range = {
                                         { 0,  1,  1},
                                         { 1,  0,  1},
                                         { 1,  1,  0},
-                                        {11, 11, 11},
+                                        {11, 12, 13},
                                         {16, 16, 16},
-                                        {32, 32, 32},
-                                        {65, 65, 65},
+                                        {33, 32, 33},
+                                        {65, 65, 66},
                                    /*   {10, 10, 2},       */
                                    /*   {600,500, 500},    */
                                         {1000, 1000, 1000},
@@ -68,7 +68,7 @@ vector<vector<int>> large_matrix_size_range = {
 //vector of vector, each pair is a {incx, incy};
 //add/delete this list in pairs, like {1, 1}
 const
-vector<vector<int>> incx_incy_range = {
+vector<vector<int>> small_incx_incy_range = {
                                             { 1,   1},
                                             {-1,   1},
                                             { 1,  -1},
@@ -77,10 +77,10 @@ vector<vector<int>> incx_incy_range = {
                                             { 0,   1},
                                             { 1,   0},
                                             { 2,   1},
-                                            {10, 100}
+                                            {10,  99}
                                           };
 const
-vector<vector<int>> limited_incx_incy_range = {
+vector<vector<int>> large_incx_incy_range = {
                                             { 1,   1},
                                             {-1,   1},
                                             { 1,   2},
@@ -89,13 +89,13 @@ vector<vector<int>> limited_incx_incy_range = {
 //vector, each entry is  {alpha};
 //add/delete single values, like {2.0}
 const
-vector<double> alpha_range = {
+vector<double> small_alpha_range = {
                                             -0.5,
                                              2.0,
                                              0.0
                                           };
 const
-vector<double> limited_alpha_range = {
+vector<double> large_alpha_range = {
                                              0.6,
                                           };
 
@@ -127,12 +127,12 @@ Arguments setup_ger_arguments(ger_tuple tup)
 
     Arguments arg;
 
-    // see the comments about matrix_size_range above
+    // see the comments about small_matrix_size_range above
     arg.M = matrix_size[0];
     arg.N = matrix_size[1];
     arg.lda = matrix_size[2];
 
-    // see the comments about matrix_size_range above
+    // see the comments about small_matrix_size_range above
     arg.incx = incx_incy[0];
     arg.incy = incx_incy[1];
 
@@ -144,21 +144,46 @@ Arguments setup_ger_arguments(ger_tuple tup)
 }
 
 
-class ger_gtest: public :: TestWithParam <ger_tuple>
+class parameterized_ger: public :: TestWithParam <ger_tuple>
 {
     protected:
-        ger_gtest(){}
-        virtual ~ger_gtest(){}
+        parameterized_ger(){}
+        virtual ~parameterized_ger(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
-TEST(blas2_gtest, ger_float_bad_arg)
+TEST_P(parameterized_ger, parameterized_ger_double)
 {
-    testing_ger_bad_arg<float>();
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+
+    Arguments arg = setup_ger_arguments( GetParam() );
+
+    rocblas_status status = testing_ger<double>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+
+        if( arg.M < 0 || arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.lda < arg.M){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.incx <= 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.incy <= 0){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
 }
 
-TEST_P(ger_gtest, ger_gtest_float)
+TEST_P(parameterized_ger, parameterized_ger_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -186,7 +211,6 @@ TEST_P(ger_gtest, ger_gtest_float)
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
-
 }
 
 //notice we are using vector of vector
@@ -194,17 +218,25 @@ TEST_P(ger_gtest, ger_gtest_float)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_blas2,
-                        ger_gtest,
+TEST(checkin_blas2_bad_arg, ger_float)
+{
+    testing_ger_bad_arg<float>();
+}
+
+INSTANTIATE_TEST_CASE_P(checkin_blas2,
+                        parameterized_ger,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_range)
+                                  ValuesIn(small_matrix_size_range), 
+                                  ValuesIn(small_incx_incy_range), 
+                                  ValuesIn(small_alpha_range)
                                )
                         );
 
-INSTANTIATE_TEST_CASE_P(large_rocblas_blas2,
-                        ger_gtest,
+INSTANTIATE_TEST_CASE_P(daily_rocblas_blas2,
+                        parameterized_ger,
                         Combine(
-                                  ValuesIn(large_matrix_size_range), ValuesIn(limited_incx_incy_range), ValuesIn(limited_alpha_range)
+                                  ValuesIn(large_matrix_size_range), 
+                                  ValuesIn(large_incx_incy_range), 
+                                  ValuesIn(large_alpha_range)
                                )
                         );
-

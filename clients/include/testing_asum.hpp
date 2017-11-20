@@ -129,25 +129,9 @@ rocblas_status testing_asum(Arguments argus)
 
     double gpu_time_used, cpu_time_used;
 
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        gpu_time_used = get_time_us();  // in microseconds
-
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_asum<T1,T2>(handle, N, dx, incx, &rocblas_result_1);
-        }
-
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
-    }
-
     if(argus.unit_check || argus.norm_check)
     {
         // GPU BLAS rocblas_pointer_mode_host
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T1)*size_x, hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_asum<T1,T2>(handle, N, dx, incx, &rocblas_result_1)));
 
@@ -180,6 +164,18 @@ rocblas_status testing_asum(Arguments argus)
 
     if(argus.timing)
     {
+        int number_timing_iterations = 1;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        gpu_time_used = get_time_us();  // in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
+        {
+            rocblas_asum<T1,T2>(handle, N, dx, incx, &rocblas_result_1);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+
         cout << "N,rocblas(us)";
 
         if(argus.norm_check) cout << ",CPU(us),error_host_ptr,error_dev_ptr" ;

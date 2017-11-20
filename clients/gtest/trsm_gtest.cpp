@@ -43,17 +43,17 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //add/delete as a group
 const
 vector<vector<int>> matrix_size_range = {
-                                        {-1, -1, 1, 1},
-                                        {10, 10, 20, 100},
-                                        {600, 500, 600, 600},
-                                        {1024, 1024, 1024, 1024}
+                                        {  -1,   -1,    1,   1},
+                                        {  10,   10,   20,  100},
+                                        { 600,  500,  600,  600},
                                        };
 
 const
-vector<vector<int>> full_matrix_size_range = {
-                                        {192, 192, 192, 192},
-                                        {640, 640, 960, 960},
+vector<vector<int>> large_matrix_size_range = {
+                                        { 192,  192,  192,  192},
+                                        { 640,  640,  960,  960},
                                         {1000, 1000, 1000, 1000},
+                                        {1024, 1024, 1024, 1024},
                                         {2000, 2000, 2000, 2000},
                                        };
 
@@ -217,20 +217,25 @@ TEST_P(trsm_gtest, trsm_gtest_double)
 //THis function mainly test the scope of matrix_size. the scope of side_uplo_transA_diag_range is small
 //Testing order: side_uplo_transA_xx first, alpha_range second, full_matrix_size last
 //i.e fix the matrix size and alpha, test all the side_uplo_transA_xx first.
-INSTANTIATE_TEST_CASE_P(rocblas_trsm_matrix_size,
+//INSTANTIATE_TEST_CASE_P(rocblas_trsm_matrix_size,
+INSTANTIATE_TEST_CASE_P(daily_blas3,
                         trsm_gtest,
                         Combine(
-                                  ValuesIn(full_matrix_size_range), ValuesIn(alpha_range), ValuesIn(side_uplo_transA_diag_range)
+                                  ValuesIn(large_matrix_size_range), 
+                                  ValuesIn(alpha_range), 
+                                  ValuesIn(side_uplo_transA_diag_range)
                                )
                         );
 
 
 //THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of matrix_size_range is small
 
-INSTANTIATE_TEST_CASE_P(rocblas_trsm_scalar_transpose,
+INSTANTIATE_TEST_CASE_P(checkin_blas3,
                         trsm_gtest,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(alpha_range), ValuesIn(full_side_uplo_transA_diag_range)
+                                  ValuesIn(matrix_size_range), 
+                                  ValuesIn(alpha_range), 
+                                  ValuesIn(full_side_uplo_transA_diag_range)
                                )
                         );
 

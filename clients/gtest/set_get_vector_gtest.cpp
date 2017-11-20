@@ -41,12 +41,15 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //vector of vector, each vector is a {M};
 //add/delete as a group
 const
-int M_range[] = { 600, 6000000 };
+int small_M_range[] = { 10, 600, 600000 };
+
+const
+int large_M_range[] = { 1000000, 6000000 };
 
 //vector of vector, each triple is a {incx, incy, incb};
 //add/delete this list in pairs, like {1, 1, 1}
 const
-vector<vector<int>> incx_incy_incb_range = {
+vector<vector<int>> small_incx_incy_incb_range = {
                                             {1, 1, 1},
                                             {1, 1, 2},
                                             {1, 1, 3},
@@ -64,6 +67,18 @@ vector<vector<int>> incx_incy_incb_range = {
                                             {3, 2, 3},
                                             {3, 3, 1},
                                             {3, 3, 2},
+                                            {3, 3, 3}
+                                          };
+
+const
+vector<vector<int>> large_incx_incy_incb_range = {
+                                            {1, 1, 1},
+                                            {1, 1, 3},
+                                            {1, 3, 1},
+                                            {1, 3, 3},
+                                            {3, 1, 1},
+                                            {3, 1, 3},
+                                            {3, 3, 1},
                                             {3, 3, 3}
                                           };
 
@@ -103,18 +118,18 @@ Arguments setup_set_get_vector_arguments(set_get_vector_tuple tup)
 }
 
 
-class set_vector_get_vector_gtest: public :: TestWithParam <set_get_vector_tuple>
+class parameterized_set_vector_get_vector: public :: TestWithParam <set_get_vector_tuple>
 {
     protected:
-        set_vector_get_vector_gtest(){}
-        virtual ~set_vector_get_vector_gtest(){}
+        parameterized_set_vector_get_vector(){}
+        virtual ~parameterized_set_vector_get_vector(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
 
-//TEST_P(set_vector_get_vector_gtest, set_get_vector_float)
-TEST_P(set_vector_get_vector_gtest, float)
+//TEST_P(parameterized_set_vector_get_vector, set_get_vector_float)
+TEST_P(parameterized_set_vector_get_vector, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -151,14 +166,58 @@ TEST_P(set_vector_get_vector_gtest, float)
     }
 }
 
+TEST_P(parameterized_set_vector_get_vector, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_set_get_vector_arguments( GetParam() );
+
+    rocblas_status status = testing_set_get_vector<double>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if( arg.M < 0 )
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.incx <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.incy <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.incb <= 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+    }
+}
+
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_auxiliary_small,
-                        set_vector_get_vector_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_auxiliary,
+                        parameterized_set_vector_get_vector,
                         Combine(
-                                  ValuesIn(M_range), ValuesIn(incx_incy_incb_range)
+                                  ValuesIn(small_M_range), ValuesIn(small_incx_incy_incb_range)
+                               )
+                        );
+
+INSTANTIATE_TEST_CASE_P(daily_auxiliary,
+                        parameterized_set_vector_get_vector,
+                        Combine(
+                                  ValuesIn(large_M_range), ValuesIn(large_incx_incy_incb_range)
                                )
                         );

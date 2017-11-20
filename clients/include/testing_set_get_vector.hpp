@@ -102,24 +102,6 @@ rocblas_status testing_set_get_vector(Arguments argus)
     rocblas_init<T>(hb, 1, M, incb);
     hy_gold = hy;
 
-    /* =====================================================================
-           ROCBLAS
-    =================================================================== */
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-        gpu_time_used = get_time_us();// in microseconds
-
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_set_vector( M, sizeof(T), (void *) hx.data(), incx, (void *) db, incb);
-            rocblas_get_vector( M, sizeof(T), (void *) db, incb, (void *) hy.data(), incy);
-        }
-
-        gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_bandwidth = (M * sizeof(T))/ gpu_time_used / 1e3 / number_timing_iterations;
-    }
-
     if (argus.unit_check || argus.norm_check)
     {
         // GPU BLAS
@@ -158,15 +140,27 @@ rocblas_status testing_set_get_vector(Arguments argus)
 
     if(argus.timing)
     {
+        int number_timing_iterations = 1;
+        gpu_time_used = get_time_us();// in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
+        {
+            rocblas_set_vector( M, sizeof(T), (void *) hx.data(), incx, (void *) db, incb);
+            rocblas_get_vector( M, sizeof(T), (void *) db, incb, (void *) hy.data(), incy);
+        }
+
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_bandwidth = (M * sizeof(T))/ gpu_time_used / 1e3 / number_timing_iterations;
+
         cout << "M,incx,incy,incb,rocblas-GB/s";
 
-        if(argus.norm_check) cout << ",CPU-GB/s" ;
+        if(argus.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity()) cout << ",CPU-GB/s" ;
 
         cout << endl;
 
         cout << M << "," << incx << "," << incy << "," << incb << "," << rocblas_bandwidth ;
 
-        if(argus.norm_check) cout << "," << cpu_bandwidth ;
+        if(argus.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity()) cout << "," << cpu_bandwidth ;
 
         cout << endl;
     }

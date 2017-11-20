@@ -129,21 +129,6 @@ rocblas_status testing_iamax(Arguments argus)
 
     double gpu_time_used, cpu_time_used;
 
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        
-        gpu_time_used = get_time_us();// in microseconds
-
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_iamax<T>(handle, N, dx, incx, d_rocblas_result);
-        }
-
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
-    }
-
     if(argus.unit_check || argus.norm_check)
     {
         // GPU BLAS rocblas_pointer_mode_host
@@ -180,6 +165,18 @@ rocblas_status testing_iamax(Arguments argus)
 
     if(argus.timing)
     {
+        int number_timing_iterations = 1;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        
+        gpu_time_used = get_time_us();// in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
+        {
+            rocblas_iamax<T>(handle, N, dx, incx, d_rocblas_result);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+
         cout << "N,rocblas-us";
 
         if(argus.norm_check) cout << ",cpu_time_used,rocblas_error_host_ptr,rocblas_error_dev_ptr";

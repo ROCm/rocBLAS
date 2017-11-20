@@ -18,7 +18,6 @@
 
 using namespace std;
 
-/* ============================================================================================ */
 template<typename T>
 void testing_ger_bad_arg()
 {
@@ -176,27 +175,9 @@ rocblas_status testing_ger(Arguments argus)
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T)*M * abs_incx, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T)*N * abs_incy, hipMemcpyHostToDevice));
 
-    if (argus.timing)
-    {
-        int number_timing_iterations = 1;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        gpu_time_used = get_time_us();// in microseconds
-
-        for (int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_ger<T>(handle, M, N, (T*)&h_alpha, dx, incx, dy, incy, dA_1, lda);
-        }
-
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
-        rocblas_gflops = ger_gflop_count<T> (M, N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (2.0 * M * N) * sizeof(T)/ gpu_time_used / 1e3;
-    }
-
     if(argus.unit_check || argus.norm_check)
     {
         //copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2.data(), sizeof(T)*lda*N,  hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
@@ -237,21 +218,31 @@ rocblas_status testing_ger(Arguments argus)
 
     if(argus.timing)
     {
-        //only norm_check return an norm error, unit check won't return anything
-        cout << "M,N,lda,rocblas-Gflops,rocblas-GB/s, ";
-        if(argus.norm_check)
+        int number_timing_iterations = 1;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        gpu_time_used = get_time_us();// in microseconds
+
+        for (int iter = 0; iter < number_timing_iterations; iter++)
         {
-            cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr" ;
+            rocblas_ger<T>(handle, M, N, (T*)&h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+        rocblas_gflops = ger_gflop_count<T> (M, N) / gpu_time_used * 1e6 * 1;
+        rocblas_bandwidth = (2.0 * M * N) * sizeof(T)/ gpu_time_used / 1e3;
+
+        //only norm_check return an norm error, unit check won't return anything
+        cout << "M,N,lda,rocblas-Gflops,rocblas-GB/s";
+
+        if(argus.norm_check) cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr" ;
+
         cout << endl;
 
-        cout << M << ',' << N << ',' << lda << ',' << rocblas_gflops << ',' << rocblas_bandwidth << ','  ;
+        cout << M << "," << N << "," << lda << "," << rocblas_gflops << "," << rocblas_bandwidth;
 
-        if(argus.norm_check)
-        {
-            cout << cblas_gflops << ',';
-            cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
+        if(argus.norm_check) cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+
         cout << endl;
     }
 

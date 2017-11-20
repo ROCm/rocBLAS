@@ -41,7 +41,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 //vector of vector, each vector is a {M, N, lda};
 //add/delete as a group
 const
-vector<vector<int>> matrix_size_range = {
+vector<vector<int>> small_matrix_size_range = {
                                         {-1,  1,  1},
                                         { 1, -1,  1},
                                         { 1,  1,  0},
@@ -49,8 +49,13 @@ vector<vector<int>> matrix_size_range = {
                                         { 0,  1,  1},
                                         { 1,  0,  1},
                                         {-1, -1, -1},
-                                    /*  {10, 10, 2},       */
-                                    /*  {600,500, 500},    */
+                                        {10, 10, 2},
+                                        {300,400, 400},
+                                        {600,500, 601},
+                                       };
+
+const
+vector<vector<int>> large_matrix_size_range = {
                                         {1000, 1000, 1000},
                                         {2000, 2000, 2000},
                                         {4011, 4011, 4011},
@@ -60,17 +65,25 @@ vector<vector<int>> matrix_size_range = {
 //vector of vector, each pair is a {incx, incy};
 //add/delete this list in pairs, like {1, 1}
 const
-vector<vector<int>> incx_incy_range = {
+vector<vector<int>> small_incx_incy_range = {
+                                            { 2,   1},
+                                            {-1,  -2},
                                             { 1,   1},
-                                            {-1,   1},
-                                            { 1,  -1},
-                                            {-1,  -1},
+                                            {-1,   3},
+                                            { 3,  -1},
                                             { 0,   1},
                                             { 1,   0},
                                             { 0,  -1},
-                                            { 2,   1},
-                                            { 1,   2},
                                             {10, 100},
+                                          };
+
+const
+vector<vector<int>> large_incx_incy_range = {
+                                            { 2,   1},
+                                            {-1,   3},
+                                            { 3,  -1},
+                                            { 0,   1},
+                                            { 1,   0},
                                           };
 
 //vector of vector, each pair is a {alpha, beta};
@@ -142,21 +155,16 @@ Arguments setup_gemv_arguments(gemv_tuple tup)
 }
 
 
-class gemv_gtest: public :: TestWithParam <gemv_tuple>
+class parameterized_gemv: public :: TestWithParam <gemv_tuple>
 {
     protected:
-        gemv_gtest(){}
-        virtual ~gemv_gtest(){}
+        parameterized_gemv(){}
+        virtual ~parameterized_gemv(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
-TEST(rocblas_blas2, gemv_bad_arg_float)
-{
-    testing_gemv_bad_arg<float>();
-}
-
-TEST_P(gemv_gtest, gemv_gtest_float)
+TEST_P(parameterized_gemv, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -187,14 +195,63 @@ TEST_P(gemv_gtest, gemv_gtest_float)
 
 }
 
+TEST_P(parameterized_gemv, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+
+    Arguments arg = setup_gemv_arguments( GetParam() );
+
+    rocblas_status status = testing_gemv<double>( arg );
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success){
+
+        if( arg.M < 0 || arg.N < 0 ){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.lda < arg.M || arg.lda < 1){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(0 == arg.incx){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(0 == arg.incy){
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+
+}
+
 //notice we are using vector of vector
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha, beta}, {transA} }
 
-INSTANTIATE_TEST_CASE_P(rocblas_blas2,
-                        gemv_gtest,
+TEST(checkin_blas2_bad_arg, gemv_bad_arg_float)
+{
+    testing_gemv_bad_arg<float>();
+}
+
+INSTANTIATE_TEST_CASE_P(checkin_blas2,
+                        parameterized_gemv,
                         Combine(
-                                  ValuesIn(matrix_size_range), ValuesIn(incx_incy_range), ValuesIn(alpha_beta_range), ValuesIn(transA_range)
+                                  ValuesIn(small_matrix_size_range), 
+                                  ValuesIn(small_incx_incy_range), 
+                                  ValuesIn(alpha_beta_range), 
+                                  ValuesIn(transA_range)
+                               )
+                        );
+
+INSTANTIATE_TEST_CASE_P(daily_blas2,
+                        parameterized_gemv,
+                        Combine(
+                                  ValuesIn(large_matrix_size_range), 
+                                  ValuesIn(large_incx_incy_range), 
+                                  ValuesIn(alpha_beta_range), 
+                                  ValuesIn(transA_range)
                                )
                         );
