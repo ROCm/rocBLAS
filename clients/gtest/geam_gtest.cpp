@@ -23,11 +23,6 @@ README: This file contains testers to verify the correctness of
         Normal users only need to get the library routines without testers
      =================================================================== */
 
-TEST(rocblas_blas3, geam_float_bad_arg)
-{
-    testing_geam_bad_arg<float>();
-}
-
 //only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
 typedef std::tuple<vector<int>, vector<double>, vector<char>> geam_tuple;
@@ -35,44 +30,50 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>> geam_tuple;
 //vector of vector, each vector is a {M, N, lda, ldb, ldc};
 //add/delete as a group
 const
-vector<vector<int>> matrix_size_range = {
+vector<vector<int>> small_matrix_size_range = {
                                              {-1, -1, -1, 1, 1},
                                              { 0,  0,  1, 1, 1},
                                              { 3, 33,  35, 35, 35},
                                              { 5,  5,  5, 5, 5},
-                                             {10, 10, 100, 10, 10},
+                                             {10, 11, 100, 12, 13},
                                              {600,500, 601, 602, 603},
-                                             {1024, 1024, 1024, 1024, 1024}
                                        };
 
 const
-vector<vector<int>> full_matrix_size_range = {
+vector<vector<int>> large_matrix_size_range = {
                                              {192, 192, 192, 192, 192},
                                              {192, 193, 194, 195, 196},
-                                             {640, 640, 960, 960, 960},
-                                             {1000, 1000, 1000, 1000, 1000},
-                                       //    {4011, 4011, 4011, 4011, 4011},
+                                             {640, 641, 960, 961, 962},
+                                             {1001, 1000, 1003, 1002, 1001},
+                                             };
+const
+vector<vector<int>> huge_matrix_size_range = {
+                                             {4011, 4012, 4012, 4013, 4014},
                                              };
 
 //vector of vector, each pair is a {alpha, beta};
 //add/delete this list in pairs, like {2.0, 4.0}
 const
-vector<vector<double>> alpha_beta_range = { 
-                                            {1.0, 0.0},
-                                            {1.0, 3.0},
-                                            {0.0, 1.0},
-                                            {0.0, 0.0},
-                                          };
-
-const
-vector<vector<double>> full_alpha_beta_range = {
-                                                    {1.0, 0.0},
-                                                    {0.0, 1.0},
-                                                    { 3.0, 1.0},
+vector<vector<double>> small_alpha_beta_range = {
+                                                    { 1.0,  0.0},
+                                                    { 0.0,  1.0},
+                                                    { 3.0,  1.0},
                                                     {-1.0, -1.0},
                                                     {-1.0,  0.0},
                                                     { 0.0, -1.0},
                                                };
+const
+vector<vector<double>> large_alpha_beta_range = { 
+                                                    { 1.0, 0.0},
+                                                    { 1.0, 3.0},
+                                                    { 0.0, 1.0},
+                                                    { 0.0, 0.0},
+                                          };
+const
+vector<vector<double>> huge_alpha_beta_range = { 
+                                                    { 1.0, 3.0},
+                                          };
+
 
 //vector of vector, each pair is a {transA, transB};
 //add/delete this list in pairs, like {'N', 'T'}
@@ -109,7 +110,7 @@ Arguments setup_geam_arguments(geam_tuple tup)
 
     Arguments arg;
 
-    // see the comments about matrix_size_range above
+    // see the comments about small_matrix_size_range above
     arg.M = matrix_size[0];
     arg.N = matrix_size[1];
     arg.lda = matrix_size[2];
@@ -128,16 +129,16 @@ Arguments setup_geam_arguments(geam_tuple tup)
     return arg;
 }
 
-class geam_gtest: public :: TestWithParam <geam_tuple>
+class parameterized_geam: public :: TestWithParam <geam_tuple>
 {
     protected:
-        geam_gtest(){}
-        virtual ~geam_gtest(){}
+        parameterized_geam(){}
+        virtual ~parameterized_geam(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
 
-TEST_P(geam_gtest, geam_gtest_float)
+TEST_P(parameterized_geam, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -175,7 +176,7 @@ TEST_P(geam_gtest, geam_gtest_float)
     }
 }
 
-TEST_P(geam_gtest, geam_gtest_double)
+TEST_P(parameterized_geam, double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -217,24 +218,31 @@ TEST_P(geam_gtest, geam_gtest_double)
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
 
+TEST(checkin_blas3_bad_arg, geam_float)
+{
+    testing_geam_bad_arg<float>();
+}
 
-//THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is small
-INSTANTIATE_TEST_CASE_P(rocblas_geam_matrix_size, geam_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_blas3, parameterized_geam,
                         Combine(
-                                  ValuesIn(full_matrix_size_range), 
-                                  ValuesIn(alpha_beta_range), 
+                                  ValuesIn(small_matrix_size_range), 
+                                  ValuesIn(small_alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )
                         );
 
-
-//THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range is small
-  
-
-INSTANTIATE_TEST_CASE_P(rocblas_geam_scalar_transpose, geam_gtest,
+INSTANTIATE_TEST_CASE_P(daily_blas3_1, parameterized_geam,
                         Combine(
-                                  ValuesIn(matrix_size_range), 
-                                  ValuesIn(full_alpha_beta_range), 
+                                  ValuesIn(large_matrix_size_range), 
+                                  ValuesIn(large_alpha_beta_range), 
+                                  ValuesIn(transA_transB_range)
+                               )
+                        );
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_2, parameterized_geam,
+                        Combine(
+                                  ValuesIn(huge_matrix_size_range), 
+                                  ValuesIn(huge_alpha_beta_range), 
                                   ValuesIn(transA_transB_range)
                                )
                         );

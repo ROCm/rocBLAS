@@ -93,11 +93,11 @@ vector<vector<int>> incx_incy_range = {
      BLAS-1:  iamax, asum, axpy, copy, dot, nrm2, scal, swap 
 =================================================================== */
 
-class blas1_gtest: public :: TestWithParam <blas1_tuple>
+class parameterized: public :: TestWithParam <blas1_tuple>
 {
     protected:
-        blas1_gtest(){}
-        virtual ~blas1_gtest(){}
+        parameterized(){}
+        virtual ~parameterized(){}
         virtual void SetUp(){}
         virtual void TearDown(){}
 };
@@ -128,36 +128,36 @@ Arguments setup_blas1_arguments(blas1_tuple tup)
     return arg;
 }
 
-TEST(blas1_gtest, iamax_bad_arg_float)
+TEST(checkin_blas1_bad_arg, iamax_float)
 {
     testing_iamax_bad_arg<float>();
 }
-TEST(blas1_gtest, asum_float_bad_arg)
+TEST(checkin_blas1_bad_arg, asum_float)
 {
     testing_asum_bad_arg<float, float>();
 }
-TEST(blas1_gtest, axpy_float_bad_arg)
+TEST(checkin_blas1_bad_arg, axpy_float)
 {
     testing_axpy_bad_arg<float>();
 }
-TEST(blas1_gtest, copy_float_bad_arg)
+TEST(checkin_blas1_bad_arg, copy_float)
 {
     testing_copy_bad_arg<float>();
 }
-TEST(blas1_gtest, dot_float_bad_arg)
+TEST(checkin_blas1_bad_arg, dot_float)
 {
     testing_dot_bad_arg<float>();
 }
-TEST(blas1_gtest, scal_float_bad_arg)
+TEST(checkin_blas1_bad_arg, scal_float)
 {
     testing_scal_bad_arg<float>();
 }
-TEST(blas1_gtest, swap_float_bad_arg)
+TEST(checkin_blas1_bad_arg, swap_float)
 {
     testing_swap_bad_arg<float>();
 }
 
-TEST_P(blas1_gtest, iamax_float)
+TEST_P(parameterized, iamax_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -170,7 +170,7 @@ TEST_P(blas1_gtest, iamax_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, iamax_double)
+TEST_P(parameterized, iamax_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -183,7 +183,7 @@ TEST_P(blas1_gtest, iamax_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, asum_float)
+TEST_P(parameterized, asum_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -196,7 +196,7 @@ TEST_P(blas1_gtest, asum_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, axpy_float)
+TEST_P(parameterized, axpy_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -209,7 +209,7 @@ TEST_P(blas1_gtest, axpy_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, axpy_double)
+TEST_P(parameterized, axpy_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -222,7 +222,7 @@ TEST_P(blas1_gtest, axpy_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, axpy_half)
+TEST_P(parameterized, axpy_half)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -235,7 +235,7 @@ TEST_P(blas1_gtest, axpy_half)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, copy_float)
+TEST_P(parameterized, copy_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -248,7 +248,7 @@ TEST_P(blas1_gtest, copy_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, dot_float)
+TEST_P(parameterized, dot_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -261,7 +261,7 @@ TEST_P(blas1_gtest, dot_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, dot_double)
+TEST_P(parameterized, dot_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -274,7 +274,7 @@ TEST_P(blas1_gtest, dot_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, nrm2_float)
+TEST_P(parameterized, nrm2_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -287,7 +287,7 @@ TEST_P(blas1_gtest, nrm2_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, scal_float)
+TEST_P(parameterized, scal_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -300,7 +300,7 @@ TEST_P(blas1_gtest, scal_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(blas1_gtest, swap_float)
+TEST_P(parameterized, swap_float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -318,8 +318,8 @@ TEST_P(blas1_gtest, swap_float)
 //so each elment in xxx_range is a avector,
 //ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { N, {alpha, beta}, {incx, incy} }
-INSTANTIATE_TEST_CASE_P(rocblas_blas1,
-                        blas1_gtest,
+INSTANTIATE_TEST_CASE_P(checkin_blas1,
+                        parameterized,
                         Combine(
                                   ValuesIn(N_range), 
                                   ValuesIn(alpha_beta_range), 

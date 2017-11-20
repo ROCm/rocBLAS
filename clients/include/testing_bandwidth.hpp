@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "rocblas.hpp"
+#include "arg_check.h"
+#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -29,35 +31,36 @@ rocblas_status testing_bandwidth(Arguments argus)
 
     rocblas_status status = rocblas_status_success;
 
-    rocblas_int sizeX = N * incx;
+    rocblas_int size_X = N * incx;
     T alpha = 2.0;
 
     //Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hx(sizeX);
-    vector<T> hz(sizeX);
+    vector<T> hx(size_X);
+    vector<T> hz(size_X);
 
     if( N > hx.max_size()){
         printf("max_size of a std::vector is %lu, please reduce the input size \n", hx.max_size());
         return status;
     }
 
-
-    T *dx, *dy;
-
     double gpu_time_used, gpu_bandwidth;
 
-    rocblas_handle handle;
-    rocblas_create_handle(&handle);
-    verify_rocblas_status_success(status,"ERROR: rocblas_create_handle");
-
-    if(status != rocblas_status_success) {
-        rocblas_destroy_handle(handle);
-        return status;
-    }
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
 
     //allocate memory on device
-    CHECK_HIP_ERROR(hipMalloc(&dx, sizeX * sizeof(T)));
-    CHECK_HIP_ERROR(hipMalloc(&dy, sizeX * sizeof(T)));
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_X),rocblas_test::device_free};
+    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_X),rocblas_test::device_free};
+    auto d_rocblas_result_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)),rocblas_test::device_free};
+    T* dx = (T*) dx_managed.get();
+    T* dy = (T*) dy_managed.get();
+    T* d_rocblas_result = (T*) d_rocblas_result_managed.get();
+    if (!dx || !dy || !d_rocblas_result)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
+
 
     //Initial Data on CPU
     srand(1);
@@ -85,10 +88,8 @@ rocblas_status testing_bandwidth(Arguments argus)
         status = rocblas_scal<T>(handle,
                         N, &alpha,
                         dx, incx);
-        if (status != rocblas_status_success) {
-            CHECK_HIP_ERROR(hipFree(dx));
-            CHECK_HIP_ERROR(hipFree(dy));
-            rocblas_destroy_handle(handle);
+        if (status != rocblas_status_success) 
+        {
             break;
             return status;
         }
@@ -123,9 +124,5 @@ rocblas_status testing_bandwidth(Arguments argus)
 
     }
 
-    CHECK_HIP_ERROR(hipFree(dx));
-    CHECK_HIP_ERROR(hipFree(dy));
-
-    rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }
