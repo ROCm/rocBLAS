@@ -88,8 +88,8 @@ axpy_kernel_device_scalar(hipLaunchParm lp,
     }
 }
 
-__global__
-void haxpy_mod_8_device_scalar(int n, const __fp16 *alpha, const __fp16 *x, __fp16 *y)
+__global__ void 
+haxpy_mod_8_device_scalar(int n, const __fp16 *alpha, const __fp16 *x, __fp16 *y)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -98,8 +98,8 @@ void haxpy_mod_8_device_scalar(int n, const __fp16 *alpha, const __fp16 *x, __fp
     if (index < n) y[index] = (*alpha) * x[index] + y[index];
 }
 
-__global__
-void haxpy_mod_8_host_scalar(int n, const __fp16 alpha, const __fp16 *x, __fp16 *y)
+__global__ void 
+haxpy_mod_8_host_scalar(int n, const __fp16 alpha, const __fp16 *x, __fp16 *y)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -141,10 +141,10 @@ haxpy_mlt_8_device_scalar(int n_mlt_8, const __fp16 *alpha, half8 *x, half8 *y)
         x3[0] = x[tid][6];
         x3[1] = x[tid][7];
 
-        z0 = rocblas_fmadd_half2(alpha_h2, x0, y0);
-        z1 = rocblas_fmadd_half2(alpha_h2, x1, y1);
-        z2 = rocblas_fmadd_half2(alpha_h2, x2, y2);
-        z3 = rocblas_fmadd_half2(alpha_h2, x3, y3);
+        rocblas_fmadd_half2(alpha_h2, x0, y0, &z0);
+        rocblas_fmadd_half2(alpha_h2, x1, y1, &z1);
+        rocblas_fmadd_half2(alpha_h2, x2, y2, &z2);
+        rocblas_fmadd_half2(alpha_h2, x3, y3, &z3);
 
         y[tid][0] = z0[0];
         y[tid][1] = z0[1];
@@ -186,10 +186,10 @@ haxpy_mlt_8_host_scalar(int n_mlt_8, half2 alpha, half8 *x, half8 *y)
         x3[0] = x[tid][6];
         x3[1] = x[tid][7];
 
-        z0 = rocblas_fmadd_half2(alpha, x0, y0);
-        z1 = rocblas_fmadd_half2(alpha, x1, y1);
-        z2 = rocblas_fmadd_half2(alpha, x2, y2);
-        z3 = rocblas_fmadd_half2(alpha, x3, y3);
+        rocblas_fmadd_half2(alpha, x0, y0, &z0);
+        rocblas_fmadd_half2(alpha, x1, y1, &z1);
+        rocblas_fmadd_half2(alpha, x2, y2, &z2);
+        rocblas_fmadd_half2(alpha, x3, y3, &z3);
 
         y[tid][0] = z0[0];
         y[tid][1] = z0[1];
