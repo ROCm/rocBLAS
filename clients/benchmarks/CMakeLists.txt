@@ -78,11 +78,11 @@ endif( )
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-  target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument )
+  target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument -mf16c )
 
-  # foreach( target ${AMDGPU_TARGETS} )
-  #   target_link_libraries( rocblas-bench PRIVATE --amdgpu-target=${target} )
-  # endforeach( )
+elseif( CMAKE_COMPILER_IS_GNUCXX )
+  # GCC needs specific flags to turn on f16c intrinsics
+  target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
 set_target_properties( rocblas-bench PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )

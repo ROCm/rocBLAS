@@ -56,10 +56,6 @@ if( BUILD_WITH_TENSILE )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
     target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument )
-
-    # foreach( target ${AMDGPU_TARGETS} )
-    #   target_link_libraries( Tensile PRIVATE --amdgpu-target=${target} )
-    # endforeach( )
   endif( )
 
   if( ROCBLAS_SHARED_LIBS )
