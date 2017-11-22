@@ -9,6 +9,7 @@
 #include "rocblas.h"
 #include "cblas_interface.h"
 #include "cblas.h"
+#include "utility.h"
 
 /*!\file
  * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing not part of the GPU library
@@ -117,21 +118,21 @@ extern "C" {
     {
         rocblas_int abs_incx = incx >=0 ? incx : -incx;
         rocblas_int abs_incy = incy >=0 ? incy : -incy;
-        float alpha_float = static_cast<float>(alpha);
+        float alpha_float = half_to_float( alpha );
         std::unique_ptr<float []> x_float(new float[n*abs_incx]());
         std::unique_ptr<float []> y_float(new float[n*abs_incy]());
         for (int i = 0; i < n; i++)
         {
-            x_float[i*abs_incx] = static_cast<float>(x[i*abs_incx]);
-            y_float[i*abs_incy] = static_cast<float>(y[i*abs_incy]);
+            x_float[i * abs_incx] = half_to_float(x[i * abs_incx]);
+            y_float[i * abs_incy] = half_to_float(y[i * abs_incy]);
         }
 
         cblas_saxpy(n, alpha_float, x_float.get(), incx, y_float.get(), incy);
 
         for (int i = 0; i < n; i++)
         {
-            x[i*abs_incx] = static_cast<rocblas_half>(x_float[i*abs_incx]);
-            y[i*abs_incy] = static_cast<rocblas_half>(y_float[i*abs_incy]);
+            x[i * abs_incx] = float_to_half(x_float[i * abs_incx]);
+            y[i * abs_incy] = float_to_half(y_float[i * abs_incy]);
         }
     }
 
@@ -625,7 +626,7 @@ extern "C" {
     template<>
     rocblas_int cblas_getrf<float>(rocblas_int m,
                             rocblas_int n,
-                            float *A, rocblas_int lda, 
+                            float *A, rocblas_int lda,
                             rocblas_int *ipiv)
     {
         rocblas_int info;
@@ -636,7 +637,7 @@ extern "C" {
     template<>
     rocblas_int cblas_getrf<double>(rocblas_int m,
                             rocblas_int n,
-                            double *A, rocblas_int lda, 
+                            double *A, rocblas_int lda,
                             rocblas_int *ipiv)
     {
         rocblas_int info;
@@ -647,7 +648,7 @@ extern "C" {
     template<>
     rocblas_int cblas_getrf<rocblas_float_complex>(rocblas_int m,
                             rocblas_int n,
-                            rocblas_float_complex *A, rocblas_int lda, 
+                            rocblas_float_complex *A, rocblas_int lda,
                             rocblas_int *ipiv)
     {
         rocblas_int info;
@@ -658,7 +659,7 @@ extern "C" {
     template<>
     rocblas_int cblas_getrf<rocblas_double_complex>(rocblas_int m,
                             rocblas_int n,
-                            rocblas_double_complex *A, rocblas_int lda, 
+                            rocblas_double_complex *A, rocblas_int lda,
                             rocblas_int *ipiv)
     {
         rocblas_int info;

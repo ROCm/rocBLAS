@@ -9,8 +9,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
-#include "rocblas.h"
 #include <sys/time.h>
+#include <immintrin.h>
+#include <typeinfo>
+
+#include "rocblas.h"
 
 using namespace std;
 
@@ -53,6 +56,20 @@ using namespace std;
         cout << endl;                                                            \
     }
 
+    // Helper routine to convert floats into their half equivalent; uses F16C instructions
+    inline rocblas_half float_to_half( float val )
+    {
+        //return static_cast<rocblas_half>( _mm_cvtsi128_si32( _mm_cvtps_ph( _mm_set_ss( val ), 0 ) ) );
+        return _cvtss_sh( val, 0 );
+    }
+
+    // Helper routine to convert halfs into their floats equivalent; uses F16C instructions
+    inline float half_to_float( rocblas_half val )
+    {
+        //return static_cast<rocblas_half>(_mm_cvtss_f32(_mm_cvtph_ps(_mm_cvtsi32_si128(val), 0)));
+        return _cvtsh_ss( val );
+    }
+
     /* ============================================================================================ */
     /* generate random number :*/
 
@@ -73,6 +90,33 @@ using namespace std;
         for (rocblas_int i = 0; i < M; ++i){
             for (rocblas_int j = 0; j < N; ++j){
                 A[i+j*lda] = random_generator<T>();
+            }
+        }
+    };
+
+    /*! \brief  matrix/vector initialization: */
+    // for vector x (M=1, N=lengthX, lda=incx);
+    // initializing vector with a constant value passed as a parameter
+    template <typename T>
+    void rocblas_init(vector<T> &A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
+    {
+        for (rocblas_int i = 0; i < M; ++i)
+        {
+            for (rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda] = value;
+            }
+        }
+    };
+
+    template<>
+    inline void rocblas_init(vector<rocblas_half> &A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
+    {
+        for (rocblas_int i = 0; i < M; ++i)
+        {
+            for (rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda] = float_to_half( value );
             }
         }
     };
@@ -101,6 +145,32 @@ using namespace std;
         }
     };
 
+    /*! \brief  matrix/vector initialization: */
+    // for vector x (M=1, N=lengthX, lda=incx);
+    // initializing vector with a constant value passed as a parameter
+    template <typename T>
+    void rocblas_print_vector(vector<T> &A, rocblas_int M, rocblas_int N, rocblas_int lda)
+    {
+        if (typeid(T) == typeid(float))
+            std::cout << "vec[float]: ";
+        else if (typeid(T) == typeid(double))
+            std::cout << "vec[double]: ";
+        else if (typeid(T) == typeid(rocblas_half))
+            std::cout << "vec[rocblas_half]: ";
+
+        for (rocblas_int i = 0; i < M; ++i)
+        {
+            for (rocblas_int j = 0; j < N; ++j)
+            {
+                if (typeid(T) == typeid(rocblas_half))
+                    printf("%04x,", A[i + j * lda] );
+                else
+                    std::cout << A[i + j * lda] << ", ";
+            }
+        }
+        std::cout << std::endl;
+    };
+
     /* ============================================================================================ */
     /*! \brief  turn float -> 's', double -> 'd', rocblas_float_complex -> 'c', rocblas_double_complex -> 'z' */
     template<typename T>
@@ -109,7 +179,7 @@ using namespace std;
     /* ============================================================================================ */
     /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
     template<typename T>
-    void print_matrix(vector<T> CPU_result, vector<T> GPU_result, rocblas_int m, rocblas_int n, rocblas_int lda){  
+    void print_matrix(vector<T> CPU_result, vector<T> GPU_result, rocblas_int m, rocblas_int n, rocblas_int lda){
         for(int i=0;i<m;i++)
             for(int j=0;j<n;j++)
             {

@@ -84,10 +84,15 @@ rocblas_status testing_axpy(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int incx = argus.incx;
     rocblas_int incy = argus.incy;
-    T h_alpha = argus.alpha;
     rocblas_int safe_size = 100;   // arbitrarily set to 100
+    T h_alpha = 0;
+    if (typeid(T) == typeid(rocblas_half))
+        h_alpha = float_to_half( argus.alpha );
+    else
+        h_alpha = argus.alpha;
 
-    std::unique_ptr<rocblas_test::handle_struct> test_handle(new rocblas_test::handle_struct);
+    std::unique_ptr<rocblas_test::handle_struct>
+        test_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = test_handle->handle;
 
     //argument sanity check before allocating invalid memory
@@ -216,9 +221,9 @@ rocblas_status testing_axpy(Arguments argus)
         if (argus.norm_check) cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr" ;
 
         cout << endl;
-        
+
         cout << N << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
-       
+
         if (argus.norm_check) cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
 
         cout << endl;
