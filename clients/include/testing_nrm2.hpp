@@ -20,7 +20,7 @@
 using namespace std;
 
 template<typename T1, typename T2>
-void testing_nrm2_bad_arg()
+rocblas_status testing_nrm2_bad_arg()
 {
     rocblas_int N = 100;
     rocblas_int incx = 1;
@@ -38,13 +38,14 @@ void testing_nrm2_bad_arg()
     if (!dx || !d_rocblas_result)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return;
+        return rocblas_status_memory_error;
     }
 
     // test if (nullptr == dx)
     {
         T1 *dx_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx_null, incx, d_rocblas_result);
 
         verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
@@ -53,6 +54,7 @@ void testing_nrm2_bad_arg()
     {
         T2 *d_rocblas_result_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result_null);
 
         verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
@@ -61,10 +63,12 @@ void testing_nrm2_bad_arg()
     {
         rocblas_handle handle_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle_null, N, dx, incx, d_rocblas_result);
 
         verify_rocblas_status_invalid_handle(status);
     }
+    return rocblas_status_success;
 }
 
 template<typename T1, typename T2>
@@ -99,6 +103,7 @@ rocblas_status testing_nrm2(Arguments argus)
             return rocblas_status_memory_error;
         }
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result);
 
         nrm2_dot_arg_check(status, d_rocblas_result);
@@ -177,9 +182,10 @@ rocblas_status testing_nrm2(Arguments argus)
 
         gpu_time_used = get_time_us();// in microseconds
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         for (int iter = 0; iter < number_timing_iterations; iter++)
         {
-            (rocblas_nrm2<T1, T2>(handle, N, dx, incx, &rocblas_result_2));
+            rocblas_nrm2<T1, T2>(handle, N, dx, incx, &rocblas_result_2);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;

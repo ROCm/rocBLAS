@@ -1,6 +1,5 @@
 /* ************************************************************************
- * dotright 2016 Advanced Micro Devices, Inc.
- *
+ * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
@@ -10,6 +9,7 @@
 #include "definitions.h"
 #include "device_template.h"
 #include "rocblas_unique_ptr.hpp"
+#include "handle.h"
 
 template<typename T, rocblas_int NB>
 __global__ void
@@ -24,9 +24,9 @@ dot_kernel_part1(hipLaunchParm lp,
 
     __shared__ T shared_tep[NB];
     //bound
-    if(incx >= 0 && incy >= 0)
+    if (incx >= 0 && incy >= 0)
     {
-        if ( tid < n )
+        if (tid < n)
         {
             shared_tep[tx] = y[tid*incy] * x[tid * incx];
         }
@@ -72,7 +72,7 @@ dot_kernel_part1(hipLaunchParm lp,
 
     rocblas_sum_reduce<NB, T>(tx, shared_tep);
 
-    if(tx == 0) workspace[hipBlockIdx_x] = shared_tep[0];
+    if (tx == 0) workspace[hipBlockIdx_x] = shared_tep[0];
 }
 
 template<typename T, rocblas_int NB, rocblas_int flag>
@@ -90,30 +90,38 @@ dot_kernel_part2(hipLaunchParm lp,
     shared_tep[tx] = 0.0;
 
     //bound, loop
-    for(rocblas_int i=tx; i<n; i+=NB){
+    for (rocblas_int i=tx; i<n; i+=NB)
+    {
         shared_tep[i] += workspace[i];
     }
     __syncthreads();
 
-    if(n < 32){
+    if (n < 32)
+    {
         // no need parallel reduction
-        if(tx == 0){
-            for(rocblas_int i=1;i<n;i++){
+        if (tx == 0)
+        {
+            for (rocblas_int i=1;i<n;i++)
+            {
                 shared_tep[0] += shared_tep[i];
             }
         }
     }
-    else{
-            //parallel reduction, TODO bug
-            rocblas_sum_reduce<NB, T>(tx, shared_tep);
+    else
+    {
+        //parallel reduction, TODO bug
+        rocblas_sum_reduce<NB, T>(tx, shared_tep);
     }
 
-    if(tx == 0){
-        if(flag){
+    if (tx == 0)
+    {
+        if (flag)
+        {
             //flag == 1, write to result of device memory
             *result = shared_tep[0]; //result[0] works, too
         }
-        else{
+        else
+        {
             workspace[0] = shared_tep[0];
         }
     }
@@ -132,14 +140,14 @@ rocblas_dot_template_workspace(rocblas_handle handle,
     const T *y, rocblas_int incy,
     T* result, T* workspace, rocblas_int lworkspace)
 {
-
     rocblas_int blocks = (n-1)/ NB_X + 1;
 
     //At least two kernels are needed to finish the reduction
     //kennel 1 write partial result per thread block in workspace, number of partial result is blocks
     //kernel 2 gather all the partial result in workspace and finish the final reduction. number of threads (NB_X) loop blocks
 
-    if(lworkspace < blocks) {
+    if (lworkspace < blocks)
+    {
         printf("size workspace = %d is too small, allocate at least %d", lworkspace, blocks);
         return rocblas_status_not_implemented;
     }
@@ -152,11 +160,13 @@ rocblas_dot_template_workspace(rocblas_handle handle,
 
     hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy, workspace);
 
-    if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+    if (rocblas_pointer_mode_device == handle->pointer_mode)
+    {
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream, blocks, workspace, result);
     }
-    else{
+    else
+    {
         //the last argument 0 indicate the result is on host
         // workspace[0] has a copy of the final result, if the result pointer is on host, a memory copy is required
         //printf("it is a host pointer\n");
@@ -219,17 +229,20 @@ rocblas_dot_template(rocblas_handle handle,
     /*
      * Quick return if possible.
      */
-    if (n <= 0){
-        if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+    if (n <= 0)
+    {
+        if (rocblas_pointer_mode_device == handle->pointer_mode)
+        {
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T)));
         }
-        else{
+        else
+        {
             *result = 0.0;
         }
         return rocblas_status_success;
     }
 
-    rocblas_int blocks = (n-1)/ NB_X + 1;
+    rocblas_int blocks = (n-1) / NB_X + 1;
 
     rocblas_status status;
 
@@ -258,8 +271,8 @@ rocblas_sdot(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
     const float *y, rocblas_int incy,
-    float *result){
-
+    float *result)
+{
     return rocblas_dot_template<float>(handle, n, x, incx, y, incy, result);
 }
 
@@ -269,11 +282,10 @@ rocblas_ddot(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
     const double *y, rocblas_int incy,
-    double *result){
-
+    double *result)
+{
     return rocblas_dot_template<double>(handle, n, x, incx, y, incy, result);
 }
-
 
 extern "C"
 rocblas_status
@@ -281,11 +293,10 @@ rocblas_cdotu(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
     const rocblas_float_complex *y, rocblas_int incy,
-    rocblas_float_complex *result){
-
+    rocblas_float_complex *result)
+{
     return rocblas_dot_template<rocblas_float_complex>(handle, n, x, incx, y, incy, result);
 }
-
 
 extern "C"
 rocblas_status
@@ -293,11 +304,7 @@ rocblas_zdotu(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
     const rocblas_double_complex *y, rocblas_int incy,
-    rocblas_double_complex *result){
-
+    rocblas_double_complex *result)
+{
     return rocblas_dot_template<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
 }
-
-
-
-/* ============================================================================================ */

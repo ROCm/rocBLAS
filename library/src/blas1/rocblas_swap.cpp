@@ -7,7 +7,6 @@
  
 #include "definitions.h"
 
-
 #define NB_X 256
 
 template<typename T>

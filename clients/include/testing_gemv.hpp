@@ -74,25 +74,25 @@ void testing_gemv_bad_arg()
         
         status = rocblas_gemv<T>(handle, transA, M, N, (T*)&alpha, dA_null, lda, dx, incx, (T*)&beta, dy, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: A is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"rocBLAS TEST ERROR: A is null pointer");
     }
     {
         T *dx_null = nullptr;
         status = rocblas_gemv<T>(handle, transA, M, N, (T*)&alpha, dA, lda, dx_null, incx, (T*)&beta, dy, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: x is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"rocBLAS TEST ERROR: x is null pointer");
     }
     {
         T *dy_null = nullptr;
         status = rocblas_gemv<T>(handle, transA, M, N, (T*)&alpha, dA, lda, dx, incx, (T*)&beta, dy_null, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: y is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"rocBLAS TEST ERROR: y is null pointer");
     }
     {
         T *beta_null = nullptr;
         status = rocblas_gemv<T>(handle, transA, M, N, (T*)&alpha, dA, lda, dx, incx, beta_null, dy, incy);
 
-        verify_rocblas_status_invalid_pointer(status,"ERROR: beta is null pointer");
+        verify_rocblas_status_invalid_pointer(status,"rocBLAS TEST ERROR: beta is null pointer");
     }
     {
         rocblas_handle handle_null = nullptr;
@@ -123,7 +123,7 @@ rocblas_status testing_gemv(Arguments argus)
     rocblas_status status;
 
     //argument sanity check before allocating invalid memory
-    if (M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy)
+    if (M <= 0 || N <= 0 || lda < M || lda < 1 || 0 == incx || 0 == incy)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};
         auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),rocblas_test::device_free};

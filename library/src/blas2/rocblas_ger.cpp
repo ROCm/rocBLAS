@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
@@ -8,6 +7,7 @@
 #include "status.h"
 #include "definitions.h"
 #include "ger_device.h"
+#include "handle.h"
 
 template<typename T>
 __global__ void
@@ -112,7 +112,9 @@ rocblas_ger_template(rocblas_handle handle,
      * Quick return if possible. Not Argument error
      */
     if ( m == 0 || n == 0 || alpha == 0)
+    {
         return rocblas_status_success;
+    }
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
@@ -123,14 +125,15 @@ rocblas_ger_template(rocblas_handle handle,
     rocblas_int blocksY = ((n-1) / GEMV_DIM_Y) + 1;
 
     dim3 ger_grid( blocksX, blocksY, 1 );
-    dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y, 1 );
+    dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y, 1);
 
-    if( rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_device ) 
+    if (rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_device_pointer<T>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
                                         m, n, alpha, x, incx, y, incy, A, lda);
     }
-    else{
+    else
+    {
         T h_alpha_scalar = *alpha;
         hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_host_pointer<T>), dim3(ger_grid), dim3(ger_threads), 0, rocblas_stream,
                                         m, n, h_alpha_scalar, x, incx, y, incy, A, lda);
@@ -141,16 +144,11 @@ rocblas_ger_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-
-/* ============================================================================================ */
-
     /*
      * ===========================================================================
      *    C wrapper
      * ===========================================================================
      */
-
-
 
 extern "C"
 rocblas_status
@@ -159,10 +157,9 @@ rocblas_sger(rocblas_handle handle,
              const float *alpha,
              const float *x, rocblas_int incx,
              const float *y, rocblas_int incy,
-                   float *A, rocblas_int lda){
-
+                   float *A, rocblas_int lda)
+{
     return   rocblas_ger_template<float>(handle, m, n, alpha, x, incx, y, incy, A, lda);
-
 }
 
 extern "C"
@@ -172,8 +169,7 @@ rocblas_dger(rocblas_handle handle,
              const double *alpha,
              const double *x, rocblas_int incx,
              const double *y, rocblas_int incy,
-                   double *A, rocblas_int lda){
-
+                   double *A, rocblas_int lda)
+{
     return   rocblas_ger_template<double>(handle, m, n, alpha, x, incx, y, incy, A, lda);
-
 }

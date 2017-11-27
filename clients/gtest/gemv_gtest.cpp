@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
@@ -126,7 +125,6 @@ vector<char> transA_range = {
 
 Arguments setup_gemv_arguments(gemv_tuple tup)
 {
-
     vector<int> matrix_size = std::get<0>(tup);
     vector<int> incx_incy = std::get<1>(tup);
     vector<double> alpha_beta = std::get<2>(tup);
@@ -171,28 +169,30 @@ TEST_P(parameterized_gemv, float)
     // The Arguments data struture have physical meaning associated.
     // while the tuple is non-intuitive.
 
-
     Arguments arg = setup_gemv_arguments( GetParam() );
 
     rocblas_status status = testing_gemv<float>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-
-        if( arg.M < 0 || arg.N < 0 ){
+    if (status != rocblas_status_success)
+    {
+        if (arg.M < 0 || arg.N < 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda < arg.M || arg.lda < 1){
+        else if (arg.lda < arg.M || arg.lda < 1)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(0 == arg.incx){
+        else if (0 == arg.incx)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(0 == arg.incy){
+        else if (0 == arg.incy)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
-
 }
 
 TEST_P(parameterized_gemv, double)
@@ -208,22 +208,25 @@ TEST_P(parameterized_gemv, double)
     rocblas_status status = testing_gemv<double>( arg );
 
     // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success){
-
-        if( arg.M < 0 || arg.N < 0 ){
+    if(status != rocblas_status_success)
+    {
+        if (arg.M < 0 || arg.N < 0)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda < arg.M || arg.lda < 1){
+        else if (arg.lda < arg.M || arg.lda < 1)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(0 == arg.incx){
+        else if (0 == arg.incx)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(0 == arg.incy){
+        else if (0 == arg.incy)
+        {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
     }
-
 }
 
 //notice we are using vector of vector

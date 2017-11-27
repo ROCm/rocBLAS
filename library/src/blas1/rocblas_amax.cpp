@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
@@ -11,6 +10,7 @@
 #include "device_template.h"
 #include "fetch_template.h"
 #include "rocblas_unique_ptr.hpp"
+#include "handle.h"
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
@@ -27,7 +27,8 @@ iamax_kernel_part1(hipLaunchParm lp,
     __shared__ rocblas_int index[NB];
 
     //bound
-    if ( tid < n ) {
+    if (tid < n) 
+    {
         T2 real = fetch_real<T1, T2>(x[tid * incx]);
         T2 imag = fetch_imag<T1, T2>(x[tid * incx]);
         shared_tep[tx] =  fabs(real) + fabs(imag);
@@ -41,7 +42,8 @@ iamax_kernel_part1(hipLaunchParm lp,
 
     rocblas_maxid_reduce<NB, T2>(tx, shared_tep, index);
 
-    if(tx == 0) {
+    if (tx == 0) 
+    {
         workspace[hipBlockIdx_x] = shared_tep[0];
         workspace_index[hipBlockIdx_x] = index[0];
     }
@@ -56,7 +58,6 @@ iamax_kernel_part2(hipLaunchParm lp,
     rocblas_int* workspace_index,
     rocblas_int* result)
 {
-
     rocblas_int tx  = hipThreadIdx_x;
 
     __shared__ T shared_tep[NB];
@@ -66,11 +67,14 @@ iamax_kernel_part2(hipLaunchParm lp,
     index[tx] = -1;
 
     //bound, loop
-    for(rocblas_int i=tx; i<n; i+=NB){
-        if( shared_tep[tx] == workspace[i] ){
+    for(rocblas_int i=tx; i<n; i+=NB)
+    {
+        if( shared_tep[tx] == workspace[i] )
+        {
             index[tx] = min(index[tx], workspace_index[i]); //if equal take the smaller index
         }
-        else if (shared_tep[tx] < workspace[i]){ // if smaller, then take the bigger one
+        else if (shared_tep[tx] < workspace[i])             // if smaller, then take the bigger one
+        { 
             shared_tep[tx] = workspace[i];
             index[tx] = workspace_index[i];
         }
@@ -80,13 +84,16 @@ iamax_kernel_part2(hipLaunchParm lp,
 
     rocblas_maxid_reduce<NB, T>(tx, shared_tep, index);
 
-    if(tx == 0){
-        if(flag){
+    if(tx == 0)
+    {
+        if(flag)
+        {
             //flag == 1, write the result on device memory
             // return Fortran 1 based index as in BLAS standard, not C zero based index
             *result = index[0] + 1; //result[0] works, too
         }
-        else{ //if flag == 0, cannot write to result which is in host memory, instead write to worksapce
+        else  //if flag == 0, cannot write to result which is in host memory, instead write to worksapce
+        { 
             workspace_index[0] = index[0];
         }
     }
@@ -113,7 +120,8 @@ rocblas_iamax_template_workspace(rocblas_handle handle,
     //kennel 1 write partial result per thread block in workspace, number of partial result is blocks
     //kernel 2 gather all the partial result in workspace and finish the final reduction.
 
-    if(lworkspace < blocks) {
+    if(lworkspace < blocks)
+    {
         printf("size of workspace = %d is too small, allocate at least %d", lworkspace, blocks);
         return rocblas_status_not_implemented;
     }
@@ -127,24 +135,28 @@ rocblas_iamax_template_workspace(rocblas_handle handle,
     hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream,
                                                                       n, x, incx, workspace, workspace_index);
 
-    if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+    if (rocblas_pointer_mode_device == handle->pointer_mode)
+    {
         //the last argument 1 indicate the result is a device pointer, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                          blocks, workspace, workspace_index, result);
     }
-    else{
+    else
+    {
         //the last argument 0 indicate the result is a host pointer
         // workspace[0] has a copy of the final result, if the result pointer is on host, a memory copy is required
         //printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
-        if ( blocks > 1) hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
+        if ( blocks > 1) 
+        {
+            hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part2<T2, NB_X, 0>), dim3(1,1,1), dim3(threads), 0, rocblas_stream,
                                                                                           blocks, workspace, workspace_index, result);
+        }
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 
         // return Fortran 1 based index as in the BLAS standard, not C zero based index
         *result += 1;
     }
-
     return rocblas_status_success;
 }
 
@@ -191,17 +203,20 @@ rocblas_iamax_template(rocblas_handle handle,
     /*
      * Quick return if possible.
      */
-    if ( n <= 0 || incx <= 0){
-        if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+    if ( n <= 0 || incx <= 0)
+    {
+        if (rocblas_pointer_mode_device == handle->pointer_mode)
+        {
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(rocblas_int)));
         }
-        else{
+        else
+        {
             *result = 0;
         }
         return rocblas_status_success;
     }
 
-    rocblas_int blocks = (n-1)/ NB_X + 1;
+    rocblas_int blocks = (n-1) / NB_X + 1;
 
     rocblas_status status;
 
@@ -222,9 +237,6 @@ rocblas_iamax_template(rocblas_handle handle,
     return status;
 }
 
-
-/* ============================================================================================ */
-
     /*
      * ===========================================================================
      *    C wrapper
@@ -237,30 +249,28 @@ rocblas_status
 rocblas_isamax(rocblas_handle handle,
     rocblas_int n,
     const float *x, rocblas_int incx,
-    rocblas_int *result){
-
+    rocblas_int *result)
+{
     return rocblas_iamax_template<float, float>(handle, n, x, incx, result);
 }
-
 
 extern "C"
 rocblas_status
 rocblas_idamax(rocblas_handle handle,
     rocblas_int n,
     const double *x, rocblas_int incx,
-    rocblas_int *result){
-
+    rocblas_int *result)
+{
     return rocblas_iamax_template<double, double>(handle, n, x, incx, result);
 }
-
 
 extern "C"
 rocblas_status
 rocblas_iscamax(rocblas_handle handle,
     rocblas_int n,
     const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_int *result){
-
+    rocblas_int *result)
+{
     return rocblas_iamax_template<rocblas_float_complex, float>(handle, n, x, incx, result);
 }
 
@@ -269,14 +279,7 @@ rocblas_status
 rocblas_idzamax(rocblas_handle handle,
     rocblas_int n,
     const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_int *result){
-
+    rocblas_int *result)
+{
     return rocblas_iamax_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
-
-
-
-
-
-
-/* ============================================================================================ */

@@ -18,7 +18,7 @@
 using namespace std;
 
 template<typename T>
-void testing_dot_bad_arg()
+rocblas_status testing_dot_bad_arg()
 {
     rocblas_int N = 100;
     rocblas_int incx = 1;
@@ -39,13 +39,14 @@ void testing_dot_bad_arg()
     if (!dx || !dy || !d_rocblas_result)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return;
+        return rocblas_status_memory_error;
     }
 
     // test if (nullptr == dx)
     {
         T *dx_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_dot<T>(handle, N, dx_null, incx, dy, incy, d_rocblas_result);
 
         verify_rocblas_status_invalid_pointer(status,"Error: x, y, or result is nullptr");
@@ -54,6 +55,7 @@ void testing_dot_bad_arg()
     {
         T *dy_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_dot<T>(handle, N, dx, incx, dy_null, incy, d_rocblas_result);
 
         verify_rocblas_status_invalid_pointer(status,"Error: x, y, or result is nullptr");
@@ -62,6 +64,7 @@ void testing_dot_bad_arg()
     {
         T *d_rocblas_result_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_dot<T>(handle, N, dx, incx, dy, incy, d_rocblas_result_null);
 
         verify_rocblas_status_invalid_pointer(status,"Error: x, y, or result is nullptr");
@@ -70,10 +73,12 @@ void testing_dot_bad_arg()
     {
         rocblas_handle handle_null = nullptr;
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_dot<T>(handle_null, N, dx, incx, dy, incy, d_rocblas_result);
 
         verify_rocblas_status_invalid_handle(status);
     }
+    return rocblas_status_success;
 }
 
 template<typename T>
@@ -111,6 +116,7 @@ rocblas_status testing_dot(Arguments argus)
             return rocblas_status_memory_error;
         }
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_dot<T>(handle, N, dx, incx, dy, incy, d_rocblas_result);
 
         nrm2_dot_arg_check(status, d_rocblas_result);
@@ -194,6 +200,7 @@ rocblas_status testing_dot(Arguments argus)
 
         for (int iter = 0; iter < number_timing_iterations; iter++)
         {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             rocblas_dot<T>(handle, N, dx, incx, dy, incy, &rocblas_result_1);
         }
 
