@@ -7,6 +7,7 @@
 #include "status.h"
 #include "definitions.h"
 #include "geam_device.h"
+#include "handle.h"
 
 // general cases for any transA, transB, alpha, beta, lda, ldb, ldc
 template<typename T>
@@ -272,10 +273,7 @@ rocblas_geam_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    bool alpha_pointer_mode_host = (rocblas_pointer_to_mode((void*)alpha) == rocblas_pointer_mode_host);
-    bool beta_pointer_mode_host = (rocblas_pointer_to_mode((void*)beta) == rocblas_pointer_mode_host);
-
-    if ((alpha_pointer_mode_host && *alpha == 0) && (beta_pointer_mode_host && *beta  == 0))
+    if ((rocblas_pointer_mode_host == handle->pointer_mode) && (0 == *alpha) && (0 == *beta))
     {
         // call hipMemset to set matrix C to zero because alpha and beta on host 
         // and alpha = beta = zero
@@ -307,7 +305,7 @@ rocblas_geam_template(rocblas_handle handle,
         dim3 geam_grid( blocksX, blocksY, 1 );
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y, 1 );
 
-        if (alpha_pointer_mode_host)
+        if (rocblas_pointer_mode_host == handle->pointer_mode)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
@@ -336,7 +334,7 @@ rocblas_geam_template(rocblas_handle handle,
         dim3 geam_grid( blocksX, blocksY, 1 );
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y, 1 );
 
-        if (alpha_pointer_mode_host)
+        if (rocblas_pointer_mode_host == handle->pointer_mode)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
@@ -353,7 +351,7 @@ rocblas_geam_template(rocblas_handle handle,
         #undef GEAM_DIM_X
         #undef GEAM_DIM_Y
     }
-    else if (beta_pointer_mode_host && (*beta == 0))
+    else if ((rocblas_pointer_mode_host == handle->pointer_mode) && (0 == *beta))
     {
         if ((m == lda) && (transA == rocblas_operation_none) &&
             (m == ldc))
@@ -402,7 +400,7 @@ rocblas_geam_template(rocblas_handle handle,
             #undef GEAM_DIM_Y
         }
     }
-    else if (rocblas_pointer_mode_host && (*alpha == 0))
+    else if ((rocblas_pointer_mode_host == handle->pointer_mode) && (0 == *alpha))
     {
         if ((m == ldb) && (transB == rocblas_operation_none) &&
             (m == ldc))
@@ -467,7 +465,7 @@ rocblas_geam_template(rocblas_handle handle,
         hipStream_t rocblas_stream;
         RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-        if (alpha_pointer_mode_host)
+        if (rocblas_pointer_mode_host == handle->pointer_mode)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
@@ -495,7 +493,7 @@ rocblas_geam_template(rocblas_handle handle,
         dim3 geam_grid( blocksX, blocksY, 1 );
         dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y, 1 );
 
-        if (alpha_pointer_mode_host)
+        if (rocblas_pointer_mode_host == handle->pointer_mode)
         {
             T h_alpha_scalar = *alpha;
             T h_beta_scalar = *beta;
@@ -516,7 +514,6 @@ rocblas_geam_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-/* ============================================================================================ */
     /*
      * ===========================================================================
      *    C wrapper

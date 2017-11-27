@@ -1,5 +1,5 @@
 /* ************************************************************************
- * asumright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
@@ -11,6 +11,7 @@
 #include "device_template.h"
 #include "fetch_template.h"
 #include "rocblas_unique_ptr.hpp"
+#include "handle.h"
 
 template<typename T1, typename T2, rocblas_int NB>
 __global__ void
@@ -115,7 +116,8 @@ rocblas_asum_template_workspace(rocblas_handle handle,
 
     hipLaunchKernel(HIP_KERNEL_NAME(asum_kernel_part1<T1, T2, NB_X>), dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, workspace);
 
-    if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+//  if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+    if (rocblas_pointer_mode_device == handle->pointer_mode){
         //the last argument 1 indicate the result is on device, not memcpy is required
         hipLaunchKernel(HIP_KERNEL_NAME(asum_kernel_part2<T2, NB_X, 1>), dim3(1,1,1), dim3(threads), 0, rocblas_stream, blocks, workspace, result);
     }
@@ -174,7 +176,8 @@ rocblas_asum_template(rocblas_handle handle,
      * Quick return if possible.
      */
     if (n <= 0 || incx <= 0){
-        if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+//      if( rocblas_pointer_to_mode(result) == rocblas_pointer_mode_device ){
+        if (rocblas_pointer_mode_device == handle->pointer_mode){
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));
         }
         else{
