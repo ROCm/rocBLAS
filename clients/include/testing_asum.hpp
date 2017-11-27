@@ -23,6 +23,9 @@ void testing_asum_bad_arg()
     rocblas_int N = 100;
     rocblas_int incx = 1;
     rocblas_int safe_size = 100;
+    T2 rocblas_result = 10;
+    T2 *h_rocblas_result;
+    h_rocblas_result = &rocblas_result;
 
     rocblas_status status;
 
@@ -30,10 +33,8 @@ void testing_asum_bad_arg()
     rocblas_handle handle = unique_ptr_handle->handle;
 
     auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),rocblas_test::device_free};
-    auto d_rocblas_result_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)),rocblas_test::device_free};
     T1* dx = (T1*) dx_managed.get();
-    T2* d_rocblas_result = (T2*) d_rocblas_result_managed.get();
-    if (!dx || !d_rocblas_result)
+    if (!dx)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -43,15 +44,15 @@ void testing_asum_bad_arg()
     {
         T1 *dx_null = nullptr;
 
-        status = rocblas_asum<T1, T2>(handle, N, dx_null, incx, d_rocblas_result);
+        status = rocblas_asum<T1, T2>(handle, N, dx_null, incx, h_rocblas_result);
 
         verify_rocblas_status_invalid_pointer(status,"Error: dx is nullptr");
     }
     // testing for (nullptr == d_rocblas_result)
     {
-        T2 *d_rocblas_result_null = nullptr;
+        T2 *h_rocblas_result_null = nullptr;
 
-        status = rocblas_asum<T1, T2>(handle, N, dx, incx, d_rocblas_result_null);
+        status = rocblas_asum<T1, T2>(handle, N, dx, incx, h_rocblas_result_null);
 
         verify_rocblas_status_invalid_pointer(status,"Error: result is nullptr");
     }
@@ -59,7 +60,7 @@ void testing_asum_bad_arg()
     {
         rocblas_handle handle_null = nullptr;
 
-        status = rocblas_asum<T1, T2>(handle_null, N, dx, incx, d_rocblas_result);
+        status = rocblas_asum<T1, T2>(handle_null, N, dx, incx, h_rocblas_result);
 
         verify_rocblas_status_invalid_handle(status);
     }
@@ -97,6 +98,7 @@ rocblas_status testing_asum(Arguments argus)
             return rocblas_status_memory_error;
         }
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_asum<T1, T2>(handle, N, dx, incx, d_rocblas_result_2);
 
         asum_arg_check(status, d_rocblas_result_2);

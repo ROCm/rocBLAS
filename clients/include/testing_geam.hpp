@@ -193,7 +193,8 @@ rocblas_status testing_geam(Arguments argus)
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
             return rocblas_status_memory_error;
         }
-
+    
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         status = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc);
 
         geam_arg_check(status, M, N, lda, ldb, ldc);
@@ -253,7 +254,6 @@ rocblas_status testing_geam(Arguments argus)
 
         CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
-
          // reference calculation for golden result
         cpu_time_used = get_time_us();
 
@@ -289,6 +289,7 @@ rocblas_status testing_geam(Arguments argus)
         {
             dC_in_place = dA;
 
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             status_h = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC_in_place, ldc);
 
             if (lda != ldc || transA != rocblas_operation_none)
@@ -328,10 +329,10 @@ rocblas_status testing_geam(Arguments argus)
         }
 
         // inplace check for dC == dB
-
         {
             dC_in_place = dB;
 
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             status_h = rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC_in_place, ldc);
 
             if (ldb != ldc || transB != rocblas_operation_none)
@@ -375,6 +376,8 @@ rocblas_status testing_geam(Arguments argus)
     {
         int number_cold_calls = 2;
         int number_hot_calls = 10;
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for (int i = 0; i < number_cold_calls; i++)
         {
