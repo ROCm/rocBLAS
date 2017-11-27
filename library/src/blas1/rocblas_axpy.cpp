@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 #include "rocblas.h"
 #include "definitions.h"
+#include "handle.h"
 
 #define NB_X 256
 
@@ -58,14 +58,14 @@ axpy_kernel_device_scalar(hipLaunchParm lp,
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     //bound
-    if(incx >= 0 && incy >= 0)
+    if (incx >= 0 && incy >= 0)
     {
         if (tid < n)
         {
             y[tid*incy] +=  (*alpha) * x[tid * incx];
         }
     }
-    else if(incx < 0 && incy < 0)
+    else if (incx < 0 && incy < 0)
     {
         if (tid < n)
         {
@@ -259,7 +259,7 @@ rocblas_axpy_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    if (rocblas_pointer_mode_device == rocblas_pointer_to_mode((void*)alpha))
+    if (rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_device_scalar), 
                 dim3(blocks), dim3(threads), 0, rocblas_stream, 
@@ -321,7 +321,7 @@ rocblas_axpy_half(rocblas_handle handle,
         hipStream_t rocblas_stream;
         RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-        if (rocblas_pointer_mode_device == rocblas_pointer_to_mode((void*)alpha))
+        if (rocblas_pointer_mode_device == handle->pointer_mode)
         {
             hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_device_scalar), 
                     dim3(blocks), dim3(threads), 0, rocblas_stream, 
@@ -350,7 +350,7 @@ rocblas_axpy_half(rocblas_handle handle,
         dim3 grid(blocks, 1, 1);
         dim3 threads(NB_X, 1, 1);
 
-        if (rocblas_pointer_mode_device == rocblas_pointer_to_mode((void*)alpha))
+        if (rocblas_pointer_mode_device == handle->pointer_mode)
         {
             hipLaunchKernelGGL(haxpy_mlt_8_device_scalar, 
                     dim3(grid), dim3(threads), 0, 0,

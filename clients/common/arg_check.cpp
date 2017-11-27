@@ -29,7 +29,7 @@ void set_get_matrix_arg_check(rocblas_status status, rocblas_int rows, rocblas_i
     #else
     if (status != rocblas_status_invalid_size)
     {
-        std::cerr << "ERROR in arguments rows, cols, lda, ldb, ldc: ";
+        std::cerr << "rocBLAS TEST ERROR in arguments rows, cols, lda, ldb, ldc: ";
         std::cerr << rows << ',' << cols << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
     }
     #endif
@@ -43,7 +43,7 @@ void set_get_vector_arg_check(rocblas_status status, rocblas_int M, rocblas_int 
     #else
     if (status != rocblas_status_invalid_size)
     {
-        std::cerr << "ERROR in arguments M, incx, incy, incd: ";
+        std::cerr << "rocBLAS TEST ERROR in arguments M, incx, incy, incd: ";
         std::cerr << M << ',' << incx << ',' << incy << ',' << incd << std::endl;
     }
     #endif
@@ -70,18 +70,18 @@ void gemv_ger_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, roc
     {
         if (status != rocblas_status_invalid_size)
         {
-            std::cerr << "ERROR: (M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy) " << std::endl;
-            std::cerr << "ERROR: and (status != rocblas_status_invalid_size)" << std::endl;
-	        std::cerr << "ERROR: status = " << status << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: (M < 0 || N < 0 || lda < M || lda < 1 || 0 == incx || 0 == incy) " << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: and (status != rocblas_status_invalid_size)" << std::endl;
+	        std::cerr << "rocBLAS TEST ERROR: status = " << status << std::endl;
         }
     }
     else if (0 == M || 0 == N)
     {
         if (status != rocblas_status_success)
         {
-            std::cerr << "ERROR: (0 == M || 0 == N)" << std::endl;
-            std::cerr << "ERROR: and (status != rocblas_status_success)" << std::endl;
-	        std::cerr << "ERROR: status = " << status << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: (0 == M || 0 == N)" << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: and (status != rocblas_status_success)" << std::endl;
+	        std::cerr << "rocBLAS TEST ERROR: status = " << status << std::endl;
         }
     }
     #endif
@@ -93,7 +93,7 @@ void gemm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N, rocblas
     #ifdef GOOGLE_TEST
     ASSERT_EQ(status, rocblas_status_invalid_size);
     #else
-    std::cerr << "ERROR in arguments M, N, K, lda, ldb, ldc: ";
+    std::cerr << "rocBLAS TEST ERROR in arguments M, N, K, lda, ldb, ldc: ";
     std::cerr << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
     #endif
 }
@@ -111,7 +111,7 @@ void gemm_strided_batched_arg_check(rocblas_status status, rocblas_int M, rocbla
         ASSERT_EQ(status, rocblas_status_invalid_size);
     }
     #else
-    std::cerr << "ERROR in arguments M, N, K, lda, ldb, ldc, batch_count: ";
+    std::cerr << "rocBLAS TEST ERROR in arguments M, N, K, lda, ldb, ldc, batch_count: ";
     std::cerr << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << batch_count << std::endl;
     #endif
 }
@@ -129,7 +129,7 @@ void geam_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
         ASSERT_EQ(status, rocblas_status_invalid_size);
     }
     #else
-    std::cerr << "ERROR in arguments M, N, lda, ldb, ldc: ";
+    std::cerr << "rocBLAS TEST ERROR in arguments M, N, lda, ldb, ldc: ";
     std::cerr << M << ',' << N << ',' << lda << ',' << ldb << ',' << ldc << std::endl;
     #endif
 }
@@ -140,7 +140,7 @@ void trsm_arg_check(rocblas_status status, rocblas_int M, rocblas_int N,
     #ifdef GOOGLE_TEST
     ASSERT_EQ(status, rocblas_status_invalid_size);
     #else
-    std::cerr << "ERROR in arguments M, N, lda, ldb: ";
+    std::cerr << "rocBLAS TEST ERROR in arguments M, N, lda, ldb: ";
     std::cerr << M << ',' << N << ',' << lda << ',' << ldb << std::endl;
     #endif
 }
@@ -150,7 +150,7 @@ void symv_arg_check(rocblas_status status, rocblas_int N, rocblas_int lda, rocbl
     #ifdef GOOGLE_TEST
     ASSERT_EQ(status, rocblas_status_invalid_size);
     #else
-    std::cerr << "ERROR in arguments N, lda, incx, incy: ";
+    std::cerr << "rocBLAS TEST ERROR in arguments N, lda, incx, incy: ";
     std::cerr << N << ',' << lda << ',' << incx << ',' << incy << std::endl;
     #endif
 }
@@ -290,8 +290,8 @@ void verify_rocblas_status_invalid_size(rocblas_status status, const char* messa
     #else
     if (status != rocblas_status_invalid_size)
     {
-        std::cerr << "***** ERROR: status != rocblas_status_invalid_size, ";
-        std::cerr << message << " *****" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: status != rocblas_status_invalid_size, ";
+        std::cerr << message << std::endl;
     }
     #endif
 }
@@ -304,7 +304,7 @@ void verify_rocblas_status_invalid_handle(rocblas_status status)
     #else
     if (status != rocblas_status_invalid_handle)
     {
-        std::cerr << "ERROR: handle is null pointer" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: handle is null pointer" << std::endl;
     }
     #endif
 }
@@ -317,8 +317,8 @@ void verify_rocblas_status_success(rocblas_status status, const char* message)
     if(status != rocblas_status_success)
     {
         std::cerr << message << std::endl;
-        std::cerr << "ERROR: status should be rocblas_status_success" << std::endl;
-        std::cerr << "ERROR: status = " << status << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: status should be rocblas_status_success" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: status = " << status << std::endl;
     }
     #endif
 }
@@ -331,7 +331,7 @@ void verify_not_nan(float arg)
     #else
     if(arg != arg)
     {
-        std::cerr << "ERROR: argument is NaN" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: argument is NaN" << std::endl;
     }
     #endif
 }
@@ -344,7 +344,7 @@ void verify_not_nan(double arg)
     #else
     if(arg != arg)
     {
-        std::cerr << "ERROR: argument is NaN" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: argument is NaN" << std::endl;
     }
     #endif
 }
@@ -358,7 +358,7 @@ void verify_equal(int arg1, int arg2, const char* message)
     if(arg1 != arg2)
     {
         std::cerr << message << std::endl;
-        std::cerr << "ERROR: arguments not equal" << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: arguments not equal" << std::endl;
     }
     #endif
 }

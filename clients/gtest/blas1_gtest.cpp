@@ -146,8 +146,16 @@ TEST(checkin_blas1_bad_arg, copy_float)
 }
 TEST(checkin_blas1_bad_arg, dot_float)
 {
-    testing_dot_bad_arg<float>();
+    rocblas_status status = testing_dot_bad_arg<float>();
+    EXPECT_EQ(rocblas_status_success, status);
 }
+
+TEST(checkin_blas1_bad_arg, nrm2_float)
+{
+    rocblas_status status = testing_nrm2_bad_arg<float, float>();
+    EXPECT_EQ(rocblas_status_success, status);
+}
+
 TEST(checkin_blas1_bad_arg, scal_float)
 {
     testing_scal_bad_arg<float>();
