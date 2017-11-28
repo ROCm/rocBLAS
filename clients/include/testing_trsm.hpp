@@ -46,7 +46,7 @@ rocblas_status testing_trsm(Arguments argus)
     char char_uplo = argus.uplo_option;
     char char_transA = argus.transA_option;
     char char_diag = argus.diag_option;
-    T alpha = argus.alpha;
+    T alpha_h = argus.alpha;
 
     rocblas_int safe_size = 100;  // arbitrarily set to 100
 
@@ -77,7 +77,8 @@ rocblas_status testing_trsm(Arguments argus)
             return rocblas_status_memory_error;
         }
 
-        status = rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha, dA,lda, dXorB,ldb);
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        status = rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA,lda, dXorB,ldb);
 
         trsm_arg_check(status, M, N, lda, ldb);
 
@@ -89,7 +90,8 @@ rocblas_status testing_trsm(Arguments argus)
     vector<T> AAT(size_A);
     vector<T> hB(size_B);
     vector<T> hX(size_B);
-    vector<T> hXorB(size_B);
+    vector<T> hXorB_1(size_B);
+    vector<T> hXorB_2(size_B);
     vector<T> cpuXorB(size_B);
     
     double gpu_time_used, cpu_time_used;
@@ -103,14 +105,15 @@ rocblas_status testing_trsm(Arguments argus)
     //allocate memory on device
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),rocblas_test::device_free};
     auto dXorB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),rocblas_test::device_free};
+    auto alpha_d_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)),rocblas_test::device_free};
     T* dA = (T*) dA_managed.get();
     T* dXorB = (T*) dXorB_managed.get();
-    if (!dA || !dXorB)
+    T* alpha_d = (T*) alpha_d_managed.get();
+    if (!dA || !dXorB || !alpha_d)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
     }
-
 
 //  Random lower triangular matrices have condition number
 //  that grows exponentially with matrix size. Random full
@@ -196,44 +199,39 @@ rocblas_status testing_trsm(Arguments argus)
     hB = hX;
 
     // Calculate hB = hA*hX;
-    cblas_trmm<T>(
-                side, uplo,
-                transA, diag,
-                M, N, 1.0/alpha,
-                (const T*)hA.data(), lda,
-                hB.data(), ldb);
+    cblas_trmm<T>( side, uplo, transA, diag, M, N, 1.0/alpha_h, (const T*)hA.data(), lda, hB.data(), ldb);
     
-    hXorB = hB;          // hXorB <- B
+    hXorB_1 = hB;        // hXorB <- B
+    hXorB_2 = hB;        // hXorB <- B
     cpuXorB = hB;        // cpuXorB <- B
 
     //copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T)*size_A,  hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
 
-    /* =====================================================================
-           ROCBLAS
-    =================================================================== */
-    gpu_time_used = get_time_us();// in microseconds
-
-    // calculate dXorB <- A^(-1) B
-    CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(handle,
-                                        side, uplo,
-                                        transA, diag,
-                                        M, N,
-                                        &alpha,
-                                        dA,lda,
-                                        dXorB,ldb));
-
-    gpu_time_used = get_time_us() - gpu_time_used;
-    rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
-
-    //copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hXorB.data(), dXorB, sizeof(T)*size_B, hipMemcpyDeviceToHost));
-
-    T max_err = 0.0;
-    T max_res = 0.0;
+    T max_err_1 = 0.0;
+    T max_err_2 = 0.0;
+    T max_res_1 = 0.0;
+    T max_res_2 = 0.0;
     if(argus.unit_check || argus.norm_check)
     {
+        // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA,lda, dXorB, ldb));
+
+        CHECK_HIP_ERROR(hipMemcpy(hXorB_1.data(), dXorB, sizeof(T)*size_B, hipMemcpyDeviceToHost));
+
+        // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_2.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, alpha_d, dA,lda, dXorB, ldb));
+
+        CHECK_HIP_ERROR(hipMemcpy(hXorB_2.data(), dXorB, sizeof(T)*size_B, hipMemcpyDeviceToHost));
+
         // Error Check
         // hXorB contains calculated X, so error is hX - hXorB 
 
@@ -241,64 +239,75 @@ rocblas_status testing_trsm(Arguments argus)
         // max_err is the maximum of err for all columns
         for (int i = 0; i < N; i++)
         {
-            T err = 0.0;
+            T err_1 = 0.0;
+            T err_2 = 0.0;
             for (int j = 0; j < M; j++)
             {
                 if(hX[j + i*ldb] != 0)
                 {
-                    err += std::abs((hX[j + i*ldb] - hXorB[j + i*ldb]) / hX[j + i*ldb]); 
+                    err_1 += std::abs((hX[j + i*ldb] - hXorB_1[j + i*ldb]) / hX[j + i*ldb]); 
+                    err_2 += std::abs((hX[j + i*ldb] - hXorB_2[j + i*ldb]) / hX[j + i*ldb]); 
                 }
                 else
                 {
-                    err += std::abs(hXorB[j + i*ldb]);
+                    err_1 += std::abs(hXorB_1[j + i*ldb]);
+                    err_2 += std::abs(hXorB_2[j + i*ldb]);
                 }
             }
-            max_err = max_err > err ? max_err : err;
+            max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
+            max_err_2 = max_err_2 > err_2 ? max_err_2 : err_2;
         }
-        trsm_err_res_check<T>(max_err, M, error_eps_multiplier, eps);
-
+        trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
+        trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
         // Residual Check
-        cblas_trmm<T>(
-                side, uplo,
-                transA, diag,
-                M, N, 1.0/alpha,
-                (const T*)hA.data(), lda,
-                hXorB.data(), ldb);        // hXorB <- hA * (A^(-1) B) ;
+        // hXorB <- hA * (A^(-1) B) ;
+        cblas_trmm<T>( side, uplo, transA, diag, M, N, 1.0/alpha_h, (const T*)hA.data(), lda, hXorB_1.data(), ldb);
+        cblas_trmm<T>( side, uplo, transA, diag, M, N, 1.0/alpha_h, (const T*)hA.data(), lda, hXorB_2.data(), ldb);
 
         // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
         //                                                = hXorB - hB 
         // res is the one norm of the scaled residual for each column
         for (int i = 0; i < N; i++)
         {
-            T res = 0.0;
+            T res_1 = 0.0;
+            T res_2 = 0.0;
             for (int j = 0; j < M; j++)
             {
                 if(hB[j + i*ldb] != 0)
                 {
-                    res += std::abs((hXorB[j + i*ldb] - hB[j + i*ldb]) / hB[j + i*ldb]); 
+                    res_1 += std::abs((hXorB_1[j + i*ldb] - hB[j + i*ldb]) / hB[j + i*ldb]); 
+                    res_2 += std::abs((hXorB_2[j + i*ldb] - hB[j + i*ldb]) / hB[j + i*ldb]); 
                 }
                 else
                 {
-                    res += std::abs(hXorB[j + i*ldb]);
+                    res_1 += std::abs(hXorB_1[j + i*ldb]);
+                    res_2 += std::abs(hXorB_2[j + i*ldb]);
                 }
             }
-            max_res = max_res > res ? max_res : res;
+            max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
+            max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
         }
-
-        trsm_err_res_check<T>(max_res, M, residual_eps_multiplier, eps);
+        trsm_err_res_check<T>(max_res_1, M, residual_eps_multiplier, eps);
+        trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
     }
 
     if(argus.timing)
     {
+        // GPU rocBLAS
+        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1.data(), sizeof(T)*size_B,  hipMemcpyHostToDevice));
+        gpu_time_used = get_time_us();// in microseconds
+
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA,lda, dXorB,ldb));
+
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops = trsm_gflop_count<T> (M, N, K) / gpu_time_used * 1e6 ;
+
+        // CPU cblas
         cpu_time_used = get_time_us();
 
-        cblas_trsm<T>(
-                side, uplo,
-                transA, diag,
-                M, N, alpha,
-                (const T*)hA.data(), lda,
-                cpuXorB.data(), ldb);
+        cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, (const T*)hA.data(), lda, cpuXorB.data(), ldb);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
@@ -306,7 +315,7 @@ rocblas_status testing_trsm(Arguments argus)
         //only norm_check return an norm error, unit check won't return anything
         cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
-        if(argus.norm_check) cout << ",CPU-Gflops,us,norm-error" ;
+        if(argus.norm_check) cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr" ;
 
         cout << endl;
 
@@ -314,10 +323,9 @@ rocblas_status testing_trsm(Arguments argus)
              << char_transA << ','  << char_diag << ',' <<
              rocblas_gflops << "," << gpu_time_used;
 
-        if(argus.norm_check) cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err;
+        if(argus.norm_check) cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << "," << max_err_2;
 
         cout << endl;
     }
-
     return rocblas_status_success;
 }
