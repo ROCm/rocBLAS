@@ -30,6 +30,8 @@
   TYPE *C, \
   rocblas_int ld_c
 
+
+
 #define ARGS_BATCHED(TYPE) \
   rocblas_handle handle, \
   rocblas_operation trans_a, \
@@ -113,30 +115,43 @@
 #define PRINT_RETURN_STATUS
 #endif
 
-#define CALL_TENSILE(PREC, TRANS) \
+#define CALL_TENSILE(PREC, TYPE, TRANS) \
   PRINT_SOLUTION_NAME(PREC,TRANS) \
-  status = tensile_ ## TRANS ## _ ## PREC ## B( C, A, B, *alpha, *beta, \
+  TYPE alpha_h; \
+  TYPE beta_h; \
+  if (rocblas_pointer_mode_host == handle->pointer_mode) \
+  { \
+    alpha_h = *alpha; \
+    beta_h = *beta; \
+  } \
+  else \
+  { \
+    hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost); \
+    hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost); \
+  } \
+  status = tensile_ ## TRANS ## _ ## PREC ## B( C, A, B, alpha_h, beta_h, \
       0, 0, 0, strideC1, strideC2, strideA1, strideA2, \
       strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
       handle->rocblas_stream, 0, nullptr, nullptr); \
   PRINT_RETURN_STATUS
 
+
 /*******************************************************************************
  * Handle Transposes
  ******************************************************************************/
-#define TENSILE_TRANSPOSES(PREC) \
+#define TENSILE_TRANSPOSES(PREC, TYPE) \
   hipError_t status; \
   if ( trans_a == rocblas_operation_none) { \
     if (trans_b == rocblas_operation_none) { /*NN*/ \
-      CALL_TENSILE(PREC,Cijk_Ailk_Bljk) \
+      CALL_TENSILE(PREC,TYPE,Cijk_Ailk_Bljk) \
     } else { /*NT*/ \
-      CALL_TENSILE(PREC,Cijk_Ailk_Bjlk) \
+      CALL_TENSILE(PREC,TYPE,Cijk_Ailk_Bjlk) \
     } \
   } else { /*TN*/ \
     if (trans_b == rocblas_operation_none) { \
-      CALL_TENSILE(PREC,Cijk_Alik_Bljk) \
+      CALL_TENSILE(PREC,TYPE,Cijk_Alik_Bljk) \
     } else { /*TT*/ \
-      CALL_TENSILE(PREC,Cijk_Alik_Bjlk) \
+      CALL_TENSILE(PREC,TYPE,Cijk_Alik_Bjlk) \
     } \
   } \
   return get_rocblas_status_for_hip_status( status );
@@ -148,13 +163,13 @@
 #define GEMM_API(prec, PREC, TYPE) \
   rocblas_status rocblas_ ## prec ## gemm( ARGS(TYPE) ) { \
     PREAMBLE \
-    TENSILE_TRANSPOSES(PREC) \
+    TENSILE_TRANSPOSES(PREC, TYPE) \
   }
 
 #define GEMM_API_BATCHED(prec, PREC, TYPE) \
   rocblas_status rocblas_ ## prec ## gemm_strided_batched( ARGS_BATCHED(TYPE) ) { \
     PREAMBLE_BATCHED \
-    TENSILE_TRANSPOSES(PREC) \
+    TENSILE_TRANSPOSES(PREC, TYPE) \
   }
 
 /*******************************************************************************
