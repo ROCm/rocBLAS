@@ -19,7 +19,7 @@ typedef __fp16 half8 __attribute__((ext_vector_type(8)));
 typedef __fp16 half2 __attribute__((ext_vector_type(2)));
 extern "C" half2 llvm_fma_v2f16(half2, half2, half2) __asm("llvm.fma.v2f16");
 
-__global__ inline void 
+__device__ inline void 
 rocblas_fmadd_half2(half2 multiplier, half2 multiplicand, half2 addend, half2 *result)
 {
     *result = llvm_fma_v2f16(multiplier, multiplicand, addend);
