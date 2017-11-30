@@ -21,6 +21,59 @@ endif()
 
 project( rocblas LANGUAGES CXX )
 
+# ########################################################################
+# NOTE:  CUDA compiling path
+# ########################################################################
+# I have tried compiling rocBLAS library source with multiple methods,
+# and ended up using the approach where we set the CXX compiler to hipcc.
+# I didn't like using the HIP_ADD_LIBRARY or CUDA_ADD_LIBRARY approaches,
+# for the reasons I list here.
+# 1.  Adding header include directories is through HIP_INCLUDE_DIRECTORIES(), which
+# is global to a directory and affects all targets
+# 2.  You must add HIP_SOURCE_PROPERTY_FORMAT OBJ properties to .cpp files
+# to get HIP_ADD_LIBRARY to recognize the file
+# 3.  HIP_ADD_LIBRARY invokes a call to add_custom_command() to compile files,
+# and rocBLAS does the same.  The order in which custom commands execute is
+# undefined, and sometimes a file is attempted to be compiled before it has
+# been generated.  The fix for this is to create 'PHONY' targets, which I
+# don't desire.
+
+# Using hipcc allows us to avoid the above problems, with two primary costs:
+# 1.  The cmake logic to detect compiler features fails with nvcc backend
+# 2.  Upfront cost to figure out all the strange compiler/linker flags I define
+# below.
+
+# Hopefully, cost #2 is already paid.  All in all, I want to get rid of the
+# need for hipcc, and hope that at some point of time in the future we
+# can use the export config files from hip & hcc for both ROCm & nvcc backends.
+# ########################################################################
+
+# ########################################################################
+# Main
+# ########################################################################
+
+if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  # For now, we assume hipcc compiler means to compile for CUDA backend
+  message( STATUS "HIPCC compiler detected; CUDA backend selected" )
+
+  set( CMAKE_C_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_PIC}" )
+  set( CMAKE_CXX_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_PIC}" )
+  set( CMAKE_SHARED_LIBRARY_C_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_C_FLAGS}" )
+  set( CMAKE_SHARED_LIBRARY_CXX_FLAGS "-Xlinker ${CMAKE_SHARED_LIBRARY_CXX_FLAGS}" )
+  set( CMAKE_SHARED_LIBRARY_SONAME_C_FLAG "-Xlinker -soname," )
+  set( CMAKE_SHARED_LIBRARY_SONAME_CXX_FLAG "-Xlinker -soname," )
+  set( CMAKE_SHARED_LIBRARY_RUNTIME_C_FLAG "-Xlinker -rpath," )
+  set( CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
+  set( CMAKE_EXECUTABLE_RUNTIME_C_FLAG "-Xlinker -rpath," )
+  set( CMAKE_EXECUTABLE_RUNTIME_CXX_FLAG "-Xlinker -rpath," )
+  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY}" )
+  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY}" )
+  set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
+  set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
+elseif( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm/bin/hcc cmake ... ]" )
+endif( )
+
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
@@ -42,7 +95,7 @@ if( NOT ROCM_FOUND )
     ")
   endif()
 
-  message(STATUS "downloading... done") 
+  message(STATUS "downloading... done")
 
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzvf ${PROJECT_EXTERN_DIR}/rocm-cmake-${rocm_cmake_tag}.zip
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
@@ -73,15 +126,6 @@ option( BUILD_VERBOSE "Output additional build information" OFF )
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
-# Find HCC/HIP dependencies
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm )
-elseif( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
-else( )
-  message( AUTHOR_WARNING "rocblas library probably won't build without either the hcc or hipcc compilers. Set the CXX environment variable to specify your desired compiler" )
-endif( )
-
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_full mi25_lite vega10_full vega10_lite r9nano_full r9nano_lite hip_lite other )
@@ -103,6 +147,12 @@ if( BUILD_WITH_TENSILE )
   string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
   set( Tensile_ROOT "${PROJECT_EXTERN_DIR}/Tensile-${tensile_tag}" CACHE STRING "Local path of Tensile" )
 endif()
+
+# Find HCC/HIP dependencies
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm )
+  find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
+endif( )
 
 # CMake list of machine targets
 set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )

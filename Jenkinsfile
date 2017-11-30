@@ -172,20 +172,23 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
 
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
-      // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
-      timeout(time: 1, unit: 'HOURS')
+      withEnv(["LD_LIBRARY_PATH=/opt/rocm/lib"])
       {
-        sh """#!/usr/bin/env bash
-              set -x
-              cd ${paths.project_build_prefix}/clients/staging
-              ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
-          """
-        junit "${paths.project_build_prefix}/clients/staging/*.xml"
+        // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
+        timeout(time: 1, unit: 'HOURS')
+        {
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/clients/staging
+                ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
+            """
+          junit "${paths.project_build_prefix}/clients/staging/*.xml"
 
-        sh """#!/usr/bin/env bash
-              set -x
-              cd ${paths.project_build_prefix}/clients/staging; ./example-sscal${build_type_postfix}
-        """
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/clients/staging; ./example-sscal${build_type_postfix}
+          """
+        }
       }
 
       String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
