@@ -15,15 +15,16 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# lsb-release file describes the system
-if [[ ! -e "/etc/lsb-release" ]]; then
-  echo "This script depends on the /etc/lsb-release file"
+# os-release file describes the system on centos
+if [[ -e "/etc/os-release" ]]; then
+  source /etc/os-release
+else
+  echo "This script depends on the /etc/os-release file"
   exit 2
 fi
-source /etc/lsb-release
 
-if [[ ${DISTRIB_ID} != Ubuntu ]]; then
-  echo "This script only validated with Ubuntu"
+if [[ ${ID} != ubuntu && ${ID} != centos && ${ID} != fedora ]]; then
+  echo "This script is currently supported on Ubuntu, CentOS and Fedora"
   exit 2
 fi
 
@@ -52,6 +53,30 @@ elevate_if_not_root( )
   else
     $@
   fi
+}
+
+# Take an array of packages as input, and install those packages with 'apt' if they are not already installed
+install_apt_packages( )
+{
+  package_dependencies=("$@")
+  for package in "${package_dependencies[@]}"; do
+    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
+      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+      elevate_if_not_root apt install -y --no-install-recommends ${package}
+    fi
+  done
+}
+
+# Take an array of packages as input, and install those packages with 'yum' if they are not already installed
+install_yum_packages( )
+{
+  package_dependencies=("$@")
+  for package in "${package_dependencies[@]}"; do
+    if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+      elevate_if_not_root yum install -y ${package}
+    fi
+  done
 }
 
 # #################################################
@@ -124,83 +149,101 @@ else
   rm -rf ${build_dir}/debug
 fi
 
+# Default cmake executable is called cmake
+cmake_executable=cmake
+
+if [[ ${ID} == centos ]]; then
+  cmake_executable=cmake3
+fi
+
 # #################################################
-# install build dependencies on request
+# dependencies
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
   # dependencies needed for rocblas and clients to build
   library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
-  if [[ "${build_cuda}" == false ]]; then
-    library_dependencies_ubuntu+=( "hcc" )
-  else
+  library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "hip_hcc" "gcc-c++" )
+  if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
     library_dependencies_ubuntu+=( "cuda" )
+    library_dependencies_centos+=( "" ) # how to install cuda on centos?
   fi
 
   client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
+  client_dependencies_centos=( "gcc-gfortran" "boost-devel" )
 
-  elevate_if_not_root apt update
+  if [[ ${ID} == ubuntu ]]; then
+    elevate_if_not_root apt update
 
-  # Dependencies required by main library
-  for package in "${library_dependencies_ubuntu[@]}"; do
-    if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
-      printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt install -y --no-install-recommends ${package}
+    # Dependencies required by main library
+    install_apt_packages "${library_dependencies_ubuntu[@]}"
+
+    # Dependencies required by library client apps
+    if [[ "${build_clients}" == true ]]; then
+      install_apt_packages "${client_dependencies_ubuntu[@]}"
     fi
-  done
+  else
+    elevate_if_not_root yum -y update
 
-  # Dependencies required by library client apps
-  if [[ "${build_clients}" == true ]]; then
-    for package in "${client_dependencies_ubuntu[@]}"; do
-      if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
-        printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-        elevate_if_not_root apt install -y --no-install-recommends ${package}
-      fi
-    done
+    install_yum_packages "${library_dependencies_centos[@]}"
 
-    # The following builds googletest & lapack from source, installs into cmake default /usr/local
-    pushd .
-      printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
-      mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-      cmake -DBUILD_BOOST=OFF ../../deps
-      make -j$(nproc)
-      elevate_if_not_root make install
-    popd
+    # Dependencies required by library client apps
+    if [[ "${build_clients}" == true ]]; then
+      install_yum_packages "${client_dependencies_centos[@]}"
+    fi
   fi
 
+  # The following builds googletest & lapack from source, installs into cmake default /usr/local
+  pushd .
+    printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
+    mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
+    ${cmake_executable} -DBUILD_BOOST=OFF ../../deps
+    make -j$(nproc)
+    elevate_if_not_root make install
+  popd
 fi
+
+# We append customary rocm path; if user provides custom rocm path in ${path}, our
+# hard-coded path has lesser priority
+export PATH=${PATH}:/opt/rocm/bin
 
 pushd .
   # #################################################
-  # configure
+  # configure & build
   # #################################################
-  cmake_options=""
-  #cmake_options="${cmake_options} -DTensile_LOGIC=mi25_lite"
+  cmake_common_options=""
+  cmake_client_options=""
 
   # build type
   if [[ "${build_release}" == true ]]; then
-    mkdir -p ${build_dir}/release && cd ${build_dir}/release
-    cmake_options="${cmake_options} -DCMAKE_BUILD_TYPE=Release"
+    mkdir -p ${build_dir}/release/clients && cd ${build_dir}/release
+    cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Release"
   else
-    mkdir -p ${build_dir}/debug && cd ${build_dir}/debug
-    cmake_options="${cmake_options} -DCMAKE_BUILD_TYPE=Debug"
-  fi
-
-  # compiler
-  if [[ "${build_cuda}" == false ]]; then
-    export CXX=/opt/rocm/bin/hcc
+    mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
+    cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
   fi
 
   # clients
   if [[ "${build_clients}" == true ]]; then
-    cmake_options="${cmake_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
+    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
   fi
 
-  # #################################################
-  # build
-  # #################################################
-  cmake ${cmake_options} ../..
-  make -j$(nproc)
+  compiler="hcc"
+  if [[ "${build_cuda}" == true ]]; then
+    compiler="hipcc"
+  fi
+
+  # Build library only with hcc
+  CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGE_INSTALL_DIRECTORY=/opt/rocm ../..
+  make -j$(nproc) install
+
+  # Build clients with default host compiler
+  if [[ "${build_clients}" == true ]]; then
+    pushd clients
+      ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCMAKE_PREFIX_PATH=$(pwd)/../rocblas-install ../../../clients
+      make -j$(nproc)
+    popd
+  fi
 
   # #################################################
   # install
@@ -208,6 +251,11 @@ pushd .
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    elevate_if_not_root dpkg -i rocblas-*.deb
+
+    if [[ ${ID} == ubuntu ]]; then
+      elevate_if_not_root dpkg -i rocblas-*.deb
+    else
+      elevate_if_not_root yum localinstall rocblas-*.rpm
+    fi
   fi
 popd

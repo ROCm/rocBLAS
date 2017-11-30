@@ -28,7 +28,7 @@ typedef int32_t rocblas_int;
 typedef float2  rocblas_float_complex;
 typedef double2 rocblas_double_complex;
 // half type TODO put name of half here
-typedef __fp16   rocblas_half;
+typedef uint16_t rocblas_half;
 typedef float2   rocblas_half_complex;
 
 typedef struct _rocblas_handle * rocblas_handle;
