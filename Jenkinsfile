@@ -170,6 +170,20 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
           """
       }
 
+    stage('Clang Format') {
+        sh '''
+            find . -iname \'*.h\' \
+                -o -iname \'*.hpp\' \
+                -o -iname \'*.cpp\' \
+                -o -iname \'*.h.in\' \
+                -o -iname \'*.hpp.in\' \
+                -o -iname \'*.cpp.in\' \
+                -o -iname \'*.cl\' \
+            | grep -v 'build/' \
+            | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
+        '''
+    }
+
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
