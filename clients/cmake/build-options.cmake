@@ -9,6 +9,12 @@
 # presented in the superbuild GUI, but then passed into the ExternalProject as -D
 # parameters, which would already define them.
 
+# Building tensile can add significant compile time; this option allows to build
+# library without tensile to allow for rapid iteration without GEMM functionality
+if( NOT BUILD_WITH_TENSILE )
+  option( BUILD_WITH_TENSILE "Build rocBLAS with Tensile or not" ON )
+endif( )
+
 # Samples have no other dependencies except for rocblas, so are enabled by default
 if( NOT BUILD_CLIENTS_SAMPLES )
   option( BUILD_CLIENTS_SAMPLES "Build rocBLAS samples" OFF )
