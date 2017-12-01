@@ -213,6 +213,7 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
+  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=mi25_full"
 
   # build type
   if [[ "${build_release}" == true ]]; then

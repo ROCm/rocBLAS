@@ -36,7 +36,7 @@ if( BUILD_WITH_TENSILE )
   include( ${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
-  message( STATUS "AMDGPU_TARGEST=${AMDGPU_TARGETS}" )
+  message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   TensileCreateLibrary(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
