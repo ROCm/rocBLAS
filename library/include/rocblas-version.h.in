@@ -4,7 +4,7 @@
 
 /* the configured version and settings
  */
-#define rocblasVersionMajor @rocblas_VERSION_MAJOR@
-#define rocblaseVersionMinor @rocblas_VERSION_MINOR@
-#define rocblasVersionPatch @rocblas_VERSION_PATCH@
-#define rocblasVersionTweak @rocblas_VERSION_TWEAK@
+#define rocblasVersionMajor @rocblas_VERSION_MAJOR @
+#define rocblaseVersionMinor @rocblas_VERSION_MINOR @
+#define rocblasVersionPatch @rocblas_VERSION_PATCH @
+#define rocblasVersionTweak @rocblas_VERSION_TWEAK @
