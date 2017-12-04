@@ -19,11 +19,11 @@
 
 using namespace std;
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 rocblas_status testing_nrm2_bad_arg()
 {
-    rocblas_int N = 100;
-    rocblas_int incx = 1;
+    rocblas_int N         = 100;
+    rocblas_int incx      = 1;
     rocblas_int safe_size = 100;
 
     rocblas_status status;
@@ -31,11 +31,13 @@ rocblas_status testing_nrm2_bad_arg()
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
 
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),rocblas_test::device_free};
-    auto d_rocblas_result_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)),rocblas_test::device_free};
-    T1* dx = (T1*) dx_managed.get();
-    T2* d_rocblas_result = (T2*) d_rocblas_result_managed.get();
-    if (!dx || !d_rocblas_result)
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),
+                                         rocblas_test::device_free};
+    auto d_rocblas_result_managed =
+        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
+    T1* dx               = (T1*)dx_managed.get();
+    T2* d_rocblas_result = (T2*)d_rocblas_result_managed.get();
+    if(!dx || !d_rocblas_result)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
@@ -43,21 +45,21 @@ rocblas_status testing_nrm2_bad_arg()
 
     // test if (nullptr == dx)
     {
-        T1 *dx_null = nullptr;
+        T1* dx_null = nullptr;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx_null, incx, d_rocblas_result);
 
-        verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "Error: x or result is nullptr");
     }
     // test if (nullptr == d_rocblas_result)
     {
-        T2 *d_rocblas_result_null = nullptr;
+        T2* d_rocblas_result_null = nullptr;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result_null);
 
-        verify_rocblas_status_invalid_pointer(status,"Error: x or result is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "Error: x or result is nullptr");
     }
     // test if (nullptr == handle)
     {
@@ -71,12 +73,12 @@ rocblas_status testing_nrm2_bad_arg()
     return rocblas_status_success;
 }
 
-template<typename T1, typename T2>
+template <typename T1, typename T2>
 rocblas_status testing_nrm2(Arguments argus)
 {
-    rocblas_int N = argus.N;
-    rocblas_int incx = argus.incx;
-    rocblas_int safe_size = 100;   //  arbitrarily set to zero
+    rocblas_int N         = argus.N;
+    rocblas_int incx      = argus.incx;
+    rocblas_int safe_size = 100; //  arbitrarily set to zero
 
     T2 rocblas_result_1;
     T2 rocblas_result_2;
@@ -90,14 +92,16 @@ rocblas_status testing_nrm2(Arguments argus)
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
 
-    //check to prevent undefined memory allocation error
-    if( N <= 0 || incx <= 0 )
+    // check to prevent undefined memory allocation error
+    if(N <= 0 || incx <= 0)
     {
-        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),rocblas_test::device_free};
-        auto d_rocblas_result_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)),rocblas_test::device_free};
-        T1* dx = (T1*) dx_managed.get();
-        T2* d_rocblas_result = (T2*) d_rocblas_result_managed.get();
-        if (!dx || !d_rocblas_result)
+        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),
+                                             rocblas_test::device_free};
+        auto d_rocblas_result_managed =
+            rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
+        T1* dx               = (T1*)dx_managed.get();
+        T2* d_rocblas_result = (T2*)d_rocblas_result_managed.get();
+        if(!dx || !d_rocblas_result)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
             return rocblas_status_memory_error;
@@ -113,26 +117,28 @@ rocblas_status testing_nrm2(Arguments argus)
 
     rocblas_int size_x = N * incx;
 
-    //allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * size_x),rocblas_test::device_free};
-    auto d_rocblas_result_managed_2 = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)),rocblas_test::device_free};
-    T1* dx = (T1*) dx_managed.get();
-    T2* d_rocblas_result_2 = (T2*) d_rocblas_result_managed_2.get();
-    if (!dx || !d_rocblas_result_2)
+    // allocate memory on device
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * size_x),
+                                         rocblas_test::device_free};
+    auto d_rocblas_result_managed_2 =
+        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
+    T1* dx                 = (T1*)dx_managed.get();
+    T2* d_rocblas_result_2 = (T2*)d_rocblas_result_managed_2.get();
+    if(!dx || !d_rocblas_result_2)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
     }
 
-    //Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
+    // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     vector<T1> hx(size_x);
 
-    //Initial Data on CPU
+    // Initial Data on CPU
     srand(1);
     rocblas_init<T1>(hx, 1, N, incx);
 
-    //copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T1)*N*incx, hipMemcpyHostToDevice));
+    // copy data from CPU to device, does not work for incx != 1
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T1) * N * incx, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
 
@@ -145,33 +151,38 @@ rocblas_status testing_nrm2(Arguments argus)
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result_2)));
-        CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(
+            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T2), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
         cblas_nrm2<T1, T2>(N, hx.data(), incx, &cpu_result);
         cpu_time_used = get_time_us() - cpu_time_used;
 
-//      allowable error is sqrt of precision. This is based on nrm2 calculating the 
-//      square root of a sum. It is assumed that the sum will have accuracy =approx=
-//      precision, so nrm2 will have accuracy =approx= sqrt(precision) 
-        T2 abs_error = pow(10.0, -(std::numeric_limits<T2>::digits10/2.0)) * cpu_result;
-        T2 tolerance = 2.0;  //  accounts for rounding in reduction sum. depends on n. 
-                             //  If test fails, try decreasing n or increasing tolerance.
+        //      allowable error is sqrt of precision. This is based on nrm2 calculating the
+        //      square root of a sum. It is assumed that the sum will have accuracy =approx=
+        //      precision, so nrm2 will have accuracy =approx= sqrt(precision)
+        T2 abs_error = pow(10.0, -(std::numeric_limits<T2>::digits10 / 2.0)) * cpu_result;
+        T2 tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
+                            //  If test fails, try decreasing n or increasing tolerance.
         abs_error = abs_error * tolerance;
         if(argus.unit_check)
         {
-            near_check_general<T1,T2>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-            near_check_general<T1,T2>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            near_check_general<T1, T2>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+            near_check_general<T1, T2>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
         }
 
-        //if enable norm check, norm check is invasive
-        //any typeinfo(T) will not work here, because template deduction is matched in compilation time
+        // if enable norm check, norm check is invasive
+        // any typeinfo(T) will not work here, because template deduction is matched in compilation
+        // time
         if(argus.norm_check)
         {
-            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n", cpu_result, rocblas_result_1, rocblas_result_2);
-            rocblas_error_1 = fabs((cpu_result - rocblas_result_1)/cpu_result);
-            rocblas_error_2 = fabs((cpu_result - rocblas_result_2)/cpu_result);
+            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n",
+                   cpu_result,
+                   rocblas_result_1,
+                   rocblas_result_2);
+            rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
+            rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);
         }
     }
 
@@ -180,10 +191,10 @@ rocblas_status testing_nrm2(Arguments argus)
         int number_timing_iterations = 1;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        gpu_time_used = get_time_us();// in microseconds
+        gpu_time_used = get_time_us(); // in microseconds
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        for (int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < number_timing_iterations; iter++)
         {
             rocblas_nrm2<T1, T2>(handle, N, dx, incx, &rocblas_result_2);
         }
@@ -192,12 +203,14 @@ rocblas_status testing_nrm2(Arguments argus)
 
         cout << "N,rocblas(us)";
 
-        if(argus.norm_check) cout << ",CPU(us),error_host_ptr,error_dev_ptr";
+        if(argus.norm_check)
+            cout << ",CPU(us),error_host_ptr,error_dev_ptr";
 
         cout << endl;
         cout << N << "," << gpu_time_used;
 
-        if(argus.norm_check) cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
+        if(argus.norm_check)
+            cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
 
         cout << endl;
     }
