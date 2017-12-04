@@ -131,9 +131,12 @@ else( )
     set( package_name rocblas-alt )
 endif( )
 
+set( ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBDIR}" CACHE PATH "Path placed into ldconfig file" )
+
 rocm_create_package(
     NAME ${package_name}
     DESCRIPTION "Radeon Open Compute BLAS library"
     MAINTAINER "Kent Knox <kent.knox@amd.com>"
     LDCONFIG
+    LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
 )
