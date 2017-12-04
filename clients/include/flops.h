@@ -11,81 +11,90 @@
 #include <typeinfo>
 
 /*!\file
- * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 1, 2, 3.
+ * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 1, 2,
+ * 3.
 */
 
-    /*
-     * ===========================================================================
-     *    level 1 BLAS
-     * ===========================================================================
-     */
-    template<typename T>
-    double  axpy_gflop_count(rocblas_int n){
-        return (2.0 * n)/1e9;
-    }
-    template<typename T>
-    double  dot_gflop_count(rocblas_int n){
-        return (2.0 * n)/1e9;
-    }
-    template<typename T>
-    double  scal_gflop_count(rocblas_int n){
-        return (1.0 * n)/1e9;
-    }
+/*
+ * ===========================================================================
+ *    level 1 BLAS
+ * ===========================================================================
+ */
+template <typename T>
+double axpy_gflop_count(rocblas_int n)
+{
+    return (2.0 * n) / 1e9;
+}
+template <typename T>
+double dot_gflop_count(rocblas_int n)
+{
+    return (2.0 * n) / 1e9;
+}
+template <typename T>
+double scal_gflop_count(rocblas_int n)
+{
+    return (1.0 * n) / 1e9;
+}
 
+/*
+ * ===========================================================================
+ *    level 2 BLAS
+ * ===========================================================================
+ */
 
-    /*
-     * ===========================================================================
-     *    level 2 BLAS
-     * ===========================================================================
-     */
+/* \brief floating point counts of GEMV */
+template <typename T>
+double gemv_gflop_count(rocblas_int m, rocblas_int n)
+{
+    return (2.0 * m * n) / 1e9;
+}
 
-    /* \brief floating point counts of GEMV */
-    template<typename T>
-    double  gemv_gflop_count(rocblas_int m, rocblas_int n){
-        return (2.0 * m * n)/1e9;
-    }
+/* \brief floating point counts of SY(HE)MV */
+template <typename T>
+double symv_gflop_count(rocblas_int n)
+{
+    return (2.0 * n * n) / 1e9;
+}
 
-    /* \brief floating point counts of SY(HE)MV */
-    template<typename T>
-    double  symv_gflop_count(rocblas_int n){
-        return (2.0 * n * n)/1e9;
-    }
+/* \brief floating point counts of GER */
+template <typename T>
+double ger_gflop_count(rocblas_int m, rocblas_int n)
+{
+    return (2.0 * m * n) / 1e9;
+}
 
-    /* \brief floating point counts of GER */
-    template<typename T>
-    double  ger_gflop_count(rocblas_int m, rocblas_int n){
-        return (2.0 * m * n)/1e9;
-    }
+/*
+ * ===========================================================================
+ *    level 3 BLAS
+ * ===========================================================================
+ */
 
-    /*
-     * ===========================================================================
-     *    level 3 BLAS
-     * ===========================================================================
-     */
+/* \brief floating point counts of GEMM */
+template <typename T>
+double gemm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
+{
+    return (2.0 * m * n * k) / 1e9;
+}
 
+/* \brief floating point counts of GEAM */
+template <typename T>
+double geam_gflop_count(rocblas_int m, rocblas_int n)
+{
+    return (3.0 * m * n) / 1e9;
+}
 
-    /* \brief floating point counts of GEMM */
-    template<typename T>
-    double  gemm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k){
-        return (2.0 * m * n * k)/1e9;
-    }
+/* \brief floating point counts of TRSM */
+template <typename T>
+double trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
+{
+    return (1.0 * m * n * (k + 1)) / 1e9;
+}
 
-    /* \brief floating point counts of GEAM */
-    template<typename T>
-    double  geam_gflop_count(rocblas_int m, rocblas_int n){
-        return (3.0 * m * n)/1e9;
-    }
+/* \brief floating point counts of TRTRI */
+template <typename T>
+double trtri_gflop_count(rocblas_int n)
+{
+    return (1.0 * n * n * n) / 3.0 / 1e9;
+}
 
-    /* \brief floating point counts of TRSM */
-    template<typename T>
-    double  trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k){
-        return (1.0 * m * n * (k+1))/1e9;
-    }
-
-    /* \brief floating point counts of TRTRI */
-    template<typename T>
-    double  trtri_gflop_count(rocblas_int n){
-        return (1.0 * n * n * n)/3.0/1e9;
-    }
-
-#endif  /* _ROCBLAS_FLOPS_H_ */
+#endif /* _ROCBLAS_FLOPS_H_ */
