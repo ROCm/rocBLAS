@@ -17,6 +17,7 @@ ARG user_uid
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     sudo \
     build-essential \
+    clang-format-3.8 \
     cmake \
     clang-format-3.8 \
     ca-certificates \
