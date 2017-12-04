@@ -36,6 +36,7 @@ function display_help()
   echo "rocBLAS build & installation helper script"
   echo "./install [-h|--help] "
   echo "    [-h|--help] prints this help message"
+#  echo "    [--prefix] Specify an alternate CMAKE_INSTALL_PREFIX for cmake"
   echo "    [-i|--install] install after build"
   echo "    [-d|--dependencies] install build dependencies"
   echo "    [-c|--clients] build library clients too (combines with -i & -d)"
@@ -84,6 +85,7 @@ install_yum_packages( )
 # #################################################
 install_package=false
 install_dependencies=false
+install_prefix=rocblas-install
 build_clients=false
 build_cuda=false
 build_release=true
@@ -129,6 +131,9 @@ while true; do
     --cuda)
         build_cuda=true
         shift ;;
+    --prefix)
+        install_prefix=${2}
+        shift 2 ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -235,7 +240,7 @@ pushd .
   fi
 
   # Build library only with hcc
-  CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGE_INSTALL_DIRECTORY=/opt/rocm ../..
+  CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   make -j$(nproc) install
 
   # Build clients with default host compiler

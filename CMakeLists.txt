@@ -118,13 +118,12 @@ list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 # NOTE:  workaround until hcc & hip cmake modules fixes symlink logic in their config files; remove when fixed
 list( APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip )
 
-# Building tensile can add significant compile time; this option allows to build
-# library without tensile to allow for rapid iteration without GEMM functionality
-option( BUILD_WITH_TENSILE "Building rocBLAS with Tensile or not" ON )
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
+
+include( clients/cmake/build-options.cmake )
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
@@ -158,8 +157,6 @@ endif( )
 set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
-
-include( clients/cmake/build-options.cmake )
 
 # Build clients of the library
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
