@@ -17,47 +17,94 @@
 #define X(ii, jj) (X + (ii) + (jj)*ldb)
 #define invA(ii) (invA + (ii)*BLOCK)
 
-
-
 /* ===============left==================================================== */
 
-template<typename T, rocblas_int  BLOCK>
+template <typename T, rocblas_int BLOCK>
 rocblas_status rocblas_trsm_left(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_operation transA,
-    rocblas_int m, rocblas_int n,
-    const T* alpha,
-    const T* A, rocblas_int lda,
-    T*       B, rocblas_int ldb,
-    const T* invA, T* X)
+                                 rocblas_fill uplo,
+                                 rocblas_operation transA,
+                                 rocblas_int m,
+                                 rocblas_int n,
+                                 const T* alpha,
+                                 const T* A,
+                                 rocblas_int lda,
+                                 T* B,
+                                 rocblas_int ldb,
+                                 const T* invA,
+                                 T* X)
 {
 
     const T negtive_one = -1.0;
-    const T one     = 1.0;
-    const T zero    = 0.0;
+    const T one         = 1.0;
+    const T zero        = 0.0;
 
     rocblas_int i, jb;
 
-    //transB is always non-transpose
+    // transB is always non-transpose
     rocblas_operation transB = rocblas_operation_none;
 
-    if (transA == transB) {
-        if (uplo == rocblas_fill_lower) {
+    if(transA == transB)
+    {
+        if(uplo == rocblas_fill_lower)
+        {
             // left, lower no-transpose
             jb = min(BLOCK, m);
-            rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
-            if (BLOCK < m) {
-                rocblas_gemm_template<T>(handle, transA, transB, m-BLOCK, n, BLOCK, &negtive_one, A(BLOCK,0), lda, X, ldb, alpha, B(BLOCK,0), ldb);
+            rocblas_gemm_template<T>(
+                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
+            if(BLOCK < m)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transA,
+                                         transB,
+                                         m - BLOCK,
+                                         n,
+                                         BLOCK,
+                                         &negtive_one,
+                                         A(BLOCK, 0),
+                                         lda,
+                                         X,
+                                         ldb,
+                                         alpha,
+                                         B(BLOCK, 0),
+                                         ldb);
 
                 // remaining blocks
-                for( i=BLOCK; i < m; i += BLOCK ) {
-                    jb = min(m-i, BLOCK);
+                for(i = BLOCK; i < m; i += BLOCK)
+                {
+                    jb = min(m - i, BLOCK);
 
-                    rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-                    if (i+BLOCK >= m)// this condition is not necessary at all and can be changed as if (i+BLOCK<m)
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             jb,
+                                             n,
+                                             jb,
+                                             &one,
+                                             invA(i),
+                                             BLOCK,
+                                             B(i, 0),
+                                             ldb,
+                                             &zero,
+                                             X(i, 0),
+                                             ldb);
+                    if(i + BLOCK >= m) // this condition is not necessary at all and can be changed
+                                       // as if (i+BLOCK<m)
                         break;
 
-                    rocblas_gemm_template<T>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negtive_one, A(i+BLOCK,i), lda, X(i,0), ldb, &one, B(i+BLOCK,0), ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             m - i - BLOCK,
+                                             n,
+                                             BLOCK,
+                                             &negtive_one,
+                                             A(i + BLOCK, i),
+                                             lda,
+                                             X(i, 0),
+                                             ldb,
+                                             &one,
+                                             B(i + BLOCK, 0),
+                                             ldb);
                 }
             }
 
@@ -73,167 +120,520 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
 
 #endif
         }
-        else {
+        else
+        {
             // left, upper no-transpose
             jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
-            i = m-jb; 
+            i  = m - jb;
 
-            //if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35} 
-            rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-            if (i-BLOCK >= 0) {
+            // if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35}
+            rocblas_gemm_template<T>(handle,
+                                     transA,
+                                     transB,
+                                     jb,
+                                     n,
+                                     jb,
+                                     alpha,
+                                     invA(i),
+                                     BLOCK,
+                                     B(i, 0),
+                                     ldb,
+                                     &zero,
+                                     X(i, 0),
+                                     ldb);
+            if(i - BLOCK >= 0)
+            {
 
-                rocblas_gemm_template<T>(handle, transA, transB, i, n, jb, &negtive_one, A(0,i), lda, X(i,0), ldb, alpha, B, ldb);
+                rocblas_gemm_template<T>(handle,
+                                         transA,
+                                         transB,
+                                         i,
+                                         n,
+                                         jb,
+                                         &negtive_one,
+                                         A(0, i),
+                                         lda,
+                                         X(i, 0),
+                                         ldb,
+                                         alpha,
+                                         B,
+                                         ldb);
 
                 // remaining blocks
-                for( i=m-jb-BLOCK; i >= 0; i -= BLOCK ) {
+                for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
+                {
                     //{32, 35, 32, 32, 35, 35}
-                    rocblas_gemm_template<T>(handle, transA, transB, BLOCK, n, BLOCK, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-                    if (i-BLOCK < 0)
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             BLOCK,
+                                             n,
+                                             BLOCK,
+                                             &one,
+                                             invA(i),
+                                             BLOCK,
+                                             B(i, 0),
+                                             ldb,
+                                             &zero,
+                                             X(i, 0),
+                                             ldb);
+                    if(i - BLOCK < 0)
                         break;
-                    rocblas_gemm_template<T>(handle, transA, transB, i, n, BLOCK, &negtive_one, A(0,i), lda, X(i,0), ldb, &one, B, ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             i,
+                                             n,
+                                             BLOCK,
+                                             &negtive_one,
+                                             A(0, i),
+                                             lda,
+                                             X(i, 0),
+                                             ldb,
+                                             &one,
+                                             B,
+                                             ldb);
                 }
             }
         }
     }
-    else {  // transA == rocblas_operation_transpose || transA == rocblas_operation_conjugate_transpose
-        if (uplo == rocblas_fill_lower) {
+    else
+    { // transA == rocblas_operation_transpose || transA == rocblas_operation_conjugate_transpose
+        if(uplo == rocblas_fill_lower)
+        {
             // left, lower transpose
             jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
-            i = m-jb;
-            rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-            if (i-BLOCK >= 0) {
-                rocblas_gemm_template<T>(handle, transA, transB, i, n, jb, &negtive_one, A(i,0), lda, X(i,0), ldb, alpha, B, ldb);
+            i  = m - jb;
+            rocblas_gemm_template<T>(handle,
+                                     transA,
+                                     transB,
+                                     jb,
+                                     n,
+                                     jb,
+                                     alpha,
+                                     invA(i),
+                                     BLOCK,
+                                     B(i, 0),
+                                     ldb,
+                                     &zero,
+                                     X(i, 0),
+                                     ldb);
+            if(i - BLOCK >= 0)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transA,
+                                         transB,
+                                         i,
+                                         n,
+                                         jb,
+                                         &negtive_one,
+                                         A(i, 0),
+                                         lda,
+                                         X(i, 0),
+                                         ldb,
+                                         alpha,
+                                         B,
+                                         ldb);
 
                 // remaining blocks
-                for( i=m-jb-BLOCK; i >= 0; i -= BLOCK ) {
-                    rocblas_gemm_template<T>(handle, transA, transB, BLOCK, n, BLOCK, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-                    if (i-BLOCK < 0)
+                for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
+                {
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             BLOCK,
+                                             n,
+                                             BLOCK,
+                                             &one,
+                                             invA(i),
+                                             BLOCK,
+                                             B(i, 0),
+                                             ldb,
+                                             &zero,
+                                             X(i, 0),
+                                             ldb);
+                    if(i - BLOCK < 0)
                         break;
-                    rocblas_gemm_template<T>(handle, transA, transB, i, n, BLOCK, &negtive_one, A(i,0), lda, X(i,0), ldb, &one, B, ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             i,
+                                             n,
+                                             BLOCK,
+                                             &negtive_one,
+                                             A(i, 0),
+                                             lda,
+                                             X(i, 0),
+                                             ldb,
+                                             &one,
+                                             B,
+                                             ldb);
                 }
             }
         }
-        else {
+        else
+        {
             // left, upper transpose
             jb = min(BLOCK, m);
-            rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
-            if (BLOCK < m) {
-                rocblas_gemm_template<T>(handle, transA, transB, m-BLOCK, n, BLOCK, &negtive_one, A(0,BLOCK), lda, X, ldb, alpha, B(BLOCK,0), ldb);
+            rocblas_gemm_template<T>(
+                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
+            if(BLOCK < m)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transA,
+                                         transB,
+                                         m - BLOCK,
+                                         n,
+                                         BLOCK,
+                                         &negtive_one,
+                                         A(0, BLOCK),
+                                         lda,
+                                         X,
+                                         ldb,
+                                         alpha,
+                                         B(BLOCK, 0),
+                                         ldb);
 
                 // remaining blocks
-                for( i=BLOCK; i < m; i += BLOCK ) {
-                    jb = min(m-i, BLOCK);
-                    rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, &one, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
-                    if (i+BLOCK >= m)
+                for(i = BLOCK; i < m; i += BLOCK)
+                {
+                    jb = min(m - i, BLOCK);
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             jb,
+                                             n,
+                                             jb,
+                                             &one,
+                                             invA(i),
+                                             BLOCK,
+                                             B(i, 0),
+                                             ldb,
+                                             &zero,
+                                             X(i, 0),
+                                             ldb);
+                    if(i + BLOCK >= m)
                         break;
-                    rocblas_gemm_template<T>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negtive_one, A(i,i+BLOCK), lda, X(i,0), ldb, &one, B(i+BLOCK,0), ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             transB,
+                                             m - i - BLOCK,
+                                             n,
+                                             BLOCK,
+                                             &negtive_one,
+                                             A(i, i + BLOCK),
+                                             lda,
+                                             X(i, 0),
+                                             ldb,
+                                             &one,
+                                             B(i + BLOCK, 0),
+                                             ldb);
                 }
             }
         }
-    }//transpose
+    } // transpose
 
     return rocblas_status_success;
-
 }
 
 /* ===============right==================================================== */
 
-
-template<typename T, rocblas_int  BLOCK>
+template <typename T, rocblas_int BLOCK>
 rocblas_status rocblas_trsm_right(rocblas_handle handle,
-    rocblas_fill uplo,
-    rocblas_operation transA,
-    rocblas_int m, rocblas_int n,
-    const T* alpha,
-    const T* A, rocblas_int lda,
-    T*       B, rocblas_int ldb,
-    const T* invA, T* X)
+                                  rocblas_fill uplo,
+                                  rocblas_operation transA,
+                                  rocblas_int m,
+                                  rocblas_int n,
+                                  const T* alpha,
+                                  const T* A,
+                                  rocblas_int lda,
+                                  T* B,
+                                  rocblas_int ldb,
+                                  const T* invA,
+                                  T* X)
 {
 
     const T negtive_one = -1.0;
-    const T one     = 1.0;
-    const T zero    = 0.0;
+    const T one         = 1.0;
+    const T zero        = 0.0;
 
     rocblas_int i, jb;
 
-    //transB is always non-transpose
+    // transB is always non-transpose
     rocblas_operation transB = rocblas_operation_none;
 
-    if (transA == transB) {
-        if (uplo == rocblas_fill_lower) {
+    if(transA == transB)
+    {
+        if(uplo == rocblas_fill_lower)
+        {
             // right, lower no-transpose
             jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
-            i = n-jb;
-            rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, alpha, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-            if (i-BLOCK >= 0) {
-                rocblas_gemm_template<T>(handle, transB, transA, m, i, jb, &negtive_one, X(0,i), ldb, A(i,0), lda, alpha, B, ldb);
+            i  = n - jb;
+            rocblas_gemm_template<T>(handle,
+                                     transB,
+                                     transA,
+                                     m,
+                                     jb,
+                                     jb,
+                                     alpha,
+                                     B(0, i),
+                                     ldb,
+                                     invA(i),
+                                     BLOCK,
+                                     &zero,
+                                     X(0, i),
+                                     ldb);
+            if(i - BLOCK >= 0)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transB,
+                                         transA,
+                                         m,
+                                         i,
+                                         jb,
+                                         &negtive_one,
+                                         X(0, i),
+                                         ldb,
+                                         A(i, 0),
+                                         lda,
+                                         alpha,
+                                         B,
+                                         ldb);
 
                 // remaining blocks
-                for( i=n-jb-BLOCK; i >= 0; i -= BLOCK ) {
-                    rocblas_gemm_template<T>(handle, transB, transA, m, BLOCK, BLOCK, &one, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-                    if (i-BLOCK < 0)
+                for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
+                {
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             BLOCK,
+                                             BLOCK,
+                                             &one,
+                                             B(0, i),
+                                             ldb,
+                                             invA(i),
+                                             BLOCK,
+                                             &zero,
+                                             X(0, i),
+                                             ldb);
+                    if(i - BLOCK < 0)
                         break;
-                    rocblas_gemm_template<T>(handle, transB, transA, m, i, BLOCK, &negtive_one, X(0,i), ldb, A(i,0), lda, &one, B, ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             i,
+                                             BLOCK,
+                                             &negtive_one,
+                                             X(0, i),
+                                             ldb,
+                                             A(i, 0),
+                                             lda,
+                                             &one,
+                                             B,
+                                             ldb);
                 }
             }
         }
-        else {
+        else
+        {
             // right, upper no-transpose
             jb = min(BLOCK, n);
-            rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
-            if (BLOCK < n) {
-                rocblas_gemm_template<T>(handle, transB, transA, m, n-BLOCK, BLOCK, &negtive_one, X, ldb, A(0,BLOCK), lda, alpha, B(0,BLOCK), ldb);
+            rocblas_gemm_template<T>(
+                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
+            if(BLOCK < n)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transB,
+                                         transA,
+                                         m,
+                                         n - BLOCK,
+                                         BLOCK,
+                                         &negtive_one,
+                                         X,
+                                         ldb,
+                                         A(0, BLOCK),
+                                         lda,
+                                         alpha,
+                                         B(0, BLOCK),
+                                         ldb);
 
                 // remaining blocks
-                for( i=BLOCK; i < n; i += BLOCK ) {
-                    jb = min(BLOCK, n-i);
-                    rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, &one, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-                    if (i+BLOCK >= n)
+                for(i = BLOCK; i < n; i += BLOCK)
+                {
+                    jb = min(BLOCK, n - i);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             jb,
+                                             jb,
+                                             &one,
+                                             B(0, i),
+                                             ldb,
+                                             invA(i),
+                                             BLOCK,
+                                             &zero,
+                                             X(0, i),
+                                             ldb);
+                    if(i + BLOCK >= n)
                         break;
-                    rocblas_gemm_template<T>(handle, transB, transA, m, n-i-BLOCK, BLOCK, &negtive_one, X(0,i), ldb, A(i,i+BLOCK), lda, &one, B(0,i+BLOCK), ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             n - i - BLOCK,
+                                             BLOCK,
+                                             &negtive_one,
+                                             X(0, i),
+                                             ldb,
+                                             A(i, i + BLOCK),
+                                             lda,
+                                             &one,
+                                             B(0, i + BLOCK),
+                                             ldb);
                 }
             }
         }
     }
-    else { // transA == rocblas_operation_transpose || transA == rocblas_operation_conjugate_transpose
-        if (uplo == rocblas_fill_lower) {
+    else
+    { // transA == rocblas_operation_transpose || transA == rocblas_operation_conjugate_transpose
+        if(uplo == rocblas_fill_lower)
+        {
             // right, lower transpose
             jb = min(BLOCK, n);
-            rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
-            if (BLOCK < n) {
-                rocblas_gemm_template<T>(handle, transB, transA, m, n-BLOCK, BLOCK, &negtive_one, X, ldb, A(BLOCK,0), lda, alpha, B(0,BLOCK), ldb);
+            rocblas_gemm_template<T>(
+                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
+            if(BLOCK < n)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transB,
+                                         transA,
+                                         m,
+                                         n - BLOCK,
+                                         BLOCK,
+                                         &negtive_one,
+                                         X,
+                                         ldb,
+                                         A(BLOCK, 0),
+                                         lda,
+                                         alpha,
+                                         B(0, BLOCK),
+                                         ldb);
 
                 // remaining blocks
-                for( i=BLOCK; i < n; i += BLOCK ) {
-                    jb = min(BLOCK, n-i);
-                    rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, &one, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-                    if (i+BLOCK >= n)
+                for(i = BLOCK; i < n; i += BLOCK)
+                {
+                    jb = min(BLOCK, n - i);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             jb,
+                                             jb,
+                                             &one,
+                                             B(0, i),
+                                             ldb,
+                                             invA(i),
+                                             BLOCK,
+                                             &zero,
+                                             X(0, i),
+                                             ldb);
+                    if(i + BLOCK >= n)
                         break;
-                    rocblas_gemm_template<T>(handle, transB, transA, m, n-i-BLOCK, BLOCK, &negtive_one, X(0,i), ldb, A(BLOCK+i,i), lda, &one, B(0,i+BLOCK), ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             n - i - BLOCK,
+                                             BLOCK,
+                                             &negtive_one,
+                                             X(0, i),
+                                             ldb,
+                                             A(BLOCK + i, i),
+                                             lda,
+                                             &one,
+                                             B(0, i + BLOCK),
+                                             ldb);
                 }
             }
         }
-        else {
+        else
+        {
             // right, upper transpose
             jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
-            i = n-jb;
-            rocblas_gemm_template<T>(handle, transB, transA, m, jb, jb, alpha, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-            if (i-BLOCK >= 0) {
-                rocblas_gemm_template<T>(handle, transB, transA, m, i, jb, &negtive_one, X(0,i), ldb, A(0,i), lda, alpha, B, ldb);
+            i  = n - jb;
+            rocblas_gemm_template<T>(handle,
+                                     transB,
+                                     transA,
+                                     m,
+                                     jb,
+                                     jb,
+                                     alpha,
+                                     B(0, i),
+                                     ldb,
+                                     invA(i),
+                                     BLOCK,
+                                     &zero,
+                                     X(0, i),
+                                     ldb);
+            if(i - BLOCK >= 0)
+            {
+                rocblas_gemm_template<T>(handle,
+                                         transB,
+                                         transA,
+                                         m,
+                                         i,
+                                         jb,
+                                         &negtive_one,
+                                         X(0, i),
+                                         ldb,
+                                         A(0, i),
+                                         lda,
+                                         alpha,
+                                         B,
+                                         ldb);
 
                 // remaining blocks
-                for( i=n-jb-BLOCK; i >= 0; i -= BLOCK ) {
-                    rocblas_gemm_template<T>(handle, transB, transA, m, BLOCK, BLOCK, &one, B(0,i), ldb, invA(i), BLOCK, &zero, X(0,i), ldb);
-                    if (i-BLOCK < 0)
+                for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
+                {
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             BLOCK,
+                                             BLOCK,
+                                             &one,
+                                             B(0, i),
+                                             ldb,
+                                             invA(i),
+                                             BLOCK,
+                                             &zero,
+                                             X(0, i),
+                                             ldb);
+                    if(i - BLOCK < 0)
                         break;
-                    rocblas_gemm_template<T>(handle, transB, transA, m, i, BLOCK, &negtive_one, X(0,i), ldb, A(0,i), lda, &one, B, ldb);
+                    rocblas_gemm_template<T>(handle,
+                                             transB,
+                                             transA,
+                                             m,
+                                             i,
+                                             BLOCK,
+                                             &negtive_one,
+                                             X(0, i),
+                                             ldb,
+                                             A(0, i),
+                                             lda,
+                                             &one,
+                                             B,
+                                             ldb);
                 }
             }
         }
-    }// tranpsose
+    } // tranpsose
 
     return rocblas_status_success;
-
 }
 
 /* ============================================================================================ */
@@ -314,117 +714,137 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
 
     ********************************************************************/
 
-template<typename T, rocblas_int BLOCK>
+template <typename T, rocblas_int BLOCK>
 rocblas_status rocblas_trsm_template(rocblas_handle handle,
-    rocblas_side side, rocblas_fill uplo,
-    rocblas_operation transA, rocblas_diagonal diag,
-    rocblas_int m, rocblas_int n,
-    const T* alpha,
-    T* A, rocblas_int lda,
-    T* B, rocblas_int ldb)
+                                     rocblas_side side,
+                                     rocblas_fill uplo,
+                                     rocblas_operation transA,
+                                     rocblas_diagonal diag,
+                                     rocblas_int m,
+                                     rocblas_int n,
+                                     const T* alpha,
+                                     T* A,
+                                     rocblas_int lda,
+                                     T* B,
+                                     rocblas_int ldb)
 {
-    //A is of size lda*k
+    // A is of size lda*k
     rocblas_int k = (side == rocblas_side_left ? m : n);
 
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
-    else if ( uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+    else if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_not_implemented;
-    else if ( m < 0 )
+    else if(m < 0)
         return rocblas_status_invalid_size;
-    else if ( n < 0 )
+    else if(n < 0)
         return rocblas_status_invalid_size;
-    else if ( alpha == nullptr )
+    else if(alpha == nullptr)
         return rocblas_status_invalid_pointer;
-    else if ( A == nullptr )
+    else if(A == nullptr)
         return rocblas_status_invalid_pointer;
-    else if ( lda < k )
+    else if(lda < k)
         return rocblas_status_invalid_size;
-    else if ( B == nullptr )
+    else if(B == nullptr)
         return rocblas_status_invalid_pointer;
-    else if ( ldb < m )
+    else if(ldb < m)
         return rocblas_status_invalid_size;
 
     // quick return if possible.
-    if (m == 0 || n == 0)
+    if(m == 0 || n == 0)
         return rocblas_status_success;
 
-    //invA is of size BLOCK*k, BLOCK is the blocking size
+    // invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
-    auto invA = rocblas_unique_ptr{rocblas::device_malloc(BLOCK*k*sizeof(T)),rocblas::device_free};
+    auto invA =
+        rocblas_unique_ptr{rocblas::device_malloc(BLOCK * k * sizeof(T)), rocblas::device_free};
     if(!invA)
     {
         return rocblas_status_memory_error;
     }
 
-    //X is the same size of B
-    auto X = rocblas_unique_ptr{rocblas::device_malloc(ldb*n * sizeof(T)),rocblas::device_free};
+    // X is the same size of B
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(ldb * n * sizeof(T)), rocblas::device_free};
     if(!X)
     {
         return rocblas_status_memory_error;
     }
 
-    //intialize invA and X to be &zero
-    PRINT_IF_HIP_ERROR(hipMemset((T*)invA.get(), 0, BLOCK*k*sizeof(T)));
-    //potential bug, may use hipMemcpy B to X
-    PRINT_IF_HIP_ERROR(hipMemset((T*)X.get(), 0, ldb*n*sizeof(T)));
+    // intialize invA and X to be &zero
+    PRINT_IF_HIP_ERROR(hipMemset((T*)invA.get(), 0, BLOCK * k * sizeof(T)));
+    // potential bug, may use hipMemcpy B to X
+    PRINT_IF_HIP_ERROR(hipMemset((T*)X.get(), 0, ldb * n * sizeof(T)));
 
-    //batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-    rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(handle, uplo, diag,
-                                    k, A, lda,
-                                    (T*)invA.get());
+    // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
+    rocblas_status status =
+        rocblas_trtri_trsm_template<T, BLOCK>(handle, uplo, diag, k, A, lda, (T*)invA.get());
 
-
-    if (side == rocblas_side_left) {
-        status = rocblas_trsm_left<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
+    if(side == rocblas_side_left)
+    {
+        status = rocblas_trsm_left<T, BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
-    else {  // side == rocblas_side_right
-        status = rocblas_trsm_right<T, BLOCK>(handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
+    else
+    { // side == rocblas_side_right
+        status = rocblas_trsm_right<T, BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
 
-    #ifndef NDEBUG
+#ifndef NDEBUG
     printf("copy x to b\n");
-    #endif
-    PRINT_IF_HIP_ERROR(hipMemcpy(B, (T*)X.get(), ldb*n*sizeof(T), hipMemcpyDeviceToDevice));//TODO: optimized it with copy kernel
+#endif
+    PRINT_IF_HIP_ERROR(hipMemcpy(B,
+                                 (T*)X.get(),
+                                 ldb * n * sizeof(T),
+                                 hipMemcpyDeviceToDevice)); // TODO: optimized it with copy kernel
 
     return status;
 }
 
-
 /* ============================================================================================ */
 
-    /*
-     * ===========================================================================
-     *    C wrapper
-     * ===========================================================================
-     */
+/*
+ * ===========================================================================
+ *    C wrapper
+ * ===========================================================================
+ */
 
+extern "C" rocblas_status rocblas_strsm(rocblas_handle handle,
+                                        rocblas_side side,
+                                        rocblas_fill uplo,
+                                        rocblas_operation transA,
+                                        rocblas_diagonal diag,
+                                        rocblas_int m,
+                                        rocblas_int n,
+                                        const float* alpha,
+                                        float* A,
+                                        rocblas_int lda,
+                                        float* B,
+                                        rocblas_int ldb)
+{
 
-extern "C"
-rocblas_status
-rocblas_strsm(rocblas_handle handle,
-    rocblas_side side, rocblas_fill uplo,
-    rocblas_operation transA, rocblas_diagonal diag,
-    rocblas_int m, rocblas_int n,
-    const float* alpha,
-    float* A, rocblas_int lda,
-    float* B, rocblas_int ldb){
-
-    //shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
-    return rocblas_trsm_template<float, 128>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    // shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u
+    // can use all 64K, but in practice no.
+    return rocblas_trsm_template<float, 128>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
+extern "C" rocblas_status rocblas_dtrsm(rocblas_handle handle,
+                                        rocblas_side side,
+                                        rocblas_fill uplo,
+                                        rocblas_operation transA,
+                                        rocblas_diagonal diag,
+                                        rocblas_int m,
+                                        rocblas_int n,
+                                        const double* alpha,
+                                        double* A,
+                                        rocblas_int lda,
+                                        double* B,
+                                        rocblas_int ldb)
+{
 
-extern "C"
-rocblas_status
-rocblas_dtrsm(rocblas_handle handle,
-    rocblas_side side, rocblas_fill uplo,
-    rocblas_operation transA, rocblas_diagonal diag,
-    rocblas_int m, rocblas_int n,
-    const double* alpha,
-    double* A, rocblas_int lda,
-    double* B, rocblas_int ldb){
-
-    //shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically u can use all 64K, but in practice no.
-    return rocblas_trsm_template<double, DTRSM_BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    // shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically u
+    // can use all 64K, but in practice no.
+    return rocblas_trsm_template<double, DTRSM_BLOCK>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }

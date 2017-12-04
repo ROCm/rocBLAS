@@ -10,21 +10,22 @@
       Main function:
 =================================================================== */
 
-
-int main(int argc, char **argv)
+int main(int argc, char** argv)
 {
 
-    //Device Query
+    // Device Query
 
     int device_id = 0;
 
     int device_count = query_device_property();
 
-    if(device_count <= device_id){
+    if(device_count <= device_id)
+    {
         printf("Error: invalid device ID. There may not be such device ID. Will exit \n");
         return -1;
     }
-    else{
+    else
+    {
         set_device(device_id);
     }
 

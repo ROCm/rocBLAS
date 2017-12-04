@@ -11,39 +11,38 @@
 #include "trtri_device.h"
 #include "definitions.h"
 
-
-
 /* ============================================================================================ */
-
 
 /*
    when n <= IB
 */
 
-template<typename T, rocblas_int NB>
-__global__ void
-trtri_small_kernel(hipLaunchParm lp,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    T *A, rocblas_int lda,
-    T *invA, rocblas_int ldinvA)
+template <typename T, rocblas_int NB>
+__global__ void trtri_small_kernel(hipLaunchParm lp,
+                                   rocblas_fill uplo,
+                                   rocblas_diagonal diag,
+                                   rocblas_int n,
+                                   T* A,
+                                   rocblas_int lda,
+                                   T* invA,
+                                   rocblas_int ldinvA)
 {
     trtri_device<T, NB, 1>(uplo, diag, n, A, lda, invA, ldinvA);
 }
 
-
-
-template<typename T, rocblas_int IB>
-rocblas_status
-rocblas_trtri_small(rocblas_handle handle,
-    rocblas_fill uplo, rocblas_diagonal diag,
-    rocblas_int n,
-    T *A, rocblas_int lda,
-    T *invA, rocblas_int ldinvA)
+template <typename T, rocblas_int IB>
+rocblas_status rocblas_trtri_small(rocblas_handle handle,
+                                   rocblas_fill uplo,
+                                   rocblas_diagonal diag,
+                                   rocblas_int n,
+                                   T* A,
+                                   rocblas_int lda,
+                                   T* invA,
+                                   rocblas_int ldinvA)
 {
 
-    if(n > IB ){
+    if(n > IB)
+    {
         printf("n is %d must be less than %d, will exit\n", n, IB);
         return rocblas_status_not_implemented;
     }
@@ -54,42 +53,51 @@ rocblas_trtri_small(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_small_kernel<T, IB>), dim3(grid), dim3(threads), 0, rocblas_stream, uplo, diag, n, A, lda, invA, ldinvA );
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_small_kernel<T, IB>),
+                    dim3(grid),
+                    dim3(threads),
+                    0,
+                    rocblas_stream,
+                    uplo,
+                    diag,
+                    n,
+                    A,
+                    lda,
+                    invA,
+                    ldinvA);
 
     return rocblas_status_success;
 }
 
-
 /* ============================================================================================ */
-
 
 /*
     Invert the IB by IB diagonal blocks of A of size n by n,
     and stores the results in part of invA
 */
 
-template<typename T, rocblas_int IB>
-__global__ void
-trtri_diagonal_kernel(hipLaunchParm lp,
-    rocblas_fill uplo,
-    rocblas_diagonal diag,
-    rocblas_int n,
-    T *A, rocblas_int lda,
-    T *invA, rocblas_int ldinvA)
+template <typename T, rocblas_int IB>
+__global__ void trtri_diagonal_kernel(hipLaunchParm lp,
+                                      rocblas_fill uplo,
+                                      rocblas_diagonal diag,
+                                      rocblas_int n,
+                                      T* A,
+                                      rocblas_int lda,
+                                      T* invA,
+                                      rocblas_int ldinvA)
 {
-    //get the individual matrix which is processed by device function
-    //device function only see one matrix
+    // get the individual matrix which is processed by device function
+    // device function only see one matrix
 
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
     // notice the last digaonal block may be smaller than IB*IB
 
-    T *individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
-    T *individual_invA = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
+    T* individual_A    = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
+    T* individual_invA = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
 
-    trtri_device<T, IB, 1>(uplo, diag, min(IB, n- hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
-
+    trtri_device<T, IB, 1>(
+        uplo, diag, min(IB, n - hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
 }
-
 
 /*
     suppose nn is the orginal matrix AA' size (denoted as n in TOP API)
@@ -115,70 +123,83 @@ trtri_diagonal_kernel(hipLaunchParm lp,
 
 */
 
-template<typename T, rocblas_int IB>
-__global__ void
-gemm_trsm_kernel(hipLaunchParm lp,
-    rocblas_int m, rocblas_int n,
-    T *A, rocblas_int lda,
-    T *B, rocblas_int ldb,
-    T *C, rocblas_int ldc,
-    T *D, rocblas_int ldd)
+template <typename T, rocblas_int IB>
+__global__ void gemm_trsm_kernel(hipLaunchParm lp,
+                                 rocblas_int m,
+                                 rocblas_int n,
+                                 T* A,
+                                 rocblas_int lda,
+                                 T* B,
+                                 rocblas_int ldb,
+                                 T* C,
+                                 rocblas_int ldc,
+                                 T* D,
+                                 rocblas_int ldd)
 {
 
-    __shared__ T shared_tep[IB*IB];
+    __shared__ T shared_tep[IB * IB];
     __shared__ T vec[IB];
     T reg[IB];
 
     rocblas_int tx = hipThreadIdx_x;
 
-    //read B into registers, B is of m * n
-    if(tx < m){
-        for(int col=0;col<n;col++){
-           reg[col] = B[tx + col * ldb];
+    // read B into registers, B is of m * n
+    if(tx < m)
+    {
+        for(int col = 0; col < n; col++)
+        {
+            reg[col] = B[tx + col * ldb];
         }
     }
 
-    //shared_tep = B * C; shared_tep is of m * n, C is of n * n
-    for(int col=0;col<n;col++){
-        //load C's column in vec
-        if(tx < n) vec[tx] = C[col * ldc + tx];
+    // shared_tep = B * C; shared_tep is of m * n, C is of n * n
+    for(int col = 0; col < n; col++)
+    {
+        // load C's column in vec
+        if(tx < n)
+            vec[tx] = C[col * ldc + tx];
         __syncthreads();
 
         T reg_tep = 0;
-        //perform reduction
-        for(int i=0; i<n; i++){
+        // perform reduction
+        for(int i = 0; i < n; i++)
+        {
             reg_tep += reg[i] * vec[i];
         }
 
-        if(tx < m){
+        if(tx < m)
+        {
             shared_tep[tx + col * IB] = reg_tep;
         }
     }
 
     __syncthreads();
 
-    //read A into registers A is of m * m
-    if(tx < m){
-        for(int col=0;col<m;col++){
-           reg[col] = A[tx + col * lda];
+    // read A into registers A is of m * m
+    if(tx < m)
+    {
+        for(int col = 0; col < m; col++)
+        {
+            reg[col] = A[tx + col * lda];
         }
     }
 
-    //D = A * shared_tep; shared_tep is of m * n
-    for(int col=0;col<n;col++){
+    // D = A * shared_tep; shared_tep is of m * n
+    for(int col = 0; col < n; col++)
+    {
 
         T reg_tep = 0;
-        for(int i=0; i<m; i++){
+        for(int i = 0; i < m; i++)
+        {
             reg_tep += reg[i] * shared_tep[i + col * IB];
         }
 
-        if(tx < m){
+        if(tx < m)
+        {
             D[tx + col * ldd] = (-1) * reg_tep;
         }
     }
-
 }
-
 
 /*
    when  IB < n <= 2*IB
@@ -191,7 +212,8 @@ gemm_trsm_kernel(hipLaunchParm lp,
 
         A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
         A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
-        A21*invA11 + invA22*invA21 = 0 ->  invA21 = -A22^{-1}*A21*invA11 = -invA22*A21*invA11, by gemm
+        A21*invA11 + invA22*invA21 = 0 ->  invA21 = -A22^{-1}*A21*invA11 = -invA22*A21*invA11, by
+   gemm
 
 
     If A is a upper triangular matrix, to compute the invA
@@ -202,22 +224,25 @@ gemm_trsm_kernel(hipLaunchParm lp,
 
         A11*invA11 = I                 ->  invA11 =  A11^{-1}, by trtri directly
         A22*invA22 = I                 ->  invA22 =  A22^{-1}, by trtri directly
-        A11*invA12 + A12*invA22    = 0 ->  invA12 =  -A11^{-1}*A12*invA22 = -invA11*A12*invA22, by gemm
+        A11*invA12 + A12*invA22    = 0 ->  invA12 =  -A11^{-1}*A12*invA22 = -invA11*A12*invA22, by
+   gemm
 
 */
 
-
-template<typename T, rocblas_int IB>
-rocblas_status
-rocblas_trtri_large(rocblas_handle handle,
-    rocblas_fill uplo, rocblas_diagonal diag,
-    rocblas_int n,
-    T *A, rocblas_int lda,
-    T *invA, rocblas_int ldinvA)
+template <typename T, rocblas_int IB>
+rocblas_status rocblas_trtri_large(rocblas_handle handle,
+                                   rocblas_fill uplo,
+                                   rocblas_diagonal diag,
+                                   rocblas_int n,
+                                   T* A,
+                                   rocblas_int lda,
+                                   T* invA,
+                                   rocblas_int ldinvA)
 {
 
-    if(n > 2 * IB ){
-        printf("n is %d, n must be less than %d, will return\n", n, 2*IB);
+    if(n > 2 * IB)
+    {
+        printf("n is %d, n must be less than %d, will return\n", n, 2 * IB);
         return rocblas_status_not_implemented;
     }
 
@@ -227,52 +252,76 @@ rocblas_trtri_large(rocblas_handle handle,
     dim3 grid_trtri(2, 1, 1);
     dim3 threads(IB, 1, 1);
 
-    //first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>), dim3(grid_trtri), dim3(threads), 0, rocblas_stream,
-                                        uplo, diag, n, A, lda, invA, ldinvA);
+    // first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in
+    // invA
+    hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>),
+                    dim3(grid_trtri),
+                    dim3(threads),
+                    0,
+                    rocblas_stream,
+                    uplo,
+                    diag,
+                    n,
+                    A,
+                    lda,
+                    invA,
+                    ldinvA);
 
-
-    if( n <= IB ){
-        //if n is too small, no invA21 or invA12 exist, gemm is not required
+    if(n <= IB)
+    {
+        // if n is too small, no invA21 or invA12 exist, gemm is not required
         return rocblas_status_success;
     }
 
-    //second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
+    // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
     dim3 grid_gemm(1, 1, 1);
 
     rocblas_int m_gemm;
     rocblas_int n_gemm;
-    T *A_gemm;
-    T *B_gemm;
-    T *C_gemm;
-    T *D_gemm;
+    T* A_gemm;
+    T* B_gemm;
+    T* C_gemm;
+    T* D_gemm;
 
-    if(uplo == rocblas_fill_lower){
+    if(uplo == rocblas_fill_lower)
+    {
         // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
-        m_gemm =  (n-IB);
-        n_gemm =  IB;
-        A_gemm =  invA + IB + IB * ldinvA; // invA22
-        B_gemm =  A + IB; //A21
-        C_gemm =  invA; //invA11
-        D_gemm =  invA + IB; //invA21
+        m_gemm = (n - IB);
+        n_gemm = IB;
+        A_gemm = invA + IB + IB * ldinvA; // invA22
+        B_gemm = A + IB;                  // A21
+        C_gemm = invA;                    // invA11
+        D_gemm = invA + IB;               // invA21
     }
-    else{
+    else
+    {
         // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
-        m_gemm =  IB;
-        n_gemm =  (n-IB);
-        A_gemm =  invA; // invA11
-        B_gemm =  A + lda * IB; //A12
-        C_gemm =  invA + IB + IB * ldinvA; //invA22
-        D_gemm =  invA + IB * ldinvA; // invA12
+        m_gemm = IB;
+        n_gemm = (n - IB);
+        A_gemm = invA;                    // invA11
+        B_gemm = A + lda * IB;            // A12
+        C_gemm = invA + IB + IB * ldinvA; // invA22
+        D_gemm = invA + IB * ldinvA;      // invA12
     }
 
-    hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>), dim3(grid_gemm), dim3(threads), 0, rocblas_stream,
-                                        m_gemm, n_gemm, A_gemm, ldinvA, B_gemm, lda, C_gemm, ldinvA, D_gemm, ldinvA);
+    hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>),
+                    dim3(grid_gemm),
+                    dim3(threads),
+                    0,
+                    rocblas_stream,
+                    m_gemm,
+                    n_gemm,
+                    A_gemm,
+                    ldinvA,
+                    B_gemm,
+                    lda,
+                    C_gemm,
+                    ldinvA,
+                    D_gemm,
+                    ldinvA);
 
     return rocblas_status_success;
-
 }
-
 
 /* ============================================================================================ */
 
@@ -311,43 +360,45 @@ rocblas_trtri_large(rocblas_handle handle,
 
 ********************************************************************/
 /* IB must be <= 64 in order to fit shared (local) memory */
-template<typename T, rocblas_int IB>
-rocblas_status
-rocblas_trtri_template(rocblas_handle handle,
-    rocblas_fill uplo, rocblas_diagonal diag,
-    rocblas_int n,
-    T *A, rocblas_int lda,
-    T *invA, rocblas_int ldinvA)
+template <typename T, rocblas_int IB>
+rocblas_status rocblas_trtri_template(rocblas_handle handle,
+                                      rocblas_fill uplo,
+                                      rocblas_diagonal diag,
+                                      rocblas_int n,
+                                      T* A,
+                                      rocblas_int lda,
+                                      T* invA,
+                                      rocblas_int ldinvA)
 {
 
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
-    else if ( uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+    else if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_not_implemented;
-    else if ( n < 0 )
+    else if(n < 0)
         return rocblas_status_invalid_size;
-    else if ( A == nullptr )
+    else if(A == nullptr)
         return rocblas_status_invalid_pointer;
-    else if ( lda < n )
+    else if(lda < n)
         return rocblas_status_invalid_size;
-    else if ( invA == nullptr )
+    else if(invA == nullptr)
         return rocblas_status_invalid_pointer;
-    else if ( ldinvA < n )
+    else if(ldinvA < n)
         return rocblas_status_invalid_size;
 
-
-    if (n <= IB){
+    if(n <= IB)
+    {
         return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
     }
-    else if( n <= 2 * IB){
+    else if(n <= 2 * IB)
+    {
         return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
     }
-    else{
-        printf("n is %d, n must be less than %d, will return\n", n, 2*IB);
+    else
+    {
+        printf("n is %d, n must be less than %d, will return\n", n, 2 * IB);
         return rocblas_status_not_implemented;
     }
 }
 
-
-#endif  // _TRTRI_HPP_
-
+#endif // _TRTRI_HPP_

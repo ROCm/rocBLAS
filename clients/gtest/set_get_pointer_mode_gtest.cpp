@@ -30,18 +30,18 @@ TEST(checkin_auxilliary, set_pointer_mode_get_pointer_mode)
     rocblas_handle handle;
     rocblas_create_handle(&handle);
 
-    status = rocblas_set_pointer_mode( handle, rocblas_pointer_mode_device);
+    status = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device);
     EXPECT_EQ(status, rocblas_status_success);
 
-    status = rocblas_get_pointer_mode( handle, &mode);
+    status = rocblas_get_pointer_mode(handle, &mode);
     EXPECT_EQ(status, rocblas_status_success);
 
     EXPECT_EQ(rocblas_pointer_mode_device, mode);
 
-    status = rocblas_set_pointer_mode( handle, rocblas_pointer_mode_host);
+    status = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);
     EXPECT_EQ(status, rocblas_status_success);
 
-    status = rocblas_get_pointer_mode( handle, &mode);
+    status = rocblas_get_pointer_mode(handle, &mode);
     EXPECT_EQ(status, rocblas_status_success);
 
     EXPECT_EQ(rocblas_pointer_mode_host, mode);
