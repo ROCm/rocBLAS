@@ -464,34 +464,41 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
 parallel hcc_ctu:
 {
-  node( 'docker && rocm' )
+  try
   {
-    def docker_args = new docker_data(
-        from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
-        build_docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
-        install_docker_file:'dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04',
-        docker_run_args:'--device=/dev/kfd',
-        docker_build_args:' --pull' )
+    node( 'docker && rocm' )
+    {
+      def docker_args = new docker_data(
+          from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
+          build_docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
+          install_docker_file:'dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04',
+          docker_run_args:'--device=/dev/kfd',
+          docker_build_args:' --pull' )
 
-    def compiler_args = new compiler_data(
-        compiler_name:'hcc-ctu',
-        build_config:'Release',
-        compiler_path:'/opt/rocm/bin/hcc' )
+      def compiler_args = new compiler_data(
+          compiler_name:'hcc-ctu',
+          build_config:'Release',
+          compiler_path:'/opt/rocm/bin/hcc' )
 
-    def rocblas_paths = new project_paths(
-        project_name:'rocblas',
-        src_prefix:'src',
-        build_prefix:'build' )
+      def rocblas_paths = new project_paths(
+          project_name:'rocblas',
+          src_prefix:'src',
+          build_prefix:'build' )
 
-    def print_version_closure = {
-      sh  """
-          set -x
-          /opt/rocm/bin/rocm_agent_enumerator -t ALL
-          /opt/rocm/bin/hcc --version
-        """
+      def print_version_closure = {
+        sh  """
+            set -x
+            /opt/rocm/bin/rocm_agent_enumerator -t ALL
+            /opt/rocm/bin/hcc --version
+          """
+      }
+
+      build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
     }
-
-    build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
+  }
+  catch( err )
+  {
+    currentBuild.result = 'UNSTABLE'
   }
 },
 hcc_rocm:
