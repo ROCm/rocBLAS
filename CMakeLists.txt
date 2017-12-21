@@ -137,7 +137,20 @@ if( BUILD_WITH_TENSILE )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
     EXPECTED_HASH SHA256=8081500e8392fcf5d05c049eb8b26f098f43d2634d296106d4a5744cbe98a48d
+    STATUS status LOG log
   )
+
+  list(GET status 0 status_code)
+  list(GET status 1 status_string)
+
+  if(NOT status_code EQUAL 0)
+    message(FATAL_ERROR "error: downloading
+    'https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz' failed
+    status_code: ${status_code}
+    status_string: ${status_string}
+    log: ${log}
+    ")
+  endif()
 
   execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )

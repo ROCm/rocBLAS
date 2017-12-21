@@ -56,14 +56,15 @@ String g_relativize( String root_string, String rel_source, String rel_build )
 // Construct the relative path of the build directory
 void build_directory_rel( project_paths paths, compiler_data hcc_args )
 {
-  if( hcc_args.build_config.equalsIgnoreCase( 'release' ) )
-  {
-    paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/release';
-  }
-  else
-  {
-    paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/debug';
-  }
+//   if( hcc_args.build_config.equalsIgnoreCase( 'release' ) )
+//   {
+//     paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/release';
+//   }
+//   else
+//   {
+//     paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name + '/debug';
+//   }
+  paths.project_build_prefix = paths.build_prefix + '/' + paths.project_name;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -159,36 +160,28 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
 
   build_image.inside( docker_args.docker_run_args )
   {
-      withEnv(["CXX=${compiler_args.compiler_path}", 'CLICOLOR_FORCE=1'])
-      {
-        // Build library & clients
-        sh  """#!/usr/bin/env bash
-            set -x
-            rm -rf ${paths.project_build_prefix} && mkdir -p ${paths.project_build_prefix} && cd ${paths.project_build_prefix}
-            cmake -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON ${rel_path_to_src}
-            make -j \$(nproc)
-          """
-      }
+    withEnv(["CXX=${compiler_args.compiler_path}", 'CLICOLOR_FORCE=1'])
+    {
+      // Build library & clients
+      sh  """#!/usr/bin/env bash
+          set -x
+          cd ${paths.project_build_prefix}
+          ${paths.build_command}
+        """
+    }
 
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
-      withEnv(["LD_LIBRARY_PATH=/opt/rocm/lib"])
+      // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
+      timeout(time: 1, unit: 'HOURS')
       {
-        // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
-        timeout(time: 1, unit: 'HOURS')
-        {
-          sh """#!/usr/bin/env bash
-                set -x
-                cd ${paths.project_build_prefix}/clients/staging
-                ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
-            """
-          junit "${paths.project_build_prefix}/clients/staging/*.xml"
-
-          sh """#!/usr/bin/env bash
-                set -x
-                cd ${paths.project_build_prefix}/clients/staging; ./example-sscal${build_type_postfix}
+        sh """#!/usr/bin/env bash
+              set -x
+              cd ${paths.project_build_prefix}/build/release/clients/staging
+              LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
+              LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
           """
-        }
+        junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
       }
 
       String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
@@ -196,24 +189,34 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
       {
         sh  """#!/usr/bin/env bash
             set -x
-            cd ${paths.project_build_prefix}
+            cd ${paths.project_build_prefix}/build/release
             make package
           """
 
-        sh  """#!/usr/bin/env bash
-            set -x
-            rm -rf ${docker_context} && mkdir -p ${docker_context}
-            mv ${paths.project_build_prefix}/*.deb ${docker_context}
-            mv ${paths.project_build_prefix}/*.rpm ${docker_context}
-            dpkg -c ${docker_context}/*.deb
-        """
-
-        archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
-        archiveArtifacts artifacts: "${docker_context}/*.rpm", fingerprint: true
+        if( paths.project_name.equalsIgnoreCase( 'rocblas-ubuntu' ) )
+        {
+          sh  """#!/usr/bin/env bash
+              set -x
+              rm -rf ${docker_context} && mkdir -p ${docker_context}
+              mv ${paths.project_build_prefix}/build/release/*.deb ${docker_context}
+              dpkg -c ${docker_context}/*.deb
+          """
+          archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
+        }
+        else if( paths.project_name.equalsIgnoreCase( 'rocblas-fedora' ) )
+        {
+          sh  """#!/usr/bin/env bash
+              set -x
+              rm -rf ${docker_context} && mkdir -p ${docker_context}
+              mv ${paths.project_build_prefix}/build/release/*.rpm ${docker_context}
+              rpm -qlp ${docker_context}/*.rpm
+          """
+          archiveArtifacts artifacts: "${docker_context}/*.rpm", fingerprint: true
+        }
       }
-    }
 
-    stage('Clang Format') {
+      stage('Clang Format')
+      {
         sh '''
             find . -iname \'*.h\' \
                 -o -iname \'*.hpp\' \
@@ -225,6 +228,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
             | grep -v 'build/' \
             | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
         '''
+      }
     }
   }
 
@@ -244,7 +248,11 @@ String docker_upload_artifactory( compiler_data compiler_args, docker_data docke
   stage( "Artifactory ${compiler_args.compiler_name} ${compiler_args.build_config}" )
   {
     //  We copy the docker files into the bin directory where the .deb lives so that it's a clean build everytime
-    sh "cp -r ${rocblas_paths.project_src_prefix}/docker/* ${docker_context}"
+    sh  """#!/usr/bin/env bash
+        set -x
+        mkdir -p ${docker_context}
+        cp -r ${rocblas_paths.project_src_prefix}/docker/* ${docker_context}
+      """
 
     // Docker 17.05 introduced the ability to use ARG values in FROM statements
     // Docker inspect failing on FROM statements with ARG https://issues.jenkins-ci.org/browse/JENKINS-44836
@@ -359,7 +367,7 @@ String hip_integration_testing( String inside_args, String job, String build_con
   String rocblas_src_rel = checkout_and_version( job )
 
   // Conctruct a binary directory path based on build config
-  String rocblas_bin_rel = build_directory_rel( build_config );
+  String rocblas_bin_rel = build_directory_rel( build_config )
 
   // Build rocblas inside of the build environment
   rocblas_integration_image = docker_build_image( job, testing_org_name, '', rocblas_src_rel, "${testing_org_name}/${hip_test_image_name}" )
@@ -395,35 +403,12 @@ class project_paths implements Serializable
   String project_src_prefix
   String build_prefix
   String project_build_prefix
+  String build_command
 }
 
 ////////////////////////////////////////////////////////////////////////
 // -- MAIN
 // Following this line is the start of MAIN of this Jenkinsfile
-
-// sh  """
-//     set -x
-// # printf '\033[31mHello World\033[0m'
-// # echo "TERM=${env.TERM}"
-// # echo "LANG=${env.LANG}"
-// # echo "SHELL=${env.SHELL}"
-// """
-
-// Integration testing is a special path which implies testing of an upsteam build of hcc,
-// but does not need testing across older builds of hcc or cuda.
-// params.hip_integration_test is set in HIP build
-// NOTE: hip does not currently set this bit; this is non-functioning at this time
-// if( params.hip_integration_test )
-// {
-//   println "Enabling rocblas integration testing pass"
-
-//   node('docker && rocm')
-//   {
-//     hip_integration_testing( '--device=/dev/kfd', 'hip-ctu', 'Release' )
-//   }
-
-//   return
-// }
 
 // This defines a common build pipeline used by most targets
 def build_pipeline( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, def docker_inside_closure )
@@ -462,65 +447,100 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
-parallel hcc_ctu:
-{
-  try
-  {
-    node( 'docker && rocm' )
-    {
-      def docker_args = new docker_data(
-          from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
-          build_docker_file:'dockerfile-build-hip-hcc-ctu-ubuntu-16.04',
-          install_docker_file:'dockerfile-rocblas-hip-hcc-ctu-ubuntu-16.04',
-          docker_run_args:'--device=/dev/kfd',
-          docker_build_args:' --pull' )
+// parallel hcc_ctu:
+// {
+//   try
+//   {
+//     node( 'docker && rocm' )
+//     {
+//       def docker_args = new docker_data(
+//           from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
+//           build_docker_file:'dockerfile-build-ubuntu',
+//           install_docker_file:'dockerfile-install-ubuntu',
+//           docker_run_args:'--device=/dev/kfd',
+//           docker_build_args:' --pull' )
 
-      def compiler_args = new compiler_data(
-          compiler_name:'hcc-ctu',
-          build_config:'Release',
-          compiler_path:'/opt/rocm/bin/hcc' )
+//       def compiler_args = new compiler_data(
+//           compiler_name:'hcc-ctu',
+//           build_config:'Release',
+//           compiler_path:'/opt/rocm/bin/hcc' )
 
-      def rocblas_paths = new project_paths(
-          project_name:'rocblas',
-          src_prefix:'src',
-          build_prefix:'build' )
+//       def rocblas_paths = new project_paths(
+//           project_name:'rocblas-hcc-ctu',
+//           src_prefix:'src',
+//           build_prefix:'src',
+//           build_command: './install.sh -c' )
 
-      def print_version_closure = {
-        sh  """
-            set -x
-            /opt/rocm/bin/rocm_agent_enumerator -t ALL
-            /opt/rocm/bin/hcc --version
-          """
-      }
+//       def print_version_closure = {
+//         sh  """
+//             set -x
+//             /opt/rocm/bin/rocm_agent_enumerator -t ALL
+//             /opt/rocm/bin/hcc --version
+//           """
+//       }
 
-      build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
-    }
-  }
-  catch( err )
-  {
-    currentBuild.result = 'UNSTABLE'
-  }
-},
-hcc_rocm:
+//       build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
+//     }
+//   }
+//   catch( err )
+//   {
+//     currentBuild.result = 'UNSTABLE'
+//   }
+// },
+// rocm_ubuntu:
+// {
+//   node( 'docker && rocm' )
+//   {
+//     def hcc_docker_args = new docker_data(
+//         from_image:'rocm/dev-ubuntu-16.04:latest',
+//         build_docker_file:'dockerfile-build-ubuntu',
+//         install_docker_file:'dockerfile-install-ubuntu',
+//         docker_run_args:'--device=/dev/kfd',
+//         docker_build_args:' --pull' )
+
+//     def hcc_compiler_args = new compiler_data(
+//         compiler_name:'hcc-rocm-ubuntu',
+//         build_config:'Release',
+//         compiler_path:'/opt/rocm/bin/hcc' )
+
+//     def rocblas_paths = new project_paths(
+//         project_name:'rocblas-ubuntu',
+//         src_prefix:'src',
+//         build_prefix:'src',
+//         build_command: './install.sh -c' )
+
+//     def print_version_closure = {
+//       sh  """
+//           set -x
+//           /opt/rocm/bin/rocm_agent_enumerator -t ALL
+//           /opt/rocm/bin/hcc --version
+//         """
+//     }
+
+//     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+//   }
+// },
+rocm_fedora:
 {
   node( 'docker && rocm' )
   {
     def hcc_docker_args = new docker_data(
-        from_image:'rocm/rocm-terminal:latest',
-        build_docker_file:'dockerfile-build-rocm-terminal',
-        install_docker_file:'dockerfile-rocblas-rocm-terminal',
+        from_image:'rocm/dev-fedora-24:latest',
+        build_docker_file:'dockerfile-build-fedora',
+        install_docker_file:'dockerfile-install-fedora',
         docker_run_args:'--device=/dev/kfd',
         docker_build_args:' --pull' )
 
     def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm',
+        compiler_name:'hcc-rocm-fedora',
         build_config:'Release',
         compiler_path:'/opt/rocm/bin/hcc' )
 
     def rocblas_paths = new project_paths(
-        project_name:'rocblas',
+        project_name:'rocblas-fedora',
         src_prefix:'src',
-        build_prefix:'build' )
+        build_prefix:'src',
+        build_command: './install.sh -c' )
 
     def print_version_closure = {
       sh  """
@@ -534,26 +554,25 @@ hcc_rocm:
   }
 }
 
-// ,
-// // Disabling: nvcc fails cmake configure because nvcc identifies itself as gnu 5.4 compiler, but fails feature checks
+// },
 // nvcc:
 // {
 //   node( 'docker && cuda' )
 //   {
 //     def hcc_docker_args = new docker_data(
-//         from_image:'nvidia/cuda:8.0-devel',
-//         build_docker_file:'dockerfile-build-nvidia-cuda-8',
-//         install_docker_file:'dockerfile-rocblas-nvidia-cuda-8'
-//         docker_run_args:'--device=/dev/nvidiactl --device=/dev/nvidia0 --device=/dev/nvidia-uvm --device=/dev/nvidia-uvm-tools --volume-driver=nvidia-docker --volume=nvidia_driver_375.74:/usr/local/nvidia:ro',
+//         from_image:'nvidia/cuda:9.0-devel',
+//         build_docker_file:'dockerfile-build-nvidia-cuda',
+//         install_docker_file:'dockerfile-install-nvidia-cuda',
+//         docker_run_args:'--runtime=nvidia',
 //         docker_build_args:' --pull' )
 
 //     def hcc_compiler_args = new compiler_data(
-//         compiler_name:'nvcc-8.0',
+//         compiler_name:'nvcc-9.0',
 //         build_config:'Release',
 //         compiler_path:'/opt/rocm/bin/hipcc' )
 
 //     def rocblas_paths = new project_paths(
-//         project_name:'rocblas',
+//         project_name:'rocblas-cuda',
 //         src_prefix:'src',
 //         build_prefix:'build' )
 
