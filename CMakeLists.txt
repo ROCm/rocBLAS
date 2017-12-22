@@ -19,6 +19,11 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
+# Honor per-config flags in try_compile() source-file signature. cmake v3.7 and up
+if( POLICY CMP0066 )
+  cmake_policy( SET CMP0066 NEW )
+endif( )
+
 project( rocblas LANGUAGES CXX )
 
 # ########################################################################
@@ -137,7 +142,6 @@ if( BUILD_WITH_TENSILE )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
     EXPECTED_HASH SHA256=8081500e8392fcf5d05c049eb8b26f098f43d2634d296106d4a5744cbe98a48d
-    STATUS status LOG log
   )
 
   list(GET status 0 status_code)

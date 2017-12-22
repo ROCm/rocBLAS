@@ -307,11 +307,14 @@ pushd .
     compiler="hipcc"
   fi
 
-  # Build library only with hcc
-  CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  # Uncomment for cmake debugging
+  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+
+  # Build library with AMD toolchain because of existense of device kernels
+  CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   make -j$(nproc) install
 
-  # Build clients with default host compiler
+  # Build clients with default host compiler; no device code currently
   if [[ "${build_clients}" == true ]]; then
     pushd clients
       ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCMAKE_PREFIX_PATH="$(pwd)/../rocblas-install;$(pwd)/../../deps/deps-install" ../../../clients
