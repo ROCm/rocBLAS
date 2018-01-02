@@ -202,6 +202,21 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
               dpkg -c ${docker_context}/*.deb
           """
           archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
+
+          stage('Clang Format')
+          {
+            sh '''
+                find . -iname \'*.h\' \
+                    -o -iname \'*.hpp\' \
+                    -o -iname \'*.cpp\' \
+                    -o -iname \'*.h.in\' \
+                    -o -iname \'*.hpp.in\' \
+                    -o -iname \'*.cpp.in\' \
+                    -o -iname \'*.cl\' \
+                | grep -v 'build/' \
+                | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
+            '''
+          }
         }
         else if( paths.project_name.equalsIgnoreCase( 'rocblas-fedora' ) )
         {
@@ -215,20 +230,6 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
         }
       }
 
-      stage('Clang Format')
-      {
-        sh '''
-            find . -iname \'*.h\' \
-                -o -iname \'*.hpp\' \
-                -o -iname \'*.cpp\' \
-                -o -iname \'*.h.in\' \
-                -o -iname \'*.hpp.in\' \
-                -o -iname \'*.cpp.in\' \
-                -o -iname \'*.cl\' \
-            | grep -v 'build/' \
-            | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
-        '''
-      }
     }
   }
 
@@ -245,7 +246,7 @@ String docker_upload_artifactory( compiler_data compiler_args, docker_data docke
   String image_name = "rocblas-hip-${compiler_args.compiler_name}-ubuntu-16.04"
   String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
 
-  stage( "Artifactory ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+  stage( "Install ${compiler_args.compiler_name} ${compiler_args.build_config}" )
   {
     //  We copy the docker files into the bin directory where the .deb lives so that it's a clean build everytime
     sh  """#!/usr/bin/env bash
@@ -447,79 +448,79 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
-// parallel hcc_ctu:
-// {
-//   try
-//   {
-//     node( 'docker && rocm' )
-//     {
-//       def docker_args = new docker_data(
-//           from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
-//           build_docker_file:'dockerfile-build-ubuntu',
-//           install_docker_file:'dockerfile-install-ubuntu',
-//           docker_run_args:'--device=/dev/kfd',
-//           docker_build_args:' --pull' )
+parallel hcc_ctu:
+{
+  try
+  {
+    node( 'docker && rocm' )
+    {
+      def docker_args = new docker_data(
+          from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
+          build_docker_file:'dockerfile-build-ubuntu',
+          install_docker_file:'dockerfile-install-ubuntu',
+          docker_run_args:'--device=/dev/kfd',
+          docker_build_args:' --pull' )
 
-//       def compiler_args = new compiler_data(
-//           compiler_name:'hcc-ctu',
-//           build_config:'Release',
-//           compiler_path:'/opt/rocm/bin/hcc' )
+      def compiler_args = new compiler_data(
+          compiler_name:'hcc-ctu',
+          build_config:'Release',
+          compiler_path:'/opt/rocm/bin/hcc' )
 
-//       def rocblas_paths = new project_paths(
-//           project_name:'rocblas-hcc-ctu',
-//           src_prefix:'src',
-//           build_prefix:'src',
-//           build_command: './install.sh -c' )
+      def rocblas_paths = new project_paths(
+          project_name:'rocblas-hcc-ctu',
+          src_prefix:'src',
+          build_prefix:'src',
+          build_command: './install.sh -c' )
 
-//       def print_version_closure = {
-//         sh  """
-//             set -x
-//             /opt/rocm/bin/rocm_agent_enumerator -t ALL
-//             /opt/rocm/bin/hcc --version
-//           """
-//       }
+      def print_version_closure = {
+        sh  """
+            set -x
+            /opt/rocm/bin/rocm_agent_enumerator -t ALL
+            /opt/rocm/bin/hcc --version
+          """
+      }
 
-//       build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
-//     }
-//   }
-//   catch( err )
-//   {
-//     currentBuild.result = 'UNSTABLE'
-//   }
-// },
-// rocm_ubuntu:
-// {
-//   node( 'docker && rocm' )
-//   {
-//     def hcc_docker_args = new docker_data(
-//         from_image:'rocm/dev-ubuntu-16.04:latest',
-//         build_docker_file:'dockerfile-build-ubuntu',
-//         install_docker_file:'dockerfile-install-ubuntu',
-//         docker_run_args:'--device=/dev/kfd',
-//         docker_build_args:' --pull' )
+      build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
+    }
+  }
+  catch( err )
+  {
+    currentBuild.result = 'UNSTABLE'
+  }
+},
+rocm_ubuntu:
+{
+  node( 'docker && rocm' )
+  {
+    def hcc_docker_args = new docker_data(
+        from_image:'rocm/dev-ubuntu-16.04:latest',
+        build_docker_file:'dockerfile-build-ubuntu',
+        install_docker_file:'dockerfile-install-ubuntu',
+        docker_run_args:'--device=/dev/kfd',
+        docker_build_args:' --pull' )
 
-//     def hcc_compiler_args = new compiler_data(
-//         compiler_name:'hcc-rocm-ubuntu',
-//         build_config:'Release',
-//         compiler_path:'/opt/rocm/bin/hcc' )
+    def hcc_compiler_args = new compiler_data(
+        compiler_name:'hcc-rocm-ubuntu',
+        build_config:'Release',
+        compiler_path:'/opt/rocm/bin/hcc' )
 
-//     def rocblas_paths = new project_paths(
-//         project_name:'rocblas-ubuntu',
-//         src_prefix:'src',
-//         build_prefix:'src',
-//         build_command: './install.sh -c' )
+    def rocblas_paths = new project_paths(
+        project_name:'rocblas-ubuntu',
+        src_prefix:'src',
+        build_prefix:'src',
+        build_command: './install.sh -c' )
 
-//     def print_version_closure = {
-//       sh  """
-//           set -x
-//           /opt/rocm/bin/rocm_agent_enumerator -t ALL
-//           /opt/rocm/bin/hcc --version
-//         """
-//     }
+    def print_version_closure = {
+      sh  """
+          set -x
+          /opt/rocm/bin/rocm_agent_enumerator -t ALL
+          /opt/rocm/bin/hcc --version
+        """
+    }
 
-//     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
-//   }
-// },
+    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+  }
+},
 rocm_fedora:
 {
   node( 'docker && rocm' )
