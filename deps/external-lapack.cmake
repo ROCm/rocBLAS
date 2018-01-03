@@ -16,6 +16,7 @@ set( lapack_git_tag "lapack-3.7.1" CACHE STRING "git branch" )
 # message( STATUS "lapack_make ( " ${lapack_make} " ) " )
 # message( STATUS "lapack_cmake_args ( " ${lapack_cmake_args} " ) " )
 
+enable_language( Fortran )
 include( GNUInstallDirs )
 
 # lapack cmake exports has a bug on debian architectures, they do not take into account the

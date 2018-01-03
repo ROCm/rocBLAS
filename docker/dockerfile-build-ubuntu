@@ -1,5 +1,3 @@
-# This Dockerfile provides a starting point for a ROCm installation of hipCaffe.
-
 # Parameters related to building hip
 ARG base_image
 
@@ -7,7 +5,6 @@ FROM ${base_image}
 LABEL maintainer="kent.knox@amd"
 
 ARG user_uid
-ARG REPO_RADEON=repo.radeon.com
 
 # Install dependent packages
 # Dependencies:
@@ -15,22 +12,18 @@ ARG REPO_RADEON=repo.radeon.com
 # * tensile: python2.7, python-yaml
 # * rocblas-test: gfortran, googletest
 # * rocblas-bench: libboost-program-options-dev
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends curl && \
-    curl -sL http://${REPO_RADEON}/rocm/apt/debian/rocm.gpg.key | apt-key add - && \
-    echo deb [arch=amd64] http://${REPO_RADEON}/rocm/apt/debian/ xenial main | tee /etc/apt/sources.list.d/rocm.list && \
-    apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     sudo \
-    cmake \
-    clang-format-3.8 \
     ca-certificates \
     git \
+    make \
+    cmake \
+    clang-format-3.8 \
     pkg-config \
     python2.7 \
     python-yaml \
     gfortran \
     libboost-program-options-dev \
-    hip_hcc \
-    hip_nvcc \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
@@ -45,10 +38,9 @@ RUN useradd --create-home -u ${user_uid} -o -G sudo --shell /bin/bash jenkins &&
 ARG ROCBLAS_SRC_ROOT=/usr/local/src/rocBLAS
 
 # Clone rocblas repo
+# Build client dependencies and install into /usr/local (LAPACK & GTEST)
 RUN mkdir -p ${ROCBLAS_SRC_ROOT} && cd ${ROCBLAS_SRC_ROOT} && \
     git clone -b develop --depth=1 https://github.com/ROCmSoftwarePlatform/rocBLAS . && \
-
-# Build client dependencies and install into /usr/local (LAPACK & GTEST)
     mkdir -p build/deps && cd build/deps && \
     cmake -DBUILD_BOOST=OFF ${ROCBLAS_SRC_ROOT}/deps && \
     make -j $(nproc) install && \
