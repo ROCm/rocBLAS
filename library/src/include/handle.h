@@ -6,6 +6,7 @@
 #define HANDLE_H
 #include <hip/hip_runtime_api.h>
 #include <vector>
+#include <stdio.h>
 
 #include "rocblas.h"
 
@@ -32,6 +33,11 @@ struct _rocblas_handle
 
     // default pointer_mode is on host
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
+
+    // default logging_mode is no logging
+    rocblas_layer_mode layer_mode;
+    FILE *rocblas_logfile;
+    // need to read environment variable that contains layer_mode
 };
 
 #endif

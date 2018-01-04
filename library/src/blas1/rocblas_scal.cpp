@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include<complex.h>
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
@@ -69,11 +70,10 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
     else if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
-    /*
-     * Quick return if possible. Not Argument error
-     */
+    // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0)
         return rocblas_status_success;
+
 
     rocblas_int blocks = (n - 1) / NB_X + 1;
 
@@ -121,29 +121,75 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
 extern "C" rocblas_status
 rocblas_sscal(rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
 {
-    return rocblas_scal_template<float>(handle, n, alpha, x, incx);
+    rocblas_status status = rocblas_scal_template<float>(handle, n, alpha, x, incx);
+
+    if(handle->layer_mode == rocblas_layer_mode_logging)
+    {
+        fprintf(handle->rocblas_logfile, "rocblas_sscal:\n");
+        fprintf(handle->rocblas_logfile, "    n:%d\n", n);
+        fprintf(handle->rocblas_logfile, "    alpha:%f\n", *alpha);
+        fprintf(handle->rocblas_logfile, "    incx:%d\n", incx);
+        fprintf(handle->rocblas_logfile, "    rocblas_status_return:%d\n", status);
+
+        fflush(handle->rocblas_logfile);
+    }
+
+    return status;
 }
 
-extern "C" rocblas_status rocblas_dscal(
-    rocblas_handle handle, rocblas_int n, const double* alpha, double* x, rocblas_int incx)
+extern "C" rocblas_status 
+rocblas_dscal(rocblas_handle handle, rocblas_int n, const double* alpha, double* x, rocblas_int incx)
 {
-    return rocblas_scal_template<double>(handle, n, alpha, x, incx);
+    rocblas_status status = rocblas_scal_template<double>(handle, n, alpha, x, incx);
+
+    if(handle->layer_mode == rocblas_layer_mode_logging)
+    {
+        fprintf(handle->rocblas_logfile, "rocblas_dscal:\n");
+        fprintf(handle->rocblas_logfile, "    n:%d\n", n);
+        fprintf(handle->rocblas_logfile, "    alpha:%lf\n", *alpha);
+        fprintf(handle->rocblas_logfile, "    incx:%d\n", incx);
+        fprintf(handle->rocblas_logfile, "    rocblas_status_return:%d\n", status);
+
+        fflush(handle->rocblas_logfile);
+    }
+
+    return status;
 }
 
-extern "C" rocblas_status rocblas_cscal(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_float_complex* alpha,
-                                        rocblas_float_complex* x,
-                                        rocblas_int incx)
+extern "C" rocblas_status
+rocblas_cscal(rocblas_handle handle, rocblas_int n, const rocblas_float_complex* alpha, rocblas_float_complex* x, rocblas_int incx)
 {
-    return rocblas_scal_template<rocblas_float_complex>(handle, n, alpha, x, incx);
+    rocblas_status status = rocblas_scal_template<rocblas_float_complex>(handle, n, alpha, x, incx);
+
+    if(handle->layer_mode == rocblas_layer_mode_logging)
+    {
+        fprintf(handle->rocblas_logfile, "rocblas_cscal:\n");
+        fprintf(handle->rocblas_logfile, "    n:%d\n", n);
+        fprintf(handle->rocblas_logfile, "    alpha:%f%+fi\n", (*alpha).x, (*alpha).y);
+        fprintf(handle->rocblas_logfile, "    incx:%d\n", incx);
+        fprintf(handle->rocblas_logfile, "    rocblas_status_return:%d\n", status);
+
+        fflush(handle->rocblas_logfile);
+    }
+
+    return status;
 }
 
-extern "C" rocblas_status rocblas_zscal(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_double_complex* alpha,
-                                        rocblas_double_complex* x,
-                                        rocblas_int incx)
+extern "C" rocblas_status
+rocblas_zscal(rocblas_handle handle, rocblas_int n, const rocblas_double_complex* alpha, rocblas_double_complex* x, rocblas_int incx)
 {
-    return rocblas_scal_template<rocblas_double_complex>(handle, n, alpha, x, incx);
+    rocblas_status status = rocblas_scal_template<rocblas_double_complex>(handle, n, alpha, x, incx);
+
+    if(handle->layer_mode == rocblas_layer_mode_logging)
+    {
+        fprintf(handle->rocblas_logfile, "rocblas_zscal:\n");
+        fprintf(handle->rocblas_logfile, "    n:%d\n", n);
+        fprintf(handle->rocblas_logfile, "    alpha:%lf%+lfi\n", (*alpha).x, (*alpha).y);
+        fprintf(handle->rocblas_logfile, "    incx:%d\n", incx);
+        fprintf(handle->rocblas_logfile, "    rocblas_status_return:%d\n", status);
+
+        fflush(handle->rocblas_logfile);
+    }
+
+    return status;
 }

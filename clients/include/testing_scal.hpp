@@ -17,6 +17,98 @@
 using namespace std;
 
 template <typename T>
+void testing_scal_logging()
+{
+    // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.yaml
+    rocblas_int N    = 1;
+    rocblas_int incx = 1;
+    T alpha          = 1.0;
+
+    // enclose in {} so rocblas_handle destructor called as it goes out of scope
+    {
+        rocblas_status status;
+
+        std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+        rocblas_handle handle = unique_ptr_handle->handle;
+
+        rocblas_int size_x = N * incx;
+
+        // allocate memory on device
+        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
+                                         rocblas_test::device_free};
+        T* dx = (T*)dx_managed.get();
+        if(!dx)
+        {
+            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        status = rocblas_scal<T>(handle, N, &alpha, dx, incx);
+    }
+
+    // construct file names
+    // rocblas_logfile1 is rocBLAS log file, it is in home directory 
+    // rocblas_logfile2 is "golden" file used to verify rocblas_logfile1 is correct
+    char *home_dir = getenv("HOME");
+    const char *file_name1 = "/rocblas_logfile.yaml";
+    const char *file_name2 = "/rocblas_logfile2.yaml";
+    char *file_path1 = (char *) malloc(strlen(home_dir) + strlen(file_name1) + 1);
+    char *file_path2 = (char *) malloc(strlen(home_dir) + strlen(file_name2) + 1);
+    strncpy(file_path1, home_dir, strlen(home_dir) + 1);
+    strncpy(file_path2, home_dir, strlen(home_dir) + 1);
+    strncat(file_path1, file_name1, strlen(file_name1) + 1);
+    strncat(file_path2, file_name2, strlen(file_name2) + 1);
+
+    // open files
+    FILE *rocblas_logfile1;
+    FILE *rocblas_logfile2;
+    rocblas_logfile1 = fopen(file_path1, "r");
+    rocblas_logfile2 = fopen(file_path2, "w+");
+    free(file_path1);
+    free(file_path2);
+
+    // write "golden" file, then rewind so it is ready to be read
+    fprintf(rocblas_logfile2, "#rocblas_handle:constructor\n");
+
+    fprintf(rocblas_logfile2, "rocblas_sscal:\n");
+    fprintf(rocblas_logfile2, "    n:%d\n", N); 
+    fprintf(rocblas_logfile2, "    alpha:%f\n", alpha);
+    fprintf(rocblas_logfile2, "    incx:%d\n", incx);
+    fprintf(rocblas_logfile2, "    rocblas_status_return:0\n");
+
+    fprintf(rocblas_logfile2, "#rocblas_handle:destructor\n");
+    rewind(rocblas_logfile2);
+        
+    // verify rocBLAS log file is the same as "golden" file
+    int ch1 = getc(rocblas_logfile1);
+    int ch2 = getc(rocblas_logfile2);
+                                                                 
+    while ((ch1 != EOF) && (ch2 != EOF) && (ch1 == ch2)) 
+    {
+        ch1 = getc(rocblas_logfile1);
+        ch2 = getc(rocblas_logfile2);
+    }
+
+    // construct message and print if log file not same as "golden" file
+    const char *sub_message = "log file corrupt: ";
+    char *message = (char *) malloc( strlen(sub_message) + strlen(file_path1) + 1);
+    strncpy(message, sub_message, strlen(sub_message) + 1);
+    strncat(message, file_path1, strlen(file_path1) + 1);
+    if (ch1 != ch2)
+    {
+        printf("%s\n",message);
+    }
+
+    // gtest call to verify correct
+    verify_equal(ch1, ch2, message);
+                                                                                   
+    fclose(rocblas_logfile1);
+    fclose(rocblas_logfile2);
+
+    return;
+}
+
+template <typename T>
 void testing_scal_bad_arg()
 {
     rocblas_int N    = 100;

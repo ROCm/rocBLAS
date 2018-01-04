@@ -7,14 +7,33 @@
 /*******************************************************************************
  * constructor
  ******************************************************************************/
-_rocblas_handle::_rocblas_handle()
+_rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
 {
-
     // default device is active device
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
+    if(layer_mode == rocblas_layer_mode_logging)
+    {
+        // open log file in home directory
+        const char *file_name = "/rocblas_logfile.yaml";
+        char *home_dir = getenv("HOME");
+        char *file_path = (char *) malloc(strlen(home_dir) + strlen(file_name) + 1);
+        strncpy(file_path, home_dir, strlen(home_dir) + 1);
+        strncat(file_path, file_name, strlen(file_name) + 1);
+        rocblas_logfile = fopen(file_path, "w");
+        free(file_path);
+
+        if (rocblas_logfile == NULL)
+        {
+            printf("ERROR: rocBLAS: could not open logging file %s\n",file_path);
+        }
+        else
+        {
+            fprintf(rocblas_logfile, "#rocblas_handle:constructor\n");
+        }
+    }
 }
 
 /*******************************************************************************
@@ -22,7 +41,13 @@ _rocblas_handle::_rocblas_handle()
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
-    // rocblas by default take the system default stream which user cannot destory
+    // rocblas by default take the system default stream which user cannot destroy
+    if(layer_mode == rocblas_layer_mode_logging)
+    {
+        fprintf(rocblas_logfile, "#rocblas_handle:destructor\n");
+        fflush(rocblas_logfile);
+        fclose(rocblas_logfile);
+    }
 }
 
 /*******************************************************************************

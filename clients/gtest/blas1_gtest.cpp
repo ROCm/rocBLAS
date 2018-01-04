@@ -125,6 +125,9 @@ TEST(checkin_blas1_bad_arg, nrm2_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
+TEST(checkin_blas1_logging, scal_float) { testing_scal_logging<float>(); }
+
+
 TEST(checkin_blas1_bad_arg, scal_float) { testing_scal_bad_arg<float>(); }
 TEST(checkin_blas1_bad_arg, swap_float) { testing_swap_bad_arg<float>(); }
 
