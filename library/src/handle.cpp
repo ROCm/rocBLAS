@@ -1,4 +1,6 @@
-
+/* ************************************************************************
+ * Copyright 2016 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
 #include "definitions.h"
 #include "status.h"
 #include "handle.h"
@@ -14,10 +16,15 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
-    if(layer_mode == rocblas_layer_mode_logging)
+    char* str_layer_mode = getenv("ROCBLAS_LAYER");
+    int   int_layer_mode = atoi(str_layer_mode);
+
+    layer_mode = (rocblas_layer_mode) int_layer_mode;
+    
+    if(layer_mode & rocblas_layer_mode_logging)
     {
         // open log file in home directory
-        const char *file_name = "/rocblas_logfile.yaml";
+        const char *file_name = "/rocblas_logfile.csv";
         char *home_dir = getenv("HOME");
         char *file_path = (char *) malloc(strlen(home_dir) + strlen(file_name) + 1);
         strncpy(file_path, home_dir, strlen(home_dir) + 1);
@@ -31,7 +38,14 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
         }
         else
         {
-            fprintf(rocblas_logfile, "#rocblas_handle:constructor\n");
+            if (layer_mode & rocblas_layer_mode_logging_synch)
+            {
+                fprintf(rocblas_logfile, "rocblas_handle,constructor,rocblas_layer_mode_logging_synch\n");
+            }
+            else
+            {
+                fprintf(rocblas_logfile, "rocblas_handle,constructor,rocblas_layer_mode_logging\n");
+            }
         }
     }
 }
@@ -42,9 +56,9 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
 _rocblas_handle::~_rocblas_handle()
 {
     // rocblas by default take the system default stream which user cannot destroy
-    if(layer_mode == rocblas_layer_mode_logging)
+    if(layer_mode & rocblas_layer_mode_logging)
     {
-        fprintf(rocblas_logfile, "#rocblas_handle:destructor\n");
+        fprintf(rocblas_logfile, "rocblas_handle,destructor\n");
         fflush(rocblas_logfile);
         fclose(rocblas_logfile);
     }

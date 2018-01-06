@@ -121,17 +121,28 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
 extern "C" rocblas_status
 rocblas_sscal(rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
 {
+
+    if(handle->layer_mode & rocblas_layer_mode_logging)
+    {
+        if(handle->layer_mode & rocblas_layer_mode_logging_synch)
+        {
+            fprintf(handle->rocblas_logfile, "rocblas_sscal,%d,%f,%p,%d", n, *alpha, (void*)x, incx);
+        }
+        else
+        {
+            fprintf(handle->rocblas_logfile, "rocblas_sscal,%d,%f,%p,%d\n", n, *alpha, (void*)x, incx);
+        }
+    }
+
     rocblas_status status = rocblas_scal_template<float>(handle, n, alpha, x, incx);
 
-    if(handle->layer_mode == rocblas_layer_mode_logging)
+    if(handle->layer_mode & rocblas_layer_mode_logging)
     {
-        fprintf(handle->rocblas_logfile, "rocblas_sscal:\n");
-        fprintf(handle->rocblas_logfile, "    n:%d\n", n);
-        fprintf(handle->rocblas_logfile, "    alpha:%f\n", *alpha);
-        fprintf(handle->rocblas_logfile, "    incx:%d\n", incx);
-        fprintf(handle->rocblas_logfile, "    rocblas_status_return:%d\n", status);
-
-        fflush(handle->rocblas_logfile);
+        if(handle->layer_mode & rocblas_layer_mode_logging_synch)
+        {
+            fprintf(handle->rocblas_logfile, ",%d\n", status);
+            fflush(handle->rocblas_logfile);
+        }
     }
 
     return status;

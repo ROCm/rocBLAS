@@ -19,29 +19,29 @@ using namespace std;
 template <typename T>
 void testing_scal_logging()
 {
-    // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.yaml
+    // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.csv
     rocblas_int N    = 1;
     rocblas_int incx = 1;
     T alpha          = 1.0;
 
+    rocblas_int size_x = N * incx;
+
+    // allocate memory on device
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
+                                         rocblas_test::device_free};
+    T* dx = (T*)dx_managed.get();
+    if(!dx)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
+
+    rocblas_status status;
+
     // enclose in {} so rocblas_handle destructor called as it goes out of scope
     {
-        rocblas_status status;
-
         std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
         rocblas_handle handle = unique_ptr_handle->handle;
-
-        rocblas_int size_x = N * incx;
-
-        // allocate memory on device
-        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-        T* dx = (T*)dx_managed.get();
-        if(!dx)
-        {
-            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
 
         status = rocblas_scal<T>(handle, N, &alpha, dx, incx);
     }
@@ -50,8 +50,8 @@ void testing_scal_logging()
     // rocblas_logfile1 is rocBLAS log file, it is in home directory 
     // rocblas_logfile2 is "golden" file used to verify rocblas_logfile1 is correct
     char *home_dir = getenv("HOME");
-    const char *file_name1 = "/rocblas_logfile.yaml";
-    const char *file_name2 = "/rocblas_logfile2.yaml";
+    const char *file_name1 = "/rocblas_logfile.csv";
+    const char *file_name2 = "/rocblas_logfile2.csv";
     char *file_path1 = (char *) malloc(strlen(home_dir) + strlen(file_name1) + 1);
     char *file_path2 = (char *) malloc(strlen(home_dir) + strlen(file_name2) + 1);
     strncpy(file_path1, home_dir, strlen(home_dir) + 1);
@@ -68,15 +68,47 @@ void testing_scal_logging()
     free(file_path2);
 
     // write "golden" file, then rewind so it is ready to be read
-    fprintf(rocblas_logfile2, "#rocblas_handle:constructor\n");
+    char* str_layer_mode = getenv("ROCBLAS_LAYER");
+    int   int_layer_mode = atoi(str_layer_mode);
 
-    fprintf(rocblas_logfile2, "rocblas_sscal:\n");
-    fprintf(rocblas_logfile2, "    n:%d\n", N); 
-    fprintf(rocblas_logfile2, "    alpha:%f\n", alpha);
-    fprintf(rocblas_logfile2, "    incx:%d\n", incx);
-    fprintf(rocblas_logfile2, "    rocblas_status_return:0\n");
+    if(int_layer_mode & rocblas_layer_mode_logging)
+    {
 
-    fprintf(rocblas_logfile2, "#rocblas_handle:destructor\n");
+        if (int_layer_mode & rocblas_layer_mode_logging_synch)
+        {
+            fprintf(rocblas_logfile2, "rocblas_handle,constructor,rocblas_layer_mode_logging_synch\n");
+        }
+        else
+        {
+            fprintf(rocblas_logfile2, "rocblas_handle,constructor,rocblas_layer_mode_logging\n");
+        }
+
+
+        if(int_layer_mode & rocblas_layer_mode_logging_synch)
+        {   
+            fprintf(rocblas_logfile2, "rocblas_sscal,%d,%f,%p,%d", N, alpha, (void*)dx, incx);
+        }
+        else
+        {   
+            fprintf(rocblas_logfile2, "rocblas_sscal,%d,%f,%p,%d\n", N, alpha, (void*)dx, incx);
+        }
+
+        if(int_layer_mode & rocblas_layer_mode_logging)
+        {   
+            if(int_layer_mode & rocblas_layer_mode_logging_synch)
+            {   
+                fprintf(rocblas_logfile2, ",%d\n", status);
+                fflush(rocblas_logfile2);
+            }
+        }
+
+        if(int_layer_mode & rocblas_layer_mode_logging)
+        {
+            fprintf(rocblas_logfile2, "rocblas_handle,destructor\n");
+            fflush(rocblas_logfile2);
+        }
+    }
+
     rewind(rocblas_logfile2);
         
     // verify rocBLAS log file is the same as "golden" file
