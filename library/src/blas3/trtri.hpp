@@ -370,7 +370,6 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
                                       T* invA,
                                       rocblas_int ldinvA)
 {
-
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
     else if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)

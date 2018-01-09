@@ -274,6 +274,22 @@ rocblas_status rocblas_trmm_template(rocblas_handle handle,
                                      T* C,
                                      rocblas_int ldc)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xtrmm"),
+                 side,
+                 uplo,
+                 transA,
+                 diag,
+                 M,
+                 N,
+                 (const void*&)alpha,
+                 (const void*&)A,
+                 lda,
+                 (const void*&)B,
+                 ldb,
+                 (const void*&)C,
+                 ldc);
+
     rocblas_int A_row = (side == rocblas_side_left ? M : N);
 
     if(handle == nullptr)

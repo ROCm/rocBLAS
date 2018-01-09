@@ -5,6 +5,8 @@
 #include "status.h"
 #include "handle.h"
 #include <hip/hip_runtime_api.h>
+#include <unistd.h>
+#include <pwd.h>
 
 /*******************************************************************************
  * constructor
@@ -16,37 +18,48 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
-    char* str_layer_mode = getenv("ROCBLAS_LAYER");
-    int   int_layer_mode = atoi(str_layer_mode);
 
-    layer_mode = (rocblas_layer_mode) int_layer_mode;
-    
+    // set layer_mode from vaule of environment variable ROCBLAS_LAYER
+    char* str_layer_mode;
+    if((str_layer_mode = getenv("ROCBLAS_LAYER")) == NULL)
+    {
+        layer_mode = rocblas_layer_mode_none;
+    }
+    else
+    {
+        int int_layer_mode = atoi(str_layer_mode);
+
+        layer_mode = (rocblas_layer_mode)int_layer_mode;
+    }
+
+    // open log file
     if(layer_mode & rocblas_layer_mode_logging)
     {
-        // open log file in home directory
-        const char *file_name = "/rocblas_logfile.csv";
-        char *home_dir = getenv("HOME");
-        char *file_path = (char *) malloc(strlen(home_dir) + strlen(file_name) + 1);
-        strncpy(file_path, home_dir, strlen(home_dir) + 1);
-        strncat(file_path, file_name, strlen(file_name) + 1);
-        rocblas_logfile = fopen(file_path, "w");
-        free(file_path);
+        // construct filepath for log file in home directory
+        const char* homedir_char;
+        std::string homedir_str;
 
-        if (rocblas_logfile == NULL)
+        if((homedir_char = getenv("HOME")) == NULL)
         {
-            printf("ERROR: rocBLAS: could not open logging file %s\n",file_path);
+            homedir_char = getpwuid(getuid())->pw_dir;
+        }
+        if(homedir_char == NULL)
+        {
+            std::cerr << "rocBLAS ERROR: cannot determine home directory for rocBLAS log file"
+                      << std::endl;
+            std::cerr << "rocBLAS ERROR: turn off logging or create a home directory" << std::endl;
+            exit(-1);
         }
         else
         {
-            if (layer_mode & rocblas_layer_mode_logging_synch)
-            {
-                fprintf(rocblas_logfile, "rocblas_handle,constructor,rocblas_layer_mode_logging_synch\n");
-            }
-            else
-            {
-                fprintf(rocblas_logfile, "rocblas_handle,constructor,rocblas_layer_mode_logging\n");
-            }
+            homedir_str = std::string(homedir_char);
         }
+
+        std::string filename  = "/rocblas_logfile.csv";
+        std::string file_path = homedir_str + filename;
+
+        // open log file
+        log_ofs.open(file_path);
     }
 }
 
@@ -58,9 +71,7 @@ _rocblas_handle::~_rocblas_handle()
     // rocblas by default take the system default stream which user cannot destroy
     if(layer_mode & rocblas_layer_mode_logging)
     {
-        fprintf(rocblas_logfile, "rocblas_handle,destructor\n");
-        fflush(rocblas_logfile);
-        fclose(rocblas_logfile);
+        log_ofs.close();
     }
 }
 

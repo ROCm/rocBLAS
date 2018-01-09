@@ -6,11 +6,12 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_iamax.hpp"
+#include "arg_check.h"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
+#include "testing_iamax.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
@@ -124,9 +125,6 @@ TEST(checkin_blas1_bad_arg, nrm2_float)
     rocblas_status status = testing_nrm2_bad_arg<float, float>();
     EXPECT_EQ(rocblas_status_success, status);
 }
-
-TEST(checkin_blas1_logging, scal_float) { testing_scal_logging<float>(); }
-
 
 TEST(checkin_blas1_bad_arg, scal_float) { testing_scal_bad_arg<float>(); }
 TEST(checkin_blas1_bad_arg, swap_float) { testing_swap_bad_arg<float>(); }

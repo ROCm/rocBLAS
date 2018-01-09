@@ -94,6 +94,18 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                                     T* A,
                                     rocblas_int lda)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xger"),
+                 m,
+                 n,
+                 (const void*&)alpha,
+                 (const void*&)x,
+                 incx,
+                 (const void*&)y,
+                 incy,
+                 (const void*&)A,
+                 lda);
+
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
     else if(nullptr == x)

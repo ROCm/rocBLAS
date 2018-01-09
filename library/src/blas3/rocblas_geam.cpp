@@ -229,6 +229,21 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
                                      T* C,
                                      rocblas_int ldc)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xgeam"),
+                 transA,
+                 transB,
+                 m,
+                 n,
+                 (const void*&)alpha,
+                 (const void*&)A,
+                 lda,
+                 (const void*&)beta,
+                 (const void*&)B,
+                 ldb,
+                 (const void*&)C,
+                 ldc);
+
     int dim1_A, dim2_A, dim1_B, dim2_B;
     // quick return
     if(0 == m || 0 == n)

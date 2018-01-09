@@ -246,6 +246,9 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
                                     rocblas_int incy,
                                     T* result)
 {
+    log_function(
+        handle, replaceX<T>("rocblas_Xdot"), n, (const void*&)x, incx, (const void*&)y, incy);
+
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     else if(nullptr == y)

@@ -238,6 +238,15 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
                                      T* y,
                                      rocblas_int incy)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xaxpy"),
+                 n,
+                 (const void*&)alpha,
+                 (const void*&)x,
+                 incx,
+                 (const void*&)y,
+                 incy);
+
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
     else if(nullptr == x)

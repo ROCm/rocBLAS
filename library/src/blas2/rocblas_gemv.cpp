@@ -133,6 +133,20 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                                      T* y,
                                      rocblas_int incy)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xgemv"),
+                 transA,
+                 m,
+                 n,
+                 (const void*&)alpha,
+                 (const void*&)A,
+                 lda,
+                 (const void*&)x,
+                 incx,
+                 (const void*&)beta,
+                 (const void*&)y,
+                 incy);
+
     if(nullptr == A)
         return rocblas_status_invalid_pointer;
     else if(nullptr == x)

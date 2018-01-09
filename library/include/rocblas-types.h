@@ -107,9 +107,9 @@ typedef enum rocblas_pointer_mode_ {
 } rocblas_pointer_mode;
 
 /*! \brief Indicates if layer is active*/
-typedef enum rocblas_layer_mode{
-    rocblas_layer_mode_none = 0,
-    rocblas_layer_mode_logging = 1,
+typedef enum rocblas_layer_mode {
+    rocblas_layer_mode_none          = 0,
+    rocblas_layer_mode_logging       = 1,
     rocblas_layer_mode_logging_synch = 2
 } rocblas_layer_mode;
 
