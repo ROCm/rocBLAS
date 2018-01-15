@@ -266,8 +266,7 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {

@@ -117,8 +117,7 @@ rocblas_status rocblas_asum_template_workspace(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(asum_kernel_part1<T1, T2, NB_X>),
                     dim3(grid),

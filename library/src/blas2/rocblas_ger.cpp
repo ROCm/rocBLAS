@@ -136,8 +136,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
 #define GEMV_DIM_X 128
 #define GEMV_DIM_Y 8

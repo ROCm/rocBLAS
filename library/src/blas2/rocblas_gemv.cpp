@@ -178,8 +178,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(transA == rocblas_operation_none)
     {

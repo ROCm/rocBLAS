@@ -60,6 +60,7 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
 
         // open log file
         log_ofs.open(file_path);
+        log_ofs << "rocblas_create_handle";
     }
 }
 

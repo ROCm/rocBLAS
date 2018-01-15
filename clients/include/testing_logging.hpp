@@ -129,10 +129,15 @@ void testing_logging()
     {
         int i_result;
         T result;
+        rocblas_pointer_mode mode;
 
+        // Auxiliary functions
         std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(
             new rocblas_test::handle_struct);
         rocblas_handle handle = unique_ptr_handle->handle;
+
+        status = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);
+        status = rocblas_get_pointer_mode(handle, &mode);
 
         // BLAS1
         status = rocblas_iamax<T>(handle, n, dx, incx, &i_result);
@@ -162,27 +167,30 @@ void testing_logging()
         status =
             rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
 
-        status = rocblas_gemm<T>(
-            handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
+        if( BUILD_WITH_TENSILE )
+        {
+            status = rocblas_gemm<T>(
+                handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
 
-        status = rocblas_gemm_strided_batched<T>(handle,
-                                                 transA,
-                                                 transB,
-                                                 m,
-                                                 n,
-                                                 k,
-                                                 &alpha,
-                                                 da,
-                                                 lda,
-                                                 bsa,
-                                                 db,
-                                                 ldb,
-                                                 bsb,
-                                                 &beta,
-                                                 dc,
-                                                 ldc,
-                                                 bsc,
-                                                 batch_count);
+            status = rocblas_gemm_strided_batched<T>(handle,
+                                                     transA,
+                                                     transB,
+                                                     m,
+                                                     n,
+                                                     k,
+                                                     &alpha,
+                                                     da,
+                                                     lda,
+                                                     bsa,
+                                                     db,
+                                                     ldb,
+                                                     bsb,
+                                                     &beta,
+                                                     dc,
+                                                     ldc,
+                                                     bsc,
+                                                     batch_count);
+        }
 
         // exclude trtri as it is an internal function
         //      status = rocblas_trtri<T>(handle, uplo, diag, n, da, lda, db, ldb);
@@ -220,6 +228,11 @@ void testing_logging()
     log_ofs2.open(file_path2);
 
     // write "golden file"
+    // Auxiliary function
+    log_ofs2 << "rocblas_create_handle";
+    log_ofs2 << "\nrocblas_set_pointer_mode,0";
+    log_ofs2 << "\nrocblas_get_pointer_mode,0";
+
     // BLAS1
     log_ofs2 << "\n"
              << replaceX<T>("rocblas_iXamax") << "," << n << "," << (void*)dx << "," << incx;
@@ -264,24 +277,30 @@ void testing_logging()
 
     // BLAS3
     log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m << ","
-             << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)&beta
-             << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
+         << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m << ","
+         << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)&beta
+         << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
 
-    log_ofs2 << "\n"
+    if( BUILD_WITH_TENSILE )
+    {
+        log_ofs2 << "\n"
              << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m << ","
              << n << "," << k << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
              << (void*)db << "," << ldb << "," << (void*)&beta << "," << (void*)dc << "," << ldc;
 
-    log_ofs2 << "\n"
+        log_ofs2 << "\n"
              << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << "," << transB
              << "," << m << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
              << lda << "," << bsa << "," << (void*)db << "," << ldb << "," << bsb << ","
              << (void*)&beta << "," << (void*)dc << "," << ldc << "," << bsc << "," << batch_count;
+    }
 
     // exclude trtri as it is an internal function
     //  log_ofs2 << "\n" << replaceX<T>("rocblas_Xtrtri")  << "," << uplo << "," << diag << "," << n
     //  << "," << (void*)da << "," << lda << "," << (void*)db << "," << ldb;
+
+    // Auxiliary function
+    log_ofs2 << "\nrocblas_destroy_handle";
 
     log_ofs2.close();
 

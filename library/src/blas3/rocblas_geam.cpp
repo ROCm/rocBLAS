@@ -294,8 +294,7 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
         return rocblas_status_invalid_size;
     }
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if((rocblas_pointer_mode_host == handle->pointer_mode) && (0 == *alpha) && (0 == *beta))
     {
@@ -434,8 +433,7 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             dim3 geam_grid(blocks, 1, 1);
             dim3 geam_threads(GEAM_DIM, 1, 1);
 
-            hipStream_t rocblas_stream;
-            RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+            hipStream_t rocblas_stream = handle->rocblas_stream;
 
             T h_alpha_scalar = *alpha; // unit-test-covered
             T h_beta_scalar  = *beta;
@@ -498,8 +496,7 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             dim3 geam_grid(blocks, 1, 1);
             dim3 geam_threads(GEAM_DIM, 1, 1);
 
-            hipStream_t rocblas_stream;
-            RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+            hipStream_t rocblas_stream  = handle->rocblas_stream;
 
             T h_beta_scalar = *beta;
             hipLaunchKernel(geam_1D_2matrix_kernel_host_pointer<T>, // unit-test-covered
@@ -559,8 +556,7 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
         dim3 geam_grid(blocks, 1, 1);
         dim3 geam_threads(GEAM_DIM, 1, 1);
 
-        hipStream_t rocblas_stream;
-        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+        hipStream_t rocblas_stream  = handle->rocblas_stream;
 
         if(rocblas_pointer_mode_host == handle->pointer_mode)
         {

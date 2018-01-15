@@ -105,8 +105,7 @@ rocblas_status rocblas_swap_template(
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(swap_kernel),
                     dim3(grid),
