@@ -106,11 +106,10 @@ typedef enum rocblas_pointer_mode_ {
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
 
-/*! \brief Indicates if layer is active*/
+/*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode {
-    rocblas_layer_mode_none          = 0,
-    rocblas_layer_mode_logging       = 1,
-    rocblas_layer_mode_logging_synch = 2
+    rocblas_layer_mode_none    = 0b0000000000,
+    rocblas_layer_mode_logging = 0b0000000001,
 } rocblas_layer_mode;
 
 #ifdef __cplusplus

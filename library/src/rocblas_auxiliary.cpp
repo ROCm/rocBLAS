@@ -88,13 +88,8 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
         {
             return status;
         }
-//      if(handle->layer_mode & rocblas_layer_mode_logging)
-//      {
-//          handle->log_ofs << "rocblas_create_handle";
-//      }
         return rocblas_status_success;
     }
-
 }
 
 /*******************************************************************************

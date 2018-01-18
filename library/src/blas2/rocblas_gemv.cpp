@@ -133,19 +133,41 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                                      T* y,
                                      rocblas_int incy)
 {
-    log_function(handle,
-                 replaceX<T>("rocblas_Xgemv"),
-                 transA,
-                 m,
-                 n,
-                 (const void*&)alpha,
-                 (const void*&)A,
-                 lda,
-                 (const void*&)x,
-                 incx,
-                 (const void*&)beta,
-                 (const void*&)y,
-                 incy);
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xgemv"),
+                     transA,
+                     m,
+                     n,
+                     *alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)x,
+                     incx,
+                     *beta,
+                     (const void*&)y,
+                     incy);
+    }
+    else
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xgemv"),
+                     transA,
+                     m,
+                     n,
+                     (const void*&)alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)x,
+                     incx,
+                     (const void*&)beta,
+                     (const void*&)y,
+                     incy);
+    }
 
     if(nullptr == A)
         return rocblas_status_invalid_pointer;
@@ -155,8 +177,6 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(nullptr == beta)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     if(m < 0)
         return rocblas_status_invalid_size;

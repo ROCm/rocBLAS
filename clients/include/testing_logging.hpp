@@ -18,6 +18,7 @@
 #include <string>
 #include <algorithm>
 #include <iterator>
+#include <sys/param.h>
 
 using namespace std;
 
@@ -68,6 +69,8 @@ bool range_equal(InputIterator1 first1,
 template <typename T>
 void testing_logging()
 {
+    rocblas_pointer_mode test_pointer_mode = rocblas_pointer_mode_host;
+
     // set environment variable ROCBLAS_LAYER = 1 to turn on logging. Note that putenv
     // only has scope for this executable, so it is not necessary to save and restore
     // this environment variable for the next executable
@@ -136,7 +139,7 @@ void testing_logging()
             new rocblas_test::handle_struct);
         rocblas_handle handle = unique_ptr_handle->handle;
 
-        status = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);
+        status = rocblas_set_pointer_mode(handle, test_pointer_mode);
         status = rocblas_get_pointer_mode(handle, &mode);
 
         // BLAS1
@@ -167,7 +170,7 @@ void testing_logging()
         status =
             rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
 
-        if( BUILD_WITH_TENSILE )
+        if(BUILD_WITH_TENSILE)
         {
             status = rocblas_gemm<T>(
                 handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
@@ -217,11 +220,15 @@ void testing_logging()
         homedir_str = std::string(homedir_char);
     }
 
+    // find cwd string
+    char temp[MAXPATHLEN];
+    std::string cwd_str = (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
+
     // open files
     std::string filename1  = "/rocblas_logfile.csv";
     std::string filename2  = "/rocblas_logfile_gold.csv";
-    std::string file_path1 = homedir_str + filename1;
-    std::string file_path2 = homedir_str + filename2;
+    std::string file_path1 = cwd_str + filename1;
+    std::string file_path2 = cwd_str + filename2;
 
     std::ofstream log_ofs2;
 
@@ -242,9 +249,18 @@ void testing_logging()
 
     log_ofs2 << "\n" << replaceX<T>("rocblas_Xasum") << "," << n << "," << (void*)dx << "," << incx;
 
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << (void*)&alpha << "," << (void*)dx
-             << "," << incx << "," << (void*)dy << "," << incy;
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << alpha << "," << (void*)dx
+                 << "," << incx << "," << (void*)dy << "," << incy;
+    }
+    else
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << (void*)&alpha << ","
+                 << (void*)dx << "," << incx << "," << (void*)dy << "," << incy;
+    }
 
     log_ofs2 << "\n"
              << replaceX<T>("rocblas_Xcopy") << "," << n << "," << (void*)dx << "," << incx << ","
@@ -256,43 +272,111 @@ void testing_logging()
 
     log_ofs2 << "\n" << replaceX<T>("rocblas_Xnrm2") << "," << n << "," << (void*)dx << "," << incx;
 
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xscal") << "," << n << "," << (void*)&alpha << "," << (void*)dx
-             << "," << incx;
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xscal") << "," << n << "," << alpha << "," << (void*)dx
+                 << "," << incx;
+    }
+    else
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xscal") << "," << n << "," << (void*)&alpha << ","
+                 << (void*)dx << "," << incx;
+    }
 
     log_ofs2 << "\n"
              << replaceX<T>("rocblas_Xswap") << "," << n << "," << (void*)dx << "," << incx << ","
              << (void*)dy << "," << incy;
 
     // BLAS2
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha << ","
-             << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << "," << (void*)da
-             << "," << lda;
 
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
-             << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
-             << "," << (void*)&beta << "," << (void*)dy << "," << incy;
-
-    // BLAS3
-    log_ofs2 << "\n"
-         << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m << ","
-         << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)&beta
-         << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
-
-    if( BUILD_WITH_TENSILE )
+    if(test_pointer_mode == rocblas_pointer_mode_host)
     {
         log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m << ","
-             << n << "," << k << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
-             << (void*)db << "," << ldb << "," << (void*)&beta << "," << (void*)dc << "," << ldc;
-
+                 << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << alpha << ","
+                 << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << "," << (void*)da
+                 << "," << lda;
+    }
+    else
+    {
         log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << "," << transB
-             << "," << m << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
-             << lda << "," << bsa << "," << (void*)db << "," << ldb << "," << bsb << ","
-             << (void*)&beta << "," << (void*)dc << "," << ldc << "," << bsc << "," << batch_count;
+                 << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha
+                 << "," << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
+                 << (void*)da << "," << lda;
+    }
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
+                 << alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+                 << "," << beta << "," << (void*)dy << "," << incy;
+    }
+    else
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
+                 << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << ","
+                 << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy;
+    }
+
+    // BLAS3
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                 << "," << n << "," << alpha << "," << (void*)da << "," << lda << "," << beta << ","
+                 << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
+    }
+    else
+    {
+        log_ofs2 << "\n"
+                 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                 << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
+                 << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
+                 << ldc;
+    }
+
+    if(BUILD_WITH_TENSILE)
+    {
+
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            log_ofs2 << "\n"
+                     << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                     << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
+                     << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
+                     << ldc;
+        }
+        else
+        {
+            log_ofs2 << "\n"
+                     << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                     << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
+                     << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
+                     << (void*)dc << "," << ldc;
+        }
+
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            log_ofs2 << "\n"
+                     << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                     << transB << "," << m << "," << n << "," << k << "," << alpha << ","
+                     << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                     << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << "," << bsc
+                     << "," << batch_count;
+        }
+        else
+        {
+            log_ofs2 << "\n"
+                     << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                     << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha << ","
+                     << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                     << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc << ","
+                     << bsc << "," << batch_count;
+        }
     }
 
     // exclude trtri as it is an internal function

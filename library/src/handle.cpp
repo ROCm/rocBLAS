@@ -7,6 +7,7 @@
 #include <hip/hip_runtime_api.h>
 #include <unistd.h>
 #include <pwd.h>
+#include <sys/param.h>
 
 /*******************************************************************************
  * constructor
@@ -27,40 +28,59 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_logging)
     }
     else
     {
-        int int_layer_mode = atoi(str_layer_mode);
-
-        layer_mode = (rocblas_layer_mode)int_layer_mode;
+        layer_mode = (rocblas_layer_mode)(atoi(str_layer_mode));
     }
 
     // open log file
     if(layer_mode & rocblas_layer_mode_logging)
     {
-        // construct filepath for log file in home directory
-        const char* homedir_char;
-        std::string homedir_str;
+        bool logfile_open = false;      // track if file is open
+        std::string logfile_pathname_2; // logfile_pathname based on env variable
 
-        if((homedir_char = getenv("HOME")) == NULL)
+        // get current working directory
+        char temp[MAXPATHLEN];
+        std::string logfile_path = (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
+        std::string logfile_pathname_1 = logfile_path + "/rocblas_logfile.csv";
+
+        log_ofs.open(logfile_pathname_1);
+
+        if(log_ofs.is_open())
         {
-            homedir_char = getpwuid(getuid())->pw_dir;
-        }
-        if(homedir_char == NULL)
-        {
-            std::cerr << "rocBLAS ERROR: cannot determine home directory for rocBLAS log file"
-                      << std::endl;
-            std::cerr << "rocBLAS ERROR: turn off logging or create a home directory" << std::endl;
-            exit(-1);
+            logfile_open = true;
         }
         else
         {
-            homedir_str = std::string(homedir_char);
+            // if cannot open logfile in cwd, try open file ROCBLAS_LOGFILE_PATH
+            char const* tmp = getenv("ROCBLAS_LOGFILE_PATH");
+            if(tmp != NULL)
+            {
+                logfile_pathname_2 = (std::string)tmp;
+                log_ofs.open(logfile_pathname_2);
+                if(log_ofs.is_open())
+                {
+                    logfile_open = true;
+                }
+            }
         }
 
-        std::string filename  = "/rocblas_logfile.csv";
-        std::string file_path = homedir_str + filename;
+        if(logfile_open == true)
+        {
+            // logfile is open, start logging
+            log_ofs << "rocblas_create_handle";
+        }
+        else
+        {
+            // failed to open log file
+            std::cerr << "rocBLAS ERROR: cannot open log file: " << logfile_pathname_1 << std::endl;
+            std::cerr << "rocBLAS ERROR: cannot open log file: " << logfile_pathname_2 << std::endl;
+            std::cerr << "rocBLAS ERROR: set environment variable" << std::endl;
+            std::cerr << "rocBLAS ERROR: ROCBLAS_LOGFILE_PATH to the full" << std::endl;
+            std::cerr << "rocBLAS ERROR: path for a rocblas logging file" << std::endl;
+            std::cerr << "rocBLAS ERROR: turning off logging" << std::endl;
 
-        // open log file
-        log_ofs.open(file_path);
-        log_ofs << "rocblas_create_handle";
+            // turn off logging by clearing bit for rocblas_layer_mode_logging;
+            layer_mode = (rocblas_layer_mode)(layer_mode & (~rocblas_layer_mode_logging));
+        }
     }
 }
 

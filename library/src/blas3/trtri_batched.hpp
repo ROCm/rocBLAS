@@ -142,7 +142,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     dim3 grid(1, 1, batch_count);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream  = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel_batched<T, NB_X, 1>),
                     dim3(grid),

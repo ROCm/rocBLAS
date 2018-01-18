@@ -102,10 +102,23 @@ struct log_arg
 {
     log_arg(std::ofstream& ofs_input) : ofs(ofs_input) {}
 
+    // generic operator
     template <typename T>
     void operator()(T& x) const
     {
         ofs << "," << x;
+    }
+
+    // operator for rocblas_float_complex
+    void operator()(const rocblas_float_complex complex_value) const
+    {
+        ofs << "," << complex_value.x << "," << complex_value.y;
+    }
+
+    // operator for rocblas_double_complex
+    void operator()(const rocblas_double_complex complex_value) const
+    {
+        ofs << "," << complex_value.x << "," << complex_value.y;
     }
 
     private:

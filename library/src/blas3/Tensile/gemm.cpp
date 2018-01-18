@@ -29,21 +29,45 @@
  ******************************************************************************/
 #define PREAMBLE(TYPE)                                                                     \
                                                                                            \
-    log_function(handle,                                                                   \
-                 replaceX<TYPE>("rocblas_Xgemm"),                                          \
-                 trans_a,                                                                  \
-                 trans_b,                                                                  \
-                 m,                                                                        \
-                 n,                                                                        \
-                 k,                                                                        \
-                 (const void*&)alpha,                                                      \
-                 (const void*&)A,                                                          \
-                 ld_a,                                                                     \
-                 (const void*&)B,                                                          \
-                 ld_b,                                                                     \
-                 (const void*&)beta,                                                       \
-                 (const void*&)C,                                                          \
-                 ld_c);                                                                    \
+    if(nullptr != handle)                                                                  \
+    {                                                                                      \
+        if(handle->pointer_mode == rocblas_pointer_mode_host)                              \
+        {                                                                                  \
+            log_function(handle,                                                           \
+                         replaceX<TYPE>("rocblas_Xgemm"),                                  \
+                         trans_a,                                                          \
+                         trans_b,                                                          \
+                         m,                                                                \
+                         n,                                                                \
+                         k,                                                                \
+                         *alpha,                                                           \
+                         (const void*&)A,                                                  \
+                         ld_a,                                                             \
+                         (const void*&)B,                                                  \
+                         ld_b,                                                             \
+                         *beta,                                                            \
+                         (const void*&)C,                                                  \
+                         ld_c);                                                            \
+        }                                                                                  \
+        else                                                                               \
+        {                                                                                  \
+            log_function(handle,                                                           \
+                         replaceX<TYPE>("rocblas_Xgemm"),                                  \
+                         trans_a,                                                          \
+                         trans_b,                                                          \
+                         m,                                                                \
+                         n,                                                                \
+                         k,                                                                \
+                         (const void*&)alpha,                                              \
+                         (const void*&)A,                                                  \
+                         ld_a,                                                             \
+                         (const void*&)B,                                                  \
+                         ld_b,                                                             \
+                         (const void*&)beta,                                               \
+                         (const void*&)C,                                                  \
+                         ld_c);                                                            \
+        }                                                                                  \
+    }                                                                                      \
                                                                                            \
     rocblas_int b_c = 1;                                                                   \
     rocblas_int bs_c;                                                                      \
@@ -82,58 +106,83 @@
     unsigned int sizeK    = b_c;                                                           \
     unsigned int sizeL    = static_cast<unsigned int>(k);
 
-#define PREAMBLE_BATCHED(TYPE)                                    \
-    rocblas_status validArgs = validateArgs(handle,               \
-                                            trans_a,              \
-                                            trans_b,              \
-                                            m,                    \
-                                            n,                    \
-                                            k,                    \
-                                            alpha,                \
-                                            A,                    \
-                                            ld_a,                 \
-                                            bs_a,                 \
-                                            B,                    \
-                                            ld_b,                 \
-                                            bs_b,                 \
-                                            beta,                 \
-                                            C,                    \
-                                            ld_c,                 \
-                                            bs_c,                 \
-                                            b_c);                 \
-                                                                  \
-    log_function(handle,                                          \
-                 replaceX<TYPE>("rocblas_Xgemm_strided_batched"), \
-                 trans_a,                                         \
-                 trans_b,                                         \
-                 m,                                               \
-                 n,                                               \
-                 k,                                               \
-                 (const void*&)alpha,                             \
-                 (const void*&)A,                                 \
-                 ld_a,                                            \
-                 bs_a,                                            \
-                 (const void*&)B,                                 \
-                 ld_b,                                            \
-                 bs_b,                                            \
-                 (const void*&)beta,                              \
-                 (const void*&)C,                                 \
-                 ld_c,                                            \
-                 bs_c,                                            \
-                 b_c);                                            \
-                                                                  \
-    if(validArgs != rocblas_status_success)                       \
-        return validArgs;                                         \
-                                                                  \
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);      \
-    unsigned int strideC2 = static_cast<unsigned int>(bs_c);      \
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);      \
-    unsigned int strideA2 = static_cast<unsigned int>(bs_a);      \
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);      \
-    unsigned int strideB2 = static_cast<unsigned int>(bs_b);      \
-    unsigned int sizeI    = static_cast<unsigned int>(m);         \
-    unsigned int sizeJ    = static_cast<unsigned int>(n);         \
-    unsigned int sizeK    = static_cast<unsigned int>(b_c);       \
+#define PREAMBLE_BATCHED(TYPE)                                        \
+    rocblas_status validArgs = validateArgs(handle,                   \
+                                            trans_a,                  \
+                                            trans_b,                  \
+                                            m,                        \
+                                            n,                        \
+                                            k,                        \
+                                            alpha,                    \
+                                            A,                        \
+                                            ld_a,                     \
+                                            bs_a,                     \
+                                            B,                        \
+                                            ld_b,                     \
+                                            bs_b,                     \
+                                            beta,                     \
+                                            C,                        \
+                                            ld_c,                     \
+                                            bs_c,                     \
+                                            b_c);                     \
+                                                                      \
+    if(handle->pointer_mode == rocblas_pointer_mode_host)             \
+    {                                                                 \
+        log_function(handle,                                          \
+                     replaceX<TYPE>("rocblas_Xgemm_strided_batched"), \
+                     trans_a,                                         \
+                     trans_b,                                         \
+                     m,                                               \
+                     n,                                               \
+                     k,                                               \
+                     *alpha,                                          \
+                     (const void*&)A,                                 \
+                     ld_a,                                            \
+                     bs_a,                                            \
+                     (const void*&)B,                                 \
+                     ld_b,                                            \
+                     bs_b,                                            \
+                     *beta,                                           \
+                     (const void*&)C,                                 \
+                     ld_c,                                            \
+                     bs_c,                                            \
+                     b_c);                                            \
+    }                                                                 \
+    else                                                              \
+    {                                                                 \
+        log_function(handle,                                          \
+                     replaceX<TYPE>("rocblas_Xgemm_strided_batched"), \
+                     trans_a,                                         \
+                     trans_b,                                         \
+                     m,                                               \
+                     n,                                               \
+                     k,                                               \
+                     (const void*&)alpha,                             \
+                     (const void*&)A,                                 \
+                     ld_a,                                            \
+                     bs_a,                                            \
+                     (const void*&)B,                                 \
+                     ld_b,                                            \
+                     bs_b,                                            \
+                     (const void*&)beta,                              \
+                     (const void*&)C,                                 \
+                     ld_c,                                            \
+                     bs_c,                                            \
+                     b_c);                                            \
+    }                                                                 \
+                                                                      \
+    if(validArgs != rocblas_status_success)                           \
+        return validArgs;                                             \
+                                                                      \
+    unsigned int strideC1 = static_cast<unsigned int>(ld_c);          \
+    unsigned int strideC2 = static_cast<unsigned int>(bs_c);          \
+    unsigned int strideA1 = static_cast<unsigned int>(ld_a);          \
+    unsigned int strideA2 = static_cast<unsigned int>(bs_a);          \
+    unsigned int strideB1 = static_cast<unsigned int>(ld_b);          \
+    unsigned int strideB2 = static_cast<unsigned int>(bs_b);          \
+    unsigned int sizeI    = static_cast<unsigned int>(m);             \
+    unsigned int sizeJ    = static_cast<unsigned int>(n);             \
+    unsigned int sizeK    = static_cast<unsigned int>(b_c);           \
     unsigned int sizeL    = static_cast<unsigned int>(k);
 
 /*******************************************************************************

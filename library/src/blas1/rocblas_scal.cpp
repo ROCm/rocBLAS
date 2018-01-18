@@ -62,15 +62,23 @@ template <class T>
 rocblas_status
 rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
 {
-    log_function(
-        handle, replaceX<T>("rocblas_Xscal"), n, (const void*&)alpha, (const void*&)x, incx);
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle, replaceX<T>("rocblas_Xscal"), n, *alpha, (const void*&)x, incx);
+    }
+    else
+    {
+        log_function(
+            handle, replaceX<T>("rocblas_Xscal"), n, (const void*&)alpha, (const void*&)x, incx);
+    }
 
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0)
