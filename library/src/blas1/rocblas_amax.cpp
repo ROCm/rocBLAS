@@ -129,8 +129,7 @@ rocblas_status rocblas_iamax_template_workspace(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(iamax_kernel_part1<T1, T2, NB_X>),
                     dim3(grid),
@@ -215,6 +214,8 @@ template <typename T1, typename T2>
 rocblas_status rocblas_iamax_template(
     rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, rocblas_int* result)
 {
+    log_function(handle, replaceX<T1>("rocblas_iXamax"), n, (const void*&)x, incx);
+
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     else if(nullptr == result)

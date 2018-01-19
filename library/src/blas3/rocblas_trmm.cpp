@@ -274,11 +274,49 @@ rocblas_status rocblas_trmm_template(rocblas_handle handle,
                                      T* C,
                                      rocblas_int ldc)
 {
-    rocblas_int A_row = (side == rocblas_side_left ? M : N);
-
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
-    else if(M < 0)
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xtrmm"),
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     *alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)B,
+                     ldb,
+                     (const void*&)C,
+                     ldc);
+    }
+    else
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xtrmm"),
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     M,
+                     N,
+                     (const void*&)alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)B,
+                     ldb,
+                     (const void*&)C,
+                     ldc);
+    }
+
+    rocblas_int A_row = (side == rocblas_side_left ? M : N);
+
+    if(M < 0)
         return rocblas_status_invalid_size;
     else if(N < 0)
         return rocblas_status_invalid_size;

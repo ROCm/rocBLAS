@@ -3,7 +3,6 @@
  * ************************************************************************ */
 
 #include <stdlib.h>
-#include <stdio.h>
 #include <vector>
 
 #include "rocblas.hpp"
@@ -11,8 +10,12 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include <complex.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <fstream>
+#include <string>
+#include <iterator>
 
 using namespace std;
 
@@ -33,6 +36,8 @@ void testing_scal_bad_arg()
     // allocate memory on device
     auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
                                          rocblas_test::device_free};
+    return;
+
     T* dx = (T*)dx_managed.get();
     if(!dx)
     {

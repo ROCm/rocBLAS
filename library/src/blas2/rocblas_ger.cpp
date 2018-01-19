@@ -94,6 +94,38 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                                     T* A,
                                     rocblas_int lda)
 {
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xger"),
+                     m,
+                     n,
+                     *alpha,
+                     (const void*&)x,
+                     incx,
+                     (const void*&)y,
+                     incy,
+                     (const void*&)A,
+                     lda);
+    }
+    else
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xger"),
+                     m,
+                     n,
+                     (const void*&)alpha,
+                     (const void*&)x,
+                     incx,
+                     (const void*&)y,
+                     incy,
+                     (const void*&)A,
+                     lda);
+    }
+
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
     else if(nullptr == x)
@@ -102,8 +134,6 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(nullptr == A)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     if(m < 0)
         return rocblas_status_invalid_size;
@@ -124,8 +154,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
 #define GEMV_DIM_X 128
 #define GEMV_DIM_Y 8

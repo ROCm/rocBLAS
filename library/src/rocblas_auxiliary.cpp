@@ -44,6 +44,7 @@ extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     }
     *mode = handle->pointer_mode;
+    log_function(handle, "rocblas_get_pointer_mode", *mode);
     return rocblas_status_success;
 }
 
@@ -57,8 +58,12 @@ extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocbla
     {
         return rocblas_status_invalid_pointer;
     }
-    handle->pointer_mode = mode;
-    return rocblas_status_success;
+    else
+    {
+        log_function(handle, "rocblas_set_pointer_mode", mode);
+        handle->pointer_mode = mode;
+        return rocblas_status_success;
+    }
 }
 
 /*******************************************************************************
@@ -72,18 +77,19 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
     {
         return rocblas_status_invalid_pointer;
     }
-
-    // allocate on heap
-    try
+    else
     {
-        *handle = new _rocblas_handle();
+        // allocate on heap
+        try
+        {
+            *handle = new _rocblas_handle();
+        }
+        catch(rocblas_status status)
+        {
+            return status;
+        }
+        return rocblas_status_success;
     }
-    catch(rocblas_status status)
-    {
-        return status;
-    }
-
-    return rocblas_status_success;
 }
 
 /*******************************************************************************
@@ -91,6 +97,7 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
  ******************************************************************************/
 extern "C" rocblas_status rocblas_destroy_handle(rocblas_handle handle)
 {
+    log_function(handle, "rocblas_destroy_handle");
     // call destructor
     try
     {
@@ -110,6 +117,7 @@ extern "C" rocblas_status rocblas_destroy_handle(rocblas_handle handle)
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id)
 {
+    log_function(handle, "rocblas_set_stream", stream_id);
     return handle->set_stream(stream_id);
 }
 
@@ -119,6 +127,7 @@ extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t 
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t* stream_id)
 {
+    log_function(handle, "rocblas_get_stream", *stream_id);
     return handle->get_stream(stream_id);
 }
 

@@ -6,11 +6,12 @@
 #include <math.h>
 #include <stdexcept>
 #include <vector>
-#include "testing_iamax.hpp"
+#include "arg_check.h"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
+#include "testing_iamax.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"

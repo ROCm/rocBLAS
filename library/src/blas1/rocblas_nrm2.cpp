@@ -116,8 +116,7 @@ rocblas_status rocblas_nrm2_template_workspace(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(nrm2_kernel_part1<T1, T2, NB_X>),
                     dim3(grid),
@@ -192,6 +191,8 @@ template <typename T1, typename T2>
 rocblas_status rocblas_nrm2_template(
     rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, T2* result)
 {
+    log_function(handle, replaceX<T1>("rocblas_Xnrm2"), n, (const void*&)x, incx);
+
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     else if(nullptr == result)

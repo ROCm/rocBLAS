@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include <complex.h>
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
@@ -55,23 +56,31 @@ scal_kernel_device_scalar(hipLaunchParm lp, rocblas_int n, const T* alpha, T* x,
     incx      specifies the increment for the elements of x.
               quick return if incx <= 0.
 
-
     ********************************************************************/
 
 template <class T>
 rocblas_status
 rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
 {
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle, replaceX<T>("rocblas_Xscal"), n, *alpha, (const void*&)x, incx);
+    }
+    else
+    {
+        log_function(
+            handle, replaceX<T>("rocblas_Xscal"), n, (const void*&)alpha, (const void*&)x, incx);
+    }
+
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
-    /*
-     * Quick return if possible. Not Argument error
-     */
+    // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0)
         return rocblas_status_success;
 
@@ -80,8 +89,7 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {

@@ -238,14 +238,38 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
                                      T* y,
                                      rocblas_int incy)
 {
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xaxpy"),
+                     n,
+                     *alpha,
+                     (const void*&)x,
+                     incx,
+                     (const void*&)y,
+                     incy);
+    }
+    else
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xaxpy"),
+                     n,
+                     (const void*&)alpha,
+                     (const void*&)x,
+                     incx,
+                     (const void*&)y,
+                     incy);
+    }
+
     if(nullptr == alpha)
         return rocblas_status_invalid_pointer;
     else if(nullptr == x)
         return rocblas_status_invalid_pointer;
     else if(nullptr == y)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     if(n <= 0) // Quick return if possible. Not Argument error
     {
@@ -257,8 +281,7 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
