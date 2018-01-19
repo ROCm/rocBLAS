@@ -43,6 +43,7 @@ endif( )
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     set_get_pointer_mode_gtest.cpp
+    logging_mode_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
     blas1_gtest.cpp

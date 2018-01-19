@@ -452,7 +452,7 @@ parallel hcc_ctu:
 {
   try
   {
-    node( 'docker && rocm' )
+    node( 'docker && rocm && dkms')
     {
       def docker_args = new docker_data(
           from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
@@ -490,7 +490,7 @@ parallel hcc_ctu:
 },
 rocm_ubuntu:
 {
-  node( 'docker && rocm' )
+  node( 'docker && rocm && !dkms')
   {
     def hcc_docker_args = new docker_data(
         from_image:'rocm/dev-ubuntu-16.04:latest',
@@ -523,7 +523,7 @@ rocm_ubuntu:
 },
 rocm_fedora:
 {
-  node( 'docker && rocm' )
+  node( 'docker && rocm && !dkms')
   {
     def hcc_docker_args = new docker_data(
         from_image:'rocm/dev-fedora-24:latest',

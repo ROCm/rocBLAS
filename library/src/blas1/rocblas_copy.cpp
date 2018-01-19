@@ -6,6 +6,7 @@
 #include "rocblas.h"
 
 #include "definitions.h"
+#include "handle.h"
 
 #define NB_X 256
 
@@ -74,6 +75,9 @@ template <class T>
 rocblas_status rocblas_copy_template(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
 {
+    log_function(
+        handle, replaceX<T>("rocblas_Xcopy"), n, (const void*&)x, incx, (const void*&)y, incy);
+
     if(x == nullptr)
         return rocblas_status_invalid_pointer;
     else if(y == nullptr)
@@ -92,8 +96,7 @@ rocblas_status rocblas_copy_template(
     dim3 grid(blocks, 1, 1);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(copy_kernel),
                     dim3(grid),

@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <iostream>
@@ -389,6 +388,20 @@ void verify_not_nan(double arg)
 
 template <>
 void verify_equal(int arg1, int arg2, const char* message)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(arg1, arg2);
+#else
+    if(arg1 != arg2)
+    {
+        std::cerr << message << std::endl;
+        std::cerr << "rocBLAS TEST ERROR: arguments not equal" << std::endl;
+    }
+#endif
+}
+
+template <>
+void verify_equal(bool arg1, bool arg2, const char* message)
 {
 #ifdef GOOGLE_TEST
     ASSERT_EQ(arg1, arg2);

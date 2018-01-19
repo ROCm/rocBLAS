@@ -10,6 +10,7 @@
 #include <hip/hip_runtime.h>
 #include "definitions.h"
 #include "trtri_device.h"
+#include "handle.h"
 
 // flag indicate whether write into A or invA
 template <typename T, rocblas_int NB, rocblas_int flag>
@@ -91,6 +92,19 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                                               rocblas_int bsinvA,
                                               rocblas_int batch_count)
 {
+    log_function(handle,
+                 replaceX<T>("rocblas_Xtrtri"),
+                 uplo,
+                 diag,
+                 n,
+                 (const void*&)A,
+                 lda,
+                 bsa,
+                 (const void*&)invA,
+                 ldinvA,
+                 bsinvA,
+                 batch_count);
+
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
     else if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
@@ -128,8 +142,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     dim3 grid(1, 1, batch_count);
     dim3 threads(NB_X, 1, 1);
 
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel_batched<T, NB_X, 1>),
                     dim3(grid),

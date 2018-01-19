@@ -13,7 +13,6 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "near.h"
-#include "arg_check.h"
 #include "unit.h"
 #include <complex.h>
 

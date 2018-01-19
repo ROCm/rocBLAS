@@ -11,7 +11,6 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include <complex.h>
 
 using namespace std;
