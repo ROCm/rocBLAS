@@ -10,8 +10,7 @@
 #include "handle.h"
 
 template <typename T>
-__global__ void ger_kernel_host_pointer(
-                                        rocblas_int m,
+__global__ void ger_kernel_host_pointer(rocblas_int m,
                                         rocblas_int n,
                                         const T alpha,
                                         const T* __restrict__ x,
@@ -25,8 +24,7 @@ __global__ void ger_kernel_host_pointer(
 }
 
 template <typename T>
-__global__ void ger_kernel_device_pointer(
-                                          rocblas_int m,
+__global__ void ger_kernel_device_pointer(rocblas_int m,
                                           rocblas_int n,
                                           const T* alpha,
                                           const T* __restrict__ x,
@@ -167,37 +165,37 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernelGGL((ger_kernel_device_pointer<T>),
-                        dim3(ger_grid),
-                        dim3(ger_threads),
-                        0,
-                        rocblas_stream,
-                        m,
-                        n,
-                        alpha,
-                        x,
-                        incx,
-                        y,
-                        incy,
-                        A,
-                        lda);
+                           dim3(ger_grid),
+                           dim3(ger_threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           alpha,
+                           x,
+                           incx,
+                           y,
+                           incy,
+                           A,
+                           lda);
     }
     else
     {
         T h_alpha_scalar = *alpha;
         hipLaunchKernelGGL((ger_kernel_host_pointer<T>),
-                        dim3(ger_grid),
-                        dim3(ger_threads),
-                        0,
-                        rocblas_stream,
-                        m,
-                        n,
-                        h_alpha_scalar,
-                        x,
-                        incx,
-                        y,
-                        incy,
-                        A,
-                        lda);
+                           dim3(ger_grid),
+                           dim3(ger_threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           h_alpha_scalar,
+                           x,
+                           incx,
+                           y,
+                           incy,
+                           A,
+                           lda);
     }
 #undef GEMV_DIM_X
 #undef GEMV_DIM_Y

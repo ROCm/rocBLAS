@@ -139,8 +139,7 @@ extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t*
 #define VEC_BUFF_MAX_BYTES 1048576
 #define NB_X 256
 
-__global__ void copy_void_ptr_vector_kernel(
-                                            rocblas_int n,
+__global__ void copy_void_ptr_vector_kernel(rocblas_int n,
                                             rocblas_int elem_size,
                                             const void* x,
                                             rocblas_int incx,
@@ -247,16 +246,16 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                     PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
                     // device buffer -> non-contiguous device vector
                     hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    n_elem_max,
-                                    elem_size,
-                                    t_d,
-                                    1,
-                                    y_d_start,
-                                    incy);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       n_elem_max,
+                                       elem_size,
+                                       t_d,
+                                       1,
+                                       y_d_start,
+                                       incy);
                 }
                 else if(incx == 1 && incy != 1)
                 {
@@ -273,16 +272,16 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                         hipMemcpy(t_d, x_h_start, contig_size, hipMemcpyHostToDevice));
                     // device buffer -> non-contiguous device vector
                     hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    n_elem_max,
-                                    elem_size,
-                                    t_d,
-                                    1,
-                                    y_d_start,
-                                    incy);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       n_elem_max,
+                                       elem_size,
+                                       t_d,
+                                       1,
+                                       y_d_start,
+                                       incy);
                 }
                 else if(incx != 1 && incy == 1)
                 {
@@ -396,16 +395,16 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                     }
                     // non-contiguous device vector -> device buffer
                     hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    n_elem_max,
-                                    elem_size,
-                                    x_d_start,
-                                    incx,
-                                    t_d,
-                                    1);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       n_elem_max,
+                                       elem_size,
+                                       x_d_start,
+                                       incx,
+                                       t_d,
+                                       1);
                     // device buffer -> host buffer
                     PRINT_IF_HIP_ERROR(hipMemcpy(t_h, t_d, contig_size, hipMemcpyDeviceToHost));
                     // host buffer -> non-contiguous host vector
@@ -449,16 +448,16 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                     }
                     // non-contiguous device vector -> device buffer
                     hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    n_elem_max,
-                                    elem_size,
-                                    x_d_start,
-                                    incx,
-                                    t_d,
-                                    1);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       n_elem_max,
+                                       elem_size,
+                                       x_d_start,
+                                       incx,
+                                       t_d,
+                                       1);
                     // device buffer -> contiguous host vector
                     PRINT_IF_HIP_ERROR(
                         hipMemcpy(y_h_start, t_d, contig_size, hipMemcpyDeviceToHost));
@@ -482,8 +481,7 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
 #define MATRIX_DIM_X 128
 #define MATRIX_DIM_Y 8
 
-__global__ void copy_void_ptr_matrix_kernel(
-                                            rocblas_int rows,
+__global__ void copy_void_ptr_matrix_kernel(rocblas_int rows,
                                             rocblas_int cols,
                                             rocblas_int elem_size,
                                             const void* a,
@@ -618,17 +616,17 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                     PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
                     // device buffer -> non-contiguous device matrix
                     hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    rows,
-                                    n_cols_max,
-                                    elem_size,
-                                    t_d,
-                                    rows,
-                                    b_d_start,
-                                    ldb);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       rows,
+                                       n_cols_max,
+                                       elem_size,
+                                       t_d,
+                                       rows,
+                                       b_d_start,
+                                       ldb);
                 }
                 else if(lda == rows && ldb != rows)
                 {
@@ -645,17 +643,17 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                         hipMemcpy(t_d, a_h_start, contig_size, hipMemcpyHostToDevice));
                     // device buffer -> non-contiguous device matrix
                     hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    rows,
-                                    n_cols_max,
-                                    elem_size,
-                                    t_d,
-                                    rows,
-                                    b_d_start,
-                                    ldb);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       rows,
+                                       n_cols_max,
+                                       elem_size,
+                                       t_d,
+                                       rows,
+                                       b_d_start,
+                                       ldb);
                 }
                 else if(lda != rows && ldb == rows)
                 {
@@ -793,17 +791,17 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                     }
                     // non-contiguous device matrix -> device buffer
                     hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    rows,
-                                    n_cols_max,
-                                    elem_size,
-                                    a_d_start,
-                                    lda,
-                                    t_d,
-                                    rows);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       rows,
+                                       n_cols_max,
+                                       elem_size,
+                                       a_d_start,
+                                       lda,
+                                       t_d,
+                                       rows);
                     // device buffer -> host buffer
                     PRINT_IF_HIP_ERROR(hipMemcpy(t_h, t_d, contig_size, hipMemcpyDeviceToHost));
                     // host buffer -> non-contiguous host matrix
@@ -846,17 +844,17 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                     }
                     // non-contiguous device matrix -> device buffer
                     hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
-                                    dim3(grid),
-                                    dim3(threads),
-                                    0,
-                                    rocblas_stream,
-                                    rows,
-                                    n_cols_max,
-                                    elem_size,
-                                    a_d_start,
-                                    lda,
-                                    t_d,
-                                    rows);
+                                       dim3(grid),
+                                       dim3(threads),
+                                       0,
+                                       rocblas_stream,
+                                       rows,
+                                       n_cols_max,
+                                       elem_size,
+                                       a_d_start,
+                                       lda,
+                                       t_d,
+                                       rows);
                     // device temp buffer -> contiguous host matrix
                     PRINT_IF_HIP_ERROR(
                         hipMemcpy(b_h_start, t_d, contig_size, hipMemcpyDeviceToHost));

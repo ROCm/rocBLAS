@@ -11,8 +11,7 @@
 
 // general cases for any transA, transB, alpha, beta, lda, ldb, ldc
 template <typename T>
-__global__ void geam_kernel_host_pointer(
-                                         rocblas_operation transA,
+__global__ void geam_kernel_host_pointer(rocblas_operation transA,
                                          rocblas_operation transB,
                                          rocblas_int m,
                                          rocblas_int n,
@@ -29,8 +28,7 @@ __global__ void geam_kernel_host_pointer(
 }
 
 template <typename T>
-__global__ void geam_kernel_device_pointer(
-                                           rocblas_operation transA,
+__global__ void geam_kernel_device_pointer(rocblas_operation transA,
                                            rocblas_operation transB,
                                            rocblas_int m,
                                            rocblas_int n,
@@ -50,8 +48,7 @@ __global__ void geam_kernel_device_pointer(
 // are contiguous, there are no transposes, and therefore matrices
 // can be treated as contiguous vectors
 template <typename T>
-__global__ void geam_1D_kernel_host_pointer(
-                                            rocblas_int size,
+__global__ void geam_1D_kernel_host_pointer(rocblas_int size,
                                             const T alpha,
                                             const T* __restrict__ A,
                                             const T beta,
@@ -62,8 +59,7 @@ __global__ void geam_1D_kernel_host_pointer(
 }
 
 template <typename T>
-__global__ void geam_1D_kernel_device_pointer(
-                                              rocblas_int size,
+__global__ void geam_1D_kernel_device_pointer(rocblas_int size,
                                               const T* alpha,
                                               const T* __restrict__ A,
                                               const T* beta,
@@ -78,15 +74,17 @@ __global__ void geam_1D_kernel_device_pointer(
 // can be treated as contiguous vectors.
 // Also, alpha == 0  ||  beta == 0  so only one matrix contributes
 template <typename T>
-__global__ void geam_1D_2matrix_kernel_host_pointer(
-    rocblas_int size, const T alpha, const T* __restrict__ A, T* C)
+__global__ void
+geam_1D_2matrix_kernel_host_pointer(rocblas_int size, const T alpha, const T* __restrict__ A, T* C)
 {
     geam_1D_2matrix_device<T>(size, alpha, A, C);
 }
 
 template <typename T>
-__global__ void geam_1D_2matrix_kernel_device_pointer(
-    rocblas_int size, const T* alpha, const T* __restrict__ A, T* C)
+__global__ void geam_1D_2matrix_kernel_device_pointer(rocblas_int size,
+                                                      const T* alpha,
+                                                      const T* __restrict__ A,
+                                                      T* C)
 {
     geam_1D_2matrix_device<T>(size, *alpha, A, C);
 }
@@ -94,8 +92,7 @@ __global__ void geam_1D_2matrix_kernel_device_pointer(
 // special cases where: alpha == 0 || beta == 0 so only one
 // matrix contributes
 template <typename T>
-__global__ void geam_2matrix_kernel_host_pointer(
-                                                 rocblas_operation transA,
+__global__ void geam_2matrix_kernel_host_pointer(rocblas_operation transA,
                                                  rocblas_int m,
                                                  rocblas_int n,
                                                  const T alpha,
@@ -108,8 +105,7 @@ __global__ void geam_2matrix_kernel_host_pointer(
 }
 
 template <typename T>
-__global__ void geam_2matrix_kernel_device_pointer(
-                                                   rocblas_operation transA,
+__global__ void geam_2matrix_kernel_device_pointer(rocblas_operation transA,
                                                    rocblas_int m,
                                                    rocblas_int n,
                                                    const T* alpha,
@@ -124,8 +120,7 @@ __global__ void geam_2matrix_kernel_device_pointer(
 // special cases where: A == C && lda == ldc && transA == none
 // this is in place case C <- alpha*C + beta*B
 template <typename T>
-__global__ void geam_inplace_kernel_host_pointer(
-                                                 rocblas_operation transB,
+__global__ void geam_inplace_kernel_host_pointer(rocblas_operation transB,
                                                  rocblas_int m,
                                                  rocblas_int n,
                                                  const T alpha,
@@ -139,8 +134,7 @@ __global__ void geam_inplace_kernel_host_pointer(
 }
 
 template <typename T>
-__global__ void geam_inplace_kernel_device_pointer(
-                                                   rocblas_operation transB,
+__global__ void geam_inplace_kernel_device_pointer(rocblas_operation transB,
                                                    rocblas_int m,
                                                    rocblas_int n,
                                                    const T* alpha,
@@ -354,36 +348,36 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
             hipLaunchKernelGGL(geam_inplace_kernel_host_pointer<T>,
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transB,
-                            m,
-                            n,
-                            h_alpha_scalar,
-                            h_beta_scalar,
-                            B,
-                            ldb,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transB,
+                               m,
+                               n,
+                               h_alpha_scalar,
+                               h_beta_scalar,
+                               B,
+                               ldb,
+                               C,
+                               ldc);
         }
         else
         {
             hipLaunchKernelGGL(geam_inplace_kernel_device_pointer<T>,
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transB,
-                            m,
-                            n,
-                            alpha,
-                            beta,
-                            B,
-                            ldb,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transB,
+                               m,
+                               n,
+                               alpha,
+                               beta,
+                               B,
+                               ldb,
+                               C,
+                               ldc);
         }
 #undef GEAM_DIM_X
 #undef GEAM_DIM_Y
@@ -405,36 +399,36 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
             hipLaunchKernelGGL(geam_inplace_kernel_host_pointer<T>,
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            m,
-                            n,
-                            h_beta_scalar,
-                            h_alpha_scalar,
-                            A,
-                            lda,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               m,
+                               n,
+                               h_beta_scalar,
+                               h_alpha_scalar,
+                               A,
+                               lda,
+                               C,
+                               ldc);
         }
         else
         {
             hipLaunchKernelGGL(geam_inplace_kernel_device_pointer<T>,
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            m,
-                            n,
-                            beta,
-                            alpha,
-                            A,
-                            lda,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               m,
+                               n,
+                               beta,
+                               alpha,
+                               A,
+                               lda,
+                               C,
+                               ldc);
         }
 #undef GEAM_DIM_X
 #undef GEAM_DIM_Y
@@ -459,14 +453,14 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha; // unit-test-covered
             T h_beta_scalar  = *beta;
             hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer<T>,
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            size,
-                            h_alpha_scalar,
-                            A,
-                            C);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               size,
+                               h_alpha_scalar,
+                               A,
+                               C);
 
 #undef GEAM_DIM
         }
@@ -485,18 +479,18 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
 
             T h_alpha_scalar = *alpha;
             hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            m,
-                            n,
-                            h_alpha_scalar,
-                            A,
-                            lda,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               m,
+                               n,
+                               h_alpha_scalar,
+                               A,
+                               lda,
+                               C,
+                               ldc);
 
 #undef GEAM_DIM_X
 #undef GEAM_DIM_Y
@@ -521,14 +515,14 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
 
             T h_beta_scalar = *beta;
             hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            size,
-                            h_beta_scalar,
-                            B,
-                            C);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               size,
+                               h_beta_scalar,
+                               B,
+                               C);
 
 #undef GEAM_DIM
         }
@@ -547,18 +541,18 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
 
             T h_beta_scalar = *beta;
             hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transB,
-                            m,
-                            n,
-                            h_beta_scalar,
-                            B,
-                            ldb,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transB,
+                               m,
+                               n,
+                               h_beta_scalar,
+                               B,
+                               ldb,
+                               C,
+                               ldc);
 
 #undef GEAM_DIM_X
 #undef GEAM_DIM_Y
@@ -584,30 +578,30 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
             hipLaunchKernelGGL(geam_1D_kernel_host_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            size,
-                            h_alpha_scalar,
-                            A,
-                            h_beta_scalar,
-                            B,
-                            C);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               size,
+                               h_alpha_scalar,
+                               A,
+                               h_beta_scalar,
+                               B,
+                               C);
         }
         else
         {
             hipLaunchKernelGGL(geam_1D_kernel_device_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            size,
-                            alpha,
-                            A,
-                            beta,
-                            B,
-                            C);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               size,
+                               alpha,
+                               A,
+                               beta,
+                               B,
+                               C);
         }
 #undef GEAM_DIM
     }
@@ -628,42 +622,42 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
             hipLaunchKernelGGL(geam_kernel_host_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            transB,
-                            m,
-                            n,
-                            h_alpha_scalar,
-                            A,
-                            lda,
-                            h_beta_scalar,
-                            B,
-                            ldb,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               transB,
+                               m,
+                               n,
+                               h_alpha_scalar,
+                               A,
+                               lda,
+                               h_beta_scalar,
+                               B,
+                               ldb,
+                               C,
+                               ldc);
         }
         else
         {
             hipLaunchKernelGGL(geam_kernel_device_pointer<T>, // unit-test-covered
-                            dim3(geam_grid),
-                            dim3(geam_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            transB,
-                            m,
-                            n,
-                            alpha,
-                            A,
-                            lda,
-                            beta,
-                            B,
-                            ldb,
-                            C,
-                            ldc);
+                               dim3(geam_grid),
+                               dim3(geam_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               transB,
+                               m,
+                               n,
+                               alpha,
+                               A,
+                               lda,
+                               beta,
+                               B,
+                               ldb,
+                               C,
+                               ldc);
         }
 #undef GEAM_DIM_X
 #undef GEAM_DIM_Y

@@ -14,11 +14,7 @@
 
 template <typename T1, typename T2, rocblas_int NB>
 __global__ void iamax_kernel_part1(
-                                   rocblas_int n,
-                                   const T1* x,
-                                   rocblas_int incx,
-                                   T2* workspace,
-                                   rocblas_int* workspace_index)
+    rocblas_int n, const T1* x, rocblas_int incx, T2* workspace, rocblas_int* workspace_index)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -50,11 +46,8 @@ __global__ void iamax_kernel_part1(
 }
 
 template <typename T, rocblas_int NB, rocblas_int flag>
-__global__ void iamax_kernel_part2(
-                                   rocblas_int n,
-                                   T* workspace,
-                                   rocblas_int* workspace_index,
-                                   rocblas_int* result)
+__global__ void
+iamax_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, rocblas_int* result)
 {
     rocblas_int tx = hipThreadIdx_x;
 
@@ -132,28 +125,28 @@ rocblas_status rocblas_iamax_template_workspace(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernelGGL((iamax_kernel_part1<T1, T2, NB_X>),
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    n,
-                    x,
-                    incx,
-                    workspace,
-                    workspace_index);
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       n,
+                       x,
+                       incx,
+                       workspace,
+                       workspace_index);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         // the last argument 1 indicate the result is a device pointer, not memcpy is required
         hipLaunchKernelGGL((iamax_kernel_part2<T2, NB_X, 1>),
-                        dim3(1, 1, 1),
-                        dim3(threads),
-                        0,
-                        rocblas_stream,
-                        blocks,
-                        workspace,
-                        workspace_index,
-                        result);
+                           dim3(1, 1, 1),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           blocks,
+                           workspace,
+                           workspace_index,
+                           result);
     }
     else
     {
@@ -165,14 +158,14 @@ rocblas_status rocblas_iamax_template_workspace(rocblas_handle handle,
         if(blocks > 1)
         {
             hipLaunchKernelGGL((iamax_kernel_part2<T2, NB_X, 0>),
-                            dim3(1, 1, 1),
-                            dim3(threads),
-                            0,
-                            rocblas_stream,
-                            blocks,
-                            workspace,
-                            workspace_index,
-                            result);
+                               dim3(1, 1, 1),
+                               dim3(threads),
+                               0,
+                               rocblas_stream,
+                               blocks,
+                               workspace,
+                               workspace_index,
+                               result);
         }
         RETURN_IF_HIP_ERROR(
             hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));

@@ -12,8 +12,7 @@
 #define NB_X 256
 
 template <typename T>
-__global__ void
-scal_kernel_host_scalar(rocblas_int n, const T alpha, T* x, rocblas_int incx)
+__global__ void scal_kernel_host_scalar(rocblas_int n, const T alpha, T* x, rocblas_int incx)
 {
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -24,8 +23,7 @@ scal_kernel_host_scalar(rocblas_int n, const T alpha, T* x, rocblas_int incx)
 }
 
 template <typename T>
-__global__ void
-scal_kernel_device_scalar(rocblas_int n, const T* alpha, T* x, rocblas_int incx)
+__global__ void scal_kernel_device_scalar(rocblas_int n, const T* alpha, T* x, rocblas_int incx)
 {
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -94,27 +92,27 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernelGGL(scal_kernel_device_scalar,
-                        dim3(blocks),
-                        dim3(threads),
-                        0,
-                        rocblas_stream,
-                        n,
-                        alpha,
-                        x,
-                        incx);
+                           dim3(blocks),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           n,
+                           alpha,
+                           x,
+                           incx);
     }
     else // alpha is on host
     {
         T scalar = *alpha;
         hipLaunchKernelGGL(scal_kernel_host_scalar,
-                        dim3(blocks),
-                        dim3(threads),
-                        0,
-                        rocblas_stream,
-                        n,
-                        scalar,
-                        x,
-                        incx);
+                           dim3(blocks),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           n,
+                           scalar,
+                           x,
+                           incx);
     }
 
     return rocblas_status_success;

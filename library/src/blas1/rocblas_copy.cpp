@@ -11,8 +11,7 @@
 #define NB_X 256
 
 template <typename T>
-__global__ void
-copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
+__global__ void copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -98,16 +97,8 @@ rocblas_status rocblas_copy_template(
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernelGGL(copy_kernel,
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    n,
-                    x,
-                    incx,
-                    y,
-                    incy);
+    hipLaunchKernelGGL(
+        copy_kernel, dim3(grid), dim3(threads), 0, rocblas_stream, n, x, incx, y, incy);
 
     return rocblas_status_success;
 }
