@@ -11,8 +11,7 @@
 #include "handle.h"
 
 template <typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
-__global__ void gemvn_kernel_host_pointer(hipLaunchParm lp,
-                                          rocblas_int m,
+__global__ void gemvn_kernel_host_pointer(rocblas_int m,
                                           rocblas_int n,
                                           const T alpha,
                                           const T* __restrict__ A,
@@ -27,8 +26,7 @@ __global__ void gemvn_kernel_host_pointer(hipLaunchParm lp,
 }
 
 template <typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
-__global__ void gemvn_kernel_device_pointer(hipLaunchParm lp,
-                                            rocblas_int m,
+__global__ void gemvn_kernel_device_pointer(rocblas_int m,
                                             rocblas_int n,
                                             const T* alpha,
                                             const T* __restrict__ A,
@@ -43,8 +41,7 @@ __global__ void gemvn_kernel_device_pointer(hipLaunchParm lp,
 }
 
 template <typename T, const rocblas_int NB_X>
-__global__ void gemvc_kernel_host_pointer(hipLaunchParm lp,
-                                          rocblas_operation transA,
+__global__ void gemvc_kernel_host_pointer(rocblas_operation transA,
                                           rocblas_int m,
                                           rocblas_int n,
                                           const T alpha,
@@ -60,8 +57,7 @@ __global__ void gemvc_kernel_host_pointer(hipLaunchParm lp,
 }
 
 template <typename T, const rocblas_int NB_X>
-__global__ void gemvc_kernel_device_pointer(hipLaunchParm lp,
-                                            rocblas_operation transA,
+__global__ void gemvc_kernel_device_pointer(rocblas_operation transA,
                                             rocblas_int m,
                                             rocblas_int n,
                                             const T* alpha,
@@ -211,22 +207,21 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernel(
-                HIP_KERNEL_NAME(gemvn_kernel_device_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>),
-                dim3(gemvn_grid),
-                dim3(gemvn_threads),
-                0,
-                rocblas_stream,
-                m,
-                n,
-                alpha,
-                A,
-                lda,
-                x,
-                incx,
-                beta,
-                y,
-                incy);
+            hipLaunchKernelGGL((gemvn_kernel_device_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>),
+                               dim3(gemvn_grid),
+                               dim3(gemvn_threads),
+                               0,
+                               rocblas_stream,
+                               m,
+                               n,
+                               alpha,
+                               A,
+                               lda,
+                               x,
+                               incx,
+                               beta,
+                               y,
+                               incy);
         }
         else
         {
@@ -238,21 +233,21 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
 
-            hipLaunchKernel(HIP_KERNEL_NAME(gemvn_kernel_host_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>),
-                            dim3(gemvn_grid),
-                            dim3(gemvn_threads),
-                            0,
-                            rocblas_stream,
-                            m,
-                            n,
-                            h_alpha_scalar,
-                            A,
-                            lda,
-                            x,
-                            incx,
-                            h_beta_scalar,
-                            y,
-                            incy);
+            hipLaunchKernelGGL((gemvn_kernel_host_pointer<T, GEMVN_DIM_X, GEMVN_DIM_Y>),
+                               dim3(gemvn_grid),
+                               dim3(gemvn_threads),
+                               0,
+                               rocblas_stream,
+                               m,
+                               n,
+                               h_alpha_scalar,
+                               A,
+                               lda,
+                               x,
+                               incx,
+                               h_beta_scalar,
+                               y,
+                               incy);
         }
 #undef GEMVN_DIM_X
 #undef GEMVN_DIM_Y
@@ -266,22 +261,22 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernel(HIP_KERNEL_NAME(gemvc_kernel_device_pointer<T, 256>),
-                            dim3(gemvc_grid),
-                            dim3(gemvc_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            m,
-                            n,
-                            alpha,
-                            A,
-                            lda,
-                            x,
-                            incx,
-                            beta,
-                            y,
-                            incy);
+            hipLaunchKernelGGL((gemvc_kernel_device_pointer<T, 256>),
+                               dim3(gemvc_grid),
+                               dim3(gemvc_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               m,
+                               n,
+                               alpha,
+                               A,
+                               lda,
+                               x,
+                               incx,
+                               beta,
+                               y,
+                               incy);
         }
         else
         {
@@ -293,22 +288,22 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
             T h_alpha_scalar = *alpha;
             T h_beta_scalar  = *beta;
 
-            hipLaunchKernel(HIP_KERNEL_NAME(gemvc_kernel_host_pointer<T, 256>),
-                            dim3(gemvc_grid),
-                            dim3(gemvc_threads),
-                            0,
-                            rocblas_stream,
-                            transA,
-                            m,
-                            n,
-                            h_alpha_scalar,
-                            A,
-                            lda,
-                            x,
-                            incx,
-                            h_beta_scalar,
-                            y,
-                            incy);
+            hipLaunchKernelGGL((gemvc_kernel_host_pointer<T, 256>),
+                               dim3(gemvc_grid),
+                               dim3(gemvc_threads),
+                               0,
+                               rocblas_stream,
+                               transA,
+                               m,
+                               n,
+                               h_alpha_scalar,
+                               A,
+                               lda,
+                               x,
+                               incx,
+                               h_beta_scalar,
+                               y,
+                               incy);
         }
     }
     return rocblas_status_success;

@@ -13,12 +13,8 @@
 #include "handle.h"
 
 template <typename T1, typename T2, rocblas_int NB>
-__global__ void iamin_kernel_part1(hipLaunchParm lp,
-                                   rocblas_int n,
-                                   const T1* x,
-                                   rocblas_int incx,
-                                   T2* workspace,
-                                   rocblas_int* workspace_index)
+__global__ void iamin_kernel_part1(
+    rocblas_int n, const T1* x, rocblas_int incx, T2* workspace, rocblas_int* workspace_index)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -50,11 +46,8 @@ __global__ void iamin_kernel_part1(hipLaunchParm lp,
 }
 
 template <typename T, rocblas_int NB, rocblas_int flag>
-__global__ void iamin_kernel_part2(hipLaunchParm lp,
-                                   rocblas_int n,
-                                   T* workspace,
-                                   rocblas_int* workspace_index,
-                                   rocblas_int* result)
+__global__ void
+iamin_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, rocblas_int* result)
 {
     rocblas_int tx = hipThreadIdx_x;
 
@@ -131,29 +124,29 @@ rocblas_status rocblas_iamin_template_workspace(rocblas_handle handle,
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part1<T1, T2, NB_X>),
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    n,
-                    x,
-                    incx,
-                    workspace,
-                    workspace_index);
+    hipLaunchKernelGGL((iamin_kernel_part1<T1, T2, NB_X>),
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       n,
+                       x,
+                       incx,
+                       workspace,
+                       workspace_index);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         // the last argument 1 indicate the result is a device pointer, not memcpy is required
-        hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part2<T2, NB_X, 1>),
-                        dim3(1, 1, 1),
-                        dim3(threads),
-                        0,
-                        rocblas_stream,
-                        blocks,
-                        workspace,
-                        workspace_index,
-                        result);
+        hipLaunchKernelGGL((iamin_kernel_part2<T2, NB_X, 1>),
+                           dim3(1, 1, 1),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           blocks,
+                           workspace,
+                           workspace_index,
+                           result);
     }
     else
     {
@@ -163,15 +156,15 @@ rocblas_status rocblas_iamin_template_workspace(rocblas_handle handle,
         // printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
         if(blocks > 1)
-            hipLaunchKernel(HIP_KERNEL_NAME(iamin_kernel_part2<T2, NB_X, 0>),
-                            dim3(1, 1, 1),
-                            dim3(threads),
-                            0,
-                            rocblas_stream,
-                            blocks,
-                            workspace,
-                            workspace_index,
-                            result);
+            hipLaunchKernelGGL((iamin_kernel_part2<T2, NB_X, 0>),
+                               dim3(1, 1, 1),
+                               dim3(threads),
+                               0,
+                               rocblas_stream,
+                               blocks,
+                               workspace,
+                               workspace_index,
+                               result);
         RETURN_IF_HIP_ERROR(
             hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
     }

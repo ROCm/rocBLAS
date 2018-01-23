@@ -18,8 +18,7 @@
 */
 
 template <typename T, rocblas_int NB>
-__global__ void trtri_small_kernel(hipLaunchParm lp,
-                                   rocblas_fill uplo,
+__global__ void trtri_small_kernel(rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
                                    T* A,
@@ -53,18 +52,18 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_small_kernel<T, IB>),
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    uplo,
-                    diag,
-                    n,
-                    A,
-                    lda,
-                    invA,
-                    ldinvA);
+    hipLaunchKernelGGL((trtri_small_kernel<T, IB>),
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       uplo,
+                       diag,
+                       n,
+                       A,
+                       lda,
+                       invA,
+                       ldinvA);
 
     return rocblas_status_success;
 }
@@ -77,8 +76,7 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
 */
 
 template <typename T, rocblas_int IB>
-__global__ void trtri_diagonal_kernel(hipLaunchParm lp,
-                                      rocblas_fill uplo,
+__global__ void trtri_diagonal_kernel(rocblas_fill uplo,
                                       rocblas_diagonal diag,
                                       rocblas_int n,
                                       T* A,
@@ -124,8 +122,7 @@ __global__ void trtri_diagonal_kernel(hipLaunchParm lp,
 */
 
 template <typename T, rocblas_int IB>
-__global__ void gemm_trsm_kernel(hipLaunchParm lp,
-                                 rocblas_int m,
+__global__ void gemm_trsm_kernel(rocblas_int m,
                                  rocblas_int n,
                                  T* A,
                                  rocblas_int lda,
@@ -254,18 +251,18 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
 
     // first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in
     // invA
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_diagonal_kernel<T, IB>),
-                    dim3(grid_trtri),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    uplo,
-                    diag,
-                    n,
-                    A,
-                    lda,
-                    invA,
-                    ldinvA);
+    hipLaunchKernelGGL((trtri_diagonal_kernel<T, IB>),
+                       dim3(grid_trtri),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       uplo,
+                       diag,
+                       n,
+                       A,
+                       lda,
+                       invA,
+                       ldinvA);
 
     if(n <= IB)
     {
@@ -304,21 +301,21 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
         D_gemm = invA + IB * ldinvA;      // invA12
     }
 
-    hipLaunchKernel(HIP_KERNEL_NAME(gemm_trsm_kernel<T, IB>),
-                    dim3(grid_gemm),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    m_gemm,
-                    n_gemm,
-                    A_gemm,
-                    ldinvA,
-                    B_gemm,
-                    lda,
-                    C_gemm,
-                    ldinvA,
-                    D_gemm,
-                    ldinvA);
+    hipLaunchKernelGGL((gemm_trsm_kernel<T, IB>),
+                       dim3(grid_gemm),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       m_gemm,
+                       n_gemm,
+                       A_gemm,
+                       ldinvA,
+                       B_gemm,
+                       lda,
+                       C_gemm,
+                       ldinvA,
+                       D_gemm,
+                       ldinvA);
 
     return rocblas_status_success;
 }

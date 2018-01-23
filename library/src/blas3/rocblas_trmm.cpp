@@ -65,8 +65,7 @@
 //__threadfence_block(); \ does not compile
 
 template <typename T, rocblas_int NB>
-__global__ void trmm_left_lower_nontrans_MX096_NX096_KX16(hipLaunchParm lp,
-                                                          rocblas_fill uplo,
+__global__ void trmm_left_lower_nontrans_MX096_NX096_KX16(rocblas_fill uplo,
                                                           rocblas_operation transA,
                                                           rocblas_diagonal diag,
                                                           rocblas_int M,
@@ -357,21 +356,21 @@ rocblas_status rocblas_trmm_template(rocblas_handle handle,
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
     T alpha_scalar = *alpha;
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trmm_Col_NN_B1_MX096_NX096_KX16<T, NB_X>),
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    M,
-                    N,
-                    K,
-                    alpha_scalar,
-                    A,
-                    lda,
-                    B,
-                    ldb,
-                    C,
-                    ldc);
+    hipLaunchKernelGGL((trmm_Col_NN_B1_MX096_NX096_KX16<T, NB_X>),
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       M,
+                       N,
+                       K,
+                       alpha_scalar,
+                       A,
+                       lda,
+                       B,
+                       ldb,
+                       C,
+                       ldc);
 
     return rocblas_status_success;
 }
