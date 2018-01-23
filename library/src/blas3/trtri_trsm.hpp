@@ -27,7 +27,7 @@
 
 */
 template <typename T, rocblas_int NB>
-__global__ void trtri_trsm_kernel(hipLaunchParm lp,
+__global__ void trtri_trsm_kernel(
                                   rocblas_fill uplo,
                                   rocblas_diagonal diag,
                                   rocblas_int n,
@@ -177,7 +177,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
 
         // invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
 
-        hipLaunchKernel(HIP_KERNEL_NAME(trtri_trsm_kernel<T, NB>),
+        hipLaunchKernelGGL((trtri_trsm_kernel<T, NB>),
                         dim3(grid),
                         dim3(threads),
                         0,

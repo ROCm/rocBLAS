@@ -14,7 +14,7 @@
 
 // flag indicate whether write into A or invA
 template <typename T, rocblas_int NB, rocblas_int flag>
-__global__ void trtri_kernel_batched(hipLaunchParm lp,
+__global__ void trtri_kernel_batched(
                                      rocblas_fill uplo,
                                      rocblas_diagonal diag,
                                      rocblas_int n,
@@ -144,7 +144,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernel(HIP_KERNEL_NAME(trtri_kernel_batched<T, NB_X, 1>),
+    hipLaunchKernelGGL((trtri_kernel_batched<T, NB_X, 1>),
                     dim3(grid),
                     dim3(threads),
                     0,

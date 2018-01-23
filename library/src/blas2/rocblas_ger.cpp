@@ -10,7 +10,7 @@
 #include "handle.h"
 
 template <typename T>
-__global__ void ger_kernel_host_pointer(hipLaunchParm lp,
+__global__ void ger_kernel_host_pointer(
                                         rocblas_int m,
                                         rocblas_int n,
                                         const T alpha,
@@ -25,7 +25,7 @@ __global__ void ger_kernel_host_pointer(hipLaunchParm lp,
 }
 
 template <typename T>
-__global__ void ger_kernel_device_pointer(hipLaunchParm lp,
+__global__ void ger_kernel_device_pointer(
                                           rocblas_int m,
                                           rocblas_int n,
                                           const T* alpha,
@@ -166,7 +166,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_device_pointer<T>),
+        hipLaunchKernelGGL((ger_kernel_device_pointer<T>),
                         dim3(ger_grid),
                         dim3(ger_threads),
                         0,
@@ -184,7 +184,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
     else
     {
         T h_alpha_scalar = *alpha;
-        hipLaunchKernel(HIP_KERNEL_NAME(ger_kernel_host_pointer<T>),
+        hipLaunchKernelGGL((ger_kernel_host_pointer<T>),
                         dim3(ger_grid),
                         dim3(ger_threads),
                         0,

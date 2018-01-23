@@ -9,7 +9,7 @@
 #define NB_X 256
 
 template <typename T>
-__global__ void axpy_kernel_host_scalar(hipLaunchParm lp,
+__global__ void axpy_kernel_host_scalar(
                                         rocblas_int n,
                                         const T alpha,
                                         const T* x,
@@ -50,7 +50,7 @@ __global__ void axpy_kernel_host_scalar(hipLaunchParm lp,
 }
 
 template <typename T>
-__global__ void axpy_kernel_device_scalar(hipLaunchParm lp,
+__global__ void axpy_kernel_device_scalar(
                                           rocblas_int n,
                                           const T* alpha,
                                           const T* x,
@@ -285,7 +285,7 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_device_scalar),
+        hipLaunchKernelGGL(axpy_kernel_device_scalar,
                         dim3(blocks),
                         dim3(threads),
                         0,
@@ -305,7 +305,7 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
             return rocblas_status_success;
         }
 
-        hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_host_scalar),
+        hipLaunchKernelGGL(axpy_kernel_host_scalar,
                         dim3(blocks),
                         dim3(threads),
                         0,
@@ -364,7 +364,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
-            hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_device_scalar),
+            hipLaunchKernelGGL(axpy_kernel_device_scalar,
                             dim3(blocks),
                             dim3(threads),
                             0,
@@ -384,7 +384,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
             }
 
             const __fp16 f16_alpha = *reinterpret_cast<const __fp16*>(alpha);
-            hipLaunchKernel(HIP_KERNEL_NAME(axpy_kernel_host_scalar),
+            hipLaunchKernelGGL(axpy_kernel_host_scalar,
                             dim3(blocks),
                             dim3(threads),
                             0,

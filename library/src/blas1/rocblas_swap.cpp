@@ -12,7 +12,7 @@
 
 template <typename T>
 __global__ void
-swap_kernel(hipLaunchParm lp, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
+swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -107,7 +107,7 @@ rocblas_status rocblas_swap_template(
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernel(HIP_KERNEL_NAME(swap_kernel),
+    hipLaunchKernelGGL(swap_kernel,
                     dim3(grid),
                     dim3(threads),
                     0,

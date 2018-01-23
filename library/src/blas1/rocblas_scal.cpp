@@ -13,7 +13,7 @@
 
 template <typename T>
 __global__ void
-scal_kernel_host_scalar(hipLaunchParm lp, rocblas_int n, const T alpha, T* x, rocblas_int incx)
+scal_kernel_host_scalar(rocblas_int n, const T alpha, T* x, rocblas_int incx)
 {
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -25,7 +25,7 @@ scal_kernel_host_scalar(hipLaunchParm lp, rocblas_int n, const T alpha, T* x, ro
 
 template <typename T>
 __global__ void
-scal_kernel_device_scalar(hipLaunchParm lp, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
+scal_kernel_device_scalar(rocblas_int n, const T* alpha, T* x, rocblas_int incx)
 {
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -93,7 +93,7 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_device_scalar),
+        hipLaunchKernelGGL(scal_kernel_device_scalar,
                         dim3(blocks),
                         dim3(threads),
                         0,
@@ -106,7 +106,7 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
     else // alpha is on host
     {
         T scalar = *alpha;
-        hipLaunchKernel(HIP_KERNEL_NAME(scal_kernel_host_scalar),
+        hipLaunchKernelGGL(scal_kernel_host_scalar,
                         dim3(blocks),
                         dim3(threads),
                         0,
