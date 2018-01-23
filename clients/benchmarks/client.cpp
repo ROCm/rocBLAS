@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <iostream>
@@ -46,54 +45,83 @@ int main(int argc, char* argv[])
     vector<rocblas_int> range = {-1, -1, -1};
 
     po::options_description desc("rocblas client command line options");
-    desc.add_options()("help,h", "produces this help message")(
-        "range",
-        po::value<vector<rocblas_int>>(&range)->multitoken(),
-        "Range matrix size testing: BLAS-3 benchmarking only. Accept three positive integers. "
-        "Usage: "
-        "--range start end step"
-        ". e.g "
-        "--range 100 1000 200"
-        ". Diabled if not specified. If enabled, user specified m,n,k will be nullified")(
-        "sizem,m",
-        po::value<rocblas_int>(&argus.M)->default_value(128),
-        "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
-        "rows.")("sizen,n",
-                 po::value<rocblas_int>(&argus.N)->default_value(128),
-                 "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & "
-                 "BLAS-3: the number of columns")(
-        "sizek,k",
-        po::value<rocblas_int>(&argus.K)->default_value(128),
-        "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in "
-        "A & C  and rows in B.")("lda",
-                                 po::value<rocblas_int>(&argus.lda)->default_value(128),
-                                 "Specific leading dimension of matrix A, is only applicable to "
-                                 "BLAS-2 & BLAS-3: the number of rows.")(
-        "ldb",
-        po::value<rocblas_int>(&argus.ldb)->default_value(128),
-        "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number "
-        "of rows.")("ldc",
-                    po::value<rocblas_int>(&argus.ldc)->default_value(128),
-                    "Specific leading dimension of matrix C, is only applicable to BLAS-2 & "
-                    "BLAS-3: the number of rows.")(
-        "alpha", po::value<double>(&argus.alpha)->default_value(1.0), "specifies the scalar alpha")(
-        "beta", po::value<double>(&argus.beta)->default_value(0.0), "specifies the scalar beta")(
-        "function,f",
-        po::value<std::string>(&function)->default_value("gemv"),
-        "BLAS function to test. Options: gemv, ger, trsm, trmm, symv, syrk, syr2k")(
-        "precision,r", po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")(
-        "transposeA",
-        po::value<char>(&argus.transA_option)->default_value('N'),
-        "N = no transpose, T = transpose, C = conjugate transpose")(
-        "transposeB",
-        po::value<char>(&argus.transB_option)->default_value('N'),
-        "N = no transpose, T = transpose, C = conjugate transpose")(
-        "side",
-        po::value<char>(&argus.side_option)->default_value('L'),
-        "L = left, R = right. Only applicable to certain routines")(
-        "uplo",
-        po::value<char>(&argus.uplo_option)->default_value('U'),
-        "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
+    desc.add_options()("help,h", "produces this help message")
+        // clang-format off
+        ("range",
+         po::value<vector<rocblas_int>>(&range)->multitoken(),
+         "Range matrix size testing: BLAS-3 benchmarking only. Accept three positive integers. "
+         "Usage: "
+         "--range start end step"
+         ". e.g "
+         "--range 100 1000 200"
+         ". Diabled if not specified. If enabled, user specified m,n,k will be nullified")
+        
+        ("sizem,m",
+         po::value<rocblas_int>(&argus.M)->default_value(128),
+         "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
+         "rows.")
+        
+        ("sizen,n",
+         po::value<rocblas_int>(&argus.N)->default_value(128),
+         "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & "
+         "BLAS-3: the number of columns")
+
+        ("sizek,k",
+         po::value<rocblas_int>(&argus.K)->default_value(128),
+         "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in "
+         "A & C  and rows in B.")
+
+        ("lda",
+         po::value<rocblas_int>(&argus.lda)->default_value(128),
+         "Specific leading dimension of matrix A, is only applicable to "
+         "BLAS-2 & BLAS-3: the number of rows.")
+
+        ("ldb",
+         po::value<rocblas_int>(&argus.ldb)->default_value(128),
+         "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number "
+         "of rows.")
+
+        ("ldc",
+         po::value<rocblas_int>(&argus.ldc)->default_value(128),
+         "Specific leading dimension of matrix C, is only applicable to BLAS-2 & "
+         "BLAS-3: the number of rows.")
+
+        ("incx",
+         po::value<rocblas_int>(&argus.incx)->default_value(1),
+         "increment between values in x vector")
+
+        ("incy",
+         po::value<rocblas_int>(&argus.incy)->default_value(1),
+         "increment between values in y vector")
+
+        ("alpha", 
+          po::value<double>(&argus.alpha)->default_value(1.0), "specifies the scalar alpha")
+        
+        ("beta",
+         po::value<double>(&argus.beta)->default_value(0.0), "specifies the scalar beta")
+              
+        ("function,f",
+         po::value<std::string>(&function)->default_value("gemv"),
+         "BLAS function to test. Options: gemv, ger, trsm, trmm, symv, syrk, syr2k")
+        
+        ("precision,r", 
+         po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
+        
+        ("transposeA",
+         po::value<char>(&argus.transA_option)->default_value('N'),
+         "N = no transpose, T = transpose, C = conjugate transpose")
+        
+        ("transposeB",
+         po::value<char>(&argus.transB_option)->default_value('N'),
+         "N = no transpose, T = transpose, C = conjugate transpose")
+        
+        ("side",
+         po::value<char>(&argus.side_option)->default_value('L'),
+         "L = left, R = right. Only applicable to certain routines")
+        
+        ("uplo",
+         po::value<char>(&argus.uplo_option)->default_value('U'),
+         "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
                                                                      // xtrmm
         ("diag",
          po::value<char>(&argus.diag_option)->default_value('N'),
@@ -102,12 +130,15 @@ int main(int argc, char* argv[])
         ("batch",
          po::value<rocblas_int>(&argus.batch_count)->default_value(10),
          "Number of matrices. Only applicable to batched routines") // xtrsm xtrmm
+
         ("verify,v",
          po::value<rocblas_int>(&argus.norm_check)->default_value(0),
-         "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")(
-            "device",
-            po::value<rocblas_int>(&device_id)->default_value(0),
-            "Set default device to be used for subsequent program runs");
+         "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
+        
+        ("device",
+         po::value<rocblas_int>(&device_id)->default_value(0),
+         "Set default device to be used for subsequent program runs");
+    // clang-format on
 
     po::variables_map vm;
     po::store(po::parse_command_line(argc, argv, desc), vm);
