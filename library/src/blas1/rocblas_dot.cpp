@@ -12,13 +12,8 @@
 #include "handle.h"
 
 template <typename T, rocblas_int NB>
-__global__ void dot_kernel_part1(hipLaunchParm lp,
-                                 rocblas_int n,
-                                 const T* x,
-                                 rocblas_int incx,
-                                 const T* y,
-                                 rocblas_int incy,
-                                 T* workspace)
+__global__ void dot_kernel_part1(
+    rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* workspace)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -77,7 +72,7 @@ __global__ void dot_kernel_part1(hipLaunchParm lp,
 }
 
 template <typename T, rocblas_int NB, rocblas_int flag>
-__global__ void dot_kernel_part2(hipLaunchParm lp, rocblas_int n, T* workspace, T* result)
+__global__ void dot_kernel_part2(rocblas_int n, T* workspace, T* result)
 {
 
     rocblas_int tx = hipThreadIdx_x;
@@ -159,29 +154,29 @@ rocblas_status rocblas_dot_template_workspace(rocblas_handle handle,
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part1<T, NB_X>),
-                    dim3(grid),
-                    dim3(threads),
-                    0,
-                    rocblas_stream,
-                    n,
-                    x,
-                    incx,
-                    y,
-                    incy,
-                    workspace);
+    hipLaunchKernelGGL((dot_kernel_part1<T, NB_X>),
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       n,
+                       x,
+                       incx,
+                       y,
+                       incy,
+                       workspace);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         // the last argument 1 indicate the result is on device, not memcpy is required
-        hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 1>),
-                        dim3(1, 1, 1),
-                        dim3(threads),
-                        0,
-                        rocblas_stream,
-                        blocks,
-                        workspace,
-                        result);
+        hipLaunchKernelGGL((dot_kernel_part2<T, NB_X, 1>),
+                           dim3(1, 1, 1),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           blocks,
+                           workspace,
+                           result);
     }
     else
     {
@@ -191,14 +186,14 @@ rocblas_status rocblas_dot_template_workspace(rocblas_handle handle,
         // printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
         if(blocks > 1)
-            hipLaunchKernel(HIP_KERNEL_NAME(dot_kernel_part2<T, NB_X, 0>),
-                            dim3(1, 1, 1),
-                            dim3(threads),
-                            0,
-                            rocblas_stream,
-                            blocks,
-                            workspace,
-                            result);
+            hipLaunchKernelGGL((dot_kernel_part2<T, NB_X, 0>),
+                               dim3(1, 1, 1),
+                               dim3(threads),
+                               0,
+                               rocblas_stream,
+                               blocks,
+                               workspace,
+                               result);
         RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
     }
 
