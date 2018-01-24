@@ -244,10 +244,58 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
                      ldb,
                      (const void*&)C,
                      ldc);
+
+        std::string transA_letter;
+        if(transA == rocblas_operation_none)
+        {
+            transA_letter = "N";
+        }
+        else if(transA == rocblas_operation_transpose)
+        {
+            transA_letter = "T";
+        }
+        else if(transA == rocblas_operation_conjugate_transpose)
+        {
+            transA_letter = "C";
+        }
+        std::string transB_letter;
+        if(transB == rocblas_operation_none)
+        {
+            transB_letter = "N";
+        }
+        else if(transB == rocblas_operation_transpose)
+        {
+            transB_letter = "T";
+        }
+        else if(transB == rocblas_operation_conjugate_transpose)
+        {
+            transB_letter = "C";
+        }
+
+        log_bench(handle,
+                  "./rocblas-bench -f geam -r",
+                  replaceX<T>("X"),
+                  "--transposeA",
+                  transA_letter,
+                  "--transposeB",
+                  transB_letter,
+                  "-m",
+                  m,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--lda",
+                  lda,
+                  "--beta",
+                  *beta,
+                  "--ldb",
+                  ldb,
+                  "--ldc",
+                  ldc);
     }
     else
     {
-
         log_function(handle,
                      replaceX<T>("rocblas_Xgeam"),
                      transA,
