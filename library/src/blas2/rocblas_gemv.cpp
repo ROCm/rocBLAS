@@ -147,6 +147,40 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                      *beta,
                      (const void*&)y,
                      incy);
+
+        std::string transA_letter;
+        if(transA == rocblas_operation_none)
+        {
+            transA_letter = "N";
+        }
+        else if(transA == rocblas_operation_transpose)
+        {
+            transA_letter = "T";
+        }
+        else if(transA == rocblas_operation_conjugate_transpose)
+        {
+            transA_letter = "C";
+        }
+
+        log_bench(handle,
+                  "./rocblas-bench -f gemv -r",
+                  replaceX<T>("X"),
+                  "--transposeA",
+                  transA_letter,
+                  "-m",
+                  m,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--lda",
+                  lda,
+                  "--incx",
+                  incx,
+                  "--beta",
+                  *beta,
+                  "--incy",
+                  incy);
     }
     else
     {
