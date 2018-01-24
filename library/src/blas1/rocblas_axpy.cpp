@@ -241,6 +241,17 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
                      incx,
                      (const void*&)y,
                      incy);
+        log_bench(handle,
+                  "./rocblas-bench -f axpy -r",
+                  replaceX<T>("X"),
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incx);
     }
     else
     {

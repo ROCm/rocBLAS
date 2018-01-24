@@ -10,10 +10,12 @@
 #include "utility.h"
 #include "rocblas.hpp"
 #include "testing_iamax.hpp"
+#include "testing_iamin.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
+#include "testing_swap.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
 #include "testing_nrm2.hpp"
@@ -210,12 +212,26 @@ int main(int argc, char* argv[])
         else if(precision == 'd')
             testing_dot<double>(argus);
     }
+    else if(function == "swap")
+    {
+        if(precision == 's')
+            testing_swap<float>(argus);
+        else if(precision == 'd')
+            testing_swap<double>(argus);
+    }
     else if(function == "iamax")
     {
         if(precision == 's')
             testing_iamax<float>(argus);
         else if(precision == 'd')
             testing_iamax<double>(argus);
+    }
+    else if(function == "iamin")
+    {
+        if(precision == 's')
+            testing_iamin<float>(argus);
+        else if(precision == 'd')
+            testing_iamin<double>(argus);
     }
     else if(function == "nrm2")
     {

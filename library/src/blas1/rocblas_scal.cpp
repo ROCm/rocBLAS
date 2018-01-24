@@ -67,7 +67,15 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
     {
         log_function(handle, replaceX<T>("rocblas_Xscal"), n, *alpha, (const void*&)x, incx);
 
-        log_bench(handle, "./rocblas_bench -f scal -r", replaceX<T>("X"), "-n", n, "--incx", incx, "--alpha", *alpha);
+        log_bench(handle,
+                  "./rocblas-bench -f scal -r",
+                  replaceX<T>("X"),
+                  "-n",
+                  n,
+                  "--incx",
+                  incx,
+                  "--alpha",
+                  *alpha);
     }
     else
     {

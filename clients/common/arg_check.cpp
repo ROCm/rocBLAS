@@ -187,7 +187,7 @@ void symv_arg_check(
 #endif
 }
 
-void iamax_arg_check(rocblas_status status, rocblas_int* d_rocblas_result)
+void iamax_iamin_arg_check(rocblas_status status, rocblas_int* d_rocblas_result)
 {
     rocblas_int h_rocblas_result;
     if(rocblas_pointer_to_mode(d_rocblas_result) == rocblas_pointer_mode_device)

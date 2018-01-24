@@ -18,7 +18,7 @@
 using namespace std;
 
 template <typename T>
-void testing_iamax_bad_arg()
+void testing_iamin_bad_arg()
 {
     rocblas_int N         = 100;
     rocblas_int incx      = 1;
@@ -44,7 +44,7 @@ void testing_iamax_bad_arg()
     {
         T* dx_null = nullptr;
 
-        status = rocblas_iamax<T>(handle, N, dx_null, incx, &h_rocblas_result);
+        status = rocblas_iamin<T>(handle, N, dx_null, incx, &h_rocblas_result);
 
         verify_rocblas_status_invalid_pointer(status, "Error: x is nullptr");
     }
@@ -52,7 +52,7 @@ void testing_iamax_bad_arg()
     {
         rocblas_int* h_rocblas_result_null = nullptr;
 
-        status = rocblas_iamax<T>(handle, N, dx, incx, h_rocblas_result_null);
+        status = rocblas_iamin<T>(handle, N, dx, incx, h_rocblas_result_null);
 
         verify_rocblas_status_invalid_pointer(status, "Error: result is nullptr");
     }
@@ -60,14 +60,14 @@ void testing_iamax_bad_arg()
     {
         rocblas_handle handle_null = nullptr;
 
-        status = rocblas_iamax<T>(handle_null, N, dx, incx, &h_rocblas_result);
+        status = rocblas_iamin<T>(handle_null, N, dx, incx, &h_rocblas_result);
 
         verify_rocblas_status_invalid_handle(status);
     }
 }
 
 template <typename T>
-rocblas_status testing_iamax(Arguments argus)
+rocblas_status testing_iamin(Arguments argus)
 {
     rocblas_int N         = argus.N;
     rocblas_int incx      = argus.incx;
@@ -100,7 +100,7 @@ rocblas_status testing_iamax(Arguments argus)
             return rocblas_status_memory_error;
         }
 
-        status = rocblas_iamax<T>(handle, N, dx, incx, &h_rocblas_result_1);
+        status = rocblas_iamin<T>(handle, N, dx, incx, &h_rocblas_result_1);
 
         iamax_iamin_arg_check(status, &h_rocblas_result_1);
 
@@ -124,10 +124,16 @@ rocblas_status testing_iamax(Arguments argus)
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     vector<T> hx(size_x);
+    vector<T> hx_negated(size_x);
 
     // Initial Data on CPU
     srand(1);
     rocblas_init<T>(hx, 1, N, incx);
+
+    for (int i = 0; i < N; i++)
+    {
+        hx_negated[i] = hx[i];
+    }
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -138,17 +144,18 @@ rocblas_status testing_iamax(Arguments argus)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_iamax<T>(handle, N, dx, incx, &h_rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(rocblas_iamin<T>(handle, N, dx, incx, &h_rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_iamax<T>(handle, N, dx, incx, d_rocblas_result));
+        CHECK_ROCBLAS_ERROR(rocblas_iamin<T>(handle, N, dx, incx, d_rocblas_result));
         CHECK_HIP_ERROR(hipMemcpy(
             &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_iamax<T>(N, hx.data(), incx, &cpu_result);
+        cblas_iamax<T>(N, hx_negated.data(), incx, &cpu_result);
+
         cpu_time_used = get_time_us() - cpu_time_used;
         cpu_result += 1; // make index 1 based as in Fortran BLAS, not 0 based as in CBLAS
 
@@ -165,8 +172,8 @@ rocblas_status testing_iamax(Arguments argus)
         {
             rocblas_error_1 = h_rocblas_result_1 - cpu_result;
             rocblas_error_2 = h_rocblas_result_2 - cpu_result;
-            verify_equal<rocblas_int>(h_rocblas_result_1, cpu_result, "iamax result check");
-            verify_equal<rocblas_int>(h_rocblas_result_2, cpu_result, "iamax result check");
+            verify_equal<rocblas_int>(h_rocblas_result_1, cpu_result, "iamin result check");
+            verify_equal<rocblas_int>(h_rocblas_result_2, cpu_result, "iamin result check");
         }
     }
 
@@ -179,7 +186,7 @@ rocblas_status testing_iamax(Arguments argus)
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
-            rocblas_iamax<T>(handle, N, dx, incx, d_rocblas_result);
+            rocblas_iamin<T>(handle, N, dx, incx, d_rocblas_result);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;

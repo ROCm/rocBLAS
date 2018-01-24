@@ -153,7 +153,6 @@ struct log_arg_space
     std::ofstream& ofs;
 };
 
-
 // if logging is turned on with
 // (handle->layer_mode & rocblas_layer_mode_log_trace) == true
 // then

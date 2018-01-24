@@ -75,7 +75,7 @@ void trsm_arg_check(
 void symv_arg_check(
     rocblas_status status, rocblas_int N, rocblas_int lda, rocblas_int incx, rocblas_int incy);
 
-void iamax_arg_check(rocblas_status status, rocblas_int* d_rocblas_result);
+void iamax_iamin_arg_check(rocblas_status status, rocblas_int* d_rocblas_result);
 
 template <typename T2>
 void asum_arg_check(rocblas_status status, T2 d_rocblas_result);

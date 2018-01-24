@@ -240,8 +240,21 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
                                     rocblas_int incy,
                                     T* result)
 {
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
     log_function(
         handle, replaceX<T>("rocblas_Xdot"), n, (const void*&)x, incx, (const void*&)y, incy);
+
+    log_bench(handle,
+              "./rocblas-bench -f dot -r",
+              replaceX<T>("X"),
+              "-n",
+              n,
+              "--incx",
+              incx,
+              "--incy",
+              incy);
 
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
@@ -249,8 +262,6 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(nullptr == result)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible.
