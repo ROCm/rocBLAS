@@ -520,41 +520,39 @@ rocm_ubuntu:
 
     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
   }
-},
-rocm_fedora:
-{
-  node( 'docker && rocm && !dkms')
-  {
-    def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-fedora-24:latest',
-        build_docker_file:'dockerfile-build-fedora',
-        install_docker_file:'dockerfile-install-fedora',
-        docker_run_args:'--device=/dev/kfd',
-        docker_build_args:' --pull' )
+} //,
+// rocm_fedora:
+// {
+//   node( 'docker && rocm && !dkms')
+//   {
+//     def hcc_docker_args = new docker_data(
+//         from_image:'rocm/dev-fedora-24:latest',
+//         build_docker_file:'dockerfile-build-fedora',
+//         install_docker_file:'dockerfile-install-fedora',
+//         docker_run_args:'--device=/dev/kfd',
+//         docker_build_args:' --pull' )
 
-    def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm-fedora',
-        build_config:'Release',
-        compiler_path:'/opt/rocm/bin/hcc' )
+//     def hcc_compiler_args = new compiler_data(
+//         compiler_name:'hcc-rocm-fedora',
+//         build_config:'Release',
+//         compiler_path:'/opt/rocm/bin/hcc' )
 
-    def rocblas_paths = new project_paths(
-        project_name:'rocblas-fedora',
-        src_prefix:'src',
-        build_prefix:'src',
-        build_command: './install.sh -c' )
+//     def rocblas_paths = new project_paths(
+//         project_name:'rocblas-fedora',
+//         src_prefix:'src',
+//         build_prefix:'src',
+//         build_command: './install.sh -c' )
 
-    def print_version_closure = {
-      sh  """
-          set -x
-          /opt/rocm/bin/rocm_agent_enumerator -t ALL
-          /opt/rocm/bin/hcc --version
-        """
-    }
+//     def print_version_closure = {
+//       sh  """
+//           set -x
+//           /opt/rocm/bin/rocm_agent_enumerator -t ALL
+//           /opt/rocm/bin/hcc --version
+//         """
+//     }
 
-    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
-  }
-}
-
+//     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+//   }
 // },
 // nvcc:
 // {

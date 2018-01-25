@@ -110,19 +110,24 @@ set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 add_subdirectory( src )
 
 # The following code is setting variables to control the behavior of CPack to generate our
-if( WIN32 )
-    set( CPACK_SOURCE_GENERATOR "ZIP" )
-    set( CPACK_GENERATOR "ZIP" )
-else( )
-    set( CPACK_SOURCE_GENERATOR "TGZ" )
-    set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
-    # set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
-endif( )
+# if( WIN32 )
+#     set( CPACK_SOURCE_GENERATOR "ZIP" )
+#     set( CPACK_GENERATOR "ZIP" )
+# else( )
+#     set( CPACK_SOURCE_GENERATOR "TGZ" )
+#     set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
+#     # set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
+# endif( )
 
 # Package specific CPACK vars
-set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip_hcc (>= 1.0.17174)" )
-set( CPACK_RPM_PACKAGE_REQUIRES "hip_hcc >= 1.0.17174" )
+set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip_hcc (>= 1.3)" )
+set( CPACK_RPM_PACKAGE_REQUIRES "hip_hcc >= 1.3" )
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
+
+if( NOT CPACK_PACKAGING_INSTALL_PREFIX )
+  set( CPACK_PACKAGING_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}" )
+endif( )
+
 set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" "\${CPACK_PACKAGING_INSTALL_PREFIX}/include" )
 
 # Give rocblas compiled for CUDA backend a different name
