@@ -2,6 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
 #ifndef HANDLE_H
 #define HANDLE_H
 #include <hip/hip_runtime_api.h>
@@ -70,6 +71,9 @@ std::string replaceX(std::string input_string)
     }
     return input_string;
 }
+
+// return letter N,T,C in place of rocblas_operation enum
+std::string rocblas_transpose_letter(rocblas_operation trans);
 
 // The variatic template function each_args applies the functor f
 // to each argument in the expansion of the parameter pack xs...

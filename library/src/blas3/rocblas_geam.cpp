@@ -245,32 +245,8 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
                      (const void*&)C,
                      ldc);
 
-        std::string transA_letter;
-        if(transA == rocblas_operation_none)
-        {
-            transA_letter = "N";
-        }
-        else if(transA == rocblas_operation_transpose)
-        {
-            transA_letter = "T";
-        }
-        else if(transA == rocblas_operation_conjugate_transpose)
-        {
-            transA_letter = "C";
-        }
-        std::string transB_letter;
-        if(transB == rocblas_operation_none)
-        {
-            transB_letter = "N";
-        }
-        else if(transB == rocblas_operation_transpose)
-        {
-            transB_letter = "T";
-        }
-        else if(transB == rocblas_operation_conjugate_transpose)
-        {
-            transB_letter = "C";
-        }
+        std::string transA_letter = rocblas_transpose_letter(transA);
+        std::string transB_letter = rocblas_transpose_letter(transB);
 
         log_bench(handle,
                   "./rocblas-bench -f geam -r",

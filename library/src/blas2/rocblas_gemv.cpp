@@ -148,19 +148,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                      (const void*&)y,
                      incy);
 
-        std::string transA_letter;
-        if(transA == rocblas_operation_none)
-        {
-            transA_letter = "N";
-        }
-        else if(transA == rocblas_operation_transpose)
-        {
-            transA_letter = "T";
-        }
-        else if(transA == rocblas_operation_conjugate_transpose)
-        {
-            transA_letter = "C";
-        }
+        std::string transA_letter = rocblas_transpose_letter(transA);
 
         log_bench(handle,
                   "./rocblas-bench -f gemv -r",
