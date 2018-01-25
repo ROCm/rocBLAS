@@ -419,7 +419,6 @@ void testing_logging()
                    << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
                    << ldc;
     }
-    /*
 
             if(BUILD_WITH_TENSILE)
             {
@@ -435,6 +434,17 @@ void testing_logging()
                              << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc <<
        ","
                              << ldc;
+
+                    bench_ofs2 << "\n"
+                             << "./rocblas-bench -f gemm -r " << replaceX<T>("X")
+                             << " --transposeA " << transA_letter
+                             << " --transposeB " << transB_letter
+                             << " -m " << m << " -n " << n << " -k " << k
+                             << " --alpha " << alpha
+                             << " --lda " << lda
+                             << " --ldb " << ldb
+                             << " --beta " << beta
+                             << " --ldc " << ldc;
                 }
                 else
                 {
@@ -459,6 +469,21 @@ void testing_logging()
        <<
            bsc
                              << "," << batch_count;
+
+                    bench_ofs2 << "\n"
+                             << "./rocblas-bench -f gemm_strided_batched -r " << replaceX<T>("X")
+                             << " --transposeA " << transA_letter
+                             << " --transposeB " << transB_letter
+                             << " -m " << m << " -n " << n << " -k " << k
+                             << " --alpha " << alpha
+                             << " --lda " << lda
+                             << " --bsa " << bsa
+                             << " --ldb " << ldb
+                             << " --bsb " << bsb
+                             << " --beta " << beta
+                             << " --ldc " << ldc
+                             << " --bsc " << bsc
+                             << " --batch " << batch_count;
                 }
                 else
                 {
@@ -475,7 +500,6 @@ void testing_logging()
                              << bsc << "," << batch_count;
                 }
             }
-        */
     // exclude trtri as it is an internal function
     //  trace_ofs2 << "\n" << replaceX<T>("rocblas_Xtrtri")  << "," << uplo << "," << diag << "," <<
     //  n

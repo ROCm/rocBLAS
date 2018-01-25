@@ -140,6 +140,9 @@ _rocblas_handle::~_rocblas_handle()
     if(layer_mode & rocblas_layer_mode_log_trace)
     {
         log_trace_ofs.close();
+    }
+    if(layer_mode & rocblas_layer_mode_log_bench)
+    {
         log_bench_ofs.close();
     }
 }
@@ -169,3 +172,26 @@ rocblas_status _rocblas_handle::get_stream(hipStream_t* stream) const
     *stream = rocblas_stream;
     return rocblas_status_success;
 }
+
+// return letter N,T,C in place of rocblas_operation enum
+std::string rocblas_transpose_letter(rocblas_operation trans)
+{
+    if(trans == rocblas_operation_none)
+    {
+        return "N";
+    }
+    else if(trans == rocblas_operation_transpose)
+    {
+        return "T";
+    }
+    else if(trans == rocblas_operation_conjugate_transpose)
+    {
+        return "C";
+    }
+    else
+    {
+        std::cerr << "rocblas ERROR: trans != N, T, C" << std::endl;
+        return " ";
+    }
+}
+

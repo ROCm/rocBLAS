@@ -48,6 +48,33 @@
                          *beta,                                                            \
                          (const void*&)C,                                                  \
                          ld_c);                                                            \
+                                                                                           \
+            std::string trans_a_letter = rocblas_transpose_letter(trans_a);                \
+            std::string trans_b_letter = rocblas_transpose_letter(trans_b);                \
+                                                                                           \
+            log_bench(handle,                                                              \
+                         "./rocblas-bench -f gemm -r",                                     \
+                         replaceX<TYPE>("X"),                                              \
+                         "--transposeA",                                                   \
+                         trans_a_letter,                                                   \
+                         "--transposeB",                                                   \
+                         trans_b_letter,                                                   \
+                         "-m",                                                             \
+                         m,                                                                \
+                         "-n",                                                             \
+                         n,                                                                \
+                         "-k",                                                             \
+                         k,                                                                \
+                         "--alpha",                                                        \
+                         *alpha,                                                           \
+                         "--lda",                                                          \
+                         ld_a,                                                             \
+                         "--ldb",                                                          \
+                         ld_b,                                                             \
+                         "--beta",                                                         \
+                         *beta,                                                            \
+                         "--ldc",                                                          \
+                         ld_c);                                                            \
         }                                                                                  \
         else                                                                               \
         {                                                                                  \
@@ -147,6 +174,41 @@
                      ld_c,                                            \
                      bs_c,                                            \
                      b_c);                                            \
+                                                                                           \
+            std::string trans_a_letter = rocblas_transpose_letter(trans_a);                \
+            std::string trans_b_letter = rocblas_transpose_letter(trans_b);                \
+                                                                                           \
+            log_bench(handle,                                                              \
+                         "./rocblas-bench -f gemm_strided_batched -r",                     \
+                         replaceX<TYPE>("X"),                                              \
+                         "--transposeA",                                                   \
+                         trans_a_letter,                                                   \
+                         "--transposeB",                                                   \
+                         trans_b_letter,                                                   \
+                         "-m",                                                             \
+                         m,                                                                \
+                         "-n",                                                             \
+                         n,                                                                \
+                         "-k",                                                             \
+                         k,                                                                \
+                         "--alpha",                                                        \
+                         *alpha,                                                           \
+                         "--lda",                                                          \
+                         ld_a,                                                             \
+                         "--bsa",                                                          \
+                         bs_a,                                                             \
+                         "--ldb",                                                          \
+                         ld_b,                                                             \
+                         "--bsb",                                                          \
+                         bs_b,                                                             \
+                         "--beta",                                                         \
+                         *beta,                                                            \
+                         "--ldc",                                                          \
+                         ld_c,                                                             \
+                         "--bsc",                                                          \
+                         bs_c,                                                             \
+                         "--batch",                                                        \
+                         b_c);                                                             \
     }                                                                 \
     else                                                              \
     {                                                                 \
