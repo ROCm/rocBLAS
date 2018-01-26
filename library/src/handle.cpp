@@ -194,4 +194,3 @@ std::string rocblas_transpose_letter(rocblas_operation trans)
         return " ";
     }
 }
-

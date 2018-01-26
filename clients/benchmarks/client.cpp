@@ -88,6 +88,21 @@ int main(int argc, char* argv[])
          "Specific leading dimension of matrix C, is only applicable to BLAS-2 & "
          "BLAS-3: the number of rows.")
 
+        ("bsa",
+         po::value<rocblas_int>(&argus.bsa)->default_value(128*128),
+         "Specific stride of strided_batched matrix B, is only applicable to strided batched"
+         "BLAS-2 and BLAS-3: second dimension * leading dimension.")
+
+        ("bsb",
+         po::value<rocblas_int>(&argus.bsb)->default_value(128*128),
+         "Specific stride of strided_batched matrix B, is only applicable to strided batched"
+         "BLAS-2 and BLAS-3: second dimension * leading dimension.")
+
+        ("bsc",
+         po::value<rocblas_int>(&argus.bsc)->default_value(128*128),
+         "Specific stride of strided_batched matrix B, is only applicable to strided batched"
+         "BLAS-2 and BLAS-3: second dimension * leading dimension.")
+
         ("incx",
          po::value<rocblas_int>(&argus.incx)->default_value(1),
          "increment between values in x vector")
@@ -301,9 +316,25 @@ int main(int argc, char* argv[])
     {
 
         // adjust dimension for GEMM routines
-        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-        argus.ldc                                                    = argus.M;
+        rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
+        rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
+        rocblas_int min_ldc = argus.M;
+
+        if(argus.lda < min_lda)
+        {
+            std::cout << "rocblas-bench ERROR: lda < min_lda, set lda = " << min_lda << std::endl;
+            argus.lda = min_lda;
+        }
+        if(argus.ldb < min_ldb)
+        {
+            std::cout << "rocblas-bench ERROR: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            argus.ldb = min_ldb;
+        }
+        if(argus.ldc < min_ldc)
+        {
+            std::cout << "rocblas-bench ERROR: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            argus.ldc = min_ldc;
+        }
 
         if(precision == 's')
             testing_gemm<float>(argus);
@@ -313,9 +344,46 @@ int main(int argc, char* argv[])
     else if(function == "gemm_strided_batched")
     {
         // adjust dimension for GEMM routines
-        argus.transA_option == 'N' ? argus.lda = argus.M : argus.lda = argus.K;
-        argus.transB_option == 'N' ? argus.ldb = argus.K : argus.ldb = argus.N;
-        argus.ldc                                                    = argus.M;
+        rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
+        rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
+        rocblas_int min_ldc = argus.M;
+        if(argus.lda < min_lda)
+        {
+            std::cout << "rocblas-bench ERROR: lda < min_lda, set lda = " << min_lda << std::endl;
+            argus.lda = min_lda;
+        }
+        if(argus.ldb < min_ldb)
+        {
+            std::cout << "rocblas-bench ERROR: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            argus.ldb = min_ldb;
+        }
+        if(argus.ldc < min_ldc)
+        {
+            std::cout << "rocblas-bench ERROR: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            argus.ldc = min_ldc;
+        }
+
+        rocblas_int min_bsa =
+            argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
+        rocblas_int min_bsb =
+            argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
+        rocblas_int min_bsc = argus.ldc * argus.N;
+        if(argus.bsa < min_bsa)
+        {
+            std::cout << "rocblas-bench ERROR: bsa < min_bsa, set bsa = " << min_bsa << std::endl;
+            argus.bsa = min_bsa;
+        }
+        if(argus.bsb < min_bsb)
+        {
+            std::cout << "rocblas-bench ERROR: bsb < min_bsb, set bsb = " << min_bsb << std::endl;
+            argus.bsb = min_bsb;
+        }
+        if(argus.bsc < min_bsc)
+        {
+            std::cout << "rocblas-bench ERROR: bsc < min_bsc, set bsc = " << min_bsc << std::endl;
+            argus.bsc = min_bsc;
+        }
+
         if(precision == 's')
             testing_gemm_strided_batched<float>(argus);
         else if(precision == 'd')

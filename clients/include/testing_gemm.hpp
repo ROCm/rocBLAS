@@ -414,20 +414,20 @@ rocblas_status testing_gemm(Arguments argus)
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        cout << "Shape,M,N,K,lda,ldb,ldc,rocblas-Gflops,us";
+        cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
         if(argus.unit_check || argus.norm_check)
             cout << ",CPU-Gflops(us),norm-error";
 
         cout << endl;
 
-        cout << argus.transA_option << argus.transB_option << ',' << M << ',' << N << ',' << K
-             << ',' << lda << ',' << ldb << ',' << ldc << ',' << rocblas_gflops << ","
-             << gpu_time_used;
+        cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
+             << K << "," << h_alpha << "," << lda << "," << ldb << "," << h_beta << "," << ldc
+             << "," << rocblas_gflops << "," << gpu_time_used;
 
         if(argus.unit_check || argus.norm_check)
         {
-            cout << cblas_gflops << "," << cpu_time_used << ',' << rocblas_error;
+            cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
         }
 
         cout << endl;

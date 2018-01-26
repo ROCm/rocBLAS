@@ -77,7 +77,7 @@ void testing_logging()
     //  char env_string[80] = "ROCBLAS_LAYER=1";
     //  char env_string[80] = "ROCBLAS_LAYER=2";
     char env_string[80] = "ROCBLAS_LAYER=3";
-    verify_equal(putenv(env_string), 0, "failed to set environment variable ROCBLAS_LAYER=1");
+    verify_equal(putenv(env_string), 0, "failed to set environment variable ROCBLAS_LAYER=3");
 
     // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.csv
     rocblas_int m            = 1;
@@ -420,86 +420,59 @@ void testing_logging()
                    << ldc;
     }
 
-            if(BUILD_WITH_TENSILE)
-            {
+    if(BUILD_WITH_TENSILE)
+    {
 
-                if(test_pointer_mode == rocblas_pointer_mode_host)
-                {
-                    trace_ofs2 << "\n"
-                             << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB <<
-       "," <<
-           m
-                             << "," << n << "," << k << "," << alpha << "," << (void*)da << "," <<
-       lda
-                             << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc <<
-       ","
-                             << ldc;
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
+                       << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
+                       << ldc;
 
-                    bench_ofs2 << "\n"
-                             << "./rocblas-bench -f gemm -r " << replaceX<T>("X")
-                             << " --transposeA " << transA_letter
-                             << " --transposeB " << transB_letter
-                             << " -m " << m << " -n " << n << " -k " << k
-                             << " --alpha " << alpha
-                             << " --lda " << lda
-                             << " --ldb " << ldb
-                             << " --beta " << beta
-                             << " --ldc " << ldc;
-                }
-                else
-                {
-                    trace_ofs2 << "\n"
-                             << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB <<
-       "," <<
-           m
-                             << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da <<
-       ","
-                             << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
-                             << (void*)dc << "," << ldc;
-                }
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm -r " << replaceX<T>("X") << " --transposeA "
+                       << transA_letter << " --transposeB " << transB_letter << " -m " << m
+                       << " -n " << n << " -k " << k << " --alpha " << alpha << " --lda " << lda
+                       << " --ldb " << ldb << " --beta " << beta << " --ldc " << ldc;
+        }
+        else
+        {
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
+                       << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
+                       << (void*)dc << "," << ldc;
+        }
 
-                if(test_pointer_mode == rocblas_pointer_mode_host)
-                {
-                    trace_ofs2 << "\n"
-                             << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
-                             << transB << "," << m << "," << n << "," << k << "," << alpha << ","
-                             << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," <<
-       ldb
-                             << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << ","
-       <<
-           bsc
-                             << "," << batch_count;
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                       << transB << "," << m << "," << n << "," << k << "," << alpha << ","
+                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                       << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << "," << bsc
+                       << "," << batch_count;
 
-                    bench_ofs2 << "\n"
-                             << "./rocblas-bench -f gemm_strided_batched -r " << replaceX<T>("X")
-                             << " --transposeA " << transA_letter
-                             << " --transposeB " << transB_letter
-                             << " -m " << m << " -n " << n << " -k " << k
-                             << " --alpha " << alpha
-                             << " --lda " << lda
-                             << " --bsa " << bsa
-                             << " --ldb " << ldb
-                             << " --bsb " << bsb
-                             << " --beta " << beta
-                             << " --ldc " << ldc
-                             << " --bsc " << bsc
-                             << " --batch " << batch_count;
-                }
-                else
-                {
-                    trace_ofs2 << "\n"
-                             << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
-                             << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha
-       <<
-           ","
-                             << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," <<
-       ldb
-                             << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc
-       <<
-           ","
-                             << bsc << "," << batch_count;
-                }
-            }
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm_strided_batched -r " << replaceX<T>("X")
+                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
+                       << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
+                       << " --lda " << lda << " --bsa " << bsa << " --ldb " << ldb << " --bsb "
+                       << bsb << " --beta " << beta << " --ldc " << ldc << " --bsc " << bsc
+                       << " --batch " << batch_count;
+        }
+        else
+        {
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                       << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha << ","
+                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                       << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc << ","
+                       << bsc << "," << batch_count;
+        }
+    }
     // exclude trtri as it is an internal function
     //  trace_ofs2 << "\n" << replaceX<T>("rocblas_Xtrtri")  << "," << uplo << "," << diag << "," <<
     //  n
@@ -546,6 +519,9 @@ void testing_logging()
 
     trace_ifs1.close();
     trace_ifs2.close();
+
+    char env_close_string[80] = "ROCBLAS_LAYER=0";
+    verify_equal(putenv(env_close_string), 0, "failed to set environment variable ROCBLAS_LAYER=0");
 
     return;
 }

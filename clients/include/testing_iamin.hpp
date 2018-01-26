@@ -130,7 +130,7 @@ rocblas_status testing_iamin(Arguments argus)
     srand(1);
     rocblas_init<T>(hx, 1, N, incx);
 
-    for (int i = 0; i < N; i++)
+    for(int i = 0; i < N; i++)
     {
         hx_negated[i] = hx[i];
     }
@@ -179,26 +179,32 @@ rocblas_status testing_iamin(Arguments argus)
 
     if(argus.timing)
     {
-        int number_timing_iterations = 1;
+        int number_cold_calls = 2;
+        int number_hot_calls  = 100;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        gpu_time_used = get_time_us(); // in microseconds
-
-        for(int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_iamin<T>(handle, N, dx, incx, d_rocblas_result);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+        gpu_time_used = get_time_us(); // in microseconds
 
-        cout << "N,rocblas-us";
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_iamin<T>(handle, N, dx, incx, d_rocblas_result);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+
+        cout << "N,incx,rocblas-us";
 
         if(argus.norm_check)
             cout << ",cpu_time_used,rocblas_error_host_ptr,rocblas_error_dev_ptr";
 
         cout << endl;
 
-        cout << (int)N << "," << gpu_time_used;
+        cout << (int)N << "," << incx << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
