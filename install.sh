@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-
 # #################################################
 # helper functions
 # #################################################
@@ -39,14 +38,24 @@ supported_distro( )
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
+check_exit_code( )
+{
+  if (( $? != 0 )); then
+    exit $?
+  fi
+}
+
+# This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
 elevate_if_not_root( )
 {
   local uid=$(id -u)
 
   if (( ${uid} )); then
     sudo $@
+    check_exit_code
   else
     $@
+    check_exit_code
   fi
 }
 
@@ -312,13 +321,19 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  check_exit_code
+
   make -j$(nproc) install
+  check_exit_code
 
   # Build clients with default host compiler; no device code currently
   if [[ "${build_clients}" == true ]]; then
     pushd clients
       ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCMAKE_PREFIX_PATH="$(pwd)/../rocblas-install;$(pwd)/../../deps/deps-install" ../../../clients
+      check_exit_code
+
       make -j$(nproc)
+      check_exit_code
     popd
   fi
 
@@ -328,6 +343,7 @@ pushd .
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
+    check_exit_code
 
     case "${ID}" in
       ubuntu)
