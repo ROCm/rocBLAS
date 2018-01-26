@@ -246,42 +246,72 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
     if(argus.timing)
     {
+        int number_cold_calls = 2;
+        int number_hot_calls  = 10;
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        for(int i = 0; i < number_cold_calls; i++)
+        {
+            rocblas_gemm_strided_batched<T>(handle,
+                                            transA,
+                                            transB,
+                                            M,
+                                            N,
+                                            K,
+                                            &h_alpha,
+                                            dA,
+                                            lda,
+                                            bsa,
+                                            dB,
+                                            ldb,
+                                            bsb,
+                                            &h_beta,
+                                            dC,
+                                            ldc,
+                                            bsc,
+                                            batch_count);
+        }
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        rocblas_gemm_strided_batched<T>(handle,
-                                        transA,
-                                        transB,
-                                        M,
-                                        N,
-                                        K,
-                                        &h_alpha,
-                                        dA,
-                                        lda,
-                                        bsa,
-                                        dB,
-                                        ldb,
-                                        bsb,
-                                        &h_beta,
-                                        dC,
-                                        ldc,
-                                        bsc,
-                                        batch_count);
+        for(int i = 0; i < number_hot_calls; i++)
+        {
+            rocblas_gemm_strided_batched<T>(handle,
+                                            transA,
+                                            transB,
+                                            M,
+                                            N,
+                                            K,
+                                            &h_alpha,
+                                            dA,
+                                            lda,
+                                            bsa,
+                                            dB,
+                                            ldb,
+                                            bsb,
+                                            &h_beta,
+                                            dC,
+                                            ldc,
+                                            bsc,
+                                            batch_count);
+        }
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
 
-        cout << "Shape,Batch_Count,M,N,K,lda,ldb,ldc,rocblas-Gflops,us";
+        cout << "transA,transB,M,N,K,alpha,lda,bsa,ldb,bsb,beta,ldc,bsc,Batch_Count,rocblas-Gflops,"
+                "us";
 
         if(argus.norm_check)
             cout << ",CPU-Gflops,us,norm-error";
 
         cout << endl;
 
-        cout << argus.transA_option << argus.transB_option << ',' << batch_count;
-        cout << ',' << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc;
-        cout << ',' << rocblas_gflops << "," << gpu_time_used;
+        cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
+             << K << "," << h_alpha << "," << lda << "," << bsa << "," << ldb << "," << bsb << ","
+             << h_beta << "," << ldc << "," << bsc << "," << batch_count << "," << rocblas_gflops
+             << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

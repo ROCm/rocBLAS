@@ -326,6 +326,10 @@ class Arguments
     rocblas_int apiCallCount = 1;
     rocblas_int batch_count  = 10;
 
+    rocblas_int bsa = 128 * 128; //  bsa > transA_option == 'N' ? lda * K : lda * M
+    rocblas_int bsb = 128 * 128; //  bsb > transB_option == 'N' ? ldb * N : ldb * K
+    rocblas_int bsc = 128 * 128; //  bsc > ldc * N
+
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
     rocblas_int timing     = 0;

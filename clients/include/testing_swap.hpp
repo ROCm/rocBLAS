@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <stdlib.h>
@@ -76,12 +75,10 @@ rocblas_status testing_swap(Arguments argus)
     rocblas_int incy      = argus.incy;
     rocblas_int safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_status status;
-
-    double rocblas_error = 0.0;
-
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
+
+    rocblas_status status;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
@@ -108,19 +105,6 @@ rocblas_status testing_swap(Arguments argus)
     rocblas_int size_x   = N * abs_incx;
     rocblas_int size_y   = N * abs_incy;
 
-    // allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_y),
-                                         rocblas_test::device_free};
-    T* dx = (T*)dx_managed.get();
-    T* dy = (T*)dy_managed.get();
-    if(!dx || !dy)
-    {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return rocblas_status_memory_error;
-    }
-
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     vector<T> hx(size_x);
     vector<T> hy(size_y);
@@ -141,25 +125,25 @@ rocblas_status testing_swap(Arguments argus)
     hx_gold = hx;
     hy_gold = hy;
 
+    // allocate memory on device
+    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
+                                         rocblas_test::device_free};
+    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_y),
+                                         rocblas_test::device_free};
+    T* dx = (T*)dx_managed.get();
+    T* dy = (T*)dy_managed.get();
+    if(!dx || !dy)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return rocblas_status_memory_error;
+    }
+
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * size_x, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-
-        gpu_time_used = get_time_us(); // in microseconds
-
-        for(int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_swap<T>(handle, N, dx, incx, dy, incy);
-        }
-
-        gpu_time_used = get_time_us() - gpu_time_used;
-    }
+    double rocblas_error = 0.0;
 
     if(argus.unit_check || argus.norm_check)
     {
@@ -193,7 +177,31 @@ rocblas_status testing_swap(Arguments argus)
         }
     }
 
-    BLAS_1_RESULT_PRINT
+    if(argus.timing)
+    {
+        int number_cold_calls = 2;
+        int number_hot_calls  = 100;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        for(int iter = 0; iter < number_cold_calls; iter++)
+        {
+            rocblas_swap<T>(handle, N, dx, incx, dy, incy);
+        }
+
+        gpu_time_used = get_time_us(); // in microseconds
+
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_swap<T>(handle, N, dx, incx, dy, incy);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+
+        cout << "N,incx,incy,rocblas-us";
+        cout << endl;
+        cout << N << "," << incx << "," << incy << "," << gpu_time_used;
+        cout << endl;
+    }
 
     return rocblas_status_success;
 }

@@ -169,25 +169,31 @@ rocblas_status testing_copy(Arguments argus)
 
     if(argus.timing)
     {
-        int number_timing_iterations = 1;
+        int number_cold_calls = 2;
+        int number_hot_calls  = 100;
 
-        gpu_time_used = get_time_us(); // in microseconds
-
-        for(int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
             status = rocblas_copy<T>(handle, N, dx, incx, dy, incy);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_timing_iterations;
+        gpu_time_used = get_time_us(); // in microseconds
 
-        cout << "N,rocblas-us";
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            status = rocblas_copy<T>(handle, N, dx, incx, dy, incy);
+        }
+
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+
+        cout << "N,incx,incy,rocblas-us";
 
         if(argus.norm_check)
             cout << ",CPU-us,error";
 
         cout << endl;
 
-        cout << N << "," << gpu_time_used;
+        cout << N << "," << incx << "," << incy << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cpu_time_used << "," << rocblas_error;
