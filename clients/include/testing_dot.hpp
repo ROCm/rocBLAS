@@ -206,28 +206,34 @@ rocblas_status testing_dot(Arguments argus)
 
     if(argus.timing)
     {
-        int number_timing_iterations = 1;
+        int number_cold_calls = 2;
+        int number_hot_calls  = 100;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        gpu_time_used = get_time_us(); // in microseconds
-
-        for(int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             rocblas_dot<T>(handle, N, dx, incx, dy, incy, &rocblas_result_1);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_timing_iterations;
+        gpu_time_used = get_time_us(); // in microseconds
+
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_dot<T>(handle, N, dx, incx, dy, incy, &rocblas_result_1);
+        }
+
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = dot_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        cout << "N,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        cout << "N,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(argus.norm_check)
             cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
         cout << endl;
-        cout << N << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
+        cout << N << "," << incx << "," << incy << "," << rocblas_gflops << "," << rocblas_bandwidth
+             << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

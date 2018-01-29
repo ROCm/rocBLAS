@@ -244,10 +244,34 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
                      ldb,
                      (const void*&)C,
                      ldc);
+
+        std::string transA_letter = rocblas_transpose_letter(transA);
+        std::string transB_letter = rocblas_transpose_letter(transB);
+
+        log_bench(handle,
+                  "./rocblas-bench -f geam -r",
+                  replaceX<T>("X"),
+                  "--transposeA",
+                  transA_letter,
+                  "--transposeB",
+                  transB_letter,
+                  "-m",
+                  m,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--lda",
+                  lda,
+                  "--beta",
+                  *beta,
+                  "--ldb",
+                  ldb,
+                  "--ldc",
+                  ldc);
     }
     else
     {
-
         log_function(handle,
                      replaceX<T>("rocblas_Xgeam"),
                      transA,

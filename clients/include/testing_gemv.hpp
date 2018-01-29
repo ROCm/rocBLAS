@@ -236,24 +236,6 @@ rocblas_status testing_gemv(Arguments argus)
     /* =====================================================================
            ROCBLAS
     =================================================================== */
-    if(argus.timing)
-    {
-        int number_timing_iterations = 1;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        gpu_time_used = get_time_us(); // in microseconds
-
-        for(int iter = 0; iter < number_timing_iterations; iter++)
-        {
-            rocblas_gemv<T>(
-                handle, transA, M, N, (T*)&h_alpha, dA, lda, dx, incx, (T*)&h_beta, dy_1, incy);
-        }
-
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_timing_iterations;
-        rocblas_gflops    = gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
-    }
-
     if(argus.unit_check || argus.norm_check)
     {
         CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1.data(), sizeof(T) * size_y, hipMemcpyHostToDevice));
@@ -304,16 +286,38 @@ rocblas_status testing_gemv(Arguments argus)
 
     if(argus.timing)
     {
+        int number_cold_calls = 2;
+        int number_hot_calls  = 100;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        for(int iter = 0; iter < number_cold_calls; iter++)
+        {
+            rocblas_gemv<T>(
+                handle, transA, M, N, (T*)&h_alpha, dA, lda, dx, incx, (T*)&h_beta, dy_1, incy);
+        }
+
+        gpu_time_used = get_time_us(); // in microseconds
+
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_gemv<T>(
+                handle, transA, M, N, (T*)&h_alpha, dA, lda, dx, incx, (T*)&h_beta, dy_1, incy);
+        }
+
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6 * 1;
+        rocblas_bandwidth = (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+
         // only norm_check return an norm error, unit check won't return anything
-        cout << "M,N,lda,rocblas-Gflops,rocblas-GB/s,";
+        cout << "M,N,alpha,lda,incx,incy,rocblas-Gflops,rocblas-GB/s,";
         if(argus.norm_check)
         {
             cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
         cout << endl;
 
-        cout << "GGG," << M << ',' << N << ',' << lda << ',' << rocblas_gflops << ','
-             << rocblas_bandwidth << ',';
+        cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << incy << ","
+             << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(argus.norm_check)
         {

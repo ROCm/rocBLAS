@@ -74,8 +74,10 @@ void testing_logging()
     // set environment variable ROCBLAS_LAYER = 1 to turn on logging. Note that putenv
     // only has scope for this executable, so it is not necessary to save and restore
     // this environment variable for the next executable
-    char env_string[80] = "ROCBLAS_LAYER=1";
-    verify_equal(putenv(env_string), 0, "failed to set environment variable ROCBLAS_LAYER=1");
+    //  char env_string[80] = "ROCBLAS_LAYER=1";
+    //  char env_string[80] = "ROCBLAS_LAYER=2";
+    char env_string[80] = "ROCBLAS_LAYER=3";
+    verify_equal(putenv(env_string), 0, "failed to set environment variable ROCBLAS_LAYER=3");
 
     // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.csv
     rocblas_int m            = 1;
@@ -225,118 +227,197 @@ void testing_logging()
     std::string cwd_str = (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
 
     // open files
-    std::string filename1  = "/rocblas_logfile.csv";
-    std::string filename2  = "/rocblas_logfile_gold.csv";
-    std::string file_path1 = cwd_str + filename1;
-    std::string file_path2 = cwd_str + filename2;
+    std::string trace_name1 = "/rocblas_log_trace.csv";
+    std::string trace_name2 = "/rocblas_log_trace_gold.csv";
+    std::string trace_path1 = cwd_str + trace_name1;
+    std::string trace_path2 = cwd_str + trace_name2;
 
-    std::ofstream log_ofs2;
+    std::string bench_name1 = "/rocblas_log_bench.txt";
+    std::string bench_name2 = "/rocblas_log_bench_gold.txt";
+    std::string bench_path1 = cwd_str + bench_name1;
+    std::string bench_path2 = cwd_str + bench_name2;
 
-    log_ofs2.open(file_path2);
+    std::ofstream trace_ofs2;
+    std::ofstream bench_ofs2;
+
+    trace_ofs2.open(trace_path2);
+    bench_ofs2.open(bench_path2);
 
     // write "golden file"
     // Auxiliary function
-    log_ofs2 << "rocblas_create_handle";
-    log_ofs2 << "\nrocblas_set_pointer_mode,0";
-    log_ofs2 << "\nrocblas_get_pointer_mode,0";
+    trace_ofs2 << "rocblas_create_handle";
+    trace_ofs2 << "\nrocblas_set_pointer_mode,0";
+    trace_ofs2 << "\nrocblas_get_pointer_mode,0";
 
     // BLAS1
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_iXamax") << "," << n << "," << (void*)dx << "," << incx;
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_iXamax") << "," << n << "," << (void*)dx << "," << incx;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f iamax -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx;
 
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_iXamin") << "," << n << "," << (void*)dx << "," << incx;
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_iXamin") << "," << n << "," << (void*)dx << "," << incx;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f iamin -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx;
 
-    log_ofs2 << "\n" << replaceX<T>("rocblas_Xasum") << "," << n << "," << (void*)dx << "," << incx;
-
-    if(test_pointer_mode == rocblas_pointer_mode_host)
-    {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << alpha << "," << (void*)dx
-                 << "," << incx << "," << (void*)dy << "," << incy;
-    }
-    else
-    {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << (void*)&alpha << ","
-                 << (void*)dx << "," << incx << "," << (void*)dy << "," << incy;
-    }
-
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xcopy") << "," << n << "," << (void*)dx << "," << incx << ","
-             << (void*)dy << "," << incy;
-
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xdot") << "," << n << "," << (void*)dx << "," << incx << ","
-             << (void*)dy << "," << incy;
-
-    log_ofs2 << "\n" << replaceX<T>("rocblas_Xnrm2") << "," << n << "," << (void*)dx << "," << incx;
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_Xasum") << "," << n << "," << (void*)dx << "," << incx;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f asum -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx;
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xscal") << "," << n << "," << alpha << "," << (void*)dx
-                 << "," << incx;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << alpha << "," << (void*)dx
+                   << "," << incx << "," << (void*)dy << "," << incy;
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f axpy -r " << replaceX<T>("X") << " -n " << n
+                   << " --alpha " << alpha << " --incx " << incx << " --incy " << incy;
     }
     else
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xscal") << "," << n << "," << (void*)&alpha << ","
-                 << (void*)dx << "," << incx;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xaxpy") << "," << n << "," << (void*)&alpha << ","
+                   << (void*)dx << "," << incx << "," << (void*)dy << "," << incy;
     }
 
-    log_ofs2 << "\n"
-             << replaceX<T>("rocblas_Xswap") << "," << n << "," << (void*)dx << "," << incx << ","
-             << (void*)dy << "," << incy;
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_Xcopy") << "," << n << "," << (void*)dx << "," << incx << ","
+               << (void*)dy << "," << incy;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f copy -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx << " --incy " << incy;
+
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_Xdot") << "," << n << "," << (void*)dx << "," << incx << ","
+               << (void*)dy << "," << incy;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f dot -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx << " --incy " << incy;
+
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_Xnrm2") << "," << n << "," << (void*)dx << "," << incx;
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f nrm2 -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx;
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xscal") << "," << n << "," << alpha << "," << (void*)dx
+                   << "," << incx;
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f scal -r " << replaceX<T>("X") << " -n " << n << " --incx "
+                   << incx << " --alpha " << alpha;
+    }
+    else
+    {
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xscal") << "," << n << "," << (void*)&alpha << ","
+                   << (void*)dx << "," << incx;
+    }
+    trace_ofs2 << "\n"
+               << replaceX<T>("rocblas_Xswap") << "," << n << "," << (void*)dx << "," << incx << ","
+               << (void*)dy << "," << incy;
+
+    bench_ofs2 << "\n"
+               << "./rocblas-bench -f swap -r " << replaceX<T>("X") << " -n " << n << " --incx "
+               << incx << " --incy " << incy;
 
     // BLAS2
+    std::string transA_letter;
+    if(transA == rocblas_operation_none)
+    {
+        transA_letter = "N";
+    }
+    else if(transA == rocblas_operation_transpose)
+    {
+        transA_letter = "T";
+    }
+    else if(transA == rocblas_operation_conjugate_transpose)
+    {
+        transA_letter = "C";
+    }
+
+    std::string transB_letter;
+    if(transB == rocblas_operation_none)
+    {
+        transB_letter = "N";
+    }
+    else if(transB == rocblas_operation_transpose)
+    {
+        transB_letter = "T";
+    }
+    else if(transB == rocblas_operation_conjugate_transpose)
+    {
+        transB_letter = "C";
+    }
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << alpha << ","
-                 << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << "," << (void*)da
-                 << "," << lda;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << alpha << ","
+                   << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
+                   << (void*)da << "," << lda;
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f ger -r " << replaceX<T>("X") << " -m " << m << " -n " << n
+                   << " --alpha " << alpha << " --incx " << incx << " --incy " << incy << " --lda "
+                   << lda;
     }
     else
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha
-                 << "," << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
-                 << (void*)da << "," << lda;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha
+                   << "," << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
+                   << (void*)da << "," << lda;
     }
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
-                 << alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
-                 << "," << beta << "," << (void*)dy << "," << incy;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
+                   << alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+                   << "," << beta << "," << (void*)dy << "," << incy;
+
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f gemv -r " << replaceX<T>("X") << " --transposeA "
+                   << transA_letter << " -m " << m << " -n " << n << " --alpha " << alpha
+                   << " --lda " << lda << " --incx " << incx << " --beta " << beta << " --incy "
+                   << incy;
     }
     else
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
-                 << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << ","
-                 << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xgemv") << "," << transA << "," << m << "," << n << ","
+                   << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << ","
+                   << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy;
     }
 
     // BLAS3
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
-                 << "," << n << "," << alpha << "," << (void*)da << "," << lda << "," << beta << ","
-                 << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                   << "," << n << "," << alpha << "," << (void*)da << "," << lda << "," << beta
+                   << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc;
+
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f geam -r " << replaceX<T>("X") << " --transposeA "
+                   << transA_letter << " --transposeB " << transB_letter << " -m " << m << " -n "
+                   << n << " --alpha " << alpha << " --lda " << lda << " --beta " << beta
+                   << " --ldb " << ldb << " --ldc " << ldc;
     }
     else
     {
-        log_ofs2 << "\n"
-                 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
-                 << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
-                 << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
-                 << ldc;
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                   << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
+                   << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
+                   << ldc;
     }
 
     if(BUILD_WITH_TENSILE)
@@ -344,66 +425,103 @@ void testing_logging()
 
         if(test_pointer_mode == rocblas_pointer_mode_host)
         {
-            log_ofs2 << "\n"
-                     << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
-                     << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
-                     << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
-                     << ldc;
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
+                       << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
+                       << ldc;
+
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm -r " << replaceX<T>("X") << " --transposeA "
+                       << transA_letter << " --transposeB " << transB_letter << " -m " << m
+                       << " -n " << n << " -k " << k << " --alpha " << alpha << " --lda " << lda
+                       << " --ldb " << ldb << " --beta " << beta << " --ldc " << ldc;
         }
         else
         {
-            log_ofs2 << "\n"
-                     << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
-                     << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
-                     << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
-                     << (void*)dc << "," << ldc;
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
+                       << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
+                       << (void*)dc << "," << ldc;
         }
 
         if(test_pointer_mode == rocblas_pointer_mode_host)
         {
-            log_ofs2 << "\n"
-                     << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
-                     << transB << "," << m << "," << n << "," << k << "," << alpha << ","
-                     << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
-                     << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << "," << bsc
-                     << "," << batch_count;
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                       << transB << "," << m << "," << n << "," << k << "," << alpha << ","
+                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                       << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << "," << bsc
+                       << "," << batch_count;
+
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm_strided_batched -r " << replaceX<T>("X")
+                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
+                       << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
+                       << " --lda " << lda << " --bsa " << bsa << " --ldb " << ldb << " --bsb "
+                       << bsb << " --beta " << beta << " --ldc " << ldc << " --bsc " << bsc
+                       << " --batch " << batch_count;
         }
         else
         {
-            log_ofs2 << "\n"
-                     << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
-                     << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha << ","
-                     << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
-                     << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc << ","
-                     << bsc << "," << batch_count;
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
+                       << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha << ","
+                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
+                       << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc << ","
+                       << bsc << "," << batch_count;
         }
     }
-
     // exclude trtri as it is an internal function
-    //  log_ofs2 << "\n" << replaceX<T>("rocblas_Xtrtri")  << "," << uplo << "," << diag << "," << n
+    //  trace_ofs2 << "\n" << replaceX<T>("rocblas_Xtrtri")  << "," << uplo << "," << diag << "," <<
+    //  n
     //  << "," << (void*)da << "," << lda << "," << (void*)db << "," << ldb;
 
     // Auxiliary function
-    log_ofs2 << "\nrocblas_destroy_handle";
+    trace_ofs2 << "\nrocblas_destroy_handle";
 
-    log_ofs2.close();
+    trace_ofs2.close();
+    bench_ofs2.close();
 
     // construct iterators that check if files are same
-    std::ifstream log_ifs1;
-    std::ifstream log_ifs2;
-    log_ifs1.open(file_path1);
-    log_ifs2.open(file_path2);
+    std::ifstream trace_ifs1;
+    std::ifstream trace_ifs2;
+    trace_ifs1.open(trace_path1);
+    trace_ifs2.open(trace_path2);
 
-    std::istreambuf_iterator<char> begin1(log_ifs1);
-    std::istreambuf_iterator<char> begin2(log_ifs2);
+    std::istreambuf_iterator<char> begin1(trace_ifs1);
+    std::istreambuf_iterator<char> begin2(trace_ifs2);
 
     std::istreambuf_iterator<char> end;
 
     // check that files are the same
-    verify_equal(true, range_equal(begin1, end, begin2, end), "Logging file corrupt");
+    verify_equal(true, range_equal(begin1, end, begin2, end), "log_trace file corrupt");
 
-    log_ifs1.close();
-    log_ifs2.close();
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        // construct iterators that check if files are same
+        std::ifstream bench_ifs1;
+        std::ifstream bench_ifs2;
+        bench_ifs1.open(bench_path1);
+        bench_ifs2.open(bench_path2);
+
+        std::istreambuf_iterator<char> begin1(bench_ifs1);
+        std::istreambuf_iterator<char> begin2(bench_ifs2);
+
+        std::istreambuf_iterator<char> end;
+
+        // check that files are the same
+        verify_equal(true, range_equal(begin1, end, begin2, end), "log_bench file corrupt");
+        bench_ifs1.close();
+        bench_ifs2.close();
+    }
+
+    trace_ifs1.close();
+    trace_ifs2.close();
+
+    char env_close_string[80] = "ROCBLAS_LAYER=0";
+    verify_equal(putenv(env_close_string), 0, "failed to set environment variable ROCBLAS_LAYER=0");
 
     return;
 }

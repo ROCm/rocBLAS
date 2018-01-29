@@ -343,9 +343,11 @@ rocblas_status testing_trsm(Arguments argus)
         // GPU rocBLAS
         CHECK_HIP_ERROR(
             hipMemcpy(dXorB, hXorB_1.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
-        gpu_time_used = get_time_us(); // in microseconds
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
+        gpu_time_used = get_time_us(); // in microseconds
+
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 

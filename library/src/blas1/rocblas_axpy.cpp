@@ -241,6 +241,17 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
                      incx,
                      (const void*&)y,
                      incy);
+        log_bench(handle,
+                  "./rocblas-bench -f axpy -r",
+                  replaceX<T>("X"),
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incx);
     }
     else
     {
@@ -397,13 +408,16 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
         dim3 grid(blocks, 1, 1);
         dim3 threads(NB_X, 1, 1);
 
+        hipStream_t rocblas_stream;
+        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
         if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
             hipLaunchKernelGGL(haxpy_mlt_8_device_scalar,
                                dim3(grid),
                                dim3(threads),
                                0,
-                               0,
+                               rocblas_stream,
                                n_mlt_8,
                                (const __fp16*)alpha,
                                (const half8*)x,
@@ -415,7 +429,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                    dim3(1, 1, 1),
                                    dim3(n_mod_8, 1, 1),
                                    0,
-                                   0,
+                                   rocblas_stream,
                                    n,
                                    (const __fp16*)alpha,
                                    (const __fp16*)x,
@@ -437,7 +451,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                dim3(grid),
                                dim3(threads),
                                0,
-                               0,
+                               rocblas_stream,
                                n_mlt_8,
                                half2_alpha,
                                (const half8*)x,
@@ -450,7 +464,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                    dim3(1, 1, 1),
                                    dim3(n_mod_8, 1, 1),
                                    0,
-                                   0,
+                                   rocblas_stream,
                                    n,
                                    f16_alpha,
                                    (const __fp16*)x,

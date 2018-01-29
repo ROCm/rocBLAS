@@ -83,15 +83,26 @@ template <class T>
 rocblas_status rocblas_swap_template(
     rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
 {
+    if(handle == nullptr)
+        return rocblas_status_invalid_handle;
+
     log_function(
         handle, replaceX<T>("rocblas_Xswap"), n, (const void*&)x, incx, (const void*&)y, incy);
+
+    log_bench(handle,
+              "./rocblas-bench -f swap -r",
+              replaceX<T>("X"),
+              "-n",
+              n,
+              "--incx",
+              incx,
+              "--incy",
+              incy);
 
     if(x == nullptr)
         return rocblas_status_invalid_pointer;
     else if(y == nullptr)
         return rocblas_status_invalid_pointer;
-    if(handle == nullptr)
-        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible.

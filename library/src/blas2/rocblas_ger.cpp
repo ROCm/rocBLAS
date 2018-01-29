@@ -108,6 +108,22 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                      incy,
                      (const void*&)A,
                      lda);
+
+        log_bench(handle,
+                  "./rocblas-bench -f ger -r",
+                  replaceX<T>("X"),
+                  "-m",
+                  m,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incy,
+                  "--lda",
+                  lda);
     }
     else
     {

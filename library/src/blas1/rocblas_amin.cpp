@@ -203,11 +203,14 @@ template <typename T1, typename T2>
 rocblas_status rocblas_iamin_template(
     rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, rocblas_int* result)
 {
-    log_function(handle, replaceX<T1>("rocblas_iXamin"), n, (const void*&)x, incx);
-
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
-    else if(x == nullptr)
+
+    log_function(handle, replaceX<T1>("rocblas_iXamin"), n, (const void*&)x, incx);
+
+    log_bench(handle, "./rocblas-bench -f iamin -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
+
+    if(x == nullptr)
         return rocblas_status_invalid_pointer;
     else if(result == nullptr)
         return rocblas_status_invalid_pointer;
