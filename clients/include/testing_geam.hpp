@@ -455,15 +455,16 @@ rocblas_status testing_geam(Arguments argus)
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = geam_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;
 
-        cout << "Shape,M,N,lda,ldb,ldc,rocblas-Gflops,us,";
+        cout << "transA,transB,M,N,alpha,lda,beta,ldb,ldc,rocblas-Gflops,us";
         if(argus.unit_check || argus.norm_check)
         {
-            cout << "CPU-Gflops,us,norm_error_ptr_host,norm_error_ptr_dev";
+            cout << ",CPU-Gflops,us,norm_error_ptr_host,norm_error_ptr_dev";
         }
         cout << endl;
 
-        cout << argus.transA_option << argus.transB_option << ',' << M << ',' << N << ',' << lda
-             << ',' << ldb << ',' << ldc << ',' << rocblas_gflops << "," << gpu_time_used << ",";
+        cout << argus.transA_option << argus.transB_option << "," << M << "," << N << "," << h_alpha
+             << "," << lda << "," << h_beta << "," << ldb << "," << ldc << "," << rocblas_gflops
+             << "," << gpu_time_used << ",";
 
         if(argus.unit_check || argus.norm_check)
         {

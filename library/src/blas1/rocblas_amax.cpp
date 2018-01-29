@@ -207,14 +207,17 @@ template <typename T1, typename T2>
 rocblas_status rocblas_iamax_template(
     rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, rocblas_int* result)
 {
+    if(nullptr == handle)
+        return rocblas_status_invalid_handle;
+
     log_function(handle, replaceX<T1>("rocblas_iXamax"), n, (const void*&)x, incx);
+
+    log_bench(handle, "./rocblas-bench -f iamax -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
 
     if(nullptr == x)
         return rocblas_status_invalid_pointer;
     else if(nullptr == result)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == handle)
-        return rocblas_status_invalid_handle;
 
     /*
      * Quick return if possible.

@@ -2,6 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
 #ifndef HANDLE_H
 #define HANDLE_H
 #include <hip/hip_runtime_api.h>
@@ -39,7 +40,8 @@ struct _rocblas_handle
 
     // default logging_mode is no logging
     rocblas_layer_mode layer_mode;
-    std::ofstream log_ofs;
+    std::ofstream log_trace_ofs;
+    std::ofstream log_bench_ofs;
     // need to read environment variable that contains layer_mode
 };
 
@@ -69,6 +71,9 @@ std::string replaceX(std::string input_string)
     }
     return input_string;
 }
+
+// return letter N,T,C in place of rocblas_operation enum
+std::string rocblas_transpose_letter(rocblas_operation trans);
 
 // The variatic template function each_args applies the functor f
 // to each argument in the expansion of the parameter pack xs...
@@ -125,10 +130,37 @@ struct log_arg
     std::ofstream& ofs;
 };
 
+struct log_arg_space
+{
+    log_arg_space(std::ofstream& ofs_input) : ofs(ofs_input) {}
+
+    // generic operator
+    template <typename T>
+    void operator()(T& x) const
+    {
+        ofs << " " << x;
+    }
+
+    // operator for rocblas_float_complex
+    void operator()(const rocblas_float_complex complex_value) const
+    {
+        ofs << " (" << complex_value.x << "," << complex_value.y << ")";
+    }
+
+    // operator for rocblas_double_complex
+    void operator()(const rocblas_double_complex complex_value) const
+    {
+        ofs << " (" << complex_value.x << "," << complex_value.y << ")";
+    }
+
+    private:
+    std::ofstream& ofs;
+};
+
 // if logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_logging) == true
+// (handle->layer_mode & rocblas_layer_mode_log_trace) == true
 // then
-// log_function will log "/nh,x1,x2,x3,...xn" to handle->log_ofs
+// log_function will log "/nh,x1,x2,x3,...xn" to handle->log_trace_ofs
 // Note that xs is a variadic parameter pack, and here
 // we assume the expansion xs... is x1,x2,x3,...xn.
 template <typename H, typename... Ts>
@@ -136,13 +168,29 @@ void log_function(rocblas_handle handle, H h, Ts&... xs)
 {
     if(nullptr != handle)
     {
-        if(handle->layer_mode & rocblas_layer_mode_logging)
+        if(handle->layer_mode & rocblas_layer_mode_log_trace)
         {
-            std::ofstream& ofs = handle->log_ofs;
+            std::ofstream& ofs = handle->log_trace_ofs;
             // output newline followed by first argument with no comma
             ofs << "\n" << h;
             // repetitively output: comma then next argument in xs...
             each_args(log_arg{ofs}, xs...);
+        }
+    }
+}
+
+template <typename H, typename... Ts>
+void log_bench(rocblas_handle handle, H head, std::string precision, Ts&... xs)
+{
+    if(nullptr != handle)
+    {
+        if(handle->layer_mode & rocblas_layer_mode_log_bench)
+        {
+            std::ofstream& ofs = handle->log_bench_ofs;
+            // output newline followed by first argument with no comma
+            ofs << "\n" << head << " " << precision;
+            // repetitively output: comma then next argument in xs...
+            each_args(log_arg_space{ofs}, xs...);
         }
     }
 }
