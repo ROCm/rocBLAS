@@ -8,6 +8,8 @@
 #include "definitions.h"
 #include "ger_device.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 template <typename T>
 __global__ void ger_kernel_host_pointer(rocblas_int m,

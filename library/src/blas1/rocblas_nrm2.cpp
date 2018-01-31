@@ -11,6 +11,8 @@
 #include "fetch_template.h"
 #include "rocblas_unique_ptr.hpp"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 template <typename T1, typename T2, rocblas_int NB>
 __global__ void nrm2_kernel_part1(rocblas_int n, const T1* x, rocblas_int incx, T2* workspace)

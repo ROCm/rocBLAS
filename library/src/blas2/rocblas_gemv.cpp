@@ -9,6 +9,8 @@
 #include "definitions.h"
 #include "gemv_device.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 template <typename T, const rocblas_int NB_X, const rocblas_int NB_Y>
 __global__ void gemvn_kernel_host_pointer(rocblas_int m,
