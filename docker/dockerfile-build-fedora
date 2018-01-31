@@ -12,6 +12,7 @@ ARG user_uid
 # * tensile: python34, PyYAML
 # * rocblas-test: gcc-gfortran, googletest
 # * rocblas-bench: boost-devel
+# * libhsakmt.so: libnuma1
 RUN dnf -y update && dnf install -y \
     sudo \
     ca-certificates \

@@ -12,6 +12,7 @@ ARG user_uid
 # * tensile: python2.7, python-yaml
 # * rocblas-test: gfortran, googletest
 # * rocblas-bench: libboost-program-options-dev
+# * libhsakmt.so: libnuma1
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     sudo \
     ca-certificates \
@@ -24,6 +25,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     python-yaml \
     gfortran \
     libboost-program-options-dev \
+    libnuma1 \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
