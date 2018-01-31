@@ -212,7 +212,6 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                     -o -iname \'*.h.in\' \
                     -o -iname \'*.hpp.in\' \
                     -o -iname \'*.cpp.in\' \
-                    -o -iname \'*.cl\' \
                 | grep -v 'build/' \
                 | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
             '''
@@ -239,8 +238,8 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
 ////////////////////////////////////////////////////////////////////////
 // This builds a fresh docker image FROM a clean base image, with no build dependencies included
 // Uploads the new docker image to internal artifactory
-// String docker_upload_artifactory( String hcc_ver, String artifactory_org, String from_image, String rocblas_src_rel, String build_dir_rel )
-String docker_upload_artifactory( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, String job_name )
+// String docker_test_install( String hcc_ver, String artifactory_org, String from_image, String rocblas_src_rel, String build_dir_rel )
+String docker_test_install( compiler_data compiler_args, docker_data docker_args, project_paths rocblas_paths, String job_name )
 {
   def rocblas_install_image = null
   String image_name = "rocblas-hip-${compiler_args.compiler_name}-ubuntu-16.04"
@@ -434,16 +433,14 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
       docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, rocblas_paths )
     }
 
-    // After a successful build, upload a docker image of the results
-    String job_name = env.JOB_NAME.toLowerCase( )
-    String rocblas_image_name = docker_upload_artifactory( compiler_args, docker_args, rocblas_paths, job_name )
+    if( !rocblas_paths.project_name.equalsIgnoreCase( 'rocblas-hcc-ctu' ) )
+    {
+      // After a successful build, upload a docker image of the results
+      String job_name = env.JOB_NAME.toLowerCase( )
+      String rocblas_image_name = docker_test_install( compiler_args, docker_args, rocblas_paths, job_name )
 
-    // if( params.push_image_to_docker_hub )
-    // {
-    //   docker_upload_dockerhub( job_name, rocblas_image_name, 'rocm' )
-    //   docker_clean_images( 'rocm', rocblas_image_name )
-    // }
-    docker_clean_images( job_name, rocblas_image_name )
+      docker_clean_images( job_name, rocblas_image_name )
+    }
   }
 }
 
@@ -458,7 +455,7 @@ parallel hcc_ctu:
           from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
           build_docker_file:'dockerfile-build-ubuntu',
           install_docker_file:'dockerfile-install-ubuntu',
-          docker_run_args:'--device=/dev/kfd',
+          docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
           docker_build_args:' --pull' )
 
       def compiler_args = new compiler_data(
@@ -496,7 +493,7 @@ rocm_ubuntu:
         from_image:'rocm/dev-ubuntu-16.04:latest',
         build_docker_file:'dockerfile-build-ubuntu',
         install_docker_file:'dockerfile-install-ubuntu',
-        docker_run_args:'--device=/dev/kfd',
+        docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
         docker_build_args:' --pull' )
 
     def hcc_compiler_args = new compiler_data(
@@ -520,41 +517,39 @@ rocm_ubuntu:
 
     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
   }
-},
-rocm_fedora:
-{
-  node( 'docker && rocm && !dkms')
-  {
-    def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-fedora-24:latest',
-        build_docker_file:'dockerfile-build-fedora',
-        install_docker_file:'dockerfile-install-fedora',
-        docker_run_args:'--device=/dev/kfd',
-        docker_build_args:' --pull' )
+} //,
+// rocm_fedora:
+// {
+//   node( 'docker && rocm && !dkms')
+//   {
+//     def hcc_docker_args = new docker_data(
+//         from_image:'rocm/dev-fedora-24:latest',
+//         build_docker_file:'dockerfile-build-fedora',
+//         install_docker_file:'dockerfile-install-fedora',
+//         docker_run_args:'--device=/dev/kfd',
+//         docker_build_args:' --pull' )
 
-    def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm-fedora',
-        build_config:'Release',
-        compiler_path:'/opt/rocm/bin/hcc' )
+//     def hcc_compiler_args = new compiler_data(
+//         compiler_name:'hcc-rocm-fedora',
+//         build_config:'Release',
+//         compiler_path:'/opt/rocm/bin/hcc' )
 
-    def rocblas_paths = new project_paths(
-        project_name:'rocblas-fedora',
-        src_prefix:'src',
-        build_prefix:'src',
-        build_command: './install.sh -c' )
+//     def rocblas_paths = new project_paths(
+//         project_name:'rocblas-fedora',
+//         src_prefix:'src',
+//         build_prefix:'src',
+//         build_command: './install.sh -c' )
 
-    def print_version_closure = {
-      sh  """
-          set -x
-          /opt/rocm/bin/rocm_agent_enumerator -t ALL
-          /opt/rocm/bin/hcc --version
-        """
-    }
+//     def print_version_closure = {
+//       sh  """
+//           set -x
+//           /opt/rocm/bin/rocm_agent_enumerator -t ALL
+//           /opt/rocm/bin/hcc --version
+//         """
+//     }
 
-    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
-  }
-}
-
+//     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+//   }
 // },
 // nvcc:
 // {
