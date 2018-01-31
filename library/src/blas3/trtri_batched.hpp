@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #pragma once
@@ -11,6 +10,8 @@
 #include "definitions.h"
 #include "trtri_device.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 // flag indicate whether write into A or invA
 template <typename T, rocblas_int NB, rocblas_int flag>

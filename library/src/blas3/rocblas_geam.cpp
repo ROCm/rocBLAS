@@ -8,6 +8,8 @@
 #include "definitions.h"
 #include "geam_device.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 // general cases for any transA, transB, alpha, beta, lda, ldb, ldc
 template <typename T>
