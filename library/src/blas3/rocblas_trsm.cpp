@@ -10,6 +10,9 @@
 #include "gemm.hpp"
 #include "trtri_trsm.hpp"
 #include "rocblas_unique_ptr.hpp"
+#include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
@@ -732,7 +735,68 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
-    else if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xtrsm"),
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     m,
+                     n,
+                     *alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)B,
+                     ldb);
+
+        std::string side_letter   = rocblas_side_letter(side);
+        std::string uplo_letter   = rocblas_fill_letter(uplo);
+        std::string transA_letter = rocblas_transpose_letter(transA);
+        std::string diag_letter   = rocblas_diag_letter(diag);
+
+        log_bench(handle,
+                  "./rocblas-bench -f trsm -r",
+                  replaceX<T>("X"),
+                  "--side",
+                  side_letter,
+                  "--uplo",
+                  uplo_letter,
+                  "--transposeA",
+                  transA_letter,
+                  "--diag",
+                  diag_letter,
+                  "-m",
+                  m,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--lda",
+                  lda,
+                  "--ldb",
+                  ldb);
+    }
+    else
+    {
+        log_function(handle,
+                     replaceX<T>("rocblas_Xtrsm"),
+                     side,
+                     uplo,
+                     transA,
+                     diag,
+                     m,
+                     n,
+                     (const void*&)alpha,
+                     (const void*&)A,
+                     lda,
+                     (const void*&)B,
+                     ldb);
+    }
+
+    if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_not_implemented;
     else if(m < 0)
         return rocblas_status_invalid_size;
