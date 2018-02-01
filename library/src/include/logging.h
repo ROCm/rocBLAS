@@ -11,7 +11,7 @@
 #include <sys/param.h>
 
 // open std::ofstream for file in pathname contained in environment_variable_name.
-// If this is not successful then open std::ofstream for filename in current 
+// If this is not successful then open std::ofstream for filename in current
 // working directory. Return std::ofstream. If std::ofstream could not be opened
 // then the returned std::ofstream is not opened
 inline std::ofstream open_logfile(std::string environment_variable_name, std::string filename)
@@ -31,7 +31,8 @@ inline std::ofstream open_logfile(std::string environment_variable_name, std::st
     if(logfile_ofs.is_open() == false)
     {
         char temp[MAXPATHLEN];
-        std::string curr_work_dir = (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
+        std::string curr_work_dir =
+            (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
         logfile_pathname = curr_work_dir + "/" + filename;
         logfile_ofs.open(logfile_pathname);
     }
@@ -99,7 +100,7 @@ struct log_arg
 // replaced by separator. h is the first argument, and it is preceded
 // by a new line, not a separator. Each argument x1, x2, x3,   xn
 // is preceded by separator. Typically separator will be a comma
-// or a space. 
+// or a space.
 // Note that xs is a variadic parameter pack, and in this comment
 // we assume the expansion xs... is x1,x2,x3,...xn.
 template <typename H, typename... Ts>

@@ -98,6 +98,7 @@ void testing_logging()
     rocblas_operation transB = rocblas_operation_transpose;
     rocblas_fill uplo        = rocblas_fill_upper;
     rocblas_diagonal diag    = rocblas_diagonal_unit;
+    rocblas_side side        = rocblas_side_left;
 
     rocblas_int safe_dim = ((m > n ? m : n) > k ? (m > n ? m : n) : k);
     rocblas_int size_x   = n * incx;
@@ -174,6 +175,10 @@ void testing_logging()
 
         if(BUILD_WITH_TENSILE)
         {
+            /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
+                        status = rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da,
+               lda, db, ldb);
+            */
             status = rocblas_gemm<T>(
                 handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
 
@@ -356,6 +361,44 @@ void testing_logging()
         transB_letter = "C";
     }
 
+    std::string side_letter;
+    if(side == rocblas_side_left)
+    {
+        side_letter = "L";
+    }
+    else if(side == rocblas_side_right)
+    {
+        side_letter = "R";
+    }
+    else if(side == rocblas_side_both)
+    {
+        side_letter = "B";
+    }
+
+    std::string uplo_letter;
+    if(uplo == rocblas_fill_upper)
+    {
+        uplo_letter = "U";
+    }
+    else if(uplo == rocblas_fill_lower)
+    {
+        uplo_letter = "L";
+    }
+    else if(uplo == rocblas_fill_full)
+    {
+        uplo_letter = "F";
+    }
+
+    std::string diag_letter;
+    if(diag == rocblas_diagonal_non_unit)
+    {
+        diag_letter = "N";
+    }
+    else if(diag == rocblas_diagonal_unit)
+    {
+        diag_letter = "U";
+    }
+
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
         trace_ofs2 << "\n"
@@ -422,7 +465,31 @@ void testing_logging()
 
     if(BUILD_WITH_TENSILE)
     {
+        /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
+                if(test_pointer_mode == rocblas_pointer_mode_host)
+                {
+                    trace_ofs2 << "\n"
+                               << replaceX<T>("rocblas_Xtrsm") << "," << side << "," << uplo
+                               << "," << transA << "," << diag << "," << m
+                               << "," << n << "," << alpha << "," << (void*)da << "," << lda
+                               << "," << (void*)db << "," << ldb;
 
+                    bench_ofs2 << "\n"
+                               << "./rocblas-bench -f trsm -r " << replaceX<T>("X")
+                               << " --side " << side_letter << " --uplo " << uplo_letter
+                               << " --transposeA " << transA_letter << " --diag " << diag_letter
+                               << " -m " << m << " -n " << n << " --alpha " << alpha
+                               << " --lda " << lda << " --ldb " << ldb;
+                }
+                else
+                {
+                    trace_ofs2 << "\n"
+                               << replaceX<T>("rocblas_Xtrsm") << "," << side << "," << uplo
+                               << "," << transA << "," << diag << "," << m
+                               << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda
+                               << "," << (void*)db << "," << ldb;
+                }
+        */
         if(test_pointer_mode == rocblas_pointer_mode_host)
         {
             trace_ofs2 << "\n"
