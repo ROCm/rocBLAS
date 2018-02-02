@@ -10,10 +10,32 @@
 #include <unistd.h>
 #include <sys/param.h>
 
-// open std::ofstream for file in pathname contained in environment_variable_name.
-// If this is not successful then open std::ofstream for filename in current
-// working directory. Return std::ofstream. If std::ofstream could not be opened
-// then the returned std::ofstream is not opened
+/**
+ * @brief Logging function
+ *
+ *  @details
+ *  open_logfile    Open file for logging. The parameter
+ *                  environment_variable_name contains the name of
+ *                  an environment variable set to the full file path
+ *                  for the file to open.  If the environment variable
+ *                  is not set, the parameter filename contains the
+ *                  name of a file that will be opened in the current
+ *                  working directory.
+ *
+ *  @param[in]
+ *  environment_variable_name   std::string
+ *                              Name of environment variable that
+ *                              is set to the full file path.
+ *
+ *  @param[in]
+ *  filename    std::string
+ *              Name of file to open in current working directory.
+ *
+ *  @return[out]
+ *  std::ofstream
+ *  Open output stream. If function fails, output stream will not.
+ *  be open.
+ */
 inline std::ofstream open_logfile(std::string environment_variable_name, std::string filename)
 {
     std::ofstream logfile_ofs;
@@ -40,89 +62,150 @@ inline std::ofstream open_logfile(std::string environment_variable_name, std::st
     return logfile_ofs;
 }
 
-// The variatic template function each_args applies the functor f
-// to each argument in the expansion of the parameter pack xs...
-//
-// Note that in ((void)f(xs),0) the C/C++ comma operator evaluates
-// the first expression (void)f(xs) and discards the output, then
-// it evaluates the second expression 0 and returns the output 0.
-//
-// It thus calls (void)f(xs) on each parameter in xs... as a bye-product of
-// building the initializer_list 0,0,0,...0. The initializer_list is discarded
-//
+/**
+ * @brief Invoke functor for each argument in variadic parameter pack.
+ * @detail
+ * The variatic template function each_args applies the functor f
+ * to each argument in the expansion of the parameter pack xs...
+
+ * Note that in ((void)f(xs),0) the C/C++ comma operator evaluates
+ * the first expression (void)f(xs) and discards the output, then
+ * it evaluates the second expression 0 and returns the output 0.
+
+ * It thus calls (void)f(xs) on each parameter in xs... as a bye-product of
+ * building the initializer_list 0,0,0,...0. The initializer_list is discarded.
+ *
+ * @param f functor to apply to each argument
+ *
+ * @parm xs variadic parameter pack with list of arguments
+ */
 template <typename F, typename... Ts>
 void each_args(F f, Ts&... xs)
 {
     (void)std::initializer_list<int>{((void)f(xs), 0)...};
 }
 
-// Workaround for gcc warnings when each_args called with single argument
-// and no parameter pack
+/**
+ * @brief Workaround for gcc warnings when each_args called with single argument
+ *        and no parameter pack.
+ */
 template <typename F>
 void each_args(F)
 {
 }
 
-// Functor to log single argument to ofs
-// The overloaded () in log_arg is the function call operator
-// The definition in log_arg says "objects of type log_arg can have
-// the function call operator () applied to them with operand x,
-// and it will output x to ofs and return void.
+/**
+ * @brief Functor for logging arguments
+ *
+ * @details Functor to log single argument to ofs.
+ * The overloaded () in log_arg is the function call operator.
+ * The definition in log_arg says "objects of type log_arg can have
+ * the function call operator () applied to them with operand x,
+ * and it will output x to ofs and return void".
+ */
 struct log_arg
 {
     log_arg(std::ofstream& ofs, std::string& separator) : ofs_(ofs), separator_(separator) {}
 
-    // generic operator
+    /// Generic overload for () operator.
     template <typename T>
     void operator()(T& x) const
     {
         ofs_ << separator_ << x;
     }
 
-    // operator for rocblas_float_complex
+    /// Overload () operator for rocblas_float_complex.
     void operator()(const rocblas_float_complex complex_value) const
     {
         ofs_ << separator_ << complex_value.x << separator_ << complex_value.y;
     }
 
-    // operator for rocblas_double_complex
+    /// Overload () operator for rocblas_double_complex.
     void operator()(const rocblas_double_complex complex_value) const
     {
         ofs_ << separator_ << complex_value.x << separator_ << complex_value.y;
     }
 
     private:
-    std::ofstream& ofs_;
-    std::string& separator_;
+    std::ofstream& ofs_;     ///< Output stream file.
+    std::string& separator_; ///< Separator: output preceding argument.
 };
 
-// log_function will log "/nh|x1|x2|x3|...xn" to ofs where | is
-// replaced by separator. h is the first argument, and it is preceded
-// by a new line, not a separator. Each argument x1, x2, x3,   xn
-// is preceded by separator. Typically separator will be a comma
-// or a space.
-// Note that xs is a variadic parameter pack, and in this comment
-// we assume the expansion xs... is x1,x2,x3,...xn.
+/**
+ * @brief Logging function
+ *
+ * @details
+ * log_arguments   Log arguments to output file stream. Arguments
+ *                 are preceded by new line, and separated by separator.
+ *
+ * @param[in]
+ * ofs             std::ofstream
+ *                 Open output stream file.
+ *
+ * @param[in]
+ * separator       std::string
+ *                 Separator to print between arguments.
+ *
+ * @param[in]
+ * head            <typename H>
+ *                 First argument to log. It is preceded by newline.
+ *
+ * @param[in]
+ * xs              <typename... Ts>
+ *                 Variadic parameter pack. Each argument in variadic
+ *                 parameter pack is logged, and it is preceded by
+ *                 separator.
+ */
 template <typename H, typename... Ts>
 void log_arguments(std::ofstream& ofs, std::string& separator, H head, Ts&... xs)
 {
-    // output newline followed by first argument with no comma
     ofs << "\n" << head;
-    // repetitively output: comma then next argument in xs...
     each_args(log_arg{ofs, separator}, xs...);
 }
 
+/**
+ * @brief Logging function
+ *
+ * @details
+ * log_arguments   Log argument to output file stream. Argument
+ *                 is preceded by new line.
+ *
+ * @param[in]
+ * ofs             std::ofstream
+ *                 open output stream file.
+ *
+ * @param[in]
+ * separator       std::string
+ *                 Not used.
+ *
+ * @param[in]
+ * head            <typename H>
+ *                 Argument to log. It is preceded by newline.
+ */
 template <typename H>
 void log_argument(std::ofstream& ofs, std::string& separator, H head)
 {
-    // output newline followed by first argument with no comma
     ofs << "\n" << head;
 }
 
+/**
+ * @brief Logging function
+ *
+ * @details
+ * log_arguments   Log argument to output file stream. Argument
+ *                 is preceded by new line.
+ *
+ * @param[in]
+ * ofs             std::ofstream
+ *                 open output stream file.
+ *
+ * @param[in]
+ * head            <typename H>
+ *                 Argument to log. It is preceded by newline.
+ */
 template <typename H>
 void log_argument(std::ofstream& ofs, H head)
 {
-    // output newline followed by first argument with no comma
     ofs << "\n" << head;
 }
 
