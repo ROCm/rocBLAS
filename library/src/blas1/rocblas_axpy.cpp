@@ -5,6 +5,8 @@
 #include "rocblas.h"
 #include "definitions.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 #define NB_X 256
 
