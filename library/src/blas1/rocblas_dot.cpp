@@ -10,6 +10,8 @@
 #include "device_template.h"
 #include "rocblas_unique_ptr.hpp"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 template <typename T, rocblas_int NB>
 __global__ void dot_kernel_part1(

@@ -8,6 +8,8 @@
 #include "definitions.h"
 #include "rocblas-types.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 #include "rocblas_unique_ptr.hpp"
 #include "rocblas-auxiliary.h"
 

@@ -9,6 +9,8 @@
 #include "gemm.h"
 #include "definitions.h"
 #include "handle.h"
+#include "logging.h"
+#include "utility.h"
 
 /*******************************************************************************
  * API Args

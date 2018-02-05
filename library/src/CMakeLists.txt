@@ -80,6 +80,7 @@ set( rocblas_auxiliary_source
   include/status.h
   include/rocblas_unique_ptr.hpp
   handle.cpp
+  utility.cpp
   rocblas_auxiliary.cpp
   status.cpp
 )
