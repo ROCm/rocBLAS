@@ -590,6 +590,25 @@ rocblas_status rocblas_geam<double>(rocblas_handle handle,
 #if BUILD_WITH_TENSILE
 
 template <>
+rocblas_status rocblas_gemm<rocblas_half>(rocblas_handle handle,
+                                          rocblas_operation transA,
+                                          rocblas_operation transB,
+                                          rocblas_int m,
+                                          rocblas_int n,
+                                          rocblas_int k,
+                                          const rocblas_half* alpha,
+                                          const rocblas_half* A,
+                                          rocblas_int lda,
+                                          const rocblas_half* B,
+                                          rocblas_int ldb,
+                                          const rocblas_half* beta,
+                                          rocblas_half* C,
+                                          rocblas_int ldc)
+{
+    return rocblas_hgemm(handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+
+template <>
 rocblas_status rocblas_gemm<float>(rocblas_handle handle,
                                    rocblas_operation transA,
                                    rocblas_operation transB,
@@ -625,6 +644,47 @@ rocblas_status rocblas_gemm<double>(rocblas_handle handle,
                                     rocblas_int ldc)
 {
     return rocblas_dgemm(handle, transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+
+template <>
+rocblas_status rocblas_gemm_strided_batched<rocblas_half>(rocblas_handle handle,
+                                                          rocblas_operation transA,
+                                                          rocblas_operation transB,
+                                                          rocblas_int m,
+                                                          rocblas_int n,
+                                                          rocblas_int k,
+                                                          const rocblas_half* alpha,
+                                                          const rocblas_half* A,
+                                                          rocblas_int lda,
+                                                          rocblas_int bsa,
+                                                          const rocblas_half* B,
+                                                          rocblas_int ldb,
+                                                          rocblas_int bsb,
+                                                          const rocblas_half* beta,
+                                                          rocblas_half* C,
+                                                          rocblas_int ldc,
+                                                          rocblas_int bsc,
+                                                          rocblas_int batch_count)
+{
+
+    return rocblas_hgemm_strided_batched(handle,
+                                         transA,
+                                         transB,
+                                         m,
+                                         n,
+                                         k,
+                                         alpha,
+                                         A,
+                                         lda,
+                                         bsa,
+                                         B,
+                                         ldb,
+                                         bsb,
+                                         beta,
+                                         C,
+                                         ldc,
+                                         bsc,
+                                         batch_count);
 }
 
 template <>
