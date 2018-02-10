@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
@@ -36,6 +35,38 @@ const vector<vector<int>> tiny_matrix_size_range = {
 
 const vector<vector<int>> small_matrix_size_range = {
     {-1, -1, -1, -1, 1, 1},
+    {2, 2, 2, 2, 2, 2},
+    {3, 3, 3, 3, 3, 3},
+    {4, 4, 4, 4, 4, 4},
+    {5, 5, 5, 5, 5, 5},
+    {6, 6, 6, 6, 6, 6},
+    {7, 7, 7, 7, 7, 7},
+    {8, 8, 8, 8, 8, 8},
+    {9, 9, 9, 9, 9, 9},
+    {10, 10, 10, 10, 10, 10},
+    {11, 11, 11, 11, 11, 11},
+    {12, 12, 12, 12, 12, 12},
+    {13, 13, 13, 13, 13, 13},
+    {14, 14, 14, 14, 14, 14},
+    {15, 15, 15, 15, 15, 15},
+    {16, 16, 16, 16, 16, 16},
+    {17, 17, 17, 17, 17, 17},
+    {18, 18, 18, 18, 18, 18},
+    {19, 19, 19, 19, 19, 19},
+    {20, 20, 20, 20, 20, 20},
+    {2, 3, 4, 5, 6, 7},
+    {3, 4, 5, 6, 7, 8},
+    {4, 5, 6, 6, 6, 6},
+    {5, 6, 7, 7, 8, 9},
+    {6, 7, 8, 10, 9, 8},
+    {7, 8, 9, 11, 9, 10},
+    {8, 9, 10, 10, 11, 12},
+    {9, 10, 11, 12, 11, 13},
+    {13, 12, 11, 15, 14, 13},
+    {13, 14, 12, 12, 13, 14},
+    {15, 16, 17, 17, 18, 19},
+    {18, 17, 16, 18, 18, 18},
+    {16, 17, 18, 20, 19, 18},
     {3, 33, 3, 33, 35, 35},
     {5, 6, 7, 9, 11, 13},
     {10, 10, 20, 100, 21, 22},
@@ -126,6 +157,13 @@ class parameterized_gemm_NaN : public ::TestWithParam<gemm_tuple>
     virtual void TearDown() {}
 };
 
+TEST_P(parameterized_gemm_NaN, rocblas_half)
+{
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    testing_gemm_NaN<rocblas_half>(arg);
+}
+
 TEST_P(parameterized_gemm_NaN, float)
 {
     Arguments arg = setup_gemm_arguments(GetParam());
@@ -148,6 +186,39 @@ class parameterized_gemm : public ::TestWithParam<gemm_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+TEST_P(parameterized_gemm, rocblas_half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
 
 TEST_P(parameterized_gemm, float)
 {
@@ -214,6 +285,8 @@ TEST_P(parameterized_gemm, double)
         }
     }
 }
+
+TEST(checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
 
 TEST(checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
 

@@ -110,6 +110,25 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
     ********************************************************************/
 
 template <>
+rocblas_status rocblas_gemm_template<rocblas_half>(rocblas_handle handle,
+                                                   rocblas_operation transA,
+                                                   rocblas_operation transB,
+                                                   rocblas_int M,
+                                                   rocblas_int N,
+                                                   rocblas_int K,
+                                                   const rocblas_half* alpha,
+                                                   const rocblas_half* A,
+                                                   rocblas_int lda,
+                                                   const rocblas_half* B,
+                                                   rocblas_int ldb,
+                                                   const rocblas_half* beta,
+                                                   rocblas_half* C,
+                                                   rocblas_int ldc)
+{
+    return rocblas_hgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+}
+
+template <>
 rocblas_status rocblas_gemm_template<float>(rocblas_handle handle,
                                             rocblas_operation transA,
                                             rocblas_operation transB,
@@ -148,6 +167,25 @@ rocblas_status rocblas_gemm_template<double>(rocblas_handle handle,
 }
 
 #if COMPLEX
+
+template <>
+rocblas_status rocblas_gemm_template<rocblas_half_complex>(rocblas_handle handle,
+                                                           rocblas_operation transA,
+                                                           rocblas_operation transB,
+                                                           rocblas_int M,
+                                                           rocblas_int N,
+                                                           rocblas_int K,
+                                                           const rocblas_half_complex* alpha,
+                                                           const rocblas_half_complex* A,
+                                                           rocblas_int lda,
+                                                           const rocblas_half_complex* B,
+                                                           rocblas_int ldb,
+                                                           const rocblas_half_complex* beta,
+                                                           rocblas_half_complex* C,
+                                                           rocblas_int ldc)
+{
+    return rocblas_qgemm(handle, transA, transB, M, N, K, alpha, A, lda, B, ldb, beta, C, ldc);
+}
 
 template <>
 rocblas_status rocblas_gemm_template<rocblas_float_complex>(rocblas_handle handle,
@@ -261,6 +299,46 @@ rocblas_status rocblas_gemm_template<rocblas_double_complex>(rocblas_handle hand
     ********************************************************************/
 
 template <>
+rocblas_status rocblas_gemm_strided_batched_template<rocblas_half>(rocblas_handle handle,
+                                                                   rocblas_operation transA,
+                                                                   rocblas_operation transB,
+                                                                   rocblas_int M,
+                                                                   rocblas_int N,
+                                                                   rocblas_int K,
+                                                                   const rocblas_half* alpha,
+                                                                   const rocblas_half* A,
+                                                                   rocblas_int lda,
+                                                                   rocblas_int bsa,
+                                                                   const rocblas_half* B,
+                                                                   rocblas_int ldb,
+                                                                   rocblas_int bsb,
+                                                                   const rocblas_half* beta,
+                                                                   rocblas_half* C,
+                                                                   rocblas_int ldc,
+                                                                   rocblas_int bsc,
+                                                                   rocblas_int batch_count)
+{
+    return rocblas_hgemm_strided_batched(handle,
+                                         transA,
+                                         transB,
+                                         M,
+                                         N,
+                                         K,
+                                         alpha,
+                                         A,
+                                         lda,
+                                         bsa,
+                                         B,
+                                         ldb,
+                                         bsb,
+                                         beta,
+                                         C,
+                                         ldc,
+                                         bsc,
+                                         batch_count);
+}
+
+template <>
 rocblas_status rocblas_gemm_strided_batched_template<float>(rocblas_handle handle,
                                                             rocblas_operation transA,
                                                             rocblas_operation transB,
@@ -341,6 +419,47 @@ rocblas_status rocblas_gemm_strided_batched_template<double>(rocblas_handle hand
 }
 
 #if COMPLEX
+
+template <>
+rocblas_status
+rocblas_gemm_strided_batched_template<rocblas_half_complex>(rocblas_handle handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_operation transB,
+                                                            rocblas_int M,
+                                                            rocblas_int N,
+                                                            rocblas_int K,
+                                                            const rocblas_half_complex* alpha,
+                                                            const rocblas_half_complex* A,
+                                                            rocblas_int lda,
+                                                            rocblas_int bsa,
+                                                            const rocblas_half_complex* B,
+                                                            rocblas_int ldb,
+                                                            rocblas_int bsb,
+                                                            const rocblas_half_complex* beta,
+                                                            rocblas_half_complex* C,
+                                                            rocblas_int ldc,
+                                                            rocblas_int bsc,
+                                                            rocblas_int batch_count)
+{
+    return rocblas_qgemm_strided_batched(handle,
+                                         transA,
+                                         transB,
+                                         M,
+                                         N,
+                                         K,
+                                         alpha,
+                                         A,
+                                         lda,
+                                         bsa,
+                                         B,
+                                         ldb,
+                                         bsb,
+                                         beta,
+                                         C,
+                                         ldc,
+                                         bsc,
+                                         batch_count);
+}
 
 template <>
 rocblas_status

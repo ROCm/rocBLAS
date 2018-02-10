@@ -1004,18 +1004,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle handle,
               specifies the leading dimension of C.
 
     ********************************************************************/
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_hgemm(
-    rocblas_handle handle,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int lda,
-    const rocblas_half *B, rocblas_int ldb,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ldc);
-*/
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm(rocblas_handle handle,
+                                            rocblas_operation transa,
+                                            rocblas_operation transb,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            rocblas_int k,
+                                            const rocblas_half* alpha,
+                                            const rocblas_half* A,
+                                            rocblas_int lda,
+                                            const rocblas_half* B,
+                                            rocblas_int ldb,
+                                            const rocblas_half* beta,
+                                            rocblas_half* C,
+                                            rocblas_int ldc);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm(rocblas_handle handle,
                                             rocblas_operation transa,
@@ -1091,19 +1094,25 @@ rocblas_zgemm(
  * bsc
  * batch_count - numbers of gemm's in the batch
  **************************************************************************/
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_hgemm_strided_batched(
-    rocblas_handle handle,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half *alpha,
-    const rocblas_half *A, rocblas_int lda, rocblas_int bsa,
-    const rocblas_half *B, rocblas_int ldb, rocblas_int bsb,
-    const rocblas_half *beta,
-          rocblas_half *C, rocblas_int ldc, rocblas_int bsc,
-    rocblas_int batch_count );
-*/
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
+                                                            rocblas_operation transa,
+                                                            rocblas_operation transb,
+                                                            rocblas_int m,
+                                                            rocblas_int n,
+                                                            rocblas_int k,
+                                                            const rocblas_half* alpha,
+                                                            const rocblas_half* A,
+                                                            rocblas_int lda,
+                                                            rocblas_int bsa,
+                                                            const rocblas_half* B,
+                                                            rocblas_int ldb,
+                                                            rocblas_int bsb,
+                                                            const rocblas_half* beta,
+                                                            rocblas_half* C,
+                                                            rocblas_int ldc,
+                                                            rocblas_int bsc,
+                                                            rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
                                                             rocblas_operation transa,

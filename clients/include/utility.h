@@ -113,6 +113,30 @@ T random_generator()
     return (T)(rand() % 10 + 1); // generate a integer number between [1, 10]
 };
 
+// for rocblas_half, generate float, and convert to rocblas_half
+template <>
+inline rocblas_half random_generator<rocblas_half>()
+{
+    return float_to_half(
+        static_cast<float>((rand() % 3 + 1))); // generate a integer number between [1, 5]
+};
+
+/*! \brief  generate a random number between [0, 0.999...] . */
+template <typename T>
+T random_generator_negative()
+{
+    // return rand()/( (T)RAND_MAX + 1);
+    return -(T)(rand() % 10 + 1); // generate a integer number between [1, 10]
+};
+
+// for rocblas_half, generate float, and convert to rocblas_half
+template <>
+inline rocblas_half random_generator_negative<rocblas_half>()
+{
+    return float_to_half(
+        -static_cast<float>((rand() % 5 + 1))); // generate a integer number between [1, 5]
+};
+
 /* ============================================================================================ */
 /*! \brief  matrix/vector initialization: */
 // for vector x (M=1, N=lengthX, lda=incx);
@@ -125,6 +149,29 @@ void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
         for(rocblas_int j = 0; j < N; ++j)
         {
             A[i + j * lda] = random_generator<T>();
+        }
+    }
+};
+
+template <typename T>
+void rocblas_init_alternating_sign(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+{
+    // produce matrix where adjacent entries have alternating sign
+    // this means the accumulator in a reduction sum for matrix
+    // multiplication where one matrix has alternating sign should be
+    // summing alternating positive and negative numbers
+    for(rocblas_int i = 0; i < M; ++i)
+    {
+        for(rocblas_int j = 0; j < N; ++j)
+        {
+            if(j % 2 ^ i % 2)
+            {
+                A[i + j * lda] = random_generator<T>();
+            }
+            else
+            {
+                A[i + j * lda] = random_generator_negative<T>();
+            }
         }
     }
 };
