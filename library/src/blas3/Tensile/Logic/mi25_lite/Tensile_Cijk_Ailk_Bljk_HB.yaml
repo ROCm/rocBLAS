@@ -151,7 +151,7 @@
     Valid: true
     VectorWidth: 8
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: 1
+    WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -432,8 +432,6 @@
             - - [8, 2]
               - [1024, 1]
               - [1408, 0]
-              - [1856, 1]
-              - [2368, 0]
               - [-1, 1]
           - - 2944
             - - [8, 2]
@@ -443,8 +441,6 @@
               - [-1, 0]
           - - 3584
             - - [8, 2]
-              - [704, 1]
-              - [1024, 0]
               - [4288, 1]
               - [5056, 0]
               - [5888, 1]
