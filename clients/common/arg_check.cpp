@@ -361,6 +361,20 @@ void verify_rocblas_status_success(rocblas_status status, const char* message)
 }
 
 template <>
+void verify_not_nan(rocblas_half arg)
+{
+// check against 16 bit IEEE NaN immediate value, will work on machine without 16 bit IEEE
+#ifdef GOOGLE_TEST
+    ASSERT_TRUE(static_cast<uint16_t>(arg & 0X7ff) <= static_cast<uint16_t>(0X7C00));
+#else
+    if(static_cast<uint16_t>(arg & 0X7ff) > static_cast<uint16_t>(0X7C00))
+    {
+        std::cerr << "rocBLAS TEST ERROR: argument is NaN" << std::endl;
+    }
+#endif
+}
+
+template <>
 void verify_not_nan(float arg)
 {
 #ifdef GOOGLE_TEST

@@ -232,8 +232,21 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_int ldb = argus.ldb;
     rocblas_int ldc = argus.ldc;
 
-    T h_alpha = argus.alpha;
-    T h_beta  = argus.beta;
+    T h_alpha;
+    T h_beta;
+    if(is_same<T, rocblas_half>::value)
+    {
+        float alpha_float = argus.alpha;
+        float beta_float  = argus.beta;
+
+        h_alpha = float_to_half(alpha_float);
+        h_beta  = float_to_half(beta_float);
+    }
+    else
+    {
+        h_alpha = argus.alpha;
+        h_beta  = argus.beta;
+    }
 
     rocblas_int safe_size = 100;
 
@@ -314,8 +327,20 @@ rocblas_status testing_gemm(Arguments argus)
     // Initial Data on CPU
     srand(1);
     rocblas_init<T>(hA, A_row, A_col, lda);
-    rocblas_init<T>(hB, B_row, B_col, ldb);
+    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC_1, M, N, ldc);
+
+    rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
+    rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
+    rocblas_init<T>(hC_1, M, N, ldc, 1.0);
+
+    //  std::cout << "------------------------------------------------" << std::endl;
+    //  for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
+    //  std::cout << std::endl << "------------------------------------------------" << std::endl;
+    //  for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
+    //  std::cout << std::endl << "------------------------------------------------" << std::endl;
+    //  for(int i = 0; i < size_C; i++){ cout << half_to_float(hC_1[i]) << "  "; }
+    //  std::cout << std::endl << "------------------------------------------------" << std::endl;
 
     hC_2    = hC_1;
     hC_gold = hC_1;
@@ -331,10 +356,21 @@ rocblas_status testing_gemm(Arguments argus)
 
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_1.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
 
+        //      std::cout << std::endl << "------------------------------------------------" <<
+        //      std::endl;
+        //      std::cout << "alpha, beta = " << half_to_float(h_alpha) << ", " <<
+        //      half_to_float(h_beta);
+        //      std::cout << std::endl << "------------------------------------------------" <<
+        //      std::endl;
         CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
         CHECK_HIP_ERROR(hipMemcpy(hC_1.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        //  std::cout << std::endl << "------------------------------------------------" <<
+        //  std::endl;
+        //  for(int i = 0; i < size_C; i++){ cout << half_to_float(hC_1[i]) << "  "; }
+        //  std::cout << std::endl << "------------------------------------------------" <<
+        //  std::endl;
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -370,6 +406,9 @@ rocblas_status testing_gemm(Arguments argus)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
+//  std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
+//  for(int i = 0; i < size_C; i++){ std::cout << half_to_float(hC_gold[i]) << "  "; }
+//  std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
 #ifndef NDEBUG
         print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
