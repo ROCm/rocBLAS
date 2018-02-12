@@ -508,8 +508,70 @@ void cblas_ger<double>(rocblas_int m,
  *    level 3 BLAS
  * ===========================================================================
  */
-
 // gemm
+template <>
+void cblas_gemm<rocblas_half>(rocblas_operation transA,
+                              rocblas_operation transB,
+                              rocblas_int m,
+                              rocblas_int n,
+                              rocblas_int k,
+                              rocblas_half alpha,
+                              rocblas_half* A,
+                              rocblas_int lda,
+                              rocblas_half* B,
+                              rocblas_int ldb,
+                              rocblas_half beta,
+                              rocblas_half* C,
+                              rocblas_int ldc)
+{
+    // cblas does not support rocblas_half, so convert to higher precision float
+    // This will give more precise result which is acceptable for testing
+    float alpha_float = half_to_float(alpha);
+    float beta_float  = half_to_float(beta);
+
+    int sizeA = transA == rocblas_operation_none ? k * lda : m * lda;
+    int sizeB = transB == rocblas_operation_none ? n * ldb : k * ldb;
+    int sizeC = n * ldc;
+
+    std::unique_ptr<float[]> A_float(new float[sizeA]());
+    std::unique_ptr<float[]> B_float(new float[sizeB]());
+    std::unique_ptr<float[]> C_float(new float[sizeC]());
+
+    for(int i = 0; i < sizeA; i++)
+    {
+        A_float[i] = half_to_float(A[i]);
+    }
+    for(int i = 0; i < sizeB; i++)
+    {
+        B_float[i] = half_to_float(B[i]);
+    }
+    for(int i = 0; i < sizeC; i++)
+    {
+        C_float[i] = half_to_float(C[i]);
+    }
+
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    cblas_sgemm(CblasColMajor,
+                (CBLAS_TRANSPOSE)transA,
+                (CBLAS_TRANSPOSE)transB,
+                m,
+                n,
+                k,
+                alpha_float,
+                const_cast<const float*>(A_float.get()),
+                lda,
+                const_cast<const float*>(B_float.get()),
+                ldb,
+                beta_float,
+                static_cast<float*>(C_float.get()),
+                ldc);
+
+    for(int i = 0; i < sizeC; i++)
+    {
+        C[i] = float_to_half(C_float[i]);
+    }
+}
 
 template <>
 void cblas_gemm<float>(rocblas_operation transA,
