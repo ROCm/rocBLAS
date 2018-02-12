@@ -131,8 +131,8 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 include( clients/cmake/build-options.cmake )
 
 if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_full mi25_lite vega10_full vega10_lite r9nano_full r9nano_lite hip_lite other )
+  set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
