@@ -35,6 +35,7 @@ const vector<vector<int>> tiny_matrix_size_range = {
 
 const vector<vector<int>> small_matrix_size_range = {
     {-1, -1, -1, -1, 1, 1},
+    {1, 1, 1, 1, 1, 1},
     {2, 2, 2, 2, 2, 2},
     {3, 3, 3, 3, 3, 3},
     {4, 4, 4, 4, 4, 4},
