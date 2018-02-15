@@ -138,10 +138,10 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "v3.5.1" CACHE STRING "Tensile tag to download" )
-  file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
+  set( tensile_tag "v0.0.0.3" CACHE STRING "Tensile tag to download" )
+  file( DOWNLOAD https://github.com/amcamd/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    EXPECTED_HASH SHA256=6b83f7b9b9837821df879137a0eeac50460a0d156d4f0c2171147f6679b72ca9
+    EXPECTED_HASH SHA256=bf0e2a2f28e68470e84845009bf21dcf95e8757c749c266659a102a90347be3b
   )
 
   list(GET status 0 status_code)
@@ -171,8 +171,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 # CMake list of machine targets
-set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for library to target" )
-#set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
+set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
 

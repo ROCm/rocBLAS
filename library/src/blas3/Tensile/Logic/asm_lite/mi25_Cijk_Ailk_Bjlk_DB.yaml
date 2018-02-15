@@ -1,6 +1,7 @@
 - {MinimumRequiredVersion: 3.4.0}
 - mi25
-- ["Device 6860"]
+- gfx900
+- [Device 6860]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
