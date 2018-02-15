@@ -1,6 +1,7 @@
 - {MinimumRequiredVersion: 3.3.5}
 - hip
-- ["fallback"]
+- gfx000
+- [fallback]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false

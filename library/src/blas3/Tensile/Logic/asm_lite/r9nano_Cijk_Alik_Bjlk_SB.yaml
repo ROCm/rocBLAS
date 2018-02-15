@@ -1,6 +1,7 @@
 - {MinimumRequiredVersion: 3.3.5}
 - r9nano
-- ["Device 7300"]
+- gfx803
+- [Device 7300]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false

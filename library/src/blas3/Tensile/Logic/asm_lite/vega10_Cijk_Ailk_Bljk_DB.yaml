@@ -1,6 +1,7 @@
 - {MinimumRequiredVersion: 3.4.0}
 - vega10
-- ["Device 6863"]
+- gfx900
+- [Device 6863,Device 6862]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
