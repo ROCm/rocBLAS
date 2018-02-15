@@ -141,6 +141,7 @@ if( BUILD_WITH_TENSILE )
   set( tensile_tag "v3.5.1" CACHE STRING "Tensile tag to download" )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
+    STATUS status LOG log
     EXPECTED_HASH SHA256=6b83f7b9b9837821df879137a0eeac50460a0d156d4f0c2171147f6679b72ca9
   )
 
