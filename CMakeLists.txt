@@ -138,10 +138,11 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "v0.0.0.3" CACHE STRING "Tensile tag to download" )
-  file( DOWNLOAD https://github.com/amcamd/Tensile/archive/${tensile_tag}.tar.gz
+  set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
+  file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    EXPECTED_HASH SHA256=bf0e2a2f28e68470e84845009bf21dcf95e8757c749c266659a102a90347be3b
+    STATUS status LOG log
+    EXPECTED_HASH SHA256=0cceda4eac8b6d6e8f03163a65d10912d635a034b8907b190568dd997c5d7c4f
   )
 
   list(GET status 0 status_code)
@@ -160,7 +161,7 @@ if( BUILD_WITH_TENSILE )
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
 
   # Remove the 'v' prefix from tag to stitch PATH for tensile root
-  string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
+# string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
   set( Tensile_ROOT "${PROJECT_EXTERN_DIR}/Tensile-${tensile_tag}" CACHE STRING "Local path of Tensile" )
 endif()
 
@@ -171,7 +172,8 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 # CMake list of machine targets
-set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
+set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for library to target" )
+#set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
 
