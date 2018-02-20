@@ -184,7 +184,7 @@ set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for libr
 find_program( ROCM_INFO rocminfo PATHS /opt/rocm/bin )
 if( ROCM_INFO )
   execute_process(
-    COMMAND ${ROCM_INFO}
+    COMMAND ${ROCM_INFO} -t GPU
     RESULT_VARIABLE rocm_info_result
     OUTPUT_VARIABLE rocm_info_output
   )
