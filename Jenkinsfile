@@ -445,7 +445,7 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
-parallel hcc_ctu:
+hcc_ctu:
 {
   try
   {
@@ -484,7 +484,7 @@ parallel hcc_ctu:
   {
     currentBuild.result = 'UNSTABLE'
   }
-},
+}
 //rocm_ubuntu:
 //{
 //  node( 'docker && rocm && !dkms && gfx900')
