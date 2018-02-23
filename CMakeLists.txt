@@ -131,18 +131,18 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 include( clients/cmake/build-options.cmake )
 
 if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_full mi25_lite vega10_full vega10_lite r9nano_full r9nano_lite hip_lite other )
+  set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "v3.5.1" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
     STATUS status LOG log
-    EXPECTED_HASH SHA256=6b83f7b9b9837821df879137a0eeac50460a0d156d4f0c2171147f6679b72ca9
+    EXPECTED_HASH SHA256=8045f82d0e8c112c3d5b9fbe3fce2c0f3857e28886ea62a75d4e33659bf2a222
   )
 
   list(GET status 0 status_code)
@@ -161,7 +161,7 @@ if( BUILD_WITH_TENSILE )
     WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
 
   # Remove the 'v' prefix from tag to stitch PATH for tensile root
-  string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
+# string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
   set( Tensile_ROOT "${PROJECT_EXTERN_DIR}/Tensile-${tensile_tag}" CACHE STRING "Local path of Tensile" )
 endif()
 
@@ -174,6 +174,51 @@ endif( )
 # CMake list of machine targets
 set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for library to target" )
 #set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
+
+
+
+# Determine what rocm device to compile kernels for, the default is to use a utility to inspect the parts
+# of the users machine
+# First, try to use rocminfo which does not pull in an additional dependency on python
+# Second, try rocm_agent_enumerator but this implies a dependency on python
+find_program( ROCM_INFO rocminfo PATHS /opt/rocm/bin )
+if( ROCM_INFO )
+  execute_process(
+    COMMAND ${ROCM_INFO} -t GPU
+    RESULT_VARIABLE rocm_info_result
+    OUTPUT_VARIABLE rocm_info_output
+  )
+  if( rocm_info_result )
+    message( FATAL_ERROR "Found rocminfo, but could not execute" )
+  endif( )
+else()
+  # This is for older installations of ROCm primarily
+  find_program( ROCM_INFO rocm_agent_enumerator PATHS /opt/rocm/bin )
+  if( ROCM_INFO )
+    execute_process(
+      COMMAND ${ROCM_INFO} -t GPU
+      RESULT_VARIABLE rocm_info_result
+      OUTPUT_VARIABLE rocm_info_output
+    )
+    if( rocm_info_result )
+      message( FATAL_ERROR "Found rocm_agent_enumerator, but could not execute" )
+    endif( )
+  else()
+    message( WARNING "Could not find either rocminfo or rocm_agent_enumerator" )
+    message( STATUS "Statically assigning gfx device of gfx900" )
+    set( info_gfx "gfx900" )
+  endif()
+endif()
+
+string( REGEX MATCHALL "gfx[0-9]+" info_gfx ${rocm_info_output} )
+# string( REGEX REPLACE "Name:[\\r\\n\\t ]*(gfx[0-9]+)" "\\1" info_gfx ${rocm_info_output} )
+# list( LENGTH info_gfx info_gfx_length )
+list( REMOVE_DUPLICATES info_gfx )
+
+# message( "RESULT_VARIABLE: ${rocm_info_result}" )
+# message( "OUTPUT_VARIABLE: \n${rocm_info_output}" )
+# message( "INFO_GRAPHICS: \n${info_gfx}" )
+set( AMDGPU_TARGETS ${info_gfx} CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
 
