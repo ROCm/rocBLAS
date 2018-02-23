@@ -142,7 +142,7 @@ if( BUILD_WITH_TENSILE )
   file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
     ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
     STATUS status LOG log
-    EXPECTED_HASH SHA256=0cceda4eac8b6d6e8f03163a65d10912d635a034b8907b190568dd997c5d7c4f
+    EXPECTED_HASH SHA256=8045f82d0e8c112c3d5b9fbe3fce2c0f3857e28886ea62a75d4e33659bf2a222
   )
 
   list(GET status 0 status_code)
