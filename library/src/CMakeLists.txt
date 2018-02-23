@@ -33,7 +33,8 @@ if( BUILD_WITH_TENSILE )
     list( APPEND package_targets Tensile )
   endif( )
 
-  include( ${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake )
+  # HACK: We include the config file directly because find_package(Tensile) is broken
+  include(${VIRTUALENV_HOME_DIR}/cmake/TensileConfig.cmake)
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
