@@ -131,6 +131,7 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 include( clients/cmake/build-options.cmake )
 
 if( BUILD_WITH_TENSILE )
+  include(virtualenv)
   set( Tensile_LOGIC "mi25_full" CACHE STRING "Tensile to use which logic?")
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS mi25_full mi25_lite vega10_full vega10_lite r9nano_full r9nano_lite hip_lite other )
 
@@ -139,30 +140,12 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
   set( tensile_tag "v3.5.1" CACHE STRING "Tensile tag to download" )
-  file( DOWNLOAD https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz
-    ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    STATUS status LOG log
-    EXPECTED_HASH SHA256=6b83f7b9b9837821df879137a0eeac50460a0d156d4f0c2171147f6679b72ca9
-  )
+  virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
+  list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
 
-  list(GET status 0 status_code)
-  list(GET status 1 status_string)
-
-  if(NOT status_code EQUAL 0)
-    message(FATAL_ERROR "error: downloading
-    'https://github.com/ROCmSoftwarePlatform/Tensile/archive/${tensile_tag}.tar.gz' failed
-    status_code: ${status_code}
-    status_string: ${status_string}
-    log: ${log}
-    ")
-  endif()
-
-  execute_process( COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_EXTERN_DIR}/tensile-${tensile_tag}.tar.gz
-    WORKING_DIRECTORY ${PROJECT_EXTERN_DIR} )
-
-  # Remove the 'v' prefix from tag to stitch PATH for tensile root
   string( SUBSTRING ${tensile_tag} 1 -1 tensile_tag )
-  set( Tensile_ROOT "${PROJECT_EXTERN_DIR}/Tensile-${tensile_tag}" CACHE STRING "Local path of Tensile" )
+  # HACK: We have to set the Tensile_ROOT because find_package(Tensile) is broken
+  set( Tensile_ROOT "${VIRTUALENV_HOME_DIR}/lib/python2.7/site-packages/" CACHE STRING "Local path of Tensile" )
 endif()
 
 # Find HCC/HIP dependencies
