@@ -41,7 +41,6 @@ if( BUILD_WITH_TENSILE )
   TensileCreateLibrary(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
-      "${AMDGPU_TARGETS}"
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
