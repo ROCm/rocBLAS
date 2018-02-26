@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
+#set -x #echo on
+
 # #################################################
 # helper functions
 # #################################################
@@ -320,22 +322,15 @@ pushd .
   # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
 
   # Build library with AMD toolchain because of existense of device kernels
-  CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  if [[ "${build_clients}" == true ]]; then
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  else
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  fi
   check_exit_code
 
   make -j$(nproc) install
   check_exit_code
-
-  # Build clients with default host compiler; no device code currently
-  if [[ "${build_clients}" == true ]]; then
-    pushd clients
-      ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCMAKE_PREFIX_PATH="$(pwd)/../rocblas-install;$(pwd)/../../deps/deps-install" ../../../clients
-      check_exit_code
-
-      make -j$(nproc)
-      check_exit_code
-    popd
-  fi
 
   # #################################################
   # install
