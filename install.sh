@@ -16,6 +16,10 @@ function display_help()
   echo "    [-d|--dependencies] install build dependencies"
   echo "    [-c|--clients] build library clients too (combines with -i & -d)"
   echo "    [-g|--debug] -DCMAKE_BUILD_TYPE=Debug (default is =Release)"
+  echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
+  echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
+  echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
+  echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
 }
 
@@ -193,6 +197,10 @@ supported_distro
 install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
+tensile_logic=asm_full
+tensile_fork=
+tensile_branch=
+tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_release=true
@@ -204,7 +212,7 @@ build_release=true
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug --options hicdg -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,logic:,fork:,branch:test_local_path: --options hicdgl:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -235,6 +243,18 @@ while true; do
     -g|--debug)
         build_release=false
         shift ;;
+    -l|--logic)
+        tensile_logic=${2}
+        shift 2 ;;
+    -f|--fork)
+        tensile_fork=${2}
+        shift 2 ;;
+    -b|--branch)
+        tensile_branch=${2}
+        shift 2 ;;
+    -t|--test_local_path)
+        tensile_test_local_path=${2}
+        shift 2 ;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -297,7 +317,7 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=asm_full"
+  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -306,6 +326,18 @@ pushd .
   else
     mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
     cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
+  fi
+
+  if [[ -n "${tensile_fork}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
+  fi
+
+  if [[ -n "${tensile_branch}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_branch=${tensile_branch}"
+  fi
+
+  if [[ -n "${tensile_test_local_path}" ]]; then
+    cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
 
   # clients
