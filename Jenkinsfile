@@ -445,7 +445,7 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
-hcc_ctu:
+parallel hcc_ctu:
 {
   try
   {
@@ -484,13 +484,13 @@ hcc_ctu:
   {
     currentBuild.result = 'UNSTABLE'
   }
-}
+},
 rocm_ubuntu:
 {
   node( 'docker && rocm && !dkms && gfx900')
   {
     def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-ubuntu-16.04:latest',
+        from_image:'rocm/dev-ubuntu-16.04:1.6.4',
         build_docker_file:'dockerfile-build-ubuntu',
         install_docker_file:'dockerfile-install-ubuntu',
         docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
@@ -517,8 +517,8 @@ rocm_ubuntu:
 
     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
   }
-} //,
-
+} 
+//,
 // rocm_fedora:
 // {
 //   node( 'docker && rocm && !dkms')
