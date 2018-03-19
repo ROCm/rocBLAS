@@ -170,8 +170,7 @@ rocblas_status testing_syr(Arguments argus)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(
-            rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda));
+        CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
@@ -226,7 +225,7 @@ rocblas_status testing_syr(Arguments argus)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = syr_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (2.0 * N * N) * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         cout << "N,alpha,incx,lda,rocblas-Gflops,rocblas-GB/s";
@@ -236,8 +235,8 @@ rocblas_status testing_syr(Arguments argus)
 
         cout << endl;
 
-        cout <<  N << "," << h_alpha << "," << incx << "," << lda << "," << rocblas_gflops
-             << "," << rocblas_bandwidth;
+        cout << N << "," << h_alpha << "," << incx << "," << lda << "," << rocblas_gflops << ","
+             << rocblas_bandwidth;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

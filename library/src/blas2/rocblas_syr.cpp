@@ -98,7 +98,7 @@ rocblas_status rocblas_syr_template(rocblas_handle handle,
                      (const void*&)A,
                      lda);
 
-        std::string uplo_letter   = rocblas_fill_letter(uplo);
+        std::string uplo_letter = rocblas_fill_letter(uplo);
 
         log_bench(handle,
                   "./rocblas-bench -f syr -r",

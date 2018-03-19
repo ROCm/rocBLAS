@@ -84,13 +84,8 @@ void cblas_ger(rocblas_int m,
                rocblas_int lda);
 
 template <typename T>
-void cblas_syr(rocblas_fill uplo,
-               rocblas_int n,
-               T alpha,
-               T* x,
-               rocblas_int incx,
-               T* A,
-               rocblas_int lda);
+void cblas_syr(
+    rocblas_fill uplo, rocblas_int n, T alpha, T* x, rocblas_int incx, T* A, rocblas_int lda);
 
 template <typename T>
 void cblas_hemv(rocblas_fill uplo,
