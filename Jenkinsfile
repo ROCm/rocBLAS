@@ -449,7 +449,7 @@ parallel hcc_ctu:
 {
   try
   {
-    node( 'docker && rocm && dkms && gfx900')
+    node( 'docker && rocm && jenkins-rocm-0')
     {
       def docker_args = new docker_data(
           from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
@@ -487,10 +487,10 @@ parallel hcc_ctu:
 },
 rocm_ubuntu:
 {
-  node( 'docker && rocm && !dkms && gfx900')
+  node( 'docker && rocm && jenkins-rocm-2')
   {
     def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-ubuntu-16.04:1.6.4',
+        from_image:'rocm/dev-ubuntu-16.04:1.7.1',
         build_docker_file:'dockerfile-build-ubuntu',
         install_docker_file:'dockerfile-install-ubuntu',
         docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
