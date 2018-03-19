@@ -18,6 +18,7 @@
 #include "testing_swap.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
+#include "testing_syr.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_trtri.hpp"
@@ -119,7 +120,7 @@ int main(int argc, char* argv[])
               
         ("function,f",
          po::value<std::string>(&function)->default_value("gemv"),
-         "BLAS function to test. Options: gemv, ger, trsm, trmm, symv, syrk, syr2k")
+         "BLAS function to test. Options: gemv, ger, syr, trsm, trmm, symv, syrk, syr2k")
         
         ("precision,r", 
          po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
@@ -275,6 +276,13 @@ int main(int argc, char* argv[])
             testing_ger<float>(argus);
         else if(precision == 'd')
             testing_ger<double>(argus);
+    }
+    else if(function == "syr")
+    {
+        if(precision == 's')
+            testing_syr<float>(argus);
+        else if(precision == 'd')
+            testing_syr<double>(argus);
     }
     else if(function == "trtri")
     {

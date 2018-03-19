@@ -49,6 +49,7 @@ set(rocblas_test_source
     blas1_gtest.cpp
     gemv_gtest.cpp
     ger_gtest.cpp
+    syr_gtest.cpp
     geam_gtest.cpp
     ${Tensile_TEST_SRC}
     )

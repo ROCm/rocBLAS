@@ -45,6 +45,11 @@ void gemv_ger_arg_check(rocblas_status status,
                         rocblas_int incx,
                         rocblas_int incy);
 
+void syr_arg_check(rocblas_status status,
+                   rocblas_int N,
+                   rocblas_int lda,
+                   rocblas_int incx);
+
 void gemm_arg_check(rocblas_status status,
                     rocblas_int M,
                     rocblas_int N,

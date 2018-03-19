@@ -63,6 +63,13 @@ double ger_gflop_count(rocblas_int m, rocblas_int n)
     return (2.0 * m * n) / 1e9;
 }
 
+/* \brief floating point counts of SYR */
+template <typename T>
+double syr_gflop_count(rocblas_int n)
+{
+    return ((2.0 * n * (n+1)) / 2) / 1e9;
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS
