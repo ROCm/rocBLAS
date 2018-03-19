@@ -31,31 +31,30 @@ static __device__ void syr_device(rocblas_fill uplo,
     {
         if(tx < n && ty <= tx)
         {
-            if(incx>0)
+            if(incx > 0)
             {
                 A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
             }
             else
             {
-                
+
                 A[tx + lda * ty] += alpha * x[(1 - n + tx) * incx] * x[(1 - n + ty) * incx];
             }
         }
-    } 
+    }
     else if(uplo == rocblas_fill_upper)
     {
         if(ty < n && tx <= ty)
         {
-            if(incx>0)
+            if(incx > 0)
             {
                 A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
             }
             else
             {
-                
+
                 A[tx + lda * ty] += alpha * x[(1 - n + tx) * incx] * x[(1 - n + ty) * incx];
             }
         }
-    } 
-
+    }
 }

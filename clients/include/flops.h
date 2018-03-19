@@ -67,7 +67,7 @@ double ger_gflop_count(rocblas_int m, rocblas_int n)
 template <typename T>
 double syr_gflop_count(rocblas_int n)
 {
-    return ((2.0 * n * (n+1)) / 2) / 1e9;
+    return ((2.0 * n * (n + 1)) / 2) / 1e9;
 }
 
 /*

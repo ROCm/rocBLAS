@@ -40,37 +40,31 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 // vector of vector, each vector is a {N, lda};
 // add/delete as a group
-const vector<vector<int>> small_matrix_size_range = {
-    {1, 1},
-    {-1, 1},
-    {1, -1},
-    {0, 1},
-    {1, 0},
-    {0, 0},
-    {10, 9},
-    {11, 12},
-    {16, 16},
-    {33, 32},
-    {65, 66},
-    {1000, 1000}
-};
+const vector<vector<int>> small_matrix_size_range = {{1, 1},
+                                                     {-1, 1},
+                                                     {1, -1},
+                                                     {0, 1},
+                                                     {1, 0},
+                                                     {0, 0},
+                                                     {10, 9},
+                                                     {11, 12},
+                                                     {16, 16},
+                                                     {33, 32},
+                                                     {65, 66},
+                                                     {1000, 1000}};
 
-const vector<vector<int>> large_matrix_size_range = {
-    {2000, 2000}, {4011, 4011}, {8000, 8000}};
+const vector<vector<int>> large_matrix_size_range = {{2000, 2000}, {4011, 4011}, {8000, 8000}};
 
 // vector of incx;
 // add/delete single values
-const vector<int> small_incx_range = {
-    -1, 1, 0, 2, -2, 10, 99};
+const vector<int> small_incx_range = {-1, 1, 0, 2, -2, 10, 99};
 const vector<int> large_incx_range = {
     1000,
 };
 
 // vector, each entry is  {alpha};
 // add/delete single values
-const vector<double> small_alpha_range = {
-    -0.5, 2.0, 0.0
-};
+const vector<double> small_alpha_range = {-0.5, 2.0, 0.0};
 const vector<double> large_alpha_range = {
     1000.6,
 };

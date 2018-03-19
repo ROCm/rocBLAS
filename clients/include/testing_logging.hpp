@@ -423,10 +423,10 @@ void testing_logging()
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
         trace_ofs2 << "\n"
-                   << replaceX<T>("rocblas_Xsyr") << "," << uplo << "," << n << "," << alpha 
-                   << "," << (void*)dx << "," << incx << "," << (void*)da << "," << lda;
+                   << replaceX<T>("rocblas_Xsyr") << "," << uplo << "," << n << "," << alpha << ","
+                   << (void*)dx << "," << incx << "," << (void*)da << "," << lda;
         bench_ofs2 << "\n"
-                   << "./rocblas-bench -f syr -r " << replaceX<T>("X") << " --uplo " << uplo 
+                   << "./rocblas-bench -f syr -r " << replaceX<T>("X") << " --uplo " << uplo_letter
                    << " -n " << n << " --alpha " << alpha << " --incx " << incx << " --lda " << lda;
     }
     else

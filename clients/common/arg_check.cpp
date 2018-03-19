@@ -102,10 +102,7 @@ void gemv_ger_arg_check(rocblas_status status,
 #endif
 }
 
-void syr_arg_check(rocblas_status status,
-                   rocblas_int N,
-                   rocblas_int lda,
-                   rocblas_int incx)
+void syr_arg_check(rocblas_status status, rocblas_int N, rocblas_int lda, rocblas_int incx)
 {
 #ifdef GOOGLE_TEST
     if(N < 0 || lda < N || lda < 1 || 0 == incx)
