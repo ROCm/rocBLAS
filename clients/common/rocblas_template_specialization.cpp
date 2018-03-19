@@ -483,6 +483,34 @@ rocblas_status rocblas_ger<double>(rocblas_handle handle,
     return rocblas_dger(handle, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
+template <>
+rocblas_status rocblas_syr<float>(rocblas_handle handle,
+                                  rocblas_fill uplo,
+                                  rocblas_int n,
+                                  const float* alpha,
+                                  const float* x,
+                                  rocblas_int incx,
+                                  float* A,
+                                  rocblas_int lda)
+{
+
+    return rocblas_ssyr(handle, uplo, n, alpha, x, incx, A, lda);
+}
+
+template <>
+rocblas_status rocblas_syr<double>(rocblas_handle handle,
+                                   rocblas_fill uplo,
+                                   rocblas_int n,
+                                   const double* alpha,
+                                   const double* x,
+                                   rocblas_int incx,
+                                   double* A,
+                                   rocblas_int lda)
+{
+
+    return rocblas_dsyr(handle, uplo, n, alpha, x, incx, A, lda);
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS

@@ -167,6 +167,8 @@ void testing_logging()
         // BLAS2
         status = rocblas_ger<T>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
 
+        status = rocblas_syr<T>(handle, uplo, n, &alpha, dx, incx, da, lda);
+
         status = rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
 
         // BLAS3
@@ -416,6 +418,22 @@ void testing_logging()
                    << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha
                    << "," << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
                    << (void*)da << "," << lda;
+    }
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xsyr") << "," << uplo << "," << n << "," << alpha 
+                   << "," << (void*)dx << "," << incx << "," << (void*)da << "," << lda;
+        bench_ofs2 << "\n"
+                   << "./rocblas-bench -f syr -r " << replaceX<T>("X") << " --uplo " << uplo 
+                   << " -n " << n << " --alpha " << alpha << " --incx " << incx << " --lda " << lda;
+    }
+    else
+    {
+        trace_ofs2 << "\n"
+                   << replaceX<T>("rocblas_Xsyr") << "," << uplo << "," << n << "," << (void*)&alpha
+                   << "," << (void*)dx << "," << incx << "," << (void*)da << "," << lda;
     }
 
     if(test_pointer_mode == rocblas_pointer_mode_host)

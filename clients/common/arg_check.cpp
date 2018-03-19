@@ -102,6 +102,48 @@ void gemv_ger_arg_check(rocblas_status status,
 #endif
 }
 
+void syr_arg_check(rocblas_status status,
+                   rocblas_int N,
+                   rocblas_int lda,
+                   rocblas_int incx)
+{
+#ifdef GOOGLE_TEST
+    if(N < 0 || lda < N || lda < 1 || 0 == incx)
+    {
+        ASSERT_EQ(status, rocblas_status_invalid_size);
+    }
+    else if(0 == N)
+    {
+        ASSERT_EQ(status, rocblas_status_success);
+    }
+    else
+    {
+        EXPECT_TRUE(false) << "error in syr_arg_check";
+    }
+#else
+    if(N < 0 || lda < N || lda < 1 || 0 == incx)
+    {
+        if(status != rocblas_status_invalid_size)
+        {
+            std::cerr << "rocBLAS TEST ERROR: (N < 0 || lda < N || lda < 1 || 0 == incx)"
+                      << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: and (status != rocblas_status_invalid_size)"
+                      << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: status = " << status << std::endl;
+        }
+    }
+    else if(0 == N)
+    {
+        if(status != rocblas_status_success)
+        {
+            std::cerr << "rocBLAS TEST ERROR: (0 == N)" << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: and (status != rocblas_status_success)" << std::endl;
+            std::cerr << "rocBLAS TEST ERROR: status = " << status << std::endl;
+        }
+    }
+#endif
+}
+
 void gemm_arg_check(rocblas_status status,
                     rocblas_int M,
                     rocblas_int N,
