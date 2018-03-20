@@ -83,6 +83,16 @@ rocblas_status rocblas_ger(rocblas_handle handle,
                            rocblas_int lda);
 
 template <typename T>
+rocblas_status rocblas_syr(rocblas_handle handle,
+                           rocblas_fill uplo,
+                           rocblas_int n,
+                           const T* alpha,
+                           const T* x,
+                           rocblas_int incx,
+                           T* A,
+                           rocblas_int lda);
+
+template <typename T>
 rocblas_status rocblas_gemv(rocblas_handle handle,
                             rocblas_operation transA,
                             rocblas_int m,

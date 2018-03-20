@@ -727,6 +727,71 @@ rocblas_zger(rocblas_handle handle,
                        rocblas_double_complex *A, rocblas_int lda);
 */
 
+/*! \brief BLAS Level 2 API
+
+    \details
+    xSYR performs the matrix-vector operations
+
+        A := A + alpha*x*x**T
+
+    where alpha is a scalars, x is a vector, and A is an
+    n by n symmetric matrix.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+    @param[inout]
+    A         pointer storing matrix A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr(rocblas_handle handle,
+                                           rocblas_fill uplo,
+                                           rocblas_int n,
+                                           const float* alpha,
+                                           const float* x,
+                                           rocblas_int incx,
+                                           float* A,
+                                           rocblas_int lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr(rocblas_handle handle,
+                                           rocblas_fill uplo,
+                                           rocblas_int n,
+                                           const double* alpha,
+                                           const double* x,
+                                           rocblas_int incx,
+                                           double* A,
+                                           rocblas_int lda);
+
+/* not implemented
+ROCBLAS_EXPORT rocblas_status
+rocblas_csyr(rocblas_handle handle,
+                 rocblas_int n,
+                 const rocblas_float_complex *alpha,
+                 const rocblas_float_complex *x, rocblas_int incx,
+                       rocblas_float_complex *A, rocblas_int lda);
+
+ROCBLAS_EXPORT rocblas_status
+rocblas_zsyr(rocblas_handle handle,
+                 rocblas_int n,
+                 const rocblas_double_complex *alpha,
+                 const rocblas_double_complex *x, rocblas_int incx,
+                       rocblas_double_complex *A, rocblas_int lda);
+*/
+
 /*
  * ===========================================================================
  *    level 3 BLAS
