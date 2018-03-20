@@ -503,6 +503,30 @@ void cblas_ger<double>(rocblas_int m,
     cblas_dger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
+template <>
+void cblas_syr<float>(rocblas_fill uplo,
+                      rocblas_int n,
+                      float alpha,
+                      float* x,
+                      rocblas_int incx,
+                      float* A,
+                      rocblas_int lda)
+{
+    cblas_ssyr(CblasColMajor, (CBLAS_UPLO)uplo, n, alpha, x, incx, A, lda);
+}
+
+template <>
+void cblas_syr<double>(rocblas_fill uplo,
+                       rocblas_int n,
+                       double alpha,
+                       double* x,
+                       rocblas_int incx,
+                       double* A,
+                       rocblas_int lda)
+{
+    cblas_dsyr(CblasColMajor, (CBLAS_UPLO)uplo, n, alpha, x, incx, A, lda);
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS
