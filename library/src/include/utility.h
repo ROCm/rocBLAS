@@ -16,16 +16,17 @@
 // log_function will call log_arguments to log function
 // arguments with a comma separator
 template <typename H, typename... Ts>
-void log_function(rocblas_handle handle, H head, Ts&... xs)
+// void log_function(rocblas_handle handle, H head, Ts&... xs)
+void log_trace(rocblas_handle handle, H head, Ts&... xs)
 {
     if(nullptr != handle)
     {
         if(handle->layer_mode & rocblas_layer_mode_log_trace)
         {
-            std::ofstream& ofs          = handle->log_trace_ofs;
             std::string comma_separator = ",";
 
-            log_arguments(ofs, comma_separator, head, xs...);
+            std::ostream* os = handle->log_trace_os;
+            log_arguments(*os, comma_separator, head, xs...);
         }
     }
 }
@@ -43,9 +44,9 @@ void log_bench(rocblas_handle handle, H head, std::string precision, Ts&... xs)
         if(handle->layer_mode & rocblas_layer_mode_log_bench)
         {
             std::string space_separator = " ";
-            std::ofstream& ofs          = handle->log_bench_ofs;
 
-            log_arguments(ofs, space_separator, head, precision, xs...);
+            std::ostream* os = handle->log_bench_os;
+            log_arguments(*os, space_separator, head, precision, xs...);
         }
     }
 }

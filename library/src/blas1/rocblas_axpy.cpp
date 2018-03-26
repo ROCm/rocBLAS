@@ -235,14 +235,14 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xaxpy"),
-                     n,
-                     *alpha,
-                     (const void*&)x,
-                     incx,
-                     (const void*&)y,
-                     incy);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xaxpy"),
+                  n,
+                  *alpha,
+                  (const void*&)x,
+                  incx,
+                  (const void*&)y,
+                  incy);
         log_bench(handle,
                   "./rocblas-bench -f axpy -r",
                   replaceX<T>("X"),
@@ -257,14 +257,14 @@ rocblas_status rocblas_axpy_template(rocblas_handle handle,
     }
     else
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xaxpy"),
-                     n,
-                     (const void*&)alpha,
-                     (const void*&)x,
-                     incx,
-                     (const void*&)y,
-                     incy);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xaxpy"),
+                  n,
+                  (const void*&)alpha,
+                  (const void*&)x,
+                  incx,
+                  (const void*&)y,
+                  incy);
     }
 
     if(nullptr == alpha)

@@ -208,7 +208,7 @@ rocblas_status rocblas_iamin_template(
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
 
-    log_function(handle, replaceX<T1>("rocblas_iXamin"), n, (const void*&)x, incx);
+    log_trace(handle, replaceX<T1>("rocblas_iXamin"), n, (const void*&)x, incx);
 
     log_bench(handle, "./rocblas-bench -f iamin -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
 

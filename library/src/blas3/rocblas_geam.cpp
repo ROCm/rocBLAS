@@ -232,20 +232,20 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xgeam"),
-                     transA,
-                     transB,
-                     m,
-                     n,
-                     *alpha,
-                     (const void*&)A,
-                     lda,
-                     *beta,
-                     (const void*&)B,
-                     ldb,
-                     (const void*&)C,
-                     ldc);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xgeam"),
+                  transA,
+                  transB,
+                  m,
+                  n,
+                  *alpha,
+                  (const void*&)A,
+                  lda,
+                  *beta,
+                  (const void*&)B,
+                  ldb,
+                  (const void*&)C,
+                  ldc);
 
         std::string transA_letter = rocblas_transpose_letter(transA);
         std::string transB_letter = rocblas_transpose_letter(transB);
@@ -274,20 +274,20 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
     }
     else
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xgeam"),
-                     transA,
-                     transB,
-                     m,
-                     n,
-                     (const void*&)alpha,
-                     (const void*&)A,
-                     lda,
-                     (const void*&)beta,
-                     (const void*&)B,
-                     ldb,
-                     (const void*&)C,
-                     ldc);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xgeam"),
+                  transA,
+                  transB,
+                  m,
+                  n,
+                  (const void*&)alpha,
+                  (const void*&)A,
+                  lda,
+                  (const void*&)beta,
+                  (const void*&)B,
+                  ldb,
+                  (const void*&)C,
+                  ldc);
     }
 
     int dim1_A, dim2_A, dim1_B, dim2_B;
