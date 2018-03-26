@@ -88,15 +88,15 @@ rocblas_status rocblas_syr_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xsyr"),
-                     uplo,
-                     n,
-                     *alpha,
-                     (const void*&)x,
-                     incx,
-                     (const void*&)A,
-                     lda);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xsyr"),
+                  uplo,
+                  n,
+                  *alpha,
+                  (const void*&)x,
+                  incx,
+                  (const void*&)A,
+                  lda);
 
         std::string uplo_letter = rocblas_fill_letter(uplo);
 
@@ -116,15 +116,15 @@ rocblas_status rocblas_syr_template(rocblas_handle handle,
     }
     else
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xsyr"),
-                     uplo,
-                     n,
-                     (const void*&)alpha,
-                     (const void*&)x,
-                     incx,
-                     (const void*&)A,
-                     lda);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xsyr"),
+                  uplo,
+                  n,
+                  (const void*&)alpha,
+                  (const void*&)x,
+                  incx,
+                  (const void*&)A,
+                  lda);
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)

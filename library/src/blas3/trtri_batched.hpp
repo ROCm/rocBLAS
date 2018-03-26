@@ -92,18 +92,18 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                                               rocblas_int bsinvA,
                                               rocblas_int batch_count)
 {
-    log_function(handle,
-                 replaceX<T>("rocblas_Xtrtri"),
-                 uplo,
-                 diag,
-                 n,
-                 (const void*&)A,
-                 lda,
-                 bsa,
-                 (const void*&)invA,
-                 ldinvA,
-                 bsinvA,
-                 batch_count);
+    log_trace(handle,
+              replaceX<T>("rocblas_Xtrtri"),
+              uplo,
+              diag,
+              n,
+              (const void*&)A,
+              lda,
+              bsa,
+              (const void*&)invA,
+              ldinvA,
+              bsinvA,
+              batch_count);
 
     if(handle == nullptr)
         return rocblas_status_invalid_handle;

@@ -136,19 +136,19 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xgemv"),
-                     transA,
-                     m,
-                     n,
-                     *alpha,
-                     (const void*&)A,
-                     lda,
-                     (const void*&)x,
-                     incx,
-                     *beta,
-                     (const void*&)y,
-                     incy);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xgemv"),
+                  transA,
+                  m,
+                  n,
+                  *alpha,
+                  (const void*&)A,
+                  lda,
+                  (const void*&)x,
+                  incx,
+                  *beta,
+                  (const void*&)y,
+                  incy);
 
         std::string transA_letter = rocblas_transpose_letter(transA);
 
@@ -174,19 +174,19 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
     }
     else
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xgemv"),
-                     transA,
-                     m,
-                     n,
-                     (const void*&)alpha,
-                     (const void*&)A,
-                     lda,
-                     (const void*&)x,
-                     incx,
-                     (const void*&)beta,
-                     (const void*&)y,
-                     incy);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xgemv"),
+                  transA,
+                  m,
+                  n,
+                  (const void*&)alpha,
+                  (const void*&)A,
+                  lda,
+                  (const void*&)x,
+                  incx,
+                  (const void*&)beta,
+                  (const void*&)y,
+                  incy);
     }
 
     if(nullptr == A)
