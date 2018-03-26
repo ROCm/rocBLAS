@@ -330,17 +330,17 @@ int main(int argc, char* argv[])
 
         if(argus.lda < min_lda)
         {
-            std::cout << "rocblas-bench ERROR: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
         if(argus.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench ERROR: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
         if(argus.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench ERROR: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
 
@@ -357,17 +357,17 @@ int main(int argc, char* argv[])
         rocblas_int min_ldc = argus.M;
         if(argus.lda < min_lda)
         {
-            std::cout << "rocblas-bench ERROR: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
         if(argus.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench ERROR: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
         if(argus.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench ERROR: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
 
@@ -378,17 +378,17 @@ int main(int argc, char* argv[])
         rocblas_int min_bsc = argus.ldc * argus.N;
         if(argus.bsa < min_bsa)
         {
-            std::cout << "rocblas-bench ERROR: bsa < min_bsa, set bsa = " << min_bsa << std::endl;
+            std::cout << "rocblas-bench INFO: bsa < min_bsa, set bsa = " << min_bsa << std::endl;
             argus.bsa = min_bsa;
         }
         if(argus.bsb < min_bsb)
         {
-            std::cout << "rocblas-bench ERROR: bsb < min_bsb, set bsb = " << min_bsb << std::endl;
+            std::cout << "rocblas-bench INFO: bsb < min_bsb, set bsb = " << min_bsb << std::endl;
             argus.bsb = min_bsb;
         }
         if(argus.bsc < min_bsc)
         {
-            std::cout << "rocblas-bench ERROR: bsc < min_bsc, set bsc = " << min_bsc << std::endl;
+            std::cout << "rocblas-bench INFO: bsc < min_bsc, set bsc = " << min_bsc << std::endl;
             argus.bsc = min_bsc;
         }
 
