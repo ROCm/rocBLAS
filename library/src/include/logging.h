@@ -11,7 +11,7 @@
 #include <sys/param.h>
 
 /**
- *  * @brief Logging function
+ *  @brief Logging function
  *
  *  @details
  *  open_log_stream Open stream log_os for logging.
