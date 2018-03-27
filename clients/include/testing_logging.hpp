@@ -95,14 +95,14 @@ void testing_logging()
     char env_rocblas_log_trace_path[80] = "ROCBLAS_LOG_TRACE_PATH=stream_trace.csv";
     verify_equal(putenv(env_rocblas_log_trace_path),
                  0,
-                 "failed to set environment variable ROCBLAS_LAYER=3");
+                 "failed to set environment variable ROCBLAS_LOG_TRACE_PATH=stream_trace.csv");
 
     // set environment variable to give pathname of for log_bench file
     std::string bench_name1             = "stream_bench.txt";
     char env_rocblas_log_bench_path[80] = "ROCBLAS_LOG_BENCH_PATH=stream_bench.txt";
     verify_equal(putenv(env_rocblas_log_bench_path),
                  0,
-                 "failed to set environment variable ROCBLAS_LAYER=3");
+                 "failed to set environment variable ROCBLAS_LOG_BENCH_PATH=stream_bench.txt");
 
     //
     // call rocBLAS functions with log_trace and log_bench to output log_trace and log_bench files
