@@ -487,7 +487,7 @@ hcc_ctu:
 }
 rocm_ubuntu:
 {
-  node( 'docker && rocm && !dkms && gfx900')
+  node( 'docker && rocm && dkms && gfx900')
   {
     def hcc_docker_args = new docker_data(
         from_image:'rocm/dev-ubuntu-16.04:1.7.1',
@@ -521,7 +521,7 @@ rocm_ubuntu:
 
 // rocm_fedora:
 // {
-//   node( 'docker && rocm && !dkms')
+//   node( 'docker && rocm && dkms')
 //   {
 //     def hcc_docker_args = new docker_data(
 //         from_image:'rocm/dev-fedora-24:latest',
