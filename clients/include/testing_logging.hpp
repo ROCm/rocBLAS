@@ -59,9 +59,16 @@ bool range_equal(InputIterator1 first1,
     while(first1 != last1 && first2 != last2)
     {
         if(*first1 != *first2)
+        {
+            //          cout << std::endl << "----------<"<< *first1 << " " << *first2 <<
+            //          ">----------" << std::endl;
             return false;
-        ++first1;
-        ++first2;
+        }
+        else
+        {
+            ++first1;
+            ++first2;
+        }
     }
     return (first1 == last1) && (first2 == last2);
 }
@@ -71,15 +78,36 @@ void testing_logging()
 {
     rocblas_pointer_mode test_pointer_mode = rocblas_pointer_mode_host;
 
-    // set environment variable ROCBLAS_LAYER = 1 to turn on logging. Note that putenv
+    // set environment variable ROCBLAS_LAYER to turn on logging. Note that putenv
     // only has scope for this executable, so it is not necessary to save and restore
-    // this environment variable for the next executable
-    //  char env_string[80] = "ROCBLAS_LAYER=1";
-    //  char env_string[80] = "ROCBLAS_LAYER=2";
-    char env_string[80] = "ROCBLAS_LAYER=3";
-    verify_equal(putenv(env_string), 0, "failed to set environment variable ROCBLAS_LAYER=3");
+    // this environment variable
+    //
+    // ROCBLAS_LAYER is a bit mask:
+    // ROCBLAS_LAYER = 1 turns on log_trace
+    // ROCBLAS_LAYER = 2 turns on log_bench
+    // ROCBLAS_LAYER = 3 turns on log_trace and log_bench
+    char env_rocblas_layer[80] = "ROCBLAS_LAYER=3";
+    verify_equal(
+        putenv(env_rocblas_layer), 0, "failed to set environment variable ROCBLAS_LAYER=3");
 
-    // make single rocblas_scal call, this will log the call in ~/rocblas_logfile.csv
+    // set environment variable to give pathname of for log_trace file
+    std::string trace_name1             = "stream_trace.csv";
+    char env_rocblas_log_trace_path[80] = "ROCBLAS_LOG_TRACE_PATH=stream_trace.csv";
+    verify_equal(putenv(env_rocblas_log_trace_path),
+                 0,
+                 "failed to set environment variable ROCBLAS_LOG_TRACE_PATH=stream_trace.csv");
+
+    // set environment variable to give pathname of for log_bench file
+    std::string bench_name1             = "stream_bench.txt";
+    char env_rocblas_log_bench_path[80] = "ROCBLAS_LOG_BENCH_PATH=stream_bench.txt";
+    verify_equal(putenv(env_rocblas_log_bench_path),
+                 0,
+                 "failed to set environment variable ROCBLAS_LOG_BENCH_PATH=stream_bench.txt");
+
+    //
+    // call rocBLAS functions with log_trace and log_bench to output log_trace and log_bench files
+    //
+
     rocblas_int m            = 1;
     rocblas_int n            = 1;
     rocblas_int k            = 1;
@@ -211,38 +239,22 @@ void testing_logging()
         // tritri
     }
 
-    // find home directory string
-    const char* homedir_char;
-    std::string homedir_str;
-
-    if((homedir_char = getenv("HOME")) == NULL)
-    {
-        homedir_char = getpwuid(getuid())->pw_dir;
-    }
-    if(homedir_char == NULL)
-    {
-        std::cerr << "cannot determine home directory for rocBLAS log file" << std::endl;
-        exit(-1);
-    }
-    else
-    {
-        homedir_str = std::string(homedir_char);
-    }
+    //
+    // write "golden file"
+    //
 
     // find cwd string
     char temp[MAXPATHLEN];
     std::string cwd_str = (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
 
     // open files
-    std::string trace_name1 = "/rocblas_log_trace.csv";
-    std::string trace_name2 = "/rocblas_log_trace_gold.csv";
-    std::string trace_path1 = cwd_str + trace_name1;
-    std::string trace_path2 = cwd_str + trace_name2;
+    std::string trace_name2 = "rocblas_log_trace_gold.csv";
+    std::string trace_path1 = cwd_str + "/" + trace_name1;
+    std::string trace_path2 = cwd_str + "/" + trace_name2;
 
-    std::string bench_name1 = "/rocblas_log_bench.txt";
-    std::string bench_name2 = "/rocblas_log_bench_gold.txt";
-    std::string bench_path1 = cwd_str + bench_name1;
-    std::string bench_path2 = cwd_str + bench_name2;
+    std::string bench_name2 = "rocblas_log_bench_gold.txt";
+    std::string bench_path1 = cwd_str + "/" + bench_name1;
+    std::string bench_path2 = cwd_str + "/" + bench_name2;
 
     std::ofstream trace_ofs2;
     std::ofstream bench_ofs2;
@@ -250,7 +262,6 @@ void testing_logging()
     trace_ofs2.open(trace_path2);
     bench_ofs2.open(bench_path2);
 
-    // write "golden file"
     // Auxiliary function
     trace_ofs2 << "rocblas_create_handle";
     trace_ofs2 << "\nrocblas_set_pointer_mode,0";
@@ -568,6 +579,10 @@ void testing_logging()
 
     trace_ofs2.close();
     bench_ofs2.close();
+
+    //
+    // check if rocBLAS output files same as "golden files"
+    //
 
     // construct iterators that check if files are same
     std::ifstream trace_ifs1;

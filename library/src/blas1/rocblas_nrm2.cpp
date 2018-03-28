@@ -195,7 +195,7 @@ rocblas_status rocblas_nrm2_template(
     if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
-    log_function(handle, replaceX<T1>("rocblas_Xnrm2"), n, (const void*&)x, incx);
+    log_trace(handle, replaceX<T1>("rocblas_Xnrm2"), n, (const void*&)x, incx);
 
     log_bench(handle, "./rocblas-bench -f nrm2 -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
 

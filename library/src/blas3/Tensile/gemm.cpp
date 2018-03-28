@@ -35,21 +35,21 @@
     {                                                                                      \
         if(handle->pointer_mode == rocblas_pointer_mode_host)                              \
         {                                                                                  \
-            log_function(handle,                                                           \
-                         replaceX<TYPE>("rocblas_Xgemm"),                                  \
-                         trans_a,                                                          \
-                         trans_b,                                                          \
-                         m,                                                                \
-                         n,                                                                \
-                         k,                                                                \
-                         *alpha,                                                           \
-                         (const void*&)A,                                                  \
-                         ld_a,                                                             \
-                         (const void*&)B,                                                  \
-                         ld_b,                                                             \
-                         *beta,                                                            \
-                         (const void*&)C,                                                  \
-                         ld_c);                                                            \
+            log_trace(handle,                                                              \
+                      replaceX<TYPE>("rocblas_Xgemm"),                                     \
+                      trans_a,                                                             \
+                      trans_b,                                                             \
+                      m,                                                                   \
+                      n,                                                                   \
+                      k,                                                                   \
+                      *alpha,                                                              \
+                      (const void*&)A,                                                     \
+                      ld_a,                                                                \
+                      (const void*&)B,                                                     \
+                      ld_b,                                                                \
+                      *beta,                                                               \
+                      (const void*&)C,                                                     \
+                      ld_c);                                                               \
                                                                                            \
             std::string trans_a_letter = rocblas_transpose_letter(trans_a);                \
             std::string trans_b_letter = rocblas_transpose_letter(trans_b);                \
@@ -80,21 +80,21 @@
         }                                                                                  \
         else                                                                               \
         {                                                                                  \
-            log_function(handle,                                                           \
-                         replaceX<TYPE>("rocblas_Xgemm"),                                  \
-                         trans_a,                                                          \
-                         trans_b,                                                          \
-                         m,                                                                \
-                         n,                                                                \
-                         k,                                                                \
-                         (const void*&)alpha,                                              \
-                         (const void*&)A,                                                  \
-                         ld_a,                                                             \
-                         (const void*&)B,                                                  \
-                         ld_b,                                                             \
-                         (const void*&)beta,                                               \
-                         (const void*&)C,                                                  \
-                         ld_c);                                                            \
+            log_trace(handle,                                                              \
+                      replaceX<TYPE>("rocblas_Xgemm"),                                     \
+                      trans_a,                                                             \
+                      trans_b,                                                             \
+                      m,                                                                   \
+                      n,                                                                   \
+                      k,                                                                   \
+                      (const void*&)alpha,                                                 \
+                      (const void*&)A,                                                     \
+                      ld_a,                                                                \
+                      (const void*&)B,                                                     \
+                      ld_b,                                                                \
+                      (const void*&)beta,                                                  \
+                      (const void*&)C,                                                     \
+                      ld_c);                                                               \
         }                                                                                  \
     }                                                                                      \
                                                                                            \
@@ -157,25 +157,25 @@
                                                                         \
     if(handle->pointer_mode == rocblas_pointer_mode_host)               \
     {                                                                   \
-        log_function(handle,                                            \
-                     replaceX<TYPE>("rocblas_Xgemm_strided_batched"),   \
-                     trans_a,                                           \
-                     trans_b,                                           \
-                     m,                                                 \
-                     n,                                                 \
-                     k,                                                 \
-                     *alpha,                                            \
-                     (const void*&)A,                                   \
-                     ld_a,                                              \
-                     bs_a,                                              \
-                     (const void*&)B,                                   \
-                     ld_b,                                              \
-                     bs_b,                                              \
-                     *beta,                                             \
-                     (const void*&)C,                                   \
-                     ld_c,                                              \
-                     bs_c,                                              \
-                     b_c);                                              \
+        log_trace(handle,                                               \
+                  replaceX<TYPE>("rocblas_Xgemm_strided_batched"),      \
+                  trans_a,                                              \
+                  trans_b,                                              \
+                  m,                                                    \
+                  n,                                                    \
+                  k,                                                    \
+                  *alpha,                                               \
+                  (const void*&)A,                                      \
+                  ld_a,                                                 \
+                  bs_a,                                                 \
+                  (const void*&)B,                                      \
+                  ld_b,                                                 \
+                  bs_b,                                                 \
+                  *beta,                                                \
+                  (const void*&)C,                                      \
+                  ld_c,                                                 \
+                  bs_c,                                                 \
+                  b_c);                                                 \
                                                                         \
         std::string trans_a_letter = rocblas_transpose_letter(trans_a); \
         std::string trans_b_letter = rocblas_transpose_letter(trans_b); \
@@ -214,25 +214,25 @@
     }                                                                   \
     else                                                                \
     {                                                                   \
-        log_function(handle,                                            \
-                     replaceX<TYPE>("rocblas_Xgemm_strided_batched"),   \
-                     trans_a,                                           \
-                     trans_b,                                           \
-                     m,                                                 \
-                     n,                                                 \
-                     k,                                                 \
-                     (const void*&)alpha,                               \
-                     (const void*&)A,                                   \
-                     ld_a,                                              \
-                     bs_a,                                              \
-                     (const void*&)B,                                   \
-                     ld_b,                                              \
-                     bs_b,                                              \
-                     (const void*&)beta,                                \
-                     (const void*&)C,                                   \
-                     ld_c,                                              \
-                     bs_c,                                              \
-                     b_c);                                              \
+        log_trace(handle,                                               \
+                  replaceX<TYPE>("rocblas_Xgemm_strided_batched"),      \
+                  trans_a,                                              \
+                  trans_b,                                              \
+                  m,                                                    \
+                  n,                                                    \
+                  k,                                                    \
+                  (const void*&)alpha,                                  \
+                  (const void*&)A,                                      \
+                  ld_a,                                                 \
+                  bs_a,                                                 \
+                  (const void*&)B,                                      \
+                  ld_b,                                                 \
+                  bs_b,                                                 \
+                  (const void*&)beta,                                   \
+                  (const void*&)C,                                      \
+                  ld_c,                                                 \
+                  bs_c,                                                 \
+                  b_c);                                                 \
     }                                                                   \
                                                                         \
     if(validArgs != rocblas_status_success)                             \

@@ -212,7 +212,7 @@ rocblas_status rocblas_iamax_template(
     if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
-    log_function(handle, replaceX<T1>("rocblas_iXamax"), n, (const void*&)x, incx);
+    log_trace(handle, replaceX<T1>("rocblas_iXamax"), n, (const void*&)x, incx);
 
     log_bench(handle, "./rocblas-bench -f iamax -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
 
