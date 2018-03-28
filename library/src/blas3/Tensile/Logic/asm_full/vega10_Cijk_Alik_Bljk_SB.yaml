@@ -38,7 +38,7 @@
   UseInitialStrides: false
 - - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -156,7 +156,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -274,7 +274,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -392,7 +392,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 1
@@ -510,7 +510,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 8
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -628,7 +628,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 1
@@ -746,7 +746,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -864,7 +864,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -982,7 +982,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -1100,7 +1100,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -1218,7 +1218,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -1336,7 +1336,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -1454,7 +1454,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -1572,7 +1572,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 1
@@ -1690,7 +1690,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 1
@@ -1808,7 +1808,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -1926,7 +1926,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -2044,7 +2044,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -2162,7 +2162,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -2280,7 +2280,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -2398,7 +2398,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 1
@@ -2516,7 +2516,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -2634,7 +2634,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -2752,7 +2752,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -2870,7 +2870,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -2988,7 +2988,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3106,7 +3106,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3224,7 +3224,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3342,7 +3342,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3460,7 +3460,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -3578,7 +3578,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 8
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3696,7 +3696,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3814,7 +3814,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -3932,7 +3932,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4050,7 +4050,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4168,7 +4168,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4286,7 +4286,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4404,7 +4404,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 32
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4522,7 +4522,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4640,7 +4640,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4758,7 +4758,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -4876,7 +4876,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -4994,7 +4994,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -5112,7 +5112,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -5230,7 +5230,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 24
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -5348,7 +5348,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -5466,7 +5466,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 8
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
@@ -5584,7 +5584,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 16
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 2
@@ -5702,7 +5702,7 @@
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
+    BufferLoad: true
     DepthU: 8
     EdgeType: ShiftPtr
     GlobalLoadVectorWidthA: 4
