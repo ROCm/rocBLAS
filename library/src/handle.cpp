@@ -11,7 +11,7 @@
 /*******************************************************************************
  * constructor
  ******************************************************************************/
-_rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_log_trace)
+_rocblas_handle::_rocblas_handle()
 {
     // default device is active device
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
@@ -33,8 +33,7 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_log_trace)
     // open log file
     if(layer_mode & rocblas_layer_mode_log_trace)
     {
-        open_log_stream(
-            &log_trace_os, &log_trace_ofs, "ROCBLAS_LOG_TRACE_PATH", "rocblas_log_trace.csv");
+        open_log_stream(&log_trace_os, &log_trace_ofs, "ROCBLAS_LOG_TRACE_PATH");
 
         *log_trace_os << "rocblas_create_handle";
     }
@@ -42,8 +41,7 @@ _rocblas_handle::_rocblas_handle() : layer_mode(rocblas_layer_mode_log_trace)
     // open log_bench file
     if(layer_mode & rocblas_layer_mode_log_bench)
     {
-        open_log_stream(
-            &log_bench_os, &log_bench_ofs, "ROCBLAS_LOG_BENCH_PATH", "rocblas_log_bench.csv");
+        open_log_stream(&log_bench_os, &log_bench_ofs, "ROCBLAS_LOG_BENCH_PATH");
     }
 }
 

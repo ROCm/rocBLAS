@@ -15,38 +15,32 @@
  *
  *  @details
  *  open_log_stream Open stream log_os for logging.
- *                  If environment_variable_name is not set, then
- *                  stream log_os to std::cerr.
- *                  If environment_variable_name is set, then stream log_os
- *                  to file in environment_variable_name.
- *                  If opening the file in environment_variable_name failed,
- *                  then stream log_os to file cwd_filename in the
- *                  current working directory.
- *                  If opening cwd_filename fails, stream to std::cerr.
+ *                  If the environment variable with name environment_variable_name
+ *                  is not set, then stream log_os to std::cerr.
+ *                  Else open a file at the full logfile path contained in
+ *                  the environment variable.
+ *                  If opening the file suceeds, stream to the file
+ *                  else stream to std::cerr.
  *
  *  @param[in]
  *  environment_variable_name   std::string
  *                              Name of environment variable that contains
  *                              the full logfile path.
  *
- *  @param[in]
- *  cwd_filename    std::string
- *                  Name of file to open in current working directory if
- *                  opening file in environment_variable_name fails.
- *
  *  @parm[out]
  *  log_os      std::ostream**
- *              Open output stream.
+ *              Output stream. Stream to std:err if environment_variable_name
+ *              is not set, else set to stream to log_ofs
  *
  *  @parm[out]
- *  log_ofs     std::ofstream
- *              Open ofstream if environment_variable_name is set
+ *  log_ofs     std::ofstream*
+ *              Output file stream. If log_ofs->is_open()==true, then log_os
+ *              will stream to log_ofs. Else it will stream to std::cerr.
  */
 
 inline void open_log_stream(std::ostream** log_os,
                             std::ofstream* log_ofs,
-                            std::string environment_variable_name,
-                            std::string cwd_filename)
+                            std::string environment_variable_name)
 {
     *log_os = &std::cerr;
 
@@ -59,16 +53,6 @@ inline void open_log_stream(std::ostream** log_os,
         std::string logfile_pathname = (std::string)environment_variable_value;
         log_ofs->open(logfile_pathname);
 
-        // if logfile_pathname in environment variable cannot be opened, open
-        // current_working_directory/cwd_filename
-        if(log_ofs->is_open() == false)
-        {
-            char temp[MAXPATHLEN];
-            std::string curr_work_dir =
-                (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
-            logfile_pathname = curr_work_dir + "/" + cwd_filename;
-            log_ofs->open(logfile_pathname);
-        }
         // if log_ofs is open, then stream to log_ofs, else log_os is already
         // set equal to std::cerr
         if(log_ofs->is_open() == true)
