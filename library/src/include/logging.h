@@ -11,55 +11,55 @@
 #include <sys/param.h>
 
 /**
- * @brief Logging function
+ *  @brief Logging function
  *
  *  @details
- *  open_logfile    Open file for logging. The parameter
- *                  environment_variable_name contains the name of
- *                  an environment variable set to the full file path
- *                  for the file to open.  If the environment variable
- *                  is not set, the parameter filename contains the
- *                  name of a file that will be opened in the current
- *                  working directory.
+ *  open_log_stream Open stream log_os for logging.
+ *                  If the environment variable with name environment_variable_name
+ *                  is not set, then stream log_os to std::cerr.
+ *                  Else open a file at the full logfile path contained in
+ *                  the environment variable.
+ *                  If opening the file suceeds, stream to the file
+ *                  else stream to std::cerr.
  *
  *  @param[in]
  *  environment_variable_name   std::string
- *                              Name of environment variable that
- *                              is set to the full file path.
+ *                              Name of environment variable that contains
+ *                              the full logfile path.
  *
- *  @param[in]
- *  filename    std::string
- *              Name of file to open in current working directory.
+ *  @parm[out]
+ *  log_os      std::ostream**
+ *              Output stream. Stream to std:err if environment_variable_name
+ *              is not set, else set to stream to log_ofs
  *
- *  @return[out]
- *  std::ofstream
- *  Open output stream. If function fails, output stream will not.
- *  be open.
+ *  @parm[out]
+ *  log_ofs     std::ofstream*
+ *              Output file stream. If log_ofs->is_open()==true, then log_os
+ *              will stream to log_ofs. Else it will stream to std::cerr.
  */
-inline std::ofstream open_logfile(std::string environment_variable_name, std::string filename)
+
+inline void open_log_stream(std::ostream** log_os,
+                            std::ofstream* log_ofs,
+                            std::string environment_variable_name)
 {
-    std::ofstream logfile_ofs;
-    std::string logfile_pathname;
+    *log_os = &std::cerr;
 
-    // first try to open filepath in environment_variable_name
-    char const* tmp = getenv(environment_variable_name.c_str());
-    if(tmp != NULL)
+    char const* environment_variable_value = getenv(environment_variable_name.c_str());
+
+    if(environment_variable_value != NULL)
     {
-        logfile_pathname = (std::string)tmp;
-        logfile_ofs.open(logfile_pathname);
-    }
+        // if environment variable is set, open file at logfile_pathname contained in the
+        // environment variable
+        std::string logfile_pathname = (std::string)environment_variable_value;
+        log_ofs->open(logfile_pathname);
 
-    // second option: open file in current working directory
-    if(logfile_ofs.is_open() == false)
-    {
-        char temp[MAXPATHLEN];
-        std::string curr_work_dir =
-            (getcwd(temp, MAXPATHLEN) ? std::string(temp) : std::string(""));
-        logfile_pathname = curr_work_dir + "/" + filename;
-        logfile_ofs.open(logfile_pathname);
+        // if log_ofs is open, then stream to log_ofs, else log_os is already
+        // set equal to std::cerr
+        if(log_ofs->is_open() == true)
+        {
+            *log_os = log_ofs;
+        }
     }
-
-    return logfile_ofs;
 }
 
 /**
@@ -105,29 +105,29 @@ void each_args(F)
  */
 struct log_arg
 {
-    log_arg(std::ofstream& ofs, std::string& separator) : ofs_(ofs), separator_(separator) {}
+    log_arg(std::ostream& os, std::string& separator) : os_(os), separator_(separator) {}
 
     /// Generic overload for () operator.
     template <typename T>
     void operator()(T& x) const
     {
-        ofs_ << separator_ << x;
+        os_ << separator_ << x;
     }
 
     /// Overload () operator for rocblas_float_complex.
     void operator()(const rocblas_float_complex complex_value) const
     {
-        ofs_ << separator_ << complex_value.x << separator_ << complex_value.y;
+        os_ << separator_ << complex_value.x << separator_ << complex_value.y;
     }
 
     /// Overload () operator for rocblas_double_complex.
     void operator()(const rocblas_double_complex complex_value) const
     {
-        ofs_ << separator_ << complex_value.x << separator_ << complex_value.y;
+        os_ << separator_ << complex_value.x << separator_ << complex_value.y;
     }
 
     private:
-    std::ofstream& ofs_;     ///< Output stream file.
+    std::ostream& os_;       ///< Output stream.
     std::string& separator_; ///< Separator: output preceding argument.
 };
 
@@ -157,10 +157,10 @@ struct log_arg
  *                 separator.
  */
 template <typename H, typename... Ts>
-void log_arguments(std::ofstream& ofs, std::string& separator, H head, Ts&... xs)
+void log_arguments(std::ostream& os, std::string& separator, H head, Ts&... xs)
 {
-    ofs << "\n" << head;
-    each_args(log_arg{ofs, separator}, xs...);
+    os << "\n" << head;
+    each_args(log_arg{os, separator}, xs...);
 }
 
 /**
@@ -183,9 +183,9 @@ void log_arguments(std::ofstream& ofs, std::string& separator, H head, Ts&... xs
  *                 Argument to log. It is preceded by newline.
  */
 template <typename H>
-void log_argument(std::ofstream& ofs, std::string& separator, H head)
+void log_argument(std::ostream& os, std::string& separator, H head)
 {
-    ofs << "\n" << head;
+    os << "\n" << head;
 }
 
 /**
@@ -204,9 +204,9 @@ void log_argument(std::ofstream& ofs, std::string& separator, H head)
  *                 Argument to log. It is preceded by newline.
  */
 template <typename H>
-void log_argument(std::ofstream& ofs, H head)
+void log_argument(std::ostream& os, H head)
 {
-    ofs << "\n" << head;
+    os << "\n" << head;
 }
 
 #endif

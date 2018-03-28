@@ -88,7 +88,7 @@ rocblas_status rocblas_swap_template(
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
 
-    log_function(
+    log_trace(
         handle, replaceX<T>("rocblas_Xswap"), n, (const void*&)x, incx, (const void*&)y, incy);
 
     log_bench(handle,

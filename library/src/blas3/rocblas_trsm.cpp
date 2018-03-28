@@ -738,19 +738,19 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xtrsm"),
-                     side,
-                     uplo,
-                     transA,
-                     diag,
-                     m,
-                     n,
-                     *alpha,
-                     (const void*&)A,
-                     lda,
-                     (const void*&)B,
-                     ldb);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xtrsm"),
+                  side,
+                  uplo,
+                  transA,
+                  diag,
+                  m,
+                  n,
+                  *alpha,
+                  (const void*&)A,
+                  lda,
+                  (const void*&)B,
+                  ldb);
 
         std::string side_letter   = rocblas_side_letter(side);
         std::string uplo_letter   = rocblas_fill_letter(uplo);
@@ -781,19 +781,19 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     }
     else
     {
-        log_function(handle,
-                     replaceX<T>("rocblas_Xtrsm"),
-                     side,
-                     uplo,
-                     transA,
-                     diag,
-                     m,
-                     n,
-                     (const void*&)alpha,
-                     (const void*&)A,
-                     lda,
-                     (const void*&)B,
-                     ldb);
+        log_trace(handle,
+                  replaceX<T>("rocblas_Xtrsm"),
+                  side,
+                  uplo,
+                  transA,
+                  diag,
+                  m,
+                  n,
+                  (const void*&)alpha,
+                  (const void*&)A,
+                  lda,
+                  (const void*&)B,
+                  ldb);
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)

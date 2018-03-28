@@ -245,8 +245,7 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
     if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
-    log_function(
-        handle, replaceX<T>("rocblas_Xdot"), n, (const void*&)x, incx, (const void*&)y, incy);
+    log_trace(handle, replaceX<T>("rocblas_Xdot"), n, (const void*&)x, incx, (const void*&)y, incy);
 
     log_bench(handle,
               "./rocblas-bench -f dot -r",

@@ -36,9 +36,11 @@ struct _rocblas_handle
 
     // default logging_mode is no logging
     rocblas_layer_mode layer_mode;
+
     std::ofstream log_trace_ofs;
     std::ofstream log_bench_ofs;
-    // need to read environment variable that contains layer_mode
+    std::ostream* log_trace_os;
+    std::ostream* log_bench_os;
 };
 
 #endif
