@@ -69,7 +69,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                          alpha,
                                          B(BLOCK, 0),
                                          ldb);
-
+Untitled Document
                 // remaining blocks
                 for(i = BLOCK; i < m; i += BLOCK)
                 {
@@ -146,7 +146,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
             if(i - BLOCK >= 0)
             {
 
-                rocblas_gemm_template<T>(handle,
+                rocblas_gemm_template<T>(hanUntitled Documentdle,
                                          transA,
                                          transB,
                                          i,
@@ -249,7 +249,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              &one,
                                              invA(i),
                                              BLOCK,
-                                             B(i, 0),
+                                            Untitled Document B(i, 0),
                                              ldb,
                                              &zero,
                                              X(i, 0),
@@ -363,7 +363,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
 
     // transB is always non-transpose
     rocblas_operation transB = rocblas_operation_none;
-
+Untitled Document
     if(transA == transB)
     {
         if(uplo == rocblas_fill_lower)
@@ -644,7 +644,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
 
     \details
 
-    trsm solves
+    trsm solvesUntitled Document
 
         op(A)*X = alpha*B or  X*op(A) = alpha*B,
 
@@ -861,6 +861,10 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                  ldb * n * sizeof(T),
                                  hipMemcpyDeviceToDevice)); // TODO: optimized it with copy kernel
 
+    //hipMemcpyDeviceToDevice does not sync host, so a stream sync is required before hipFree pointer (here rocblas use smart pointer) 
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    hipStreamSynchronize(rocblas_stream);
     return status;
 }
 
