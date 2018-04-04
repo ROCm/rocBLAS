@@ -859,7 +859,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                  ldb * n * sizeof(T),
                                  hipMemcpyDeviceToDevice)); // TODO: optimized it with copy kernel
 
-    //hipMemcpyDeviceToDevice does not sync host, so a stream sync is required before hipFree pointer (here rocblas use smart pointer) 
+    // hipMemcpyDeviceToDevice does not sync host, so a stream sync is required before hipFree
+    // pointer (here rocblas use smart pointer)
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
     hipStreamSynchronize(rocblas_stream);
