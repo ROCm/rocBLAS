@@ -1,11 +1,15 @@
 #!/usr/bin/env groovy
 
-// Generated from snippet generator 'properties; set job properties'
-properties([buildDiscarder(logRotator(
-    artifactDaysToKeepStr: '',
-    artifactNumToKeepStr: '',
-    daysToKeepStr: '',
-    numToKeepStr: '10')),
+////////////////////////////////////////////////////////////////////////
+// Mostly generated from snippet generator 'properties; set job properties'
+// Time-based triggers added to execute nightly tests, eg '30 2 * * *' means 2:30 AM
+properties([
+    pipelineTriggers([cron('0 3 * * *'), [$class: 'PeriodicFolderTrigger', interval: '5m']]),
+    buildDiscarder(logRotator(
+      artifactDaysToKeepStr: '',
+      artifactNumToKeepStr: '',
+      daysToKeepStr: '',
+      numToKeepStr: '10')),
     disableConcurrentBuilds(),
     // parameters([booleanParam( name: 'push_image_to_docker_hub', defaultValue: false, description: 'Push rocblas image to rocm docker-hub' )]),
     [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
@@ -15,6 +19,29 @@ properties([buildDiscarder(logRotator(
 // -- AUXILLARY HELPER FUNCTIONS
 // import hudson.FilePath;
 import java.nio.file.Path;
+
+////////////////////////////////////////////////////////////////////////
+// Check whether job was started by a timer
+@NonCPS
+def isJobStartedByTimer() {
+    def startedByTimer = false
+    try {
+        def buildCauses = currentBuild.rawBuild.getCauses()
+        for ( buildCause in buildCauses ) {
+            if (buildCause != null) {
+                def causeDescription = buildCause.getShortDescription()
+                echo "shortDescription: ${causeDescription}"
+                if (causeDescription.contains("Started by timer")) {
+                    startedByTimer = true
+                }
+            }
+        }
+    } catch(theError) {
+        echo "Error getting build cause"
+    }
+
+    return startedByTimer
+}
 
 ////////////////////////////////////////////////////////////////////////
 // Return build number of upstream job
@@ -175,13 +202,25 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
       timeout(time: 2, unit: 'HOURS')
       {
-        sh """#!/usr/bin/env bash
-              set -x
-              cd ${paths.project_build_prefix}/build/release/clients/staging
-              LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-              LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes
-          """
-        junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        if(isJobStartedByTimer())
+        {
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/build/release/clients/staging
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes #--gtest_filter=*nightly*
+            """
+          junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        }
+        else
+        {
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/build/release/clients/staging
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes #--gtest_filter=*checkin* 
+            """
+          junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        }
       }
 
       String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
