@@ -114,7 +114,7 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-rocm_setup_version( VERSION 0.13.2.0 NO_GIT_TAG_VERSION )
+rocm_setup_version( VERSION 0.12.2.0 NO_GIT_TAG_VERSION )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -139,7 +139,7 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "v4.0.1" CACHE STRING "Tensile tag to download" )
   virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
 
