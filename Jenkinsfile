@@ -560,7 +560,7 @@ rocm_ubuntu:
 //,
 // rocm_fedora:
 // {
-//   node( 'docker && rocm && !dkms')
+//   node( 'docker && rocm && dkms')
 //   {
 //     def hcc_docker_args = new docker_data(
 //         from_image:'rocm/dev-fedora-24:latest',

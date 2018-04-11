@@ -139,7 +139,7 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "v3.6.0" CACHE STRING "Tensile tag to download" )
   virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
 
