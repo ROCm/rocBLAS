@@ -54,8 +54,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 =================================================================== */
 
 int N_range[] = {
-    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000, 8000000
-};
+    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000, 8000000};
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
@@ -155,7 +154,6 @@ TEST_P(parameterized, iamax_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-
 TEST_P(parameterized, asum_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -168,7 +166,6 @@ TEST_P(parameterized, asum_double)
 
     EXPECT_EQ(rocblas_status_success, status);
 }
-
 
 TEST_P(parameterized, axpy_float)
 {
@@ -222,7 +219,6 @@ TEST_P(parameterized, copy_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-
 TEST_P(parameterized, dot_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -236,7 +232,6 @@ TEST_P(parameterized, dot_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-
 TEST_P(parameterized, nrm2_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -249,7 +244,6 @@ TEST_P(parameterized, nrm2_double)
 
     EXPECT_EQ(rocblas_status_success, status);
 }
-
 
 TEST_P(parameterized, scal_float)
 {
