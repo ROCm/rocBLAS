@@ -51,7 +51,7 @@ __global__ void nrm2_kernel_part2(rocblas_int n, T* workspace, T* result)
     // bound, loop
     for(rocblas_int i = tx; i < n; i += NB)
     {
-        shared_tep[i] += workspace[i];
+        shared_tep[tx] += workspace[i];
     }
     __syncthreads();
 
@@ -68,7 +68,7 @@ __global__ void nrm2_kernel_part2(rocblas_int n, T* workspace, T* result)
     }
     else
     {
-        // parallel reduction, TODO bug
+        // parallel reduction, 
         rocblas_sum_reduce<NB, T>(tx, shared_tep);
     }
 
