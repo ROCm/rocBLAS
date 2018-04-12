@@ -54,12 +54,12 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 =================================================================== */
 
 int N_range[] = {
-    -1, 0, 5, 10, 500, 1000, 7111, 10000,
+    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000
 };
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
-vector<vector<double>> alpha_beta_range = {{1.0, 0.0}, {2.0, -1.0}};
+vector<vector<double>> alpha_beta_range = {{1.0, 0.0}, /*{2.0, -1.0}*/};
 
 // vector of vector, each pair is a {incx, incy};
 // add/delete this list in pairs, like {1, 2}
