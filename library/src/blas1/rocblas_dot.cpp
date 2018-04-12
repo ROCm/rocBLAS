@@ -105,7 +105,7 @@ __global__ void dot_kernel_part2(rocblas_int n, T* workspace, T* result)
     }
     else
     {
-        // parallel reduction, TODO bug
+        // parallel reduction, 
         rocblas_sum_reduce<NB, T>(tx, shared_tep);
     }
 

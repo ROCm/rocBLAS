@@ -54,7 +54,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 =================================================================== */
 
 int N_range[] = {
-    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000
+    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000, 8000000
 };
 
 // vector of vector, each pair is a {alpha, beta};
@@ -155,7 +155,8 @@ TEST_P(parameterized, iamax_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(parameterized, asum_float)
+
+TEST_P(parameterized, asum_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -163,10 +164,11 @@ TEST_P(parameterized, asum_float)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments(GetParam());
 
-    rocblas_status status = testing_asum<float, float>(arg);
+    rocblas_status status = testing_asum<double, double>(arg);
 
     EXPECT_EQ(rocblas_status_success, status);
 }
+
 
 TEST_P(parameterized, axpy_float)
 {
@@ -220,18 +222,6 @@ TEST_P(parameterized, copy_float)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(parameterized, dot_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_dot<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
 
 TEST_P(parameterized, dot_double)
 {
@@ -246,7 +236,8 @@ TEST_P(parameterized, dot_double)
     EXPECT_EQ(rocblas_status_success, status);
 }
 
-TEST_P(parameterized, nrm2_float)
+
+TEST_P(parameterized, nrm2_double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -254,10 +245,11 @@ TEST_P(parameterized, nrm2_float)
     // while the tuple is non-intuitive.
     Arguments arg = setup_blas1_arguments(GetParam());
 
-    rocblas_status status = testing_nrm2<float, float>(arg);
+    rocblas_status status = testing_nrm2<double, double>(arg);
 
     EXPECT_EQ(rocblas_status_success, status);
 }
+
 
 TEST_P(parameterized, scal_float)
 {
