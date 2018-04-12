@@ -86,7 +86,9 @@ __global__ void dot_kernel_part2(rocblas_int n, T* workspace, T* result)
     // bound, loop
     for(rocblas_int i = tx; i < n; i += NB)
     {
-        shared_tep[i] += workspace[i];
+        {
+            shared_tep[tx] += workspace[i];
+        }
     }
     __syncthreads();
 
