@@ -172,7 +172,7 @@ if( ROCM_INFO )
     OUTPUT_VARIABLE rocm_info_output
   )
   if( rocm_info_result )
-    message( FATAL_ERROR "Found rocminfo, but could not execute" )
+      message( WARNING "Found rocminfo, but could not execute" )
   endif( )
 else()
   # This is for older installations of ROCm primarily
@@ -184,7 +184,7 @@ else()
       OUTPUT_VARIABLE rocm_info_output
     )
     if( rocm_info_result )
-      message( FATAL_ERROR "Found rocm_agent_enumerator, but could not execute" )
+        message( WARNING "Found rocm_agent_enumerator, but could not execute" )
     endif( )
   else()
     message( WARNING "Could not find either rocminfo or rocm_agent_enumerator" )
