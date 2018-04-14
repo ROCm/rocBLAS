@@ -511,7 +511,6 @@ parallel hcc_ctu:
       def print_version_closure = {
         sh  """
             set -x
-            /opt/rocm/bin/rocm_agent_enumerator -t ALL
             /opt/rocm/bin/hcc --version
           """
       }
@@ -549,7 +548,6 @@ rocm_ubuntu:
     def print_version_closure = {
       sh  """
           set -x
-          /opt/rocm/bin/rocm_agent_enumerator -t ALL
           /opt/rocm/bin/hcc --version
         """
     }
@@ -583,7 +581,6 @@ rocm_ubuntu:
 //     def print_version_closure = {
 //       sh  """
 //           set -x
-//           /opt/rocm/bin/rocm_agent_enumerator -t ALL
 //           /opt/rocm/bin/hcc --version
 //         """
 //     }
