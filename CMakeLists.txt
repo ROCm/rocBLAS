@@ -139,7 +139,7 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
-  set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
+  set( tensile_tag "develop-gfx9" CACHE STRING "Tensile tag to download" )
   virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
 
@@ -155,53 +155,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 # CMake list of machine targets
-set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for library to target" )
-#set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
-
-
-
-# Determine what rocm device to compile kernels for, the default is to use a utility to inspect the parts
-# of the users machine
-# First, try to use rocminfo which does not pull in an additional dependency on python
-# Second, try rocm_agent_enumerator but this implies a dependency on python
-find_program( ROCM_INFO rocminfo PATHS /opt/rocm/bin )
-if( ROCM_INFO )
-  execute_process(
-    COMMAND ${ROCM_INFO} -t GPU
-    RESULT_VARIABLE rocm_info_result
-    OUTPUT_VARIABLE rocm_info_output
-  )
-  if( rocm_info_result )
-    message( FATAL_ERROR "Found rocminfo, but could not execute" )
-  endif( )
-else()
-  # This is for older installations of ROCm primarily
-  find_program( ROCM_INFO rocm_agent_enumerator PATHS /opt/rocm/bin )
-  if( ROCM_INFO )
-    execute_process(
-      COMMAND ${ROCM_INFO} -t GPU
-      RESULT_VARIABLE rocm_info_result
-      OUTPUT_VARIABLE rocm_info_output
-    )
-    if( rocm_info_result )
-      message( FATAL_ERROR "Found rocm_agent_enumerator, but could not execute" )
-    endif( )
-  else()
-    message( WARNING "Could not find either rocminfo or rocm_agent_enumerator" )
-    message( STATUS "Statically assigning gfx device of gfx900" )
-    set( info_gfx "gfx900" )
-  endif()
-endif()
-
-string( REGEX MATCHALL "gfx[0-9]+" info_gfx ${rocm_info_output} )
-# string( REGEX REPLACE "Name:[\\r\\n\\t ]*(gfx[0-9]+)" "\\1" info_gfx ${rocm_info_output} )
-# list( LENGTH info_gfx info_gfx_length )
-list( REMOVE_DUPLICATES info_gfx )
-
-# message( "RESULT_VARIABLE: ${rocm_info_result}" )
-# message( "OUTPUT_VARIABLE: \n${rocm_info_output}" )
-# message( "INFO_GRAPHICS: \n${info_gfx}" )
-set( AMDGPU_TARGETS ${info_gfx} CACHE STRING "List of specific machine types for library to target" )
+set( AMDGPU_TARGETS gfx803;gfx900;gfx906 CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
 
