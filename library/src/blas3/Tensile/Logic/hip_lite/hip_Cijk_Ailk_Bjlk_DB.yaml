@@ -1,4 +1,4 @@
-- {MinimumRequiredVersion: 3.3.5}
+- {MinimumRequiredVersion: 4.0.2}
 - hip
 - gfx000
 - [fallback]

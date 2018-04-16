@@ -36,4 +36,4 @@ tags
 .vscode
 
 # build-in-source directory
-build
+build*
