@@ -1217,6 +1217,63 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handl
                                                             rocblas_int bsc,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm_kernel_name(rocblas_handle handle,
+                                                        rocblas_operation transa,
+                                                        rocblas_operation transb,
+                                                        rocblas_int m,
+                                                        rocblas_int n,
+                                                        rocblas_int k,
+                                                        const rocblas_half* alpha,
+                                                        const rocblas_half* A,
+                                                        rocblas_int lda,
+                                                        rocblas_int bsa,
+                                                        const rocblas_half* B,
+                                                        rocblas_int ldb,
+                                                        rocblas_int bsb,
+                                                        const rocblas_half* beta,
+                                                        rocblas_half* C,
+                                                        rocblas_int ldc,
+                                                        rocblas_int bsc,
+                                                        rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemm_kernel_name(rocblas_handle handle,
+                                                        rocblas_operation transa,
+                                                        rocblas_operation transb,
+                                                        rocblas_int m,
+                                                        rocblas_int n,
+                                                        rocblas_int k,
+                                                        const float* alpha,
+                                                        const float* A,
+                                                        rocblas_int lda,
+                                                        rocblas_int bsa,
+                                                        const float* B,
+                                                        rocblas_int ldb,
+                                                        rocblas_int bsb,
+                                                        const float* beta,
+                                                        float* C,
+                                                        rocblas_int ldc,
+                                                        rocblas_int bsc,
+                                                        rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
+                                                        rocblas_operation transa,
+                                                        rocblas_operation transb,
+                                                        rocblas_int m,
+                                                        rocblas_int n,
+                                                        rocblas_int k,
+                                                        const double* alpha,
+                                                        const double* A,
+                                                        rocblas_int lda,
+                                                        rocblas_int bsa,
+                                                        const double* B,
+                                                        rocblas_int ldb,
+                                                        rocblas_int bsb,
+                                                        const double* beta,
+                                                        double* C,
+                                                        rocblas_int ldc,
+                                                        rocblas_int bsc,
+                                                        rocblas_int batch_count);
+
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_qgemm_strided_batched(
