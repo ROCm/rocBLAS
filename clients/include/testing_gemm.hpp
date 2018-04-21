@@ -410,7 +410,7 @@ rocblas_status testing_gemm(Arguments argus)
 //  for(int i = 0; i < size_C; i++){ std::cout << half_to_float(hC_gold[i]) << "  "; }
 //  std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
 #ifndef NDEBUG
-        print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
+        //print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
 
         // enable unit check, notice unit check is not invasive, but norm check is,
@@ -434,7 +434,7 @@ rocblas_status testing_gemm(Arguments argus)
     if(argus.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 10;
+        int number_hot_calls  = argus.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
