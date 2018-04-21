@@ -141,30 +141,21 @@ if( BUILD_WITH_TENSILE )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
 
+  include(virtualenv)
 
   if (Tensile_TEST_LOCAL_PATH)
-    # Use user's local Tensile path:
-    execute_process( COMMAND ${CMAKE_COMMAND} -E copy_directory ${Tensile_TEST_LOCAL_PATH} ${PROJECT_EXTERN_DIR}/Tensile)
-
-    #set( Tensile_ROOT ${Tensile_TEST_LOCAL_PATH} )
-    set( Tensile_ROOT "${PROJECT_EXTERN_DIR}/Tensile" CACHE STRING "Local path of Tensile" )
-    set( Tensile_TensileConfig ${Tensile_ROOT}/Tensile/Source/TensileConfig.cmake )
-
+    virtualenv_install(${Tensile_TEST_LOCAL_PATH})
     message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
   else()
     # Use the virtual-env setup and download package from specified repot:
-    include(virtualenv)
-
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
     set( tensile_tag "develop" CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
-    list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-
-    set( Tensile_ROOT "${VIRTUALENV_HOME_DIR}/lib/python2.7/site-packages/" CACHE STRING "Local path of Tensile" )
-    set( Tensile_TensileConfig ${VIRTUALENV_HOME_DIR}/cmake/TensileConfig.cmake)
-
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
+  list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
+  set( Tensile_ROOT "${VIRTUALENV_HOME_DIR}/lib/python2.7/site-packages/" CACHE STRING "Local path of Tensile" )
+  set( Tensile_TensileConfig ${VIRTUALENV_HOME_DIR}/cmake/TensileConfig.cmake)
 
 endif()
 
@@ -175,57 +166,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 # CMake list of machine targets
-<<<<<<< HEAD
 set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
-=======
-set( AMDGPU_TARGETS gfx900 CACHE STRING "List of specific machine types for library to target" )
-#set( AMDGPU_TARGETS gfx803;gfx900 CACHE STRING "List of specific machine types for library to target" )
-
-
-
-# Determine what rocm device to compile kernels for, the default is to use a utility to inspect the parts
-# of the users machine
-# First, try to use rocminfo which does not pull in an additional dependency on python
-# Second, try rocm_agent_enumerator but this implies a dependency on python
-find_program( ROCM_INFO rocminfo PATHS /opt/rocm/bin )
-if( ROCM_INFO )
-  execute_process(
-    COMMAND ${ROCM_INFO} -t GPU
-    RESULT_VARIABLE rocm_info_result
-    OUTPUT_VARIABLE rocm_info_output
-  )
-  if( rocm_info_result )
-    message( FATAL_ERROR "Found rocminfo, but could not execute" )
-  endif( )
-else()
-  # This is for older installations of ROCm primarily
-  find_program( ROCM_INFO rocm_agent_enumerator PATHS /opt/rocm/bin )
-  if( ROCM_INFO )
-    execute_process(
-      COMMAND ${ROCM_INFO} -t GPU
-      RESULT_VARIABLE rocm_info_result
-      OUTPUT_VARIABLE rocm_info_output
-    )
-    if( rocm_info_result )
-      message( FATAL_ERROR "Found rocm_agent_enumerator, but could not execute" )
-    endif( )
-  else()
-    message( WARNING "Could not find either rocminfo or rocm_agent_enumerator" )
-    message( STATUS "Statically assigning gfx device of gfx900" )
-    set( info_gfx "gfx900" )
-  endif()
-endif()
-
-string( REGEX MATCHALL "gfx[0-9]+" info_gfx ${rocm_info_output} )
-# string( REGEX REPLACE "Name:[\\r\\n\\t ]*(gfx[0-9]+)" "\\1" info_gfx ${rocm_info_output} )
-# list( LENGTH info_gfx info_gfx_length )
-list( REMOVE_DUPLICATES info_gfx )
-
- message( "RESULT_VARIABLE: ${rocm_info_result}" )
-# message( "OUTPUT_VARIABLE: \n${rocm_info_output}" )
-# message( "INFO_GRAPHICS: \n${info_gfx}" )
-set( AMDGPU_TARGETS ${info_gfx} CACHE STRING "List of specific machine types for library to target" )
->>>>>>> 943b327... Add cmake and install.sh controls for specifying which tensile
 
 add_subdirectory( library )
 
