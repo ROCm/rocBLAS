@@ -117,5 +117,5 @@ elseif( CMAKE_COMPILER_IS_GNUCXX )
   target_compile_options( rocblas-test PRIVATE -mf16c )
 endif( )
 
-set_target_properties( rocblas-test PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )
+set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

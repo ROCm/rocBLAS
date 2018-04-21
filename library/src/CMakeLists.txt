@@ -157,7 +157,6 @@ endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )

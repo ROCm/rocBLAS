@@ -247,7 +247,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     if(argus.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 10;
+        int number_hot_calls  = argus.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
