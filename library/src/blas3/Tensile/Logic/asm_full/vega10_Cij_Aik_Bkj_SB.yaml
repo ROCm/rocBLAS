@@ -170,18 +170,18 @@
     BufferStore: true
     DepthU: 16
     DirectToLds: true
-    DirectToLdsA: true
+    DirectToLdsA: false
     DirectToLdsB: false
     EdgeType: ShiftPtr
-    GlobalLoadVectorWidthA: 1
-    GlobalLoadVectorWidthB: 1
+    GlobalLoadVectorWidthA: 4
+    GlobalLoadVectorWidthB: 4
     GlobalRead2A: true
     GlobalRead2B: true
     GlobalReadCoalesceGroupA: true
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
-    GlobalReadVectorWidth: 1
+    GlobalReadVectorWidth: 4
     GlobalSplitU: 1
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
@@ -189,22 +189,22 @@
     KernelLanguage: Assembly
     LSCA: 64
     LSCB: 16
-    LSPA: 4
-    LSPB: 16
-    LVCA: 64
-    LVCB: 16
+    LSPA: 16
+    LSPB: 64
+    LVCA: 16
+    LVCB: 4
     LVPA: 4
     LVPB: 16
-    LdsNumElements: 2080
+    LdsNumElements: 2112
     LdsOffsetB: 1024
     LdsPadA: 0
-    LdsPadB: 2
+    LdsPadB: 4
     LocalRead2A: true
     LocalRead2B: true
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
-    LocalWriteUseSgprA: true
+    LocalWriteUseSgprA: false
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopTail: true
@@ -221,19 +221,19 @@
     NonTemporalC: 0
     NumElementsPerThread: 16
     NumGlobalWriteVectorsPerThread: 8
-    NumLoadsA: 4
-    NumLoadsB: 4
+    NumLoadsA: 1
+    NumLoadsB: 1
     NumLoadsCoalescedA: 1
     NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 4
-    NumLoadsPerpendicularB: 4
+    NumLoadsPerpendicularA: 1
+    NumLoadsPerpendicularB: 1
     NumThreads: 256
     PVA: 1
     PVB: 1
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
-    PreciseBoundsCheck: true
+    PreciseBoundsCheck: false
     PrefetchGlobalRead: false
     PrefetchLocalRead: false
     ProblemType:
@@ -281,7 +281,7 @@
     ThreadTileA: 4
     ThreadTileB: 4
     UnrollMemFence: false
-    UseSgprForGRO: 1
+    UseSgprForGRO: 0
     Valid: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
@@ -289,7 +289,7 @@
     WorkGroupMappingType: B
 - [2, 0, 1]
 - - - [3136, 512, 2048]
-    - [0, 8264.95]
+    - [0, 7856.13]
   - - [3136, 2048, 512]
-    - [1, 9627.22]
+    - [1, 9169.37]
 - null
