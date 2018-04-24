@@ -12,7 +12,7 @@
 /*!\file
  * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing
  * not part of the GPU library
-*/
+ */
 
 /*
  * ===========================================================================

@@ -381,7 +381,7 @@ class Arguments
     rocblas_int unit_check = 1;
     rocblas_int timing     = 0;
 
-    rocblas_int iters      = 10;
+    rocblas_int iters = 10;
 
     Arguments& operator=(const Arguments& rhs)
     {
