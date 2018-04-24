@@ -464,7 +464,7 @@ rocblas_status testing_geam(Arguments argus)
 
         cout << argus.transA_option << argus.transB_option << "," << M << "," << N << "," << h_alpha
              << "," << lda << "," << h_beta << "," << ldb << "," << ldc << "," << rocblas_gflops
-             << "," << gpu_time_used/number_hot_calls << ",";
+             << "," << gpu_time_used / number_hot_calls << ",";
 
         if(argus.unit_check || argus.norm_check)
         {
