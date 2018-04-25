@@ -88,7 +88,7 @@ elseif( CMAKE_COMPILER_IS_GNUCXX )
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-set_target_properties( rocblas-bench PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )
+set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 add_subdirectory ( ./perf_script )
