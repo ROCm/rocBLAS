@@ -311,7 +311,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
              << K << "," << h_alpha << "," << lda << "," << bsa << "," << ldb << "," << bsb << ","
              << h_beta << "," << ldc << "," << bsc << "," << batch_count << "," << rocblas_gflops
-             << "," << gpu_time_used / number_hot_calls;
+             << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
