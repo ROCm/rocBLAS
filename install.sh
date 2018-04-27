@@ -113,8 +113,7 @@ install_packages( )
   fi
 
   # dependencies needed for rocblas and clients to build
-#  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "pkg-config" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
   local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "hip_hcc" "gcc-c++" )
   local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
 
@@ -197,6 +196,7 @@ install_prefix=rocblas-install
 build_clients=false
 build_cuda=false
 build_release=true
+dts7_bin=/opt/rh/devtoolset-7/root/usr/bin	# only for CentOS
 
 # #################################################
 # Parameter parsing
@@ -268,6 +268,14 @@ cmake_executable=cmake
 case "${ID}" in
   centos|rhel)
   cmake_executable=cmake3
+  ;;
+esac
+
+case "${ID}" in
+  centos)
+    export CXX=${dts7_bin}/g++
+    export CC=${dts7_bin}/gcc
+    export FC=${dts7_bin}/gfortran
   ;;
 esac
 

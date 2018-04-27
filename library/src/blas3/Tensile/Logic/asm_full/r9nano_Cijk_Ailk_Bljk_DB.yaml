@@ -1,7 +1,7 @@
 - {MinimumRequiredVersion: 4.0.2}
-- mi25
-- gfx900
-- [Device 6860]
+- r9nano
+- gfx803
+- [Device 7300]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false

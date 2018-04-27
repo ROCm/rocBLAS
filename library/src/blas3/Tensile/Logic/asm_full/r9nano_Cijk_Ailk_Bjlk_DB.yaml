@@ -1,7 +1,7 @@
 - {MinimumRequiredVersion: 4.0.2}
-- mi25
-- gfx900
-- [Device 6860]
+- r9nano
+- gfx803
+- [Device 7300]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -12,10 +12,10 @@
   Index01A: 0
   Index01B: 1
   Index1: 1
-  IndexAssignmentsA: [3, 0, 2]
+  IndexAssignmentsA: [0, 3, 2]
   IndexAssignmentsB: [1, 3, 2]
   IndexUnroll: 3
-  IndexUnrollA: 0
+  IndexUnrollA: 1
   IndexUnrollB: 1
   IndicesBatch: [2]
   IndicesFree: [0, 1]
@@ -25,14 +25,14 @@
   NumIndicesFree: 2
   NumIndicesSummation: 1
   OperationType: GEMM
-  TLUA: false
+  TLUA: true
   TLUB: true
   Tensor0: 0
   Tensor1: 1
   TileA: 0
   TileB: 1
   TotalIndices: 4
-  TransposeA: true
+  TransposeA: false
   TransposeB: true
   UseBeta: true
   UseInitialStrides: false
@@ -53,13 +53,13 @@
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
     KernelLanguage: Assembly
-    LSCA: 8
+    LSCA: 64
     LSCB: 64
-    LSPA: 64
+    LSPA: 8
     LSPB: 8
-    LVCA: 4
+    LVCA: 32
     LVCB: 32
-    LVPA: 32
+    LVPA: 4
     LVPB: 4
     LdsNumElements: 2048
     LdsNumElementsAlignedA: 512
@@ -114,10 +114,10 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsA: [0, 3, 2]
       IndexAssignmentsB: [1, 3, 2]
       IndexUnroll: 3
-      IndexUnrollA: 0
+      IndexUnrollA: 1
       IndexUnrollB: 1
       IndicesBatch: [2]
       IndicesFree: [0, 1]
@@ -127,14 +127,14 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
-      TLUA: false
+      TLUA: true
       TLUB: true
       Tensor0: 0
       Tensor1: 1
       TileA: 0
       TileB: 1
       TotalIndices: 4
-      TransposeA: true
+      TransposeA: false
       TransposeB: true
       UseBeta: true
       UseInitialStrides: false
@@ -170,13 +170,13 @@
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
     KernelLanguage: Assembly
-    LSCA: 4
+    LSCA: 64
     LSCB: 64
-    LSPA: 64
+    LSPA: 4
     LSPB: 4
-    LVCA: 4
+    LVCA: 64
     LVCB: 64
-    LVPA: 64
+    LVPA: 4
     LVPB: 4
     LdsNumElements: 1024
     LdsNumElementsAlignedA: 256
@@ -231,10 +231,10 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsA: [0, 3, 2]
       IndexAssignmentsB: [1, 3, 2]
       IndexUnroll: 3
-      IndexUnrollA: 0
+      IndexUnrollA: 1
       IndexUnrollB: 1
       IndicesBatch: [2]
       IndicesFree: [0, 1]
@@ -244,14 +244,14 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
-      TLUA: false
+      TLUA: true
       TLUB: true
       Tensor0: 0
       Tensor1: 1
       TileA: 0
       TileB: 1
       TotalIndices: 4
-      TransposeA: true
+      TransposeA: false
       TransposeB: true
       UseBeta: true
       UseInitialStrides: false
