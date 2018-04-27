@@ -204,6 +204,7 @@ tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_release=true
+dts7_bin=/opt/rh/devtoolset-7/root/usr/bin	# only for CentOS
 
 # #################################################
 # Parameter parsing
@@ -287,6 +288,14 @@ cmake_executable=cmake
 case "${ID}" in
   centos|rhel)
   cmake_executable=cmake3
+  ;;
+esac
+
+case "${ID}" in
+  centos)
+    export CXX=${dts7_bin}/g++
+    export CC=${dts7_bin}/gcc
+    export FC=${dts7_bin}/gfortran
   ;;
 esac
 
