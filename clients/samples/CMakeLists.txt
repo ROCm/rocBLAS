@@ -40,6 +40,7 @@ foreach( exe ${sample_list} )
     # hcc compiler, and we want to be able to build with host compilers
     target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
     target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
+    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/lib")
   endif( )
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
