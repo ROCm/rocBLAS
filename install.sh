@@ -272,7 +272,7 @@ case "${ID}" in
 esac
 
 case "${ID}" in
-  centos)
+  centos|rhel)
     export CXX=${dts7_bin}/g++
     export CC=${dts7_bin}/gcc
     export FC=${dts7_bin}/gfortran
@@ -317,9 +317,11 @@ pushd .
     cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
   fi
 
-  if [[ "${ID}" == centos ]]; then
-    cmake_common_options="${cmake_common_options} -DCMAKE_INSTALL_LIBDIR=lib"
-  fi
+  case "${ID}" in
+    centos|rhel)
+      cmake_common_options="${cmake_common_options} -DCMAKE_INSTALL_LIBDIR=lib"
+    ;;
+  esac
 
   # clients
   if [[ "${build_clients}" == true ]]; then
