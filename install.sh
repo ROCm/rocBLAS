@@ -349,6 +349,10 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
 
+  if [[ "${ID}" == centos ]]; then
+    cmake_common_options="${cmake_common_options} -DCMAKE_INSTALL_LIBDIR=lib"
+  fi
+
   # clients
   if [[ "${build_clients}" == true ]]; then
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
