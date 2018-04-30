@@ -8,7 +8,7 @@
 OLD_ROCBLAS_VERSION="12.3.1"
 NEW_ROCBLAS_VERSION="13.3.1"
 
-OLD_TENSILE_VERSION="tensile_tag 4.1.1"
+OLD_TENSILE_VERSION="tensile_tag v4.1.1"
 NEW_TENSILE_VERSION="tensile_tag \"develop\""
 
 sed -i "s/${OLD_ROCBLAS_VERSION}/${NEW_ROCBLAS_VERSION}/g" CMakeLists.txt
