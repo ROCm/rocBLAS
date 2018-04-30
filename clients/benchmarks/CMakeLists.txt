@@ -76,7 +76,7 @@ if( CUDA_FOUND )
 else( )
   target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/lib")
+  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/hcc/lib")
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
