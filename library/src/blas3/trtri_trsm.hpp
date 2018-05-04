@@ -28,7 +28,7 @@
 */
 template <typename T, rocblas_int NB>
 __global__ void trtri_trsm_kernel(
-    rocblas_fill uplo, rocblas_diagonal diag, rocblas_int n, T* A, rocblas_int lda, T* invA)
+    rocblas_fill uplo, rocblas_diagonal diag, rocblas_int n, const T* A, rocblas_int lda, T* invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -101,7 +101,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
                                            rocblas_fill uplo,
                                            rocblas_diagonal diag,
                                            rocblas_int n,
-                                           T* A,
+                                           const T* A,
                                            rocblas_int lda,
                                            T* invA)
 {
