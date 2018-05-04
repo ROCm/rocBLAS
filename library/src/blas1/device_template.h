@@ -1,3 +1,5 @@
+#ifndef _DEVICE_TEMPLATE_H_
+#define _DEVICE_TEMPLATE_H_
 
 /*
  * ===========================================================================
@@ -702,3 +704,5 @@ __device__ void rocblas_maxid_reduce(rocblas_int tx, T* x, rocblas_int* index)
     }
 }
 // end maxid_reduce
+
+#endif /* _DEVICE_TEMPLATE_H_ */
