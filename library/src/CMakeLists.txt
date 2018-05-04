@@ -85,6 +85,10 @@ set( rocblas_auxiliary_source
   status.cpp
 )
 
+set( rocblas_lapack_source
+  lapack/roclapack_potf2.cpp
+)
+
 set( rocblas_blas3_source
   blas3/rocblas_trtri.cpp
   blas3/rocblas_trtri_batched.cpp
@@ -114,6 +118,7 @@ set( rocblas_blas1_source
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 
 add_library( rocblas
+  ${rocblas_lapack_source}
   ${rocblas_blas3_source}
   ${rocblas_blas2_source}
   ${rocblas_blas1_source}

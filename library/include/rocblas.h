@@ -19,5 +19,6 @@
 #include "rocblas-types.h"
 #include "rocblas-auxiliary.h"
 #include "rocblas-functions.h"
+#include "roclapack-functions.h"
 
 #endif // _ROCBLAS_H_
