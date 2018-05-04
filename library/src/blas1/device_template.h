@@ -21,88 +21,19 @@
 template <rocblas_int n, typename T>
 __device__ void rocblas_sum_reduce(rocblas_int tx, T* x)
 {
+    // clang-format off
     __syncthreads();
-    if(n > 512)
-    {
-        if(tx < 512 && tx + 512 < n)
-        {
-            x[tx] += x[tx + 512];
-        }
-        __syncthreads();
-    }
-    if(n > 256)
-    {
-        if(tx < 256 && tx + 256 < n)
-        {
-            x[tx] += x[tx + 256];
-        }
-        __syncthreads();
-    }
-    if(n > 128)
-    {
-        if(tx < 128 && tx + 128 < n)
-        {
-            x[tx] += x[tx + 128];
-        }
-        __syncthreads();
-    }
-
-    if(n > 64)
-    {
-        if(tx < 64 && tx + 64 < n)
-        {
-            x[tx] += x[tx + 64];
-        }
-        __syncthreads();
-    }
-    if(n > 32)
-    {
-        if(tx < 32 && tx + 32 < n)
-        {
-            x[tx] += x[tx + 32];
-        }
-        __syncthreads();
-    }
-    if(n > 16)
-    {
-        if(tx < 16 && tx + 16 < n)
-        {
-            x[tx] += x[tx + 16];
-        }
-        __syncthreads();
-    }
-    if(n > 8)
-    {
-        if(tx < 8 && tx + 8 < n)
-        {
-            x[tx] += x[tx + 8];
-        }
-        __syncthreads();
-    }
-    if(n > 4)
-    {
-        if(tx < 4 && tx + 4 < n)
-        {
-            x[tx] += x[tx + 4];
-        }
-        __syncthreads();
-    }
-    if(n > 2)
-    {
-        if(tx < 2 && tx + 2 < n)
-        {
-            x[tx] += x[tx + 2];
-        }
-        __syncthreads();
-    }
-    if(n > 1)
-    {
-        if(tx < 1 && tx + 1 < n)
-        {
-            x[tx] += x[tx + 1];
-        }
-        __syncthreads();
-    }
+    if(n > 512) { if(tx < 512 && tx + 512 < n) { x[tx] += x[tx + 512]; } __syncthreads(); }
+    if(n > 256) { if(tx < 256 && tx + 256 < n) { x[tx] += x[tx + 256]; } __syncthreads(); }
+    if(n > 128) { if(tx < 128 && tx + 128 < n) { x[tx] += x[tx + 128]; } __syncthreads(); } 
+    if(n >  64) { if(tx <  64 && tx +  64 < n) { x[tx] += x[tx +  64]; } __syncthreads(); }
+    if(n >  32) { if(tx <  32 && tx +  32 < n) { x[tx] += x[tx +  32]; } __syncthreads(); }
+    if(n >  16) { if(tx <  16 && tx +  16 < n) { x[tx] += x[tx +  16]; } __syncthreads(); }
+    if(n >   8) { if(tx <   8 && tx +   8 < n) { x[tx] += x[tx +   8]; } __syncthreads(); }
+    if(n >   4) { if(tx <   4 && tx +   4 < n) { x[tx] += x[tx +   4]; } __syncthreads(); }
+    if(n >   2) { if(tx <   2 && tx +   2 < n) { x[tx] += x[tx +   2]; } __syncthreads(); }
+    if(n >   1) { if(tx <   1 && tx +   1 < n) { x[tx] += x[tx +   1]; } __syncthreads(); }
+    // clang-format on
 }
 // end sum_reduce
 
@@ -123,88 +54,19 @@ __device__ void rocblas_sum_reduce(rocblas_int tx, T* x)
 template <rocblas_int n, typename T>
 __device__ void rocblas_min_reduce(rocblas_int tx, T* x)
 {
+    // clang-format off
     __syncthreads();
-    if(n > 512)
-    {
-        if(tx < 512 && tx + 512 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 512]);
-        }
-        __syncthreads();
-    }
-    if(n > 256)
-    {
-        if(tx < 256 && tx + 256 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 256]);
-        }
-        __syncthreads();
-    }
-    if(n > 128)
-    {
-        if(tx < 128 && tx + 128 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 128]);
-        }
-        __syncthreads();
-    }
-
-    if(n > 64)
-    {
-        if(tx < 64 && tx + 64 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 64]);
-        }
-        __syncthreads();
-    }
-    if(n > 32)
-    {
-        if(tx < 32 && tx + 32 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 32]);
-        }
-        __syncthreads();
-    }
-    if(n > 16)
-    {
-        if(tx < 16 && tx + 16 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 16]);
-        }
-        __syncthreads();
-    }
-    if(n > 8)
-    {
-        if(tx < 8 && tx + 8 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 8]);
-        }
-        __syncthreads();
-    }
-    if(n > 4)
-    {
-        if(tx < 4 && tx + 4 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 4]);
-        }
-        __syncthreads();
-    }
-    if(n > 2)
-    {
-        if(tx < 2 && tx + 2 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 2]);
-        }
-        __syncthreads();
-    }
-    if(n > 1)
-    {
-        if(tx < 1 && tx + 1 < n)
-        {
-            x[tx] = min(x[tx], x[tx + 1]);
-        }
-        __syncthreads();
-    }
+    if(n > 512) { if(tx < 512 && tx + 512 < n) { x[tx] = min(x[tx], x[tx + 512]); } __syncthreads(); }
+    if(n > 256) { if(tx < 256 && tx + 256 < n) { x[tx] = min(x[tx], x[tx + 256]); } __syncthreads(); }
+    if(n > 128) { if(tx < 128 && tx + 128 < n) { x[tx] = min(x[tx], x[tx + 128]); } __syncthreads(); }
+    if(n >  64) { if(tx <  64 && tx +  64 < n) { x[tx] = min(x[tx], x[tx +  64]); } __syncthreads(); }
+    if(n >  32) { if(tx <  32 && tx +  32 < n) { x[tx] = min(x[tx], x[tx +  32]); } __syncthreads(); }
+    if(n >  16) { if(tx <  16 && tx +  16 < n) { x[tx] = min(x[tx], x[tx +  16]); } __syncthreads(); }
+    if(n >   8) { if(tx <   8 && tx +   8 < n) { x[tx] = min(x[tx], x[tx +   8]); } __syncthreads(); }
+    if(n >   4) { if(tx <   4 && tx +   4 < n) { x[tx] = min(x[tx], x[tx +   4]); } __syncthreads(); }
+    if(n >   2) { if(tx <   2 && tx +   2 < n) { x[tx] = min(x[tx], x[tx +   2]); } __syncthreads(); }
+    if(n >   1) { if(tx <   1 && tx +   1 < n) { x[tx] = min(x[tx], x[tx +   1]); } __syncthreads(); }
+    // clang-format on
 }
 // end min_reduce
 
@@ -224,88 +86,19 @@ __device__ void rocblas_min_reduce(rocblas_int tx, T* x)
 template <rocblas_int n, typename T>
 __device__ void rocblas_max_reduce(rocblas_int tx, T* x)
 {
+    // clang-format off
     __syncthreads();
-    if(n > 512)
-    {
-        if(tx < 512 && tx + 512 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 512]);
-        }
-        __syncthreads();
-    }
-    if(n > 256)
-    {
-        if(tx < 256 && tx + 256 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 256]);
-        }
-        __syncthreads();
-    }
-    if(n > 128)
-    {
-        if(tx < 128 && tx + 128 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 128]);
-        }
-        __syncthreads();
-    }
-
-    if(n > 64)
-    {
-        if(tx < 64 && tx + 64 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 64]);
-        }
-        __syncthreads();
-    }
-    if(n > 32)
-    {
-        if(tx < 32 && tx + 32 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 32]);
-        }
-        __syncthreads();
-    }
-    if(n > 16)
-    {
-        if(tx < 16 && tx + 16 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 16]);
-        }
-        __syncthreads();
-    }
-    if(n > 8)
-    {
-        if(tx < 8 && tx + 8 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 8]);
-        }
-        __syncthreads();
-    }
-    if(n > 4)
-    {
-        if(tx < 4 && tx + 4 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 4]);
-        }
-        __syncthreads();
-    }
-    if(n > 2)
-    {
-        if(tx < 2 && tx + 2 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 2]);
-        }
-        __syncthreads();
-    }
-    if(n > 1)
-    {
-        if(tx < 1 && tx + 1 < n)
-        {
-            x[tx] = max(x[tx], x[tx + 1]);
-        }
-        __syncthreads();
-    }
+    if(n > 512) { if(tx < 512 && tx + 512 < n) { x[tx] = max(x[tx], x[tx + 512]); } __syncthreads(); }
+    if(n > 256) { if(tx < 256 && tx + 256 < n) { x[tx] = max(x[tx], x[tx + 256]); } __syncthreads(); }
+    if(n > 128) { if(tx < 128 && tx + 128 < n) { x[tx] = max(x[tx], x[tx + 128]); } __syncthreads(); }
+    if(n >  64) { if(tx <  64 && tx +  64 < n) { x[tx] = max(x[tx], x[tx +  64]); } __syncthreads(); }
+    if(n >  32) { if(tx <  32 && tx +  32 < n) { x[tx] = max(x[tx], x[tx +  32]); } __syncthreads(); }
+    if(n >  16) { if(tx <  16 && tx +  16 < n) { x[tx] = max(x[tx], x[tx +  16]); } __syncthreads(); }
+    if(n >   8) { if(tx <   8 && tx +   8 < n) { x[tx] = max(x[tx], x[tx +   8]); } __syncthreads(); }
+    if(n >   4) { if(tx <   4 && tx +   4 < n) { x[tx] = max(x[tx], x[tx +   4]); } __syncthreads(); }
+    if(n >   2) { if(tx <   2 && tx +   2 < n) { x[tx] = max(x[tx], x[tx +   2]); } __syncthreads(); }
+    if(n >   1) { if(tx <   1 && tx +   1 < n) { x[tx] = max(x[tx], x[tx +   1]); } __syncthreads(); }
+    // clang-format on
 }
 // end max_reduce
 
