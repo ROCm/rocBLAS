@@ -88,7 +88,7 @@ __global__ void asum_kernel_part2(rocblas_int n, T* workspace, T* result)
 }
 
 // HIP support up to 1024 threads/work itmes per thread block/work group
-#define NB_X 1024
+#define NB_X 512
 
 // assume workspace has already been allocated, recommened for repeated calling of asum product
 // routine
