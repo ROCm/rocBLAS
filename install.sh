@@ -204,6 +204,7 @@ tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_release=true
+dts7_bin=/opt/rh/devtoolset-7/root/usr/bin	# only for CentOS
 
 # #################################################
 # Parameter parsing
@@ -290,6 +291,14 @@ case "${ID}" in
   ;;
 esac
 
+case "${ID}" in
+  centos|rhel)
+    export CXX=${dts7_bin}/g++
+    export CC=${dts7_bin}/gcc
+    export FC=${dts7_bin}/gfortran
+  ;;
+esac
+
 # #################################################
 # dependencies
 # #################################################
@@ -339,6 +348,12 @@ pushd .
   if [[ -n "${tensile_test_local_path}" ]]; then
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
+
+  case "${ID}" in
+    centos|rhel)
+      cmake_common_options="${cmake_common_options} -DCMAKE_INSTALL_LIBDIR=lib"
+    ;;
+  esac
 
   # clients
   if [[ "${build_clients}" == true ]]; then
