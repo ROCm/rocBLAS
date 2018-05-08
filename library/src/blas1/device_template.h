@@ -1,9 +1,47 @@
-
 /*
  * ===========================================================================
  *    This file provide common device function used in various BLAS routines
  * ===========================================================================
  */
+
+// BLAS Level 1 includes routines and functions performing vector-vector
+// operations. Most BLAS 1 routines are about reduction: compute the norm,
+// calculate the dot production of two vectors, find the maximum/minimum index
+// of the element of the vector. As you may observed, although the computation
+// type is different, the core algorithm is the same: scan all element of the
+// vector(s) and reduce to one single result. 
+// 
+// The reduction algorithm on GPU is called [parallel
+// reduction](https://raw.githubusercontent.com/mateuszbuda/GPUExample/master/reduce3.png)
+// which is adopted in rocBLAS. At the beginning, all the threads in the thread
+// block participate. After each step of reduction (like a tree), the number of
+// participating threads decrease by half. At the end of the parallel reduction,
+// only one thread (usually thread 0) owns the result in its thread
+// block. 
+// 
+// Classically, the BLAS 1 reduction needs more than one GPU kernel to finish,
+// because the lack of global synchronization of thread blocks without exiting
+// the kernel. The first kernels gather partial results, write into a temporary
+// working buffer. The second kernel finish the final reduction. 
+// 
+// For example, BLAS 1 routine iXamax is to find index of the maximum absolute
+// value element of a vector. In this routine:
+// 
+// Kernel 1: launch many thread block as needed. Each thread block works on a
+// subset of the vector. Each thread block use the parallel reduction to find a
+// local index with the maximum absolute value of the subset. There are
+// number-of-the-thread-blocks local results.The results are written into a
+// temporary working buffer. The working buffer has number-of-the-thread-blocks
+// elements.
+//    
+// Kernel 2: launch only one thread block which reads the temporary work buffer and
+// reduces to final result still with the parallel reduction. 
+// 
+// As you may see, if there is a mechanism to synchronize all the thread blocks
+// after local index is obtained in kernel 1 (without ending the kernel), then
+// Kernel 2's computation can be merged into Kernel 1. One such mechanism is called
+// atomic operation. However, atomic operation is new and is not used in rocBLAS
+// yet. rocBLAS still use the classic standard parallel reduction right now.  
 
 /*! \brief parallel reduction: sum
 
