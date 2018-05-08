@@ -166,14 +166,14 @@ rocblas_status testing_set_get_matrix(Arguments argus)
         cout << "rows,cols,lda,ldb,rocblas-GB/s";
 
         if(argus.norm_check)
-            cout << ",CPU-GB/s";
+            cout << ",CPU-GB/s,Frobenius_norm_error";
 
         cout << endl;
 
         cout << rows << "," << cols << "," << lda << "," << ldb << "," << rocblas_bandwidth;
 
         if(argus.norm_check)
-            cout << "," << cpu_bandwidth;
+            cout << "," << cpu_bandwidth << "," << rocblas_error;
 
         cout << endl;
     }
