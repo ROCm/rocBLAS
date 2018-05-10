@@ -36,7 +36,7 @@ void testing_gemm_NaN(Arguments argus)
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
     rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
-    rocblas_int size_A, size_B, size_C, A_row, A_col, B_row, B_col;
+    rocblas_int A_row, A_col, B_row, B_col;
     T alpha = argus.alpha;
     T beta  = argus.beta;
 
@@ -50,9 +50,9 @@ void testing_gemm_NaN(Arguments argus)
     B_row = transB == rocblas_operation_none ? K : N;
     B_col = transB == rocblas_operation_none ? N : K;
 
-    size_A = lda * A_col;
-    size_B = ldb * B_col;
-    size_C = ldc * N;
+    const size_t size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
+    const size_t size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
+    const size_t size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
@@ -140,7 +140,7 @@ void testing_gemm_bad_arg()
     const T alpha = 1.0;
     const T beta  = 1.0;
 
-    const rocblas_int safe_size = 100;
+    const size_t safe_size = 100;
 
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
@@ -248,7 +248,7 @@ rocblas_status testing_gemm(Arguments argus)
         h_beta  = argus.beta;
     }
 
-    rocblas_int safe_size = 100;
+    const size_t safe_size = 100;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -291,9 +291,9 @@ rocblas_status testing_gemm(Arguments argus)
         return status;
     }
 
-    rocblas_int size_A = lda * A_col;
-    rocblas_int size_B = ldb * B_col;
-    rocblas_int size_C = ldc * N;
+    const size_t size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
+    const size_t size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
+    const size_t size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
 
     // allocate memory on device
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
@@ -410,7 +410,7 @@ rocblas_status testing_gemm(Arguments argus)
 //  for(int i = 0; i < size_C; i++){ std::cout << half_to_float(hC_gold[i]) << "  "; }
 //  std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
 #ifndef NDEBUG
-        print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
+// print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
 
         // enable unit check, notice unit check is not invasive, but norm check is,
@@ -434,7 +434,7 @@ rocblas_status testing_gemm(Arguments argus)
     if(argus.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 10;
+        int number_hot_calls  = argus.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -462,7 +462,7 @@ rocblas_status testing_gemm(Arguments argus)
 
         cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
              << K << "," << h_alpha << "," << lda << "," << ldb << "," << h_beta << "," << ldc
-             << "," << rocblas_gflops << "," << gpu_time_used;
+             << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(argus.unit_check || argus.norm_check)
         {
@@ -490,7 +490,7 @@ rocblas_status range_testing_gemm(Arguments argus)
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
     rocblas_operation transB = char2rocblas_operation(argus.transB_option);
 
-    rocblas_int size_A, size_B, size_C;
+    size_t size_A, size_B, size_C;
     T alpha = argus.alpha;
     T beta  = argus.beta;
 
