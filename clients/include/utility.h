@@ -345,9 +345,6 @@ class Arguments
     rocblas_int N = 128;
     rocblas_int K = 128;
 
-    rocblas_int rows = 128;
-    rocblas_int cols = 128;
-
     rocblas_int lda = 128;
     rocblas_int ldb = 128;
     rocblas_int ldc = 128;
