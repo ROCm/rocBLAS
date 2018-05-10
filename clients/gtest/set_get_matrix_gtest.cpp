@@ -113,7 +113,7 @@ const vector<set_get_matrix_tuple> large_gemm_values_vec = {gemm_values1,
 Arguments setup_set_get_matrix_arguments(set_get_matrix_tuple tup)
 {
 
-    vector<int> M_N   = std::get<0>(tup);
+    vector<int> M_N         = std::get<0>(tup);
     vector<int> lda_ldb_ldc = std::get<1>(tup);
 
     Arguments arg;
