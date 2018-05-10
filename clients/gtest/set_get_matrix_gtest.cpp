@@ -40,10 +40,10 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 // small sizes
 
-// vector of vector, each triple is a {rows, cols};
+// vector of vector, each triple is a {M, N};
 // add/delete this list in pairs, like {3, 4}
 
-const vector<vector<int>> rows_cols_range = {{3, 3}, {3, 30}, {30, 3}};
+const vector<vector<int>> M_N_range = {{3, 3}, {3, 30}, {30, 3}};
 
 // vector of vector, each triple is a {lda, ldb, ldc};
 // add/delete this list in pairs, like {3, 4, 3}
@@ -53,7 +53,7 @@ const vector<vector<int>> lda_ldb_ldc_range = {
     {3, 5, 4}, {3, 5, 5}, {5, 3, 3}, {5, 3, 4}, {5, 3, 5},    {5, 4, 3},   {5, 4, 4},
     {5, 4, 5}, {5, 5, 3}, {5, 5, 4}, {5, 5, 5}, {30, 30, 30}, {31, 32, 33}};
 
-// large sizes   {{rows, cols},{lda,ldb,ldc}}
+// large sizes   {{M, N},{lda,ldb,ldc}}
 set_get_matrix_tuple gemm_values1{{300000, 21}, {300000, 300001, 300002}};
 set_get_matrix_tuple gemm_values2{{300001, 22}, {300001, 300001, 300010}};
 set_get_matrix_tuple gemm_values3{{300002, 23}, {300002, 300020, 300002}};
@@ -113,13 +113,13 @@ const vector<set_get_matrix_tuple> large_gemm_values_vec = {gemm_values1,
 Arguments setup_set_get_matrix_arguments(set_get_matrix_tuple tup)
 {
 
-    vector<int> rows_cols   = std::get<0>(tup);
+    vector<int> M_N   = std::get<0>(tup);
     vector<int> lda_ldb_ldc = std::get<1>(tup);
 
     Arguments arg;
 
-    arg.rows = rows_cols[0];
-    arg.cols = rows_cols[1];
+    arg.M = M_N[0];
+    arg.N = M_N[1];
 
     arg.lda = lda_ldb_ldc[0];
     arg.ldb = lda_ldb_ldc[1];
@@ -151,11 +151,11 @@ TEST_P(parameterized_set_matrix_get_matrix, float)
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success)
     {
-        if(arg.rows < 0)
+        if(arg.M < 0)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.cols <= 0)
+        else if(arg.N <= 0)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
@@ -171,15 +171,15 @@ TEST_P(parameterized_set_matrix_get_matrix, float)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda < arg.rows)
+        else if(arg.lda < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldb < arg.rows)
+        else if(arg.ldb < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldc < arg.rows)
+        else if(arg.ldc < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
@@ -204,11 +204,11 @@ TEST_P(parameterized_set_matrix_get_matrix, double)
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success)
     {
-        if(arg.rows < 0)
+        if(arg.M < 0)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.cols <= 0)
+        else if(arg.N <= 0)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
@@ -224,15 +224,15 @@ TEST_P(parameterized_set_matrix_get_matrix, double)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.lda < arg.rows)
+        else if(arg.lda < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldb < arg.rows)
+        else if(arg.ldb < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(arg.ldc < arg.rows)
+        else if(arg.ldc < arg.M)
         {
             EXPECT_EQ(rocblas_status_invalid_size, status);
         }
@@ -250,7 +250,7 @@ TEST_P(parameterized_set_matrix_get_matrix, double)
 
 INSTANTIATE_TEST_CASE_P(checkin_auxilliary,
                         parameterized_set_matrix_get_matrix,
-                        Combine(ValuesIn(rows_cols_range), ValuesIn(lda_ldb_ldc_range)));
+                        Combine(ValuesIn(M_N_range), ValuesIn(lda_ldb_ldc_range)));
 
 INSTANTIATE_TEST_CASE_P(checkin_auxilliary_2,
                         parameterized_set_matrix_get_matrix,
