@@ -21,8 +21,8 @@ using namespace std;
 template <typename T>
 rocblas_status testing_set_get_matrix(Arguments argus)
 {
-    rocblas_int rows      = argus.rows;
-    rocblas_int cols      = argus.cols;
+    rocblas_int rows      = argus.M;
+    rocblas_int cols      = argus.N;
     rocblas_int lda       = argus.lda;
     rocblas_int ldb       = argus.ldb;
     rocblas_int ldc       = argus.ldc;
