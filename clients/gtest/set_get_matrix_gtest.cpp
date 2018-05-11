@@ -74,6 +74,8 @@ set_get_matrix_tuple gemm_values18{{27, 300022}, {39, 40, 41}};
 
 set_get_matrix_tuple gemm_values21{{3, 3000222}, {4, 4, 4}};
 
+set_get_matrix_tuple gemm_values31{{16700, 16700}, {16700, 16700, 16700}};
+
 const vector<set_get_matrix_tuple> small_gemm_values_vec = {gemm_values1, gemm_values11};
 
 const vector<set_get_matrix_tuple> large_gemm_values_vec = {gemm_values1,
@@ -92,7 +94,8 @@ const vector<set_get_matrix_tuple> large_gemm_values_vec = {gemm_values1,
                                                             gemm_values16,
                                                             gemm_values17,
                                                             gemm_values18,
-                                                            gemm_values21};
+                                                            gemm_values21,
+                                                            gemm_values31};
 
 /* ===============Google Unit Test==================================================== */
 
