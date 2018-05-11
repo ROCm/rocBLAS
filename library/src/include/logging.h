@@ -6,6 +6,7 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 #include <fstream>
+#include <iostream>
 #include <string>
 #include <unistd.h>
 #include <sys/param.h>
