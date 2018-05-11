@@ -7,6 +7,7 @@
 #include <vector>
 #include <limits>
 #include "rocblas.h"
+#include <iostream>
 
 using namespace std;
 
