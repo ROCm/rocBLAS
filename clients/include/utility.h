@@ -345,9 +345,6 @@ class Arguments
     rocblas_int N = 128;
     rocblas_int K = 128;
 
-    rocblas_int rows = 128;
-    rocblas_int cols = 128;
-
     rocblas_int lda = 128;
     rocblas_int ldb = 128;
     rocblas_int ldc = 128;
@@ -380,6 +377,8 @@ class Arguments
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
     rocblas_int timing     = 0;
+
+    rocblas_int iters = 10;
 
     Arguments& operator=(const Arguments& rhs)
     {

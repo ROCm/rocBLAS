@@ -192,8 +192,9 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
         }
         else // either non-contiguous host vector or non-contiguous device vector
         {
-            int temp_byte_size =
-                elem_size * n < VEC_BUFF_MAX_BYTES ? elem_size * n : VEC_BUFF_MAX_BYTES;
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
+            size_t temp_byte_size =
+                bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
             int n_elem = temp_byte_size / elem_size; // number of elements in buffer
             int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
 
@@ -350,8 +351,9 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
         }
         else // either device or host vector is non-contiguous
         {
-            int temp_byte_size =
-                elem_size * n < VEC_BUFF_MAX_BYTES ? elem_size * n : VEC_BUFF_MAX_BYTES;
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
+            size_t temp_byte_size =
+                bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
             int n_elem = temp_byte_size / elem_size; // number elements in buffer
             int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
 
@@ -543,7 +545,9 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
         // contiguous host matrix -> contiguous device matrix
         if(lda == rows && ldb == rows)
         {
-            PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, elem_size * rows * cols, hipMemcpyHostToDevice));
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows) *
+                                   static_cast<size_t>(cols);
+            PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice));
         }
         // matrix colums too large to fit in temp buffer, copy matrix col by col
         else if(rows * elem_size > MAT_BUFF_MAX_BYTES)
@@ -560,9 +564,10 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
         // columns
         else
         {
-            int temp_byte_size = elem_size * rows * cols < MAT_BUFF_MAX_BYTES
-                                     ? elem_size * rows * cols
-                                     : MAT_BUFF_MAX_BYTES;
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows) *
+                                   static_cast<size_t>(cols);
+            size_t temp_byte_size =
+                bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
             int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
             int n_copy = ((cols - 1) / n_cols) + 1;           // number of times buffer is copied
 
@@ -728,7 +733,9 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
         // congiguous device matrix -> congiguous host matrix
         if(lda == rows && ldb == rows)
         {
-            PRINT_IF_HIP_ERROR(hipMemcpy(b_h, a_d, elem_size * rows * cols, hipMemcpyDeviceToHost));
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows) *
+                                   static_cast<size_t>(cols);
+            PRINT_IF_HIP_ERROR(hipMemcpy(b_h, a_d, bytes_to_copy, hipMemcpyDeviceToHost));
         }
         // columns too large for temp buffer, hipMemcpy column by column
         else if(rows * elem_size > MAT_BUFF_MAX_BYTES)
@@ -745,9 +752,10 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
         // columns
         else
         {
-            int temp_byte_size = elem_size * rows * cols < MAT_BUFF_MAX_BYTES
-                                     ? elem_size * rows * cols
-                                     : MAT_BUFF_MAX_BYTES;
+            size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows) *
+                                   static_cast<size_t>(cols);
+            size_t temp_byte_size =
+                bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
             int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
             int n_copy = ((cols - 1) / n_cols) + 1;           // number times buffer copied
 

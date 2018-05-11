@@ -21,8 +21,8 @@ using namespace std;
 template <typename T>
 rocblas_status testing_set_get_matrix(Arguments argus)
 {
-    rocblas_int rows      = argus.rows;
-    rocblas_int cols      = argus.cols;
+    rocblas_int rows      = argus.M;
+    rocblas_int cols      = argus.N;
     rocblas_int lda       = argus.lda;
     rocblas_int ldb       = argus.ldb;
     rocblas_int ldc       = argus.ldc;
@@ -166,14 +166,14 @@ rocblas_status testing_set_get_matrix(Arguments argus)
         cout << "rows,cols,lda,ldb,rocblas-GB/s";
 
         if(argus.norm_check)
-            cout << ",CPU-GB/s";
+            cout << ",CPU-GB/s,Frobenius_norm_error";
 
         cout << endl;
 
         cout << rows << "," << cols << "," << lda << "," << ldb << "," << rocblas_bandwidth;
 
         if(argus.norm_check)
-            cout << "," << cpu_bandwidth;
+            cout << "," << cpu_bandwidth << "," << rocblas_error;
 
         cout << endl;
     }
