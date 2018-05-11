@@ -7,6 +7,7 @@
 #define _TESTING_UTILITY_H_
 
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <sys/time.h>

@@ -2,6 +2,8 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <string>
+#include <iostream>
 #include "rocblas.h"
 
 // return letter N,T,C in place of rocblas_operation enum
