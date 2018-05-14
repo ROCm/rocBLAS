@@ -636,14 +636,13 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-
 __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
-                                            rocblas_int cols,
-                                            rocblas_int elem_size,
-                                            const void* a,
-                                            rocblas_int lda,
-                                            void* b,
-                                            rocblas_int ldb)
+                                          rocblas_int cols,
+                                          rocblas_int elem_size,
+                                          const void* a,
+                                          rocblas_int lda,
+                                          void* b,
+                                          rocblas_int ldb)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -655,7 +654,6 @@ __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
                elem_size);
     }
 }
-
 
 /* ============================================================================================ */
 
@@ -845,8 +843,9 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
         return rocblas_status_memory_error;
     }
 
-    // copy B to packed storage 
-    auto packedB = rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
+    // copy B to packed storage
+    auto packedB =
+        rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
     if(!packedB)
     {
         return rocblas_status_memory_error;
@@ -864,23 +863,23 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     // copy B to packedB
     {
-            rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-            rocblas_int blocksY = ((n - 1) / 8) + 1;
-            dim3 grid(blocksX, blocksY, 1);
-            dim3 threads(128, 8, 1);
+        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+        rocblas_int blocksY = ((n - 1) / 8) + 1;
+        dim3 grid(blocksX, blocksY, 1);
+        dim3 threads(128, 8, 1);
 
-            hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-                   dim3(grid),
-                   dim3(threads),
-                   0,
-                   rocblas_stream,
-                   m,
-                   n,
-                   sizeof(T),
-                   B,
-                   ldb,
-                   packedB.get(),
-                   m);
+        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+                           dim3(grid),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           sizeof(T),
+                           B,
+                           ldb,
+                           packedB.get(),
+                           m);
     }
 
     // intialize invA and X to be &zero
@@ -893,13 +892,33 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if(side == rocblas_side_left)
     {
-        status = rocblas_trsm_left<T, BLOCK>(
-            handle, uplo, transA, m, n, alpha, A, lda, (T*)packedB.get(), m, (T*)invA.get(), (T*)X.get());
+        status = rocblas_trsm_left<T, BLOCK>(handle,
+                                             uplo,
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             (T*)packedB.get(),
+                                             m,
+                                             (T*)invA.get(),
+                                             (T*)X.get());
     }
     else
     { // side == rocblas_side_right
-        status = rocblas_trsm_right<T, BLOCK>(
-            handle, uplo, transA, m, n, alpha, A, lda, (T*)packedB.get(), m, (T*)invA.get(), (T*)X.get());
+        status = rocblas_trsm_right<T, BLOCK>(handle,
+                                              uplo,
+                                              transA,
+                                              m,
+                                              n,
+                                              alpha,
+                                              A,
+                                              lda,
+                                              (T*)packedB.get(),
+                                              m,
+                                              (T*)invA.get(),
+                                              (T*)X.get());
     }
 
 #ifndef NDEBUG
@@ -908,23 +927,23 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     // copy solution X into B
     {
-            rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-            rocblas_int blocksY = ((n - 1) / 8) + 1;
-            dim3 grid(blocksX, blocksY, 1);
-            dim3 threads(128, 8, 1);
+        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+        rocblas_int blocksY = ((n - 1) / 8) + 1;
+        dim3 grid(blocksX, blocksY, 1);
+        dim3 threads(128, 8, 1);
 
-            hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-                   dim3(grid),
-                   dim3(threads),
-                   0,
-                   rocblas_stream,
-                   m,
-                   n,
-                   sizeof(T),
-                   X.get(),
-                   m,
-                   B,
-                   ldb);
+        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+                           dim3(grid),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           sizeof(T),
+                           X.get(),
+                           m,
+                           B,
+                           ldb);
     }
 
     return status;
