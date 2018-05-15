@@ -24,7 +24,9 @@ if( POLICY CMP0066 )
   cmake_policy( SET CMP0066 NEW )
 endif( )
 
-set( ENV{FC} "gfortran" CACHE PATH "Force env FC=gfortran for CentOS 7" )
+if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
+  set( CMAKE_Fortran_COMPILER  "gfortran" )
+endif()
 
 project( rocblas LANGUAGES CXX )
 
