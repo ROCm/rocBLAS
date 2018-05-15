@@ -24,6 +24,8 @@ if( POLICY CMP0066 )
   cmake_policy( SET CMP0066 NEW )
 endif( )
 
+set( ENV{FC} "gfortran" CACHE PATH "Force env FC=gfortran for CentOS 7" )
+
 project( rocblas LANGUAGES CXX )
 
 # ########################################################################
@@ -140,6 +142,9 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
+
+# force library install path to lib (CentOS 7 defaults to lib64)
+  set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
   include(virtualenv)
 
