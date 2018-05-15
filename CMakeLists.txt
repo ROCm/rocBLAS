@@ -24,6 +24,10 @@ if( POLICY CMP0066 )
   cmake_policy( SET CMP0066 NEW )
 endif( )
 
+if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
+  set( CMAKE_Fortran_COMPILER  "gfortran" )
+endif()
+
 project( rocblas LANGUAGES CXX )
 
 # ########################################################################
@@ -129,6 +133,9 @@ option( BUILD_VERBOSE "Output additional build information" OFF )
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
 include( clients/cmake/build-options.cmake )
+
+# force library install path to lib (CentOS 7 defaults to lib64)
+set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
