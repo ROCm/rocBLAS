@@ -43,7 +43,7 @@ __global__ void trtri_trsm_kernel(
         individual_invA += NB * (NB / 2) + (NB / 2);
     }
 
-    trtri_device<T, NB / 2, 1>(uplo,
+    trtri_device<T, NB / 2>(uplo,
                                diag,
                                (NB / 2),
                                A + hipBlockIdx_x * (NB / 2) * lda + hipBlockIdx_x * (NB / 2),
