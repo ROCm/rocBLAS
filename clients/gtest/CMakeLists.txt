@@ -40,6 +40,10 @@ if( BUILD_WITH_TENSILE )
       )
 endif( )
 
+set(roclapack_test_source
+    potf2_gtest.cpp
+    )
+
 set(rocblas_test_source
     rocblas_gtest_main.cpp
     set_get_pointer_mode_gtest.cpp
@@ -66,7 +70,7 @@ set( rocblas_benchmark_common
       ../common/rocblas_template_specialization.cpp
     )
 
-add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
+add_executable( rocblas-test ${roclapack_test_source} ${rocblas_test_source} ${rocblas_benchmark_common} )
 target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
 if( BUILD_WITH_TENSILE )

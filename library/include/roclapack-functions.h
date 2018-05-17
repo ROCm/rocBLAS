@@ -3,7 +3,6 @@
  *
  * ************************************************************************ */
 
-#pragma once
 #ifndef _ROCLAPACK_FUNCTIONS_H
 #define _ROCLAPACK_FUNCTIONS_H
 

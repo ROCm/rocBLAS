@@ -44,10 +44,10 @@ __global__ void sqrtDiagOnward(T* a, size_t loc, T* res){
 template<typename T>
 rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, rocblas_int n, T* a, rocblas_int lda){
         
-    // store original pointer mode before setting it to device
+    // store original pointer mode before setting it to host // XXX change to device
     rocblas_pointer_mode pointer;
     rocblas_get_pointer_mode(handle, &pointer);    
-    rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device);
+    rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host);
     
     rocblas_int oneInt = 1;
     T inpsHost[3];
@@ -55,7 +55,7 @@ rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, 
     inpsHost[1] = static_cast<T>(-1.0f);
         
     T resHost[4];
-    resHost[3] = 0;
+    resHost[3] = 1;
         
     // allocate a tiny bit of memory on device to avoid going onto CPU and needing to synchronize (eventually)
     T* results;
@@ -82,14 +82,14 @@ rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, 
     // in order to get the indices right, we check what the fill mode is
     if(uplo == rocblas_fill_upper){
             
-    // Compute the Cholesky factorization A = U'*U.
+        // Compute the Cholesky factorization A = U'*U.
            
-    for(rocblas_int j = 0; j < n; ++j){
-        // Compute U(J,J) and test for non-positive-definiteness.
-        if(j > 0){
-            rocblas_dot_template<T>(handle, j, &a[idx2D(0,j,lda)], oneInt, &a[idx2D(0,j,lda)], oneInt, &results[0]);
-            //hipLaunchKernelGGL( sqrtDiagOnward<T>, dim3(1), dim3(1), 0, stream, a, idx2D(j,j,lda), results);
-            hipMemcpy(&resHost[0], &results[0], sizeof(T), hipMemcpyDeviceToHost);
+        for(rocblas_int j = 0; j < n; ++j){
+            // Compute U(J,J) and test for non-positive-definiteness.
+            if(j > 0){
+                rocblas_dot_template<T>(handle, j, &a[idx2D(0,j,lda)], oneInt, &a[idx2D(0,j,lda)], oneInt, &resHost[0]);
+                //hipLaunchKernelGGL( sqrtDiagOnward<T>, dim3(1), dim3(1), 0, stream, a, idx2D(j,j,lda), results);
+                //hipMemcpy(&resHost[0], &results[0], sizeof(T), hipMemcpyDeviceToHost);
             } else {
                 //hipLaunchKernelGGL( sqrtDiagFirst<T>, dim3(1), dim3(1), 0, stream, a, idx2D(j,j,lda), results);
                 resHost[0] = 0.0;
@@ -110,7 +110,7 @@ rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, 
             // Compute elements J+1:N of row J
                 
             if(j < n-1){
-                rocblas_gemv_template<T>(handle, rocblas_operation_transpose, j, n-j-1, &(inputs[1]), &a[idx2D(0,j+1,lda)], lda, &a[idx2D(0,j,lda)], oneInt, &(inputs[0]), &a[idx2D(j,j+1,lda)], lda);
+                rocblas_gemv_template<T>(handle, rocblas_operation_transpose, j, n-j-1, &(inpsHost[1]), &a[idx2D(0,j+1,lda)], lda, &a[idx2D(0,j,lda)], oneInt, &(inpsHost[0]), &a[idx2D(j,j+1,lda)], lda);
                 resHost[2] = (inpsHost[0])/resHost[1];
                 rocblas_scal_template<T>(handle, n-j-1, &resHost[2], &a[idx2D(j,j+1,lda)], lda);
             }
@@ -123,8 +123,8 @@ rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, 
         for(rocblas_int j = 0; j < n; ++j){
             // Compute L(J,J) and test for non-positive-definiteness.
             if(j > 0){
-                rocblas_dot_template<T>(handle, j, &a[idx2D(j,0,lda)], lda, &a[idx2D(j,0,lda)], lda, &results[0]);
-                hipMemcpy(&resHost[0], &results[0], sizeof(T), hipMemcpyDeviceToHost);
+                rocblas_dot_template<T>(handle, j, &a[idx2D(j,0,lda)], lda, &a[idx2D(j,0,lda)], lda, &resHost[0]);
+                //hipMemcpy(&resHost[0], &results[0], sizeof(T), hipMemcpyDeviceToHost);
             } else {
                 resHost[0] = 0;
             }
@@ -145,7 +145,7 @@ rocblas_status rocblas_potf2_template(rocblas_handle handle, rocblas_fill uplo, 
             // Compute elements J+1:N of row J
                 
             if(j < n-1){
-                rocblas_gemv_template<T>(handle, rocblas_operation_none, n-j-1, j, &(inputs[1]), &a[idx2D(j+1,0,lda)], lda, &a[idx2D(j,0,lda)], lda, &(inputs[0]), &a[idx2D(j+1,j,lda)], oneInt);
+                rocblas_gemv_template<T>(handle, rocblas_operation_none, n-j-1, j, &(inpsHost[1]), &a[idx2D(j+1,0,lda)], lda, &a[idx2D(j,0,lda)], lda, &(inpsHost[0]), &a[idx2D(j+1,j,lda)], oneInt);
                 resHost[2] = (inpsHost[0])/resHost[1];
                 rocblas_scal_template<T>(handle, n-j-1, &resHost[2], &a[idx2D(j+1,j,lda)], oneInt);
             }
