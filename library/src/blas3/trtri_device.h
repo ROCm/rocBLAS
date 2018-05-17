@@ -152,14 +152,14 @@ __device__ void trtri_device(rocblas_fill uplo,
         {
             for(int i = 0; i <= tx; i++)
             {
-                invA[tx + i * lda] = sA[tx + i * n];
+                invA[tx + i * ldinvA] = sA[tx + i * n];
             }
         }
         else
         { // transpose back to A from sA if upper
             for(int i = n - 1; i >= tx; i--)
             {
-                invA[tx + i * lda] = sA[(n - 1 - tx) + (n - 1 - i) * n];
+                invA[tx + i * ldinvA] = sA[(n - 1 - tx) + (n - 1 - i) * n];
             }
         }
     }
