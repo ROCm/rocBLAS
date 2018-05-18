@@ -128,10 +128,7 @@ void cblas_trsm(rocblas_side side,
                 rocblas_int ldb);
 
 template <typename T>
-rocblas_int cblas_potf2(rocblas_fill uplo,
-                        rocblas_int n,
-                        T* A,
-                        rocblas_int lda);
+rocblas_int cblas_potf2(rocblas_fill uplo, rocblas_int n, T* A, rocblas_int lda);
 
 template <typename T>
 rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, T* A, rocblas_int lda);
