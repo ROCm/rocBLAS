@@ -338,4 +338,3 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
 }
 
 #endif /* ROCBLAS_GEMV_HPP */
-

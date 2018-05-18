@@ -135,4 +135,3 @@ rocblas_scal_template(rocblas_handle handle, rocblas_int n, const T* alpha, T* x
 }
 
 #endif /* ROCBLAS_SCAL_HPP */
-

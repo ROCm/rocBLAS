@@ -303,4 +303,3 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
 }
 
 #endif /* ROCBLAS_DOT_HPP */
-
