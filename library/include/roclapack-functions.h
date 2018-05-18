@@ -13,7 +13,7 @@
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
  * NVIDIA GPUs.
  *  This file exposes C89 BLAS interface
-*/
+ */
 
 /*
  * ===========================================================================
@@ -26,38 +26,37 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
-    /*! \brief LAPACK API
 
-    \details
-    potf2 computes the Cholesky factorization of a real symmetric
-    positive definite matrix A.
+/*! \brief LAPACK API
 
-        A = U' * U ,  if UPLO = 'U', or
-        A = L  * L',  if UPLO = 'L',
-    where U is an upper triangular matrix and L is lower triangular.
+\details
+potf2 computes the Cholesky factorization of a real symmetric
+positive definite matrix A.
 
-    This is the unblocked version of the algorithm, calling Level 2 BLAS.
+    A = U' * U ,  if UPLO = 'U', or
+    A = L  * L',  if UPLO = 'L',
+where U is an upper triangular matrix and L is lower triangular.
 
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      rocblas_fill.
-              specifies whether the upper or lower
-    @param[in]
-    n         the matrix dimensions
-    @param[inout]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
+This is the unblocked version of the algorithm, calling Level 2 BLAS.
+
+@param[in]
+handle    rocblas_handle.
+          handle to the rocblas library context queue.
+@param[in]
+uplo      rocblas_fill.
+          specifies whether the upper or lower
+@param[in]
+n         the matrix dimensions
+@param[inout]
+A         pointer storing matrix A on the GPU.
+@param[in]
+lda       rocblas_int
+          specifies the leading dimension of A.
 
 
-    ********************************************************************/
-    
-ROCBLAS_EXPORT rocblas_status
-roclapack_spotf2(
+********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status roclapack_spotf2(
     rocblas_handle handle, rocblas_fill uplo, rocblas_int n, float* A, rocblas_int lda);
 
 /*! \brief LAPACK API
@@ -88,9 +87,8 @@ roclapack_spotf2(
 
 
     ********************************************************************/
-    
-ROCBLAS_EXPORT rocblas_status
-roclapack_dpotf2(
+
+ROCBLAS_EXPORT rocblas_status roclapack_dpotf2(
     rocblas_handle handle, rocblas_fill uplo, rocblas_int n, double* A, rocblas_int lda);
 
 #ifdef __cplusplus
@@ -98,4 +96,3 @@ roclapack_dpotf2(
 #endif
 
 #endif /* _ROCLAPACK_FUNCTIONS_H */
-
