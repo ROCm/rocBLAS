@@ -90,8 +90,8 @@ __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
     // notice the last digaonal block may be smaller than IB*IB
 
-    const T* individual_A    = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
-    T* individual_invA = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
+    const T* individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
+    T* individual_invA    = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
 
     trtri_device<T, IB>(
         uplo, diag, min(IB, n - hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
