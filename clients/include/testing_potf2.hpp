@@ -41,15 +41,15 @@ void printMatrix(const string name, T* A, rocblas_int m, rocblas_int n, rocblas_
 template <typename T>
 rocblas_status testing_potf2(Arguments argus)
 {
-    
+
     rocblas_int N   = argus.N;
     rocblas_int lda = argus.lda;
 
-    char char_uplo   = argus.uplo_option;
+    char char_uplo = argus.uplo_option;
 
     rocblas_int safe_size = 100; // arbitrarily set to 100
 
-    rocblas_fill uplo        = char2rocblas_fill(char_uplo);
+    rocblas_fill uplo = char2rocblas_fill(char_uplo);
 
     rocblas_int size_A = lda * N;
 
@@ -63,7 +63,7 @@ rocblas_status testing_potf2(Arguments argus)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA    = (T*)dA_managed.get();
+        T* dA           = (T*)dA_managed.get();
         if(!dA)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -71,8 +71,7 @@ rocblas_status testing_potf2(Arguments argus)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        status =
-            roclapack_potf2<T>(handle, uplo, N, dA, lda);
+        status = roclapack_potf2<T>(handle, uplo, N, dA, lda);
 
         potf2_arg_check(status, N);
 
@@ -84,13 +83,13 @@ rocblas_status testing_potf2(Arguments argus)
     vector<T> AAT(size_A);
 
     double gpu_time_used, cpu_time_used;
-    T error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    T eps                     = std::numeric_limits<T>::epsilon();
+    T error_eps_multiplier = ERROR_EPS_MULTIPLIER;
+    T eps                  = std::numeric_limits<T>::epsilon();
 
     // allocate memory on device
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
                                          rocblas_test::device_free};
-    T* dA      = (T*)dA_managed.get();
+    T* dA           = (T*)dA_managed.get();
     if(!dA)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -115,13 +114,13 @@ rocblas_status testing_potf2(Arguments argus)
             hA[i + j * lda] = 0.0;
         }
     }
-    
+
     // put it into [0, 1]
     for(int i = N; i < lda; i++)
     {
         for(int j = 0; j < N; j++)
         {
-            hA[i + j * lda] = (hA[i + j * lda]-1.0)/10.0;
+            hA[i + j * lda] = (hA[i + j * lda] - 1.0) / 10.0;
         }
     }
 
@@ -147,7 +146,7 @@ rocblas_status testing_potf2(Arguments argus)
         for(int j = 0; j < N; j++)
         {
             hA[i + j * lda] = AAT[i + j * lda];
-            //t += AAT[i + j * lda] > 0 ? AAT[i + j * lda] : -AAT[i + j * lda];
+            // t += AAT[i + j * lda] > 0 ? AAT[i + j * lda] : -AAT[i + j * lda];
         }
         hA[i + i * lda] += 1;
     }
@@ -160,13 +159,11 @@ rocblas_status testing_potf2(Arguments argus)
     {
         // calculate dXorB <- A^(-1) B rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        
-        CHECK_ROCBLAS_ERROR(
-            roclapack_potf2<T>(handle, uplo, N, dA, lda));
 
-        CHECK_HIP_ERROR(
-            hipMemcpy(AAT.data(), dA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
-        
+        CHECK_ROCBLAS_ERROR(roclapack_potf2<T>(handle, uplo, N, dA, lda));
+
+        CHECK_HIP_ERROR(hipMemcpy(AAT.data(), dA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
+
         cblas_potf2<T>(uplo, N, hA.data(), lda);
 
         // Error Check
@@ -175,10 +172,10 @@ rocblas_status testing_potf2(Arguments argus)
         {
             for(int j = 0; j < N; j++)
             {
-                AAT[i + j*lda] = abs(AAT[i + j*lda] - hA[i + j*lda]);
+                AAT[i + j * lda] = abs(AAT[i + j * lda] - hA[i + j * lda]);
             }
         }
-        
+
         for(int i = 0; i < N; i++)
         {
             for(int j = 0; j < N; j++)
@@ -188,7 +185,7 @@ rocblas_status testing_potf2(Arguments argus)
         }
         potf2_err_res_check<T>(max_err_1, N, error_eps_multiplier, eps);
     }
-    
+
     if(argus.timing)
     {
         // GPU rocBLAS
@@ -196,10 +193,9 @@ rocblas_status testing_potf2(Arguments argus)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(
-            roclapack_potf2<T>(handle, uplo, N, dA, lda));
+        CHECK_ROCBLAS_ERROR(roclapack_potf2<T>(handle, uplo, N, dA, lda));
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
         // CPU cblas
         cpu_time_used = get_time_us();
