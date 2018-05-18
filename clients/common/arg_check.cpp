@@ -23,7 +23,7 @@
  * ===================================================== */
 
 /*! \brief Template: checks if arguments are valid
-*/
+ */
 
 void set_get_matrix_arg_check(rocblas_status status,
                               rocblas_int rows,
@@ -352,20 +352,22 @@ void potf2_arg_check(rocblas_status status, rocblas_int N)
 #ifdef GOOGLE_TEST
     if(N < 0)
     {
-        ASSERT_EQ(status,rocblas_status_invalid_size);
+        ASSERT_EQ(status, rocblas_status_invalid_size);
     }
     else
     {
-        ASSERT_EQ(status,rocblas_status_success);
+        ASSERT_EQ(status, rocblas_status_success);
     }
 #else
     if(N < 0)
     {
-        if(status != rocblas_status_invalid_size) std::cerr << "result should be invalid size for size " << N << std::endl;
+        if(status != rocblas_status_invalid_size)
+            std::cerr << "result should be invalid size for size " << N << std::endl;
     }
     else
     {
-        if(status != rocblas_status_success) std::cerr << "result should be success for size " << N << std::endl;
+        if(status != rocblas_status_success)
+            std::cerr << "result should be success for size " << N << std::endl;
     }
 #endif
 }
