@@ -636,6 +636,25 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
     return rocblas_status_success;
 }
 
+__global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
+                                          rocblas_int cols,
+                                          rocblas_int elem_size,
+                                          const void* a,
+                                          rocblas_int lda,
+                                          void* b,
+                                          rocblas_int ldb)
+{
+    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+    if(tx < rows && ty < cols)
+    {
+        memcpy((void*)((size_t)b + (size_t)(((size_t)tx + ldb * ty) * (size_t)elem_size)),
+               (void*)((size_t)a + (size_t)(((size_t)tx + lda * ty) * (size_t)elem_size)),
+               elem_size);
+    }
+}
+
 /* ============================================================================================ */
 
 /*! \brief BLAS Level 3 API
@@ -824,17 +843,48 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
         return rocblas_status_memory_error;
     }
 
-    // X is the same size of B
-    auto X = rocblas_unique_ptr{rocblas::device_malloc(ldb * n * sizeof(T)), rocblas::device_free};
+    // copy B to packed storage
+    auto packedB =
+        rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
+    if(!packedB)
+    {
+        return rocblas_status_memory_error;
+    }
+
+    // X is also packed size of B
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
     if(!X)
     {
         return rocblas_status_memory_error;
     }
 
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    // copy B to packedB
+    {
+        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+        rocblas_int blocksY = ((n - 1) / 8) + 1;
+        dim3 grid(blocksX, blocksY, 1);
+        dim3 threads(128, 8, 1);
+
+        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+                           dim3(grid),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           sizeof(T),
+                           B,
+                           ldb,
+                           packedB.get(),
+                           m);
+    }
+
     // intialize invA and X to be &zero
-    PRINT_IF_HIP_ERROR(hipMemset((T*)invA.get(), 0, BLOCK * k * sizeof(T)));
-    // potential bug, may use hipMemcpy B to X
-    PRINT_IF_HIP_ERROR(hipMemset((T*)X.get(), 0, ldb * n * sizeof(T)));
+    PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)invA.get(), 0, BLOCK * k * sizeof(T), rocblas_stream));
+    PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)X.get(), 0, m * n * sizeof(T), rocblas_stream));
 
     // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status =
@@ -842,28 +892,60 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if(side == rocblas_side_left)
     {
-        status = rocblas_trsm_left<T, BLOCK>(
-            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
+        status = rocblas_trsm_left<T, BLOCK>(handle,
+                                             uplo,
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             (T*)packedB.get(),
+                                             m,
+                                             (T*)invA.get(),
+                                             (T*)X.get());
     }
     else
     { // side == rocblas_side_right
-        status = rocblas_trsm_right<T, BLOCK>(
-            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
+        status = rocblas_trsm_right<T, BLOCK>(handle,
+                                              uplo,
+                                              transA,
+                                              m,
+                                              n,
+                                              alpha,
+                                              A,
+                                              lda,
+                                              (T*)packedB.get(),
+                                              m,
+                                              (T*)invA.get(),
+                                              (T*)X.get());
     }
 
 #ifndef NDEBUG
     printf("copy x to b\n");
 #endif
-    PRINT_IF_HIP_ERROR(hipMemcpy(B,
-                                 (T*)X.get(),
-                                 ldb * n * sizeof(T),
-                                 hipMemcpyDeviceToDevice)); // TODO: optimized it with copy kernel
 
-    // hipMemcpyDeviceToDevice does not sync host, so a stream sync is required before hipFree
-    // pointer (here rocblas use smart pointer)
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-    hipStreamSynchronize(rocblas_stream);
+    // copy solution X into B
+    {
+        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+        rocblas_int blocksY = ((n - 1) / 8) + 1;
+        dim3 grid(blocksX, blocksY, 1);
+        dim3 threads(128, 8, 1);
+
+        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+                           dim3(grid),
+                           dim3(threads),
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           sizeof(T),
+                           X.get(),
+                           m,
+                           B,
+                           ldb);
+    }
+
     return status;
 }
 

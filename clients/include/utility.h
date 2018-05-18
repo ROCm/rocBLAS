@@ -7,6 +7,7 @@
 #define _TESTING_UTILITY_H_
 
 #include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <sys/time.h>
@@ -344,9 +345,6 @@ class Arguments
     rocblas_int M = 128;
     rocblas_int N = 128;
     rocblas_int K = 128;
-
-    rocblas_int rows = 128;
-    rocblas_int cols = 128;
 
     rocblas_int lda = 128;
     rocblas_int ldb = 128;
