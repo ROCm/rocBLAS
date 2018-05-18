@@ -51,3 +51,35 @@ This project follows the [CPP Core guidelines](https://github.com/isocpp/CppCore
 -  [ES.49](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Res-casts-named): If you must use a cast, use a named cast
 -  [CP.1](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#S-concurrency): Assume that your code will run as part of a multi-threaded program
 -  [I.2](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Ri-global): Avoid global variables
+
+## Format
+C and C++ code is formatted using clang-format. To format a file, use
+
+```
+clang-format-3.8 -style=file -i <path-to-source-file>
+```
+
+To format all files, run the following script in rocBLAS directory:
+
+```
+#!/bin/bash
+
+find . -iname '*.h' \
+-o -iname '*.hpp' \
+-o -iname '*.cpp' \
+-o -iname '*.h.in' \
+-o -iname '*.hpp.in' \
+-o -iname '*.cpp.in' \
+-o -iname '*.cl' \
+| grep -v 'build' \
+| xargs -n 1 -P 8 -I{} clang-format-3.8 -style=file -i {}
+```
+
+
+Also, githooks can be installed to format the code per-commit:
+
+```
+./.githooks/install
+```
+
+
