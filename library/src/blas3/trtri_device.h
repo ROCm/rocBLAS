@@ -36,7 +36,7 @@
               = 'rocblas_diagonal_unit', A is unit triangular;
     @param[in]
     n         rocblas_int.
-    @param[in,output]
+    @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
@@ -46,11 +46,11 @@
 
     ********************************************************************/
 
-template <typename T, rocblas_int NB, rocblas_int flag>
+template <typename T, rocblas_int NB>
 __device__ void trtri_device(rocblas_fill uplo,
                              rocblas_diagonal diag,
                              rocblas_int n,
-                             T* A,
+                             const T* A,
                              rocblas_int lda,
                              T* invA,
                              rocblas_int ldinvA)
@@ -146,34 +146,20 @@ __device__ void trtri_device(rocblas_fill uplo,
         __syncthreads();
     }
 
-    // if flag 0, then A will be overwritten by sA, invA is not touched
-    T* output;
-    int ldoutput;
-    if(flag == 0)
-    {
-        output   = A;
-        ldoutput = lda;
-    }
-    else
-    { // else invA will be overwritten by sA, A is not touched
-        output   = invA;
-        ldoutput = ldinvA;
-    }
-
     if(tx < n)
     {
         if(uplo == rocblas_fill_lower)
         {
             for(int i = 0; i <= tx; i++)
             {
-                output[tx + i * ldoutput] = sA[tx + i * n];
+                invA[tx + i * ldinvA] = sA[tx + i * n];
             }
         }
         else
         { // transpose back to A from sA if upper
             for(int i = n - 1; i >= tx; i--)
             {
-                output[tx + i * ldoutput] = sA[(n - 1 - tx) + (n - 1 - i) * n];
+                invA[tx + i * ldinvA] = sA[(n - 1 - tx) + (n - 1 - i) * n];
             }
         }
     }
