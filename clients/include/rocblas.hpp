@@ -15,7 +15,7 @@
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
  * NVIDIA GPUs.
  *  This file exposes C++ templated BLAS interface with only the precision templated.
-*/
+ */
 
 /*
  * ===========================================================================
@@ -225,11 +225,8 @@ rocblas_status rocblas_trsm(rocblas_handle handle,
                             rocblas_int ldb);
 
 template <typename T>
-rocblas_status roclapack_potf2(rocblas_handle handle,
-                             rocblas_fill uplo,
-                             rocblas_int n,
-                             T* A,
-                             rocblas_int lda);
+rocblas_status
+roclapack_potf2(rocblas_handle handle, rocblas_fill uplo, rocblas_int n, T* A, rocblas_int lda);
 
 template <typename T>
 rocblas_status rocblas_trtri(rocblas_handle handle,
