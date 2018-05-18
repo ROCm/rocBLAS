@@ -12,7 +12,7 @@
 /*!\file
  * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing
  * not part of the GPU library
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -844,10 +844,7 @@ void cblas_trsm<rocblas_double_complex>(rocblas_side side,
 
 // potf2
 template <>
-rocblas_int cblas_potf2(rocblas_fill uplo,
-                        rocblas_int n,
-                        float* A,
-                        rocblas_int lda)
+rocblas_int cblas_potf2(rocblas_fill uplo, rocblas_int n, float* A, rocblas_int lda)
 {
     rocblas_int info;
     char uploC = (uplo == rocblas_fill_upper) ? 'U' : 'L';
@@ -856,10 +853,7 @@ rocblas_int cblas_potf2(rocblas_fill uplo,
 }
 
 template <>
-rocblas_int cblas_potf2(rocblas_fill uplo,
-                        rocblas_int n,
-                        double* A,
-                        rocblas_int lda)
+rocblas_int cblas_potf2(rocblas_fill uplo, rocblas_int n, double* A, rocblas_int lda)
 {
     rocblas_int info;
     char uploC = (uplo == rocblas_fill_upper) ? 'U' : 'L';
