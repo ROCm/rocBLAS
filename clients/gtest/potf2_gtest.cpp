@@ -10,10 +10,10 @@
 #include "testing_potf2.hpp"
 #include "utility.h"
 
+using ::testing::Combine;
 using ::testing::TestWithParam;
 using ::testing::Values;
 using ::testing::ValuesIn;
-using ::testing::Combine;
 using namespace std;
 
 // only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
@@ -41,7 +41,9 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 // vector of vector, each vector is a {N, lda};
 // add/delete as a group
 const vector<vector<int>> matrix_size_range = {
-    {-1, 1}, {10, 20}, {500, 600},
+    {-1, 1},
+    {10, 20},
+    {500, 600},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
@@ -56,9 +58,7 @@ const vector<vector<int>> large_matrix_size_range = {
 
 // Each letter is capitalizied, e.g. do not use 'l', but use 'L' instead.
 
-const vector<char> uplo_range = {
-    'L', 'U'
-};
+const vector<char> uplo_range = {'L', 'U'};
 
 /* ===============Google Unit Test==================================================== */
 
@@ -79,8 +79,8 @@ const vector<char> uplo_range = {
 Arguments setup_potf2_arguments(potf2_tuple tup)
 {
 
-    vector<int> matrix_size            = std::get<0>(tup);
-    char uplo                          = std::get<1>(tup);
+    vector<int> matrix_size = std::get<0>(tup);
+    char uplo               = std::get<1>(tup);
 
     Arguments arg;
 
@@ -88,7 +88,7 @@ Arguments setup_potf2_arguments(potf2_tuple tup)
     arg.N   = matrix_size[0];
     arg.lda = matrix_size[1];
 
-    arg.uplo_option   = uplo;
+    arg.uplo_option = uplo;
 
     arg.timing = 0;
 
@@ -167,12 +167,10 @@ TEST_P(potf2_gtest, potf2_gtest_double)
 // i.e fix the matrix size and alpha, test all the uplo_range first.
 INSTANTIATE_TEST_CASE_P(daily_lapack,
                         potf2_gtest,
-                        Combine(ValuesIn(large_matrix_size_range),
-                                ValuesIn(uplo_range)));
+                        Combine(ValuesIn(large_matrix_size_range), ValuesIn(uplo_range)));
 
 // THis function mainly test the scope of uplo_range, the scope of
 // matrix_size_range is small
 INSTANTIATE_TEST_CASE_P(checkin_lapack,
                         potf2_gtest,
-                        Combine(ValuesIn(matrix_size_range),
-                                ValuesIn(uplo_range)));
+                        Combine(ValuesIn(matrix_size_range), ValuesIn(uplo_range)));
