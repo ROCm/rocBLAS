@@ -63,7 +63,7 @@ rocblas_status testing_potf2(Arguments argus)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA           = (T*)dA_managed.get();
+        T* dA = (T*)dA_managed.get();
         if(!dA)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -89,7 +89,7 @@ rocblas_status testing_potf2(Arguments argus)
     // allocate memory on device
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
                                          rocblas_test::device_free};
-    T* dA           = (T*)dA_managed.get();
+    T* dA = (T*)dA_managed.get();
     if(!dA)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);

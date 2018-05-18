@@ -41,17 +41,11 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 // vector of vector, each vector is a {N, lda};
 // add/delete as a group
 const vector<vector<int>> matrix_size_range = {
-    {-1, 1},
-    {10, 20},
-    {500, 600},
+    {-1, 1}, {10, 20}, {500, 600},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
-    {192, 192},
-    {640, 960},
-    {1000, 1000},
-    {1024, 1024},
-    {2000, 2000},
+    {192, 192}, {640, 960}, {1000, 1000}, {1024, 1024}, {2000, 2000},
 };
 
 // vector of char, each is an uplo, which can be "Lower (L) or Upper (U)"
