@@ -82,8 +82,7 @@ void iamax_iamin_arg_check(rocblas_status status, rocblas_int* d_rocblas_result)
 template <typename T2>
 void asum_arg_check(rocblas_status status, T2 d_rocblas_result);
 
-void potf2_arg_check(
-    rocblas_status status, rocblas_int N);
+void potf2_arg_check(rocblas_status status, rocblas_int N);
 
 template <typename T>
 void nrm2_dot_arg_check(rocblas_status status, T d_rocblas_result);
