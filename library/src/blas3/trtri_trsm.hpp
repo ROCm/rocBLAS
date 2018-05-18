@@ -44,12 +44,12 @@ __global__ void trtri_trsm_kernel(
     }
 
     trtri_device<T, NB / 2>(uplo,
-                               diag,
-                               (NB / 2),
-                               A + hipBlockIdx_x * (NB / 2) * lda + hipBlockIdx_x * (NB / 2),
-                               lda,
-                               individual_invA,
-                               NB);
+                            diag,
+                            (NB / 2),
+                            A + hipBlockIdx_x * (NB / 2) * lda + hipBlockIdx_x * (NB / 2),
+                            lda,
+                            individual_invA,
+                            NB);
 }
 
 /* ============================================================================================ */
