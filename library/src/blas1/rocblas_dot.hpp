@@ -125,8 +125,9 @@ __global__ void dot_kernel_part2(rocblas_int n, T* workspace, T* result)
     }
 }
 
-// HIP support up to 1024 threads/work itmes per thread block/work group
-#define NB_X_DOT 1024
+// HIP support up to 1024 threads/work itemes per thread block/work group
+// setting to 512 for gfx803.
+#define NB_X_DOT 512
 
 // assume workspace has already been allocated, recommened for repeated calling of dot product
 // routine

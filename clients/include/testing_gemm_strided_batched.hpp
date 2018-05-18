@@ -55,7 +55,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     rocblas_int bsc = ldc * N * 2;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count < 0)
+    if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count <= 0)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
@@ -101,9 +101,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
     T rocblas_error = 0.0;
 
-    rocblas_int size_A = bsa * batch_count;
-    rocblas_int size_B = bsb * batch_count;
-    rocblas_int size_C = bsc * batch_count;
+    size_t size_A = static_cast<size_t>(bsa) * static_cast<size_t>(batch_count);
+    size_t size_B = static_cast<size_t>(bsb) * static_cast<size_t>(batch_count);
+    size_t size_C = static_cast<size_t>(bsc) * static_cast<size_t>(batch_count);
 
     // allocate memory on device
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
