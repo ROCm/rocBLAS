@@ -76,7 +76,6 @@ if( CUDA_FOUND )
 else( )
   target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/hcc/lib")
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
@@ -89,7 +88,7 @@ elseif( CMAKE_COMPILER_IS_GNUCXX )
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-set_target_properties( rocblas-bench PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )
+set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 add_subdirectory ( ./perf_script )

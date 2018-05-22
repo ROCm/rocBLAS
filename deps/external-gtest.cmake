@@ -14,7 +14,7 @@ set( gtest_git_repository "https://github.com/google/googletest.git" CACHE STRIN
 set( gtest_git_tag "release-1.8.0" CACHE STRING "URL to download gtest from" )
 
 if( MSVC )
-  list( APPEND gtest_cmake_args -Dgtest_force_shared_crt=ON -DCMAKE_DEBUG_POSTFIX=d )
+  list( APPEND gtest_cmake_args -Dgtest_force_shared_crt=ON )
 # else( )
   # GTEST_USE_OWN_TR1_TUPLE necessary to compile with hipcc
   # list( APPEND gtest_cmake_args -DGTEST_USE_OWN_TR1_TUPLE=1 )

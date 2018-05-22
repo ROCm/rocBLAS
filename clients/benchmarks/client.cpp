@@ -154,6 +154,10 @@ int main(int argc, char* argv[])
         ("verify,v",
          po::value<rocblas_int>(&argus.norm_check)->default_value(0),
          "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
+
+        ("iters,i",
+         po::value<rocblas_int>(&argus.iters)->default_value(10),
+         "Iterations to run inside timing loop")
         
         ("device",
          po::value<rocblas_int>(&device_id)->default_value(0),
