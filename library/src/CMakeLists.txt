@@ -34,7 +34,7 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   # HACK: We include the config file directly because find_package(Tensile) is broken
-  include(${VIRTUALENV_HOME_DIR}/cmake/TensileConfig.cmake)
+  include( ${Tensile_TensileConfig} )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
@@ -157,7 +157,6 @@ endif()
 
 set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-set_target_properties( rocblas PROPERTIES DEBUG_POSTFIX "-d" )
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
