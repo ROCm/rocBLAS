@@ -9,7 +9,7 @@
 
 /*!\file
  * \brief provide template functions interfaces to ROCBLAS C89 interfaces
-*/
+ */
 
 /*
  * ===========================================================================
@@ -613,6 +613,20 @@ rocblas_status rocblas_geam<double>(rocblas_handle handle,
                                     rocblas_int ldc)
 {
     return rocblas_dgeam(handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
+}
+
+template <>
+rocblas_status
+roclapack_potf2(rocblas_handle handle, rocblas_fill uplo, rocblas_int n, float* A, rocblas_int lda)
+{
+    return roclapack_spotf2(handle, uplo, n, A, lda);
+}
+
+template <>
+rocblas_status
+roclapack_potf2(rocblas_handle handle, rocblas_fill uplo, rocblas_int n, double* A, rocblas_int lda)
+{
+    return roclapack_dpotf2(handle, uplo, n, A, lda);
 }
 
 #if BUILD_WITH_TENSILE

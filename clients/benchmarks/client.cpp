@@ -26,6 +26,7 @@
 #include "testing_geam.hpp"
 #include "testing_set_get_vector.hpp"
 #include "testing_set_get_matrix.hpp"
+#include "testing_potf2.hpp"
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
 #include "testing_gemm_strided_batched.hpp"
@@ -324,6 +325,13 @@ int main(int argc, char* argv[])
             testing_set_get_matrix<float>(argus);
         else if(precision == 'd')
             testing_set_get_matrix<double>(argus);
+    }
+    else if(function == "potf2")
+    {
+        if(precision == 's')
+            testing_potf2<float>(argus);
+        else if(precision == 'd')
+            testing_potf2<double>(argus);
     }
 #if BUILD_WITH_TENSILE
     else if(function == "gemm")

@@ -36,4 +36,7 @@ void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, 
 template <typename T>
 void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps);
 
+template <typename T>
+void potf2_err_res_check(T max_error, rocblas_int N, T forward_tolerance, T eps);
+
 #endif
