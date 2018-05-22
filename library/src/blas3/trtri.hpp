@@ -21,12 +21,12 @@ template <typename T, rocblas_int NB>
 __global__ void trtri_small_kernel(rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   T* A,
+                                   const T* A,
                                    rocblas_int lda,
                                    T* invA,
                                    rocblas_int ldinvA)
 {
-    trtri_device<T, NB, 1>(uplo, diag, n, A, lda, invA, ldinvA);
+    trtri_device<T, NB>(uplo, diag, n, A, lda, invA, ldinvA);
 }
 
 template <typename T, rocblas_int IB>
@@ -34,7 +34,7 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
                                    rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   T* A,
+                                   const T* A,
                                    rocblas_int lda,
                                    T* invA,
                                    rocblas_int ldinvA)
@@ -79,7 +79,7 @@ template <typename T, rocblas_int IB>
 __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
                                       rocblas_diagonal diag,
                                       rocblas_int n,
-                                      T* A,
+                                      const T* A,
                                       rocblas_int lda,
                                       T* invA,
                                       rocblas_int ldinvA)
@@ -90,10 +90,10 @@ __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
     // notice the last digaonal block may be smaller than IB*IB
 
-    T* individual_A    = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
-    T* individual_invA = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
+    const T* individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
+    T* individual_invA    = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
 
-    trtri_device<T, IB, 1>(
+    trtri_device<T, IB>(
         uplo, diag, min(IB, n - hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
 }
 
@@ -124,11 +124,11 @@ __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
 template <typename T, rocblas_int IB>
 __global__ void gemm_trsm_kernel(rocblas_int m,
                                  rocblas_int n,
-                                 T* A,
+                                 const T* A,
                                  rocblas_int lda,
-                                 T* B,
+                                 const T* B,
                                  rocblas_int ldb,
-                                 T* C,
+                                 const T* C,
                                  rocblas_int ldc,
                                  T* D,
                                  rocblas_int ldd)
@@ -231,7 +231,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
                                    rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   T* A,
+                                   const T* A,
                                    rocblas_int lda,
                                    T* invA,
                                    rocblas_int ldinvA)
@@ -276,7 +276,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     rocblas_int m_gemm;
     rocblas_int n_gemm;
     T* A_gemm;
-    T* B_gemm;
+    const T* B_gemm;
     T* C_gemm;
     T* D_gemm;
 
@@ -362,7 +362,7 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
                                       rocblas_fill uplo,
                                       rocblas_diagonal diag,
                                       rocblas_int n,
-                                      T* A,
+                                      const T* A,
                                       rocblas_int lda,
                                       T* invA,
                                       rocblas_int ldinvA)

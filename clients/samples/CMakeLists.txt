@@ -16,7 +16,7 @@ foreach( exe ${sample_list} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas )
   target_compile_features( ${exe} PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
-  set_target_properties( ${exe} PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )
+  set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
   target_include_directories( ${exe}
     PRIVATE
@@ -40,7 +40,6 @@ foreach( exe ${sample_list} )
     # hcc compiler, and we want to be able to build with host compilers
     target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
     target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
-    set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/hcc/lib")
   endif( )
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
