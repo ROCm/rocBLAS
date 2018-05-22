@@ -14,7 +14,7 @@
 #include "utility.h"
 
 // flag indicate whether write into A or invA
-template <typename T, rocblas_int NB, rocblas_int flag>
+template <typename T, rocblas_int NB>
 __global__ void trtri_kernel_batched(rocblas_fill uplo,
                                      rocblas_diagonal diag,
                                      rocblas_int n,
@@ -30,7 +30,7 @@ __global__ void trtri_kernel_batched(rocblas_fill uplo,
     T* individual_A    = A + hipBlockIdx_z * bsa;
     T* individual_invA = invA + hipBlockIdx_z * bsinvA;
 
-    trtri_device<T, NB, flag>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+    trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
 
 /* ============================================================================================ */
@@ -84,7 +84,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                                               rocblas_fill uplo,
                                               rocblas_diagonal diag,
                                               rocblas_int n,
-                                              T* A,
+                                              const T* A,
                                               rocblas_int lda,
                                               rocblas_int bsa,
                                               T* invA,
@@ -144,7 +144,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernelGGL((trtri_kernel_batched<T, NB_X, 1>),
+    hipLaunchKernelGGL((trtri_kernel_batched<T, NB_X>),
                        dim3(grid),
                        dim3(threads),
                        0,
