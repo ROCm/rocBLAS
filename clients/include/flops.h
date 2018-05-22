@@ -13,7 +13,7 @@
 /*!\file
  * \brief provides Floating point counts of Basic Linear Algebra Subprograms (BLAS) of Level 1, 2,
  * 3.
-*/
+ */
 
 /*
  * ===========================================================================

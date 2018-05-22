@@ -91,7 +91,6 @@ target_include_directories( rocblas-test
     )
 
 target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas Threads::Threads )
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_SHARED_LIBRARY_RUNTIME_CXX_FLAG}/opt/rocm/hcc/lib")
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 
@@ -118,5 +117,5 @@ elseif( CMAKE_COMPILER_IS_GNUCXX )
   target_compile_options( rocblas-test PRIVATE -mf16c )
 endif( )
 
-set_target_properties( rocblas-test PROPERTIES DEBUG_POSTFIX "-d" CXX_EXTENSIONS NO )
+set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
