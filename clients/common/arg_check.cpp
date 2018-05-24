@@ -164,6 +164,9 @@ void gemm_strided_batched_arg_check(rocblas_status status,
                                     rocblas_int lda,
                                     rocblas_int ldb,
                                     rocblas_int ldc,
+                                    rocblas_int stride_a,
+                                    rocblas_int stride_b,
+                                    rocblas_int stride_c,
                                     rocblas_int batch_count)
 {
 #ifdef GOOGLE_TEST
@@ -176,9 +179,10 @@ void gemm_strided_batched_arg_check(rocblas_status status,
         ASSERT_EQ(status, rocblas_status_invalid_size);
     }
 #else
-    std::cerr << "rocBLAS TEST ERROR in arguments M, N, K, lda, ldb, ldc, batch_count: ";
-    std::cerr << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << batch_count
-              << std::endl;
+    std::cerr << "rocBLAS TEST ERROR in arguments M, N, K, lda, ldb, ldc, stride_a, stride_b, "
+                 "stride_c, batch_count: ";
+    std::cerr << M << ',' << N << ',' << K << ',' << lda << ',' << ldb << ',' << ldc << ','
+              << stride_a << ',' << stride_b << ',' << stride_c << ',' << batch_count << std::endl;
 #endif
 }
 
