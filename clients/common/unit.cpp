@@ -138,6 +138,144 @@ void unit_check_general(
     }
 }
 
+template <>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        rocblas_half* hCPU,
+                        rocblas_half* hGPU)
+{
+#pragma unroll
+    for(rocblas_int k = 0; k < batch_count; k++)
+    {
+#pragma unroll
+        for(rocblas_int j = 0; j < N; j++)
+        {
+#pragma unroll
+            for(rocblas_int i = 0; i < M; i++)
+            {
+#ifdef GOOGLE_TEST
+                float cpu_float = static_cast<float>(hCPU[i + j * lda + k * strideA]);
+                float gpu_float = static_cast<float>(hGPU[i + j * lda + k * strideA]);
+                ASSERT_FLOAT_EQ(cpu_float, gpu_float);
+#endif
+            }
+        }
+    }
+}
+
+template <>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        float* hCPU,
+                        float* hGPU)
+{
+#pragma unroll
+    for(rocblas_int k = 0; k < batch_count; k++)
+    {
+#pragma unroll
+        for(rocblas_int j = 0; j < N; j++)
+        {
+#pragma unroll
+            for(rocblas_int i = 0; i < M; i++)
+            {
+#ifdef GOOGLE_TEST
+                ASSERT_FLOAT_EQ(hCPU[i + j * lda + k * strideA], hGPU[i + j * lda + k * strideA]);
+#endif
+            }
+        }
+    }
+}
+
+template <>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        double* hCPU,
+                        double* hGPU)
+{
+#pragma unroll
+    for(rocblas_int k = 0; k < batch_count; k++)
+    {
+#pragma unroll
+        for(rocblas_int j = 0; j < N; j++)
+        {
+#pragma unroll
+            for(rocblas_int i = 0; i < M; i++)
+            {
+#ifdef GOOGLE_TEST
+                ASSERT_DOUBLE_EQ(hCPU[i + j * lda + k * strideA], hGPU[i + j * lda + k * strideA]);
+#endif
+            }
+        }
+    }
+}
+
+template <>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        rocblas_float_complex* hCPU,
+                        rocblas_float_complex* hGPU)
+{
+#pragma unroll
+    for(rocblas_int k = 0; k < batch_count; k++)
+    {
+#pragma unroll
+        for(rocblas_int j = 0; j < N; j++)
+        {
+#pragma unroll
+            for(rocblas_int i = 0; i < M; i++)
+            {
+#ifdef GOOGLE_TEST
+                ASSERT_FLOAT_EQ(hCPU[i + j * lda + k * strideA].x,
+                                hGPU[i + j * lda + k * strideA].x);
+                ASSERT_FLOAT_EQ(hCPU[i + j * lda + k * strideA].y,
+                                hGPU[i + j * lda + k * strideA].y);
+#endif
+            }
+        }
+    }
+}
+
+template <>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        rocblas_double_complex* hCPU,
+                        rocblas_double_complex* hGPU)
+{
+#pragma unroll
+    for(rocblas_int k = 0; k < batch_count; k++)
+    {
+#pragma unroll
+        for(rocblas_int j = 0; j < N; j++)
+        {
+#pragma unroll
+            for(rocblas_int i = 0; i < M; i++)
+            {
+#ifdef GOOGLE_TEST
+                ASSERT_DOUBLE_EQ(hCPU[i + j * lda + k * strideA].x,
+                                 hGPU[i + j * lda + k * strideA].x);
+                ASSERT_DOUBLE_EQ(hCPU[i + j * lda + k * strideA].y,
+                                 hGPU[i + j * lda + k * strideA].y);
+#endif
+            }
+        }
+    }
+}
+
 /* ========================================Gtest Unit Check TRSM
  * ==================================================== */
 

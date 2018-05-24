@@ -228,8 +228,8 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(M, N * batch_count, lda, hC_gold.data(), hC_1.data());
-            unit_check_general<T>(M, N * batch_count, lda, hC_gold.data(), hC_2.data());
+            unit_check_general<T>(M, N, batch_count, ldc, bsc, hC_gold.data(), hC_1.data());
+            unit_check_general<T>(M, N, batch_count, ldc, bsc, hC_gold.data(), hC_2.data());
         }
 
         // if enable norm check, norm check is invasive
