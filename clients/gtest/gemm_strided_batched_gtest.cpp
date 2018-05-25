@@ -35,14 +35,14 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-// vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
+// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
 // add/delete as a group, in batched gemm, the matrix is much smaller than standard gemm
 const vector<vector<int>> matrix_size_range = {
-    {-1, -1, -1, -1, 1, 1},
-    {31, 33, 35, 101, 102, 103},
-    {59, 61, 63, 129, 131, 137},
-    {129, 130, 131, 132, 133, 134},
-    {501, 502, 103, 504, 605, 506},
+    {-1, -1, -1, -1, 1, 1, 1, 1, 1},
+    {31, 33, 35, 101, 102, 103, 3605, 3605, 3605},
+    {59, 61, 63, 129, 131, 137, 8631, 8631, 8631},
+    {129, 130, 131, 132, 133, 134, 17554, 17554, 17554},
+    {501, 502, 103, 504, 605, 506, 340010, 340010, 340010},
 };
 
 // vector of vector, each pair is a {alpha, beta};
@@ -89,12 +89,15 @@ Arguments setup_gemm_strided_batched_arguments(gemm_strided_batched_tuple tup)
     Arguments arg;
 
     // see the comments about matrix_size_range above
-    arg.M   = matrix_size[0];
-    arg.N   = matrix_size[1];
-    arg.K   = matrix_size[2];
-    arg.lda = matrix_size[3];
-    arg.ldb = matrix_size[4];
-    arg.ldc = matrix_size[5];
+    arg.M        = matrix_size[0];
+    arg.N        = matrix_size[1];
+    arg.K        = matrix_size[2];
+    arg.lda      = matrix_size[3];
+    arg.ldb      = matrix_size[4];
+    arg.ldc      = matrix_size[5];
+    arg.stride_a = matrix_size[6];
+    arg.stride_b = matrix_size[7];
+    arg.stride_c = matrix_size[8];
 
     // the first element of alpha_beta_range is always alpha, and the second is always beta
     arg.alpha = alpha_beta[0];

@@ -197,17 +197,17 @@
                   *alpha,                                               \
                   "--lda",                                              \
                   ld_a,                                                 \
-                  "--bsa",                                              \
+                  "--stride_a",                                         \
                   bs_a,                                                 \
                   "--ldb",                                              \
                   ld_b,                                                 \
-                  "--bsb",                                              \
+                  "--stride_b",                                         \
                   bs_b,                                                 \
                   "--beta",                                             \
                   *beta,                                                \
                   "--ldc",                                              \
                   ld_c,                                                 \
-                  "--bsc",                                              \
+                  "--stride_c",                                         \
                   bs_c,                                                 \
                   "--batch",                                            \
                   b_c);                                                 \
