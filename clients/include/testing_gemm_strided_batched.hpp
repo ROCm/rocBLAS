@@ -56,7 +56,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count <= 0 ||
-       stride_a <= 0 || stride_b <= 0 || stride_c <= 0)
+       stride_a < 0 || stride_b < 0 || stride_c < N * ldc)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
@@ -150,9 +150,11 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
     // Initial Data on CPU
     srand(1);
-    rocblas_init<T>(hA, A_row, A_col * batch_count, lda);
-    rocblas_init<T>(hB, B_row, B_col * batch_count, ldb);
-    rocblas_init<T>(hC_1, M, N * batch_count, ldc);
+
+    rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+    rocblas_init<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
+
     hC_2    = hC_1;
     hC_gold = hC_1;
 
@@ -250,10 +252,10 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error =
-                norm_check_general<T>('F', M, N * batch_count, lda, hC_gold.data(), hC_1.data());
-            rocblas_error =
-                norm_check_general<T>('F', M, N * batch_count, lda, hC_gold.data(), hC_2.data());
+            rocblas_error = norm_check_general<T>(
+                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_1.data());
+            rocblas_error = norm_check_general<T>(
+                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_2.data());
         }
     }
 

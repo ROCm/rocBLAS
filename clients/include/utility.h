@@ -154,6 +154,27 @@ void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
     }
 };
 
+// initialize strided_batched matrix
+template <typename T>
+void rocblas_init(vector<T>& A,
+                  rocblas_int M,
+                  rocblas_int N,
+                  rocblas_int lda,
+                  rocblas_int stride,
+                  rocblas_int batch_count)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda + i_batch * stride] = random_generator<T>();
+            }
+        }
+    }
+};
+
 template <typename T>
 void rocblas_init_alternating_sign(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
