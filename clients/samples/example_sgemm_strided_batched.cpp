@@ -88,13 +88,13 @@ int main()
     float alpha = 1.1, beta = 0.9;
 
     rocblas_int m = DIM1, n = DIM2, k = DIM3, batch_count = BATCH_COUNT;
-    rocblas_int lda, ldb, ldc, bsa, bsb, bsc;
+    rocblas_int lda, ldb, ldc, stride_a, stride_b, stride_c;
     int a_stride_1, a_stride_2, b_stride_1, b_stride_2;
     cout << "sgemm_strided_batched example" << endl;
     if(transa == rocblas_operation_none)
     {
         lda        = m;
-        bsa        = k * lda;
+        stride_a   = k * lda;
         a_stride_1 = 1;
         a_stride_2 = lda;
         cout << "N";
@@ -102,7 +102,7 @@ int main()
     else
     {
         lda        = k;
-        bsa        = m * lda;
+        stride_a   = m * lda;
         a_stride_1 = lda;
         a_stride_2 = 1;
         cout << "T";
@@ -110,7 +110,7 @@ int main()
     if(transb == rocblas_operation_none)
     {
         ldb        = k;
-        bsb        = n * ldb;
+        stride_b   = n * ldb;
         b_stride_1 = 1;
         b_stride_2 = ldb;
         cout << "N: ";
@@ -118,20 +118,21 @@ int main()
     else
     {
         ldb        = n;
-        bsb        = k * ldb;
+        stride_b   = k * ldb;
         b_stride_1 = ldb;
         b_stride_2 = 1;
         cout << "T: ";
     }
-    ldc = m;
-    bsc = n * ldc;
+    ldc      = m;
+    stride_c = n * ldc;
 
-    cout << "M, N, K, lda, bsa, ldb, bsb, ldc, bsc = " << m << ", " << n << ", " << k << ", " << lda
-         << ", " << bsa << ", " << ldb << ", " << bsb << ", " << ldc << ", " << bsc << endl;
+    cout << "M, N, K, lda, stride_a, ldb, stride_b, ldc, stride_c = " << m << ", " << n << ", " << k
+         << ", " << lda << ", " << stride_a << ", " << ldb << ", " << stride_b << ", " << ldc
+         << ", " << stride_c << endl;
 
-    int size_a = bsa * batch_count;
-    int size_b = bsb * batch_count;
-    int size_c = bsc * batch_count;
+    int size_a = stride_a * batch_count;
+    int size_b = stride_b * batch_count;
+    int size_c = stride_c * batch_count;
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
     vector<float> ha(size_a);
@@ -178,14 +179,14 @@ int main()
                                                       &alpha,
                                                       da,
                                                       lda,
-                                                      bsa,
+                                                      stride_a,
                                                       db,
                                                       ldb,
-                                                      bsb,
+                                                      stride_b,
                                                       &beta,
                                                       dc,
                                                       ldc,
-                                                      bsc,
+                                                      stride_c,
                                                       batch_count));
 
     // copy output from device to CPU
@@ -194,9 +195,9 @@ int main()
     // calculate golden or correct result
     for(int i = 0; i < batch_count; i++)
     {
-        float* a_ptr = &ha[i * bsa];
-        float* b_ptr = &hb[i * bsb];
-        float* c_ptr = &hc_gold[i * bsc];
+        float* a_ptr = &ha[i * stride_a];
+        float* b_ptr = &hb[i * stride_b];
+        float* c_ptr = &hc_gold[i * stride_c];
         mat_mat_mult<float>(alpha,
                             beta,
                             m,
