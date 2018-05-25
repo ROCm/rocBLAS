@@ -23,116 +23,117 @@
 #define ARGS_BATCHED(TYPE)                                                                      \
     rocblas_handle handle, rocblas_operation trans_a, rocblas_operation trans_b, rocblas_int m, \
         rocblas_int n, rocblas_int k, const TYPE *alpha, const TYPE *A, rocblas_int ld_a,       \
-        rocblas_int bs_a, const TYPE *B, rocblas_int ld_b, rocblas_int bs_b, const TYPE *beta,  \
-        TYPE *C, rocblas_int ld_c, rocblas_int bs_c, rocblas_int b_c
+        rocblas_int stride_a, const TYPE *B, rocblas_int ld_b, rocblas_int stride_b,            \
+        const TYPE *beta, TYPE *C, rocblas_int ld_c, rocblas_int stride_c, rocblas_int b_c
 
 /*******************************************************************************
  * Preamble Code
  ******************************************************************************/
-#define PREAMBLE(TYPE)                                                                     \
-                                                                                           \
-    if(nullptr != handle)                                                                  \
-    {                                                                                      \
-        if(handle->pointer_mode == rocblas_pointer_mode_host)                              \
-        {                                                                                  \
-            log_trace(handle,                                                              \
-                      replaceX<TYPE>("rocblas_Xgemm"),                                     \
-                      trans_a,                                                             \
-                      trans_b,                                                             \
-                      m,                                                                   \
-                      n,                                                                   \
-                      k,                                                                   \
-                      *alpha,                                                              \
-                      (const void*&)A,                                                     \
-                      ld_a,                                                                \
-                      (const void*&)B,                                                     \
-                      ld_b,                                                                \
-                      *beta,                                                               \
-                      (const void*&)C,                                                     \
-                      ld_c);                                                               \
-                                                                                           \
-            std::string trans_a_letter = rocblas_transpose_letter(trans_a);                \
-            std::string trans_b_letter = rocblas_transpose_letter(trans_b);                \
-                                                                                           \
-            log_bench(handle,                                                              \
-                      "./rocblas-bench -f gemm -r",                                        \
-                      replaceX<TYPE>("X"),                                                 \
-                      "--transposeA",                                                      \
-                      trans_a_letter,                                                      \
-                      "--transposeB",                                                      \
-                      trans_b_letter,                                                      \
-                      "-m",                                                                \
-                      m,                                                                   \
-                      "-n",                                                                \
-                      n,                                                                   \
-                      "-k",                                                                \
-                      k,                                                                   \
-                      "--alpha",                                                           \
-                      *alpha,                                                              \
-                      "--lda",                                                             \
-                      ld_a,                                                                \
-                      "--ldb",                                                             \
-                      ld_b,                                                                \
-                      "--beta",                                                            \
-                      *beta,                                                               \
-                      "--ldc",                                                             \
-                      ld_c);                                                               \
-        }                                                                                  \
-        else                                                                               \
-        {                                                                                  \
-            log_trace(handle,                                                              \
-                      replaceX<TYPE>("rocblas_Xgemm"),                                     \
-                      trans_a,                                                             \
-                      trans_b,                                                             \
-                      m,                                                                   \
-                      n,                                                                   \
-                      k,                                                                   \
-                      (const void*&)alpha,                                                 \
-                      (const void*&)A,                                                     \
-                      ld_a,                                                                \
-                      (const void*&)B,                                                     \
-                      ld_b,                                                                \
-                      (const void*&)beta,                                                  \
-                      (const void*&)C,                                                     \
-                      ld_c);                                                               \
-        }                                                                                  \
-    }                                                                                      \
-                                                                                           \
-    rocblas_int b_c = 1;                                                                   \
-    rocblas_int bs_c;                                                                      \
-    rocblas_int bs_a;                                                                      \
-    rocblas_int bs_b;                                                                      \
-    infer_batch_strides(trans_a, trans_b, m, n, k, ld_a, &bs_a, ld_b, &bs_b, ld_c, &bs_c); \
-    rocblas_status validArgs = validateArgs(handle,                                        \
-                                            trans_a,                                       \
-                                            trans_b,                                       \
-                                            m,                                             \
-                                            n,                                             \
-                                            k,                                             \
-                                            alpha,                                         \
-                                            A,                                             \
-                                            ld_a,                                          \
-                                            bs_a,                                          \
-                                            B,                                             \
-                                            ld_b,                                          \
-                                            bs_b,                                          \
-                                            beta,                                          \
-                                            C,                                             \
-                                            ld_c,                                          \
-                                            bs_c,                                          \
-                                            b_c);                                          \
-    if(validArgs != rocblas_status_success)                                                \
-        return validArgs;                                                                  \
-                                                                                           \
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);                               \
-    unsigned int strideC2 = static_cast<unsigned int>(bs_c);                               \
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);                               \
-    unsigned int strideA2 = static_cast<unsigned int>(bs_a);                               \
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);                               \
-    unsigned int strideB2 = static_cast<unsigned int>(bs_b);                               \
-    unsigned int sizeI    = static_cast<unsigned int>(m);                                  \
-    unsigned int sizeJ    = static_cast<unsigned int>(n);                                  \
-    unsigned int sizeK    = b_c;                                                           \
+#define PREAMBLE(TYPE)                                                                 \
+                                                                                       \
+    if(nullptr != handle)                                                              \
+    {                                                                                  \
+        if(handle->pointer_mode == rocblas_pointer_mode_host)                          \
+        {                                                                              \
+            log_trace(handle,                                                          \
+                      replaceX<TYPE>("rocblas_Xgemm"),                                 \
+                      trans_a,                                                         \
+                      trans_b,                                                         \
+                      m,                                                               \
+                      n,                                                               \
+                      k,                                                               \
+                      *alpha,                                                          \
+                      (const void*&)A,                                                 \
+                      ld_a,                                                            \
+                      (const void*&)B,                                                 \
+                      ld_b,                                                            \
+                      *beta,                                                           \
+                      (const void*&)C,                                                 \
+                      ld_c);                                                           \
+                                                                                       \
+            std::string trans_a_letter = rocblas_transpose_letter(trans_a);            \
+            std::string trans_b_letter = rocblas_transpose_letter(trans_b);            \
+                                                                                       \
+            log_bench(handle,                                                          \
+                      "./rocblas-bench -f gemm -r",                                    \
+                      replaceX<TYPE>("X"),                                             \
+                      "--transposeA",                                                  \
+                      trans_a_letter,                                                  \
+                      "--transposeB",                                                  \
+                      trans_b_letter,                                                  \
+                      "-m",                                                            \
+                      m,                                                               \
+                      "-n",                                                            \
+                      n,                                                               \
+                      "-k",                                                            \
+                      k,                                                               \
+                      "--alpha",                                                       \
+                      *alpha,                                                          \
+                      "--lda",                                                         \
+                      ld_a,                                                            \
+                      "--ldb",                                                         \
+                      ld_b,                                                            \
+                      "--beta",                                                        \
+                      *beta,                                                           \
+                      "--ldc",                                                         \
+                      ld_c);                                                           \
+        }                                                                              \
+        else                                                                           \
+        {                                                                              \
+            log_trace(handle,                                                          \
+                      replaceX<TYPE>("rocblas_Xgemm"),                                 \
+                      trans_a,                                                         \
+                      trans_b,                                                         \
+                      m,                                                               \
+                      n,                                                               \
+                      k,                                                               \
+                      (const void*&)alpha,                                             \
+                      (const void*&)A,                                                 \
+                      ld_a,                                                            \
+                      (const void*&)B,                                                 \
+                      ld_b,                                                            \
+                      (const void*&)beta,                                              \
+                      (const void*&)C,                                                 \
+                      ld_c);                                                           \
+        }                                                                              \
+    }                                                                                  \
+                                                                                       \
+    rocblas_int b_c = 1;                                                               \
+    rocblas_int stride_c;                                                              \
+    rocblas_int stride_a;                                                              \
+    rocblas_int stride_b;                                                              \
+    infer_batch_strides(                                                               \
+        trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c); \
+    rocblas_status validArgs = validateArgs(handle,                                    \
+                                            trans_a,                                   \
+                                            trans_b,                                   \
+                                            m,                                         \
+                                            n,                                         \
+                                            k,                                         \
+                                            alpha,                                     \
+                                            A,                                         \
+                                            ld_a,                                      \
+                                            stride_a,                                  \
+                                            B,                                         \
+                                            ld_b,                                      \
+                                            stride_b,                                  \
+                                            beta,                                      \
+                                            C,                                         \
+                                            ld_c,                                      \
+                                            stride_c,                                  \
+                                            b_c);                                      \
+    if(validArgs != rocblas_status_success)                                            \
+        return validArgs;                                                              \
+                                                                                       \
+    unsigned int strideC1 = static_cast<unsigned int>(ld_c);                           \
+    unsigned int strideC2 = static_cast<unsigned int>(stride_c);                       \
+    unsigned int strideA1 = static_cast<unsigned int>(ld_a);                           \
+    unsigned int strideA2 = static_cast<unsigned int>(stride_a);                       \
+    unsigned int strideB1 = static_cast<unsigned int>(ld_b);                           \
+    unsigned int strideB2 = static_cast<unsigned int>(stride_b);                       \
+    unsigned int sizeI    = static_cast<unsigned int>(m);                              \
+    unsigned int sizeJ    = static_cast<unsigned int>(n);                              \
+    unsigned int sizeK    = b_c;                                                       \
     unsigned int sizeL    = static_cast<unsigned int>(k);
 
 #define PREAMBLE_BATCHED(TYPE)                                          \
@@ -145,14 +146,14 @@
                                             alpha,                      \
                                             A,                          \
                                             ld_a,                       \
-                                            bs_a,                       \
+                                            stride_a,                   \
                                             B,                          \
                                             ld_b,                       \
-                                            bs_b,                       \
+                                            stride_b,                   \
                                             beta,                       \
                                             C,                          \
                                             ld_c,                       \
-                                            bs_c,                       \
+                                            stride_c,                   \
                                             b_c);                       \
                                                                         \
     if(handle->pointer_mode == rocblas_pointer_mode_host)               \
@@ -167,14 +168,14 @@
                   *alpha,                                               \
                   (const void*&)A,                                      \
                   ld_a,                                                 \
-                  bs_a,                                                 \
+                  stride_a,                                             \
                   (const void*&)B,                                      \
                   ld_b,                                                 \
-                  bs_b,                                                 \
+                  stride_b,                                             \
                   *beta,                                                \
                   (const void*&)C,                                      \
                   ld_c,                                                 \
-                  bs_c,                                                 \
+                  stride_c,                                             \
                   b_c);                                                 \
                                                                         \
         std::string trans_a_letter = rocblas_transpose_letter(trans_a); \
@@ -198,17 +199,17 @@
                   "--lda",                                              \
                   ld_a,                                                 \
                   "--stride_a",                                         \
-                  bs_a,                                                 \
+                  stride_a,                                             \
                   "--ldb",                                              \
                   ld_b,                                                 \
                   "--stride_b",                                         \
-                  bs_b,                                                 \
+                  stride_b,                                             \
                   "--beta",                                             \
                   *beta,                                                \
                   "--ldc",                                              \
                   ld_c,                                                 \
                   "--stride_c",                                         \
-                  bs_c,                                                 \
+                  stride_c,                                             \
                   "--batch",                                            \
                   b_c);                                                 \
     }                                                                   \
@@ -224,14 +225,14 @@
                   (const void*&)alpha,                                  \
                   (const void*&)A,                                      \
                   ld_a,                                                 \
-                  bs_a,                                                 \
+                  stride_a,                                             \
                   (const void*&)B,                                      \
                   ld_b,                                                 \
-                  bs_b,                                                 \
+                  stride_b,                                             \
                   (const void*&)beta,                                   \
                   (const void*&)C,                                      \
                   ld_c,                                                 \
-                  bs_c,                                                 \
+                  stride_c,                                             \
                   b_c);                                                 \
     }                                                                   \
                                                                         \
@@ -239,11 +240,11 @@
         return validArgs;                                               \
                                                                         \
     unsigned int strideC1 = static_cast<unsigned int>(ld_c);            \
-    unsigned int strideC2 = static_cast<unsigned int>(bs_c);            \
+    unsigned int strideC2 = static_cast<unsigned int>(stride_c);        \
     unsigned int strideA1 = static_cast<unsigned int>(ld_a);            \
-    unsigned int strideA2 = static_cast<unsigned int>(bs_a);            \
+    unsigned int strideA2 = static_cast<unsigned int>(stride_a);        \
     unsigned int strideB1 = static_cast<unsigned int>(ld_b);            \
-    unsigned int strideB2 = static_cast<unsigned int>(bs_b);            \
+    unsigned int strideB2 = static_cast<unsigned int>(stride_b);        \
     unsigned int sizeI    = static_cast<unsigned int>(m);               \
     unsigned int sizeJ    = static_cast<unsigned int>(n);               \
     unsigned int sizeK    = static_cast<unsigned int>(b_c);             \
@@ -821,14 +822,14 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
                                                  const T* alpha,
                                                  const T* A,
                                                  rocblas_int ld_a,
-                                                 rocblas_int bs_a,
+                                                 rocblas_int stride_a,
                                                  const T* B,
                                                  rocblas_int ld_b,
-                                                 rocblas_int bs_b,
+                                                 rocblas_int stride_b,
                                                  const T* beta,
                                                  T* C,
                                                  rocblas_int ld_c,
-                                                 rocblas_int bs_c,
+                                                 rocblas_int stride_c,
                                                  rocblas_int b_c)
 {
     rocblas_status validArgs = validateArgs(handle,
@@ -840,14 +841,14 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
                                             alpha,
                                             A,
                                             ld_a,
-                                            bs_a,
+                                            stride_a,
                                             B,
                                             ld_b,
-                                            bs_b,
+                                            stride_b,
                                             beta,
                                             C,
                                             ld_c,
-                                            bs_c,
+                                            stride_c,
                                             b_c);
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -862,14 +863,14 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
                   *alpha,
                   (const void*&)A,
                   ld_a,
-                  bs_a,
+                  stride_a,
                   (const void*&)B,
                   ld_b,
-                  bs_b,
+                  stride_b,
                   *beta,
                   (const void*&)C,
                   ld_c,
-                  bs_c,
+                  stride_c,
                   b_c);
 
         std::string trans_a_letter = rocblas_transpose_letter(trans_a);
@@ -893,17 +894,17 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
                   "--lda",
                   ld_a,
                   "--bsa",
-                  bs_a,
+                  stride_a,
                   "--ldb",
                   ld_b,
                   "--bsb",
-                  bs_b,
+                  stride_b,
                   "--beta",
                   *beta,
                   "--ldc",
                   ld_c,
                   "--bsc",
-                  bs_c,
+                  stride_c,
                   "--batch",
                   b_c);
     }
@@ -919,14 +920,14 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
                   (const void*&)alpha,
                   (const void*&)A,
                   ld_a,
-                  bs_a,
+                  stride_a,
                   (const void*&)B,
                   ld_b,
-                  bs_b,
+                  stride_b,
                   (const void*&)beta,
                   (const void*&)C,
                   ld_c,
-                  bs_c,
+                  stride_c,
                   b_c);
     }
 
@@ -934,11 +935,11 @@ rocblas_status rocblas_gemm_kernel_name_template(rocblas_handle handle,
         return validArgs;
 
     unsigned int strideC1 = static_cast<unsigned int>(ld_c);
-    unsigned int strideC2 = static_cast<unsigned int>(bs_c);
+    unsigned int strideC2 = static_cast<unsigned int>(stride_c);
     unsigned int strideA1 = static_cast<unsigned int>(ld_a);
-    unsigned int strideA2 = static_cast<unsigned int>(bs_a);
+    unsigned int strideA2 = static_cast<unsigned int>(stride_a);
     unsigned int strideB1 = static_cast<unsigned int>(ld_b);
-    unsigned int strideB2 = static_cast<unsigned int>(bs_b);
+    unsigned int strideB2 = static_cast<unsigned int>(stride_b);
     unsigned int sizeI    = static_cast<unsigned int>(m);
     unsigned int sizeJ    = static_cast<unsigned int>(n);
     unsigned int sizeK    = static_cast<unsigned int>(b_c);
@@ -1023,14 +1024,14 @@ rocblas_status rocblas_hgemm_kernel_name(rocblas_handle handle,
                                          const rocblas_half* alpha,
                                          const rocblas_half* A,
                                          rocblas_int ld_a,
-                                         rocblas_int bs_a,
+                                         rocblas_int stride_a,
                                          const rocblas_half* B,
                                          rocblas_int ld_b,
-                                         rocblas_int bs_b,
+                                         rocblas_int stride_b,
                                          const rocblas_half* beta,
                                          rocblas_half* C,
                                          rocblas_int ld_c,
-                                         rocblas_int bs_c,
+                                         rocblas_int stride_c,
                                          rocblas_int b_c)
 {
     rocblas_status status = rocblas_gemm_kernel_name_template<rocblas_half>(handle,
@@ -1042,14 +1043,14 @@ rocblas_status rocblas_hgemm_kernel_name(rocblas_handle handle,
                                                                             alpha,
                                                                             A,
                                                                             ld_a,
-                                                                            bs_a,
+                                                                            stride_a,
                                                                             B,
                                                                             ld_b,
-                                                                            bs_b,
+                                                                            stride_b,
                                                                             beta,
                                                                             C,
                                                                             ld_c,
-                                                                            bs_c,
+                                                                            stride_c,
                                                                             b_c);
 
     return status;
@@ -1064,14 +1065,14 @@ rocblas_status rocblas_sgemm_kernel_name(rocblas_handle handle,
                                          const float* alpha,
                                          const float* A,
                                          rocblas_int ld_a,
-                                         rocblas_int bs_a,
+                                         rocblas_int stride_a,
                                          const float* B,
                                          rocblas_int ld_b,
-                                         rocblas_int bs_b,
+                                         rocblas_int stride_b,
                                          const float* beta,
                                          float* C,
                                          rocblas_int ld_c,
-                                         rocblas_int bs_c,
+                                         rocblas_int stride_c,
                                          rocblas_int b_c)
 {
     rocblas_status status = rocblas_gemm_kernel_name_template<float>(handle,
@@ -1083,14 +1084,14 @@ rocblas_status rocblas_sgemm_kernel_name(rocblas_handle handle,
                                                                      alpha,
                                                                      A,
                                                                      ld_a,
-                                                                     bs_a,
+                                                                     stride_a,
                                                                      B,
                                                                      ld_b,
-                                                                     bs_b,
+                                                                     stride_b,
                                                                      beta,
                                                                      C,
                                                                      ld_c,
-                                                                     bs_c,
+                                                                     stride_c,
                                                                      b_c);
 
     return status;
@@ -1105,14 +1106,14 @@ rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
                                          const double* alpha,
                                          const double* A,
                                          rocblas_int ld_a,
-                                         rocblas_int bs_a,
+                                         rocblas_int stride_a,
                                          const double* B,
                                          rocblas_int ld_b,
-                                         rocblas_int bs_b,
+                                         rocblas_int stride_b,
                                          const double* beta,
                                          double* C,
                                          rocblas_int ld_c,
-                                         rocblas_int bs_c,
+                                         rocblas_int stride_c,
                                          rocblas_int b_c)
 {
     rocblas_status status = rocblas_gemm_kernel_name_template<double>(handle,
@@ -1124,14 +1125,14 @@ rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
                                                                       alpha,
                                                                       A,
                                                                       ld_a,
-                                                                      bs_a,
+                                                                      stride_a,
                                                                       B,
                                                                       ld_b,
-                                                                      bs_b,
+                                                                      stride_b,
                                                                       beta,
                                                                       C,
                                                                       ld_c,
-                                                                      bs_c,
+                                                                      stride_c,
                                                                       b_c);
 
     return status;
