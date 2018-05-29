@@ -644,13 +644,13 @@ __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
                                           void* b,
                                           rocblas_int ldb)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
     if(tx < rows && ty < cols)
     {
-        memcpy((void*)((size_t)b + (size_t)(((size_t)tx + ldb * ty) * (size_t)elem_size)),
-               (void*)((size_t)a + (size_t)(((size_t)tx + lda * ty) * (size_t)elem_size)),
+        memcpy((void*)((size_t)b + (size_t)((tx + (size_t)ldb * ty) * (size_t)elem_size)),
+               (void*)((size_t)a + (size_t)((tx + (size_t)lda * ty) * (size_t)elem_size)),
                elem_size);
     }
 }
