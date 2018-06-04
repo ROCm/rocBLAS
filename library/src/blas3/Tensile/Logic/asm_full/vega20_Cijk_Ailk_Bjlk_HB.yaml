@@ -1,7 +1,7 @@
-- {MinimumRequiredVersion: 4.0.2}
+- {MinimumRequiredVersion: 4.2.0}
 - vega20
 - gfx906
-- [Device 66a0]
+- [Device 66a0, Device 66a7]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -25,6 +25,7 @@
   NumIndicesFree: 2
   NumIndicesSummation: 1
   OperationType: GEMM
+  SilentHighPrecisionAccumulate: false
   TLUA: true
   TLUB: true
   Tensor0: 0
@@ -36,16 +37,19 @@
   TransposeB: true
   UseBeta: true
   UseInitialStrides: false
-- - AssignedDerivedParameters: true
+- - AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
     BenchmarkFork: 0
     BufferLoad: true
     BufferStore: true
     DepthU: 8
-    DirectToLds: true
+    DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
+    DisableKernelPieces: 0
     EdgeType: ShiftPtr
+    FractionalLoad: 0
     GlobalLoadVectorWidthA: 4
     GlobalLoadVectorWidthB: 4
     GlobalRead2A: true
@@ -59,6 +63,7 @@
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 8
+    InnerUnroll: 1
     KernelLanguage: Assembly
     LSCA: 128
     LSCB: 128
@@ -94,6 +99,7 @@
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
     MaxOccupancy: 40
+    MinGlobalWriteVectorWidth: 2
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -106,11 +112,10 @@
     NumLoadsPerpendicularA: 1
     NumLoadsPerpendicularB: 1
     NumThreads: 256
-    PVA: 2
-    PVB: 2
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
+    PersistentKernel: 0
     PreciseBoundsCheck: false
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
@@ -138,6 +143,7 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
+      SilentHighPrecisionAccumulate: false
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -149,6 +155,8 @@
       TransposeB: true
       UseBeta: true
       UseInitialStrides: false
+    SolutionIndex: 0
+    SolutionNameMin: Cijk_Ailk_Bjlk_HB_MT128x128x08_
     SubGroup0: 16
     SubGroup1: 16
     SubGroupA: 16
@@ -161,11 +169,13 @@
     UnrollMemFence: false
     UseSgprForGRO: 0
     Valid: true
+    VectorStore: true
     VectorWidth: 8
     WorkGroup: [16, 16, 1]
     WorkGroupMapping: 1
     WorkGroupMappingType: B
-  - AssignedDerivedParameters: true
+  - AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
     BufferLoad: false
     BufferStore: true
@@ -173,7 +183,9 @@
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
+    DisableKernelPieces: 0
     EdgeType: ShiftPtr
+    FractionalLoad: false
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
     GlobalRead2A: true
@@ -187,6 +199,7 @@
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 1
+    InnerUnroll: 1
     KernelLanguage: Source
     LSCA: 16
     LSCB: 16
@@ -222,6 +235,7 @@
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
     MaxOccupancy: 40
+    MinGlobalWriteVectorWidth: 2
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
@@ -234,11 +248,10 @@
     NumLoadsPerpendicularA: 1
     NumLoadsPerpendicularB: 1
     NumThreads: 64
-    PVA: 1
-    PVB: 1
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
+    PersistentKernel: 0
     PreciseBoundsCheck: false
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
@@ -266,6 +279,7 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
+      SilentHighPrecisionAccumulate: false
       TLUA: true
       TLUB: true
       Tensor0: 0
@@ -277,6 +291,8 @@
       TransposeB: true
       UseBeta: true
       UseInitialStrides: false
+    SolutionIndex: 1
+    SolutionNameMin: Cijk_Ailk_Bjlk_HB_MT016x016x08_
     SubGroup0: 8
     SubGroup1: 8
     SubGroupA: 8
@@ -289,6 +305,7 @@
     UnrollMemFence: false
     UseSgprForGRO: 0
     Valid: true
+    VectorStore: true
     VectorWidth: 1
     WorkGroup: [8, 8, 1]
     WorkGroupMapping: 1
