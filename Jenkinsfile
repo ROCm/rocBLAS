@@ -207,7 +207,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
           sh """#!/usr/bin/env bash
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes #--gtest_filter=*nightly*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=-*known_bug* #--gtest_filter=*nightly*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -217,7 +217,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
                 LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes #--gtest_filter=*checkin* 
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=-*known_bug* #--gtest_filter=*checkin* 
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
