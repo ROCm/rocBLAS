@@ -8,8 +8,6 @@
 #include <fstream>
 #include <string>
 
-#include "rocblas.h"
-
 // if trace logging is turned on with
 // (handle->layer_mode & rocblas_layer_mode_log_trace) == true
 // then
