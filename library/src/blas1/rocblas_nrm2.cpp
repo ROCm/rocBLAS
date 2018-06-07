@@ -257,6 +257,7 @@ extern "C" rocblas_status rocblas_dnrm2(
     return rocblas_nrm2_template<double, double>(handle, n, x, incx, result);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_scnrm2(rocblas_handle handle,
                                          rocblas_int n,
                                          const rocblas_float_complex* x,
@@ -274,3 +275,4 @@ extern "C" rocblas_status rocblas_dznrm2(rocblas_handle handle,
 {
     return rocblas_nrm2_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
+*/

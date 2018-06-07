@@ -285,6 +285,7 @@ extern "C" rocblas_status rocblas_idamax(
     return rocblas_iamax_template<double, double>(handle, n, x, incx, result);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_iscamax(rocblas_handle handle,
                                           rocblas_int n,
                                           const rocblas_float_complex* x,
@@ -302,3 +303,4 @@ extern "C" rocblas_status rocblas_idzamax(rocblas_handle handle,
 {
     return rocblas_iamax_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
+*/

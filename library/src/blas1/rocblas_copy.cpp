@@ -146,6 +146,7 @@ extern "C" rocblas_status rocblas_dcopy(rocblas_handle handle,
     return rocblas_copy_template<double>(handle, n, x, incx, y, incy);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_ccopy(rocblas_handle handle,
                                         rocblas_int n,
                                         const rocblas_float_complex* x,
@@ -167,5 +168,4 @@ extern "C" rocblas_status rocblas_zcopy(rocblas_handle handle,
 
     return rocblas_copy_template<rocblas_double_complex>(handle, n, x, incx, y, incy);
 }
-
-/* ============================================================================================ */
+*/
