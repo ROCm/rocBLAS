@@ -148,6 +148,7 @@ extern "C" rocblas_status rocblas_dscal(
     return rocblas_scal_template<double>(handle, n, alpha, x, incx);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_cscal(rocblas_handle handle,
                                         rocblas_int n,
                                         const rocblas_float_complex* alpha,
@@ -165,3 +166,4 @@ extern "C" rocblas_status rocblas_zscal(rocblas_handle handle,
 {
     return rocblas_scal_template<rocblas_double_complex>(handle, n, alpha, x, incx);
 }
+*/

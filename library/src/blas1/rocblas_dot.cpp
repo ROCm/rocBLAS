@@ -326,6 +326,7 @@ extern "C" rocblas_status rocblas_ddot(rocblas_handle handle,
     return rocblas_dot_template<double>(handle, n, x, incx, y, incy, result);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_cdotu(rocblas_handle handle,
                                         rocblas_int n,
                                         const rocblas_float_complex* x,
@@ -347,3 +348,4 @@ extern "C" rocblas_status rocblas_zdotu(rocblas_handle handle,
 {
     return rocblas_dot_template<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
 }
+*/
