@@ -281,6 +281,7 @@ extern "C" rocblas_status rocblas_idamin(
     return rocblas_iamin_template<double, double>(handle, n, x, incx, result);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_iscamin(rocblas_handle handle,
                                           rocblas_int n,
                                           const rocblas_float_complex* x,
@@ -298,3 +299,4 @@ extern "C" rocblas_status rocblas_idzamin(rocblas_handle handle,
 {
     return rocblas_iamin_template<rocblas_double_complex, double>(handle, n, x, incx, result);
 }
+*/
