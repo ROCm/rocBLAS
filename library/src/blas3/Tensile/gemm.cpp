@@ -290,7 +290,7 @@
         hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost); \
         hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);   \
     }                                                                    \
-    unsigned int int_limit = std::numeric_limits<int>::max();                                                                     \
+    unsigned int int_limit = std::numeric_limits<int>::max() / sizeof(TYPE);                                                      \
     unsigned int chunk_size_min = 1024;                                                                                           \
     unsigned int chunk_size = int_limit / strideC1 > chunk_size_min ? int_limit / strideC1 : chunk_size_min;                      \
     unsigned int chunk_count = ((sizeJ - 1) / chunk_size) + 1;                                                                    \
