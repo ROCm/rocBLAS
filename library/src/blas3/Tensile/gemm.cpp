@@ -290,9 +290,19 @@
         hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost); \
         hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);   \
     }                                                                    \
-    status = tensile_##TRANS##_##PREC##B(C,                              \
+    unsigned int int_limit = std::numeric_limits<int>::max() / sizeof(TYPE);                                                      \
+    unsigned int chunk_size_min = 1024;                                                                                           \
+    unsigned int chunk_size = int_limit / strideC1 > chunk_size_min ? int_limit / strideC1 : chunk_size_min;                      \
+    unsigned int chunk_count = ((sizeJ - 1) / chunk_size) + 1;                                                                    \
+    for (int chunk_i = 0; chunk_i < chunk_count; chunk_i++)                                                                       \
+    {                                                                                                                             \
+        unsigned int chunk_sizeJ = chunk_size < sizeJ - (chunk_size * chunk_i) ? chunk_size : sizeJ - (chunk_size * chunk_i);     \
+        size_t C_offset = chunk_i * chunk_size * strideC1;                                                                        \
+        size_t B_offset = chunk_i * chunk_size;                                                                                   \
+        if (trans_b == rocblas_operation_none) B_offset *= strideB1;                                                              \
+    status = tensile_##TRANS##_##PREC##B(C + C_offset,                   \
                                          A,                              \
-                                         B,                              \
+                                         B + B_offset,                   \
                                          alpha_h,                        \
                                          beta_h,                         \
                                          0,                              \
@@ -305,13 +315,14 @@
                                          strideB1,                       \
                                          strideB2,                       \
                                          sizeI,                          \
-                                         sizeJ,                          \
+                                         chunk_sizeJ,                    \
                                          sizeK,                          \
                                          sizeL,                          \
                                          handle->rocblas_stream,         \
                                          0,                              \
                                          nullptr,                        \
                                          nullptr);                       \
+    }                                                                    \
     PRINT_RETURN_STATUS
 
 #define CALL_HTENSILE(PREC, TYPE, TRANS)                                       \
