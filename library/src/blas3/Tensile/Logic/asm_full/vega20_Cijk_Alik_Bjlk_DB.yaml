@@ -40,15 +40,15 @@
 - - AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
-    BufferStore: false
+    BufferLoad: true
+    BufferStore: true
     DepthU: 8
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
     DisableKernelPieces: 0
     EdgeType: ShiftPtr
-    FractionalLoad: false
+    FractionalLoad: 0
     GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
     GlobalRead2A: true
@@ -176,15 +176,15 @@
   - AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BufferLoad: false
-    BufferStore: false
+    BufferLoad: true
+    BufferStore: true
     DepthU: 4
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
     DisableKernelPieces: 0
     EdgeType: ShiftPtr
-    FractionalLoad: false
+    FractionalLoad: 0
     GlobalLoadVectorWidthA: 1
     GlobalLoadVectorWidthB: 1
     GlobalRead2A: true
@@ -251,7 +251,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
-    PreciseBoundsCheck: false
+    PreciseBoundsCheck: true
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
     ProblemType:
@@ -302,7 +302,7 @@
     ThreadTileA: 4
     ThreadTileB: 4
     UnrollMemFence: false
-    UseSgprForGRO: 0
+    UseSgprForGRO: 1
     Valid: true
     VectorStore: true
     VectorWidth: 2
