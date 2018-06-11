@@ -15,6 +15,7 @@
 #include "gemm.hpp"
 #include "rocblas_unique_ptr.hpp"
 
+
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB
     and stores the results in part of invA of size NB by NB.
@@ -98,6 +99,7 @@ __global__ void trtri_trsm_kernel(
 // assume IB is exactly half of NB
 template <typename T, rocblas_int NB>
 rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
+                                           T * C_tmp,
                                            rocblas_fill uplo,
                                            rocblas_diagonal diag,
                                            rocblas_int n,
@@ -188,12 +190,6 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
         T zero         = 0;
         T negative_one = -1;
 
-        auto C = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * IB * IB * blocks),
-                                    rocblas::device_free};
-        if(!C)
-        {
-            return rocblas_status_memory_error;
-        }
 
         rocblas_int stride_A    = NB * lda + NB;
         rocblas_int stride_invA = NB * NB;
@@ -240,7 +236,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
             NB,
             stride_invA,
             &zero,
-            (T*)C.get(),
+            (T*)C_tmp,
             IB,
             stride_C,
             blocks);
@@ -261,7 +257,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
             (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * NB + IB : 0)),
             NB,
             stride_invA,
-            (const T*)C.get(),
+            (const T*)C_tmp,
             IB,
             stride_C,
             &zero,
