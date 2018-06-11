@@ -644,15 +644,236 @@ __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
                                           void* b,
                                           rocblas_int ldb)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
     if(tx < rows && ty < cols)
     {
-        memcpy((void*)((size_t)b + (size_t)(((size_t)tx + ldb * ty) * (size_t)elem_size)),
-               (void*)((size_t)a + (size_t)(((size_t)tx + lda * ty) * (size_t)elem_size)),
+        memcpy((void*)((size_t)b + (size_t)((tx + (size_t)ldb * ty) * (size_t)elem_size)),
+               (void*)((size_t)a + (size_t)((tx + (size_t)lda * ty) * (size_t)elem_size)),
                elem_size);
     }
+}
+
+template <typename T>
+void copy_block_unit(   hipStream_t rocblas_stream,
+                        rocblas_int m,
+                        rocblas_int n,
+                        const void *src,
+                        rocblas_int src_ld,
+                        void *dst,
+                        rocblas_int dst_ld)
+{
+    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+    rocblas_int blocksY = ((n - 1) / 8) + 1;
+    dim3 grid(blocksX, blocksY, 1);
+    dim3 threads(128, 8, 1);
+
+    hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+                       dim3(grid),
+                       dim3(threads),
+                       0,
+                       rocblas_stream,
+                       m,
+                       n,
+                       sizeof(T),
+                       src,
+                       src_ld,
+                       dst,
+                       dst_ld);
+}
+
+template <typename T, rocblas_int BLOCK>
+rocblas_status special_trsm_template(rocblas_handle handle,
+                                     rocblas_side side,
+                                     rocblas_fill uplo,
+                                     rocblas_operation transA,
+                                     rocblas_diagonal diag,
+                                     rocblas_int m,
+                                     rocblas_int n,
+                                     const T* alpha,
+                                     const T* A,
+                                     rocblas_int lda,
+                                     T* B,
+                                     rocblas_int ldb)
+{
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+    
+    void *Y = handle->get_trsm_Y();
+    void *invA = handle->get_trsm_invA();
+    void *invA_C = handle->get_trsm_invA_C();
+
+    PRINT_IF_HIP_ERROR(hipMemsetAsync(invA, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T), rocblas_stream));
+
+    rocblas_int k = (side == rocblas_side_left ? m : n);
+    rocblas_trtri_trsm_template<T, BLOCK>(handle, (T *)invA_C, uplo, diag, k, A, lda, (T *)invA);
+
+    int R = k/BLOCK;
+    const T zero        = 0.0;
+    const T one         = 1.0;
+    const T negtive_one = -1.0;
+
+    rocblas_int bsize = (side == rocblas_side_left ? n : m);
+    int W = 1 + ((bsize - 1)/WORKBUF_TRSM_B_CHNK);
+
+    for(int w=0; w<W; w++)
+    {
+        if(side == rocblas_side_left)
+        {
+            T *Bw = B + w*WORKBUF_TRSM_B_CHNK*ldb;
+            int width = ((bsize > (w+1)*WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK : (bsize - w*WORKBUF_TRSM_B_CHNK));
+
+            for(int r = 0; r < R; r++)
+            {
+                int q = R - 1 - r;
+    
+                int j = (   ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none)) ||
+                            ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose)) ) ? r : q;
+                
+                // copy a BLOCK*n piece we are solving at a time
+                copy_block_unit<T>(rocblas_stream, BLOCK, width, Bw + j*BLOCK, ldb, Y, BLOCK);
+       
+                if( r > 0)
+                {
+                    const T *A_current = nullptr;
+                    T *B_current = nullptr;
+    
+                    if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
+                    {
+                        A_current = A + r*BLOCK*lda;
+                        B_current = Bw;
+                    }
+                    else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
+                    {
+                        A_current = A + r*BLOCK;
+                        B_current = Bw;
+                    }
+                    else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
+                    {
+                        A_current = A + q*BLOCK*lda + (q+1)*BLOCK;
+                        B_current = Bw + (q+1)*BLOCK;
+                    }
+                    else // ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
+                    {
+                        A_current = A + (q+1)*BLOCK*lda + q*BLOCK;
+                        B_current = Bw + (q+1)*BLOCK;
+                    }
+    
+    
+                    rocblas_gemm_template<T>(handle,
+                                             transA,
+                                             rocblas_operation_none,
+                                             BLOCK,
+                                             width,
+                                             r*BLOCK,
+                                             &negtive_one,
+                                             A_current,
+                                             lda,
+                                             B_current,
+                                             ldb,
+                                             alpha,
+                                             (T*)Y,
+                                             BLOCK);
+                }
+    
+                const T theta = (r == 0 ? *alpha : one);
+                 
+                rocblas_gemm_template<T>(handle,
+                                         transA,
+                                         rocblas_operation_none,
+                                         BLOCK,
+                                         width,
+                                         BLOCK,
+                                         &theta,
+                                         ((T *)invA) + j*BLOCK*BLOCK,
+                                         BLOCK,
+                                         (T*)Y,
+                                         BLOCK,
+                                         &zero,
+                                         Bw + j*BLOCK,
+                                         ldb);
+            }
+        }
+        else
+        {
+            T *Bw = B + w*WORKBUF_TRSM_B_CHNK;
+            int width = ((bsize > (w+1)*WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK : (bsize - w*WORKBUF_TRSM_B_CHNK));
+
+            for(int r = 0; r < R; r++)
+            {
+                int q = R - 1 - r;
+    
+                int j = (   ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose)) ||
+                            ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none)) ) ? r : q;
+                
+                // copy a m*BLOCK piece we are solving at a time
+                copy_block_unit<T>(rocblas_stream, width, BLOCK, Bw + j*BLOCK*ldb, ldb, Y, width);
+       
+                if( r > 0)
+                {
+                    const T *A_current = nullptr;
+                    T *B_current = nullptr;
+    
+                    if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
+                    {
+                        A_current = A + r*BLOCK;
+                        B_current = Bw;
+                    }
+                    else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
+                    {
+                        A_current = A + r*BLOCK*lda;
+                        B_current = Bw;
+                    }
+                    else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
+                    {
+                        A_current = A + (q+1)*BLOCK*lda + q*BLOCK;
+                        B_current = Bw + (q+1)*BLOCK*ldb;
+                    }
+                    else // ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
+                    {
+                        A_current = A + q*BLOCK*lda + (q+1)*BLOCK;
+                        B_current = Bw + (q+1)*BLOCK*ldb;
+                    }
+    
+    
+                    rocblas_gemm_template<T>(handle,
+                                             rocblas_operation_none,
+                                             transA,
+                                             width,
+                                             BLOCK,
+                                             r*BLOCK,
+                                             &negtive_one,
+                                             B_current,
+                                             ldb,
+                                             A_current,
+                                             lda,
+                                             alpha,
+                                             (T*)Y,
+                                             width);
+                }
+    
+                const T theta = (r == 0 ? *alpha : one);
+                 
+                rocblas_gemm_template<T>(handle,
+                                         rocblas_operation_none,
+                                         transA,
+                                         width,
+                                         BLOCK,
+                                         BLOCK,
+                                         &theta,
+                                         (T*)Y,
+                                         width,
+                                         ((T *)invA) + j*BLOCK*BLOCK,
+                                         BLOCK,
+                                         &zero,
+                                         Bw + j*BLOCK*ldb,
+                                         ldb);
+            }
+        }
+    }
+
+    return rocblas_status_success;
 }
 
 /* ============================================================================================ */
@@ -834,11 +1055,22 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if(m == 0 || n == 0)
         return rocblas_status_success;
 
+    if( (k%BLOCK == 0) && (k <= BLOCK*WORKBUF_TRSM_A_BLKS) )
+    {
+        return special_trsm_template<T, BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+    }
+
     // invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
     auto invA =
         rocblas_unique_ptr{rocblas::device_malloc(BLOCK * k * sizeof(T)), rocblas::device_free};
     if(!invA)
+    {
+        return rocblas_status_memory_error;
+    }
+
+    auto C_tmp = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * (BLOCK/2) * (BLOCK/2) * (n/BLOCK)), rocblas::device_free};
+    if(!C_tmp)
     {
         return rocblas_status_memory_error;
     }
@@ -888,7 +1120,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status =
-        rocblas_trtri_trsm_template<T, BLOCK>(handle, uplo, diag, k, A, lda, (T*)invA.get());
+        rocblas_trtri_trsm_template<T, BLOCK>(handle, (T *)C_tmp.get(), uplo, diag, k, A, lda, (T*)invA.get());
 
     if(side == rocblas_side_left)
     {
