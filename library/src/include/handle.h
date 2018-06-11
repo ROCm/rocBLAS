@@ -25,6 +25,10 @@ struct _rocblas_handle
     rocblas_status set_stream(hipStream_t stream);
     rocblas_status get_stream(hipStream_t* stream) const;
 
+    void *get_trsm_Y();
+    void *get_trsm_invA();
+    void *get_trsm_invA_C();
+
     rocblas_int device;
     hipDeviceProp_t device_properties;
 
@@ -37,10 +41,22 @@ struct _rocblas_handle
     // default logging_mode is no logging
     rocblas_layer_mode layer_mode;
 
+    // space allocated for trsm
+    void *trsm_Y = nullptr;
+    void *trsm_invA = nullptr;
+    void *trsm_invA_C = nullptr;
+
     std::ofstream log_trace_ofs;
     std::ofstream log_bench_ofs;
     std::ostream* log_trace_os;
     std::ostream* log_bench_os;
 };
+
+// work buffer size constants
+#define WORKBUF_TRSM_A_BLKS 10
+#define WORKBUF_TRSM_B_CHNK 32000
+#define WORKBUF_TRSM_Y_SZ (32000*128*sizeof(double))
+#define WORKBUF_TRSM_INVA_SZ (128*128*10*sizeof(double))
+#define WORKBUF_TRSM_INVA_C_SZ (128*128*10*sizeof(double) / 2)
 
 #endif
