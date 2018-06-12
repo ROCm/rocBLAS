@@ -777,7 +777,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                                              BLOCK);
                 }
     
-                const T theta = (r == 0 ? *alpha : one);
+                const T *theta = (r == 0 ? alpha : &one);
                  
                 rocblas_gemm_template<T>(handle,
                                          transA,
@@ -785,7 +785,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                                          BLOCK,
                                          width,
                                          BLOCK,
-                                         &theta,
+                                         theta,
                                          ((T *)invA) + j*BLOCK*BLOCK,
                                          BLOCK,
                                          (T*)Y,
@@ -853,7 +853,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                                              width);
                 }
     
-                const T theta = (r == 0 ? *alpha : one);
+                const T *theta = (r == 0 ? alpha : &one);
                  
                 rocblas_gemm_template<T>(handle,
                                          rocblas_operation_none,
@@ -861,7 +861,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                                          width,
                                          BLOCK,
                                          BLOCK,
-                                         &theta,
+                                         theta,
                                          (T*)Y,
                                          width,
                                          ((T *)invA) + j*BLOCK*BLOCK,
@@ -1057,7 +1057,11 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if( (k%BLOCK == 0) && (k <= BLOCK*WORKBUF_TRSM_A_BLKS) )
     {
-        return special_trsm_template<T, BLOCK>(handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+        rocblas_operation trA = transA;
+        if(trA == rocblas_operation_conjugate_transpose)
+            trA = rocblas_operation_transpose;
+
+        return special_trsm_template<T, BLOCK>(handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb);
     }
 
     // invA is of size BLOCK*k, BLOCK is the blocking size
@@ -1069,7 +1073,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
         return rocblas_status_memory_error;
     }
 
-    auto C_tmp = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * (BLOCK/2) * (BLOCK/2) * (n/BLOCK)), rocblas::device_free};
+    auto C_tmp = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * (BLOCK/2) * (BLOCK/2) * (k/BLOCK)), rocblas::device_free};
     if(!C_tmp)
     {
         return rocblas_status_memory_error;
@@ -1205,7 +1209,7 @@ extern "C" rocblas_status rocblas_strsm(rocblas_handle handle,
 
     // shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically u
     // can use all 64K, but in practice no.
-    return rocblas_trsm_template<float, 128>(
+    return rocblas_trsm_template<float, STRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
