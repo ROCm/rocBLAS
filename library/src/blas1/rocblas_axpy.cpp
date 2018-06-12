@@ -518,6 +518,7 @@ extern "C" rocblas_status rocblas_daxpy(rocblas_handle handle,
     return rocblas_axpy_template<double>(handle, n, alpha, x, incx, y, incy);
 }
 
+/* complex not supported
 extern "C" rocblas_status rocblas_caxpy(rocblas_handle handle,
                                         rocblas_int n,
                                         const rocblas_float_complex* alpha,
@@ -539,5 +540,4 @@ extern "C" rocblas_status rocblas_zaxpy(rocblas_handle handle,
 {
     return rocblas_axpy_template<rocblas_double_complex>(handle, n, alpha, x, incx, y, incy);
 }
-
-/* ============================================================================================ */
+*/
