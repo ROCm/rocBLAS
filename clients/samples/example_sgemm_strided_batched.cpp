@@ -112,12 +112,16 @@ static void show_usage(char* argv[])
               << "\t--lda \t\t\tlda \t\tGEMM_STRIDED_BATCHED argument lda\n"
               << "\t--ldb \t\t\tldb \t\tGEMM_STRIDED_BATCHED argument ldb\n"
               << "\t--ldc \t\t\tldc \t\tGEMM_STRIDED_BATCHED argument ldc\n"
+              << "\t--trans_a \t\ttrans_a \tGEMM_STRIDED_BATCHED argument trans_a\n"
+              << "\t--trans_b \t\ttrans_b \tGEMM_STRIDED_BATCHED argument trans_b\n"
               << "\t--stride_a \t\tstride_a \tGEMM_STRIDED_BATCHED argument stride_a\n"
               << "\t--stride_b \t\tstride_b \tGEMM_STRIDED_BATCHED argument stride_b\n"
               << "\t--stride_c \t\tstride_c \tGEMM_STRIDED_BATCHED argument stride_c\n"
               << "\t--batch_count \t\tbatch_count \tGEMM_STRIDED_BATCHED argument batch count\n"
-              << "\t--alpha \t\talpha \tGEMM_STRIDED_BATCHED argument alpha\n"
-              << "\t--beta \t\tbeta \tGEMM_STRIDED_BATCHED argument beta\n"
+              << "\t--alpha \t\talpha \t\tGEMM_STRIDED_BATCHED argument alpha\n"
+              << "\t--beta \t\t\tbeta \t\tGEMM_STRIDED_BATCHED argument beta\n"
+              << "\t--header \t\theader \t\tprint header for output\n"
+              << "\t--name \t\t\tname \t\tprint kernel name\n"
               << std::endl;
 }
 
@@ -137,6 +141,8 @@ static int parse_arguments(int argc,
                            float& beta,
                            rocblas_operation& trans_a,
                            rocblas_operation& trans_b,
+                           bool& header,
+                           bool& name,
                            bool& verbose)
 {
     if(argc >= 2)
@@ -154,6 +160,14 @@ static int parse_arguments(int argc,
                 if((arg == "-v") || (arg == "--verbose"))
                 {
                     verbose = true;
+                }
+                else if(arg == "--header")
+                {
+                    header = true;
+                }
+                else if(arg == "--name")
+                {
+                    name = true;
                 }
                 else if((arg == "-m") && (i + 1 < argc))
                 {
@@ -365,6 +379,8 @@ int main(int argc, char* argv[])
     float beta  = invalid_float;
 
     bool verbose = false;
+    bool header  = false;
+    bool name    = false;
 
     if(parse_arguments(argc,
                        argv,
@@ -382,6 +398,8 @@ int main(int argc, char* argv[])
                        beta,
                        trans_a,
                        trans_b,
+                       header,
+                       name,
                        verbose))
     {
         show_usage(argv);
@@ -421,7 +439,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    cout << "sgemm_strided_batched example" << endl;
+    if(header)
+    {
+        std::cout << "transAB,M,N,K,lda,ldb,ldc,stride_a,stride_b,stride_c,batch_count,alpha,beta,"
+                     "result,error";
+        if(name)
+        {
+            std::cout << ",name";
+        }
+        std::cout << std::endl;
+    }
 
     int a_stride_1, a_stride_2, b_stride_1, b_stride_2;
     int size_a1, size_b1, size_c1 = ldc * n;
@@ -441,23 +468,22 @@ int main(int argc, char* argv[])
     }
     if(trans_b == rocblas_operation_none)
     {
-        cout << "N: ";
+        cout << "N, ";
         b_stride_1 = 1;
         b_stride_2 = ldb;
         size_b1    = ldb * n;
     }
     else
     {
-        cout << "T: ";
+        cout << "T, ";
         b_stride_1 = ldb;
         b_stride_2 = 1;
         size_b1    = ldb * k;
     }
 
-    std::cout << "  M,N,K: " << m << ", " << n << ", " << k << "  lda,stride_a: " << lda << ", "
-              << stride_a << "  ldb,stride_b: " << ldb << ", " << stride_b
-              << "  ldc,stride_c: " << ldc << ", " << stride_c << "  batch_count: " << batch_count
-              << "  alpha,beta: " << alpha << ", " << beta << endl;
+    std::cout << m << ", " << n << ", " << k << ", " << lda << ", " << ldb << ", " << ldc << ", "
+              << stride_a << ", " << stride_b << ", " << stride_c << ", " << batch_count << ", "
+              << alpha << ", " << beta << ", ";
 
     int size_a = batch_count == 0 ? size_a1 : size_a1 + stride_a * (batch_count - 1);
     int size_b = batch_count == 0 ? size_b1 : size_b1 + stride_b * (batch_count - 1);
@@ -551,11 +577,33 @@ int main(int argc, char* argv[])
     float tolerance = 10;
     if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
     {
-        cout << "FAIL: max_relative_error = " << max_relative_error << endl;
+        cout << "FAIL, " << max_relative_error << endl;
     }
     else
     {
-        cout << "PASS: max_relative_error = " << max_relative_error << endl;
+        cout << "PASS, " << max_relative_error << endl;
+    }
+
+    if(name)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_sgemm_kernel_name(handle,
+                                                      trans_a,
+                                                      trans_b,
+                                                      m,
+                                                      n,
+                                                      k,
+                                                      &alpha,
+                                                      da,
+                                                      lda,
+                                                      stride_a,
+                                                      db,
+                                                      ldb,
+                                                      stride_b,
+                                                      &beta,
+                                                      dc,
+                                                      ldc,
+                                                      stride_c,
+                                                      batch_count));
     }
 
     CHECK_HIP_ERROR(hipFree(da));
