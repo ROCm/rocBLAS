@@ -1074,7 +1074,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     }
 
     auto C_tmp = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * (BLOCK/2) * (BLOCK/2) * (k/BLOCK)), rocblas::device_free};
-    if(!C_tmp)
+    if((!C_tmp) && (k>=BLOCK))
     {
         return rocblas_status_memory_error;
     }
