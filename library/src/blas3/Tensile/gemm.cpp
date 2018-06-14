@@ -290,18 +290,27 @@
         hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost); \
         hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);   \
     }                                                                    \
-    if(trans_b != rocblas_operation_none)                                                                                             \
-    {                                                                                                                                 \
-        if(strideB1*sizeL > std::numeric_limits<int>::max()) std::cerr << "rocBLAS ERROR: ldb*k exceeds address limit" << std::endl;  \
-    }                                                                                                                                 \
-    if(trans_a == rocblas_operation_none)                                                                                             \
-    {                                                                                                                                 \
-        if(strideA1*sizeL > std::numeric_limits<int>::max()) std::cerr << "rocBLAS ERROR: lda*k exceeds address limit" << std::endl;  \
-    }                                                                                                                                 \
-    else                                                                                                                              \
-    {                                                                                                                                 \
-        if(strideA1*sizeI > std::numeric_limits<int>::max()) std::cerr << "rocBLAS ERROR: lda*m exceeds address limit" << std::endl;  \
-    }                                                                                                                                 \
+    if(trans_b != rocblas_operation_none)                                                                                         \
+    {                                                                                                                             \
+        if(strideB1*sizeL*sizeof(TYPE) > std::numeric_limits<int>::max())                                                         \
+        {                                                                                                                         \
+            std::cerr << "rocBLAS ERROR: ldb*k exceeds address limit" << std::endl;                                               \
+        }                                                                                                                         \
+    }                                                                                                                             \
+    if(trans_a == rocblas_operation_none)                                                                                         \
+    {                                                                                                                             \
+        if(strideA1*sizeL*sizeof(TYPE) > std::numeric_limits<int>::max())                                                         \
+        {                                                                                                                         \
+            std::cerr << "rocBLAS ERROR: lda*k exceeds address limit" << std::endl;                                               \
+        }                                                                                                                         \
+    }                                                                                                                             \
+    else                                                                                                                          \
+    {                                                                                                                             \
+        if(strideA1*sizeI*sizeof(TYPE) > std::numeric_limits<int>::max())                                                         \
+        {                                                                                                                         \
+            std::cerr << "rocBLAS ERROR: lda*m exceeds address limit" << std::endl;                                               \
+        }                                                                                                                         \
+    }                                                                                                                             \
                                                                                                                                   \
     unsigned int int_limit = std::numeric_limits<int>::max() / sizeof(TYPE);                                                      \
     unsigned int chunk_size_C = int_limit / strideC1;                                                                             \
