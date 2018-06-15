@@ -721,7 +721,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     {
         if(side == rocblas_side_left)
         {
-            T *Bw = B + w*WORKBUF_TRSM_B_CHNK*ldb;
+            T *Bw = B + ((size_t)w)*WORKBUF_TRSM_B_CHNK*((size_t)ldb);
             int width = ((bsize > (w+1)*WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK : (bsize - w*WORKBUF_TRSM_B_CHNK));
 
             for(int r = 0; r < R; r++)
@@ -797,7 +797,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
         }
         else
         {
-            T *Bw = B + w*WORKBUF_TRSM_B_CHNK;
+            T *Bw = B + ((size_t)w)*WORKBUF_TRSM_B_CHNK;
             int width = ((bsize > (w+1)*WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK : (bsize - w*WORKBUF_TRSM_B_CHNK));
 
             for(int r = 0; r < R; r++)
@@ -828,12 +828,12 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                     else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
                     {
                         A_current = A + (q+1)*BLOCK*lda + q*BLOCK;
-                        B_current = Bw + (q+1)*BLOCK*ldb;
+                        B_current = Bw + ((size_t)(q+1))*BLOCK*((size_t)ldb);
                     }
                     else // ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
                     {
                         A_current = A + q*BLOCK*lda + (q+1)*BLOCK;
-                        B_current = Bw + (q+1)*BLOCK*ldb;
+                        B_current = Bw + ((size_t)(q+1))*BLOCK*((size_t)ldb);
                     }
     
     
