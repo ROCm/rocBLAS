@@ -70,6 +70,35 @@ void printMatrix(const char* name, float* A, rocblas_int m, rocblas_int n, rocbl
     }
 }
 
+void print_strided_batched(const char* name,
+                           float* A,
+                           rocblas_int n1,
+                           rocblas_int n2,
+                           rocblas_int n3,
+                           rocblas_int s1,
+                           rocblas_int s2,
+                           rocblas_int s3)
+{
+    // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
+    // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
+    printf("---------- %s ----------\n", name);
+    int max_size = 3;
+
+    for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
+    {
+        for(int i1 = 0; i1 < n1 && i1 < max_size; i1++)
+        {
+            for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
+            {
+                printf("%8.1f ", A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
+            }
+            printf("\n");
+        }
+        if(i3 < (n3 - 1) && i3 < (max_size - 1))
+            printf("\n");
+    }
+}
+
 template <typename T>
 void mat_mat_mult(T alpha,
                   T beta,
@@ -346,14 +375,17 @@ void initialize_a_b_c(vector<float>& ha,
     for(int i = 0; i < size_a; ++i)
     {
         ha[i] = rand() % 17;
+        //      ha[i] = i;
     }
     for(int i = 0; i < size_b; ++i)
     {
         hb[i] = rand() % 17;
+        //      hb[i] = 1.0;
     }
     for(int i = 0; i < size_c; ++i)
     {
         hc[i] = rand() % 17;
+        //      hc[i] = 1.0;
     }
     hc_gold = hc;
 }
@@ -498,6 +530,28 @@ int main(int argc, char* argv[])
     // initial data on host
     initialize_a_b_c(ha, size_a, hb, size_b, hc, hc_gold, size_c);
 
+    if(verbose)
+    {
+        printf("\n");
+        if(trans_a == rocblas_operation_none)
+        {
+            print_strided_batched("ha initial", &ha[0], m, k, batch_count, 1, lda, stride_a);
+        }
+        else
+        {
+            print_strided_batched("ha initial", &ha[0], m, k, batch_count, lda, 1, stride_a);
+        }
+        if(trans_b == rocblas_operation_none)
+        {
+            print_strided_batched("hb initial", &hb[0], k, n, batch_count, 1, ldb, stride_b);
+        }
+        else
+        {
+            print_strided_batched("hb initial", &hb[0], k, n, batch_count, ldb, 1, stride_b);
+        }
+        print_strided_batched("hc initial", &hc[0], m, n, batch_count, 1, ldc, stride_c);
+    }
+
     // allocate memory on device
     float *da, *db, *dc;
     CHECK_HIP_ERROR(hipMalloc(&da, size_a * sizeof(float)));
@@ -558,10 +612,9 @@ int main(int argc, char* argv[])
 
     if(verbose)
     {
-        printMatrix("ha", &ha[0], m, n, lda);
-        printMatrix("hb", &hb[0], m, n, ldb);
-        printMatrix("hc_gold", &hc_gold[0], m, n, ldc);
-        printMatrix("hc", &hc[0], m, n, ldc);
+        print_strided_batched(
+            "hc_gold calculated", &hc_gold[0], m, n, batch_count, 1, ldc, stride_c);
+        print_strided_batched("hc calculated", &hc[0], m, n, batch_count, 1, ldc, stride_c);
     }
 
     float max_relative_error = numeric_limits<float>::min();
