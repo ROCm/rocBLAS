@@ -50,7 +50,12 @@ if( BUILD_WITH_TENSILE )
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
   target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
-  target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+  # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
+  if(TARGET hip::device)
+    target_link_libraries( Tensile PRIVATE hip::device )
+  else()
+    target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+  endif()
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
@@ -123,7 +128,12 @@ add_library( rocblas
 
 add_library( roc::rocblas ALIAS rocblas )
 
+# Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
+if(TARGET hip::device)
+target_link_libraries( rocblas PRIVATE hip::device )
+else()
 target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+endif()
 
 # Test for specific compiler features if cmake version is recent enough
 target_compile_features( rocblas PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
