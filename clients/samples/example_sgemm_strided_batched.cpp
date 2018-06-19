@@ -70,6 +70,35 @@ void printMatrix(const char* name, float* A, rocblas_int m, rocblas_int n, rocbl
     }
 }
 
+void print_strided_batched(const char* name,
+                           float* A,
+                           rocblas_int n1,
+                           rocblas_int n2,
+                           rocblas_int n3,
+                           rocblas_int s1,
+                           rocblas_int s2,
+                           rocblas_int s3)
+{
+    // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
+    // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
+    printf("---------- %s ----------\n", name);
+    int max_size = 3;
+
+    for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
+    {
+        for(int i1 = 0; i1 < n1 && i1 < max_size; i1++)
+        {
+            for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
+            {
+                printf("%8.1f ", A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
+            }
+            printf("\n");
+        }
+        if(i3 < (n3 - 1) && i3 < (max_size - 1))
+            printf("\n");
+    }
+}
+
 template <typename T>
 void mat_mat_mult(T alpha,
                   T beta,
@@ -112,12 +141,16 @@ static void show_usage(char* argv[])
               << "\t--lda \t\t\tlda \t\tGEMM_STRIDED_BATCHED argument lda\n"
               << "\t--ldb \t\t\tldb \t\tGEMM_STRIDED_BATCHED argument ldb\n"
               << "\t--ldc \t\t\tldc \t\tGEMM_STRIDED_BATCHED argument ldc\n"
+              << "\t--trans_a \t\ttrans_a \tGEMM_STRIDED_BATCHED argument trans_a\n"
+              << "\t--trans_b \t\ttrans_b \tGEMM_STRIDED_BATCHED argument trans_b\n"
               << "\t--stride_a \t\tstride_a \tGEMM_STRIDED_BATCHED argument stride_a\n"
               << "\t--stride_b \t\tstride_b \tGEMM_STRIDED_BATCHED argument stride_b\n"
               << "\t--stride_c \t\tstride_c \tGEMM_STRIDED_BATCHED argument stride_c\n"
               << "\t--batch_count \t\tbatch_count \tGEMM_STRIDED_BATCHED argument batch count\n"
-              << "\t--alpha \t\talpha \tGEMM_STRIDED_BATCHED argument alpha\n"
-              << "\t--beta \t\tbeta \tGEMM_STRIDED_BATCHED argument beta\n"
+              << "\t--alpha \t\talpha \t\tGEMM_STRIDED_BATCHED argument alpha\n"
+              << "\t--beta \t\t\tbeta \t\tGEMM_STRIDED_BATCHED argument beta\n"
+              << "\t--header \t\theader \t\tprint header for output\n"
+              << "\t--name \t\t\tname \t\tprint kernel name\n"
               << std::endl;
 }
 
@@ -137,6 +170,8 @@ static int parse_arguments(int argc,
                            float& beta,
                            rocblas_operation& trans_a,
                            rocblas_operation& trans_b,
+                           bool& header,
+                           bool& name,
                            bool& verbose)
 {
     if(argc >= 2)
@@ -154,6 +189,14 @@ static int parse_arguments(int argc,
                 if((arg == "-v") || (arg == "--verbose"))
                 {
                     verbose = true;
+                }
+                else if(arg == "--header")
+                {
+                    header = true;
+                }
+                else if(arg == "--name")
+                {
+                    name = true;
                 }
                 else if((arg == "-m") && (i + 1 < argc))
                 {
@@ -332,14 +375,17 @@ void initialize_a_b_c(vector<float>& ha,
     for(int i = 0; i < size_a; ++i)
     {
         ha[i] = rand() % 17;
+        //      ha[i] = i;
     }
     for(int i = 0; i < size_b; ++i)
     {
         hb[i] = rand() % 17;
+        //      hb[i] = 1.0;
     }
     for(int i = 0; i < size_c; ++i)
     {
         hc[i] = rand() % 17;
+        //      hc[i] = 1.0;
     }
     hc_gold = hc;
 }
@@ -365,6 +411,8 @@ int main(int argc, char* argv[])
     float beta  = invalid_float;
 
     bool verbose = false;
+    bool header  = false;
+    bool name    = false;
 
     if(parse_arguments(argc,
                        argv,
@@ -382,6 +430,8 @@ int main(int argc, char* argv[])
                        beta,
                        trans_a,
                        trans_b,
+                       header,
+                       name,
                        verbose))
     {
         show_usage(argv);
@@ -421,7 +471,16 @@ int main(int argc, char* argv[])
         return EXIT_FAILURE;
     }
 
-    cout << "sgemm_strided_batched example" << endl;
+    if(header)
+    {
+        std::cout << "transAB,M,N,K,lda,ldb,ldc,stride_a,stride_b,stride_c,batch_count,alpha,beta,"
+                     "result,error";
+        if(name)
+        {
+            std::cout << ",name";
+        }
+        std::cout << std::endl;
+    }
 
     int a_stride_1, a_stride_2, b_stride_1, b_stride_2;
     int size_a1, size_b1, size_c1 = ldc * n;
@@ -441,23 +500,22 @@ int main(int argc, char* argv[])
     }
     if(trans_b == rocblas_operation_none)
     {
-        cout << "N: ";
+        cout << "N, ";
         b_stride_1 = 1;
         b_stride_2 = ldb;
         size_b1    = ldb * n;
     }
     else
     {
-        cout << "T: ";
+        cout << "T, ";
         b_stride_1 = ldb;
         b_stride_2 = 1;
         size_b1    = ldb * k;
     }
 
-    std::cout << "  M,N,K: " << m << ", " << n << ", " << k << "  lda,stride_a: " << lda << ", "
-              << stride_a << "  ldb,stride_b: " << ldb << ", " << stride_b
-              << "  ldc,stride_c: " << ldc << ", " << stride_c << "  batch_count: " << batch_count
-              << "  alpha,beta: " << alpha << ", " << beta << endl;
+    std::cout << m << ", " << n << ", " << k << ", " << lda << ", " << ldb << ", " << ldc << ", "
+              << stride_a << ", " << stride_b << ", " << stride_c << ", " << batch_count << ", "
+              << alpha << ", " << beta << ", ";
 
     int size_a = batch_count == 0 ? size_a1 : size_a1 + stride_a * (batch_count - 1);
     int size_b = batch_count == 0 ? size_b1 : size_b1 + stride_b * (batch_count - 1);
@@ -471,6 +529,28 @@ int main(int argc, char* argv[])
 
     // initial data on host
     initialize_a_b_c(ha, size_a, hb, size_b, hc, hc_gold, size_c);
+
+    if(verbose)
+    {
+        printf("\n");
+        if(trans_a == rocblas_operation_none)
+        {
+            print_strided_batched("ha initial", &ha[0], m, k, batch_count, 1, lda, stride_a);
+        }
+        else
+        {
+            print_strided_batched("ha initial", &ha[0], m, k, batch_count, lda, 1, stride_a);
+        }
+        if(trans_b == rocblas_operation_none)
+        {
+            print_strided_batched("hb initial", &hb[0], k, n, batch_count, 1, ldb, stride_b);
+        }
+        else
+        {
+            print_strided_batched("hb initial", &hb[0], k, n, batch_count, ldb, 1, stride_b);
+        }
+        print_strided_batched("hc initial", &hc[0], m, n, batch_count, 1, ldc, stride_c);
+    }
 
     // allocate memory on device
     float *da, *db, *dc;
@@ -532,10 +612,9 @@ int main(int argc, char* argv[])
 
     if(verbose)
     {
-        printMatrix("ha", &ha[0], m, n, lda);
-        printMatrix("hb", &hb[0], m, n, ldb);
-        printMatrix("hc_gold", &hc_gold[0], m, n, ldc);
-        printMatrix("hc", &hc[0], m, n, ldc);
+        print_strided_batched(
+            "hc_gold calculated", &hc_gold[0], m, n, batch_count, 1, ldc, stride_c);
+        print_strided_batched("hc calculated", &hc[0], m, n, batch_count, 1, ldc, stride_c);
     }
 
     float max_relative_error = numeric_limits<float>::min();
@@ -551,11 +630,33 @@ int main(int argc, char* argv[])
     float tolerance = 10;
     if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
     {
-        cout << "FAIL: max_relative_error = " << max_relative_error << endl;
+        cout << "FAIL, " << max_relative_error << endl;
     }
     else
     {
-        cout << "PASS: max_relative_error = " << max_relative_error << endl;
+        cout << "PASS, " << max_relative_error << endl;
+    }
+
+    if(name)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_sgemm_kernel_name(handle,
+                                                      trans_a,
+                                                      trans_b,
+                                                      m,
+                                                      n,
+                                                      k,
+                                                      &alpha,
+                                                      da,
+                                                      lda,
+                                                      stride_a,
+                                                      db,
+                                                      ldb,
+                                                      stride_b,
+                                                      &beta,
+                                                      dc,
+                                                      ldc,
+                                                      stride_c,
+                                                      batch_count));
     }
 
     CHECK_HIP_ERROR(hipFree(da));
