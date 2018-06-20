@@ -30,6 +30,11 @@ _rocblas_handle::_rocblas_handle()
         layer_mode = (rocblas_layer_mode)(atoi(str_layer_mode));
     }
 
+    // allocate trsm temp buffers
+    THROW_IF_HIP_ERROR(hipMalloc(&trsm_Y, WORKBUF_TRSM_Y_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA, WORKBUF_TRSM_INVA_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA_C, WORKBUF_TRSM_INVA_C_SZ));
+
     // open log file
     if(layer_mode & rocblas_layer_mode_log_trace)
     {
@@ -51,6 +56,15 @@ _rocblas_handle::_rocblas_handle()
 _rocblas_handle::~_rocblas_handle()
 {
     // rocblas by default take the system default stream which user cannot destroy
+
+    if(trsm_Y)
+        hipFree(trsm_Y);
+
+    if(trsm_invA)
+        hipFree(trsm_invA);
+
+    if(trsm_invA_C)
+        hipFree(trsm_invA_C);
 
     // Close log files
     if(log_trace_ofs.is_open())
@@ -88,3 +102,10 @@ rocblas_status _rocblas_handle::get_stream(hipStream_t* stream) const
     *stream = rocblas_stream;
     return rocblas_status_success;
 }
+
+// trsm get pointers
+void* _rocblas_handle::get_trsm_Y() { return trsm_Y; }
+
+void* _rocblas_handle::get_trsm_invA() { return trsm_invA; }
+
+void* _rocblas_handle::get_trsm_invA_C() { return trsm_invA_C; }

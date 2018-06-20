@@ -165,7 +165,7 @@ __device__ void trtri_device(rocblas_fill uplo,
     }
 }
 
-#define STRSM_BLOCK 192
+#define STRSM_BLOCK 128
 #define DTRSM_BLOCK 128
 
 #endif // _TRTRI_DEVICE_H_
