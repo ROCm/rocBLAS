@@ -359,6 +359,7 @@
                                          0,                              \
                                          nullptr,                        \
                                          nullptr);                       \
+    }                                                                    \
     PRINT_RETURN_STATUS
 
 #define CALL_HTENSILE(PREC, TYPE, TRANS)                                       \
