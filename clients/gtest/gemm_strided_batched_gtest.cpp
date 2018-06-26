@@ -229,7 +229,8 @@ TEST_P(gemm_strided_batched, double)
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB}, {batch_count}
 // }
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3,
+// tests with stride_a == 0
+INSTANTIATE_TEST_CASE_P(checkin_blas3_stride_a_zero,
                         gemm_strided_batched,
                         Combine(ValuesIn(matrix_size_stride_a_range),
                                 ValuesIn(alpha_beta_stride_a_range),
