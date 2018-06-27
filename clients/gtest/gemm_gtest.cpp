@@ -77,10 +77,17 @@ const vector<vector<int>> small_matrix_size_range = {
 
 const vector<vector<int>> large_matrix_size_range = {
     {191, 193, 194, 195, 196, 197},
-    {640, 640, 347, 960, 961, 962},
-    {1000, 1001, 101, 1002, 1003, 1004},
-    {1025, 1026, 1027, 1028, 1029, 1031},
+    {639, 640, 347, 960, 961, 1062},
+    {1000, 1001, 101, 2002, 1003, 1004},
+    {925, 1026, 1027, 1028, 2029, 1031},
     {4011, 4012, 103, 4014, 4015, 4016},
+};
+
+const vector<vector<int>> chunk_matrix_size_range = {
+    {24000, 256, 256, 24010, 256, 24000},
+    {24000, 256, 256, 24000, 256, 24020},
+    {256, 24001, 256, 256, 24030, 24000},
+    {256, 24001, 256, 256, 24000, 24040},
 };
 
 const vector<vector<int>> NaN_matrix_size_range = {
@@ -89,6 +96,10 @@ const vector<vector<int>> NaN_matrix_size_range = {
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
+const vector<vector<double>> alpha_beta_2_3_range = {
+    {2.0, 3.0},
+};
+
 const vector<vector<double>> NaN_alpha_beta_range = {
     {1.0, 0.0},
 };
@@ -105,6 +116,8 @@ const vector<vector<double>> full_alpha_beta_range = {
 // for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in
 // sgemm/dgemm,
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
+
+const vector<vector<char>> transA_transB_NN_range = {{'N', 'N'}};
 
 /* ===============Google Unit Test==================================================== */
 
@@ -326,4 +339,10 @@ INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
                         parameterized_gemm,
                         Combine(ValuesIn(tiny_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_chunk,
+                        parameterized_gemm,
+                        Combine(ValuesIn(chunk_matrix_size_range),
+                                ValuesIn(alpha_beta_2_3_range),
                                 ValuesIn(transA_transB_range)));
