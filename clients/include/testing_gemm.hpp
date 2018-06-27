@@ -440,8 +440,8 @@ rocblas_status testing_gemm(Arguments argus)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm<T>(
-                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
+            CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
+                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
