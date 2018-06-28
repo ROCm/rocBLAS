@@ -122,6 +122,11 @@
                                             ld_c,                                      \
                                             stride_c,                                  \
                                             b_c);                                      \
+    if(m == 0 || n == 0 || k == 0 || b_c == 0)                                         \
+    {                                                                                  \
+        return rocblas_status_success;                                                 \
+    }                                                                                  \
+                                                                                       \
     if(validArgs != rocblas_status_success)                                            \
         return validArgs;                                                              \
                                                                                        \
@@ -234,6 +239,11 @@
                   ld_c,                                                 \
                   stride_c,                                             \
                   b_c);                                                 \
+    }                                                                   \
+                                                                        \
+    if(m == 0 || n == 0 || k == 0 || b_c == 0)                          \
+    {                                                                   \
+        return rocblas_status_success;                                  \
     }                                                                   \
                                                                         \
     if(validArgs != rocblas_status_success)                             \
