@@ -117,8 +117,6 @@ const vector<vector<double>> full_alpha_beta_range = {
 // sgemm/dgemm,
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
 
-const vector<vector<char>> transA_transB_NN_range = {{'N', 'N'}};
-
 /* ===============Google Unit Test==================================================== */
 
 /* =====================================================================
