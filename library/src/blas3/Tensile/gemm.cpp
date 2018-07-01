@@ -295,6 +295,14 @@
     unsigned int chunk_size_B = int_limit / strideB1;                                                                             \
     unsigned int chunk_size = chunk_size_C < chunk_size_B ? chunk_size_C : chunk_size_B;                                          \
     unsigned int chunk_count = ((sizeJ - 1) / chunk_size) + 1;                                                                    \
+    unsigned int rem = sizeJ%chunk_size;                                                             \
+    if((rem>0) && (chunk_count>1))                                                                   \
+    {                                                                                                \
+        assert(chunk_size>7);                                                                        \
+        unsigned int chunk_size_alt = chunk_size - 7;                                                \
+        chunk_size = sizeJ%chunk_size_alt > rem ? chunk_size_alt : chunk_size;                       \
+        chunk_count = ((sizeJ - 1) / chunk_size) + 1;                                                \
+    }                                                                                                \
     for (int chunk_i = 0; chunk_i < chunk_count; chunk_i++)                                                                       \
     {                                                                                                                             \
         unsigned int chunk_sizeJ = chunk_size < sizeJ - (chunk_size * chunk_i) ? chunk_size : sizeJ - (chunk_size * chunk_i);     \
