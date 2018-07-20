@@ -199,39 +199,6 @@ class parameterized_gemm : public ::TestWithParam<gemm_tuple>
     virtual void TearDown() {}
 };
 
-TEST_P(parameterized_gemm, rocblas_half)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-    Arguments arg = setup_gemm_arguments(GetParam());
-
-    rocblas_status status = testing_gemm<rocblas_half>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
-    {
-        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldc < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
-}
-
 TEST_P(parameterized_gemm, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -340,6 +307,48 @@ TEST_P(parameterized_chunk_gemm, float)
     }
 }
 
+class parameterized_half_gemm : public ::TestWithParam<gemm_tuple>
+{
+    protected:
+    parameterized_half_gemm() {}
+    virtual ~parameterized_half_gemm() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+TEST_P(parameterized_half_gemm, half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
 TEST(checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
 
 TEST(checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
@@ -379,6 +388,24 @@ INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
                         parameterized_gemm,
                         Combine(ValuesIn(tiny_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_small,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_tiny,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(tiny_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_large,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(large_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
 INSTANTIATE_TEST_CASE_P(daily_blas3_chunk,
