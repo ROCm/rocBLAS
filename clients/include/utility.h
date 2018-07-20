@@ -106,36 +106,37 @@ inline float half_to_float(rocblas_half val)
 /* ============================================================================================ */
 /* generate random number :*/
 
-/*! \brief  generate a random number between [0, 0.999...] . */
+/*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
 template <typename T>
 T random_generator()
 {
     // return rand()/( (T)RAND_MAX + 1);
-    return (T)(rand() % 10 + 1); // generate a integer number between [1, 10]
+    return (T)(rand() % 10 + 1);
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
+/*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
     return float_to_half(
-        static_cast<float>((rand() % 3 + 1))); // generate a integer number between [1, 5]
+        static_cast<float>((rand() % 3 + 1))); // generate a integer number in range [1,2,3]
 };
 
-/*! \brief  generate a random number between [0, 0.999...] . */
+/*! \brief  generate a random number in range [-1,-2,-3,-4,-5,-6,-7,-8,-9,-10] */
 template <typename T>
 T random_generator_negative()
 {
     // return rand()/( (T)RAND_MAX + 1);
-    return -(T)(rand() % 10 + 1); // generate a integer number between [1, 10]
+    return -(T)(rand() % 10 + 1);
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
+/*! \brief  generate a random number in range [-1,-2,-3] */
 template <>
 inline rocblas_half random_generator_negative<rocblas_half>()
 {
-    return float_to_half(
-        -static_cast<float>((rand() % 5 + 1))); // generate a integer number between [1, 5]
+    return float_to_half(-static_cast<float>((rand() % 3 + 1)));
 };
 
 /* ============================================================================================ */
