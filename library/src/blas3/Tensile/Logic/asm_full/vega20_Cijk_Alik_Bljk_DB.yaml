@@ -1,4 +1,4 @@
-- {MinimumRequiredVersion: 4.2.0}
+- {MinimumRequiredVersion: 4.3.0}
 - vega20
 - gfx906
 - [Device 66a0, Device 66a7]
@@ -37,11 +37,13 @@
   TransposeB: false
   UseBeta: true
   UseInitialStrides: false
-- - AssertSummationElementMultiple: 1
+- - AssertFree0ElementMultiple: 1
+    AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
     BufferLoad: true
     BufferStore: true
+    CheckTensorDimAsserts: false
     DepthU: 8
     DirectToLds: false
     DirectToLdsA: false
@@ -168,16 +170,19 @@
     UnrollMemFence: false
     UseSgprForGRO: 0
     Valid: true
+    VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
-  - AssertSummationElementMultiple: 1
+  - AssertFree0ElementMultiple: 1
+    AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
     BufferLoad: true
     BufferStore: true
+    CheckTensorDimAsserts: false
     DepthU: 4
     DirectToLds: false
     DirectToLdsA: false
@@ -251,7 +256,7 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
-    PreciseBoundsCheck: true
+    PreciseBoundsCheck: false
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
     ProblemType:
@@ -302,8 +307,9 @@
     ThreadTileA: 4
     ThreadTileB: 4
     UnrollMemFence: false
-    UseSgprForGRO: 1
+    UseSgprForGRO: 0
     Valid: true
+    VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
