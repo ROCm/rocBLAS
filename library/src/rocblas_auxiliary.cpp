@@ -202,14 +202,6 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
             dim3 grid(blocks, 1, 1);
             dim3 threads(NB_X, 1, 1);
 
-            hipStream_t rocblas_stream;
-            if(incy != 1)
-            {
-                rocblas_handle handle;
-                rocblas_create_handle(&handle);
-                RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-            }
-
             size_t x_h_byte_stride = (size_t)elem_size * (size_t)incx;
             size_t y_d_byte_stride = (size_t)elem_size * (size_t)incy;
             size_t t_h_byte_stride = (size_t)elem_size;
@@ -252,7 +244,7 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        n_elem_max,
                                        elem_size,
                                        t_d,
@@ -278,7 +270,7 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        n_elem_max,
                                        elem_size,
                                        t_d,
@@ -361,14 +353,6 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
             dim3 grid(blocks, 1, 1);
             dim3 threads(NB_X, 1, 1);
 
-            hipStream_t rocblas_stream;
-            if(incx != 1)
-            {
-                rocblas_handle handle;
-                rocblas_create_handle(&handle);
-                RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-            }
-
             size_t x_d_byte_stride = (size_t)elem_size * (size_t)incx;
             size_t y_h_byte_stride = (size_t)elem_size * (size_t)incy;
             size_t t_h_byte_stride = (size_t)elem_size;
@@ -402,7 +386,7 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        n_elem_max,
                                        elem_size,
                                        x_d_start,
@@ -455,7 +439,7 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        n_elem_max,
                                        elem_size,
                                        x_d_start,
@@ -576,14 +560,6 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
             dim3 grid(blocksX, blocksY, 1);
             dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1);
 
-            hipStream_t rocblas_stream;
-            if(ldb != rows)
-            {
-                rocblas_handle handle;
-                rocblas_create_handle(&handle);
-                RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-            }
-
             size_t lda_h_byte = (size_t)elem_size * (size_t)lda;
             size_t ldb_d_byte = (size_t)elem_size * (size_t)ldb;
             size_t ldt_h_byte = (size_t)elem_size * (size_t)rows;
@@ -626,7 +602,7 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        rows,
                                        n_cols_max,
                                        elem_size,
@@ -653,7 +629,7 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        rows,
                                        n_cols_max,
                                        elem_size,
@@ -764,14 +740,6 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
             dim3 grid(blocksX, blocksY, 1);
             dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y, 1);
 
-            hipStream_t rocblas_stream;
-            if(lda != rows)
-            {
-                rocblas_handle handle;
-                rocblas_create_handle(&handle);
-                RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-            }
-
             size_t lda_d_byte = (size_t)elem_size * (size_t)lda;
             size_t ldb_h_byte = (size_t)elem_size * (size_t)ldb;
             size_t ldt_h_byte = (size_t)elem_size * (size_t)rows;
@@ -804,7 +772,7 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        rows,
                                        n_cols_max,
                                        elem_size,
@@ -857,7 +825,7 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                                        dim3(grid),
                                        dim3(threads),
                                        0,
-                                       rocblas_stream,
+                                       0,
                                        rows,
                                        n_cols_max,
                                        elem_size,
