@@ -161,7 +161,7 @@ def docker_build_image( docker_data docker_args, project_paths paths )
 
     // JENKINS-44836 workaround by using a bash script instead of docker.build()
     sh "docker build -t ${paths.project_name}/${build_image_name}:102 -f docker/${docker_args.build_docker_file} ${docker_args.docker_build_args} --build-arg user_uid=${user_uid} --build-arg base_image=${docker_args.from_image} ."
-    build_image = docker.image( "${paths.project_name}/${build_image_name}:latest" )
+    build_image = docker.image( "${paths.project_name}/${build_image_name}:102" )
   }
 
   return build_image
