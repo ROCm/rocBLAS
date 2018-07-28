@@ -330,9 +330,9 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC_1, M, N, ldc);
 
-    rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
-    rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
-    rocblas_init<T>(hC_1, M, N, ldc, 1.0);
+    //  rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
+    //  rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
+    //  rocblas_init<T>(hC_1, M, N, ldc, 1.0);
 
     //  std::cout << "------------------------------------------------" << std::endl;
     //  for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
