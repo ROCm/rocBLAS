@@ -250,7 +250,7 @@
     PersistentKernel: 0
     PreciseBoundsCheck: false
     PrefetchGlobalRead: false
-    PrefetchLocalRead: true
+    PrefetchLocalRead: false
     ProblemType:
       AssignedDerivedParameters: true
       Batched: true
@@ -288,7 +288,7 @@
       UseBeta: true
       UseInitialStrides: false
     SolutionIndex: 1
-    SolutionNameMin: Cijk_Alik_Bljk_HB_MT064x128x04_PGR0_PLR1_TT04_08
+    SolutionNameMin: Cijk_Alik_Bljk_HB_MT064x128x04_PGR0_PLR0_TT04_08
     SubGroup0: 16
     SubGroup1: 16
     SubGroupA: 16

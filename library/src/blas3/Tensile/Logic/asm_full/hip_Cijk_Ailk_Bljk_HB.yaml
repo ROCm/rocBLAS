@@ -115,7 +115,7 @@
     PersistentKernel: 0
     PreciseBoundsCheck: false
     PrefetchGlobalRead: false
-    PrefetchLocalRead: true
+    PrefetchLocalRead: false
     ProblemType:
       AssignedDerivedParameters: true
       Batched: true
@@ -153,7 +153,7 @@
       UseBeta: true
       UseInitialStrides: false
     SolutionIndex: 0
-    SolutionNameMin: Cijk_Ailk_Bljk_HB_MT128x128x16_PGR0_PLR1_TT08_08
+    SolutionNameMin: Cijk_Ailk_Bljk_HB_MT128x128x16_PGR0_PLR0_TT08_08
     SubGroup0: 16
     SubGroup1: 16
     SubGroupA: 16
@@ -318,14 +318,14 @@
     BufferLoad: false
     BufferStore: true
     CheckTensorDimAsserts: false
-    DepthU: 4
+    DepthU: 8
     DirectToLds: false
     DirectToLdsA: false
     DirectToLdsB: false
     DisableKernelPieces: 0
     EdgeType: ShiftPtr
     FractionalLoad: false
-    GlobalLoadVectorWidthA: 1
+    GlobalLoadVectorWidthA: 2
     GlobalLoadVectorWidthB: 2
     GlobalRead2A: true
     GlobalRead2B: true
@@ -340,17 +340,17 @@
     GlobalWriteVectorWidth: 1
     InnerUnroll: 1
     KernelLanguage: Source
-    LSCA: 64
-    LSCB: 4
+    LSCA: 128
+    LSCB: 8
     LSPA: 4
-    LSPB: 128
+    LSPB: 64
     LVCA: 64
-    LVCB: 2
-    LVPA: 4
-    LVPB: 64
-    LdsNumElements: 819
+    LVCB: 4
+    LVPA: 2
+    LVPB: 32
+    LdsNumElements: 2048
     LdsOffsetA: 0
-    LdsOffsetB: 256
+    LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
     LocalRead2A: true
@@ -362,10 +362,10 @@
     LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopTail: true
-    LoopUnroll: 4
-    MacroTile0: 64
+    LoopUnroll: 8
+    MacroTile0: 128
     MacroTile1: 128
-    MacroTileA: 64
+    MacroTileA: 128
     MacroTileB: 128
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
@@ -374,14 +374,14 @@
     NonTemporalA: 0
     NonTemporalB: 0
     NonTemporalC: 0
-    NumElementsPerThread: 32
-    NumGlobalWriteVectorsPerThread: 32
-    NumLoadsA: 1
-    NumLoadsB: 1
+    NumElementsPerThread: 64
+    NumGlobalWriteVectorsPerThread: 64
+    NumLoadsA: 2
+    NumLoadsB: 2
     NumLoadsCoalescedA: 1
     NumLoadsCoalescedB: 1
-    NumLoadsPerpendicularA: 1
-    NumLoadsPerpendicularB: 1
+    NumLoadsPerpendicularA: 2
+    NumLoadsPerpendicularB: 2
     NumThreads: 256
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
@@ -427,15 +427,15 @@
       UseBeta: true
       UseInitialStrides: false
     SolutionIndex: 2
-    SolutionNameMin: Cijk_Ailk_Bljk_HB_MT064x128x04_PGR0_PLR1_TT04_08
+    SolutionNameMin: Cijk_Ailk_Bljk_HB_MT128x128x08_PGR0_PLR1_TT08_08
     SubGroup0: 16
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [4, 8]
-    ThreadTile0: 4
+    ThreadTile: [8, 8]
+    ThreadTile0: 8
     ThreadTile1: 8
-    ThreadTileA: 4
+    ThreadTileA: 8
     ThreadTileB: 8
     UnrollMemFence: false
     UseSgprForGRO: 0
