@@ -390,13 +390,13 @@ INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_small,
+INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
                         parameterized_half_gemm,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_tiny,
+INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
                         parameterized_half_gemm,
                         Combine(ValuesIn(tiny_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
