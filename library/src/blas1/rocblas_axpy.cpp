@@ -82,7 +82,8 @@ __global__ void axpy_kernel_device_scalar(
     }
 }
 
-__global__ void haxpy_mod_8_device_scalar(int n, const _Float16* alpha, const _Float16* x, _Float16* y)
+__global__ void
+haxpy_mod_8_device_scalar(int n, const _Float16* alpha, const _Float16* x, _Float16* y)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
