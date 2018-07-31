@@ -82,7 +82,7 @@ __global__ void axpy_kernel_device_scalar(
     }
 }
 
-__global__ void haxpy_mod_8_device_scalar(int n, const __fp16* alpha, const __fp16* x, __fp16* y)
+__global__ void haxpy_mod_8_device_scalar(int n, const _Float16* alpha, const _Float16* x, _Float16* y)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -92,7 +92,7 @@ __global__ void haxpy_mod_8_device_scalar(int n, const __fp16* alpha, const __fp
         y[index] = (*alpha) * x[index] + y[index];
 }
 
-__global__ void haxpy_mod_8_host_scalar(int n, const __fp16 alpha, const __fp16* x, __fp16* y)
+__global__ void haxpy_mod_8_host_scalar(int n, const _Float16 alpha, const _Float16* x, _Float16* y)
 {
     int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -103,7 +103,7 @@ __global__ void haxpy_mod_8_host_scalar(int n, const __fp16 alpha, const __fp16*
 }
 
 __global__ void
-haxpy_mlt_8_device_scalar(int n_mlt_8, const __fp16* alpha, const half8* x, half8* y)
+haxpy_mlt_8_device_scalar(int n_mlt_8, const _Float16* alpha, const half8* x, half8* y)
 {
     int tid = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
 
@@ -373,10 +373,10 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                0,
                                rocblas_stream,
                                n,
-                               (const __fp16*)alpha,
-                               (const __fp16*)x,
+                               (const _Float16*)alpha,
+                               (const _Float16*)x,
                                incx,
-                               (__fp16*)y,
+                               (_Float16*)y,
                                incy);
         }
         else // alpha is on host
@@ -386,7 +386,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                 return rocblas_status_success;
             }
 
-            const __fp16 f16_alpha = *reinterpret_cast<const __fp16*>(alpha);
+            const _Float16 f16_alpha = *reinterpret_cast<const _Float16*>(alpha);
             hipLaunchKernelGGL(axpy_kernel_host_scalar,
                                dim3(blocks),
                                dim3(threads),
@@ -394,9 +394,9 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                rocblas_stream,
                                n,
                                f16_alpha,
-                               (const __fp16*)x,
+                               (const _Float16*)x,
                                incx,
-                               (__fp16*)y,
+                               (_Float16*)y,
                                incy);
         }
     }
@@ -421,7 +421,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                0,
                                rocblas_stream,
                                n_mlt_8,
-                               (const __fp16*)alpha,
+                               (const _Float16*)alpha,
                                (const half8*)x,
                                (half8*)y);
 
@@ -433,9 +433,9 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                    0,
                                    rocblas_stream,
                                    n,
-                                   (const __fp16*)alpha,
-                                   (const __fp16*)x,
-                                   (__fp16*)y);
+                                   (const _Float16*)alpha,
+                                   (const _Float16*)x,
+                                   (_Float16*)y);
             }
         }
         else // alpha is on host
@@ -446,8 +446,8 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
             }
 
             half2 half2_alpha;
-            half2_alpha[0] = *reinterpret_cast<const __fp16*>(alpha);
-            half2_alpha[1] = *reinterpret_cast<const __fp16*>(alpha);
+            half2_alpha[0] = *reinterpret_cast<const _Float16*>(alpha);
+            half2_alpha[1] = *reinterpret_cast<const _Float16*>(alpha);
 
             hipLaunchKernelGGL(haxpy_mlt_8_host_scalar,
                                dim3(grid),
@@ -461,7 +461,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
 
             if(0 != n_mod_8) // cleanup non-multiple of 8
             {
-                const __fp16 f16_alpha = *reinterpret_cast<const __fp16*>(alpha);
+                const _Float16 f16_alpha = *reinterpret_cast<const _Float16*>(alpha);
                 hipLaunchKernelGGL(haxpy_mod_8_host_scalar,
                                    dim3(1, 1, 1),
                                    dim3(n_mod_8, 1, 1),
@@ -469,8 +469,8 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                    rocblas_stream,
                                    n,
                                    f16_alpha,
-                                   (const __fp16*)x,
-                                   (__fp16*)y);
+                                   (const _Float16*)x,
+                                   (_Float16*)y);
             }
         }
     }
