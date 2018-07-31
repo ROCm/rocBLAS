@@ -44,6 +44,19 @@ const vector<vector<int>> matrix_size_range = {
     { 59,  61,  63, 129, 131, 137,   8631,   8631,   8631},
     {129, 130, 131, 132, 133, 134,  17554,  17554,  17554},
     {501, 502, 103, 504, 605, 506, 340010, 340010, 340010},
+    {  3,   3,   3,   3,   3,   3,      9,     9,      9},
+    { 15,  15,  15,  15,  15,  15,    225,   225,    225},
+    { 16,  16,  16,  16,  16,  16,    256,   256,    256},
+    { 17,  17,  17,  17,  17,  17,    289,   289,    289},
+    { 63,  63,  63,  63,  63,  63,   3969,  3969,   3969},
+    { 64,  64,  64,  64,  64,  64,   4096,  4096,   4096},
+    { 65,  65,  65,  65,  65,  65,   4225,  4225,   4225},
+    {127, 127, 127, 127, 127, 127,  16129, 16129,  16129},
+    {128, 128, 128, 128, 128, 128,  16384, 16384,  16384},
+    {129, 129, 129, 129, 129, 129,  16641, 16641,  16641},
+    {255, 255, 255, 255, 255, 255,  65025, 65025,  65025},
+    {256, 256, 256, 256, 256, 256,  65536, 65536,  65536},
+    {257, 257, 257, 257, 257, 257,  66049, 66049,  66049},
 };
 
 const vector<vector<int>> matrix_size_stride_a_range = {
@@ -66,10 +79,13 @@ const vector<vector<int>> matrix_size_stride_a_range = {
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
+
+// clang-format off
 const vector<vector<double>> alpha_beta_range = {
-    {1.0, 0.0}, {-1.0, -1.0},
+    {1.0, 0.0}, {-1.0, -1.0}, {0.0, 1.0},
 };
 const vector<vector<double>> alpha_beta_stride_a_range = {{2.0, 3.0}};
+// clang-format on
 
 // vector of vector, each pair is a {transA, transB};
 // add/delete this list in pairs, like {'N', 'T'}
@@ -144,6 +160,43 @@ class gemm_strided_batched : public ::TestWithParam<gemm_strided_batched_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+TEST_P(gemm_strided_batched, half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_strided_batched_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_strided_batched<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.batch_count < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
 
 TEST_P(gemm_strided_batched, float)
 {
