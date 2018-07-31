@@ -387,42 +387,42 @@
     }                                                                                                \
     PRINT_RETURN_STATUS
 
-#define CALL_HTENSILE(PREC, TYPE, TRANS)                                       \
-    PRINT_SOLUTION_NAME(PREC, TRANS)                                           \
-    TYPE alpha_h;                                                              \
-    TYPE beta_h;                                                               \
-    if(rocblas_pointer_mode_host == handle->pointer_mode)                      \
-    {                                                                          \
-        alpha_h = *alpha;                                                      \
-        beta_h  = *beta;                                                       \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);       \
-        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);         \
-    }                                                                          \
-    status = tensile_##TRANS##_##PREC##B(reinterpret_cast<__fp16*>(C),         \
-                                         reinterpret_cast<const __fp16*>(A),   \
-                                         reinterpret_cast<const __fp16*>(B),   \
-                                         *reinterpret_cast<__fp16*>(&alpha_h), \
-                                         *reinterpret_cast<__fp16*>(&beta_h),  \
-                                         0,                                    \
-                                         0,                                    \
-                                         0,                                    \
-                                         strideC1,                             \
-                                         strideC2,                             \
-                                         strideA1,                             \
-                                         strideA2,                             \
-                                         strideB1,                             \
-                                         strideB2,                             \
-                                         sizeI,                                \
-                                         sizeJ,                                \
-                                         sizeK,                                \
-                                         sizeL,                                \
-                                         handle->rocblas_stream,               \
-                                         0,                                    \
-                                         nullptr,                              \
-                                         nullptr);                             \
+#define CALL_HTENSILE(PREC, TYPE, TRANS)                                         \
+    PRINT_SOLUTION_NAME(PREC, TRANS)                                             \
+    TYPE alpha_h;                                                                \
+    TYPE beta_h;                                                                 \
+    if(rocblas_pointer_mode_host == handle->pointer_mode)                        \
+    {                                                                            \
+        alpha_h = *alpha;                                                        \
+        beta_h  = *beta;                                                         \
+    }                                                                            \
+    else                                                                         \
+    {                                                                            \
+        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);         \
+        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);           \
+    }                                                                            \
+    status = tensile_##TRANS##_##PREC##B(reinterpret_cast<_Float16*>(C),         \
+                                         reinterpret_cast<const _Float16*>(A),   \
+                                         reinterpret_cast<const _Float16*>(B),   \
+                                         *reinterpret_cast<_Float16*>(&alpha_h), \
+                                         *reinterpret_cast<_Float16*>(&beta_h),  \
+                                         0,                                      \
+                                         0,                                      \
+                                         0,                                      \
+                                         strideC1,                               \
+                                         strideC2,                               \
+                                         strideA1,                               \
+                                         strideA2,                               \
+                                         strideB1,                               \
+                                         strideB2,                               \
+                                         sizeI,                                  \
+                                         sizeJ,                                  \
+                                         sizeK,                                  \
+                                         sizeL,                                  \
+                                         handle->rocblas_stream,                 \
+                                         0,                                      \
+                                         nullptr,                                \
+                                         nullptr);                               \
     PRINT_RETURN_STATUS
 
 /*******************************************************************************
