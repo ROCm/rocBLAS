@@ -27,8 +27,8 @@ __global__ void trtri_kernel_batched(rocblas_fill uplo,
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
-    const T* individual_A    = A + hipBlockIdx_z * bsa;
-    T* individual_invA = invA + hipBlockIdx_z * bsinvA;
+    const T* individual_A = A + hipBlockIdx_z * bsa;
+    T* individual_invA    = invA + hipBlockIdx_z * bsinvA;
 
     trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
