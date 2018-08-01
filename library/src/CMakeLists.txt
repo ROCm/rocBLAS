@@ -90,6 +90,10 @@ set( rocblas_auxiliary_source
   status.cpp
 )
 
+set( rocblas_ex_source
+  blas_ex/rocblas_gemm_ex.cpp
+)
+
 set( rocblas_blas3_source
   blas3/rocblas_trtri.cpp
   blas3/rocblas_trtri_batched.cpp
@@ -119,6 +123,7 @@ set( rocblas_blas1_source
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 
 add_library( rocblas
+  ${rocblas_ex_source}
   ${rocblas_blas3_source}
   ${rocblas_blas2_source}
   ${rocblas_blas1_source}
