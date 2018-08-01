@@ -61,9 +61,17 @@ project( rocblas LANGUAGES CXX )
 # Main
 # ########################################################################
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  # For now, we assume hipcc compiler means to compile for CUDA backend
-  message( STATUS "HIPCC compiler detected; CUDA backend selected" )
+# Determine if CXX Compiler is hcc, hip-clang or nvcc
+execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--version" OUTPUT_VARIABLE CXX_OUTPUT
+                OUTPUT_STRIP_TRAILING_WHITESPACE
+                ERROR_STRIP_TRAILING_WHITESPACE)
+string(REGEX MATCH "[A-Za-z]* ?clang version" TMP_CXX_VERSION ${CXX_OUTPUT})
+string(REGEX MATCH "[A-Za-z]+" CXX_VERSION_STRING ${TMP_CXX_VERSION})
+
+if( CXX_VERSION_STRING MATCHES "clang" )
+  message( STATUS "Use hip-clang to build for amdgpu backend" )
+elseif( CXX_VERSION_STRING MATCHES "nvcc" )
+  message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
 
   set( CMAKE_C_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_PIC}" )
   set( CMAKE_CXX_COMPILE_OPTIONS_PIC "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_PIC}" )
@@ -79,7 +87,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY}" )
   set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
-elseif( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+elseif( CXX_VERSION_STRING MATCHES "HCC" )
   message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm/bin/hcc cmake ... ]" )
 endif( )
 
