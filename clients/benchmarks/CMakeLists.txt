@@ -83,8 +83,8 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument -mf16c )
 
-elseif( CMAKE_COMPILER_IS_GNUCXX )
-  # GCC needs specific flags to turn on f16c intrinsics
+elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
+  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
