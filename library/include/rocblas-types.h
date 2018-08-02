@@ -114,7 +114,7 @@ typedef enum rocblas_layer_mode_ {
 
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_gemm_algo_ {
-    rocblas_layer_mode_general = 0b0000000000,
+    rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
 
 
