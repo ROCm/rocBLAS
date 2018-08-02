@@ -91,19 +91,19 @@ int main(int argc, char* argv[])
          "Specific leading dimension of matrix C, is only applicable to BLAS-2 & "
          "BLAS-3: the number of rows.")
 
-        ("bsa",
-         po::value<rocblas_int>(&argus.bsa)->default_value(128*128),
+        ("stride_a",
+         po::value<rocblas_int>(&argus.stride_a)->default_value(128*128),
+         "Specific stride of strided_batched matrix A, is only applicable to strided batched"
+         "BLAS-2 and BLAS-3: second dimension * leading dimension.")
+
+        ("stride_b",
+         po::value<rocblas_int>(&argus.stride_b)->default_value(128*128),
          "Specific stride of strided_batched matrix B, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
-        ("bsb",
-         po::value<rocblas_int>(&argus.bsb)->default_value(128*128),
-         "Specific stride of strided_batched matrix B, is only applicable to strided batched"
-         "BLAS-2 and BLAS-3: second dimension * leading dimension.")
-
-        ("bsc",
-         po::value<rocblas_int>(&argus.bsc)->default_value(128*128),
-         "Specific stride of strided_batched matrix B, is only applicable to strided batched"
+        ("stride_c",
+         po::value<rocblas_int>(&argus.stride_c)->default_value(128*128),
+         "Specific stride of strided_batched matrix C, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
         ("incx",
@@ -378,25 +378,32 @@ int main(int argc, char* argv[])
             argus.ldc = min_ldc;
         }
 
-        rocblas_int min_bsa =
-            argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
-        rocblas_int min_bsb =
-            argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
-        rocblas_int min_bsc = argus.ldc * argus.N;
-        if(argus.bsa < min_bsa)
+        //      rocblas_int min_stride_a =
+        //          argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
+        //      rocblas_int min_stride_b =
+        //          argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
+        //      rocblas_int min_stride_a =
+        //          argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
+        //      rocblas_int min_stride_b =
+        //          argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
+        rocblas_int min_stride_c = argus.ldc * argus.N;
+        //      if(argus.stride_a < min_stride_a)
+        //      {
+        //          std::cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
+        //          min_stride_a << std::endl;
+        //          argus.stride_a = min_stride_a;
+        //      }
+        //      if(argus.stride_b < min_stride_b)
+        //      {
+        //          std::cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
+        //          min_stride_b << std::endl;
+        //          argus.stride_b = min_stride_b;
+        //      }
+        if(argus.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: bsa < min_bsa, set bsa = " << min_bsa << std::endl;
-            argus.bsa = min_bsa;
-        }
-        if(argus.bsb < min_bsb)
-        {
-            std::cout << "rocblas-bench INFO: bsb < min_bsb, set bsb = " << min_bsb << std::endl;
-            argus.bsb = min_bsb;
-        }
-        if(argus.bsc < min_bsc)
-        {
-            std::cout << "rocblas-bench INFO: bsc < min_bsc, set bsc = " << min_bsc << std::endl;
-            argus.bsc = min_bsc;
+            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                      << min_stride_c << std::endl;
+            argus.stride_c = min_stride_c;
         }
 
         if(precision == 'h')
@@ -457,25 +464,28 @@ int main(int argc, char* argv[])
             argus.ldc = min_ldc;
         }
 
-        rocblas_int min_bsa =
-            argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
-        rocblas_int min_bsb =
-            argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
-        rocblas_int min_bsc = argus.ldc * argus.N;
-        if(argus.bsa < min_bsa)
+        //      rocblas_int min_stride_a =
+        //          argus.transA_option == 'N' ? argus.K * argus.lda : argus.M * argus.lda;
+        //      rocblas_int min_stride_b =
+        //          argus.transB_option == 'N' ? argus.N * argus.ldb : argus.K * argus.ldb;
+        rocblas_int min_stride_c = argus.ldc * argus.N;
+        //      if(argus.stride_a < min_stride_a)
+        //      {
+        //          std::cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
+        //          min_stride_a << std::endl;
+        //          argus.stride_a = min_stride_a;
+        //      }
+        //      if(argus.stride_b < min_stride_b)
+        //      {
+        //          std::cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
+        //          min_stride_b << std::endl;
+        //          argus.stride_b = min_stride_b;
+        //      }
+        if(argus.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: bsa < min_bsa, set bsa = " << min_bsa << std::endl;
-            argus.bsa = min_bsa;
-        }
-        if(argus.bsb < min_bsb)
-        {
-            std::cout << "rocblas-bench INFO: bsb < min_bsb, set bsb = " << min_bsb << std::endl;
-            argus.bsb = min_bsb;
-        }
-        if(argus.bsc < min_bsc)
-        {
-            std::cout << "rocblas-bench INFO: bsc < min_bsc, set bsc = " << min_bsc << std::endl;
-            argus.bsc = min_bsc;
+            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                      << min_stride_c << std::endl;
+            argus.stride_c = min_stride_c;
         }
 
         if(precision == 'h')

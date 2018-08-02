@@ -10,11 +10,11 @@ inline void infer_batch_strides(rocblas_operation trans_a,
                                 rocblas_int n,
                                 rocblas_int k,
                                 rocblas_int ld_a,
-                                rocblas_int* bs_a,
+                                rocblas_int* stride_a,
                                 rocblas_int ld_b,
-                                rocblas_int* bs_b,
+                                rocblas_int* stride_b,
                                 rocblas_int ld_c,
-                                rocblas_int* bs_c)
+                                rocblas_int* stride_c)
 {
 
     rocblas_int num_cols_c = n;
@@ -24,9 +24,9 @@ inline void infer_batch_strides(rocblas_operation trans_a,
     rocblas_int num_cols_b = (trans_b == rocblas_operation_none ? n : k);
     rocblas_int num_rows_b = (trans_b == rocblas_operation_none ? k : n);
 
-    *bs_a = ld_a * num_cols_a;
-    *bs_b = ld_b * num_cols_b;
-    *bs_c = ld_c * num_cols_c;
+    *stride_a = ld_a * num_cols_a;
+    *stride_b = ld_b * num_cols_b;
+    *stride_c = ld_c * num_cols_c;
 
 } // infer batched strides
 
@@ -42,25 +42,25 @@ inline rocblas_status validateArgs(rocblas_handle handle,
                                    const void* alpha,
                                    const void* a,
                                    rocblas_int ld_a,
-                                   rocblas_int bs_a,
+                                   rocblas_int stride_a,
                                    const void* b,
                                    rocblas_int ld_b,
-                                   rocblas_int bs_b,
+                                   rocblas_int stride_b,
                                    const void* beta,
                                    void* c,
                                    rocblas_int ld_c,
-                                   rocblas_int bs_c,
-                                   rocblas_int b_c)
+                                   rocblas_int stride_c,
+                                   rocblas_int batch_count)
 {
 
     // quick return 0 is valid in BLAS
-    if(m == 0 || n == 0 || k == 0 || b_c == 0)
+    if(m == 0 || n == 0 || k == 0 || batch_count == 0)
     {
         return rocblas_status_success;
     }
 
     // sizes must not be negative
-    if(m < 0 || n < 0 || k < 0 || b_c < 0)
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
     {
         return rocblas_status_invalid_size;
     }
