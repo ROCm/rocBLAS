@@ -96,7 +96,7 @@
 
     ********************************************************************/
 
-extern "C" rocblas_status rocblas_gemm_ex_template(
+extern "C" rocblas_status rocblas_gemm_ex(
                            rocblas_handle        handle,
                            rocblas_operation     trans_a,
                            rocblas_operation     trans_b,
@@ -140,25 +140,29 @@ extern "C" rocblas_status rocblas_gemm_ex_template(
                   kernel_index,
                   flags);        
 
+        std::string trans_a_letter = rocblas_transpose_letter(trans_a);
+        std::string trans_b_letter = rocblas_transpose_letter(trans_b);
         log_bench(handle,
-                  "./rocblas-bench -f gemm-ex",
+                  "./rocblas-bench -f gemm_ex",
+                  "--transposeA", trans_a_letter,
+                  "--transposeB", trans_b_letter,
                   "-m", m,
                   "-n", n,
                   "-k", k,
                   "--alpha", *alpha,
-                  "--beta", *beta,
-                  "--lda", lda,
-                  "--ldb", ldb,
-                  "--ldc", ldc,
-                  "--ldd", ldd,
                   "--a_type", a_type,
+                  "--lda", lda,
                   "--b_type", b_type,
+                  "--ldb", ldb,
+                  "--beta", *beta,
                   "--c_type", c_type,
+                  "--ldc", ldc,
                   "--d_type", d_type,
+                  "--ldd", ldd,
                   "--compute_type", compute_type,
                   "--algo", algo,
-                  "kernel_index", kernel_index,
-                  "flags", flags);
+                  "--kernel_index", kernel_index,
+                  "--flags", flags);
     }
     else
     {
