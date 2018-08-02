@@ -14,7 +14,7 @@ Our code contriubtion guidelines closely follows the model of [GitHub pull-reque
 * ensure code builds successfully.
 * do not break existing test cases
 * new functionality will only be merged with new unit tests
-  * new unit tests should integrate within the existing [googletest framework](https://github.com/google/googletest/blob/master/googletest/docs/Primer.md)
+  * new unit tests should integrate within the existing [googletest framework](https://github.com/google/googletest/blob/master/googletest/docs/primer.md)
   * tests must have good code coverage
   * code must also have benchmark tests, and performance must approach the compute bound limit or memory bound limit.
 

@@ -114,11 +114,11 @@ void testing_logging()
     rocblas_int incx         = 1;
     rocblas_int incy         = 1;
     rocblas_int lda          = 1;
-    rocblas_int bsa          = 1;
+    rocblas_int stride_a     = 1;
     rocblas_int ldb          = 1;
-    rocblas_int bsb          = 1;
+    rocblas_int stride_b     = 1;
     rocblas_int ldc          = 1;
-    rocblas_int bsc          = 1;
+    rocblas_int stride_c     = 1;
     rocblas_int batch_count  = 1;
     T alpha                  = 1.0;
     T beta                   = 1.0;
@@ -131,9 +131,9 @@ void testing_logging()
     rocblas_int safe_dim = ((m > n ? m : n) > k ? (m > n ? m : n) : k);
     rocblas_int size_x   = n * incx;
     rocblas_int size_y   = n * incy;
-    rocblas_int size_a   = (lda > bsa ? lda : bsa) * safe_dim * batch_count;
-    rocblas_int size_b   = (ldb > bsb ? ldb : bsb) * safe_dim * batch_count;
-    rocblas_int size_c   = (ldc > bsc ? ldc : bsc) * safe_dim * batch_count;
+    rocblas_int size_a   = (lda > stride_a ? lda : stride_a) * safe_dim * batch_count;
+    rocblas_int size_b   = (ldb > stride_b ? ldb : stride_b) * safe_dim * batch_count;
+    rocblas_int size_c   = (ldc > stride_c ? ldc : stride_c) * safe_dim * batch_count;
 
     // allocate memory on device
     auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
@@ -221,14 +221,14 @@ void testing_logging()
                                                      &alpha,
                                                      da,
                                                      lda,
-                                                     bsa,
+                                                     stride_a,
                                                      db,
                                                      ldb,
-                                                     bsb,
+                                                     stride_b,
                                                      &beta,
                                                      dc,
                                                      ldc,
-                                                     bsc,
+                                                     stride_c,
                                                      batch_count);
         }
 
@@ -547,26 +547,26 @@ void testing_logging()
             trace_ofs2 << "\n"
                        << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
                        << transB << "," << m << "," << n << "," << k << "," << alpha << ","
-                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
-                       << "," << bsb << "," << beta << "," << (void*)dc << "," << ldc << "," << bsc
-                       << "," << batch_count;
+                       << (void*)da << "," << lda << "," << stride_a << "," << (void*)db << ","
+                       << ldb << "," << stride_b << "," << beta << "," << (void*)dc << "," << ldc
+                       << "," << stride_c << "," << batch_count;
 
             bench_ofs2 << "\n"
                        << "./rocblas-bench -f gemm_strided_batched -r " << replaceX<T>("X")
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
                        << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
-                       << " --lda " << lda << " --bsa " << bsa << " --ldb " << ldb << " --bsb "
-                       << bsb << " --beta " << beta << " --ldc " << ldc << " --bsc " << bsc
-                       << " --batch " << batch_count;
+                       << " --lda " << lda << " --stride_a " << stride_a << " --ldb " << ldb
+                       << " --stride_b " << stride_b << " --beta " << beta << " --ldc " << ldc
+                       << " --stride_c " << stride_c << " --batch " << batch_count;
         }
         else
         {
             trace_ofs2 << "\n"
                        << replaceX<T>("rocblas_Xgemm_strided_batched") << "," << transA << ","
                        << transB << "," << m << "," << n << "," << k << "," << (void*)&alpha << ","
-                       << (void*)da << "," << lda << "," << bsa << "," << (void*)db << "," << ldb
-                       << "," << bsb << "," << (void*)&beta << "," << (void*)dc << "," << ldc << ","
-                       << bsc << "," << batch_count;
+                       << (void*)da << "," << lda << "," << stride_a << "," << (void*)db << ","
+                       << ldb << "," << stride_b << "," << (void*)&beta << "," << (void*)dc << ","
+                       << ldc << "," << stride_c << "," << batch_count;
         }
     }
     // exclude trtri as it is an internal function
