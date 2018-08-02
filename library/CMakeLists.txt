@@ -131,7 +131,7 @@ endif( )
 set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" "\${CPACK_PACKAGING_INSTALL_PREFIX}/include" "\${CPACK_PACKAGING_INSTALL_PREFIX}/lib" )
 
 # Give rocblas compiled for CUDA backend a different name
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" OR CXX_VERSION_STRING MATCHES "clang" )
     set( package_name rocblas )
 else( )
     set( package_name rocblas-alt )
