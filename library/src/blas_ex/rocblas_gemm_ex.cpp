@@ -10,6 +10,32 @@
 #include "logging.h"
 #include "utility.h"
 
+void device_matrix_copy(void *src, rocblas_int ld_src, void *dst, rocblas_int ld_dst, 
+                                   rocblas_int n1, rocblas_int n2, size_t elem_size)
+{
+    if((src != dst) || (ld_src != ld_dst))  // no copy if src matrix == dst matrix
+    {
+        if((n1 == ld_src) && (n1 == ld_dst))
+        {
+            // matrices C and D are contiguous, use single copy
+            size_t matrix_size = n1 * n2 * elem_size;
+            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice))
+        }
+        else
+        {
+            size_t column_size = n1 * elem_size;
+
+            for (int i2 = 0; i2 < n2; i2++)
+            {
+                void *src_void = static_cast<void*>(static_cast<uint8_t*>(src) + (i2 * ld_src * elem_size));
+                void *dst_void = static_cast<void*>(static_cast<uint8_t*>(dst) + (i2 * ld_dst * elem_size));
+
+                PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice))
+            }
+        }
+    }
+}
+
 /*! \brief BLAS EX API
 
     \details
@@ -214,30 +240,6 @@ extern "C" rocblas_status rocblas_gemm_ex(
     size_t c_byte_size;
     size_t d_byte_size;
 
-
-//TODO: templated function needs to replace non-templated code below
-//template <typename T>
-//rocblas_matrix_copy_device_to_device(rocblas_int m, rocblas_int n, T *dest, rocblas_int ld_dest, T *orig, rocblas_int ld_orig)
-//{
-//    size_t byte_size = sizeof(T);
-//    size_t column_byte_size = byte_size * m;
-//    size_t dest_byte_stride = byte_size * ld_dest;
-//    size_t orig_byte_stride = byte_size * ld_orig;
-//
-//    if((dest != orig) || (ld_dest != ld_orig))
-//    {
-//        for (int i = 0; i < n; i++)
-//        {
-//            void *c_void = static_cast<void*>(&(c_double[i*c_byte_stride]));
-//            void *d_void = static_cast<void*>(&(d_double[i*d_byte_stride]));
-//            PRINT_IF_HIP_ERROR(hipMemcpy(d_void, c_void, column_byte_size, hipMemcpyDeviceToDevice))
-//        }
-//    }
-//} 
-
-
-
-
     if(a_type == rocblas_precision_double && b_type == rocblas_precision_double && 
        c_type == rocblas_precision_double && d_type == rocblas_precision_double && compute_type == rocblas_precision_double)
     {
@@ -253,27 +255,7 @@ extern "C" rocblas_status rocblas_gemm_ex(
 
         if(status != rocblas_status_success) return status;
 
-        if(c != d || ldc != ldd)  // no copy if c matrix == d matrix
-        {
-            c_byte_size = sizeof(double);
-            d_byte_size = sizeof(double);
-
-            size_t column_size = m * c_byte_size;
-
-            size_t c_byte_stride = ldc * c_byte_size;
-            size_t d_byte_stride = ldd * d_byte_size;
-
-            double *c_double = static_cast<double*>(c);
-            double *d_double = static_cast<double*>(d);
-
-            for (int i = 0; i < n; i++)
-            {
-                void *c_void = static_cast<void*>(&(c_double[i*c_byte_stride]));
-                void *d_void = static_cast<void*>(&(d_double[i*d_byte_stride]));
-                PRINT_IF_HIP_ERROR(hipMemcpy(d_void, c_void, column_size, hipMemcpyDeviceToDevice))
-            }
-        }
-
+        device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(double));
     }
     else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single && 
             c_type == rocblas_precision_single && d_type == rocblas_precision_single && compute_type == rocblas_precision_single)
@@ -290,60 +272,30 @@ extern "C" rocblas_status rocblas_gemm_ex(
 
         if(status != rocblas_status_success) return status;
 
-        if(c != d || ldc != ldd)  // no copy if c matrix == d matrix
-        {
-            c_byte_size = sizeof(float);
-            d_byte_size = sizeof(float);
-
-            size_t column_size = m * c_byte_size;
-
-            size_t c_byte_stride = ldc * c_byte_size;
-            size_t d_byte_stride = ldd * d_byte_size;
-
-            float *c_float = static_cast<float*>(c);
-            float *d_float = static_cast<float*>(d);
-
-            for (int i = 0; i < n; i++)
-            {
-                void *c_void = static_cast<void*>(&(c_float[i*c_byte_stride]));
-                void *d_void = static_cast<void*>(&(d_float[i*d_byte_stride]));
-                PRINT_IF_HIP_ERROR(hipMemcpy(d_void, c_void, column_size, hipMemcpyDeviceToDevice))
-            }
-        }
+        device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(float));
     }
-//  else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half && 
-//          c_type == rocblas_precision_half && d_type == rocblas_precision_half && compute_type == rocblas_precision_half)
-//  {
-//      status = rocblas_hgemm(handle,
-//                             trans_a, trans_b,
-//                             m, n, k, alpha,
-//                             a, lda,
-//                             b, ldb, beta,
-//                             c, ldc);
-//      c_byte_size = 2;
-//      d_byte_size = 2;
-//  }
+    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half && 
+            c_type == rocblas_precision_half && d_type == rocblas_precision_half && compute_type == rocblas_precision_half)
+    {
+        const _Float16 alpha_half= static_cast<_Float16>(*alpha);
+        const _Float16 beta_half= static_cast<_Float16>(*beta);
+
+        status = rocblas_hgemm(handle,
+                               trans_a, trans_b,
+                               m, n, k, reinterpret_cast<const rocblas_half*>(&alpha_half),
+                               static_cast<const rocblas_half*>(a), lda,
+                               static_cast<const rocblas_half*>(b), ldb, reinterpret_cast<const rocblas_half*>(&beta_half),
+                               static_cast<      rocblas_half*>(c), ldc);
+
+        if(status != rocblas_status_success) std::cout << "ERROR: status = " << status << std::endl;
+        if(status != rocblas_status_success) return status;
+
+        device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(rocblas_half));
+    }
     else
     {
         return rocblas_status_not_implemented;
     }
-
-/*
-    //copy matrix c into matrix d
-    if(status == rocblas_success)
-    {
-        size_t column_size = m * c_byte_size;
-        size_t c_byte_stride = ldc * c_byte_size;
-        size_t d_byte_stride = ldd * d_byte_size;
-        if(c != d || ldc != ldd)  // no copy if c matrix == d matrix
-        {
-            for (int i = 0; i < n; i++)
-            {
-                PRINT_IF_HIP_ERROR(hipMemcpy(d + i*d_byte_stride, c + i*c_byte_stride, column_size, hipMemcpyDeviceToDevice))
-            }
-        }
-    }
-*/
 
     return status;
 }
