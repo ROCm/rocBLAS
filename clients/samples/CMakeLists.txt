@@ -46,8 +46,8 @@ foreach( exe ${sample_list} )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
     target_compile_options( ${exe} PRIVATE -Wno-unused-command-line-argument )
-  elseif( CMAKE_COMPILER_IS_GNUCXX )
-    # GCC needs specific flags to turn on f16c intrinsics
+  elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
+    # GCC or hip-clang needs specific flags to turn on f16c intrinsics
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
 endforeach( )
