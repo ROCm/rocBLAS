@@ -59,7 +59,7 @@ _rocblas_handle::~_rocblas_handle()
 
     if(trsm_Y)
         hipFree(trsm_Y);
-    
+
     if(trsm_invA)
         hipFree(trsm_invA);
 
@@ -104,18 +104,8 @@ rocblas_status _rocblas_handle::get_stream(hipStream_t* stream) const
 }
 
 // trsm get pointers
-void * _rocblas_handle::get_trsm_Y()
-{
-    return trsm_Y;
-}
+void* _rocblas_handle::get_trsm_Y() { return trsm_Y; }
 
-void * _rocblas_handle::get_trsm_invA()
-{
-    return trsm_invA;
-}
+void* _rocblas_handle::get_trsm_invA() { return trsm_invA; }
 
-void * _rocblas_handle::get_trsm_invA_C()
-{
-    return trsm_invA_C;
-}
-
+void* _rocblas_handle::get_trsm_invA_C() { return trsm_invA_C; }

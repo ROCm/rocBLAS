@@ -34,6 +34,15 @@ template <typename T>
 void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU);
 
 template <typename T>
+void unit_check_general(rocblas_int M,
+                        rocblas_int N,
+                        rocblas_int batch_count,
+                        rocblas_int lda,
+                        rocblas_int strideA,
+                        T* hCPU,
+                        T* hGPU);
+
+template <typename T>
 void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps);
 
 #endif

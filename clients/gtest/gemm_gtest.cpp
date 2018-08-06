@@ -77,10 +77,17 @@ const vector<vector<int>> small_matrix_size_range = {
 
 const vector<vector<int>> large_matrix_size_range = {
     {191, 193, 194, 195, 196, 197},
-    {640, 640, 347, 960, 961, 962},
-    {1000, 1001, 101, 1002, 1003, 1004},
-    {1025, 1026, 1027, 1028, 1029, 1031},
+    {639, 640, 347, 960, 961, 1062},
+    {1000, 1001, 101, 2002, 1003, 1004},
+    {925, 1026, 1027, 1028, 2029, 1031},
     {4011, 4012, 103, 4014, 4015, 4016},
+};
+
+const vector<vector<int>> chunk_matrix_size_range = {
+    {24000, 256, 256, 24010, 256, 24000},
+    {24000, 256, 256, 24000, 256, 24020},
+    {256, 24001, 256, 256, 24030, 24000},
+    {256, 24001, 256, 256, 24000, 24040},
 };
 
 const vector<vector<int>> NaN_matrix_size_range = {
@@ -89,6 +96,10 @@ const vector<vector<int>> NaN_matrix_size_range = {
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
+const vector<vector<double>> alpha_beta_2_3_range = {
+    {2.0, 3.0},
+};
+
 const vector<vector<double>> NaN_alpha_beta_range = {
     {1.0, 0.0},
 };
@@ -188,39 +199,6 @@ class parameterized_gemm : public ::TestWithParam<gemm_tuple>
     virtual void TearDown() {}
 };
 
-TEST_P(parameterized_gemm, rocblas_half)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-    Arguments arg = setup_gemm_arguments(GetParam());
-
-    rocblas_status status = testing_gemm<rocblas_half>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
-    {
-        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldc < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-    }
-}
-
 TEST_P(parameterized_gemm, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -287,6 +265,90 @@ TEST_P(parameterized_gemm, double)
     }
 }
 
+class parameterized_chunk_gemm : public ::TestWithParam<gemm_tuple>
+{
+    protected:
+    parameterized_chunk_gemm() {}
+    virtual ~parameterized_chunk_gemm() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+TEST_P(parameterized_chunk_gemm, float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<float>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+class parameterized_half_gemm : public ::TestWithParam<gemm_tuple>
+{
+    protected:
+    parameterized_half_gemm() {}
+    virtual ~parameterized_half_gemm() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+TEST_P(parameterized_half_gemm, half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
 TEST(checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
 
 TEST(checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
@@ -326,4 +388,28 @@ INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
                         parameterized_gemm,
                         Combine(ValuesIn(tiny_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(tiny_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_large,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(large_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_chunk,
+                        parameterized_chunk_gemm,
+                        Combine(ValuesIn(chunk_matrix_size_range),
+                                ValuesIn(alpha_beta_2_3_range),
                                 ValuesIn(transA_transB_range)));
