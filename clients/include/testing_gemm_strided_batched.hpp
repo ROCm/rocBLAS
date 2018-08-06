@@ -281,7 +281,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm_strided_batched<T>(handle,
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
                                             transA,
                                             transB,
                                             M,
@@ -298,7 +298,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                             dC,
                                             ldc,
                                             stride_c,
-                                            batch_count);
+                                            batch_count));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
