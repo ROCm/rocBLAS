@@ -21,6 +21,7 @@ function display_help()
   echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
+  echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -206,6 +207,7 @@ tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_release=true
+build_hip_clang=false
 
 # #################################################
 # Parameter parsing
@@ -214,7 +216,7 @@ build_release=true
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,logic:,fork:,branch:test_local_path: --options hicdgl:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,fork:,branch:test_local_path: --options hicdgl:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -259,6 +261,9 @@ while true; do
         shift 2 ;;
     --cuda)
         build_cuda=true
+        shift ;;
+    --hip-clang)
+        build_hip_clang=true
         shift ;;
     --prefix)
         install_prefix=${2}
@@ -348,7 +353,7 @@ pushd .
   fi
 
   compiler="hcc"
-  if [[ "${build_cuda}" == true ]]; then
+  if [[ "${build_cuda}" == true || "${build_hip_clang}" == true ]]; then
     compiler="hipcc"
   fi
 

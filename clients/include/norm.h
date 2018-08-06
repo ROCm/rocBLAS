@@ -20,7 +20,7 @@
 /* ========================================Norm Check
  * ==================================================== */
 
-/*! \brief  Template: norm check for general Matrix: float/doubel/complex  */
+/*! \brief  Template: norm check for general Matrix: half/float/doubel/complex  */
 
 // see check_norm.cpp for template speciliazation
 // use auto as the return type is only allowed in c++14
@@ -29,7 +29,18 @@ template <typename T>
 double
 norm_check_general(char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU);
 
-/*! \brief  Template: norm check for hermitian/symmetric Matrix: float/double/complex */
+/*! \brief  Template: norm check for strided_batched Matrix: half/float/double/complex */
+template <typename T>
+double norm_check_general(char norm_type,
+                          rocblas_int M,
+                          rocblas_int N,
+                          rocblas_int lda,
+                          rocblas_int stride_a,
+                          rocblas_int batch_count,
+                          T* hCPU,
+                          T* hGPU);
+
+/*! \brief  Template: norm check for hermitian/symmetric Matrix: half/float/double/complex */
 
 template <typename T>
 double
