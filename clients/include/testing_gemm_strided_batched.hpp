@@ -77,9 +77,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                              rocblas_test::device_free};
         auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
+        T* dA           = (T*)dA_managed.get();
+        T* dB           = (T*)dB_managed.get();
+        T* dC           = (T*)dC_managed.get();
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -282,23 +282,23 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         for(int i = 0; i < number_cold_calls; i++)
         {
             CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            K,
-                                            &h_alpha,
-                                            dA,
-                                            lda,
-                                            stride_a,
-                                            dB,
-                                            ldb,
-                                            stride_b,
-                                            &h_beta,
-                                            dC,
-                                            ldc,
-                                            stride_c,
-                                            batch_count));
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                K,
+                                                                &h_alpha,
+                                                                dA,
+                                                                lda,
+                                                                stride_a,
+                                                                dB,
+                                                                ldb,
+                                                                stride_b,
+                                                                &h_beta,
+                                                                dC,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count));
         }
 
         gpu_time_used = get_time_us(); // in microseconds

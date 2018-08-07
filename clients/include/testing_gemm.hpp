@@ -73,9 +73,9 @@ void testing_gemm_NaN(Arguments argus)
                                          rocblas_test::device_free};
     auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
                                          rocblas_test::device_free};
-    T* dA = (T*)dA_managed.get();
-    T* dB = (T*)dB_managed.get();
-    T* dC = (T*)dC_managed.get();
+    T* dA           = (T*)dA_managed.get();
+    T* dB           = (T*)dB_managed.get();
+    T* dC           = (T*)dC_managed.get();
     if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -157,9 +157,9 @@ void testing_gemm_bad_arg()
                                          rocblas_test::device_free};
     auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                          rocblas_test::device_free};
-    T* dA = (T*)dA_managed.get();
-    T* dB = (T*)dB_managed.get();
-    T* dC = (T*)dC_managed.get();
+    T* dA           = (T*)dA_managed.get();
+    T* dB           = (T*)dB_managed.get();
+    T* dC           = (T*)dC_managed.get();
     if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -274,9 +274,9 @@ rocblas_status testing_gemm(Arguments argus)
                                              rocblas_test::device_free};
         auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
+        T* dA           = (T*)dA_managed.get();
+        T* dB           = (T*)dB_managed.get();
+        T* dC           = (T*)dC_managed.get();
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -527,9 +527,9 @@ rocblas_status range_testing_gemm(Arguments argus)
                                          rocblas_test::device_free};
     auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
                                          rocblas_test::device_free};
-    T* dA = (T*)dA_managed.get();
-    T* dB = (T*)dB_managed.get();
-    T* dC = (T*)dC_managed.get();
+    T* dA           = (T*)dA_managed.get();
+    T* dB           = (T*)dB_managed.get();
+    T* dC           = (T*)dC_managed.get();
     if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -626,7 +626,6 @@ rocblas_status range_testing_gemm(Arguments argus)
                 rocblas_error =
                     norm_check_general<T>('F', size, size, size, hC_gold.data(), hC.data());
             }
-
         } // end of if unit/norm check
 
         if(myfile.is_open())
