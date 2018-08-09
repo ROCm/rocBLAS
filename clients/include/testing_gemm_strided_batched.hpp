@@ -281,24 +281,24 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm_strided_batched<T>(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            K,
-                                            &h_alpha,
-                                            dA,
-                                            lda,
-                                            stride_a,
-                                            dB,
-                                            ldb,
-                                            stride_b,
-                                            &h_beta,
-                                            dC,
-                                            ldc,
-                                            stride_c,
-                                            batch_count);
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                K,
+                                                                &h_alpha,
+                                                                dA,
+                                                                lda,
+                                                                stride_a,
+                                                                dB,
+                                                                ldb,
+                                                                stride_b,
+                                                                &h_beta,
+                                                                dC,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
