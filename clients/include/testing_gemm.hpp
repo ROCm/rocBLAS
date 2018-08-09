@@ -456,7 +456,7 @@ rocblas_status testing_gemm(Arguments argus)
         cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
         if(argus.unit_check || argus.norm_check)
-            cout << ",CPU-Gflops(us),norm-error";
+            cout << ",CPU-Gflops,us,norm-error";
 
         cout << endl;
 
@@ -559,10 +559,10 @@ rocblas_status range_testing_gemm(Arguments argus)
     myfile.open(filename);
     if(myfile.is_open())
     {
-        myfile << "M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
+        myfile << "M,N,K,lda,ldb,ldc,rocblas-Gflops,us";
         if(argus.norm_check)
         {
-            myfile << "CPU-Gflops(us), norm-error";
+            myfile << ",CPU-Gflops,us,norm-error";
         }
         myfile << endl;
     }
