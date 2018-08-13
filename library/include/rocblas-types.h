@@ -117,8 +117,6 @@ typedef enum rocblas_gemm_algo_ {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
 
-
-
 #ifdef __cplusplus
 }
 #endif
