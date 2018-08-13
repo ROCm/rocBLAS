@@ -249,7 +249,7 @@ TEST_P(parameterized_set_matrix_get_matrix, double)
 // notice we are using vector of vector
 // so each elment in xxx_range is a avector,
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
+// The combinations are  { {M, N}, {lda, ldb, ldc} }
 
 INSTANTIATE_TEST_CASE_P(checkin_auxilliary,
                         parameterized_set_matrix_get_matrix,
