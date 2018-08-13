@@ -410,10 +410,10 @@ class Arguments
     rocblas_int ldc = 128;
     rocblas_int ldd = 128;
 
-    rocblas_precision a_type = rocblas_precision_single;
-    rocblas_precision b_type = rocblas_precision_single;
-    rocblas_precision c_type = rocblas_precision_single;
-    rocblas_precision d_type = rocblas_precision_single;
+    rocblas_precision a_type       = rocblas_precision_single;
+    rocblas_precision b_type       = rocblas_precision_single;
+    rocblas_precision c_type       = rocblas_precision_single;
+    rocblas_precision d_type       = rocblas_precision_single;
     rocblas_precision compute_type = rocblas_precision_single;
 
     rocblas_int incx = 1;
@@ -458,10 +458,10 @@ class Arguments
         ldc = rhs.ldc;
         ldd = rhs.ldd;
 
-        a_type = rhs.a_type;
-        b_type = rhs.b_type;
-        c_type = rhs.c_type;
-        d_type = rhs.d_type;
+        a_type       = rhs.a_type;
+        b_type       = rhs.b_type;
+        c_type       = rhs.c_type;
+        d_type       = rhs.d_type;
         compute_type = rhs.compute_type;
 
         incx = rhs.incx;
