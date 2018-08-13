@@ -693,8 +693,8 @@ void testing_logging()
             trace_ofs2 << "\n"
                        << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
                        << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
-                       << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dc << ","
-                       << ldc;
+                       << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dd << ","
+                       << ldd;
 
             bench_ofs2 << "\n"
                        << "./rocblas-bench -f gemm_ex"
@@ -710,7 +710,7 @@ void testing_logging()
                        << "./rocblas-bench -f gemm -r " << replaceX<T>("X") << " --transposeA "
                        << transA_letter << " --transposeB " << transB_letter << " -m " << m
                        << " -n " << n << " -k " << k << " --alpha " << alpha << " --lda " << lda
-                       << " --ldb " << ldb << " --beta " << beta << " --ldc " << ldc;
+                       << " --ldb " << ldb << " --beta " << beta << " --ldc " << ldd;
         }
         else
         {
