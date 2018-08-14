@@ -102,6 +102,51 @@ const vector<int> batch_count_stride_a_range = {
     1, 3,
 };
 
+// clang-format off
+gemm_strided_batched_tuple db_sb_1{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_2{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 8};
+gemm_strided_batched_tuple db_sb_3{ {3136, 256, 64, 3136, 64, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_4{ {3136, 256, 64, 3136, 64, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'N'}, 8};
+gemm_strided_batched_tuple db_sb_5{ {3136, 64, 256, 3136, 256, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_6{ {3136, 64, 256, 3136, 256, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'N'}, 8};
+gemm_strided_batched_tuple db_sb_7{ {784, 128, 512, 784, 512, 784, 401408, 0, 100352}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_8{ {784, 128, 512, 784, 512, 784, 401408, 0, 100352}, {1, 0}, {'N', 'N'}, 8};
+gemm_strided_batched_tuple db_sb_9{ {784, 512, 128, 784, 128, 784, 100352, 0, 401408}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_10{ {784, 512, 128, 784, 128, 784, 100352, 0, 401408}, {1, 0}, {'N', 'N'}, 8};
+gemm_strided_batched_tuple db_sb_11{ {784, 64, 192, 784, 192, 784, 150528, 0, 50176}, {1, 0}, {'N', 'N'}, 16};
+gemm_strided_batched_tuple db_sb_12{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_13{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_14{ {196, 1024, 256, 196, 1024, 196, 50176, 0, 200704}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_15{ {196, 1024, 256, 196, 1024, 196, 50176, 0, 200704}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_16{ {196, 256, 1024, 196, 256, 196, 200704, 0, 50176}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_17{ {196, 256, 1024, 196, 256, 196, 200704, 0, 50176}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_18{ {196, 256, 256, 196, 256, 196, 50176, 0, 50176}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_19{ {196, 256, 256, 196, 256, 196, 50176, 0, 50176}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_20{ {196, 512, 192, 196, 512, 196, 37632, 0, 100352}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_21{ {3136, 256, 64, 3136, 256, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_22{ {3136, 256, 64, 3136, 256, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_23{ {3136, 64, 256, 3136, 64, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_24{ {3136, 64, 256, 3136, 64, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_25{ {49, 2048, 512, 49, 2048, 49, 25088, 0, 100352}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_26{ {49, 2048, 512, 49, 2048, 49, 25088, 0, 100352}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_27{ {49, 512, 2048, 49, 512, 49, 100352, 0, 25088}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_28{ {49, 512, 2048, 49, 512, 49, 100352, 0, 25088}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_29{ {49, 512, 512, 49, 512, 49, 25088, 0, 25088}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_30{ {49, 512, 512, 49, 512, 49, 25088, 0, 25088}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_31{ {49, 832, 256, 49, 832, 49, 12544, 0, 40768}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_32{ {784, 128, 512, 784, 128, 784, 401408, 0, 100352}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_33{ {784, 128, 512, 784, 128, 784, 401408, 0, 100352}, {1, 0}, {'N', 'T'}, 8};
+gemm_strided_batched_tuple db_sb_34{ {784, 192, 64, 784, 192, 784, 50176, 0, 150528}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_35{ {784, 512, 128, 784, 512, 784, 100352, 0, 401408}, {1, 0}, {'N', 'T'}, 16};
+gemm_strided_batched_tuple db_sb_36{ {784, 512, 128, 784, 512, 784, 100352, 0, 401408}, {1, 0}, {'N', 'T'}, 8};
+
+const vector<gemm_strided_batched_tuple> deepbench_sb_vec = {
+    db_sb_1,  db_sb_2,  db_sb_3,  db_sb_4,  db_sb_5,  db_sb_6,  db_sb_7,  db_sb_8,  db_sb_9,
+    db_sb_10, db_sb_11, db_sb_12, db_sb_13, db_sb_14, db_sb_15, db_sb_16, db_sb_17, db_sb_18,
+    db_sb_19, db_sb_20, db_sb_21, db_sb_22, db_sb_23, db_sb_24, db_sb_25, db_sb_26, db_sb_27,
+    db_sb_28, db_sb_29, db_sb_30, db_sb_31, db_sb_32, db_sb_33, db_sb_34, db_sb_35, db_sb_36};
+// clang-format on
+
 /* ===============Google Unit Test==================================================== */
 
 /* =====================================================================
@@ -296,3 +341,7 @@ INSTANTIATE_TEST_CASE_P(checkin_blas3,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(batch_count_range)));
+
+INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes,
+                        gemm_strided_batched,
+                        ValuesIn(deepbench_sb_vec));
