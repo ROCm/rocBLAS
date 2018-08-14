@@ -36,6 +36,7 @@ if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
       gemm_gtest.cpp
       gemm_strided_batched_gtest.cpp
+      gemm_ex_gtest.cpp
       trsm_gtest.cpp
       )
 endif( )
