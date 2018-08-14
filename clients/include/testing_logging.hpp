@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <iterator>
 #include <sys/param.h>
+#include <type_traits>
 
 using namespace std;
 
@@ -119,6 +120,8 @@ void testing_logging()
     rocblas_int stride_b     = 1;
     rocblas_int ldc          = 1;
     rocblas_int stride_c     = 1;
+    rocblas_int ldd          = 1;
+    rocblas_int stride_d     = 1;
     rocblas_int batch_count  = 1;
     T alpha                  = 1.0;
     T beta                   = 1.0;
@@ -134,6 +137,7 @@ void testing_logging()
     rocblas_int size_a   = (lda > stride_a ? lda : stride_a) * safe_dim * batch_count;
     rocblas_int size_b   = (ldb > stride_b ? ldb : stride_b) * safe_dim * batch_count;
     rocblas_int size_c   = (ldc > stride_c ? ldc : stride_c) * safe_dim * batch_count;
+    rocblas_int size_d   = (ldd > stride_d ? ldd : stride_d) * safe_dim * batch_count;
 
     // allocate memory on device
     auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
@@ -146,12 +150,15 @@ void testing_logging()
                                          rocblas_test::device_free};
     auto dc_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_c),
                                          rocblas_test::device_free};
+    auto dd_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_d),
+                                         rocblas_test::device_free};
     T* dx = (T*)dx_managed.get();
     T* dy = (T*)dy_managed.get();
     T* da = (T*)da_managed.get();
     T* db = (T*)db_managed.get();
     T* dc = (T*)dc_managed.get();
-    if(!dx || !dy || !da || !db || !dc)
+    T* dd = (T*)dd_managed.get();
+    if(!dx || !dy || !da || !db || !dc || !dd)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -237,6 +244,86 @@ void testing_logging()
 
         // trmm
         // tritri
+
+        // BLAS_EX
+        if(BUILD_WITH_TENSILE)
+        {
+            float alpha_float = 1.0;
+            float beta_float  = 1.0;
+
+            if(std::is_same<T, float>::value)
+            {
+                rocblas_precision a_type       = rocblas_precision_single;
+                rocblas_precision b_type       = rocblas_precision_single;
+                rocblas_precision c_type       = rocblas_precision_single;
+                rocblas_precision d_type       = rocblas_precision_single;
+                rocblas_precision compute_type = rocblas_precision_single;
+                rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
+                uint32_t kernel_index          = 0;
+                uint32_t flags                 = 0;
+
+                status = rocblas_gemm_ex(handle,
+                                         transA,
+                                         transB,
+                                         m,
+                                         n,
+                                         k,
+                                         &alpha_float,
+                                         da,
+                                         a_type,
+                                         lda,
+                                         db,
+                                         b_type,
+                                         ldb,
+                                         &beta_float,
+                                         dc,
+                                         c_type,
+                                         ldc,
+                                         dd,
+                                         d_type,
+                                         ldd,
+                                         compute_type,
+                                         algo,
+                                         kernel_index,
+                                         flags);
+            }
+            if(std::is_same<T, double>::value)
+            {
+                rocblas_precision a_type       = rocblas_precision_double;
+                rocblas_precision b_type       = rocblas_precision_double;
+                rocblas_precision c_type       = rocblas_precision_double;
+                rocblas_precision d_type       = rocblas_precision_double;
+                rocblas_precision compute_type = rocblas_precision_double;
+                rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
+                uint32_t kernel_index          = 0;
+                uint32_t flags                 = 0;
+
+                status = rocblas_gemm_ex(handle,
+                                         transA,
+                                         transB,
+                                         m,
+                                         n,
+                                         k,
+                                         &alpha_float,
+                                         da,
+                                         a_type,
+                                         lda,
+                                         db,
+                                         b_type,
+                                         ldb,
+                                         &beta_float,
+                                         dc,
+                                         c_type,
+                                         ldc,
+                                         dd,
+                                         d_type,
+                                         ldd,
+                                         compute_type,
+                                         algo,
+                                         kernel_index,
+                                         flags);
+            }
+        }
     }
 
     //
@@ -567,6 +654,71 @@ void testing_logging()
                        << (void*)da << "," << lda << "," << stride_a << "," << (void*)db << ","
                        << ldb << "," << stride_b << "," << (void*)&beta << "," << (void*)dc << ","
                        << ldc << "," << stride_c << "," << batch_count;
+        }
+
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            rocblas_precision a_type, b_type, c_type, d_type, compute_type;
+
+            if(std::is_same<T, float>::value)
+            {
+                a_type       = rocblas_precision_single;
+                b_type       = rocblas_precision_single;
+                c_type       = rocblas_precision_single;
+                d_type       = rocblas_precision_single;
+                compute_type = rocblas_precision_single;
+            }
+            if(std::is_same<T, double>::value)
+            {
+                a_type       = rocblas_precision_double;
+                b_type       = rocblas_precision_double;
+                c_type       = rocblas_precision_double;
+                d_type       = rocblas_precision_double;
+                compute_type = rocblas_precision_double;
+            }
+
+            rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+            uint32_t kernel_index  = 0;
+            uint32_t flags         = 0;
+
+            trace_ofs2 << "\n"
+                       << "rocblas_gemm_ex"
+                       << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
+                       << alpha << "," << (void*)da << "," << a_type << "," << lda << ","
+                       << (void*)db << "," << b_type << "," << ldb << "," << beta << ","
+                       << (void*)dc << "," << c_type << "," << ldc << "," << (void*)dd << ","
+                       << d_type << "," << ldd << "," << compute_type << "," << algo << ","
+                       << kernel_index << "," << flags;
+
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << alpha << "," << (void*)da << "," << lda
+                       << "," << (void*)db << "," << ldb << "," << beta << "," << (void*)dd << ","
+                       << ldd;
+
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm_ex"
+                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
+                       << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
+                       << " --a_type " << a_type << " --lda " << lda << " --b_type " << b_type
+                       << " --ldb " << ldb << " --beta " << beta << " --c_type " << c_type
+                       << " --ldc " << ldc << " --d_type " << d_type << " --ldd " << ldd
+                       << " --compute_type " << compute_type << " --algo " << algo
+                       << " --kernel_index " << kernel_index << " --flags " << flags;
+
+            bench_ofs2 << "\n"
+                       << "./rocblas-bench -f gemm -r " << replaceX<T>("X") << " --transposeA "
+                       << transA_letter << " --transposeB " << transB_letter << " -m " << m
+                       << " -n " << n << " -k " << k << " --alpha " << alpha << " --lda " << lda
+                       << " --ldb " << ldb << " --beta " << beta << " --ldc " << ldd;
+        }
+        else
+        {
+            trace_ofs2 << "\n"
+                       << replaceX<T>("rocblas_Xgemm") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << k << "," << (void*)&alpha << "," << (void*)da << ","
+                       << lda << "," << (void*)db << "," << ldb << "," << (void*)&beta << ","
+                       << (void*)dc << "," << ldc;
         }
     }
     // exclude trtri as it is an internal function

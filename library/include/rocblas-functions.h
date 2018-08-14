@@ -1,6 +1,5 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
- *
  * ************************************************************************ */
 
 #pragma once
@@ -1392,6 +1391,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
                                             rocblas_int ldb,
                                             double* C,
                                             rocblas_int ldc);
+
+/*
+ * ===========================================================================
+ *    extensions BLAS
+ * ===========================================================================
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
+                                              rocblas_operation trans_a,
+                                              rocblas_operation trans_b,
+                                              int m,
+                                              int n,
+                                              int k,
+                                              const float* alpha,
+                                              const void* a,
+                                              rocblas_precision a_type,
+                                              int lda,
+                                              const void* b,
+                                              rocblas_precision b_type,
+                                              int ldb,
+                                              const float* beta,
+                                              void* c,
+                                              rocblas_precision c_type,
+                                              int ldc,
+                                              void* d,
+                                              rocblas_precision d_type,
+                                              int ldd,
+                                              rocblas_precision compute_type,
+                                              rocblas_gemm_algo algo,
+                                              uint32_t kernel_index,
+                                              uint32_t flags);
 
 #ifdef __cplusplus
 }
