@@ -160,8 +160,9 @@ struct log_arg
 template <typename H, typename... Ts>
 void log_arguments(std::ostream& os, std::string& separator, H head, Ts&... xs)
 {
-    os << "\n" << head;
+    os << head;
     each_args(log_arg{os, separator}, xs...);
+    os << "\n";
 }
 
 /**
@@ -186,7 +187,7 @@ void log_arguments(std::ostream& os, std::string& separator, H head, Ts&... xs)
 template <typename H>
 void log_argument(std::ostream& os, std::string& separator, H head)
 {
-    os << "\n" << head;
+    os << head << "\n";
 }
 
 /**
@@ -207,7 +208,7 @@ void log_argument(std::ostream& os, std::string& separator, H head)
 template <typename H>
 void log_argument(std::ostream& os, H head)
 {
-    os << "\n" << head;
+    os << head << "\n";
 }
 
 #endif
