@@ -40,7 +40,7 @@ _rocblas_handle::_rocblas_handle()
     {
         open_log_stream(&log_trace_os, &log_trace_ofs, "ROCBLAS_LOG_TRACE_PATH");
 
-        *log_trace_os << "rocblas_create_handle";
+        *log_trace_os << "rocblas_create_handle\n";
     }
 
     // open log_bench file
