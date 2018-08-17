@@ -12,7 +12,7 @@
 #include "logging.h"
 #include "utility.h"
 
-void device_matrix_copy(void* src,
+void device_matrix_copy(const void* src,
                         rocblas_int ld_src,
                         void* dst,
                         rocblas_int ld_dst,
@@ -34,8 +34,8 @@ void device_matrix_copy(void* src,
 
             for(int i2 = 0; i2 < n2; i2++)
             {
-                void* src_void =
-                    static_cast<void*>(static_cast<uint8_t*>(src) + (i2 * ld_src * elem_size));
+                const void* src_void = static_cast<const void*>(static_cast<const uint8_t*>(src) +
+                                                                (i2 * ld_src * elem_size));
                 void* dst_void =
                     static_cast<void*>(static_cast<uint8_t*>(dst) + (i2 * ld_dst * elem_size));
 
@@ -46,255 +46,345 @@ void device_matrix_copy(void* src,
     }
 }
 //------------------------------------------------------------------------------
+// clang-format off
 template <typename T>
-TensileStatus tensile_Cijk_Ailk_Bljk_B( T * dataC, const T * dataA, const T * dataB,
-    T alpha, T beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream);
+TensileStatus tensile_Cijk_Ailk_Bljk_B(T* dataC, const T* dataA, const T* dataB, T alpha, T beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
 template <typename T>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B( T * dataC, const T * dataA, const T * dataB,
-    T alpha, T beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream);
+TensileStatus tensile_Cijk_Ailk_Bjlk_B(T* dataC, const T* dataA, const T* dataB, T alpha, T beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
 template <typename T>
-TensileStatus tensile_Cijk_Alik_Bljk_B( T * dataC, const T * dataA, const T * dataB,
-    T alpha, T beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream);
+TensileStatus tensile_Cijk_Alik_Bljk_B(T* dataC, const T* dataA, const T* dataB, T alpha, T beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
 template <typename T>
-TensileStatus tensile_Cijk_Alik_Bjlk_B( T * dataC, const T * dataA, const T * dataB,
-    T alpha, T beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream);
-//------------------------------------------------------------------------------
-template<>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf>(
-    TensileHalf * dataC, const TensileHalf * dataA, const TensileHalf * dataB,
-    TensileHalf alpha, TensileHalf beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bjlk_B(T* dataC, const T* dataA, const T* dataB, T alpha, T beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K, 
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+//---Tensile_half---------------------------------------------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf>(TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bljk_HB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf>(
-    TensileHalf * dataC, const TensileHalf * dataA, const TensileHalf * dataB,
-    TensileHalf alpha, TensileHalf beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf>(TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bjlk_HB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf>(
-    TensileHalf * dataC, const TensileHalf * dataA, const TensileHalf * dataB,
-    TensileHalf alpha, TensileHalf beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf>(TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bljk_HB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf>(
-    TensileHalf * dataC, const TensileHalf * dataA, const TensileHalf * dataB,
-    TensileHalf alpha, TensileHalf beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf>(TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bjlk_HB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-//------------------------------------------------------------------------------
-template<>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<float>(
-    float * dataC, const float * dataA, const float * dataB,
-    float alpha, float beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+//---float----------------------------------------------------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bljk_SB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<float>(
-    float * dataC, const float * dataA, const float * dataB,
-    float alpha, float beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bjlk_SB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bljk_B<float>(
-    float * dataC, const float * dataA, const float * dataB,
-    float alpha, float beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bljk_SB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<float>(
-    float * dataC, const float * dataA, const float * dataB,
-    float alpha, float beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bjlk_SB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-//------------------------------------------------------------------------------
-template<>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<double>(
-    double * dataC, const double * dataA, const double * dataB,
-    double alpha, double beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+//---double---------------------------------------------------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bljk_DB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<double>(
-    double * dataC, const double * dataA, const double * dataB,
-    double alpha, double beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Ailk_Bjlk_DB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bljk_B<double>(
-    double * dataC, const double * dataA, const double * dataB,
-    double alpha, double beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bljk_DB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
-template<>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<double>(
-    double * dataC, const double * dataA, const double * dataB,
-    double alpha, double beta,
-    unsigned int offsetC, unsigned int offsetA, unsigned int offsetB, 
-    unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
-    unsigned int strideB1J, unsigned int strideB2K,
-    unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL,
-    hipStream_t stream)
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
 {
-    return tensile_Cijk_Alik_Bjlk_DB(dataC, dataA, dataB,
-           alpha, beta,
-           offsetC, offsetA, offsetB,
-           strideC1J, strideC2K,  strideA1L, strideA2K,  strideB1J,  strideB2K,
-           sizeI, sizeJ, sizeK, sizeL,
-           stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
 }
+// clang-format off
 //------------------------------------------------------------------------------
 
 template <typename T>
-rocblas_status tensile_gemm( rocblas_handle handle,
-                              rocblas_operation trans_a, rocblas_operation trans_b,
-                              int m, int n, int k, const float* alpha,
-                              const void* a, int lda,
-                              const void* b, int ldb, const float* beta,
-                              void* c, int ldc,
-                              void* d, int ldd)
+rocblas_status tensile_gemm_handle_transpose(rocblas_handle handle,
+               rocblas_operation trans_a, rocblas_operation trans_b,
+               int m, int n, int k, const T alpha,
+               const T* a, int lda,
+               const T* b, int ldb, const T beta,
+               const T* c, int ldc,
+               T* d, int ldd)
+{
+    TensileStatus t_status;
+    rocblas_status rb_status;
+
+    device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(T));
+
+    if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none))
+    {
+        unsigned int const stride_a = lda * k;
+        unsigned int const stride_b = ldb * n;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Ailk_Bljk_B<T>(static_cast<T*>(d), static_cast<const T*>(a), static_cast<const T*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_none) &&
+            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
+    {
+        unsigned int const stride_a = lda * k;
+        unsigned int const stride_b = ldb * k;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Ailk_Bjlk_B<T>(static_cast<T*>(d), static_cast<const T*>(a), static_cast<const T*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
+            (trans_b == rocblas_operation_none))
+    {
+        unsigned int const stride_a = lda * m;
+        unsigned int const stride_b = ldb * n;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Alik_Bljk_B<T>(static_cast<T*>(d), static_cast<const T*>(a), static_cast<const T*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
+            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
+    {
+        unsigned int const stride_a = lda * m;
+        unsigned int const stride_b = ldb * k;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Alik_Bjlk_B<T>(static_cast<T*>(d), static_cast<const T*>(a), static_cast<const T*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else
+    {
+        t_status = tensileStatusFailure;
+    }
+
+    if(t_status == tensileStatusSuccess)
+    {
+        rb_status = rocblas_status_success;
+    }
+    else
+    {
+        rb_status = rocblas_status_internal_error;
+    }
+
+    return rb_status;
+}
+
+template <typename T>
+rocblas_status tensile_gemm_chunk(rocblas_handle handle,
+                            rocblas_operation trans_a,
+                            rocblas_operation trans_b,
+                            int m,
+                            int n,
+                            int k,
+                            T alpha,
+                            const T* a,
+                            int lda,
+                            const T* b,
+                            int ldb,
+                            T beta,
+                            const T* c,
+                            int ldc,
+                            T* d,
+                            int ldd)
+{
+    unsigned int int_limit      = std::numeric_limits<int>::max() / sizeof(T);
+    unsigned int m_chunk_size = m;
+    unsigned int n_chunk_size = n;
+
+    unsigned int m_chunk_size_a;
+    unsigned int n_chunk_size_b;
+    unsigned int n_chunk_size_c = int_limit / ldc;
+    unsigned int n_chunk_size_d = int_limit / ldd;
+
+    n_chunk_size = n_chunk_size < n_chunk_size_c ? n_chunk_size : n_chunk_size_c;
+    n_chunk_size = n_chunk_size < n_chunk_size_d ? n_chunk_size : n_chunk_size_d;
+
+    if(trans_b == rocblas_operation_none)
+    {
+        n_chunk_size_b = int_limit / ldb;
+        n_chunk_size = n_chunk_size < n_chunk_size_b ? n_chunk_size : n_chunk_size_b;
+    }
+
+    if(trans_a == rocblas_operation_transpose)
+    {
+        m_chunk_size_a = int_limit / lda;
+        m_chunk_size = m_chunk_size < m_chunk_size_a ? m_chunk_size : m_chunk_size_a;
+    }
+
+    // if chunk_size < 1 return error because offset for a single row or column is larger than
+    // can fit into 32 bit register
+    if(m_chunk_size < 1) return rocblas_status_invalid_size;
+    if(n_chunk_size < 1) return rocblas_status_invalid_size;
+
+    unsigned int n_chunk_count  = ((n - 1) / n_chunk_size) + 1;
+    unsigned int m_chunk_count  = ((m - 1) / m_chunk_size) + 1;
+
+    rocblas_status return_status = rocblas_status_success;
+    rocblas_status status = rocblas_status_success;
+
+    for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)
+    {
+        unsigned int n_chunk_remaining = n - (n_chunk_size * n_chunk_iterator);
+
+        unsigned int n_chunk_size_corrected = n_chunk_size < n_chunk_remaining ? n_chunk_size : n_chunk_remaining;
+
+        for(int m_chunk_iterator = 0; m_chunk_iterator < m_chunk_count; m_chunk_iterator++)
+        {
+            unsigned int m_chunk_remaining = m - (m_chunk_size * m_chunk_iterator);
+
+            unsigned int m_chunk_size_corrected = m_chunk_size < m_chunk_remaining ? m_chunk_size : m_chunk_remaining;
+
+            size_t c_offset = n_chunk_iterator * n_chunk_size * ldc + m_chunk_iterator * m_chunk_size;
+            size_t d_offset = n_chunk_iterator * n_chunk_size * ldd + m_chunk_iterator * m_chunk_size;
+            size_t a_offset = m_chunk_iterator * m_chunk_size;
+            size_t b_offset = n_chunk_iterator * n_chunk_size;
+
+            if(trans_b == rocblas_operation_none) b_offset *= ldb;
+            if(trans_a != rocblas_operation_none) a_offset *= lda;
+
+            status = tensile_gemm_handle_transpose(
+                            handle,
+                            trans_a,
+                            trans_b,
+                            m_chunk_size_corrected,
+                            n_chunk_size_corrected,
+                            k,
+                            alpha,
+                            a + a_offset,
+                            lda,
+                            b + b_offset,
+                            ldb,
+                            beta,
+                            c + c_offset,
+                            ldc,
+                            d + d_offset,
+                            ldd);
+
+
+            if(status != rocblas_status_success) return_status = status;
+        }
+    }
+    return return_status;
+}
+
+template <typename T>
+rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
+                            rocblas_operation trans_a, rocblas_operation trans_b,
+                            int m, int n, int k, const float* alpha,
+                            const void* a, int lda,
+                            const void* b, int ldb, const float* beta,
+                            const void* c, int ldc,
+                            void* d, int ldd)
 {
     T h_alpha;
     T h_beta;
@@ -317,127 +407,24 @@ rocblas_status tensile_gemm( rocblas_handle handle,
         h_beta  = static_cast<T>(*beta);
     }
 
-    TensileStatus t_status;
-    rocblas_status rb_status;
-
-    device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(T));
-
-    if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none))
-    {
-        unsigned int const stride_a = lda * k;
-        unsigned int const stride_b = ldb * n;
-        unsigned int const stride_d = ldd * n;
-        t_status = tensile_Cijk_Ailk_Bljk_B<T>(static_cast<T*>(d),
-                                           static_cast<const T*>(a),
-                                           static_cast<const T*>(b),
-                                             h_alpha,
-                                             h_beta,
-                                             0,
-                                             0,
-                                             0,
-                                             ldd,
-                                             stride_d,
-                                             lda,
-                                             stride_a,
-                                             ldb,
-                                             stride_b,
-                                             m,
-                                             n,
-                                             1,
-                                             k,
-                                             handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
-    {
-        unsigned int const stride_a = lda * k;
-        unsigned int const stride_b = ldb * k;
-        unsigned int const stride_d = ldd * n;
-        t_status = tensile_Cijk_Ailk_Bjlk_B<T>(static_cast<T*>(d),
-                                           static_cast<const T*>(a),
-                                           static_cast<const T*>(b),
-                                             h_alpha,
-                                             h_beta,
-                                             0,
-                                             0,
-                                             0,
-                                             ldd,
-                                             stride_d,
-                                             lda,
-                                             stride_a,
-                                             ldb,
-                                             stride_b,
-                                             m,
-                                             n,
-                                             1,
-                                             k,
-                                             handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) && (trans_b == rocblas_operation_none))
-    {
-        unsigned int const stride_a = lda * m;
-        unsigned int const stride_b = ldb * n;
-        unsigned int const stride_d = ldd * n;
-        t_status = tensile_Cijk_Alik_Bljk_B<T>(static_cast<T*>(d),
-                                           static_cast<const T*>(a),
-                                           static_cast<const T*>(b),
-                                             h_alpha,
-                                             h_beta,
-                                             0,
-                                             0,
-                                             0,
-                                             ldd,
-                                             stride_d,
-                                             lda,
-                                             stride_a,
-                                             ldb,
-                                             stride_b,
-                                             m,
-                                             n,
-                                             1,
-                                             k,
-                                             handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) && (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
-    {
-        unsigned int const stride_a = lda * m;
-        unsigned int const stride_b = ldb * k;
-        unsigned int const stride_d = ldd * n;
-        t_status = tensile_Cijk_Alik_Bjlk_B<T>(static_cast<T*>(d),
-                                           static_cast<const T*>(a),
-                                           static_cast<const T*>(b),
-                                             h_alpha,
-                                             h_beta,
-                                             0,
-                                             0,
-                                             0,
-                                             ldd,
-                                             stride_d,
-                                             lda,
-                                             stride_a,
-                                             ldb,
-                                             stride_b,
-                                             m,
-                                             n,
-                                             1,
-                                             k,
-                                             handle->rocblas_stream);
-    }
-    else
-    {
-        t_status = tensileStatusFailure;
-    }
-
-    if(t_status == tensileStatusSuccess)
-    {
-        rb_status = rocblas_status_success;
-    }
-    else
-    {
-        rb_status = rocblas_status_internal_error;
-    }
-
-    return rb_status;
+    return tensile_gemm_chunk<T>(handle,
+                            trans_a,
+                            trans_b,
+                            m,
+                            n,
+                            k,
+                            h_alpha,
+                            static_cast<const T*>(a),
+                            lda,
+                            static_cast<const T*>(b),
+                            ldb,
+                            h_beta,
+                            static_cast<const T*>(c),
+                            ldc,
+                            static_cast<T*>(d),
+                            ldd);
 }
+
 
 /*! \brief BLAS EX API
 
@@ -536,7 +523,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_precision b_type,
                                           int ldb,
                                           const float* beta,
-                                          void* c,
+                                          const void* c,
                                           rocblas_precision c_type,
                                           int ldc,
                                           void* d,
@@ -681,48 +668,27 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     }
 
     rocblas_status rb_status = rocblas_status_internal_error;
-    size_t c_byte_size;
-    size_t d_byte_size;
 
     if(a_type == rocblas_precision_double && b_type == rocblas_precision_double &&
        c_type == rocblas_precision_double && d_type == rocblas_precision_double &&
        compute_type == rocblas_precision_double)
     {
-        rb_status = tensile_gemm<double>(  handle,
-                                          trans_a, trans_b,
-                                          m, n, k,
-                                          alpha,
-                                          a, lda,
-                                          b, ldb, beta,
-                                          c, ldc,
-                                          d, ldd);
+        rb_status = tensile_gemm_typecasting<double>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
             c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
             compute_type == rocblas_precision_single)
     {
-        rb_status = tensile_gemm<float>(  handle,
-                                          trans_a, trans_b,
-                                          m, n, k,
-                                          alpha,
-                                          a, lda,
-                                          b, ldb, beta,
-                                          c, ldc,
-                                          d, ldd);
-
+        rb_status = tensile_gemm_typecasting<float>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
             c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
             compute_type == rocblas_precision_half)
     {
-        rb_status = tensile_gemm<_Float16>(  handle,
-                                          trans_a, trans_b,
-                                          m, n, k,
-                                          alpha,
-                                          a, lda,
-                                          b, ldb, beta,
-                                          c, ldc,
-                                          d, ldd);
+        rb_status = tensile_gemm_typecasting<_Float16>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else
     {
