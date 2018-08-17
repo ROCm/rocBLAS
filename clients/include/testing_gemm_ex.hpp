@@ -199,28 +199,39 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC, M, N, ldc);
     rocblas_init<T>(hD_1, M, N, ldd);
-
     /*
-        std::cout << "----A-------------------------------------------" << std::endl;
-        for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
-        std::cout << std::endl << "-----B------------------------------------------" << std::endl;
-        for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
-        std::cout << std::endl << "-----C------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
-        std::cout << std::endl << "-----D------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-        std::cout << std::endl << "------------------------------------------------" << std::endl;
-    */
-    /*
-        std::cout << "----A-------------------------------------------" << std::endl;
-        for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
-        std::cout << std::endl << "-----B------------------------------------------" << std::endl;
-        for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
-        std::cout << std::endl << "-----C------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
-        std::cout << std::endl << "-----D------------------------------------------" << std::endl;
-        for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-        std::cout << std::endl << "------------------------------------------------" << std::endl;
+        if(is_same<T, rocblas_half>::value)
+        {
+            std::cout << "----A-------------------------------------------" << std::endl;
+            for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
+            std::cout << std::endl << "-----B------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
+            std::cout << std::endl << "-----C------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
+            std::cout << std::endl << "-----D------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
+            std::cout << std::endl << "------------------------------------------------" <<
+       std::endl;
+        }
+        else
+        {
+            std::cout << "----A-------------------------------------------" << std::endl;
+            for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
+            std::cout << std::endl << "-----B------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
+            std::cout << std::endl << "-----C------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
+            std::cout << std::endl << "-----D------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+            std::cout << std::endl << "------------------------------------------------" <<
+       std::endl;
+        }
     */
     hD_2    = hD_1;
     hD_gold = hD_1;
@@ -263,14 +274,21 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(T) * size_D, hipMemcpyDeviceToHost));
-        //      std::cout << std::endl << "-----hD_1---------------------------------------" <<
-        //      std::endl;
-        //      for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-        //      for(int i = 0; i < size_C; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-        //      for(int i = 0; i < size_C; i++){ cout << std::hex << hD_1[i] << "  "; }
-        //      std::cout << std::endl << "------------------------------------------------" <<
-        //      std::endl;
-
+        /*
+                std::cout << std::endl << "-----hD_1---------------------------------------" <<
+        std::endl;
+                if(is_same<T, rocblas_half>::value)
+                {
+                    for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
+        //          for(int i = 0; i < size_C; i++){ cout << std::hex << hD_1[i] << "  "; }
+                }
+                else
+                {
+                    for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+                }
+                std::cout << std::endl << "------------------------------------------------" <<
+        std::endl;
+        */
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -335,12 +353,19 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
-
-// std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
-// for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
-// for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
-// for(int i = 0; i < size_D; i++){ std::cout << std::hex << hD_gold[i] << "  "; }
-// std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+/*
+   std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
+   if(is_same<T, rocblas_half>::value)
+   {
+       for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
+//     for(int i = 0; i < size_D; i++){ std::cout << std::hex << hD_gold[i] << "  "; }
+   }
+   else
+   {
+       for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
+   }
+   std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+*/
 #ifndef NDEBUG
 // print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
