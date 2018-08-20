@@ -32,6 +32,7 @@
 #include "testing_gemm_kernel_name.hpp"
 #include "testing_gemm_strided_batched_kernel_name.hpp"
 #include "testing_trsm.hpp"
+#include "testing_gemm_ex.hpp"
 #endif
 
 namespace po = boost::program_options;
@@ -45,6 +46,11 @@ int main(int argc, char* argv[])
 
     std::string function;
     char precision;
+    char a_type;
+    char b_type;
+    char c_type;
+    char d_type;
+    char compute_type;
 
     rocblas_int device_id;
     vector<rocblas_int> range = {-1, -1, -1};
@@ -63,33 +69,34 @@ int main(int argc, char* argv[])
         
         ("sizem,m",
          po::value<rocblas_int>(&argus.M)->default_value(128),
-         "Specific matrix size testing: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
-         "rows.")
+         "Specific matrix size: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
+         "rows or columns in matrix.")
         
         ("sizen,n",
          po::value<rocblas_int>(&argus.N)->default_value(128),
-         "Specific matrix/vector size testing: BLAS-1: the length of the vector. BLAS-2 & "
-         "BLAS-3: the number of columns")
+         "Specific matrix/vector size: BLAS-1: the length of the vector. BLAS-2 & "
+         "BLAS-3: the number of rows or columns in matrix")
 
         ("sizek,k",
          po::value<rocblas_int>(&argus.K)->default_value(128),
-         "Specific matrix size testing:sizek is only applicable to BLAS-3: the number of columns in "
-         "A & C  and rows in B.")
+         "Specific matrix size:sizek is only applicable to BLAS-3: the number of columns in "
+         "A and rows in B.")
 
         ("lda",
          po::value<rocblas_int>(&argus.lda)->default_value(128),
-         "Specific leading dimension of matrix A, is only applicable to "
-         "BLAS-2 & BLAS-3: the number of rows.")
+         "Leading dimension of matrix A, is only applicable to BLAS-2 & BLAS-3.")
 
         ("ldb",
          po::value<rocblas_int>(&argus.ldb)->default_value(128),
-         "Specific leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3: the number "
-         "of rows.")
+         "Leading dimension of matrix B, is only applicable to BLAS-2 & BLAS-3.")
 
         ("ldc",
          po::value<rocblas_int>(&argus.ldc)->default_value(128),
-         "Specific leading dimension of matrix C, is only applicable to BLAS-2 & "
-         "BLAS-3: the number of rows.")
+         "Leading dimension of matrix C, is only applicable to BLAS-2 & BLAS-3.")
+
+        ("ldd",
+         po::value<rocblas_int>(&argus.ldd)->default_value(128),
+         "Leading dimension of matrix D, is only applicable to BLAS-EX ")
 
         ("stride_a",
          po::value<rocblas_int>(&argus.stride_a)->default_value(128*128),
@@ -105,6 +112,11 @@ int main(int argc, char* argv[])
          po::value<rocblas_int>(&argus.stride_c)->default_value(128*128),
          "Specific stride of strided_batched matrix C, is only applicable to strided batched"
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
+
+        ("stride_d",
+         po::value<rocblas_int>(&argus.stride_c)->default_value(128*128),
+         "Specific stride of strided_batched matrix D, is only applicable to strided batched"
+         "BLAS_EX: second dimension * leading dimension.")
 
         ("incx",
          po::value<rocblas_int>(&argus.incx)->default_value(1),
@@ -126,6 +138,26 @@ int main(int argc, char* argv[])
         
         ("precision,r", 
          po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
+        
+        ("a_type", 
+         po::value<char>(&a_type)->default_value('s'), "Options: h,s,d"
+         "Presion of matrix A, only applicable to BLAS_EX")
+        
+        ("b_type", 
+         po::value<char>(&b_type)->default_value('s'), "Options: h,s,d"
+         "Presion of matrix B, only applicable to BLAS_EX")
+        
+        ("c_type", 
+         po::value<char>(&c_type)->default_value('s'), "Options: h,s,d"
+         "Presion of matrix C, only applicable to BLAS_EX")
+        
+        ("d_type", 
+         po::value<char>(&d_type)->default_value('s'), "Options: h,s,d"
+         "Presion of matrix D, only applicable to BLAS_EX")
+        
+        ("compute_type", 
+         po::value<char>(&compute_type)->default_value('s'), "Options: h,s,d"
+         "Presion of computation, only applicable to BLAS_EX")
         
         ("transposeA",
          po::value<char>(&argus.transA_option)->default_value('N'),
@@ -180,6 +212,37 @@ int main(int argc, char* argv[])
         std::cerr << "Invalid value for --precision" << std::endl;
         return -1;
     }
+
+    if(a_type != 'h' && a_type != 's' && a_type != 'd')
+    {
+        std::cerr << "Invalid value for --a_type" << std::endl;
+        return -1;
+    }
+
+    if(b_type != 'h' && b_type != 's' && b_type != 'd')
+    {
+        std::cerr << "Invalid value for --b_type" << std::endl;
+        return -1;
+    }
+
+    if(c_type != 'h' && c_type != 's' && c_type != 'd')
+    {
+        std::cerr << "Invalid value for --c_type" << std::endl;
+        return -1;
+    }
+
+    if(d_type != 'h' && d_type != 's' && d_type != 'd')
+    {
+        std::cerr << "Invalid value for --d_type" << std::endl;
+        return -1;
+    }
+
+    if(compute_type != 'h' && compute_type != 's' && compute_type != 'd')
+    {
+        std::cerr << "Invalid value for --compute_type" << std::endl;
+        return -1;
+    }
+    argus.a_type = char2rocblas_precision(a_type);
 
     // Device Query
     rocblas_int device_count = query_device_property();
@@ -355,6 +418,30 @@ int main(int argc, char* argv[])
             testing_gemm<float>(argus);
         else if(precision == 'd')
             testing_gemm<double>(argus);
+    }
+    else if(function == "gemm_ex")
+    {
+        // adjust dimension for GEMM routines
+        rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
+        rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
+        rocblas_int min_ldc = argus.M;
+
+        if(argus.lda < min_lda)
+        {
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            argus.lda = min_lda;
+        }
+        if(argus.ldb < min_ldb)
+        {
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            argus.ldb = min_ldb;
+        }
+        if(argus.ldc < min_ldc)
+        {
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            argus.ldc = min_ldc;
+        }
+        testing_gemm_ex(argus);
     }
     else if(function == "gemm_strided_batched")
     {

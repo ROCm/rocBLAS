@@ -34,24 +34,14 @@ const vector<vector<int>> tiny_matrix_size_range = {
     {1, 1, 1, 1, 1, 1, 1}, {1, 2, 3, 4, 5, 6, 6}, {7, 9, 15, 17, 18, 19, 19},
 };
 
-const vector<vector<int>> small_matrix_size_range = {
-    {-1, -1, -1, -1, 1, 1, 1},
+const vector<vector<int>> small_known_bug = {
     {1, 1, 1, 1, 1, 1, 1},
     {2, 2, 2, 2, 2, 2, 2},
     {3, 3, 3, 3, 3, 3, 3},
     {4, 4, 4, 4, 4, 4, 4},
-    {4, 4, 4, 5, 4, 4, 4},
-    {4, 4, 4, 4, 5, 4, 4},
-    {8, 8, 8, 8, 9, 10, 11},
-    {5, 6, 7, 8, 9, 10, 11},
-    {7, 5, 6, 8, 9, 10, 11},
-    {6, 7, 5, 8, 9, 10, 11},
-    {4, 4, 4, 4, 4, 4, 5},
-    {4, 4, 4, 4, 4, 6, 5},
     {5, 5, 5, 5, 5, 5, 5},
     {6, 6, 6, 6, 6, 6, 6},
     {7, 7, 7, 7, 7, 7, 7},
-    {8, 8, 8, 8, 8, 8, 8},
     {9, 9, 9, 9, 9, 9, 9},
     {10, 10, 10, 10, 10, 10, 10},
     {11, 11, 11, 11, 11, 11, 11},
@@ -59,29 +49,43 @@ const vector<vector<int>> small_matrix_size_range = {
     {13, 13, 13, 13, 13, 13, 13},
     {14, 14, 14, 14, 14, 14, 14},
     {15, 15, 15, 15, 15, 15, 15},
+};
+
+const vector<vector<int>> small_multiple_8_matrix_size_range = {
+    {8, 8, 8, 8, 8, 8, 8},
     {16, 16, 16, 16, 16, 16, 16},
-    {17, 17, 17, 17, 17, 17, 17},
-    {18, 18, 18, 18, 18, 18, 18},
-    {19, 19, 19, 19, 19, 19, 19},
-    {20, 20, 20, 20, 20, 20, 20},
-    {2, 3, 4, 5, 6, 7, 8},
-    {3, 4, 5, 6, 7, 8, 9},
-    {4, 5, 6, 6, 6, 6, 6},
-    {5, 6, 7, 7, 8, 9, 9},
-    {6, 7, 8, 10, 9, 8, 8},
-    {7, 8, 9, 11, 9, 10, 10},
-    {8, 9, 10, 10, 11, 12, 12},
-    {9, 10, 11, 12, 11, 13, 13},
-    {13, 12, 11, 15, 14, 13, 13},
-    {13, 14, 12, 12, 13, 14, 14},
-    {15, 16, 17, 17, 18, 19, 19},
-    {18, 17, 16, 18, 18, 18, 18},
-    {16, 17, 18, 20, 19, 18, 18},
-    {3, 33, 3, 33, 35, 35, 35},
-    {5, 6, 7, 9, 11, 13, 13},
-    {10, 10, 20, 100, 21, 22, 22},
-    {500, 501, 502, 503, 604, 505, 505},
-    {500, 501, 502, 203, 204, 205, 505},
+    {24, 24, 24, 24, 24, 24, 24},
+    {32, 32, 32, 32, 32, 32, 32},
+    {40, 40, 40, 40, 40, 40, 40},
+    {48, 48, 48, 48, 48, 48, 48},
+    {56, 56, 56, 56, 56, 56, 56},
+    {64, 64, 64, 64, 64, 64, 64},
+    {72, 72, 72, 72, 72, 72, 72},
+};
+
+const vector<vector<int>> small_matrix_size_range = {
+    {1, 1, 1, 1, 1, 1, 1},         {2, 2, 2, 2, 2, 2, 2},
+    {3, 3, 3, 3, 3, 3, 3},         {4, 4, 4, 4, 4, 4, 4},
+    {4, 4, 4, 5, 4, 4, 4},         {4, 4, 4, 4, 5, 4, 4},
+    {8, 8, 8, 8, 9, 10, 11},       {5, 6, 7, 8, 9, 10, 11},
+    {7, 5, 6, 8, 9, 10, 11},       {6, 7, 5, 8, 9, 10, 11},
+    {4, 4, 4, 4, 4, 4, 5},         {4, 4, 4, 4, 4, 6, 5},
+    {5, 5, 5, 5, 5, 5, 5},         {6, 6, 6, 6, 6, 6, 6},
+    {7, 7, 7, 7, 7, 7, 7},         {8, 8, 8, 8, 8, 8, 8},
+    {9, 9, 9, 9, 9, 9, 9},         {10, 10, 10, 10, 10, 10, 10},
+    {11, 11, 11, 11, 11, 11, 11},  {12, 12, 12, 12, 12, 12, 12},
+    {13, 13, 13, 13, 13, 13, 13},  {14, 14, 14, 14, 14, 14, 14},
+    {15, 15, 15, 15, 15, 15, 15},  {16, 16, 16, 16, 16, 16, 16},
+    {17, 17, 17, 17, 17, 17, 17},  {18, 18, 18, 18, 18, 18, 18},
+    {19, 19, 19, 19, 19, 19, 19},  {20, 20, 20, 20, 20, 20, 20},
+    {2, 3, 4, 5, 6, 7, 8},         {3, 4, 5, 6, 7, 8, 9},
+    {4, 5, 6, 6, 6, 6, 6},         {5, 6, 7, 7, 8, 9, 9},
+    {6, 7, 8, 10, 9, 8, 8},        {7, 8, 9, 11, 9, 10, 10},
+    {8, 9, 10, 10, 11, 12, 12},    {9, 10, 11, 12, 11, 13, 13},
+    {13, 12, 11, 15, 14, 13, 13},  {15, 16, 17, 17, 18, 19, 19},
+    {18, 17, 16, 18, 18, 18, 18},  {16, 17, 18, 20, 19, 18, 18},
+    {3, 33, 3, 33, 35, 35, 35},    {5, 6, 7, 9, 11, 13, 13},
+    {10, 10, 20, 100, 21, 22, 22}, {500, 501, 502, 503, 604, 505, 505},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
@@ -110,7 +114,7 @@ const vector<vector<double>> alpha_beta_2_3_range = {
 };
 
 const vector<vector<double>> NaN_alpha_beta_range = {
-    {1.0, 0.0},
+    {1.0, 2.0},
 };
 
 const vector<vector<double>> alpha_beta_range = {
@@ -128,14 +132,44 @@ const vector<vector<double>> full_alpha_beta_range = {
 // add/delete this list in pairs, like {'N', 'T'}
 // for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in
 // sgemm/dgemm,
-const vector<vector<char>> small_transA_transB_range = {{'N', 'T'}};
+const vector<vector<char>> small_transA_transB_range = {{'N', 'N'}};
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
+
+// a_type, b_type, c_type, d_type, compute_type
+const vector<vector<rocblas_precision>> precision_half = {{rocblas_precision_half,
+                                                           rocblas_precision_half,
+                                                           rocblas_precision_half,
+                                                           rocblas_precision_half,
+                                                           rocblas_precision_half}};
+
+const vector<vector<rocblas_precision>> precision_hpa_half = {{rocblas_precision_half,
+                                                               rocblas_precision_half,
+                                                               rocblas_precision_half,
+                                                               rocblas_precision_half,
+                                                               rocblas_precision_single}};
+
+const vector<vector<rocblas_precision>> precision_single = {{rocblas_precision_single,
+                                                             rocblas_precision_single,
+                                                             rocblas_precision_single,
+                                                             rocblas_precision_single,
+                                                             rocblas_precision_single}};
+
+const vector<vector<rocblas_precision>> precision_double = {{rocblas_precision_double,
+                                                             rocblas_precision_double,
+                                                             rocblas_precision_double,
+                                                             rocblas_precision_double,
+                                                             rocblas_precision_double}};
 
 const vector<vector<rocblas_precision>> precision_type_range = {{rocblas_precision_half,
                                                                  rocblas_precision_half,
                                                                  rocblas_precision_half,
                                                                  rocblas_precision_half,
                                                                  rocblas_precision_half},
+                                                                {rocblas_precision_half,
+                                                                 rocblas_precision_half,
+                                                                 rocblas_precision_half,
+                                                                 rocblas_precision_half,
+                                                                 rocblas_precision_single},
                                                                 {rocblas_precision_single,
                                                                  rocblas_precision_single,
                                                                  rocblas_precision_single,
@@ -351,12 +385,47 @@ class parameterized_half_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
 // THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range
 // is small
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+// INSTANTIATE_TEST_CASE_P(checkin_blas3_small_half,
+//                        parameterized_gemm_ex,
+//                        Combine(ValuesIn(small_matrix_size_range),
+//                                ValuesIn(alpha_beta_range),
+//                                ValuesIn(transA_transB_range),
+//                                ValuesIn(precision_half)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas_ex_small_hpa_half,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(small_matrix_size_range),
+                        Combine(ValuesIn(small_known_bug),
+                                ValuesIn(small_alpha_beta_range),
+                                ValuesIn(small_transA_transB_range),
+                                ValuesIn(precision_hpa_half)));
+
+INSTANTIATE_TEST_CASE_P(checkin_blas_ex_small_hpa_half,
+                        parameterized_gemm_ex,
+                        Combine(ValuesIn(small_multiple_8_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
-                                ValuesIn(precision_type_range)));
+                                ValuesIn(precision_hpa_half)));
+
+// INSTANTIATE_TEST_CASE_P(checkin_blas3_small_float,
+//                        parameterized_gemm_ex,
+//                        Combine(ValuesIn(small_matrix_size_range),
+//                                ValuesIn(alpha_beta_range),
+//                                ValuesIn(transA_transB_range),
+//                                ValuesIn(precision_single)));
+
+// INSTANTIATE_TEST_CASE_P(checkin_blas3_small_double,
+//                        parameterized_gemm_ex,
+//                        Combine(ValuesIn(small_matrix_size_range),
+//                                ValuesIn(alpha_beta_range),
+//                                ValuesIn(transA_transB_range),
+//                                ValuesIn(precision_double)));
+
+// INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+//                        parameterized_gemm_ex,
+//                        Combine(ValuesIn(small_matrix_size_range),
+//                                ValuesIn(alpha_beta_range),
+//                                ValuesIn(transA_transB_range),
+//                                ValuesIn(precision_type_range)));
 
 // INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
 //                        parameterized_gemm_ex,

@@ -213,6 +213,20 @@ rocblas_side char2rocblas_side(char value)
     return rocblas_side_left;
 }
 
+rocblas_precision char2rocblas_precision(char value)
+{
+    switch(value)
+    {
+    case 'h': return rocblas_precision_half;
+    case 'H': return rocblas_precision_half;
+    case 's': return rocblas_precision_single;
+    case 'S': return rocblas_precision_single;
+    case 'd': return rocblas_precision_double;
+    case 'D': return rocblas_precision_double;
+    }
+    return rocblas_precision_single;
+}
+
 #ifdef __cplusplus
 }
 #endif
