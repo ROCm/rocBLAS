@@ -141,23 +141,23 @@ int main(int argc, char* argv[])
         
         ("a_type", 
          po::value<char>(&a_type)->default_value('s'), "Options: h,s,d"
-         "Presion of matrix A, only applicable to BLAS_EX")
+         "Precision of matrix A, only applicable to BLAS_EX")
         
         ("b_type", 
          po::value<char>(&b_type)->default_value('s'), "Options: h,s,d"
-         "Presion of matrix B, only applicable to BLAS_EX")
+         "Precision of matrix B, only applicable to BLAS_EX")
         
         ("c_type", 
          po::value<char>(&c_type)->default_value('s'), "Options: h,s,d"
-         "Presion of matrix C, only applicable to BLAS_EX")
+         "Precision of matrix C, only applicable to BLAS_EX")
         
         ("d_type", 
          po::value<char>(&d_type)->default_value('s'), "Options: h,s,d"
-         "Presion of matrix D, only applicable to BLAS_EX")
+         "Precision of matrix D, only applicable to BLAS_EX")
         
         ("compute_type", 
          po::value<char>(&compute_type)->default_value('s'), "Options: h,s,d"
-         "Presion of computation, only applicable to BLAS_EX")
+         "Precision of computation, only applicable to BLAS_EX")
         
         ("transposeA",
          po::value<char>(&argus.transA_option)->default_value('N'),
