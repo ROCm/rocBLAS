@@ -387,6 +387,8 @@ rocblas_diagonal char2rocblas_diagonal(char value);
 
 rocblas_side char2rocblas_side(char value);
 
+rocblas_precision char2rocblas_precision(char value);
+
 #ifdef __cplusplus
 }
 #endif
