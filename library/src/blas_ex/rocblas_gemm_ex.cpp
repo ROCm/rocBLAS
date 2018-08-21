@@ -369,7 +369,7 @@ rocblas_status tensile_gemm_chunk(rocblas_handle handle,
         n_chunk_size = n_chunk_size < n_chunk_size_b ? n_chunk_size : n_chunk_size_b;
     }
 
-    if(trans_a == rocblas_operation_transpose)
+    if(trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose)
     {
         m_chunk_size_a = int_limit / lda;
         m_chunk_size = m_chunk_size < m_chunk_size_a ? m_chunk_size : m_chunk_size_a;
@@ -423,7 +423,6 @@ rocblas_status tensile_gemm_chunk(rocblas_handle handle,
                             ldc,
                             d + d_offset,
                             ldd);
-
 
             if(status != rocblas_status_success) return_status = status;
         }
