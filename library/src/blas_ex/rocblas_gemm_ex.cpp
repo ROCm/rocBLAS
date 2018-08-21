@@ -4,13 +4,15 @@
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
+#include "Tensile.h"
+#include "TensileTypes.h"
 #include "status.h"
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
 
-void device_matrix_copy(void* src,
+void device_matrix_copy(const void* src,
                         rocblas_int ld_src,
                         void* dst,
                         rocblas_int ld_dst,
@@ -32,8 +34,8 @@ void device_matrix_copy(void* src,
 
             for(int i2 = 0; i2 < n2; i2++)
             {
-                void* src_void =
-                    static_cast<void*>(static_cast<uint8_t*>(src) + (i2 * ld_src * elem_size));
+                const void* src_void = static_cast<const void*>(static_cast<const uint8_t*>(src) +
+                                                                (i2 * ld_src * elem_size));
                 void* dst_void =
                     static_cast<void*>(static_cast<uint8_t*>(dst) + (i2 * ld_dst * elem_size));
 
@@ -43,6 +45,440 @@ void device_matrix_copy(void* src,
         }
     }
 }
+//------------------------------------------------------------------------------
+// clang-format off
+// Td is typename for data, Tc is typename for compute
+template <typename Td, typename Tc>
+TensileStatus tensile_Cijk_Ailk_Bljk_B(Td* dataC, const Td* dataA, const Td* dataB, Td alpha, Td beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+template <typename Td, typename Tc>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B(Td* dataC, const Td* dataA, const Td* dataB, Td alpha, Td beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+template <typename Td, typename Tc>
+TensileStatus tensile_Cijk_Alik_Bljk_B(Td* dataC, const Td* dataA, const Td* dataB, Td alpha, Td beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+template <typename Td, typename Tc>
+TensileStatus tensile_Cijk_Alik_Bjlk_B(Td* dataC, const Td* dataA, const Td* dataB, Td alpha, Td beta,
+              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K, 
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+//---typename_data=TensileHalf-----typename_compute=float---------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf, float>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bljk_HBH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf, float>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bjlk_HBH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf, float>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bljk_HBH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf, float>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bjlk_HBH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+//---typename_data=TensileHalf-----typename_compute=TensileHalf---------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf,TensileHalf>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf,TensileHalf>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K, 
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf,TensileHalf>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf,TensileHalf>(
+              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
+              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+//---typename_data=float-----------typename_compute=float---------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<float,float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<float,float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<float,float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<float,float>(float* dataC, const float* dataA, const float* dataB,
+              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+//---typename_data=double----------typename_compute=double--------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<double,double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<double,double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Ailk_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<double,double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<double,double>(double* dataC, const double* dataA, const double* dataB,
+              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
+              unsigned int strideB1J, unsigned int strideB2K,
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+{
+    return tensile_Cijk_Alik_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
+           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
+           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+}
+// clang-format off
+//------------------------------------------------------------------------------
+
+template <typename Td, typename Tc>
+rocblas_status tensile_gemm_handle_transpose(rocblas_handle handle,
+               rocblas_operation trans_a, rocblas_operation trans_b,
+               int m, int n, int k, const Td alpha,
+               const Td* a, int lda,
+               const Td* b, int ldb, const Td beta,
+               const Td* c, int ldc,
+               Td* d, int ldd)
+{
+    TensileStatus t_status;
+    rocblas_status rb_status;
+
+    device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(Td));
+
+    if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none))
+    {
+        unsigned int const stride_a = lda * k;
+        unsigned int const stride_b = ldb * n;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Ailk_Bljk_B<Td,Tc>(static_cast<Td*>(d), static_cast<const Td*>(a), static_cast<const Td*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_none) &&
+            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
+    {
+        unsigned int const stride_a = lda * k;
+        unsigned int const stride_b = ldb * k;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Ailk_Bjlk_B<Td,Tc>(static_cast<Td*>(d), static_cast<const Td*>(a), static_cast<const Td*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
+            (trans_b == rocblas_operation_none))
+    {
+        unsigned int const stride_a = lda * m;
+        unsigned int const stride_b = ldb * n;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Alik_Bljk_B<Td,Tc>(static_cast<Td*>(d), static_cast<const Td*>(a), static_cast<const Td*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
+            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
+    {
+        unsigned int const stride_a = lda * m;
+        unsigned int const stride_b = ldb * k;
+        unsigned int const stride_d = ldd * n;
+        t_status = tensile_Cijk_Alik_Bjlk_B<Td,Tc>(static_cast<Td*>(d), static_cast<const Td*>(a), static_cast<const Td*>(b),
+                   alpha, beta, 0, 0, 0, ldd, stride_d, lda, stride_a, ldb, stride_b,
+                   m, n, 1, k, handle->rocblas_stream);
+    }
+    else
+    {
+        t_status = tensileStatusFailure;
+    }
+
+    if(t_status == tensileStatusSuccess)
+    {
+        rb_status = rocblas_status_success;
+    }
+    else
+    {
+        rb_status = rocblas_status_internal_error;
+    }
+
+    return rb_status;
+}
+
+template <typename Td, typename Tc>
+rocblas_status tensile_gemm_chunk(rocblas_handle handle,
+                            rocblas_operation trans_a,
+                            rocblas_operation trans_b,
+                            int m,
+                            int n,
+                            int k,
+                            Td alpha,
+                            const Td* a,
+                            int lda,
+                            const Td* b,
+                            int ldb,
+                            Td beta,
+                            const Td* c,
+                            int ldc,
+                            Td* d,
+                            int ldd)
+{
+    unsigned int int_limit      = std::numeric_limits<int>::max() / sizeof(Td);
+    unsigned int m_chunk_size = m;
+    unsigned int n_chunk_size = n;
+
+    unsigned int m_chunk_size_a;
+    unsigned int n_chunk_size_b;
+    unsigned int n_chunk_size_c = int_limit / ldc;
+    unsigned int n_chunk_size_d = int_limit / ldd;
+
+    n_chunk_size = n_chunk_size < n_chunk_size_c ? n_chunk_size : n_chunk_size_c;
+    n_chunk_size = n_chunk_size < n_chunk_size_d ? n_chunk_size : n_chunk_size_d;
+
+    if(trans_b == rocblas_operation_none)
+    {
+        n_chunk_size_b = int_limit / ldb;
+        n_chunk_size = n_chunk_size < n_chunk_size_b ? n_chunk_size : n_chunk_size_b;
+    }
+
+    if(trans_a == rocblas_operation_transpose)
+    {
+        m_chunk_size_a = int_limit / lda;
+        m_chunk_size = m_chunk_size < m_chunk_size_a ? m_chunk_size : m_chunk_size_a;
+    }
+
+    // if chunk_size < 1 return error because offset for a single row or column is larger than
+    // can fit into 32 bit register
+    if(m_chunk_size < 1) return rocblas_status_invalid_size;
+    if(n_chunk_size < 1) return rocblas_status_invalid_size;
+
+    unsigned int n_chunk_count  = ((n - 1) / n_chunk_size) + 1;
+    unsigned int m_chunk_count  = ((m - 1) / m_chunk_size) + 1;
+
+    rocblas_status return_status = rocblas_status_success;
+    rocblas_status status = rocblas_status_success;
+
+    for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)
+    {
+        unsigned int n_chunk_remaining = n - (n_chunk_size * n_chunk_iterator);
+
+        unsigned int n_chunk_size_corrected = n_chunk_size < n_chunk_remaining ? n_chunk_size : n_chunk_remaining;
+
+        for(int m_chunk_iterator = 0; m_chunk_iterator < m_chunk_count; m_chunk_iterator++)
+        {
+            unsigned int m_chunk_remaining = m - (m_chunk_size * m_chunk_iterator);
+
+            unsigned int m_chunk_size_corrected = m_chunk_size < m_chunk_remaining ? m_chunk_size : m_chunk_remaining;
+
+            size_t c_offset = n_chunk_iterator * n_chunk_size * ldc + m_chunk_iterator * m_chunk_size;
+            size_t d_offset = n_chunk_iterator * n_chunk_size * ldd + m_chunk_iterator * m_chunk_size;
+            size_t a_offset = m_chunk_iterator * m_chunk_size;
+            size_t b_offset = n_chunk_iterator * n_chunk_size;
+
+            if(trans_b == rocblas_operation_none) b_offset *= ldb;
+            if(trans_a != rocblas_operation_none) a_offset *= lda;
+
+            status = tensile_gemm_handle_transpose<Td, Tc>(
+                            handle,
+                            trans_a,
+                            trans_b,
+                            m_chunk_size_corrected,
+                            n_chunk_size_corrected,
+                            k,
+                            alpha,
+                            a + a_offset,
+                            lda,
+                            b + b_offset,
+                            ldb,
+                            beta,
+                            c + c_offset,
+                            ldc,
+                            d + d_offset,
+                            ldd);
+
+
+            if(status != rocblas_status_success) return_status = status;
+        }
+    }
+    return return_status;
+}
+
+template <typename Td, typename Tc>
+rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
+                            rocblas_operation trans_a, rocblas_operation trans_b,
+                            int m, int n, int k, const float* alpha,
+                            const void* a, int lda,
+                            const void* b, int ldb, const float* beta,
+                            const void* c, int ldc,
+                            void* d, int ldd)
+{
+    Td h_alpha;
+    Td h_beta;
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+    {
+        // copy alpha and beta from device to host and convert type
+        float h_alpha_float;
+        float h_beta_float;
+        hipMemcpy(&h_alpha_float, alpha, sizeof(float), hipMemcpyDeviceToHost);
+        hipMemcpy(&h_beta_float, beta, sizeof(float), hipMemcpyDeviceToHost);
+
+        h_alpha = static_cast<Td>(h_alpha_float);
+        h_beta  = static_cast<Td>(h_beta_float);
+    }
+    else
+    {
+        // convert type of alpha and beta
+        h_alpha = static_cast<Td>(*alpha);
+        h_beta  = static_cast<Td>(*beta);
+    }
+
+    return tensile_gemm_chunk<Td,Tc>(handle,
+                            trans_a,
+                            trans_b,
+                            m,
+                            n,
+                            k,
+                            h_alpha,
+                            static_cast<const Td*>(a),
+                            lda,
+                            static_cast<const Td*>(b),
+                            ldb,
+                            h_beta,
+                            static_cast<const Td*>(c),
+                            ldc,
+                            static_cast<Td*>(d),
+                            ldd);
+}
+
 
 /*! \brief BLAS EX API
 
@@ -141,7 +577,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_precision b_type,
                                           int ldb,
                                           const float* beta,
-                                          void* c,
+                                          const void* c,
                                           rocblas_precision c_type,
                                           int ldc,
                                           void* d,
@@ -285,215 +721,40 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
         return rocblas_status_invalid_size;
     }
 
-    rocblas_status status;
-    size_t c_byte_size;
-    size_t d_byte_size;
+    rocblas_status rb_status = rocblas_status_internal_error;
 
     if(a_type == rocblas_precision_double && b_type == rocblas_precision_double &&
        c_type == rocblas_precision_double && d_type == rocblas_precision_double &&
        compute_type == rocblas_precision_double)
     {
-        if(rocblas_pointer_mode_device == handle->pointer_mode)
-        {
-            // copy alpha and beta from device to host to convert type, then copy back to device
-            float h_alpha_float;
-            float h_beta_float;
-            hipMemcpy(&h_alpha_float, alpha, sizeof(float), hipMemcpyDeviceToHost);
-            hipMemcpy(&h_beta_float, beta, sizeof(float), hipMemcpyDeviceToHost);
-
-            const double h_alpha_double = static_cast<double>(h_alpha_float);
-            const double h_beta_double  = static_cast<double>(h_beta_float);
-
-            double* d_alpha_double;
-            double* d_beta_double;
-
-            hipMalloc(&d_alpha_double, sizeof(double));
-            hipMalloc(&d_beta_double, sizeof(double));
-
-            hipMemcpy(d_alpha_double, &h_alpha_double, sizeof(double), hipMemcpyHostToDevice);
-            hipMemcpy(d_beta_double, &h_beta_double, sizeof(double), hipMemcpyHostToDevice);
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(double));
-
-            // call rocblas_dgemm
-            status = rocblas_dgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   d_alpha_double,
-                                   static_cast<const double*>(a),
-                                   lda,
-                                   static_cast<const double*>(b),
-                                   ldb,
-                                   d_beta_double,
-                                   static_cast<double*>(d),
-                                   ldd);
-        }
-        else
-        {
-            // convert type of alpha and beta
-            const double alpha_double = static_cast<double>(*alpha);
-            const double beta_double  = static_cast<double>(*beta);
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(double));
-
-            // call rocblas_dgemm
-            status = rocblas_dgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   static_cast<const double*>(&alpha_double),
-                                   static_cast<const double*>(a),
-                                   lda,
-                                   static_cast<const double*>(b),
-                                   ldb,
-                                   static_cast<const double*>(&beta_double),
-                                   static_cast<double*>(d),
-                                   ldd);
-        }
-
-        if(status != rocblas_status_success)
-            return status;
+        rb_status = tensile_gemm_typecasting<double, double>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
             c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
             compute_type == rocblas_precision_single)
     {
-
-        if(rocblas_pointer_mode_device == handle->pointer_mode)
-        {
-            // no need for type conversion for alpha and beta
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(float));
-
-            // call rocblas_sgemm
-            status = rocblas_sgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   alpha,
-                                   static_cast<const float*>(a),
-                                   lda,
-                                   static_cast<const float*>(b),
-                                   ldb,
-                                   beta,
-                                   static_cast<float*>(d),
-                                   ldd);
-        }
-        else
-        {
-            // no need for type conversion for alpha and beta
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(float));
-
-            // call rocblas_sgemm
-            status = rocblas_sgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   alpha,
-                                   static_cast<const float*>(a),
-                                   lda,
-                                   static_cast<const float*>(b),
-                                   ldb,
-                                   beta,
-                                   static_cast<float*>(d),
-                                   ldd);
-        }
-
-        if(status != rocblas_status_success)
-            return status;
+        rb_status = tensile_gemm_typecasting<float, float>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
             c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
             compute_type == rocblas_precision_half)
     {
-        if(rocblas_pointer_mode_device == handle->pointer_mode)
-        {
-            // copy alpha and beta from device to host to convert type, then copy back to device
-            float h_alpha_float;
-            float h_beta_float;
-            hipMemcpy(&h_alpha_float, alpha, sizeof(float), hipMemcpyDeviceToHost);
-            hipMemcpy(&h_beta_float, beta, sizeof(float), hipMemcpyDeviceToHost);
-
-            const _Float16 h_alpha_half = static_cast<_Float16>(h_alpha_float);
-            const _Float16 h_beta_half  = static_cast<_Float16>(h_beta_float);
-
-            rocblas_half* d_alpha_half;
-            rocblas_half* d_beta_half;
-
-            hipMalloc(&d_alpha_half, sizeof(rocblas_half));
-            hipMalloc(&d_beta_half, sizeof(rocblas_half));
-
-            hipMemcpy(d_alpha_half, &h_alpha_half, sizeof(rocblas_half), hipMemcpyHostToDevice);
-            hipMemcpy(d_beta_half, &h_beta_half, sizeof(rocblas_half), hipMemcpyHostToDevice);
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(rocblas_half));
-
-            // call rocblas_hgemm
-            status = rocblas_hgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   d_alpha_half,
-                                   static_cast<const rocblas_half*>(a),
-                                   lda,
-                                   static_cast<const rocblas_half*>(b),
-                                   ldb,
-                                   d_beta_half,
-                                   static_cast<rocblas_half*>(d),
-                                   ldd);
-        }
-        else
-        {
-            // convert type of alpha and beta
-            const _Float16 alpha_half = static_cast<_Float16>(*alpha);
-            const _Float16 beta_half  = static_cast<_Float16>(*beta);
-
-            // copy matrix C to matrix D
-            device_matrix_copy(c, ldc, d, ldd, m, n, sizeof(rocblas_half));
-
-            // call rocblas_hgemm
-            status = rocblas_hgemm(handle,
-                                   trans_a,
-                                   trans_b,
-                                   m,
-                                   n,
-                                   k,
-                                   reinterpret_cast<const rocblas_half*>(&alpha_half),
-                                   static_cast<const rocblas_half*>(a),
-                                   lda,
-                                   static_cast<const rocblas_half*>(b),
-                                   ldb,
-                                   reinterpret_cast<const rocblas_half*>(&beta_half),
-                                   static_cast<rocblas_half*>(d),
-                                   ldd);
-        }
-
-        if(status != rocblas_status_success)
-            std::cout << "ERROR: status = " << status << std::endl;
-        if(status != rocblas_status_success)
-            return status;
+        rb_status = tensile_gemm_typecasting<_Float16, _Float16>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
+    }
+    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
+            c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
+            compute_type == rocblas_precision_single)
+    {
+        rb_status = tensile_gemm_typecasting<_Float16, float>(
+            handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
     else
     {
-        return rocblas_status_not_implemented;
+        rb_status = rocblas_status_not_implemented;
     }
 
-    return status;
+    return rb_status;
 }

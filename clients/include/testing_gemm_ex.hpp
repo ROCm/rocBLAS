@@ -23,7 +23,7 @@ using namespace std;
 
 /* ============================================================================================ */
 
-template <typename T>
+template <typename Td, typename Tc>
 rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                         rocblas_operation transB,
                                         rocblas_int M,
@@ -38,49 +38,34 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                         rocblas_int norm_check,
                                         rocblas_int unit_check,
                                         rocblas_int timing,
-                                        int number_hot_calls)
+                                        int number_hot_calls,
+                                        rocblas_precision a_type,
+                                        rocblas_precision b_type,
+                                        rocblas_precision c_type,
+                                        rocblas_precision d_type,
+                                        rocblas_precision compute_type)
 {
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     uint32_t kernel_index  = 0;
     uint32_t flags         = 0;
 
-    T h_alpha;
-    T h_beta;
-    rocblas_precision a_type;
-    rocblas_precision b_type;
-    rocblas_precision c_type;
-    rocblas_precision d_type;
-    rocblas_precision compute_type;
+    Td h_alpha;
+    Td h_beta;
 
-    if(is_same<T, rocblas_half>::value)
+    if(is_same<Td, rocblas_half>::value)
     {
-        h_alpha      = float_to_half(alpha_float);
-        h_beta       = float_to_half(beta_float);
-        a_type       = rocblas_precision_half;
-        b_type       = rocblas_precision_half;
-        c_type       = rocblas_precision_half;
-        d_type       = rocblas_precision_half;
-        compute_type = rocblas_precision_half;
+        h_alpha = float_to_half(alpha_float);
+        h_beta  = float_to_half(beta_float);
     }
-    else if(is_same<T, float>::value)
+    else if(is_same<Td, float>::value)
     {
-        h_alpha      = static_cast<T>(alpha_float);
-        h_beta       = static_cast<T>(beta_float);
-        a_type       = rocblas_precision_single;
-        b_type       = rocblas_precision_single;
-        c_type       = rocblas_precision_single;
-        d_type       = rocblas_precision_single;
-        compute_type = rocblas_precision_single;
+        h_alpha = static_cast<Td>(alpha_float);
+        h_beta  = static_cast<Td>(beta_float);
     }
-    else if(is_same<T, double>::value)
+    else if(is_same<Td, double>::value)
     {
-        h_alpha      = static_cast<T>(alpha_float);
-        h_beta       = static_cast<T>(beta_float);
-        a_type       = rocblas_precision_double;
-        b_type       = rocblas_precision_double;
-        c_type       = rocblas_precision_double;
-        d_type       = rocblas_precision_double;
-        compute_type = rocblas_precision_double;
+        h_alpha = static_cast<Td>(alpha_float);
+        h_beta  = static_cast<Td>(beta_float);
     }
     else
     {
@@ -92,7 +77,7 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = 0.0;
+    Td rocblas_error = 0.0;
 
     rocblas_status status;
 
@@ -107,18 +92,18 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M)
     {
-        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
+        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
                                              rocblas_test::device_free};
-        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
+        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
                                              rocblas_test::device_free};
-        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
+        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
                                              rocblas_test::device_free};
-        auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
+        auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
                                              rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
-        T* dD = (T*)dD_managed.get();
+        Td* dA = (Td*)dA_managed.get();
+        Td* dB = (Td*)dB_managed.get();
+        Td* dC = (Td*)dC_managed.get();
+        Td* dD = (Td*)dD_managed.get();
         if(!dA || !dB || !dC || !dD)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -161,22 +146,22 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     const size_t size_D = static_cast<size_t>(ldd) * static_cast<size_t>(N);
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_A),
                                          rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_B),
                                          rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_C),
                                          rocblas_test::device_free};
-    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_D),
+    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_D),
                                          rocblas_test::device_free};
     auto d_alpha_float_managed =
         rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float)), rocblas_test::device_free};
     auto d_beta_float_managed =
         rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float)), rocblas_test::device_free};
-    T* dA                = (T*)dA_managed.get();
-    T* dB                = (T*)dB_managed.get();
-    T* dC                = (T*)dC_managed.get();
-    T* dD                = (T*)dD_managed.get();
+    Td* dA               = (Td*)dA_managed.get();
+    Td* dB               = (Td*)dB_managed.get();
+    Td* dC               = (Td*)dC_managed.get();
+    Td* dD               = (Td*)dD_managed.get();
     float* d_alpha_float = (float*)d_alpha_float_managed.get();
     float* d_beta_float  = (float*)d_beta_float_managed.get();
     if(!dA || !dB || !dC || !dD || !d_alpha_float || !d_beta_float)
@@ -186,56 +171,67 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(size_A);
-    vector<T> hB(size_B);
-    vector<T> hC(size_C);
-    vector<T> hD_1(size_D);
-    vector<T> hD_2(size_D);
-    vector<T> hD_gold(size_D);
+    vector<Td> hA(size_A);
+    vector<Td> hB(size_B);
+    vector<Td> hC(size_C);
+    vector<Td> hD_1(size_D);
+    vector<Td> hD_2(size_D);
+    vector<Td> hD_gold(size_D);
 
     // Initial Data on CPU
     srand(1);
-    rocblas_init<T>(hA, A_row, A_col, lda);
-    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-    rocblas_init<T>(hC, M, N, ldc);
-    rocblas_init<T>(hD_1, M, N, ldd);
-
+    rocblas_init<Td>(hA, A_row, A_col, lda);
+    rocblas_init_alternating_sign<Td>(hB, B_row, B_col, ldb);
+    rocblas_init<Td>(hC, M, N, ldc);
+    rocblas_init<Td>(hD_1, M, N, ldd);
     /*
-        std::cout << "----A-------------------------------------------" << std::endl;
-        for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
-        std::cout << std::endl << "-----B------------------------------------------" << std::endl;
-        for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
-        std::cout << std::endl << "-----C------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
-        std::cout << std::endl << "-----D------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-        std::cout << std::endl << "------------------------------------------------" << std::endl;
-    */
-    /*
-        std::cout << "----A-------------------------------------------" << std::endl;
-        for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
-        std::cout << std::endl << "-----B------------------------------------------" << std::endl;
-        for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
-        std::cout << std::endl << "-----C------------------------------------------" << std::endl;
-        for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
-        std::cout << std::endl << "-----D------------------------------------------" << std::endl;
-        for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-        std::cout << std::endl << "------------------------------------------------" << std::endl;
+        if(is_same<Td, rocblas_half>::value)
+        {
+            std::cout << "----A-------------------------------------------" << std::endl;
+            for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
+            std::cout << std::endl << "-----B------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
+            std::cout << std::endl << "-----C------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
+            std::cout << std::endl << "-----D------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
+            std::cout << std::endl << "------------------------------------------------" <<
+       std::endl;
+        }
+        else
+        {
+            std::cout << "----A-------------------------------------------" << std::endl;
+            for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
+            std::cout << std::endl << "-----B------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
+            std::cout << std::endl << "-----C------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
+            std::cout << std::endl << "-----D------------------------------------------" <<
+       std::endl;
+            for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+            std::cout << std::endl << "------------------------------------------------" <<
+       std::endl;
+        }
     */
     hD_2    = hD_1;
     hD_gold = hD_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(Td) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(Td) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(Td) * size_C, hipMemcpyHostToDevice));
 
     if(unit_check || norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1.data(), sizeof(T) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1.data(), sizeof(Td) * size_D, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex(handle,
                                             transA,
@@ -262,19 +258,26 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             kernel_index,
                                             flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(T) * size_D, hipMemcpyDeviceToHost));
-        //      std::cout << std::endl << "-----hD_1---------------------------------------" <<
-        //      std::endl;
-        //      for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-        //      for(int i = 0; i < size_C; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-        //      for(int i = 0; i < size_C; i++){ cout << std::hex << hD_1[i] << "  "; }
-        //      std::cout << std::endl << "------------------------------------------------" <<
-        //      std::endl;
-
+        CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
+        /*
+                std::cout << std::endl << "-----hD_1---------------------------------------" <<
+        std::endl;
+                if(is_same<Td, rocblas_half>::value)
+                {
+                    for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
+        //          for(int i = 0; i < size_C; i++){ cout << std::hex << hD_1[i] << "  "; }
+                }
+                else
+                {
+                    for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+                }
+                std::cout << std::endl << "------------------------------------------------" <<
+        std::endl;
+        */
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2.data(), sizeof(T) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2.data(), sizeof(Td) * size_D, hipMemcpyHostToDevice));
 
         CHECK_HIP_ERROR(
             hipMemcpy(d_alpha_float, &alpha_float, sizeof(float), hipMemcpyHostToDevice));
@@ -306,7 +309,7 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             kernel_index,
                                             flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2.data(), dD, sizeof(T) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_2.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         // copy C matrix into D matrix
@@ -319,28 +322,35 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         }
         cpu_time_used = get_time_us();
 
-        cblas_gemm<T>(transA,
-                      transB,
-                      M,
-                      N,
-                      K,
-                      h_alpha,
-                      hA.data(),
-                      lda,
-                      hB.data(),
-                      ldb,
-                      h_beta,
-                      hD_gold.data(),
-                      ldd);
+        cblas_gemm<Td>(transA,
+                       transB,
+                       M,
+                       N,
+                       K,
+                       h_alpha,
+                       hA.data(),
+                       lda,
+                       hB.data(),
+                       ldb,
+                       h_beta,
+                       hD_gold.data(),
+                       ldd);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
-
-// std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
-// for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
-// for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
-// for(int i = 0; i < size_D; i++){ std::cout << std::hex << hD_gold[i] << "  "; }
-// std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+        cblas_gflops  = gemm_gflop_count<Td>(M, N, K) / cpu_time_used * 1e6;
+/*
+   std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
+   if(is_same<Td, rocblas_half>::value)
+   {
+       for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
+//     for(int i = 0; i < size_D; i++){ std::cout << std::hex << hD_gold[i] << "  "; }
+   }
+   else
+   {
+       for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
+   }
+   std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+*/
 #ifndef NDEBUG
 // print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
@@ -349,17 +359,17 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         // unit check and norm check can not be interchanged their order
         if(unit_check)
         {
-            unit_check_general<T>(M, N, ldd, hD_gold.data(), hD_1.data());
-            unit_check_general<T>(M, N, ldd, hD_gold.data(), hD_2.data());
+            unit_check_general<Td>(M, N, ldd, hD_gold.data(), hD_1.data());
+            unit_check_general<Td>(M, N, ldd, hD_gold.data(), hD_2.data());
         }
 
         // if enable norm check, norm check is invasive
-        // any typeinfo(T) will not work here, because template deduction is matched
+        // any typeinfo(Td) will not work here, because template deduction is matched
         // in compilation time
         if(norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldd, hD_gold.data(), hD_1.data());
-            rocblas_error = norm_check_general<T>('F', M, N, ldd, hD_gold.data(), hD_2.data());
+            rocblas_error = norm_check_general<Td>('F', M, N, ldd, hD_gold.data(), hD_1.data());
+            rocblas_error = norm_check_general<Td>('F', M, N, ldd, hD_gold.data(), hD_2.data());
         }
     }
 
@@ -371,18 +381,18 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm<T>(
+            rocblas_gemm<Td>(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm<T>(
+            rocblas_gemm<Td>(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        rocblas_gflops = gemm_gflop_count<Td>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
@@ -438,7 +448,57 @@ rocblas_status testing_gemm_ex(Arguments argus)
        c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
        compute_type == rocblas_precision_half)
     {
-        return testing_gemm_ex_template<rocblas_half>(transA,
+        return testing_gemm_ex_template<rocblas_half, rocblas_half>(transA,
+                                                                    transB,
+                                                                    M,
+                                                                    N,
+                                                                    K,
+                                                                    alpha,
+                                                                    lda,
+                                                                    ldb,
+                                                                    beta,
+                                                                    ldc,
+                                                                    ldd,
+                                                                    norm_check,
+                                                                    unit_check,
+                                                                    timing,
+                                                                    number_hot_calls,
+                                                                    a_type,
+                                                                    b_type,
+                                                                    c_type,
+                                                                    d_type,
+                                                                    compute_type);
+    }
+    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
+            c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
+            compute_type == rocblas_precision_single)
+    {
+        return testing_gemm_ex_template<rocblas_half, float>(transA,
+                                                             transB,
+                                                             M,
+                                                             N,
+                                                             K,
+                                                             alpha,
+                                                             lda,
+                                                             ldb,
+                                                             beta,
+                                                             ldc,
+                                                             ldd,
+                                                             norm_check,
+                                                             unit_check,
+                                                             timing,
+                                                             number_hot_calls,
+                                                             a_type,
+                                                             b_type,
+                                                             c_type,
+                                                             d_type,
+                                                             compute_type);
+    }
+    else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
+            c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
+            compute_type == rocblas_precision_single)
+    {
+        return testing_gemm_ex_template<float, float>(transA,
                                                       transB,
                                                       M,
                                                       N,
@@ -452,47 +512,37 @@ rocblas_status testing_gemm_ex(Arguments argus)
                                                       norm_check,
                                                       unit_check,
                                                       timing,
-                                                      number_hot_calls);
-    }
-    else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
-            c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
-            compute_type == rocblas_precision_single)
-    {
-        return testing_gemm_ex_template<float>(transA,
-                                               transB,
-                                               M,
-                                               N,
-                                               K,
-                                               alpha,
-                                               lda,
-                                               ldb,
-                                               beta,
-                                               ldc,
-                                               ldd,
-                                               norm_check,
-                                               unit_check,
-                                               timing,
-                                               number_hot_calls);
+                                                      number_hot_calls,
+                                                      a_type,
+                                                      b_type,
+                                                      c_type,
+                                                      d_type,
+                                                      compute_type);
     }
     else if(a_type == rocblas_precision_double && b_type == rocblas_precision_double &&
             c_type == rocblas_precision_double && d_type == rocblas_precision_double &&
             compute_type == rocblas_precision_double)
     {
-        return testing_gemm_ex_template<double>(transA,
-                                                transB,
-                                                M,
-                                                N,
-                                                K,
-                                                alpha,
-                                                lda,
-                                                ldb,
-                                                beta,
-                                                ldc,
-                                                ldd,
-                                                norm_check,
-                                                unit_check,
-                                                timing,
-                                                number_hot_calls);
+        return testing_gemm_ex_template<double, double>(transA,
+                                                        transB,
+                                                        M,
+                                                        N,
+                                                        K,
+                                                        alpha,
+                                                        lda,
+                                                        ldb,
+                                                        beta,
+                                                        ldc,
+                                                        ldd,
+                                                        norm_check,
+                                                        unit_check,
+                                                        timing,
+                                                        number_hot_calls,
+                                                        a_type,
+                                                        b_type,
+                                                        c_type,
+                                                        d_type,
+                                                        compute_type);
     }
     else
     {
