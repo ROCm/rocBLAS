@@ -22,6 +22,272 @@
 using namespace std;
 
 /* ============================================================================================ */
+void testing_gemm_ex_bad_arg()
+{
+    const rocblas_int M = 100;
+    const rocblas_int N = 100;
+    const rocblas_int K = 100;
+
+    const rocblas_int lda = 100;
+    const rocblas_int ldb = 100;
+    const rocblas_int ldc = 100;
+    const rocblas_int ldd = 100;
+
+    rocblas_precision a_type       = rocblas_precision_single;
+    rocblas_precision b_type       = rocblas_precision_single;
+    rocblas_precision c_type       = rocblas_precision_single;
+    rocblas_precision d_type       = rocblas_precision_single;
+    rocblas_precision compute_type = rocblas_precision_single;
+
+    const float alpha_float = 1.0;
+    const float beta_float  = 1.0;
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+    rocblas_int kernel_index;
+    rocblas_int flags;
+
+    const size_t safe_size = 100;
+
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_operation transB = rocblas_operation_none;
+
+    rocblas_status status;
+
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    // allocate memory on device
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
+                                         rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
+                                         rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
+                                         rocblas_test::device_free};
+    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
+                                         rocblas_test::device_free};
+    float* dA = (float*)dA_managed.get();
+    float* dB = (float*)dB_managed.get();
+    float* dC = (float*)dC_managed.get();
+    float* dD = (float*)dC_managed.get();
+    if(!dA || !dB || !dC || !dD)
+    {
+        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
+
+    {
+        float* dA_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA_null,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
+    }
+    {
+        float* dB_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB_null,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
+    }
+    {
+        float* dC_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC_null,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        float* dD_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD_null,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: D is nullptr");
+    }
+    {
+        float* alpha_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 alpha_null,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        float* beta_null = nullptr;
+
+        status = rocblas_gemm_ex(handle,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 beta_null,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+    }
+    {
+        rocblas_handle handle_null = nullptr;
+
+        status = rocblas_gemm_ex(handle_null,
+                                 transA,
+                                 transB,
+                                 M,
+                                 N,
+                                 K,
+                                 &alpha_float,
+                                 dA,
+                                 a_type,
+                                 lda,
+                                 dB,
+                                 b_type,
+                                 ldb,
+                                 &beta_float,
+                                 dC,
+                                 c_type,
+                                 ldc,
+                                 dD,
+                                 d_type,
+                                 ldd,
+                                 compute_type,
+                                 algo,
+                                 kernel_index,
+                                 flags);
+
+        verify_rocblas_status_invalid_handle(status);
+    }
+
+    return;
+}
 
 template <typename Td, typename Tc>
 rocblas_status testing_gemm_ex_template(rocblas_operation transA,
@@ -184,40 +450,32 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     rocblas_init_alternating_sign<Td>(hB, B_row, B_col, ldb);
     rocblas_init<Td>(hC, M, N, ldc);
     rocblas_init<Td>(hD_1, M, N, ldd);
-    /*
-        if(is_same<Td, rocblas_half>::value)
-        {
-            std::cout << "----A-------------------------------------------" << std::endl;
-            for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
-            std::cout << std::endl << "-----B------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
-            std::cout << std::endl << "-----C------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
-            std::cout << std::endl << "-----D------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-            std::cout << std::endl << "------------------------------------------------" <<
-       std::endl;
-        }
-        else
-        {
-            std::cout << "----A-------------------------------------------" << std::endl;
-            for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
-            std::cout << std::endl << "-----B------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
-            std::cout << std::endl << "-----C------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
-            std::cout << std::endl << "-----D------------------------------------------" <<
-       std::endl;
-            for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-            std::cout << std::endl << "------------------------------------------------" <<
-       std::endl;
-        }
-    */
+
+    //  if(is_same<Td, rocblas_half>::value)
+    //  {
+    //      std::cout << "----A-----------------" << std::endl;
+    //      for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
+    //      std::cout << std::endl << "-----B-----------------" << std::endl;
+    //      for(int i = 0; i < size_B; i++){ cout << half_to_float(hB[i]) << "  "; }
+    //      std::cout << std::endl << "-----C-----------------" << std::endl;
+    //      for(int i = 0; i < size_C; i++){ cout << half_to_float(hC[i]) << "  "; }
+    //      std::cout << std::endl << "-----D-----------------" << std::endl;
+    //      for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
+    //      std::cout << std::endl << "-----------------------" << std::endl;
+    //  }
+    //  else
+    //  {
+    //      std::cout << "----A-----------------" << std::endl;
+    //      for(int i = 0; i < size_A; i++){ cout << hA[i] << "  "; }
+    //      std::cout << std::endl << "-----B-----------------" << std::endl;
+    //      for(int i = 0; i < size_B; i++){ cout << hB[i] << "  "; }
+    //      std::cout << std::endl << "-----C-----------------" << std::endl;
+    //      for(int i = 0; i < size_C; i++){ cout << hC[i] << "  "; }
+    //      std::cout << std::endl << "-----D-----------------" << std::endl;
+    //      for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+    //      std::cout << std::endl << "-----------------------" << std::endl;
+    //  }
+
     hD_2    = hD_1;
     hD_gold = hD_1;
 
@@ -259,21 +517,21 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
-        /*
-                std::cout << std::endl << "-----hD_1---------------------------------------" <<
-        std::endl;
-                if(is_same<Td, rocblas_half>::value)
-                {
-                    for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  "; }
-        //          for(int i = 0; i < size_C; i++){ cout << std::hex << hD_1[i] << "  "; }
-                }
-                else
-                {
-                    for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
-                }
-                std::cout << std::endl << "------------------------------------------------" <<
-        std::endl;
-        */
+
+        //      std::cout << std::endl << "-----hD_1---------------------------------------" <<
+        //      std::endl;
+        //      if(is_same<Td, rocblas_half>::value)
+        //      {
+        //                  for(int i = 0; i < size_D; i++){ cout << half_to_float(hD_1[i]) << "  ";
+        //                  }
+        //      }
+        //      else
+        //      {
+        //                  for(int i = 0; i < size_D; i++){ cout << hD_1[i] << "  "; }
+        //      }
+        //      std::cout << std::endl << "------------------------------------------------" <<
+        //      std::endl;
+
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -338,19 +596,18 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<Td>(M, N, K) / cpu_time_used * 1e6;
-/*
-   std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
-   if(is_same<Td, rocblas_half>::value)
-   {
-       for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
-//     for(int i = 0; i < size_D; i++){ std::cout << std::hex << hD_gold[i] << "  "; }
-   }
-   else
-   {
-       for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
-   }
-   std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
-*/
+
+//      std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
+//      if(is_same<Td, rocblas_half>::value)
+//      {
+//          for(int i = 0; i < size_D; i++){ std::cout << half_to_float(hD_gold[i]) << "  "; }
+//      }
+//      else
+//      {
+//          for(int i = 0; i < size_D; i++){ std::cout << hD_gold[i] << "  "; }
+//      }
+//      std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+
 #ifndef NDEBUG
 // print_matrix(hC_gold, hC, min(M, 3), min(N, 3), ldc);
 #endif
@@ -415,7 +672,6 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     return status;
 }
 
-// template <typename T>
 rocblas_status testing_gemm_ex(Arguments argus)
 {
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
