@@ -38,12 +38,10 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
 // add/delete as a group, in batched gemm, the matrix is much smaller than standard gemm
 // clang-format off
-const vector<vector<int>> matrix_size_range = {
+const vector<vector<int>> small_matrix_size_range = {
     { -1,  -1,  -1,  -1,   1,   1,      1,      1,     1},
     { 31,  33,  35, 101, 102, 103,   3605,   3605,   3605},
     { 59,  61,  63, 129, 131, 137,   8631,   8631,   8631},
-    {129, 130, 131, 132, 133, 134,  17554,  17554,  17554},
-    {501, 502, 103, 504, 605, 506, 340010, 340010, 340010},
     {  3,   3,   3,   3,   3,   3,      9,     9,      9},
     { 15,  15,  15,  15,  15,  15,    225,   225,    225},
     { 16,  16,  16,  16,  16,  16,    256,   256,    256},
@@ -54,26 +52,46 @@ const vector<vector<int>> matrix_size_range = {
     {127, 127, 127, 127, 127, 127,  16129, 16129,  16129},
     {128, 128, 128, 128, 128, 128,  16384, 16384,  16384},
     {129, 129, 129, 129, 129, 129,  16641, 16641,  16641},
-    {255, 255, 255, 255, 255, 255,  65025, 65025,  65025},
-    {256, 256, 256, 256, 256, 256,  65536, 65536,  65536},
-    {257, 257, 257, 257, 257, 257,  66049, 66049,  66049},
 };
 
-const vector<vector<int>> matrix_size_stride_a_range = {
-    {  3,   3,   3,   3,   3,   3, 9,     9,      9},
-    {  3,   3,   3,   3,   3,   3, 0,     9,      9},
-    { 15,  15,  15,  15,  15,  15, 0,   225,    225},
-    { 16,  16,  16,  16,  16,  16, 0,   256,    256},
-    { 17,  17,  17,  17,  17,  17, 0,   289,    289},
-    { 63,  63,  63,  63,  63,  63, 0,  3969,   3969},
-    { 64,  64,  64,  64,  64,  64, 0,  4096,   4096},
-    { 65,  65,  65,  65,  65,  65, 0,  4225,   4225},
-    {127, 127, 127, 127, 127, 127, 0, 16129,  16129},
-    {128, 128, 128, 128, 128, 128, 0, 16384,  16384},
-    {129, 129, 129, 129, 129, 129, 0, 16641,  16641},
-    {255, 255, 255, 255, 255, 255, 0, 65025,  65025},
-    {256, 256, 256, 256, 256, 256, 0, 65536,  65536},
-    {257, 257, 257, 257, 257, 257, 0, 66049,  66049},
+const vector<vector<int>> small_matrix_size_stride_a_range = {
+    {  3,   3,   3,   3,   3,   3,    9,      9,      9},
+    {  3,   3,   3,   3,   3,   3,    0,      9,      9},
+    { 15,  15,  15,  15,  15,  15,  225,      0,    225},
+    { 16,  16,  16,  16,  16,  16,    0,    256,    256},
+    { 17,  17,  17,  17,  17,  17,  289,      0,    289},
+    { 63,  63,  63,  63,  63,  63,    0,   3969,   3969},
+    { 64,  64,  64,  64,  64,  64, 4096,      0,   4096},
+    { 65,  65,  65,  65,  65,  65,     0,  4225,   4225},
+    {127, 127, 127, 127, 127, 127, 16129,     0,  16129},
+    {128, 128, 128, 128, 128, 128,     0, 16384,  16384},
+    {129, 129, 129, 129, 129, 129, 16641,     0,  16641},
+};
+const vector<vector<int>> medium_matrix_size_range = {
+    {129, 130, 131, 132, 133, 134,  17554,  17554,  17554},
+    {255, 255, 255, 255, 255, 255,  65025,  65025,  65025},
+    {256, 256, 256, 256, 256, 256,  65536,  65536,  65536},
+    {257, 257, 257, 257, 257, 257,  66049,  66049,  66049},
+    {501, 502, 103, 504, 605, 506, 340010, 340010, 340010},
+};
+
+const vector<vector<int>> medium_matrix_size_stride_a_range = {
+    {255, 255, 255, 255, 255, 255, 65025,     0, 65025},
+    {256, 256, 256, 256, 256, 256,     0, 65536, 65536},
+    {257, 257, 257, 257, 257, 257, 66049,     0, 66049},
+};
+
+const vector<vector<int>> large_matrix_size_range = {
+    {511, 511, 511,  511, 511, 511, 261121, 261121, 261121},
+    {512, 512, 512,  512, 512, 512, 262144, 262144, 262144},
+    {513, 513, 513,  513, 513, 513, 263169, 263169, 263169},
+    {513, 514, 515,  516, 517, 518, 266771, 266772, 266773},
+};
+const vector<vector<int>> large_matrix_size_stride_a_range = {
+    {511, 511, 511,  511, 511, 511,      0, 261121, 261121},
+    {512, 512, 512,  512, 512, 512, 262144,      0, 262144},
+    {513, 513, 513,  513, 513, 513,      0, 263169, 263169},
+    {513, 514, 515,  516, 517, 518, 266771,      0, 266773},
 };
 // clang-format on
 
@@ -95,14 +113,19 @@ const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 
 const vector<vector<char>> transA_transB_stride_a_range = {{'N', 'N'}};
 
 // number of gemms in batched gemm
-const vector<int> batch_count_range = {
+const vector<int> small_batch_count_range = {
     -1, 0, 1, 3,
 };
-const vector<int> batch_count_stride_a_range = {
+const vector<int> medium_batch_count_range         = {63, 64, 65};
+const vector<int> small_batch_count_stride_a_range = {
     1, 3,
+};
+const vector<int> medium_batch_count_stride_a_range = {
+    31, 32, 33,
 };
 
 // clang-format off
+// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
 gemm_strided_batched_tuple db_sb_1{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 16};
 gemm_strided_batched_tuple db_sb_2{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 8};
 gemm_strided_batched_tuple db_sb_3{ {3136, 256, 64, 3136, 64, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'N'}, 16};
@@ -327,21 +350,64 @@ TEST_P(gemm_strided_batched, double)
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB}, {batch_count}
 // }
 
+//--- small
 // tests with stride_a == 0
-INSTANTIATE_TEST_CASE_P(checkin_blas3_stride_a_zero,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small_stride_zero,
                         gemm_strided_batched,
-                        Combine(ValuesIn(matrix_size_stride_a_range),
+                        Combine(ValuesIn(small_matrix_size_stride_a_range),
                                 ValuesIn(alpha_beta_stride_a_range),
                                 ValuesIn(transA_transB_stride_a_range),
-                                ValuesIn(batch_count_stride_a_range)));
+                                ValuesIn(small_batch_count_stride_a_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         gemm_strided_batched,
-                        Combine(ValuesIn(matrix_size_range),
+                        Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
-                                ValuesIn(batch_count_range)));
+                                ValuesIn(small_batch_count_range)));
+// tests with stride_a == 0
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_small_stride_zero,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(small_matrix_size_stride_a_range),
+                                ValuesIn(alpha_beta_stride_a_range),
+                                ValuesIn(transA_transB_stride_a_range),
+                                ValuesIn(medium_batch_count_stride_a_range)));
+//--- medium
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range),
+                                ValuesIn(small_batch_count_range)));
+// tests with stride_a == 0
+INSTANTIATE_TEST_CASE_P(nightly_blas3_medium_stride_zero,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(medium_matrix_size_stride_a_range),
+                                ValuesIn(alpha_beta_stride_a_range),
+                                ValuesIn(transA_transB_stride_a_range),
+                                ValuesIn(medium_batch_count_stride_a_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes,
+INSTANTIATE_TEST_CASE_P(nightly_checkin_blas3_medium,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range),
+                                ValuesIn(medium_batch_count_range)));
+//--- large
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_large,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(large_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range),
+                                ValuesIn(small_batch_count_range)));
+// tests with stride_a == 0
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_large_stride_zero,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(large_matrix_size_stride_a_range),
+                                ValuesIn(alpha_beta_stride_a_range),
+                                ValuesIn(transA_transB_stride_a_range),
+                                ValuesIn(small_batch_count_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         gemm_strided_batched,
                         ValuesIn(deepbench_sb_vec));

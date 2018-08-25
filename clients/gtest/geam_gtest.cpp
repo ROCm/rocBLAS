@@ -202,19 +202,19 @@ TEST_P(parameterized_geam, double)
 
 TEST(checkin_blas3_bad_arg, geam_float) { testing_geam_bad_arg<float>(); }
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3,
+INSTANTIATE_TEST_CASE_P(quick_blas3,
                         parameterized_geam,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(small_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_1,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3,
                         parameterized_geam,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(large_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_2,
+INSTANTIATE_TEST_CASE_P(nightly_blas3,
                         parameterized_geam,
                         Combine(ValuesIn(huge_matrix_size_range),
                                 ValuesIn(huge_alpha_beta_range),
