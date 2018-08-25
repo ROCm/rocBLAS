@@ -42,6 +42,7 @@ const vector<int> size_range_32    = {  31,   32,   33};
 const vector<int> size_range_48    = {  47,   48,   49};
 const vector<int> size_range_64    = {  63,   64,   65};
 const vector<int> size_range_96    = {  95,   96,   97};
+const vector<int> size_range_128   = { 127,  128,  129};
 const vector<int> size_range_256   = { 255,  256,  257};
 const vector<int> size_range_512   = { 511,  512,  513};
 const vector<int> size_range_1024  = {1023, 1024, 1025};
@@ -61,11 +62,11 @@ const vector<int> size_range_9_129 = {9, 10,  11,  12,  13,  14,  15,  16,  17, 
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 // add/delete as a group
-const vector<vector<int>> tiny_matrix_size_range = {
+const vector<vector<int>> small_matrix_size_range = {
     {1, 1, 1, 1, 1, 1}, {1, 2, 3, 4, 5, 6}, {7, 9, 15, 17, 18, 19},
 };
 
-const vector<vector<int>> small_matrix_size_range = {
+const vector<vector<int>> medium_matrix_size_range = {
     {-1, -1, -1, -1, 1, 1},
     {1, 1, 1, 1, 1, 1},
     {2, 2, 2, 2, 2, 2},
@@ -103,13 +104,13 @@ const vector<vector<int>> small_matrix_size_range = {
     {3, 33, 3, 33, 35, 35},
     {5, 6, 7, 9, 11, 13},
     {10, 10, 20, 100, 21, 22},
+    {191, 193, 194, 195, 196, 197},
     {500, 501, 502, 503, 604, 505},
     {500, 501, 502, 203, 204, 205},
+    {639, 640, 347, 960, 961, 1062},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
-    {191, 193, 194, 195, 196, 197},
-    {639, 640, 347, 960, 961, 1062},
     {1000, 1001, 101, 2002, 1003, 1004},
     {925, 1026, 1027, 1028, 2029, 1031},
     {4011, 4012, 103, 4014, 4015, 4016},
@@ -669,11 +670,11 @@ TEST_P(parameterized_half_gemm, half)
     }
 }
 
-TEST(checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
 
-TEST(checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
 
-TEST(checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
 
 // notice we are using vector of vector
 // so each elment in xxx_range is a avector,
@@ -681,62 +682,57 @@ TEST(checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
 
 // INSTANTIATE_TEST_CASE_P(rocblas_gemm_beta_eq_0, parameterized_gemm_NaN,
-INSTANTIATE_TEST_CASE_P(checkin_blas3_NaN,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_NaN,
                         parameterized_gemm_NaN,
                         Combine(ValuesIn(NaN_matrix_size_range),
                                 ValuesIn(NaN_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-// THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is
-// small
-INSTANTIATE_TEST_CASE_P(daily_blas3_large,
-                        parameterized_gemm,
-                        Combine(ValuesIn(large_matrix_size_range),
-                                ValuesIn(alpha_beta_range),
-                                ValuesIn(transA_transB_range)));
-
-// THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range
-// is small
-
-INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         parameterized_gemm,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
-                        parameterized_gemm,
-                        Combine(ValuesIn(tiny_matrix_size_range),
-                                ValuesIn(full_alpha_beta_range),
-                                ValuesIn(transA_transB_range)));
-
-INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         parameterized_half_gemm,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
-                        parameterized_half_gemm,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
+                        parameterized_gemm,
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_large,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
+                        parameterized_gemm,
+                        Combine(ValuesIn(large_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
                         parameterized_half_gemm,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_chunk,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_chunk,
                         parameterized_chunk_gemm,
                         Combine(ValuesIn(chunk_matrix_size_range),
                                 ValuesIn(alpha_beta_2_3_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         parameterized_half_gemm,
                         ValuesIn(deepbench_vec));
 
@@ -749,7 +745,7 @@ INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_5_8,
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_5_8,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_5_8),
                                 ValuesIn(size_range_5_8),
@@ -757,7 +753,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_5_8,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_9_12,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_9_12,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_9_12),
                                 ValuesIn(size_range_9_12),
@@ -765,7 +761,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_9_12,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_13_16,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_13_16,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_13_16),
                                 ValuesIn(size_range_13_16),
@@ -773,7 +769,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_13_16,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_17_20,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_17_20,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_17_20),
                                 ValuesIn(size_range_17_20),
@@ -781,7 +777,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_17_20,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_20_23,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_20_23,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_20_23),
                                 ValuesIn(size_range_20_23),
@@ -789,7 +785,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_20_23,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_24_27,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_24_27,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_24_27),
                                 ValuesIn(size_range_24_27),
@@ -797,7 +793,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_24_27,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_28_31,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_28_31,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_28_31),
                                 ValuesIn(size_range_28_31),
@@ -805,7 +801,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_28_31,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 //---32
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_32,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_32,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_32),
                                 ValuesIn(size_range_32),
@@ -813,7 +809,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_32,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_32_9_129,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_32_9_129,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_9_129),
                                 ValuesIn(size_range_32),
@@ -822,7 +818,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_32_9_129,
                                 ValuesIn(transA_transB_range)));
 
 //---48
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_48,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_48,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_48),
                                 ValuesIn(size_range_48),
@@ -830,7 +826,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_48,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_48_9_129,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_48_9_129,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_48),
                                 ValuesIn(size_range_9_129),
@@ -839,7 +835,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_48_9_129,
                                 ValuesIn(transA_transB_range)));
 
 //---64
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_64,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_64,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_64),
                                 ValuesIn(size_range_64),
@@ -847,7 +843,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_64,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_64_9_129,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_64_9_129,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_64),
                                 ValuesIn(size_range_64),
@@ -880,7 +876,7 @@ INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4_5_8_64,
                                 ValuesIn(transA_transB_range)));
 
 //--- 96
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_96,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_96,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_96),
                                 ValuesIn(size_range_96),
@@ -888,8 +884,17 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_96,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
+//--- 128
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_128,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_128),
+                                ValuesIn(size_range_128),
+                                ValuesIn(size_range_128),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
 //--- 256
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_256,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_256,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_256),
                                 ValuesIn(size_range_256),
@@ -897,7 +902,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_256,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_64_9_12_13_16,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_256_9_12_13_16,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_256),
                                 ValuesIn(size_range_9_12),
@@ -905,7 +910,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_64_9_12_13_16,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_13_16_256_9_12,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_13_16_256_9_12,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_13_16),
                                 ValuesIn(size_range_256),
@@ -913,7 +918,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_13_16_256_9_12,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_9_12_13_16_256,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_9_12_13_16_256,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_9_12),
                                 ValuesIn(size_range_13_16),
@@ -922,7 +927,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_9_12_13_16_256,
                                 ValuesIn(transA_transB_range)));
 
 //--- 512
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_512,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_512,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_512),
                                 ValuesIn(size_range_512),
@@ -931,7 +936,7 @@ INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_512,
                                 ValuesIn(transA_transB_range)));
 
 //--- 1024
-INSTANTIATE_TEST_CASE_P(daily_blas3_sweep_1024,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_1024,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_1024),
                                 ValuesIn(size_range_1024),

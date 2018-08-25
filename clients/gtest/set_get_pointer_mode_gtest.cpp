@@ -24,7 +24,7 @@ README: This file contains testers to verify the correctness of
      BLAS set-get_pointer_mode:
 =================================================================== */
 
-TEST(checkin_auxilliary, set_pointer_mode_get_pointer_mode)
+TEST(quick_auxilliary, set_pointer_mode_get_pointer_mode)
 {
     rocblas_status status     = rocblas_status_success;
     rocblas_pointer_mode mode = rocblas_pointer_mode_device;

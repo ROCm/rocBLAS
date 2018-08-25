@@ -53,8 +53,8 @@ Advance users only: BrainStorm the parameters
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
-int N_range[] = {
-    -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792, 1048576, 1049600, 4000000, 8000000};
+int N_range[]       = {-1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792};
+int N_range_large[] = {1048576, 1049600, 4000000, 8000000};
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
@@ -276,8 +276,13 @@ TEST_P(parameterized, swap_float)
 // so each elment in xxx_range is a avector,
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { N, {alpha, beta}, {incx, incy} }
-INSTANTIATE_TEST_CASE_P(checkin_blas1,
+INSTANTIATE_TEST_CASE_P(quick_blas1,
                         parameterized,
                         Combine(ValuesIn(N_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(incx_incy_range)));
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas1,
+                        parameterized,
+                        Combine(ValuesIn(N_range_large),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(incx_incy_range)));

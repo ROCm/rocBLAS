@@ -53,6 +53,10 @@ const vector<vector<int>> lda_ldb_ldc_range = {
     {3, 5, 4}, {3, 5, 5}, {5, 3, 3}, {5, 3, 4}, {5, 3, 5},    {5, 4, 3},   {5, 4, 4},
     {5, 4, 5}, {5, 5, 3}, {5, 5, 4}, {5, 5, 5}, {30, 30, 30}, {31, 32, 33}};
 
+// small sizes   {{M, N},{lda,ldb,ldc}}
+set_get_matrix_tuple gemm_small_values1{{30000, 21}, {30000, 30001, 30002}};
+set_get_matrix_tuple gemm_small_values11{{20, 30000}, {20, 21, 22}};
+
 // large sizes   {{M, N},{lda,ldb,ldc}}
 set_get_matrix_tuple gemm_values1{{300000, 21}, {300000, 300001, 300002}};
 set_get_matrix_tuple gemm_values2{{300001, 22}, {300001, 300001, 300010}};
@@ -76,7 +80,8 @@ set_get_matrix_tuple gemm_values21{{3, 3000222}, {4, 4, 4}};
 
 set_get_matrix_tuple gemm_values31{{16700, 16700}, {16700, 16700, 16700}};
 
-const vector<set_get_matrix_tuple> small_gemm_values_vec = {gemm_values1, gemm_values11};
+const vector<set_get_matrix_tuple> small_gemm_values_vec = {gemm_small_values1,
+                                                            gemm_small_values11};
 
 const vector<set_get_matrix_tuple> large_gemm_values_vec = {gemm_values1,
                                                             gemm_values2,
@@ -251,14 +256,14 @@ TEST_P(parameterized_set_matrix_get_matrix, double)
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N}, {lda, ldb, ldc} }
 
-INSTANTIATE_TEST_CASE_P(checkin_auxilliary,
+INSTANTIATE_TEST_CASE_P(quick_auxilliary_1,
                         parameterized_set_matrix_get_matrix,
                         Combine(ValuesIn(M_N_range), ValuesIn(lda_ldb_ldc_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_auxilliary_2,
+INSTANTIATE_TEST_CASE_P(quick_auxilliary_2,
                         parameterized_set_matrix_get_matrix,
                         ValuesIn(small_gemm_values_vec));
 
-INSTANTIATE_TEST_CASE_P(daily_auxilliary,
+INSTANTIATE_TEST_CASE_P(pre_checkin_auxilliary,
                         parameterized_set_matrix_get_matrix,
                         ValuesIn(large_gemm_values_vec));
