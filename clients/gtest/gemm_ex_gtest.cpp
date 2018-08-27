@@ -238,9 +238,9 @@ const vector<vector<rocblas_datatype>> precision_type_range = {{rocblas_datatype
 
 Arguments setup_gemm_ex_arguments(gemm_ex_tuple tup)
 {
-    vector<int> matrix_size                   = std::get<0>(tup);
-    vector<double> alpha_beta                 = std::get<1>(tup);
-    vector<char> transA_transB                = std::get<2>(tup);
+    vector<int> matrix_size                  = std::get<0>(tup);
+    vector<double> alpha_beta                = std::get<1>(tup);
+    vector<char> transA_transB               = std::get<2>(tup);
     vector<rocblas_datatype> precision_types = std::get<3>(tup);
 
     Arguments arg;
