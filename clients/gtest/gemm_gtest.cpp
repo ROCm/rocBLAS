@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <vector>
 #include "testing_gemm.hpp"
+#include "testing_gemm_sweep.hpp"
 #include "utility.h"
 
 using ::testing::TestWithParam;
@@ -25,15 +26,47 @@ README: This file contains testers to verify the correctness of
 
 // only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
+typedef std::tuple<int, int, int, vector<double>, vector<char>> gemm_sweep_tuple;
 typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
+
+// clang-format off
+const vector<int> size_range_1_4   = {   1,    2,    3,   4};
+const vector<int> size_range_5_8   = {   5,    6,    7,   8};
+const vector<int> size_range_9_12  = {   9,   10,   11,  12};
+const vector<int> size_range_13_16 = {  13,   14,   15,  16};
+const vector<int> size_range_17_20 = {  17,   18,   19,  20};
+const vector<int> size_range_20_23 = {  20,   21,   22,  23};
+const vector<int> size_range_24_27 = {  24,   25,   26,  27};
+const vector<int> size_range_28_31 = {  28,   29,   30,  31};
+const vector<int> size_range_32    = {  31,   32,   33};
+const vector<int> size_range_48    = {  47,   48,   49};
+const vector<int> size_range_64    = {  63,   64,   65};
+const vector<int> size_range_96    = {  95,   96,   97};
+const vector<int> size_range_128   = { 127,  128,  129};
+const vector<int> size_range_256   = { 255,  256,  257};
+const vector<int> size_range_512   = { 511,  512,  513};
+const vector<int> size_range_1024  = {1023, 1024, 1025};
+const vector<int> size_range_9_129 = {9, 10,  11,  12,  13,  14,  15,  16,  17,  18,  19,
+                                         20,  21,  22,  23,  24,  25,  26,  27,  28,  29,
+                                         30,  31,  32,  33,  34,  35,  36,  37,  38,  39,
+                                         40,  41,  42,  43,  44,  45,  46,  47,  48,  49,
+                                         50,  51,  52,  53,  54,  55,  56,  57,  58,  59,
+                                         60,  61,  62,  63,  64,  65,  66,  67,  68,  69,
+                                         70,  71,  72,  73,  74,  75,  76,  77,  78,  79,
+                                         80,  81,  82,  83,  84,  85,  86,  87,  88,  89,
+                                         90,  91,  92,  93,  94,  95,  96,  97,  98,  99,
+                                        100, 101, 102, 103, 104, 105, 106, 107, 108, 109,
+                                        110, 111, 112, 113, 114, 115, 116, 117, 118, 119,
+                                        120, 121, 122, 123, 124, 125, 126, 127, 128, 129};
+// clang-format on
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc};
 // add/delete as a group
-const vector<vector<int>> tiny_matrix_size_range = {
+const vector<vector<int>> small_matrix_size_range = {
     {1, 1, 1, 1, 1, 1}, {1, 2, 3, 4, 5, 6}, {7, 9, 15, 17, 18, 19},
 };
 
-const vector<vector<int>> small_matrix_size_range = {
+const vector<vector<int>> medium_matrix_size_range = {
     {-1, -1, -1, -1, 1, 1},
     {1, 1, 1, 1, 1, 1},
     {2, 2, 2, 2, 2, 2},
@@ -71,13 +104,13 @@ const vector<vector<int>> small_matrix_size_range = {
     {3, 33, 3, 33, 35, 35},
     {5, 6, 7, 9, 11, 13},
     {10, 10, 20, 100, 21, 22},
+    {191, 193, 194, 195, 196, 197},
     {500, 501, 502, 503, 604, 505},
     {500, 501, 502, 203, 204, 205},
+    {639, 640, 347, 960, 961, 1062},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
-    {191, 193, 194, 195, 196, 197},
-    {639, 640, 347, 960, 961, 1062},
     {1000, 1001, 101, 2002, 1003, 1004},
     {925, 1026, 1027, 1028, 2029, 1031},
     {4011, 4012, 103, 4014, 4015, 4016},
@@ -116,6 +149,7 @@ const vector<vector<double>> full_alpha_beta_range = {
 // for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in
 // sgemm/dgemm,
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
+const vector<vector<char>> transA_transB_N_N_range = {{'N', 'N'}};
 
 // clang-format off
 gemm_tuple deepbench0{{192, 64, 784, 784, 784, 192}, {1, 1}, {'T', 'N'}};
@@ -289,6 +323,28 @@ const vector<gemm_tuple> deepbench_vec = {
 // by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is
 // not intuitive and error-prone
 
+Arguments setup_gemm_sweep_arguments(gemm_sweep_tuple tup)
+{
+    Arguments arg;
+
+    arg.M                      = std::get<0>(tup);
+    arg.N                      = std::get<1>(tup);
+    arg.K                      = std::get<2>(tup);
+    vector<double> alpha_beta  = std::get<3>(tup);
+    vector<char> transA_transB = std::get<4>(tup);
+
+    // the first element of alpha_beta_range is always alpha, and the second is always beta
+    arg.alpha = alpha_beta[0];
+    arg.beta  = alpha_beta[1];
+
+    arg.transA_option = transA_transB[0];
+    arg.transB_option = transA_transB[1];
+
+    arg.timing = 0;
+
+    return arg;
+}
+
 Arguments setup_gemm_arguments(gemm_tuple tup)
 {
     vector<int> matrix_size    = std::get<0>(tup);
@@ -347,6 +403,15 @@ TEST_P(parameterized_gemm_NaN, double)
     testing_gemm_NaN<double>(arg);
 }
 
+class parameterized_gemm_sweep : public ::TestWithParam<gemm_sweep_tuple>
+{
+    protected:
+    parameterized_gemm_sweep() {}
+    virtual ~parameterized_gemm_sweep() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
 class parameterized_gemm : public ::TestWithParam<gemm_tuple>
 {
     protected:
@@ -355,6 +420,105 @@ class parameterized_gemm : public ::TestWithParam<gemm_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+TEST_P(parameterized_gemm_sweep, half)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_sweep_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_sweep<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+TEST_P(parameterized_gemm_sweep, float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_sweep_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_sweep<float>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+TEST_P(parameterized_gemm_sweep, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_sweep_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_sweep<double>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
 
 TEST_P(parameterized_gemm, float)
 {
@@ -506,11 +670,11 @@ TEST_P(parameterized_half_gemm, half)
     }
 }
 
-TEST(checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_half) { testing_gemm_bad_arg<rocblas_half>(); }
 
-TEST(checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_float) { testing_gemm_bad_arg<float>(); }
 
-TEST(checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
+TEST(pre_checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
 
 // notice we are using vector of vector
 // so each elment in xxx_range is a avector,
@@ -518,61 +682,264 @@ TEST(checkin_blas3_bad_arg, gemm_double) { testing_gemm_bad_arg<double>(); }
 // The combinations are  { {M, N, K, lda, ldb, ldc}, {alpha, beta}, {transA, transB} }
 
 // INSTANTIATE_TEST_CASE_P(rocblas_gemm_beta_eq_0, parameterized_gemm_NaN,
-INSTANTIATE_TEST_CASE_P(checkin_blas3_NaN,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_NaN,
                         parameterized_gemm_NaN,
                         Combine(ValuesIn(NaN_matrix_size_range),
                                 ValuesIn(NaN_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-// THis function mainly test the scope of matrix_size. the scope of alpha_beta, transA_transB is
-// small
-INSTANTIATE_TEST_CASE_P(daily_blas3_large,
-                        parameterized_gemm,
-                        Combine(ValuesIn(large_matrix_size_range),
-                                ValuesIn(alpha_beta_range),
-                                ValuesIn(transA_transB_range)));
-
-// THis function mainly test the scope of alpha_beta, transA_transB,.the scope of matrix_size_range
-// is small
-
-INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         parameterized_gemm,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
-                        parameterized_gemm,
-                        Combine(ValuesIn(tiny_matrix_size_range),
-                                ValuesIn(full_alpha_beta_range),
-                                ValuesIn(transA_transB_range)));
-
-INSTANTIATE_TEST_CASE_P(checkin_blas3_small,
+INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         parameterized_half_gemm,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas3_tiny,
-                        parameterized_half_gemm,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
+                        parameterized_gemm,
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_large,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
+                        parameterized_half_gemm,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
+                        parameterized_gemm,
+                        Combine(ValuesIn(large_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
                         parameterized_half_gemm,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_chunk,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_chunk,
                         parameterized_chunk_gemm,
                         Combine(ValuesIn(chunk_matrix_size_range),
                                 ValuesIn(alpha_beta_2_3_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
 
-INSTANTIATE_TEST_CASE_P(daily_blas3_deepbench_sizes,
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         parameterized_half_gemm,
                         ValuesIn(deepbench_vec));
+
+//--- sweep tests
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_1_4),
+                                ValuesIn(size_range_1_4),
+                                ValuesIn(size_range_1_4),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_5_8,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_5_8),
+                                ValuesIn(size_range_5_8),
+                                ValuesIn(size_range_5_8),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_9_12,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_9_12),
+                                ValuesIn(size_range_9_12),
+                                ValuesIn(size_range_9_12),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_13_16,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_13_16),
+                                ValuesIn(size_range_13_16),
+                                ValuesIn(size_range_13_16),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_17_20,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_17_20),
+                                ValuesIn(size_range_17_20),
+                                ValuesIn(size_range_17_20),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_20_23,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_20_23),
+                                ValuesIn(size_range_20_23),
+                                ValuesIn(size_range_20_23),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_24_27,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_24_27),
+                                ValuesIn(size_range_24_27),
+                                ValuesIn(size_range_24_27),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_28_31,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_28_31),
+                                ValuesIn(size_range_28_31),
+                                ValuesIn(size_range_28_31),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+//---32
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_32,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_32),
+                                ValuesIn(size_range_32),
+                                ValuesIn(size_range_32),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_32_9_129,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_9_129),
+                                ValuesIn(size_range_32),
+                                ValuesIn(size_range_32),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//---48
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_48,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_48),
+                                ValuesIn(size_range_48),
+                                ValuesIn(size_range_48),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_48_9_129,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_48),
+                                ValuesIn(size_range_9_129),
+                                ValuesIn(size_range_48),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//---64
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_64,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_64),
+                                ValuesIn(size_range_64),
+                                ValuesIn(size_range_64),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_64_9_129,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_64),
+                                ValuesIn(size_range_64),
+                                ValuesIn(size_range_9_129),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_64_1_4_5_8,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_64),
+                                ValuesIn(size_range_1_4),
+                                ValuesIn(size_range_5_8),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_5_8_64_1_4,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_5_8),
+                                ValuesIn(size_range_64),
+                                ValuesIn(size_range_1_4),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4_5_8_64,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_1_4),
+                                ValuesIn(size_range_5_8),
+                                ValuesIn(size_range_64),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//--- 96
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_96,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_96),
+                                ValuesIn(size_range_96),
+                                ValuesIn(size_range_96),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//--- 128
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_128,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_128),
+                                ValuesIn(size_range_128),
+                                ValuesIn(size_range_128),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//--- 256
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_256,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_256),
+                                ValuesIn(size_range_256),
+                                ValuesIn(size_range_256),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_256_9_12_13_16,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_256),
+                                ValuesIn(size_range_9_12),
+                                ValuesIn(size_range_13_16),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_13_16_256_9_12,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_13_16),
+                                ValuesIn(size_range_256),
+                                ValuesIn(size_range_9_12),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_9_12_13_16_256,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_9_12),
+                                ValuesIn(size_range_13_16),
+                                ValuesIn(size_range_256),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//--- 512
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_sweep_512,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_512),
+                                ValuesIn(size_range_512),
+                                ValuesIn(size_range_512),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));
+
+//--- 1024
+INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_1024,
+                        parameterized_gemm_sweep,
+                        Combine(ValuesIn(size_range_1024),
+                                ValuesIn(size_range_1024),
+                                ValuesIn(size_range_1024),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range)));

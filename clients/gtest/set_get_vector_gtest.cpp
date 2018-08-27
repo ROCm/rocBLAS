@@ -38,7 +38,9 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 // vector of vector, each vector is a {M};
 // add/delete as a group
-const int small_M_range[] = {10, 600, 600000};
+const int small_M_range[] = {10, 600};
+
+const int medium_M_range[] = {600000};
 
 const int large_M_range[] = {1000000, 6000000};
 
@@ -62,6 +64,9 @@ const vector<vector<int>> small_incx_incy_incb_range = {{1, 1, 1},
                                                         {3, 3, 1},
                                                         {3, 3, 2},
                                                         {3, 3, 3}};
+
+const vector<vector<int>> medium_incx_incy_incb_range = {
+    {1, 1, 1}, {1, 1, 3}, {1, 3, 1}, {1, 3, 3}, {3, 1, 1}, {3, 1, 3}, {3, 3, 1}, {3, 3, 3}};
 
 const vector<vector<int>> large_incx_incy_incb_range = {
     {1, 1, 1}, {1, 1, 3}, {1, 3, 1}, {1, 3, 3}, {3, 1, 1}, {3, 1, 3}, {3, 3, 1}, {3, 3, 3}};
@@ -190,10 +195,14 @@ TEST_P(parameterized_set_vector_get_vector, double)
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda}, {incx,incy} {alpha} }
 
-INSTANTIATE_TEST_CASE_P(checkin_auxiliary,
+INSTANTIATE_TEST_CASE_P(quick_auxiliary,
                         parameterized_set_vector_get_vector,
                         Combine(ValuesIn(small_M_range), ValuesIn(small_incx_incy_incb_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_auxiliary,
+INSTANTIATE_TEST_CASE_P(pre_checkin_auxiliary,
+                        parameterized_set_vector_get_vector,
+                        Combine(ValuesIn(medium_M_range), ValuesIn(medium_incx_incy_incb_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_auxiliary,
                         parameterized_set_vector_get_vector,
                         Combine(ValuesIn(large_M_range), ValuesIn(large_incx_incy_incb_range)));

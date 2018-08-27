@@ -31,15 +31,11 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>, vector<rocblas_pre
 // clang-format off
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 // add/delete as a group
-const vector<vector<int>> tiny_matrix_size_range = {
+const vector<vector<int>> small_matrix_size_range = {
     {1, 1,  1,  1,  1,  1,  1}, 
     {1, 2,  3,  4,  5,  6,  6}, 
     {7, 9, 15, 17, 18, 19, 19}, 
     {8, 1,  1,  8,  8,  8,  8},
-};
-
-// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
-const vector<vector<int>> small_matrix_size_range = {
     { 2,  2,  2,  2,  2,  2,  2},
     { 3,  3,  3,  3,  3,  3,  3},
     { 4,  4,  4,  4,  4,  4,  4},
@@ -95,6 +91,8 @@ const vector<vector<int>> small_matrix_size_range = {
     {56, 56, 56, 56, 56, 56, 56},
     {64, 64, 64, 64, 64, 64, 64},
     {72, 72, 72, 72, 72, 72, 72},
+};
+const vector<vector<int>> medium_matrix_size_range = {
     {127, 127,  63, 127, 127, 127, 127},
     {128, 127,  63, 128, 128, 128, 128},
     {129, 127,  63, 129, 129, 129, 129},
@@ -122,13 +120,13 @@ const vector<vector<int>> small_matrix_size_range = {
     {127, 129,  65, 129, 129, 129, 129},
     {128, 129,  65, 129, 129, 129, 129},
     {129, 129,  65, 129, 129, 129, 129},
+    {191, 193, 194, 195, 196, 197, 197},
+    {500, 501, 502, 503, 604, 505, 505},
+    {639, 640, 347, 960, 961,1062,1062},
 };
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 const vector<vector<int>> large_matrix_size_range = {
-    { 191,  193,  194,  195,  196,  197,  197},
-    { 500,  501,  502,  503,  604,  505,  505},
-    { 639,  640,  347,  960,  961, 1062, 1062},
     {1000, 1001,  101, 2002, 1003, 1004, 1004},
     { 925, 1026, 1027, 1028, 2029, 1031, 1031},
     {4011, 4012,  103, 4014, 4015, 4016, 4016},
@@ -368,94 +366,94 @@ class parameterized_half_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
     virtual void TearDown() {}
 };
 
-TEST(checkin_blas_ex_bad_arg, float) { testing_gemm_ex_bad_arg(); }
+TEST(pre_checkin_blas_ex_bad_arg, float) { testing_gemm_ex_bad_arg(); }
 
-//----tiny
-INSTANTIATE_TEST_CASE_P(known_bug_blas_ex_tiny_hpa_half,
+//----small
+INSTANTIATE_TEST_CASE_P(known_bug_blas_ex_small_hpa_half,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+                        Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_hpa_half)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_tiny_half,
+INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_half,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+                        Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_half)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_tiny_single,
+INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_single,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+                        Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_single)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_tiny_double,
+INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_double,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(tiny_matrix_size_range),
+                        Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
-//----small
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_small_hpa_half,
+//----medium
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_hpa_half,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(small_matrix_size_range),
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_hpa_half)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_small_half,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_half,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(small_matrix_size_range),
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_half)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_small_float,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_float,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(small_matrix_size_range),
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_single)));
 
-INSTANTIATE_TEST_CASE_P(checkin_blas_ex_small_double,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_double,
                         parameterized_gemm_ex,
-                        Combine(ValuesIn(small_matrix_size_range),
+                        Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
 //----large
-INSTANTIATE_TEST_CASE_P(daily_blas_ex_large_hpa_half,
+INSTANTIATE_TEST_CASE_P(nightly_blas_ex_large_hpa_half,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_hpa_half)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas_ex_large_half,
+INSTANTIATE_TEST_CASE_P(nightly_blas_ex_large_half,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_half)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas_ex_large_float,
+INSTANTIATE_TEST_CASE_P(nightly_blas_ex_large_float,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_single)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas_ex_large_double,
+INSTANTIATE_TEST_CASE_P(nightly_blas_ex_large_double,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
 //----chunk
-INSTANTIATE_TEST_CASE_P(daily_blas_ex_chunk,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_chunk,
                         parameterized_chunk_gemm_ex,
                         Combine(ValuesIn(chunk_matrix_size_range),
                                 ValuesIn(alpha_beta_2_3_range),

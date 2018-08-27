@@ -28,5 +28,5 @@ README: This file contains testers to verify the correctness of
      BLAS set-get_logging_mode:
 =================================================================== */
 
-TEST(checkin_auxilliary, logging_float) { testing_logging<float>(); }
-TEST(checkin_auxilliary, logging_double) { testing_logging<double>(); }
+TEST(quick_auxilliary, logging_float) { testing_logging<float>(); }
+TEST(quick_auxilliary, logging_double) { testing_logging<double>(); }
