@@ -33,18 +33,20 @@ void testing_gemm_ex_bad_arg()
     const rocblas_int ldc = 100;
     const rocblas_int ldd = 100;
 
-    rocblas_precision a_type       = rocblas_precision_single;
-    rocblas_precision b_type       = rocblas_precision_single;
-    rocblas_precision c_type       = rocblas_precision_single;
-    rocblas_precision d_type       = rocblas_precision_single;
-    rocblas_precision compute_type = rocblas_precision_single;
+    rocblas_datatype a_type       = rocblas_datatype_f32_r;
+    rocblas_datatype b_type       = rocblas_datatype_f32_r;
+    rocblas_datatype c_type       = rocblas_datatype_f32_r;
+    rocblas_datatype d_type       = rocblas_datatype_f32_r;
+    rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
     const float alpha_float = 1.0;
     const float beta_float  = 1.0;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    rocblas_int kernel_index;
+    rocblas_int solution_index;
     rocblas_int flags;
+    size_t workspace_size = 0;
+    void* workspace;
 
     const size_t safe_size = 100;
 
@@ -100,8 +102,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
     }
@@ -130,8 +134,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
     }
@@ -160,8 +166,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -190,8 +198,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: D is nullptr");
     }
@@ -220,8 +230,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -250,8 +262,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -280,8 +294,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_handle(status);
     }
@@ -305,15 +321,17 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                         rocblas_int unit_check,
                                         rocblas_int timing,
                                         int number_hot_calls,
-                                        rocblas_precision a_type,
-                                        rocblas_precision b_type,
-                                        rocblas_precision c_type,
-                                        rocblas_precision d_type,
-                                        rocblas_precision compute_type)
+                                        rocblas_datatype a_type,
+                                        rocblas_datatype b_type,
+                                        rocblas_datatype c_type,
+                                        rocblas_datatype d_type,
+                                        rocblas_datatype compute_type)
 {
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    uint32_t kernel_index  = 0;
-    uint32_t flags         = 0;
+    rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+    uint32_t solution_index = 0;
+    uint32_t flags          = 0;
+    size_t workspace_size   = 0;
+    void* workspace;
 
     Td h_alpha;
     Td h_beta;
@@ -398,8 +416,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         gemm_arg_check(status, M, N, K, lda, ldb, ldc);
 
@@ -513,8 +533,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             ldd,
                                             compute_type,
                                             algo,
-                                            kernel_index,
-                                            flags));
+                                            solution_index,
+                                            flags,
+                                            workspace_size,
+                                            workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
 
@@ -564,8 +586,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             ldd,
                                             compute_type,
                                             algo,
-                                            kernel_index,
-                                            flags));
+                                            solution_index,
+                                            flags,
+                                            workspace_size,
+                                            workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
 
@@ -686,11 +710,11 @@ rocblas_status testing_gemm_ex(Arguments argus)
     rocblas_int ldc = argus.ldc;
     rocblas_int ldd = argus.ldd;
 
-    rocblas_precision a_type       = argus.a_type;
-    rocblas_precision b_type       = argus.b_type;
-    rocblas_precision c_type       = argus.c_type;
-    rocblas_precision d_type       = argus.d_type;
-    rocblas_precision compute_type = argus.compute_type;
+    rocblas_datatype a_type       = argus.a_type;
+    rocblas_datatype b_type       = argus.b_type;
+    rocblas_datatype c_type       = argus.c_type;
+    rocblas_datatype d_type       = argus.d_type;
+    rocblas_datatype compute_type = argus.compute_type;
 
     float alpha = argus.alpha;
     float beta  = argus.beta;
@@ -700,9 +724,9 @@ rocblas_status testing_gemm_ex(Arguments argus)
     rocblas_int timing     = argus.timing;
     int number_hot_calls   = argus.iters;
 
-    if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
-       c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
-       compute_type == rocblas_precision_half)
+    if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
+       c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
+       compute_type == rocblas_datatype_f16_r)
     {
         return testing_gemm_ex_template<rocblas_half, rocblas_half>(transA,
                                                                     transB,
@@ -725,9 +749,9 @@ rocblas_status testing_gemm_ex(Arguments argus)
                                                                     d_type,
                                                                     compute_type);
     }
-    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
-            c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
-            compute_type == rocblas_precision_single)
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
+            c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
+            compute_type == rocblas_datatype_f32_r)
     {
         return testing_gemm_ex_template<rocblas_half, float>(transA,
                                                              transB,
@@ -750,9 +774,9 @@ rocblas_status testing_gemm_ex(Arguments argus)
                                                              d_type,
                                                              compute_type);
     }
-    else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
-            c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
-            compute_type == rocblas_precision_single)
+    else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r &&
+            c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r &&
+            compute_type == rocblas_datatype_f32_r)
     {
         return testing_gemm_ex_template<float, float>(transA,
                                                       transB,
@@ -775,9 +799,9 @@ rocblas_status testing_gemm_ex(Arguments argus)
                                                       d_type,
                                                       compute_type);
     }
-    else if(a_type == rocblas_precision_double && b_type == rocblas_precision_double &&
-            c_type == rocblas_precision_double && d_type == rocblas_precision_double &&
-            compute_type == rocblas_precision_double)
+    else if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r &&
+            c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r &&
+            compute_type == rocblas_datatype_f64_r)
     {
         return testing_gemm_ex_template<double, double>(transA,
                                                         transB,

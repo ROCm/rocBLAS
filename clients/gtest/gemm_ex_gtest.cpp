@@ -25,7 +25,7 @@ README: This file contains testers to verify the correctness of
 
 // only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, vector<double>, vector<char>, vector<rocblas_precision>>
+typedef std::tuple<vector<int>, vector<double>, vector<char>, vector<rocblas_datatype>>
     gemm_ex_tuple;
 
 // clang-format off
@@ -175,50 +175,50 @@ const vector<vector<char>> small_transA_transB_range = {{'N', 'N'}};
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
 
 // a_type, b_type, c_type, d_type, compute_type
-const vector<vector<rocblas_precision>> precision_half = {{ rocblas_precision_half,
-                                                            rocblas_precision_half,
-                                                            rocblas_precision_half,
-                                                            rocblas_precision_half,
-                                                            rocblas_precision_half  }};
+const vector<vector<rocblas_datatype>> precision_half = {{ rocblas_datatype_f16_r,
+                                                            rocblas_datatype_f16_r,
+                                                            rocblas_datatype_f16_r,
+                                                            rocblas_datatype_f16_r,
+                                                            rocblas_datatype_f16_r  }};
 
-const vector<vector<rocblas_precision>> precision_hpa_half = {{ rocblas_precision_half,
-                                                                rocblas_precision_half,
-                                                                rocblas_precision_half,
-                                                                rocblas_precision_half,
-                                                                rocblas_precision_single  }};
+const vector<vector<rocblas_datatype>> precision_hpa_half = {{ rocblas_datatype_f16_r,
+                                                                rocblas_datatype_f16_r,
+                                                                rocblas_datatype_f16_r,
+                                                                rocblas_datatype_f16_r,
+                                                                rocblas_datatype_f32_r  }};
 
-const vector<vector<rocblas_precision>> precision_single = {{ rocblas_precision_single,
-                                                              rocblas_precision_single,
-                                                              rocblas_precision_single,
-                                                              rocblas_precision_single,
-                                                              rocblas_precision_single  }};
+const vector<vector<rocblas_datatype>> precision_single = {{ rocblas_datatype_f32_r,
+                                                              rocblas_datatype_f32_r,
+                                                              rocblas_datatype_f32_r,
+                                                              rocblas_datatype_f32_r,
+                                                              rocblas_datatype_f32_r  }};
 
-const vector<vector<rocblas_precision>> precision_double = {{ rocblas_precision_double,
-                                                              rocblas_precision_double,
-                                                              rocblas_precision_double,
-                                                              rocblas_precision_double,
-                                                              rocblas_precision_double  }};
+const vector<vector<rocblas_datatype>> precision_double = {{ rocblas_datatype_f64_r,
+                                                              rocblas_datatype_f64_r,
+                                                              rocblas_datatype_f64_r,
+                                                              rocblas_datatype_f64_r,
+                                                              rocblas_datatype_f64_r  }};
 
-const vector<vector<rocblas_precision>> precision_type_range = {{rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_half},
-                                                                {rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_half,
-                                                                 rocblas_precision_single},
-                                                                {rocblas_precision_single,
-                                                                 rocblas_precision_single,
-                                                                 rocblas_precision_single,
-                                                                 rocblas_precision_single,
-                                                                 rocblas_precision_single},
-                                                                {rocblas_precision_double,
-                                                                 rocblas_precision_double,
-                                                                 rocblas_precision_double,
-                                                                 rocblas_precision_double,
-                                                                 rocblas_precision_double}};
+const vector<vector<rocblas_datatype>> precision_type_range = {{rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r},
+                                                                {rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f16_r,
+                                                                 rocblas_datatype_f32_r},
+                                                                {rocblas_datatype_f32_r,
+                                                                 rocblas_datatype_f32_r,
+                                                                 rocblas_datatype_f32_r,
+                                                                 rocblas_datatype_f32_r,
+                                                                 rocblas_datatype_f32_r},
+                                                                {rocblas_datatype_f64_r,
+                                                                 rocblas_datatype_f64_r,
+                                                                 rocblas_datatype_f64_r,
+                                                                 rocblas_datatype_f64_r,
+                                                                 rocblas_datatype_f64_r}};
 // clang-format on
 
 /* ===============Google Unit Test==================================================== */
@@ -238,10 +238,10 @@ const vector<vector<rocblas_precision>> precision_type_range = {{rocblas_precisi
 
 Arguments setup_gemm_ex_arguments(gemm_ex_tuple tup)
 {
-    vector<int> matrix_size                   = std::get<0>(tup);
-    vector<double> alpha_beta                 = std::get<1>(tup);
-    vector<char> transA_transB                = std::get<2>(tup);
-    vector<rocblas_precision> precision_types = std::get<3>(tup);
+    vector<int> matrix_size                  = std::get<0>(tup);
+    vector<double> alpha_beta                = std::get<1>(tup);
+    vector<char> transA_transB               = std::get<2>(tup);
+    vector<rocblas_datatype> precision_types = std::get<3>(tup);
 
     Arguments arg;
 
