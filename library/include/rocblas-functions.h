@@ -1420,7 +1420,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               rocblas_datatype compute_type,
                                               rocblas_gemm_algo algo,
                                               uint32_t kernel_index,
-                                              uint32_t flags);
+                                              uint32_t flags,
+                                              size_t workspace_size,
+                                              void* workspace);
 
 #ifdef __cplusplus
 }

@@ -91,10 +91,10 @@ typedef enum rocblas_status_ {
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_ {
-    rocblas_datatype_f16_r           = 150,
-    rocblas_datatype_f32_r         = 151,
-    rocblas_datatype_f64_r         = 152,
-    rocblas_datatype_f16_c   = 153,
+    rocblas_datatype_f16_r = 150,
+    rocblas_datatype_f32_r = 151,
+    rocblas_datatype_f64_r = 152,
+    rocblas_datatype_f16_c = 153,
     rocblas_datatype_f32_c = 154,
     rocblas_datatype_f64_c = 155
 } rocblas_datatype;

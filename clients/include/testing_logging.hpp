@@ -248,81 +248,70 @@ void testing_logging()
         // BLAS_EX
         if(BUILD_WITH_TENSILE)
         {
-            float alpha_float = 1.0;
-            float beta_float  = 1.0;
+            float alpha_float       = 1.0;
+            float beta_float        = 1.0;
+            rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+            uint32_t solution_index = 0;
+            uint32_t flags          = 0;
+            size_t workspace_size   = 0;
+            void* workspace         = NULL;
+            rocblas_datatype a_type;
+            rocblas_datatype b_type;
+            rocblas_datatype c_type;
+            rocblas_datatype d_type;
+            rocblas_datatype compute_type;
 
-            if(std::is_same<T, float>::value)
+            if(std::is_same<T, rocblas_half>::value)
             {
-                rocblas_datatype a_type       = rocblas_datatype_f32_r;
-                rocblas_datatype b_type       = rocblas_datatype_f32_r;
-                rocblas_datatype c_type       = rocblas_datatype_f32_r;
-                rocblas_datatype d_type       = rocblas_datatype_f32_r;
-                rocblas_datatype compute_type = rocblas_datatype_f32_r;
-                rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
-                uint32_t kernel_index          = 0;
-                uint32_t flags                 = 0;
-
-                status = rocblas_gemm_ex(handle,
-                                         transA,
-                                         transB,
-                                         m,
-                                         n,
-                                         k,
-                                         &alpha_float,
-                                         da,
-                                         a_type,
-                                         lda,
-                                         db,
-                                         b_type,
-                                         ldb,
-                                         &beta_float,
-                                         dc,
-                                         c_type,
-                                         ldc,
-                                         dd,
-                                         d_type,
-                                         ldd,
-                                         compute_type,
-                                         algo,
-                                         kernel_index,
-                                         flags);
+                a_type       = rocblas_datatype_f16_r;
+                b_type       = rocblas_datatype_f16_r;
+                c_type       = rocblas_datatype_f16_r;
+                d_type       = rocblas_datatype_f16_r;
+                compute_type = rocblas_datatype_f16_r;
             }
-            if(std::is_same<T, double>::value)
+            else if(std::is_same<T, float>::value)
             {
-                rocblas_datatype a_type       = rocblas_datatype_f64_r;
-                rocblas_datatype b_type       = rocblas_datatype_f64_r;
-                rocblas_datatype c_type       = rocblas_datatype_f64_r;
-                rocblas_datatype d_type       = rocblas_datatype_f64_r;
-                rocblas_datatype compute_type = rocblas_datatype_f64_r;
-                rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
-                uint32_t kernel_index          = 0;
-                uint32_t flags                 = 0;
-
-                status = rocblas_gemm_ex(handle,
-                                         transA,
-                                         transB,
-                                         m,
-                                         n,
-                                         k,
-                                         &alpha_float,
-                                         da,
-                                         a_type,
-                                         lda,
-                                         db,
-                                         b_type,
-                                         ldb,
-                                         &beta_float,
-                                         dc,
-                                         c_type,
-                                         ldc,
-                                         dd,
-                                         d_type,
-                                         ldd,
-                                         compute_type,
-                                         algo,
-                                         kernel_index,
-                                         flags);
+                a_type       = rocblas_datatype_f32_r;
+                b_type       = rocblas_datatype_f32_r;
+                c_type       = rocblas_datatype_f32_r;
+                d_type       = rocblas_datatype_f32_r;
+                compute_type = rocblas_datatype_f32_r;
             }
+            else if(std::is_same<T, double>::value)
+            {
+                a_type       = rocblas_datatype_f64_r;
+                b_type       = rocblas_datatype_f64_r;
+                c_type       = rocblas_datatype_f64_r;
+                d_type       = rocblas_datatype_f64_r;
+                compute_type = rocblas_datatype_f64_r;
+            }
+
+            status = rocblas_gemm_ex(handle,
+                                     transA,
+                                     transB,
+                                     m,
+                                     n,
+                                     k,
+                                     &alpha_float,
+                                     da,
+                                     a_type,
+                                     lda,
+                                     db,
+                                     b_type,
+                                     ldb,
+                                     &beta_float,
+                                     dc,
+                                     c_type,
+                                     ldc,
+                                     dd,
+                                     d_type,
+                                     ldd,
+                                     compute_type,
+                                     algo,
+                                     solution_index,
+                                     flags,
+                                     workspace_size,
+                                     workspace);
         }
     }
 
@@ -627,7 +616,15 @@ void testing_logging()
         {
             rocblas_datatype a_type, b_type, c_type, d_type, compute_type;
 
-            if(std::is_same<T, float>::value)
+            if(std::is_same<T, rocblas_half>::value)
+            {
+                a_type       = rocblas_datatype_f16_r;
+                b_type       = rocblas_datatype_f16_r;
+                c_type       = rocblas_datatype_f16_r;
+                d_type       = rocblas_datatype_f16_r;
+                compute_type = rocblas_datatype_f16_r;
+            }
+            else if(std::is_same<T, float>::value)
             {
                 a_type       = rocblas_datatype_f32_r;
                 b_type       = rocblas_datatype_f32_r;
@@ -644,9 +641,11 @@ void testing_logging()
                 compute_type = rocblas_datatype_f64_r;
             }
 
-            rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-            uint32_t kernel_index  = 0;
-            uint32_t flags         = 0;
+            rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+            uint32_t solution_index = 0;
+            uint32_t flags          = 0;
+            size_t workspace_size   = 0;
+            void* workspace         = NULL;
 
             trace_ofs2 << "rocblas_gemm_ex"
                        << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
@@ -654,7 +653,8 @@ void testing_logging()
                        << (void*)db << "," << b_type << "," << ldb << "," << beta << ","
                        << (void*)dc << "," << c_type << "," << ldc << "," << (void*)dd << ","
                        << d_type << "," << ldd << "," << compute_type << "," << algo << ","
-                       << kernel_index << "," << flags << '\n';
+                       << solution_index << "," << flags << "," << workspace_size << ","
+                       << (void*)workspace << '\n';
 
             bench_ofs2 << "./rocblas-bench -f gemm_ex"
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
@@ -663,7 +663,8 @@ void testing_logging()
                        << " --ldb " << ldb << " --beta " << beta << " --c_type " << c_type
                        << " --ldc " << ldc << " --d_type " << d_type << " --ldd " << ldd
                        << " --compute_type " << compute_type << " --algo " << algo
-                       << " --kernel_index " << kernel_index << " --flags " << flags << '\n';
+                       << " --solution_index " << solution_index << " --flags " << flags
+                       << " --workspace_size " << workspace_size << '\n';
         }
         else
         {

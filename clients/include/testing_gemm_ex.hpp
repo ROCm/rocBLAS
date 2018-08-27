@@ -43,8 +43,10 @@ void testing_gemm_ex_bad_arg()
     const float beta_float  = 1.0;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    rocblas_int kernel_index;
+    rocblas_int solution_index;
     rocblas_int flags;
+    size_t workspace_size = 0;
+    void* workspace;
 
     const size_t safe_size = 100;
 
@@ -100,8 +102,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
     }
@@ -130,8 +134,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
     }
@@ -160,8 +166,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -190,8 +198,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: D is nullptr");
     }
@@ -220,8 +230,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -250,8 +262,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
     }
@@ -280,8 +294,10 @@ void testing_gemm_ex_bad_arg()
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         verify_rocblas_status_invalid_handle(status);
     }
@@ -311,9 +327,11 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                         rocblas_datatype d_type,
                                         rocblas_datatype compute_type)
 {
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    uint32_t kernel_index  = 0;
-    uint32_t flags         = 0;
+    rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+    uint32_t solution_index = 0;
+    uint32_t flags          = 0;
+    size_t workspace_size   = 0;
+    void* workspace;
 
     Td h_alpha;
     Td h_beta;
@@ -398,8 +416,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                  ldd,
                                  compute_type,
                                  algo,
-                                 kernel_index,
-                                 flags);
+                                 solution_index,
+                                 flags,
+                                 workspace_size,
+                                 workspace);
 
         gemm_arg_check(status, M, N, K, lda, ldb, ldc);
 
@@ -513,8 +533,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             ldd,
                                             compute_type,
                                             algo,
-                                            kernel_index,
-                                            flags));
+                                            solution_index,
+                                            flags,
+                                            workspace_size,
+                                            workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
 
@@ -564,8 +586,10 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             ldd,
                                             compute_type,
                                             algo,
-                                            kernel_index,
-                                            flags));
+                                            solution_index,
+                                            flags,
+                                            workspace_size,
+                                            workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2.data(), dD, sizeof(Td) * size_D, hipMemcpyDeviceToHost));
 

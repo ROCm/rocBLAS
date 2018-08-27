@@ -506,14 +506,19 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
               specifies the form of op( B )
     @param[in]
     m         rocblas_int.
+              matrix dimension m
     @param[in]
     n         rocblas_int.
+              matrix dimension n
     @param[in]
     k         rocblas_int.
+              matrix dimension k
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     float
+              specifies the scalar alpha.
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         void *
+              pointer storing matrix A on the GPU.
     @param[in]
     Atype     rocblas_datatype
               specifies the datatype of matrix A
@@ -521,7 +526,8 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    B         pointer storing matrix B on the GPU.
+    B         void *
+              pointer storing matrix B on the GPU.
     @param[in]
     Btype     rocblas_datatype
               specifies the datatype of matrix B
@@ -529,9 +535,11 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     ldb       rocblas_int
               specifies the leading dimension of B.
     @param[in]
-    beta      specifies the scalar beta.
+    beta      float
+              specifies the scalar beta.
     @param[in]
-    C         pointer storing matrix C on the GPU.
+    C         void *
+              pointer storing matrix C on the GPU.
     @param[in]
     Ctype     rocblas_datatype
               specifies the datatype of matrix C
@@ -539,25 +547,35 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     ldc       rocblas_int
               specifies the leading dimension of C.
     @param[out]
-    D         pointer storing matrix D on the GPU.
-    @param[in]
+    D         void *
+              pointer storing matrix D on the GPU.
     @param[in]
     Dtype     rocblas_datatype
               specifies the datatype of matrix D
+    @param[in]
     ldd       rocblas_int
               specifies the leading dimension of D.
     @param[in]
-    computeType
+    computeType   
+              rocblas_datatype
               specifies the datatype of computation
     @param[in]
     algo      rocblas_gemm_algo
               enumerant specifying the algorithm type.
     @param[in]
     solution_index
+              uint32_t
               reserved for future use
     @param[in]
     flags     uint32_t
               reserved for future use
+    @param[in]
+    workspace_size   
+              size_t
+              size of workspace
+    @parm[in]
+    workspace void*
+              workspace
 
 
     ********************************************************************/
@@ -585,7 +603,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_datatype compute_type,
                                           rocblas_gemm_algo algo,
                                           uint32_t solution_index,
-                                          uint32_t flags)
+                                          uint32_t flags,
+                                          size_t workspace_size,
+                                          void* workspace)
 {
     if(nullptr == handle)
         return rocblas_status_invalid_handle;
@@ -616,7 +636,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   compute_type,
                   algo,
                   solution_index,
-                  flags);
+                  flags,
+                  workspace_size,
+                  (const void*&)workspace);
 
         std::string trans_a_letter = rocblas_transpose_letter(trans_a);
         std::string trans_b_letter = rocblas_transpose_letter(trans_b);
@@ -659,7 +681,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   "--solution_index",
                   solution_index,
                   "--flags",
-                  flags);
+                  flags,
+                  "--workspace_size",
+                  workspace_size);
     }
     else
     {
@@ -687,7 +711,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   compute_type,
                   algo,
                   solution_index,
-                  flags);
+                  flags,
+                  "--workspace_size",
+                  workspace_size);
     }
 
     // quick return m,n,k equal to 0 is valid in BLAS
