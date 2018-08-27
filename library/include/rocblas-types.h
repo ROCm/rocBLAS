@@ -90,14 +90,14 @@ typedef enum rocblas_status_ {
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
-typedef enum rocblas_precision_ {
-    rocblas_precision_half           = 150,
-    rocblas_precision_single         = 151,
-    rocblas_precision_double         = 152,
-    rocblas_precision_complex_half   = 153,
-    rocblas_precision_complex_single = 154,
-    rocblas_precision_complex_double = 155
-} rocblas_precision;
+typedef enum rocblas_datatype_ {
+    rocblas_datatype_f16_r           = 150,
+    rocblas_datatype_f32_r         = 151,
+    rocblas_datatype_f64_r         = 152,
+    rocblas_datatype_f16_c   = 153,
+    rocblas_datatype_f32_c = 154,
+    rocblas_datatype_f64_c = 155
+} rocblas_datatype;
 
 /*! \brief Indicates the pointer is device pointer or host pointer */
 typedef enum rocblas_pointer_mode_ {

@@ -213,18 +213,18 @@ rocblas_side char2rocblas_side(char value)
     return rocblas_side_left;
 }
 
-rocblas_precision char2rocblas_precision(char value)
+rocblas_datatype char2rocblas_datatype(char value)
 {
     switch(value)
     {
-    case 'h': return rocblas_precision_half;
-    case 'H': return rocblas_precision_half;
-    case 's': return rocblas_precision_single;
-    case 'S': return rocblas_precision_single;
-    case 'd': return rocblas_precision_double;
-    case 'D': return rocblas_precision_double;
+    case 'h': return rocblas_datatype_f16_r;
+    case 'H': return rocblas_datatype_f16_r;
+    case 's': return rocblas_datatype_f32_r;
+    case 'S': return rocblas_datatype_f32_r;
+    case 'd': return rocblas_datatype_f64_r;
+    case 'D': return rocblas_datatype_f64_r;
     }
-    return rocblas_precision_single;
+    return rocblas_datatype_f32_r;
 }
 
 #ifdef __cplusplus

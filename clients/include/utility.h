@@ -387,7 +387,7 @@ rocblas_diagonal char2rocblas_diagonal(char value);
 
 rocblas_side char2rocblas_side(char value);
 
-rocblas_precision char2rocblas_precision(char value);
+rocblas_datatype char2rocblas_datatype(char value);
 
 #ifdef __cplusplus
 }
@@ -412,11 +412,11 @@ class Arguments
     rocblas_int ldc = 128;
     rocblas_int ldd = 128;
 
-    rocblas_precision a_type       = rocblas_precision_single;
-    rocblas_precision b_type       = rocblas_precision_single;
-    rocblas_precision c_type       = rocblas_precision_single;
-    rocblas_precision d_type       = rocblas_precision_single;
-    rocblas_precision compute_type = rocblas_precision_single;
+    rocblas_datatype a_type       = rocblas_datatype_f32_r;
+    rocblas_datatype b_type       = rocblas_datatype_f32_r;
+    rocblas_datatype c_type       = rocblas_datatype_f32_r;
+    rocblas_datatype d_type       = rocblas_datatype_f32_r;
+    rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
     rocblas_int incx = 1;
     rocblas_int incy = 1;
