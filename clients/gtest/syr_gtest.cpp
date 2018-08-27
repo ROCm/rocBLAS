@@ -53,19 +53,22 @@ const vector<vector<int>> small_matrix_size_range = {{1, 1},
                                                      {65, 66},
                                                      {1000, 1000}};
 
-const vector<vector<int>> large_matrix_size_range = {{2000, 2000}, {4011, 4011}, {8000, 8000}};
+const vector<vector<int>> medium_matrix_size_range = {{1000, 1000}, {2011, 2011}, {3000, 3000}};
+const vector<vector<int>> large_matrix_size_range  = {{2000, 2000}, {4011, 4011}, {8000, 8000}};
 
 // vector of incx;
 // add/delete single values
-const vector<int> small_incx_range = {-1, 1, 0, 2, -2, 10, 99};
-const vector<int> large_incx_range = {
+const vector<int> small_incx_range  = {-1, 1, 0, 2, -2, 10, 99};
+const vector<int> medium_incx_range = {0, 2, -2};
+const vector<int> large_incx_range  = {
     1000,
 };
 
 // vector, each entry is  {alpha};
 // add/delete single values
-const vector<double> small_alpha_range = {-0.5, 2.0, 0.0};
-const vector<double> large_alpha_range = {
+const vector<double> small_alpha_range  = {-0.5, 2.0, 0.0};
+const vector<double> medium_alpha_range = {-0.5, 2.0};
+const vector<double> large_alpha_range  = {
     1000.6,
 };
 
@@ -192,14 +195,21 @@ TEST_P(parameterized_syr, parameterized_syr_float)
 
 TEST(checkin_blas2_bad_arg, syr_float) { testing_syr_bad_arg<float>(); }
 
-INSTANTIATE_TEST_CASE_P(checkin_blas2,
+INSTANTIATE_TEST_CASE_P(quick_blas2,
                         parameterized_syr,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(small_incx_range),
                                 ValuesIn(small_alpha_range),
                                 ValuesIn(uplo_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_rocblas_blas2,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas2,
+                        parameterized_syr,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(medium_incx_range),
+                                ValuesIn(medium_alpha_range),
+                                ValuesIn(uplo_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_rocblas_blas2,
                         parameterized_syr,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(large_incx_range),
