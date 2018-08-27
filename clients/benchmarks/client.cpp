@@ -242,7 +242,7 @@ int main(int argc, char* argv[])
         std::cerr << "Invalid value for --compute_type" << std::endl;
         return -1;
     }
-    argus.a_type = char2rocblas_precision(a_type);
+    argus.a_type = char2rocblas_datatype(a_type);
 
     // Device Query
     rocblas_int device_count = query_device_property();

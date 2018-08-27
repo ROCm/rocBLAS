@@ -515,7 +515,7 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
-    Atype     rocblas_precision
+    Atype     rocblas_datatype
               specifies the datatype of matrix A
     @param[in]
     lda       rocblas_int
@@ -523,7 +523,7 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     @param[in]
     B         pointer storing matrix B on the GPU.
     @param[in]
-    Btype     rocblas_precision
+    Btype     rocblas_datatype
               specifies the datatype of matrix B
     @param[in]
     ldb       rocblas_int
@@ -533,7 +533,7 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     @param[in]
     C         pointer storing matrix C on the GPU.
     @param[in]
-    Ctype     rocblas_precision
+    Ctype     rocblas_datatype
               specifies the datatype of matrix C
     @param[in]
     ldc       rocblas_int
@@ -542,7 +542,7 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     D         pointer storing matrix D on the GPU.
     @param[in]
     @param[in]
-    Dtype     rocblas_precision
+    Dtype     rocblas_datatype
               specifies the datatype of matrix D
     ldd       rocblas_int
               specifies the leading dimension of D.
@@ -553,7 +553,7 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     algo      rocblas_gemm_algo
               enumerant specifying the algorithm type.
     @param[in]
-    kernel_index
+    solution_index
               reserved for future use
     @param[in]
     flags     uint32_t
@@ -570,21 +570,21 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           int k,
                                           const float* alpha,
                                           const void* a,
-                                          rocblas_precision a_type,
+                                          rocblas_datatype a_type,
                                           int lda,
                                           const void* b,
-                                          rocblas_precision b_type,
+                                          rocblas_datatype b_type,
                                           int ldb,
                                           const float* beta,
                                           const void* c,
-                                          rocblas_precision c_type,
+                                          rocblas_datatype c_type,
                                           int ldc,
                                           void* d,
-                                          rocblas_precision d_type,
+                                          rocblas_datatype d_type,
                                           int ldd,
-                                          rocblas_precision compute_type,
+                                          rocblas_datatype compute_type,
                                           rocblas_gemm_algo algo,
-                                          uint32_t kernel_index,
+                                          uint32_t solution_index,
                                           uint32_t flags)
 {
     if(nullptr == handle)
@@ -615,7 +615,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   ldd,
                   compute_type,
                   algo,
-                  kernel_index,
+                  solution_index,
                   flags);
 
         std::string trans_a_letter = rocblas_transpose_letter(trans_a);
@@ -656,8 +656,8 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   compute_type,
                   "--algo",
                   algo,
-                  "--kernel_index",
-                  kernel_index,
+                  "--solution_index",
+                  solution_index,
                   "--flags",
                   flags);
     }
@@ -686,7 +686,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   ldd,
                   compute_type,
                   algo,
-                  kernel_index,
+                  solution_index,
                   flags);
     }
 
@@ -722,30 +722,30 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
 
     rocblas_status rb_status = rocblas_status_internal_error;
 
-    if(a_type == rocblas_precision_double && b_type == rocblas_precision_double &&
-       c_type == rocblas_precision_double && d_type == rocblas_precision_double &&
-       compute_type == rocblas_precision_double)
+    if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r &&
+       c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r &&
+       compute_type == rocblas_datatype_f64_r)
     {
         rb_status = tensile_gemm_typecasting<double, double>(
             handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
-    else if(a_type == rocblas_precision_single && b_type == rocblas_precision_single &&
-            c_type == rocblas_precision_single && d_type == rocblas_precision_single &&
-            compute_type == rocblas_precision_single)
+    else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r &&
+            c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r &&
+            compute_type == rocblas_datatype_f32_r)
     {
         rb_status = tensile_gemm_typecasting<float, float>(
             handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
-    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
-            c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
-            compute_type == rocblas_precision_half)
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
+            c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
+            compute_type == rocblas_datatype_f16_r)
     {
         rb_status = tensile_gemm_typecasting<_Float16, _Float16>(
             handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);
     }
-    else if(a_type == rocblas_precision_half && b_type == rocblas_precision_half &&
-            c_type == rocblas_precision_half && d_type == rocblas_precision_half &&
-            compute_type == rocblas_precision_single)
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
+            c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
+            compute_type == rocblas_datatype_f32_r)
     {
         rb_status = tensile_gemm_typecasting<_Float16, float>(
             handle, trans_a, trans_b, m, n, k, alpha, a, lda, b, ldb, beta, c, ldc, d, ldd);

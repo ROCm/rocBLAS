@@ -253,11 +253,11 @@ void testing_logging()
 
             if(std::is_same<T, float>::value)
             {
-                rocblas_precision a_type       = rocblas_precision_single;
-                rocblas_precision b_type       = rocblas_precision_single;
-                rocblas_precision c_type       = rocblas_precision_single;
-                rocblas_precision d_type       = rocblas_precision_single;
-                rocblas_precision compute_type = rocblas_precision_single;
+                rocblas_datatype a_type       = rocblas_datatype_f32_r;
+                rocblas_datatype b_type       = rocblas_datatype_f32_r;
+                rocblas_datatype c_type       = rocblas_datatype_f32_r;
+                rocblas_datatype d_type       = rocblas_datatype_f32_r;
+                rocblas_datatype compute_type = rocblas_datatype_f32_r;
                 rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
                 uint32_t kernel_index          = 0;
                 uint32_t flags                 = 0;
@@ -289,11 +289,11 @@ void testing_logging()
             }
             if(std::is_same<T, double>::value)
             {
-                rocblas_precision a_type       = rocblas_precision_double;
-                rocblas_precision b_type       = rocblas_precision_double;
-                rocblas_precision c_type       = rocblas_precision_double;
-                rocblas_precision d_type       = rocblas_precision_double;
-                rocblas_precision compute_type = rocblas_precision_double;
+                rocblas_datatype a_type       = rocblas_datatype_f64_r;
+                rocblas_datatype b_type       = rocblas_datatype_f64_r;
+                rocblas_datatype c_type       = rocblas_datatype_f64_r;
+                rocblas_datatype d_type       = rocblas_datatype_f64_r;
+                rocblas_datatype compute_type = rocblas_datatype_f64_r;
                 rocblas_gemm_algo algo         = rocblas_gemm_algo_standard;
                 uint32_t kernel_index          = 0;
                 uint32_t flags                 = 0;
@@ -625,23 +625,23 @@ void testing_logging()
 
         if(test_pointer_mode == rocblas_pointer_mode_host)
         {
-            rocblas_precision a_type, b_type, c_type, d_type, compute_type;
+            rocblas_datatype a_type, b_type, c_type, d_type, compute_type;
 
             if(std::is_same<T, float>::value)
             {
-                a_type       = rocblas_precision_single;
-                b_type       = rocblas_precision_single;
-                c_type       = rocblas_precision_single;
-                d_type       = rocblas_precision_single;
-                compute_type = rocblas_precision_single;
+                a_type       = rocblas_datatype_f32_r;
+                b_type       = rocblas_datatype_f32_r;
+                c_type       = rocblas_datatype_f32_r;
+                d_type       = rocblas_datatype_f32_r;
+                compute_type = rocblas_datatype_f32_r;
             }
             if(std::is_same<T, double>::value)
             {
-                a_type       = rocblas_precision_double;
-                b_type       = rocblas_precision_double;
-                c_type       = rocblas_precision_double;
-                d_type       = rocblas_precision_double;
-                compute_type = rocblas_precision_double;
+                a_type       = rocblas_datatype_f64_r;
+                b_type       = rocblas_datatype_f64_r;
+                c_type       = rocblas_datatype_f64_r;
+                d_type       = rocblas_datatype_f64_r;
+                compute_type = rocblas_datatype_f64_r;
             }
 
             rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
