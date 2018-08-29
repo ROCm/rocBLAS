@@ -235,7 +235,7 @@ void testing_gemm_ex_bad_arg()
                                  workspace_size,
                                  workspace);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "ERROR: alpha is nullptr");
     }
     {
         float* beta_null = nullptr;
@@ -267,7 +267,7 @@ void testing_gemm_ex_bad_arg()
                                  workspace_size,
                                  workspace);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
+        verify_rocblas_status_invalid_pointer(status, "ERROR: beta is nullptr");
     }
     {
         rocblas_handle handle_null = nullptr;
@@ -333,23 +333,46 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     size_t workspace_size   = 0;
     void* workspace;
 
-    Td h_alpha;
-    Td h_beta;
+    Td h_alpha_Td;
+    Td h_beta_Td;
 
     if(is_same<Td, rocblas_half>::value)
     {
-        h_alpha = float_to_half(alpha_float);
-        h_beta  = float_to_half(beta_float);
+        h_alpha_Td = float_to_half(alpha_float);
+        h_beta_Td  = float_to_half(beta_float);
     }
     else if(is_same<Td, float>::value)
     {
-        h_alpha = static_cast<Td>(alpha_float);
-        h_beta  = static_cast<Td>(beta_float);
+        h_alpha_Td = static_cast<Td>(alpha_float);
+        h_beta_Td  = static_cast<Td>(beta_float);
     }
     else if(is_same<Td, double>::value)
     {
-        h_alpha = static_cast<Td>(alpha_float);
-        h_beta  = static_cast<Td>(beta_float);
+        h_alpha_Td = static_cast<Td>(alpha_float);
+        h_beta_Td  = static_cast<Td>(beta_float);
+    }
+    else
+    {
+        return rocblas_status_not_implemented;
+    }
+
+    Tc h_alpha_Tc;
+    Tc h_beta_Tc;
+
+    if(is_same<Tc, rocblas_half>::value)
+    {
+        h_alpha_Tc = float_to_half(alpha_float);
+        h_beta_Tc  = float_to_half(beta_float);
+    }
+    else if(is_same<Tc, float>::value)
+    {
+        h_alpha_Tc = static_cast<Tc>(alpha_float);
+        h_beta_Tc  = static_cast<Tc>(beta_float);
+    }
+    else if(is_same<Tc, double>::value)
+    {
+        h_alpha_Tc = static_cast<Tc>(alpha_float);
+        h_beta_Tc  = static_cast<Tc>(beta_float);
     }
     else
     {
@@ -400,14 +423,14 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                  M,
                                  N,
                                  K,
-                                 &alpha_float,
+                                 &h_alpha_Tc,
                                  dA,
                                  a_type,
                                  lda,
                                  dB,
                                  b_type,
                                  ldb,
-                                 &beta_float,
+                                 &h_beta_Tc,
                                  dC,
                                  c_type,
                                  ldc,
@@ -440,17 +463,17 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                          rocblas_test::device_free};
     auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_D),
                                          rocblas_test::device_free};
-    auto d_alpha_float_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float)), rocblas_test::device_free};
-    auto d_beta_float_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float)), rocblas_test::device_free};
-    Td* dA               = (Td*)dA_managed.get();
-    Td* dB               = (Td*)dB_managed.get();
-    Td* dC               = (Td*)dC_managed.get();
-    Td* dD               = (Td*)dD_managed.get();
-    float* d_alpha_float = (float*)d_alpha_float_managed.get();
-    float* d_beta_float  = (float*)d_beta_float_managed.get();
-    if(!dA || !dB || !dC || !dD || !d_alpha_float || !d_beta_float)
+    auto d_alpha_Tc_managed =
+        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Tc)), rocblas_test::device_free};
+    auto d_beta_Tc_managed =
+        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Tc)), rocblas_test::device_free};
+    Td* dA         = (Td*)dA_managed.get();
+    Td* dB         = (Td*)dB_managed.get();
+    Td* dC         = (Td*)dC_managed.get();
+    Td* dD         = (Td*)dD_managed.get();
+    Tc* d_alpha_Tc = (Tc*)d_alpha_Tc_managed.get();
+    Tc* d_beta_Tc  = (Tc*)d_beta_Tc_managed.get();
+    if(!dA || !dB || !dC || !dD || !d_alpha_Tc || !d_beta_Tc)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
@@ -517,14 +540,14 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             M,
                                             N,
                                             K,
-                                            &alpha_float,
+                                            &h_alpha_Tc,
                                             dA,
                                             a_type,
                                             lda,
                                             dB,
                                             b_type,
                                             ldb,
-                                            &beta_float,
+                                            &h_beta_Tc,
                                             dC,
                                             c_type,
                                             ldc,
@@ -559,10 +582,9 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         CHECK_HIP_ERROR(hipMemcpy(dD, hD_2.data(), sizeof(Td) * size_D, hipMemcpyHostToDevice));
 
-        CHECK_HIP_ERROR(
-            hipMemcpy(d_alpha_float, &alpha_float, sizeof(float), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
 
-        CHECK_HIP_ERROR(hipMemcpy(d_beta_float, &beta_float, sizeof(float), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex(handle,
                                             transA,
@@ -570,14 +592,14 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                             M,
                                             N,
                                             K,
-                                            d_alpha_float,
+                                            d_alpha_Tc,
                                             dA,
                                             a_type,
                                             lda,
                                             dB,
                                             b_type,
                                             ldb,
-                                            d_beta_float,
+                                            d_beta_Tc,
                                             dC,
                                             c_type,
                                             ldc,
@@ -609,12 +631,12 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                        M,
                        N,
                        K,
-                       h_alpha,
+                       h_alpha_Td,
                        hA.data(),
                        lda,
                        hB.data(),
                        ldb,
-                       h_beta,
+                       h_beta_Td,
                        hD_gold.data(),
                        ldd);
 
@@ -662,15 +684,63 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm<Td>(
-                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
+            rocblas_gemm_ex(handle,
+                            transA,
+                            transB,
+                            M,
+                            N,
+                            K,
+                            d_alpha_Tc,
+                            dA,
+                            a_type,
+                            lda,
+                            dB,
+                            b_type,
+                            ldb,
+                            d_beta_Tc,
+                            dC,
+                            c_type,
+                            ldc,
+                            dD,
+                            d_type,
+                            ldd,
+                            compute_type,
+                            algo,
+                            solution_index,
+                            flags,
+                            workspace_size,
+                            workspace);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm<Td>(
-                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
+            rocblas_gemm_ex(handle,
+                            transA,
+                            transB,
+                            M,
+                            N,
+                            K,
+                            d_alpha_Tc,
+                            dA,
+                            a_type,
+                            lda,
+                            dB,
+                            b_type,
+                            ldb,
+                            d_beta_Tc,
+                            dC,
+                            c_type,
+                            ldc,
+                            dD,
+                            d_type,
+                            ldd,
+                            compute_type,
+                            algo,
+                            solution_index,
+                            flags,
+                            workspace_size,
+                            workspace);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<Td>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
@@ -682,9 +752,9 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         cout << endl;
 
-        cout << transA << "," << transB << "," << M << "," << N << "," << K << "," << h_alpha << ","
-             << lda << "," << ldb << "," << h_beta << "," << ldc << "," << rocblas_gflops << ","
-             << gpu_time_used / number_hot_calls;
+        cout << transA << "," << transB << "," << M << "," << N << "," << K << "," << h_alpha_Td
+             << "," << lda << "," << ldb << "," << h_beta_Td << "," << ldc << "," << rocblas_gflops
+             << "," << gpu_time_used / number_hot_calls;
 
         if(unit_check || norm_check)
         {
