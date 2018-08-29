@@ -1348,7 +1348,7 @@
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
-    PreciseBoundsCheck: true
+    PreciseBoundsCheck: false
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
     ProblemType:
