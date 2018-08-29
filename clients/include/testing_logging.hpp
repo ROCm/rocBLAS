@@ -248,8 +248,14 @@ void testing_logging()
         // BLAS_EX
         if(BUILD_WITH_TENSILE)
         {
+            void* alpha             = 0;
+            void* beta              = 0;
             float alpha_float       = 1.0;
             float beta_float        = 1.0;
+            rocblas_half alpha_half = float_to_half(alpha_float);
+            rocblas_half beta_half  = float_to_half(beta_float);
+            double alpha_double     = static_cast<double>(alpha_float);
+            double beta_double      = static_cast<double>(beta_float);
             rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
             uint32_t solution_index = 0;
             uint32_t flags          = 0;
@@ -268,6 +274,8 @@ void testing_logging()
                 c_type       = rocblas_datatype_f16_r;
                 d_type       = rocblas_datatype_f16_r;
                 compute_type = rocblas_datatype_f16_r;
+                alpha        = static_cast<void*>(&alpha_half);
+                beta         = static_cast<void*>(&beta_half);
             }
             else if(std::is_same<T, float>::value)
             {
@@ -276,6 +284,8 @@ void testing_logging()
                 c_type       = rocblas_datatype_f32_r;
                 d_type       = rocblas_datatype_f32_r;
                 compute_type = rocblas_datatype_f32_r;
+                alpha        = static_cast<void*>(&alpha_float);
+                beta         = static_cast<void*>(&beta_float);
             }
             else if(std::is_same<T, double>::value)
             {
@@ -284,6 +294,8 @@ void testing_logging()
                 c_type       = rocblas_datatype_f64_r;
                 d_type       = rocblas_datatype_f64_r;
                 compute_type = rocblas_datatype_f64_r;
+                alpha        = static_cast<void*>(&alpha_double);
+                beta         = static_cast<void*>(&beta_double);
             }
 
             status = rocblas_gemm_ex(handle,
@@ -292,14 +304,14 @@ void testing_logging()
                                      m,
                                      n,
                                      k,
-                                     &alpha_float,
+                                     alpha,
                                      da,
                                      a_type,
                                      lda,
                                      db,
                                      b_type,
                                      ldb,
-                                     &beta_float,
+                                     beta,
                                      dc,
                                      c_type,
                                      ldc,
