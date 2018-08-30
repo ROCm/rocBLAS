@@ -5,9 +5,11 @@
 
 #include <stdio.h>
 #include <memory>
+#include <limits>
 #include "rocblas.h"
 #include "norm.h"
 #include "cblas.h"
+#include "utility.h"
 
 /* =====================================================================
      README: Norm check: norm(A-B)/norm(A), evaluate relative error
@@ -69,12 +71,14 @@ double norm_check_general<rocblas_half>(char norm_type,
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
 
+    double error_double = std::numeric_limits<double>::quiet_NaN();
+
     std::unique_ptr<float[]> hCPU_float(new float[N * lda]());
     std::unique_ptr<float[]> hGPU_float(new float[N * lda]());
     for(int i = 0; i < N * lda; i++)
     {
-        hCPU_float[i] = static_cast<float>(hCPU[i]);
-        hGPU_float[i] = static_cast<float>(hGPU[i]);
+        hCPU_float[i] = half_to_float(hCPU[i]);
+        hGPU_float[i] = half_to_float(hGPU[i]);
     }
 
     float work;
@@ -85,9 +89,10 @@ double norm_check_general<rocblas_half>(char norm_type,
     float cpu_norm = slange_(&norm_type, &M, &N, hCPU_float.get(), &lda, &work);
     saxpy_(&size, &alpha, hCPU_float.get(), &incx, hGPU_float.get(), &incx);
 
-    float error = slange_(&norm_type, &M, &N, hGPU_float.get(), &lda, &work) / cpu_norm;
+    float error_float = slange_(&norm_type, &M, &N, hGPU_float.get(), &lda, &work) / cpu_norm;
+    error_double      = static_cast<double>(error_float);
 
-    return static_cast<double>(error);
+    return error_double;
 }
 
 template <>
