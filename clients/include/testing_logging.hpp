@@ -259,8 +259,8 @@ void testing_logging()
             rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
             uint32_t solution_index = 0;
             uint32_t flags          = 0;
-            size_t workspace_size   = 0;
-            void* workspace         = NULL;
+            size_t* workspace_size  = 0;
+            void* workspace         = 0;
             rocblas_datatype a_type;
             rocblas_datatype b_type;
             rocblas_datatype c_type;
@@ -656,8 +656,8 @@ void testing_logging()
             rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
             uint32_t solution_index = 0;
             uint32_t flags          = 0;
-            size_t workspace_size   = 0;
-            void* workspace         = NULL;
+            size_t* workspace_size  = 0;
+            void* workspace         = 0;
 
             trace_ofs2 << "rocblas_gemm_ex"
                        << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
