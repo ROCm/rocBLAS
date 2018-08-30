@@ -31,6 +31,7 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>> gemm_tuple;
 
 // clang-format off
 const vector<int> size_range_1_4   = {   1,    2,    3,   4};
+const vector<int> size_range_1_8   = {   1,    2,    3,   4,  5,  6,  7,  8};
 const vector<int> size_range_5_8   = {   5,    6,    7,   8};
 const vector<int> size_range_9_12  = {   9,   10,   11,  12};
 const vector<int> size_range_13_16 = {  13,   14,   15,  16};
@@ -339,6 +340,10 @@ Arguments setup_gemm_sweep_arguments(gemm_sweep_tuple tup)
 
     arg.transA_option = transA_transB[0];
     arg.transB_option = transA_transB[1];
+
+    arg.lda = arg.transA_option == 'N' ? arg.M : arg.K;
+    arg.ldb = arg.transB_option == 'N' ? arg.K : arg.N;
+    arg.ldc = arg.M;
 
     arg.timing = 0;
 
@@ -737,19 +742,11 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         ValuesIn(deepbench_vec));
 
 //--- sweep tests
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4,
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_8,
                         parameterized_gemm_sweep,
-                        Combine(ValuesIn(size_range_1_4),
-                                ValuesIn(size_range_1_4),
-                                ValuesIn(size_range_1_4),
-                                ValuesIn(alpha_beta_range),
-                                ValuesIn(transA_transB_range)));
-
-INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_5_8,
-                        parameterized_gemm_sweep,
-                        Combine(ValuesIn(size_range_5_8),
-                                ValuesIn(size_range_5_8),
-                                ValuesIn(size_range_5_8),
+                        Combine(ValuesIn(size_range_1_8),
+                                ValuesIn(size_range_1_8),
+                                ValuesIn(size_range_1_8),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
