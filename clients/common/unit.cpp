@@ -6,6 +6,7 @@
 #include <iostream>
 #include "rocblas.h"
 #include "unit.h"
+#include "utility.h"
 
 #define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
     {                                                             \
@@ -39,8 +40,8 @@ void unit_check_general(
         for(rocblas_int i = 0; i < M; i++)
         {
 #ifdef GOOGLE_TEST
-            float cpu_float = static_cast<float>(hCPU[i + j * lda]);
-            float gpu_float = static_cast<float>(hGPU[i + j * lda]);
+            float cpu_float = half_to_float(hCPU[i + j * lda]);
+            float gpu_float = half_to_float(hGPU[i + j * lda]);
             ASSERT_FLOAT_EQ(cpu_float, gpu_float);
 #endif
         }
