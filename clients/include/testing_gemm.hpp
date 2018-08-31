@@ -253,7 +253,7 @@ rocblas_status testing_gemm(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = 0.0;
+    double rocblas_error = 0.0;
 
     rocblas_status status;
 
@@ -426,8 +426,15 @@ rocblas_status testing_gemm(Arguments argus)
         // in compilation time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data());
+            double error_hst_ptr =
+                norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
+            double error_dev_ptr =
+                norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data());
+
+            error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
+            error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;
+
+            rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }
 
