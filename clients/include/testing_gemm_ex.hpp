@@ -45,7 +45,7 @@ void testing_gemm_ex_bad_arg()
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     rocblas_int solution_index;
     rocblas_int flags;
-    size_t workspace_size = 0;
+    size_t* workspace_size = 0;
     void* workspace;
 
     const size_t safe_size = 100;
@@ -330,7 +330,7 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
     uint32_t solution_index = 0;
     uint32_t flags          = 0;
-    size_t workspace_size   = 0;
+    size_t* workspace_size  = 0;
     void* workspace;
 
     Td h_alpha_Td;

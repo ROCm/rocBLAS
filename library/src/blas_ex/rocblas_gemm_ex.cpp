@@ -575,9 +575,9 @@ rocblas_status tensile_gemm_typecasting(rocblas_handle handle,
     @param[in]
     flags     uint32_t
               reserved for future use
-    @param[in]
+    @param[in/out]
     workspace_size   
-              size_t
+              size_t*
               size of workspace
     @parm[in]
     workspace void*
@@ -610,7 +610,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_gemm_algo algo,
                                           uint32_t solution_index,
                                           uint32_t flags,
-                                          size_t workspace_size,
+                                          size_t* workspace_size,
                                           void* workspace)
 {
     // handle, alpha, beta must not be null pointers for logging
