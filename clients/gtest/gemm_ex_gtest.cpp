@@ -369,7 +369,7 @@ class parameterized_half_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
 TEST(pre_checkin_blas_ex_bad_arg, float) { testing_gemm_ex_bad_arg(); }
 
 //----small
-INSTANTIATE_TEST_CASE_P(known_bug_blas_ex_small_hpa_half,
+INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_hpa_half,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
