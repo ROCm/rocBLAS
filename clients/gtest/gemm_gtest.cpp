@@ -742,7 +742,7 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         ValuesIn(deepbench_vec));
 
 //--- sweep tests
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_8,
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_1_8,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_1_8),
                                 ValuesIn(size_range_1_8),
@@ -848,7 +848,7 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_sweep_64_9_129,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_64_1_4_5_8,
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_64_1_4_5_8,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_64),
                                 ValuesIn(size_range_1_4),
@@ -856,7 +856,7 @@ INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_64_1_4_5_8,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_5_8_64_1_4,
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_5_8_64_1_4,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_5_8),
                                 ValuesIn(size_range_64),
@@ -864,7 +864,7 @@ INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_5_8_64_1_4,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
 
-INSTANTIATE_TEST_CASE_P(known_bug_blas3_sweep_1_4_5_8_64,
+INSTANTIATE_TEST_CASE_P(quick_blas3_sweep_1_4_5_8_64,
                         parameterized_gemm_sweep,
                         Combine(ValuesIn(size_range_1_4),
                                 ValuesIn(size_range_5_8),
