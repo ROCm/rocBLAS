@@ -153,6 +153,9 @@ const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 
 const vector<vector<char>> transA_transB_N_N_range = {{'N', 'N'}};
 
 // clang-format off
+
+gemm_tuple fixed_bug0{{9, 1, 9, 9, 9, 9}, {1, 0}, {'N', 'N'}};
+
 gemm_tuple deepbench0{{192, 64, 784, 784, 784, 192}, {1, 1}, {'T', 'N'}};
 gemm_tuple deepbench1{{12544, 128, 256, 12544, 256, 12544}, {1, 0}, {'N', 'N'}};
 gemm_tuple deepbench2{{12544, 256, 64, 12544, 64, 12544}, {1, 0}, {'N', 'N'}};
@@ -306,6 +309,9 @@ const vector<gemm_tuple> deepbench_vec = {
     deepbench114, deepbench115, deepbench116, deepbench117, deepbench118, deepbench119,
     deepbench120, deepbench121, deepbench122, deepbench123, deepbench124, deepbench125,
     deepbench126, deepbench127, deepbench128,
+};
+const vector<gemm_tuple> fixed_bug_vec = {
+    fixed_bug0,
 };
 // clang-format on
 
@@ -735,7 +741,11 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_chunk,
                                 ValuesIn(alpha_beta_2_3_range),
                                 ValuesIn(transA_transB_range)));
 
+// clang-format off
 INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
+INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_gemm, ValuesIn(fixed_bug_vec));
+INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_half_gemm, ValuesIn(fixed_bug_vec));
+// clang-format on
 
 INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
                         parameterized_half_gemm,
