@@ -21,12 +21,10 @@ template <typename T, rocblas_int NB>
 __global__ void trtri_small_kernel(rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   const T* A,
-                                   rocblas_int lda,
-                                   T* invA,
-                                   rocblas_int ldinvA)
+                                   T* A,
+                                   rocblas_int lda)
 {
-    trtri_device<T, NB>(uplo, diag, n, A, lda, invA, ldinvA);
+    trtri_device<T, NB>(uplo, diag, n, A, lda);
 }
 
 template <typename T, rocblas_int IB>
@@ -34,10 +32,8 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
                                    rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   const T* A,
-                                   rocblas_int lda,
-                                   T* invA,
-                                   rocblas_int ldinvA)
+                                   T* A,
+                                   rocblas_int lda)
 {
 
     if(n > IB)
@@ -61,9 +57,7 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
                        diag,
                        n,
                        A,
-                       lda,
-                       invA,
-                       ldinvA);
+                       lda);
 
     return rocblas_status_success;
 }
@@ -79,10 +73,8 @@ template <typename T, rocblas_int IB>
 __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
                                       rocblas_diagonal diag,
                                       rocblas_int n,
-                                      const T* A,
-                                      rocblas_int lda,
-                                      T* invA,
-                                      rocblas_int ldinvA)
+                                      T* A,
+                                      rocblas_int lda)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -90,11 +82,10 @@ __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
     // each hip thread Block compute a inverse of a IB * IB diagonal block of A
     // notice the last digaonal block may be smaller than IB*IB
 
-    const T* individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
-    T* individual_invA    = invA + hipBlockIdx_x * IB * ldinvA + hipBlockIdx_x * IB;
+    T* individual_A = A + hipBlockIdx_x * IB * lda + hipBlockIdx_x * IB;
 
     trtri_device<T, IB>(
-        uplo, diag, min(IB, n - hipBlockIdx_x * IB), individual_A, lda, individual_invA, ldinvA);
+        uplo, diag, min(IB, n - hipBlockIdx_x * IB), individual_A, lda);
 }
 
 /*
@@ -231,10 +222,8 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
                                    rocblas_fill uplo,
                                    rocblas_diagonal diag,
                                    rocblas_int n,
-                                   const T* A,
-                                   rocblas_int lda,
-                                   T* invA,
-                                   rocblas_int ldinvA)
+                                   T* A,
+                                   rocblas_int lda)
 {
 
     if(n > 2 * IB)
@@ -260,9 +249,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
                        diag,
                        n,
                        A,
-                       lda,
-                       invA,
-                       ldinvA);
+                       lda);
 
     if(n <= IB)
     {
@@ -285,20 +272,20 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
         // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
         m_gemm = (n - IB);
         n_gemm = IB;
-        A_gemm = invA + IB + IB * ldinvA; // invA22
-        B_gemm = A + IB;                  // A21
-        C_gemm = invA;                    // invA11
-        D_gemm = invA + IB;               // invA21
+        A_gemm = A + IB + IB * lda; // invA22
+        B_gemm = A + IB;            // A21
+        C_gemm = A;                 // invA11
+        D_gemm = A + IB;            // invA21
     }
     else
     {
         // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
         m_gemm = IB;
         n_gemm = (n - IB);
-        A_gemm = invA;                    // invA11
-        B_gemm = A + lda * IB;            // A12
-        C_gemm = invA + IB + IB * ldinvA; // invA22
-        D_gemm = invA + IB * ldinvA;      // invA12
+        A_gemm = A;                 // invA11
+        B_gemm = A + lda * IB;      // A12
+        C_gemm = A + IB + IB * lda; // invA22
+        D_gemm = A + IB * lda;      // invA12
     }
 
     hipLaunchKernelGGL((gemm_trsm_kernel<T, IB>),
@@ -309,13 +296,13 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
                        m_gemm,
                        n_gemm,
                        A_gemm,
-                       ldinvA,
+                       lda,
                        B_gemm,
                        lda,
                        C_gemm,
-                       ldinvA,
+                       lda,
                        D_gemm,
-                       ldinvA);
+                       lda);
 
     return rocblas_status_success;
 }
@@ -344,16 +331,11 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     @param[in]
     n         rocblas_int.
               size of matrix A and invA
-    @param[in]
+    @param[in, out]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
-    @param[output]
-    invA      pointer storing matrix invA on the GPU.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
 
 ********************************************************************/
 /* IB must be <= 64 in order to fit shared (local) memory */
@@ -362,10 +344,8 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
                                       rocblas_fill uplo,
                                       rocblas_diagonal diag,
                                       rocblas_int n,
-                                      const T* A,
-                                      rocblas_int lda,
-                                      T* invA,
-                                      rocblas_int ldinvA)
+                                      T* A,
+                                      rocblas_int lda)
 {
     if(handle == nullptr)
         return rocblas_status_invalid_handle;
@@ -377,18 +357,14 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(lda < n)
         return rocblas_status_invalid_size;
-    else if(invA == nullptr)
-        return rocblas_status_invalid_pointer;
-    else if(ldinvA < n)
-        return rocblas_status_invalid_size;
 
     if(n <= IB)
     {
-        return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+        return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda);
     }
     else if(n <= 2 * IB)
     {
-        return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+        return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda);
     }
     else
     {

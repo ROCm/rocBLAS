@@ -525,11 +525,9 @@ rocblas_status rocblas_trtri<float>(rocblas_handle handle,
                                     rocblas_diagonal diag,
                                     rocblas_int n,
                                     float* A,
-                                    rocblas_int lda,
-                                    float* invA,
-                                    rocblas_int ldinvA)
+                                    rocblas_int lda)
 {
-    return rocblas_strtri(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_strtri(handle, uplo, diag, n, A, lda);
 }
 
 template <>
@@ -538,11 +536,9 @@ rocblas_status rocblas_trtri<double>(rocblas_handle handle,
                                      rocblas_diagonal diag,
                                      rocblas_int n,
                                      double* A,
-                                     rocblas_int lda,
-                                     double* invA,
-                                     rocblas_int ldinvA)
+                                     rocblas_int lda)
 {
-    return rocblas_dtrtri(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_dtrtri(handle, uplo, diag, n, A, lda);
 }
 
 template <>
@@ -553,13 +549,10 @@ rocblas_status rocblas_trtri_batched<float>(rocblas_handle handle,
                                             float* A,
                                             rocblas_int lda,
                                             rocblas_int bsa,
-                                            float* invA,
-                                            rocblas_int ldinvA,
-                                            rocblas_int bsinvA,
                                             rocblas_int batch_count)
 {
     return rocblas_strtri_batched(
-        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+        handle, uplo, diag, n, A, lda, bsa, batch_count);
 }
 
 template <>
@@ -570,13 +563,10 @@ rocblas_status rocblas_trtri_batched<double>(rocblas_handle handle,
                                              double* A,
                                              rocblas_int lda,
                                              rocblas_int bsa,
-                                             double* invA,
-                                             rocblas_int ldinvA,
-                                             rocblas_int bsinvA,
                                              rocblas_int batch_count)
 {
     return rocblas_dtrtri_batched(
-        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+        handle, uplo, diag, n, A, lda, bsa, batch_count);
 }
 
 template <>

@@ -820,16 +820,11 @@ rocblas_zsyr(rocblas_handle handle,
     @param[in]
     n         rocblas_int.
               size of matrix A and invA
-    @param[in]
+    @param[in, out]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
-    @param[output]
-    invA      pointer storing matrix invA on the GPU.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
 
 ********************************************************************/
 
@@ -837,19 +832,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri(rocblas_handle handle,
                                              rocblas_fill uplo,
                                              rocblas_diagonal diag,
                                              rocblas_int n,
-                                             const float* A,
-                                             rocblas_int lda,
-                                             float* invA,
-                                             rocblas_int ldinvA);
+                                             float* A,
+                                             rocblas_int lda);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
                                              rocblas_fill uplo,
                                              rocblas_diagonal diag,
                                              rocblas_int n,
-                                             const double* A,
-                                             rocblas_int lda,
-                                             double* invA,
-                                             rocblas_int ldinvA);
+                                             double* A,
+                                             rocblas_int lda);
 
 /*! \brief BLAS Level 3 API
 
@@ -872,20 +863,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
     n         rocblas_int.
     @param[in]
     A         pointer storing matrix A on the GPU.
-    @param[in]
+    @param[in, out]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
     bsa       rocblas_int
              "batch stride a": stride from the start of one "A" matrix to the next
-    @param[output]
-    invA      pointer storing the inverse matrix A on the GPU.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
-    @param[in]
-    bsinvA    rocblas_int
-             "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
     batch_count       rocblas_int
               numbers of matrices in the batch
@@ -895,24 +878,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                                      rocblas_fill uplo,
                                                      rocblas_diagonal diag,
                                                      rocblas_int n,
-                                                     const float* A,
+                                                     float* A,
                                                      rocblas_int lda,
                                                      rocblas_int bsa,
-                                                     float* invA,
-                                                     rocblas_int ldinvA,
-                                                     rocblas_int bsinvA,
                                                      rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                                      rocblas_fill uplo,
                                                      rocblas_diagonal diag,
                                                      rocblas_int n,
-                                                     const double* A,
+                                                     double* A,
                                                      rocblas_int lda,
                                                      rocblas_int bsa,
-                                                     double* invA,
-                                                     rocblas_int ldinvA,
-                                                     rocblas_int bsinvA,
                                                      rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API

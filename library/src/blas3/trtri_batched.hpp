@@ -20,17 +20,13 @@ __global__ void trtri_kernel_batched(rocblas_fill uplo,
                                      rocblas_int n,
                                      T* A,
                                      rocblas_int lda,
-                                     rocblas_int bsa,
-                                     T* invA,
-                                     rocblas_int ldinvA,
-                                     rocblas_int bsinvA)
+                                     rocblas_int bsa)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
     T* individual_A    = A + hipBlockIdx_z * bsa;
-    T* individual_invA = invA + hipBlockIdx_z * bsinvA;
 
-    trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+    trtri_device<T, NB>(uplo, diag, n, individual_A, lda);
 }
 
 /* ============================================================================================ */
@@ -54,7 +50,7 @@ __global__ void trtri_kernel_batched(rocblas_fill uplo,
               = 'rocblas_diagonal_unit', A is unit triangular;
     @param[in]
     n         rocblas_int.
-    @param[in]
+    @param[in,out]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
@@ -62,14 +58,6 @@ __global__ void trtri_kernel_batched(rocblas_fill uplo,
     @param[in]
     bsa       rocblas_int
              "batch stride a": stride from the start of one "A" matrix to the next
-    @param[output]
-    invA      pointer storing the inverse matrix A on the GPU.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
-    @param[in]
-    bsinvA    rocblas_int
-             "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
     batch_count       rocblas_int
               numbers of matrices in the batch
@@ -84,12 +72,9 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                                               rocblas_fill uplo,
                                               rocblas_diagonal diag,
                                               rocblas_int n,
-                                              const T* A,
+                                              T* A,
                                               rocblas_int lda,
                                               rocblas_int bsa,
-                                              T* invA,
-                                              rocblas_int ldinvA,
-                                              rocblas_int bsinvA,
                                               rocblas_int batch_count)
 {
     log_trace(handle,
@@ -100,9 +85,6 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
               (const void*&)A,
               lda,
               bsa,
-              (const void*&)invA,
-              ldinvA,
-              bsinvA,
               batch_count);
 
     if(handle == nullptr)
@@ -116,12 +98,6 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     else if(lda < n)
         return rocblas_status_invalid_size;
     else if(bsa < lda * n)
-        return rocblas_status_invalid_size;
-    else if(invA == nullptr)
-        return rocblas_status_invalid_pointer;
-    else if(ldinvA < n)
-        return rocblas_status_invalid_size;
-    else if(bsinvA < ldinvA * n)
         return rocblas_status_invalid_size;
     else if(batch_count < 0)
         return rocblas_status_invalid_size;
@@ -154,10 +130,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                        n,
                        A,
                        lda,
-                       bsa,
-                       invA,
-                       ldinvA,
-                       bsinvA);
+                       bsa);
 
     return rocblas_status_success;
 }

@@ -34,15 +34,13 @@
     diag      rocblas_diagonal.
               = 'rocblas_diagonal_non_unit', A is non-unit triangular;
               = 'rocblas_diagonal_unit', A is unit triangular;
-    @param[in]
+    @param[in, out]
     n         rocblas_int.
     @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
-    @param[output]
-    invA      pointer storing the inverse matrix A on the GPU.
 
     ********************************************************************/
 
@@ -50,10 +48,8 @@ template <typename T, rocblas_int NB>
 __device__ void trtri_device(rocblas_fill uplo,
                              rocblas_diagonal diag,
                              rocblas_int n,
-                             const T* A,
-                             rocblas_int lda,
-                             T* invA,
-                             rocblas_int ldinvA)
+                             T* A,
+                             rocblas_int lda)
 {
 
     // quick return
@@ -152,14 +148,14 @@ __device__ void trtri_device(rocblas_fill uplo,
         {
             for(int i = 0; i <= tx; i++)
             {
-                invA[tx + i * ldinvA] = sA[tx + i * n];
+                A[tx + i * lda] = sA[tx + i * n];
             }
         }
         else
         { // transpose back to A from sA if upper
             for(int i = n - 1; i >= tx; i--)
             {
-                invA[tx + i * ldinvA] = sA[(n - 1 - tx) + (n - 1 - i) * n];
+                A[tx + i * lda] = sA[(n - 1 - tx) + (n - 1 - i) * n];
             }
         }
     }
