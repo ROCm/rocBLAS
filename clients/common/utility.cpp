@@ -213,6 +213,20 @@ rocblas_side char2rocblas_side(char value)
     return rocblas_side_left;
 }
 
+rocblas_datatype char2rocblas_datatype(char value)
+{
+    switch(value)
+    {
+    case 'h': return rocblas_datatype_f16_r;
+    case 'H': return rocblas_datatype_f16_r;
+    case 's': return rocblas_datatype_f32_r;
+    case 'S': return rocblas_datatype_f32_r;
+    case 'd': return rocblas_datatype_f64_r;
+    case 'D': return rocblas_datatype_f64_r;
+    }
+    return rocblas_datatype_f32_r;
+}
+
 #ifdef __cplusplus
 }
 #endif

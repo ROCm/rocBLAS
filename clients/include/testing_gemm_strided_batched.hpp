@@ -27,8 +27,21 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     rocblas_int N = argus.N;
     rocblas_int K = argus.K;
 
-    T h_alpha = argus.alpha;
-    T h_beta  = argus.beta;
+    T h_alpha;
+    T h_beta;
+    if(is_same<T, rocblas_half>::value)
+    {
+        float alpha_float = argus.alpha;
+        float beta_float  = argus.beta;
+
+        h_alpha = float_to_half(alpha_float);
+        h_beta  = float_to_half(beta_float);
+    }
+    else
+    {
+        h_alpha = argus.alpha;
+        h_beta  = argus.beta;
+    }
 
     rocblas_int lda = argus.lda;
     rocblas_int ldb = argus.ldb;
@@ -152,7 +165,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     srand(1);
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-    rocblas_init<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
     rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
 
     hC_2    = hC_1;
@@ -268,24 +281,24 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm_strided_batched<T>(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            K,
-                                            &h_alpha,
-                                            dA,
-                                            lda,
-                                            stride_a,
-                                            dB,
-                                            ldb,
-                                            stride_b,
-                                            &h_beta,
-                                            dC,
-                                            ldc,
-                                            stride_c,
-                                            batch_count);
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                K,
+                                                                &h_alpha,
+                                                                dA,
+                                                                lda,
+                                                                stride_a,
+                                                                dB,
+                                                                ldb,
+                                                                stride_b,
+                                                                &h_beta,
+                                                                dC,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count));
         }
 
         gpu_time_used = get_time_us(); // in microseconds

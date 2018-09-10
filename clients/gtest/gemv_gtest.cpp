@@ -48,8 +48,11 @@ const vector<vector<int>> small_matrix_size_range = {
     {1, 0, 1},
     {-1, -1, -1},
     {10, 10, 2},
-    {300, 400, 400},
-    {600, 500, 601},
+    {100, 200, 200},
+};
+
+const vector<vector<int>> medium_matrix_size_range = {
+    {300, 400, 400}, {600, 500, 601},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
@@ -59,6 +62,10 @@ const vector<vector<int>> large_matrix_size_range = {
 // vector of vector, each pair is a {incx, incy};
 // add/delete this list in pairs, like {1, 1}
 const vector<vector<int>> small_incx_incy_range = {
+    {2, 1}, {-1, -2}, {1, 1}, {-1, 3}, {3, -1}, {0, 1}, {1, 0}, {0, -1}, {10, 100},
+};
+
+const vector<vector<int>> medium_incx_incy_range = {
     {2, 1}, {-1, -2}, {1, 1}, {-1, 3}, {3, -1}, {0, 1}, {1, 0}, {0, -1}, {10, 100},
 };
 
@@ -205,14 +212,21 @@ TEST_P(parameterized_gemv, double)
 
 TEST(checkin_blas2_bad_arg, gemv_bad_arg_float) { testing_gemv_bad_arg<float>(); }
 
-INSTANTIATE_TEST_CASE_P(checkin_blas2,
+INSTANTIATE_TEST_CASE_P(quick_blas2,
                         parameterized_gemv,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(small_incx_incy_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_blas2,
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas2,
+                        parameterized_gemv,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(medium_incx_incy_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas2,
                         parameterized_gemv,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(large_incx_incy_range),

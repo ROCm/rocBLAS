@@ -54,8 +54,11 @@ const vector<vector<int>> small_matrix_size_range = {
     {65, 65, 66},
     /*   {10, 10, 2},       */
     /*   {600,500, 500},    */
-    {1000, 1000, 1000},
+    /*   {1000, 1000, 1000}, */
 };
+
+const vector<vector<int>> medium_matrix_size_range = {
+    {10, 10, 2}, {600, 500, 500}, {1000, 1000, 1000}};
 
 const vector<vector<int>> large_matrix_size_range = {
     {2000, 2000, 2000}, {4011, 4011, 4011}, {8000, 8000, 8000}};
@@ -64,14 +67,16 @@ const vector<vector<int>> large_matrix_size_range = {
 // add/delete this list in pairs, like {1, 1}
 const vector<vector<int>> small_incx_incy_range = {
     {1, 1}, {-1, 1}, {1, -1}, {-1, -1}, {0, -1}, {0, 1}, {1, 0}, {2, 1}, {10, 99}};
-const vector<vector<int>> large_incx_incy_range = {
+const vector<vector<int>> medium_incx_incy_range = {{1, 1}, {-1, 1}, {1, -1}, {2, 1}, {10, 99}};
+const vector<vector<int>> large_incx_incy_range  = {
     {1, 1}, {-1, 1}, {1, 2},
 };
 
 // vector, each entry is  {alpha};
 // add/delete single values, like {2.0}
-const vector<double> small_alpha_range = {-0.5, 2.0, 0.0};
-const vector<double> large_alpha_range = {
+const vector<double> small_alpha_range  = {-0.5, 2.0, 0.0};
+const vector<double> medium_alpha_range = {-0.5, 2.0, 0.0};
+const vector<double> large_alpha_range  = {
     0.6,
 };
 
@@ -200,13 +205,19 @@ TEST_P(parameterized_ger, parameterized_ger_float)
 
 TEST(checkin_blas2_bad_arg, ger_float) { testing_ger_bad_arg<float>(); }
 
-INSTANTIATE_TEST_CASE_P(checkin_blas2,
+INSTANTIATE_TEST_CASE_P(quick_blas2,
                         parameterized_ger,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(small_incx_incy_range),
                                 ValuesIn(small_alpha_range)));
 
-INSTANTIATE_TEST_CASE_P(daily_rocblas_blas2,
+INSTANTIATE_TEST_CASE_P(pre_checkin_rocblas_blas2,
+                        parameterized_ger,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(medium_incx_incy_range),
+                                ValuesIn(medium_alpha_range)));
+
+INSTANTIATE_TEST_CASE_P(nightly_rocblas_blas2,
                         parameterized_ger,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(large_incx_incy_range),

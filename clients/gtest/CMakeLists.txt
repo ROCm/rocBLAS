@@ -36,6 +36,7 @@ if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
       gemm_gtest.cpp
       gemm_strided_batched_gtest.cpp
+      gemm_ex_gtest.cpp
       trsm_gtest.cpp
       )
 endif( )
@@ -112,9 +113,13 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas-test PRIVATE -Wno-unused-command-line-argument -mf16c )
 
-elseif( CMAKE_COMPILER_IS_GNUCXX )
-  # GCC needs specific flag to turn on f16c intrinsics
+elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
+  # GCC or hip-clang needs specific flag to turn on f16c intrinsics
   target_compile_options( rocblas-test PRIVATE -mf16c )
+endif( )
+
+if( CXX_VERSION_STRING MATCHES "clang" )
+  target_link_libraries( rocblas-test PRIVATE -lpthread -lm )
 endif( )
 
 set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )

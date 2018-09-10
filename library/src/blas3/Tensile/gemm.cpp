@@ -122,6 +122,11 @@
                                             ld_c,                                      \
                                             stride_c,                                  \
                                             b_c);                                      \
+    if(m == 0 || n == 0 || k == 0 || b_c == 0)                                         \
+    {                                                                                  \
+        return rocblas_status_success;                                                 \
+    }                                                                                  \
+                                                                                       \
     if(validArgs != rocblas_status_success)                                            \
         return validArgs;                                                              \
                                                                                        \
@@ -236,6 +241,11 @@
                   b_c);                                                 \
     }                                                                   \
                                                                         \
+    if(m == 0 || n == 0 || k == 0 || b_c == 0)                          \
+    {                                                                   \
+        return rocblas_status_success;                                  \
+    }                                                                   \
+                                                                        \
     if(validArgs != rocblas_status_success)                             \
         return validArgs;                                               \
                                                                         \
@@ -277,130 +287,142 @@
 #define PRINT_RETURN_STATUS
 #endif
 
-#define CALL_TENSILE(PREC, TYPE, TRANS)                                                    \
-    PRINT_SOLUTION_NAME(PREC, TRANS)                                                       \
-    TYPE alpha_h;                                                                          \
-    TYPE beta_h;                                                                           \
-    if(rocblas_pointer_mode_host == handle->pointer_mode)                                  \
-    {                                                                                      \
-        alpha_h = *alpha;                                                                  \
-        beta_h  = *beta;                                                                   \
-    }                                                                                      \
-    else                                                                                   \
-    {                                                                                      \
-        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);                   \
-        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);                     \
-    }                                                                                      \
-    unsigned int int_limit    = std::numeric_limits<int>::max() / sizeof(TYPE);            \
-    unsigned int chunk_size_C = int_limit / strideC1;                                      \
-    unsigned int chunk_size_B = int_limit / strideB1;                                      \
-    unsigned int chunk_size   = chunk_size_C < chunk_size_B ? chunk_size_C : chunk_size_B; \
-    unsigned int chunk_count  = ((sizeJ - 1) / chunk_size) + 1;                            \
-    for(int chunk_i = 0; chunk_i < chunk_count; chunk_i++)                                 \
-    {                                                                                      \
-        unsigned int chunk_sizeJ = chunk_size < sizeJ - (chunk_size * chunk_i)             \
-                                       ? chunk_size                                        \
-                                       : sizeJ - (chunk_size * chunk_i);                   \
-                                                                                           \
-        if(trans_a == rocblas_operation_none)                                              \
-        {                                                                                  \
-            if(strideA1 * sizeL * sizeof(TYPE) > std::numeric_limits<int>::max())          \
-            {                                                                              \
-                std::cerr << "rocBLAS ERROR: lda*k exceeds address limit" << std::endl;    \
-            }                                                                              \
-        }                                                                                  \
-        else                                                                               \
-        {                                                                                  \
-            if(strideA1 * sizeI * sizeof(TYPE) > std::numeric_limits<int>::max())          \
-            {                                                                              \
-                std::cerr << "rocBLAS ERROR: lda*m exceeds address limit" << std::endl;    \
-            }                                                                              \
-        }                                                                                  \
-        if(trans_b == rocblas_operation_none)                                              \
-        {                                                                                  \
-            if(strideB1 * chunk_sizeJ * sizeof(TYPE) > std::numeric_limits<int>::max())    \
-            {                                                                              \
-                std::cerr << "rocBLAS ERROR: ldb*n exceeds address limit" << std::endl;    \
-            }                                                                              \
-        }                                                                                  \
-        else                                                                               \
-        {                                                                                  \
-            if(strideB1 * sizeL * sizeof(TYPE) > std::numeric_limits<int>::max())          \
-            {                                                                              \
-                std::cerr << "rocBLAS ERROR: ldb*k exceeds address limit" << std::endl;    \
-            }                                                                              \
-        }                                                                                  \
-        if(strideC1 * chunk_sizeJ * sizeof(TYPE) > std::numeric_limits<int>::max())        \
-        {                                                                                  \
-            std::cerr << "rocBLAS ERROR: ldc*n exceeds address limit" << std::endl;        \
-        }                                                                                  \
-                                                                                           \
-        size_t C_offset = chunk_i * chunk_size * strideC1;                                 \
-        size_t B_offset = chunk_i * chunk_size;                                            \
-        if(trans_b == rocblas_operation_none)                                              \
-            B_offset *= strideB1;                                                          \
-                                                                                           \
-        status = tensile_##TRANS##_##PREC##B(C + C_offset,                                 \
-                                             A,                                            \
-                                             B,                                            \
-                                             alpha_h,                                      \
-                                             beta_h,                                       \
-                                             0,                                            \
-                                             0,                                            \
-                                             0,                                            \
-                                             strideC1,                                     \
-                                             strideC2,                                     \
-                                             strideA1,                                     \
-                                             strideA2,                                     \
-                                             strideB1,                                     \
-                                             strideB2,                                     \
-                                             sizeI,                                        \
-                                             sizeJ,                                        \
-                                             sizeK,                                        \
-                                             sizeL,                                        \
-                                             handle->rocblas_stream,                       \
-                                             0,                                            \
-                                             nullptr,                                      \
-                                             nullptr);                                     \
-    }                                                                                      \
+#define CALL_TENSILE(PREC, TYPE, TRANS)                                                              \
+    PRINT_SOLUTION_NAME(PREC, TRANS)                                                                 \
+    TYPE alpha_h;                                                                                    \
+    TYPE beta_h;                                                                                     \
+    if(rocblas_pointer_mode_host == handle->pointer_mode)                                            \
+    {                                                                                                \
+        alpha_h = *alpha;                                                                            \
+        beta_h  = *beta;                                                                             \
+    }                                                                                                \
+    else                                                                                             \
+    {                                                                                                \
+        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);                             \
+        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);                               \
+    }                                                                                                \
+    unsigned int int_limit      = std::numeric_limits<int>::max() / sizeof(TYPE);                    \
+    unsigned int n_chunk_size_c = int_limit / strideC1;                                              \
+    unsigned int n_chunk_size_b = int_limit / strideB1;                                              \
+    unsigned int n_chunk_size   = n_chunk_size_c < n_chunk_size_b ? n_chunk_size_c : n_chunk_size_b; \
+    unsigned int m_chunk_size   = int_limit / strideA1;                                              \
+    unsigned int n_chunk_count  = ((sizeJ - 1) / n_chunk_size) + 1;                                  \
+    unsigned int m_chunk_count  = ((sizeI - 1) / m_chunk_size) + 1;                                  \
+    for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)              \
+    {                                                                                                \
+        unsigned int n_chunk_remaining = sizeJ - (n_chunk_size * n_chunk_iterator);                  \
+        unsigned int n_chunk_sizeJ =                                                                 \
+            n_chunk_size < n_chunk_remaining ? n_chunk_size : n_chunk_remaining;                     \
+        for(int m_chunk_iterator = 0; m_chunk_iterator < m_chunk_count; m_chunk_iterator++)          \
+        {                                                                                            \
+            unsigned int m_chunk_remaining = sizeI - (m_chunk_size * m_chunk_iterator);              \
+            unsigned int m_chunk_sizeI =                                                             \
+                m_chunk_size < m_chunk_remaining ? m_chunk_size : m_chunk_remaining;                 \
+                                                                                                     \
+            if(trans_a == rocblas_operation_none)                                                    \
+            {                                                                                        \
+                if(strideA1 * sizeL > int_limit)                                                     \
+                {                                                                                    \
+                    std::cerr << "rocBLAS ERROR: lda*k exceeds address limit" << std::endl;          \
+                }                                                                                    \
+            }                                                                                        \
+            else                                                                                     \
+            {                                                                                        \
+                if(strideA1 * m_chunk_sizeI > int_limit)                                             \
+                {                                                                                    \
+                    std::cerr << "rocBLAS ERROR: lda*m exceeds address limit" << std::endl;          \
+                }                                                                                    \
+            }                                                                                        \
+            if(trans_b == rocblas_operation_none)                                                    \
+            {                                                                                        \
+                if(strideB1 * n_chunk_sizeJ > int_limit)                                             \
+                {                                                                                    \
+                    std::cerr << "rocBLAS ERROR: ldb*n exceeds address limit" << std::endl;          \
+                }                                                                                    \
+            }                                                                                        \
+            else                                                                                     \
+            {                                                                                        \
+                if(strideB1 * sizeL > int_limit)                                                     \
+                {                                                                                    \
+                    std::cerr << "rocBLAS ERROR: ldb*k exceeds address limit" << std::endl;          \
+                }                                                                                    \
+            }                                                                                        \
+            if(strideC1 * n_chunk_sizeJ > int_limit)                                                 \
+            {                                                                                        \
+                std::cerr << "rocBLAS ERROR: ldc*n exceeds address limit" << std::endl;              \
+            }                                                                                        \
+                                                                                                     \
+            size_t C_offset =                                                                        \
+                n_chunk_iterator * n_chunk_size * strideC1 + m_chunk_iterator * m_chunk_size;        \
+            size_t B_offset = n_chunk_iterator * n_chunk_size;                                       \
+            size_t A_offset = m_chunk_iterator * m_chunk_size;                                       \
+            if(trans_b == rocblas_operation_none)                                                    \
+                B_offset *= strideB1;                                                                \
+            if(trans_a != rocblas_operation_none)                                                    \
+                A_offset *= strideA1;                                                                \
+                                                                                                     \
+            status = tensile_##TRANS##_##PREC##B(C + C_offset,                                       \
+                                                 A + A_offset,                                       \
+                                                 B + B_offset,                                       \
+                                                 alpha_h,                                            \
+                                                 beta_h,                                             \
+                                                 0,                                                  \
+                                                 0,                                                  \
+                                                 0,                                                  \
+                                                 strideC1,                                           \
+                                                 strideC2,                                           \
+                                                 strideA1,                                           \
+                                                 strideA2,                                           \
+                                                 strideB1,                                           \
+                                                 strideB2,                                           \
+                                                 m_chunk_sizeI,                                      \
+                                                 n_chunk_sizeJ,                                      \
+                                                 sizeK,                                              \
+                                                 sizeL,                                              \
+                                                 handle->rocblas_stream,                             \
+                                                 0,                                                  \
+                                                 nullptr,                                            \
+                                                 nullptr);                                           \
+        }                                                                                            \
+    }                                                                                                \
     PRINT_RETURN_STATUS
 
-#define CALL_HTENSILE(PREC, TYPE, TRANS)                                       \
-    PRINT_SOLUTION_NAME(PREC, TRANS)                                           \
-    TYPE alpha_h;                                                              \
-    TYPE beta_h;                                                               \
-    if(rocblas_pointer_mode_host == handle->pointer_mode)                      \
-    {                                                                          \
-        alpha_h = *alpha;                                                      \
-        beta_h  = *beta;                                                       \
-    }                                                                          \
-    else                                                                       \
-    {                                                                          \
-        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);       \
-        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);         \
-    }                                                                          \
-    status = tensile_##TRANS##_##PREC##B(reinterpret_cast<__fp16*>(C),         \
-                                         reinterpret_cast<const __fp16*>(A),   \
-                                         reinterpret_cast<const __fp16*>(B),   \
-                                         *reinterpret_cast<__fp16*>(&alpha_h), \
-                                         *reinterpret_cast<__fp16*>(&beta_h),  \
-                                         0,                                    \
-                                         0,                                    \
-                                         0,                                    \
-                                         strideC1,                             \
-                                         strideC2,                             \
-                                         strideA1,                             \
-                                         strideA2,                             \
-                                         strideB1,                             \
-                                         strideB2,                             \
-                                         sizeI,                                \
-                                         sizeJ,                                \
-                                         sizeK,                                \
-                                         sizeL,                                \
-                                         handle->rocblas_stream,               \
-                                         0,                                    \
-                                         nullptr,                              \
-                                         nullptr);                             \
+#define CALL_HTENSILE(PREC, TYPE, TRANS)                                         \
+    PRINT_SOLUTION_NAME(PREC, TRANS)                                             \
+    TYPE alpha_h;                                                                \
+    TYPE beta_h;                                                                 \
+    if(rocblas_pointer_mode_host == handle->pointer_mode)                        \
+    {                                                                            \
+        alpha_h = *alpha;                                                        \
+        beta_h  = *beta;                                                         \
+    }                                                                            \
+    else                                                                         \
+    {                                                                            \
+        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);         \
+        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);           \
+    }                                                                            \
+    status = tensile_##TRANS##_##PREC##B(reinterpret_cast<_Float16*>(C),         \
+                                         reinterpret_cast<const _Float16*>(A),   \
+                                         reinterpret_cast<const _Float16*>(B),   \
+                                         *reinterpret_cast<_Float16*>(&alpha_h), \
+                                         *reinterpret_cast<_Float16*>(&beta_h),  \
+                                         0,                                      \
+                                         0,                                      \
+                                         0,                                      \
+                                         strideC1,                               \
+                                         strideC2,                               \
+                                         strideA1,                               \
+                                         strideA2,                               \
+                                         strideB1,                               \
+                                         strideB2,                               \
+                                         sizeI,                                  \
+                                         sizeJ,                                  \
+                                         sizeK,                                  \
+                                         sizeL,                                  \
+                                         handle->rocblas_stream,                 \
+                                         0,                                      \
+                                         nullptr,                                \
+                                         nullptr);                               \
     PRINT_RETURN_STATUS
 
 /*******************************************************************************

@@ -38,14 +38,20 @@ Yet, the goal of this file is to verify result correctness not argument-checkers
 Representative sampling is sufficient, endless brute-force sampling is not necessary
 =================================================================== */
 
+// THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of
+// matrix_size_range is small
+
 // vector of vector, each vector is a {M, N, lda, ldb};
 // add/delete as a group
-const vector<vector<int>> matrix_size_range = {
-    {-1, -1, 1, 1}, {10, 10, 20, 100}, {600, 500, 600, 600},
+const vector<vector<int>> small_matrix_size_range = {
+    {-1, -1, 1, 1}, {10, 10, 20, 100},
+};
+
+const vector<vector<int>> medium_matrix_size_range = {
+    {192, 192, 192, 192}, {600, 500, 600, 600}, {800, 700, 801, 701},
 };
 
 const vector<vector<int>> large_matrix_size_range = {
-    {192, 192, 192, 192},
     {640, 640, 960, 960},
     {1000, 1000, 1000, 1000},
     {1024, 1024, 1024, 1024},
@@ -141,7 +147,7 @@ class trsm_gtest : public ::TestWithParam<trsm_tuple>
     virtual void TearDown() {}
 };
 
-TEST_P(trsm_gtest, trsm_gtest_float)
+TEST_P(trsm_gtest, float)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -171,7 +177,7 @@ TEST_P(trsm_gtest, trsm_gtest_float)
     }
 }
 
-TEST_P(trsm_gtest, trsm_gtest_double)
+TEST_P(trsm_gtest, double)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -206,22 +212,27 @@ TEST_P(trsm_gtest, trsm_gtest_double)
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, N, lda, ldb}, alpha, {side, uplo, transA, diag} }
 
-// THis function mainly test the scope of matrix_size. the scope of side_uplo_transA_diag_range is
+// These function mainly test the scope of matrix_size. the scope of side_uplo_transA_diag_range is
 // small
 // Testing order: side_uplo_transA_xx first, alpha_range second, full_matrix_size last
 // i.e fix the matrix size and alpha, test all the side_uplo_transA_xx first.
 // INSTANTIATE_TEST_CASE_P(rocblas_trsm_matrix_size,
-INSTANTIATE_TEST_CASE_P(daily_blas3,
+INSTANTIATE_TEST_CASE_P(quick_blas3,
+                        trsm_gtest,
+                        Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(alpha_range),
+                                ValuesIn(full_side_uplo_transA_diag_range)));
+
+INSTANTIATE_TEST_CASE_P(pre_checkin_blas3,
+                        trsm_gtest,
+                        Combine(ValuesIn(medium_matrix_size_range),
+                                ValuesIn(alpha_range),
+                                ValuesIn(full_side_uplo_transA_diag_range)));
+
+// THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of
+// matrix_size_range is small
+INSTANTIATE_TEST_CASE_P(nightly_blas3,
                         trsm_gtest,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_range),
                                 ValuesIn(side_uplo_transA_diag_range)));
-
-// THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of
-// matrix_size_range is small
-
-INSTANTIATE_TEST_CASE_P(checkin_blas3,
-                        trsm_gtest,
-                        Combine(ValuesIn(matrix_size_range),
-                                ValuesIn(alpha_range),
-                                ValuesIn(full_side_uplo_transA_diag_range)));

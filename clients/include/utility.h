@@ -106,36 +106,37 @@ inline float half_to_float(rocblas_half val)
 /* ============================================================================================ */
 /* generate random number :*/
 
-/*! \brief  generate a random number between [0, 0.999...] . */
+/*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
 template <typename T>
 T random_generator()
 {
     // return rand()/( (T)RAND_MAX + 1);
-    return (T)(rand() % 10 + 1); // generate a integer number between [1, 10]
+    return (T)(rand() % 10 + 1);
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
+/*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
     return float_to_half(
-        static_cast<float>((rand() % 3 + 1))); // generate a integer number between [1, 5]
+        static_cast<float>((rand() % 3 + 1))); // generate a integer number in range [1,2,3]
 };
 
-/*! \brief  generate a random number between [0, 0.999...] . */
+/*! \brief  generate a random number in range [-1,-2,-3,-4,-5,-6,-7,-8,-9,-10] */
 template <typename T>
 T random_generator_negative()
 {
     // return rand()/( (T)RAND_MAX + 1);
-    return -(T)(rand() % 10 + 1); // generate a integer number between [1, 10]
+    return -(T)(rand() % 10 + 1);
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
+/*! \brief  generate a random number in range [-1,-2,-3] */
 template <>
 inline rocblas_half random_generator_negative<rocblas_half>()
 {
-    return float_to_half(
-        -static_cast<float>((rand() % 5 + 1))); // generate a integer number between [1, 5]
+    return float_to_half(-static_cast<float>((rand() % 3 + 1)));
 };
 
 /* ============================================================================================ */
@@ -178,10 +179,13 @@ void rocblas_init(vector<T>& A,
 template <typename T>
 void rocblas_init_alternating_sign(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
-    // produce matrix where adjacent entries have alternating sign
-    // this means the accumulator in a reduction sum for matrix
-    // multiplication where one matrix has alternating sign should be
-    // summing alternating positive and negative numbers
+    // Initialize matrix so adjacent entries have alternating sign.
+    // In gemm if either A or B are initialized with alernating
+    // sign the reduction sum will be summing positive
+    // and negative numbers, so it should not get too large.
+    // This helps reduce floating point inaccuracies for 16bit
+    // arithmetic where the exponent has only 5 bits, and the
+    // mantissa 10 bits.
     for(rocblas_int i = 0; i < M; ++i)
     {
         for(rocblas_int j = 0; j < N; ++j)
@@ -193,6 +197,40 @@ void rocblas_init_alternating_sign(vector<T>& A, rocblas_int M, rocblas_int N, r
             else
             {
                 A[i + j * lda] = random_generator_negative<T>();
+            }
+        }
+    }
+};
+
+template <typename T>
+void rocblas_init_alternating_sign(vector<T>& A,
+                                   rocblas_int M,
+                                   rocblas_int N,
+                                   rocblas_int lda,
+                                   rocblas_int stride,
+                                   rocblas_int batch_count)
+{
+    // Initialize matrix so adjacent entries have alternating sign.
+    // In gemm if either A or B are initialized with alernating
+    // sign the reduction sum will be summing positive
+    // and negative numbers, so it should not get too large.
+    // This helps reduce floating point inaccuracies for 16bit
+    // arithmetic where the exponent has only 5 bits, and the
+    // mantissa 10 bits.
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                if(j % 2 ^ i % 2)
+                {
+                    A[i + j * lda + i_batch * stride] = random_generator<T>();
+                }
+                else
+                {
+                    A[i + j * lda + i_batch * stride] = random_generator_negative<T>();
+                }
             }
         }
     }
@@ -349,6 +387,8 @@ rocblas_diagonal char2rocblas_diagonal(char value);
 
 rocblas_side char2rocblas_side(char value);
 
+rocblas_datatype char2rocblas_datatype(char value);
+
 #ifdef __cplusplus
 }
 #endif
@@ -370,6 +410,13 @@ class Arguments
     rocblas_int lda = 128;
     rocblas_int ldb = 128;
     rocblas_int ldc = 128;
+    rocblas_int ldd = 128;
+
+    rocblas_datatype a_type       = rocblas_datatype_f32_r;
+    rocblas_datatype b_type       = rocblas_datatype_f32_r;
+    rocblas_datatype c_type       = rocblas_datatype_f32_r;
+    rocblas_datatype d_type       = rocblas_datatype_f32_r;
+    rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
     rocblas_int incx = 1;
     rocblas_int incy = 1;
@@ -411,6 +458,13 @@ class Arguments
         lda = rhs.lda;
         ldb = rhs.ldb;
         ldc = rhs.ldc;
+        ldd = rhs.ldd;
+
+        a_type       = rhs.a_type;
+        b_type       = rhs.b_type;
+        c_type       = rhs.c_type;
+        d_type       = rhs.d_type;
+        compute_type = rhs.compute_type;
 
         incx = rhs.incx;
         incy = rhs.incy;

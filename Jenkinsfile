@@ -197,6 +197,23 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
         """
     }
 
+    if( paths.project_name.equalsIgnoreCase( 'rocblas-ubuntu' ) )
+    {
+      stage('Clang Format')
+      {
+        sh '''
+            find . -iname \'*.h\' \
+                -o -iname \'*.hpp\' \
+                -o -iname \'*.cpp\' \
+                -o -iname \'*.h.in\' \
+                -o -iname \'*.hpp.in\' \
+                -o -iname \'*.cpp.in\' \
+            | grep -v 'build/' \
+            | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
+        '''
+      }
+    }
+
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
@@ -207,7 +224,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
           sh """#!/usr/bin/env bash
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=-*known_bug* #--gtest_filter=*nightly*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -217,7 +234,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
                 LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=-*known_bug* #--gtest_filter=*checkin* 
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin* 
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -241,20 +258,6 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
               dpkg -c ${docker_context}/*.deb
           """
           archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
-
-          stage('Clang Format')
-          {
-            sh '''
-                find . -iname \'*.h\' \
-                    -o -iname \'*.hpp\' \
-                    -o -iname \'*.cpp\' \
-                    -o -iname \'*.h.in\' \
-                    -o -iname \'*.hpp.in\' \
-                    -o -iname \'*.cpp.in\' \
-                | grep -v 'build/' \
-                | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
-            '''
-          }
         }
         else if( paths.project_name.equalsIgnoreCase( 'rocblas-fedora' ) )
         {

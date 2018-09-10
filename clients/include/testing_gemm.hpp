@@ -253,7 +253,7 @@ rocblas_status testing_gemm(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = 0.0;
+    double rocblas_error = 0.0;
 
     rocblas_status status;
 
@@ -330,9 +330,9 @@ rocblas_status testing_gemm(Arguments argus)
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC_1, M, N, ldc);
 
-    rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
-    rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
-    rocblas_init<T>(hC_1, M, N, ldc, 1.0);
+    //  rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
+    //  rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
+    //  rocblas_init<T>(hC_1, M, N, ldc, 1.0);
 
     //  std::cout << "------------------------------------------------" << std::endl;
     //  for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
@@ -426,8 +426,15 @@ rocblas_status testing_gemm(Arguments argus)
         // in compilation time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
-            rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data());
+            double error_hst_ptr =
+                norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
+            double error_dev_ptr =
+                norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data());
+
+            error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
+            error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;
+
+            rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }
 
@@ -440,8 +447,8 @@ rocblas_status testing_gemm(Arguments argus)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm<T>(
-                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
+            CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
+                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -456,7 +463,7 @@ rocblas_status testing_gemm(Arguments argus)
         cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
         if(argus.unit_check || argus.norm_check)
-            cout << ",CPU-Gflops(us),norm-error";
+            cout << ",CPU-Gflops,us,norm-error";
 
         cout << endl;
 
@@ -559,10 +566,10 @@ rocblas_status range_testing_gemm(Arguments argus)
     myfile.open(filename);
     if(myfile.is_open())
     {
-        myfile << "M, N, K, lda, ldb, ldc, rocblas-Gflops (us) ";
+        myfile << "M,N,K,lda,ldb,ldc,rocblas-Gflops,us";
         if(argus.norm_check)
         {
-            myfile << "CPU-Gflops(us), norm-error";
+            myfile << ",CPU-Gflops,us,norm-error";
         }
         myfile << endl;
     }
@@ -626,7 +633,6 @@ rocblas_status range_testing_gemm(Arguments argus)
                 rocblas_error =
                     norm_check_general<T>('F', size, size, size, hC_gold.data(), hC.data());
             }
-
         } // end of if unit/norm check
 
         if(myfile.is_open())
