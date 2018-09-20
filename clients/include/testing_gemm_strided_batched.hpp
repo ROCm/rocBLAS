@@ -77,9 +77,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                              rocblas_test::device_free};
         auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
+        T* dA           = (T*)dA_managed.get();
+        T* dB           = (T*)dB_managed.get();
+        T* dC           = (T*)dC_managed.get();
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -114,7 +114,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = 0.0;
+    double rocblas_error = 0.0;
 
     size_t size_one_a = transA == rocblas_operation_none
                             ? static_cast<size_t>(K) * static_cast<size_t>(lda)
@@ -265,10 +265,15 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>(
+            double error_hst_ptr = norm_check_general<T>(
                 'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_1.data());
-            rocblas_error = norm_check_general<T>(
+            double error_dev_ptr = norm_check_general<T>(
                 'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_2.data());
+
+            error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
+            error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;
+
+            rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }
 
@@ -338,9 +343,11 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         cout << endl;
 
         cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
-             << K << "," << h_alpha << "," << lda << "," << stride_a << "," << ldb << ","
-             << stride_b << "," << h_beta << "," << ldc << "," << stride_c << "," << batch_count
-             << "," << rocblas_gflops << "," << gpu_time_used;
+             << K << "," << (is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
+             << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
+             << (is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << "," << ldc
+             << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
+             << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

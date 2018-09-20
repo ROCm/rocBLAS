@@ -114,7 +114,7 @@ int main(int argc, char* argv[])
          "BLAS-2 and BLAS-3: second dimension * leading dimension.")
 
         ("stride_d",
-         po::value<rocblas_int>(&argus.stride_c)->default_value(128*128),
+         po::value<rocblas_int>(&argus.stride_d)->default_value(128*128),
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
 
