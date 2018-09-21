@@ -77,9 +77,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                              rocblas_test::device_free};
         auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        T* dA           = (T*)dA_managed.get();
-        T* dB           = (T*)dB_managed.get();
-        T* dC           = (T*)dC_managed.get();
+        T* dA = (T*)dA_managed.get();
+        T* dB = (T*)dB_managed.get();
+        T* dC = (T*)dC_managed.get();
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
