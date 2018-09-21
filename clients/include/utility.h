@@ -442,6 +442,7 @@ class Arguments
     rocblas_int stride_a = 128 * 128; //  stride_a > transA_option == 'N' ? lda * K : lda * M
     rocblas_int stride_b = 128 * 128; //  stride_b > transB_option == 'N' ? ldb * N : ldb * K
     rocblas_int stride_c = 128 * 128; //  stride_c > ldc * N
+    rocblas_int stride_d = 128 * 128; //  stride_d > ldd * N
 
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
