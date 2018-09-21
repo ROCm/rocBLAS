@@ -210,15 +210,15 @@ double norm_check_general<rocblas_half>(char norm_type,
     // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
     // of strided batched matrix
 
-    std::unique_ptr<float[]> hCPU_float(new float[N * lda]() + (batch_count - 1) * stride_a);
-    std::unique_ptr<float[]> hGPU_float(new float[N * lda]() + (batch_count - 1) * stride_a);
+    std::unique_ptr<float[]> hCPU_float(new float[N * lda + (batch_count - 1) * stride_a]());
+    std::unique_ptr<float[]> hGPU_float(new float[N * lda + (batch_count - 1) * stride_a]());
     for(int i_batch = 0; i_batch < batch_count; i_batch++)
     {
         for(int i = 0; i < N * lda; i++)
         {
             int index         = i + i_batch * stride_a;
-            hCPU_float[index] = static_cast<float>(hCPU[index]);
-            hGPU_float[index] = static_cast<float>(hGPU[index]);
+            hCPU_float[index] = half_to_float(hCPU[index]);
+            hGPU_float[index] = half_to_float(hGPU[index]);
         }
     }
 
