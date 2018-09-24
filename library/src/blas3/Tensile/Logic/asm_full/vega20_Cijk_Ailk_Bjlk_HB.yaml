@@ -1,7 +1,7 @@
 - {MinimumRequiredVersion: 4.4.0}
 - vega20
 - gfx906
-- [Device 66a0, Device 66a7]
+- [Device 66a0, Device 66a1, Device 66a7]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
