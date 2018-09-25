@@ -1424,6 +1424,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               size_t* workspace_size,
                                               void* workspace);
 
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
+                                                              rocblas_operation trans_a,
+                                                              rocblas_operation trans_b,
+                                                              rocblas_int m,
+                                                              rocblas_int n,
+                                                              rocblas_int k,
+                                                              const void* alpha,
+                                                              const void* a,
+                                                              rocblas_datatype a_type,
+                                                              rocblas_int lda,
+                                                              rocblas_long stride_a,
+                                                              const void* b,
+                                                              rocblas_datatype b_type,
+                                                              rocblas_int ldb,
+                                                              rocblas_long stride_b,
+                                                              const void* beta,
+                                                              const void* c,
+                                                              rocblas_datatype c_type,
+                                                              rocblas_int ldc,
+                                                              rocblas_long stride_c,
+                                                              void* d,
+                                                              rocblas_datatype d_type,
+                                                              rocblas_int ldd,
+                                                              rocblas_long stride_d,
+                                                              rocblas_int batch_count,
+                                                              rocblas_datatype compute_type,
+                                                              rocblas_gemm_algo algo,
+                                                              uint32_t solution_index,
+                                                              uint32_t flags,
+                                                              size_t* workspace_size,
+                                                              void* workspace);
+
 #ifdef __cplusplus
 }
 #endif
