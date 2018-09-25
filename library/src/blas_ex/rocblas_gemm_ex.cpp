@@ -583,9 +583,13 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                           void* workspace)
 {
     // handle, alpha, beta must not be null pointers for logging
-    if(nullptr == handle || nullptr == alpha || nullptr == beta)
+    if(nullptr == handle)
     {
         return rocblas_status_invalid_handle;
+    }
+    if(nullptr == alpha || nullptr == beta)
+    {
+        return rocblas_status_invalid_pointer;
     }
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
