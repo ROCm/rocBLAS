@@ -309,14 +309,16 @@
     unsigned int n_chunk_count  = ((sizeJ - 1) / n_chunk_size) + 1;                                  \
     unsigned int m_chunk_count  = ((sizeI - 1) / m_chunk_size) + 1;                                  \
                                                                                                      \
-    if ( trans_a == rocblas_operation_none ) {                                                       \
-         m_chunk_size = sizeI;                                                                       \
-         m_chunk_count = 1;                                                                          \
+    if(trans_a == rocblas_operation_none)                                                            \
+    {                                                                                                \
+        m_chunk_size  = sizeI;                                                                       \
+        m_chunk_count = 1;                                                                           \
     };                                                                                               \
                                                                                                      \
-    if ( trans_b == rocblas_operation_transpose ) {                                                  \
-         n_chunk_size = sizeJ;                                                                       \
-         n_chunk_count = 1;                                                                          \
+    if(trans_b == rocblas_operation_transpose)                                                       \
+    {                                                                                                \
+        n_chunk_size  = sizeJ;                                                                       \
+        n_chunk_count = 1;                                                                           \
     };                                                                                               \
                                                                                                      \
     for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)              \
