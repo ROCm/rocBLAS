@@ -93,38 +93,26 @@ const vector<vector<int>> large_matrix_size_stride_a_range = {
     {513, 513, 513,  513, 513, 513,      0, 263169, 263169},
     {513, 514, 515,  516, 517, 518, 266771,      0, 266773},
 };
-// clang-format on
 
 // vector of vector, each pair is a {alpha, beta};
 // add/delete this list in pairs, like {2.0, 4.0}
 
-// clang-format off
-const vector<vector<double>> alpha_beta_range = {
-    {1.0, 0.0}, {-1.0, -1.0}, {0.0, 1.0},
-};
-const vector<vector<double>> alpha_beta_stride_a_range = {{2.0, 3.0}};
-// clang-format on
+const vector<vector<double>> alpha_beta_range          = { {1.0, 0.0}, {-1.0, -1.0}, {0.0, 1.0}, };
+const vector<vector<double>> alpha_beta_stride_a_range = { {2.0, 3.0}};
 
 // vector of vector, each pair is a {transA, transB};
 // add/delete this list in pairs, like {'N', 'T'}
 // for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) internally in
 // sgemm_strided_batched/dgemm_strided_batched,
-const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
+const vector<vector<char>> transA_transB_range          = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
 const vector<vector<char>> transA_transB_stride_a_range = {{'N', 'N'}};
 
 // number of gemms in batched gemm
-const vector<int> small_batch_count_range = {
-    -1, 0, 1, 3,
-};
-const vector<int> medium_batch_count_range         = {63, 64, 65};
-const vector<int> small_batch_count_stride_a_range = {
-    1, 3,
-};
-const vector<int> medium_batch_count_stride_a_range = {
-    31, 32, 33,
-};
+const vector<int> small_batch_count_range           = { -1,   0,  1, 3, };
+const vector<int> medium_batch_count_range          = { 63,  64, 65,    };
+const vector<int> small_batch_count_stride_a_range  = {  1,   3,        };
+const vector<int> medium_batch_count_stride_a_range = {  31, 32, 33,    };
 
-// clang-format off
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
 gemm_strided_batched_tuple db_sb_1{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 16};
 gemm_strided_batched_tuple db_sb_2{ {12544, 64, 64, 12544, 64, 12544, 802816, 0, 802816}, {1, 0}, {'N', 'N'}, 8};
