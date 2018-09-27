@@ -266,9 +266,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         if(argus.norm_check)
         {
             double error_hst_ptr = norm_check_general<T>(
-                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_1.data());
+                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_1.data());
             double error_dev_ptr = norm_check_general<T>(
-                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_2.data());
+                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_2.data());
 
             error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
             error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;
