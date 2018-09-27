@@ -423,7 +423,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    Td rocblas_error = 0.0;
+    double rocblas_error = 0.0;
 
     rocblas_status status;
 
