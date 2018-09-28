@@ -303,7 +303,7 @@
     }                                                                                                \
     unsigned int int_limit      = std::numeric_limits<int>::max() / sizeof(TYPE);                    \
     unsigned int n_chunk_size_c = int_limit / strideC1;                                              \
-    unsigned int n_chunk_size_b = int_limit / strideB1;                                              \
+    unsigned int n_chunk_size_b = (trans_b == rocblas_operation_none)? int_limit / strideB1 : int_limit / sizeL;      \
     unsigned int n_chunk_size   = n_chunk_size_c < n_chunk_size_b ? n_chunk_size_c : n_chunk_size_b; \
     unsigned int m_chunk_size   = int_limit / strideA1;                                              \
     unsigned int n_chunk_count  = ((sizeJ - 1) / n_chunk_size) + 1;                                  \
@@ -313,12 +313,6 @@
     {                                                                                                \
         m_chunk_size  = sizeI;                                                                       \
         m_chunk_count = 1;                                                                           \
-    };                                                                                               \
-                                                                                                     \
-    if(trans_b == rocblas_operation_transpose)                                                       \
-    {                                                                                                \
-        n_chunk_size  = sizeJ;                                                                       \
-        n_chunk_count = 1;                                                                           \
     };                                                                                               \
                                                                                                      \
     for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)              \
