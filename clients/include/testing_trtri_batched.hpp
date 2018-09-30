@@ -81,11 +81,8 @@ rocblas_status testing_trtri_batched(Arguments argus)
 
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
                                          rocblas_test::device_free};
-    auto dinvA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                            rocblas_test::device_free};
     T* dA    = (T*)dA_managed.get();
-    T* dinvA = (T*)dinvA_managed.get();
-    if(!dA || !dinvA)
+    if(!dA)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
@@ -93,7 +90,6 @@ rocblas_status testing_trtri_batched(Arguments argus)
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dinvA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
 
     /* =====================================================================
            ROCBLAS
@@ -104,7 +100,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
     status =
-        rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count);
+        rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, bsa, batch_count);
 
     if(status != rocblas_status_success)
         return status;
@@ -116,7 +112,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
     // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check)
     {

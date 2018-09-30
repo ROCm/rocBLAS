@@ -22,9 +22,7 @@ template <typename T>
 rocblas_status testing_trtri(Arguments argus)
 {
     rocblas_int N = argus.N;
-    rocblas_int lda;
-    rocblas_int ldinvA;
-    ldinvA = lda = argus.lda;
+    rocblas_int lda = argus.lda;
 
     rocblas_int size_A = lda * N;
 
@@ -54,11 +52,8 @@ rocblas_status testing_trtri(Arguments argus)
 
     auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
                                          rocblas_test::device_free};
-    auto dinvA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                            rocblas_test::device_free};
     T* dA    = (T*)dA_managed.get();
-    T* dinvA = (T*)dinvA_managed.get();
-    if(!dA || !dinvA)
+    if(!dA)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
@@ -99,7 +94,7 @@ rocblas_status testing_trtri(Arguments argus)
         gpu_time_used = get_time_us(); // in microseconds
     }
 
-    status = rocblas_trtri<T>(handle, uplo, diag, N, dA, lda, dinvA, ldinvA);
+    status = rocblas_trtri<T>(handle, uplo, diag, N, dA, lda);
 
     if(argus.timing)
     {
@@ -108,7 +103,7 @@ rocblas_status testing_trtri(Arguments argus)
     }
 
     // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check)
     {
