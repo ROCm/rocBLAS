@@ -6382,8 +6382,6 @@ conv_ctest_fwd_fp16_615, conv_ctest_fwd_fp16_616,
 conv_ctest_fwd_fp16_617, conv_ctest_fwd_fp16_618, 
 };
 
-
-
 // clang-format on
 
 /* ===============Google Unit Test==================================================== */
@@ -6928,7 +6926,6 @@ INSTANTIATE_TEST_CASE_P(kown_bug_conv_ctest_bwdwrw_fp16, parameterized_gemm_half
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_fwd_fp32, parameterized_gemm_float, ValuesIn(conv_ctest_fwd_fp32));
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_fwd_fp16, parameterized_gemm_half, ValuesIn(conv_ctest_fwd_fp16));
-
 
 // clang-format on
 
