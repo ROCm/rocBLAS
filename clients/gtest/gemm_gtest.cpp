@@ -333,10 +333,14 @@ gemm_tuple conv_resnet50_fwd_fp32_015 {{50176, 512, 256, 50176, 256, 50176}, {1,
 gemm_tuple conv_resnet50_fwd_fp32_016 {{784, 128, 1152, 784, 1152, 784}, {1, 0}, {'N', 'N'}};
 
 const vector<gemm_tuple> conv_resnet50_fwd_fp32 = {
-conv_resnet50_fwd_fp32_001, conv_resnet50_fwd_fp32_002, conv_resnet50_fwd_fp32_003, conv_resnet50_fwd_fp32_004,
-conv_resnet50_fwd_fp32_005, conv_resnet50_fwd_fp32_006, conv_resnet50_fwd_fp32_007, conv_resnet50_fwd_fp32_008,
-conv_resnet50_fwd_fp32_009, conv_resnet50_fwd_fp32_010, conv_resnet50_fwd_fp32_011, conv_resnet50_fwd_fp32_012,
-conv_resnet50_fwd_fp32_013, conv_resnet50_fwd_fp32_014, conv_resnet50_fwd_fp32_015, conv_resnet50_fwd_fp32_016,
+    conv_resnet50_fwd_fp32_001, conv_resnet50_fwd_fp32_002, 
+    conv_resnet50_fwd_fp32_003, conv_resnet50_fwd_fp32_004,
+    conv_resnet50_fwd_fp32_005, conv_resnet50_fwd_fp32_006, 
+    conv_resnet50_fwd_fp32_007, conv_resnet50_fwd_fp32_008,
+    conv_resnet50_fwd_fp32_009, conv_resnet50_fwd_fp32_010, 
+    conv_resnet50_fwd_fp32_011, conv_resnet50_fwd_fp32_012,
+    conv_resnet50_fwd_fp32_013, conv_resnet50_fwd_fp32_014, 
+    conv_resnet50_fwd_fp32_015, conv_resnet50_fwd_fp32_016,
 };
 
 gemm_tuple conv_resnet50_fwd_fp16_001 {{12544, 1024, 256, 12544, 256, 12544}, {15360, 0}, {'N', 'N'}};
@@ -357,10 +361,14 @@ gemm_tuple conv_resnet50_fwd_fp16_015 {{50176, 512, 256, 50176, 256, 50176}, {15
 gemm_tuple conv_resnet50_fwd_fp16_016 {{784, 128, 1152, 784, 1152, 784}, {15360, 0}, {'N', 'N'}};
 
 const vector<gemm_tuple> conv_resnet50_fwd_fp16 = {
-conv_resnet50_fwd_fp16_001, conv_resnet50_fwd_fp16_002, conv_resnet50_fwd_fp16_003, conv_resnet50_fwd_fp16_004, 
-conv_resnet50_fwd_fp16_005, conv_resnet50_fwd_fp16_006, conv_resnet50_fwd_fp16_007, conv_resnet50_fwd_fp16_008, 
-conv_resnet50_fwd_fp16_009, conv_resnet50_fwd_fp16_010, conv_resnet50_fwd_fp16_011, conv_resnet50_fwd_fp16_012, 
-conv_resnet50_fwd_fp16_013, conv_resnet50_fwd_fp16_014, conv_resnet50_fwd_fp16_015, conv_resnet50_fwd_fp16_016, 
+    conv_resnet50_fwd_fp16_001, conv_resnet50_fwd_fp16_002, 
+    conv_resnet50_fwd_fp16_003, conv_resnet50_fwd_fp16_004, 
+    conv_resnet50_fwd_fp16_005, conv_resnet50_fwd_fp16_006, 
+    conv_resnet50_fwd_fp16_007, conv_resnet50_fwd_fp16_008, 
+    conv_resnet50_fwd_fp16_009, conv_resnet50_fwd_fp16_010, 
+    conv_resnet50_fwd_fp16_011, conv_resnet50_fwd_fp16_012, 
+    conv_resnet50_fwd_fp16_013, conv_resnet50_fwd_fp16_014, 
+    conv_resnet50_fwd_fp16_015, conv_resnet50_fwd_fp16_016, 
 };
 
 gemm_tuple conv_resnet50_bwdwrw_fp32_001 {{1024, 2048, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
@@ -389,12 +397,18 @@ gemm_tuple conv_resnet50_bwdwrw_fp32_023 {{64, 64, 3025, 3025, 3025, 64}, {1, 1}
 gemm_tuple conv_resnet50_bwdwrw_fp32_024 {{64, 64, 3136, 3136, 3136, 64}, {1, 1}, {'T', 'N'}};
 
 const vector<gemm_tuple> conv_resnet50_bwdwrw_fp32 = {
-conv_resnet50_bwdwrw_fp32_001, conv_resnet50_bwdwrw_fp32_002, conv_resnet50_bwdwrw_fp32_003, conv_resnet50_bwdwrw_fp32_004, 
-conv_resnet50_bwdwrw_fp32_005, conv_resnet50_bwdwrw_fp32_006, conv_resnet50_bwdwrw_fp32_007, conv_resnet50_bwdwrw_fp32_008, 
-conv_resnet50_bwdwrw_fp32_009, conv_resnet50_bwdwrw_fp32_010, conv_resnet50_bwdwrw_fp32_011, conv_resnet50_bwdwrw_fp32_012, 
-conv_resnet50_bwdwrw_fp32_013, conv_resnet50_bwdwrw_fp32_014, conv_resnet50_bwdwrw_fp32_015, conv_resnet50_bwdwrw_fp32_016, 
-conv_resnet50_bwdwrw_fp32_017, conv_resnet50_bwdwrw_fp32_018, conv_resnet50_bwdwrw_fp32_019, conv_resnet50_bwdwrw_fp32_020, 
-conv_resnet50_bwdwrw_fp32_021, conv_resnet50_bwdwrw_fp32_022, conv_resnet50_bwdwrw_fp32_023, conv_resnet50_bwdwrw_fp32_024, 
+    conv_resnet50_bwdwrw_fp32_001, conv_resnet50_bwdwrw_fp32_002,
+    conv_resnet50_bwdwrw_fp32_003, conv_resnet50_bwdwrw_fp32_004,
+    conv_resnet50_bwdwrw_fp32_005, conv_resnet50_bwdwrw_fp32_006,
+    conv_resnet50_bwdwrw_fp32_007, conv_resnet50_bwdwrw_fp32_008,
+    conv_resnet50_bwdwrw_fp32_009, conv_resnet50_bwdwrw_fp32_010,
+    conv_resnet50_bwdwrw_fp32_011, conv_resnet50_bwdwrw_fp32_012,
+    conv_resnet50_bwdwrw_fp32_013, conv_resnet50_bwdwrw_fp32_014,
+    conv_resnet50_bwdwrw_fp32_015, conv_resnet50_bwdwrw_fp32_016,
+    conv_resnet50_bwdwrw_fp32_017, conv_resnet50_bwdwrw_fp32_018,
+    conv_resnet50_bwdwrw_fp32_019, conv_resnet50_bwdwrw_fp32_020,
+    conv_resnet50_bwdwrw_fp32_021, conv_resnet50_bwdwrw_fp32_022,
+    conv_resnet50_bwdwrw_fp32_023, conv_resnet50_bwdwrw_fp32_024,
 };
 
 gemm_tuple conv_resnet50_bwdwrw_fp16_001 {{1024, 2048, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
@@ -447,18 +461,30 @@ gemm_tuple conv_resnet50_bwdwrw_fp16_047 {{64, 64, 3025, 3025, 3025, 64}, {15360
 gemm_tuple conv_resnet50_bwdwrw_fp16_048 {{64, 64, 3136, 3136, 3136, 64}, {15360, 15360}, {'T', 'N'}};
 
 const vector<gemm_tuple> conv_resnet50_bwdwrw_fp16 = {
-conv_resnet50_bwdwrw_fp16_001, conv_resnet50_bwdwrw_fp16_002, conv_resnet50_bwdwrw_fp16_003, conv_resnet50_bwdwrw_fp16_004, 
-conv_resnet50_bwdwrw_fp16_005, conv_resnet50_bwdwrw_fp16_006, conv_resnet50_bwdwrw_fp16_007, conv_resnet50_bwdwrw_fp16_008, 
-conv_resnet50_bwdwrw_fp16_009, conv_resnet50_bwdwrw_fp16_010, conv_resnet50_bwdwrw_fp16_011, conv_resnet50_bwdwrw_fp16_012, 
-conv_resnet50_bwdwrw_fp16_013, conv_resnet50_bwdwrw_fp16_014, conv_resnet50_bwdwrw_fp16_015, conv_resnet50_bwdwrw_fp16_016, 
-conv_resnet50_bwdwrw_fp16_017, conv_resnet50_bwdwrw_fp16_018, conv_resnet50_bwdwrw_fp16_019, conv_resnet50_bwdwrw_fp16_020, 
-conv_resnet50_bwdwrw_fp16_021, conv_resnet50_bwdwrw_fp16_022, conv_resnet50_bwdwrw_fp16_023, conv_resnet50_bwdwrw_fp16_024, 
-conv_resnet50_bwdwrw_fp16_025, conv_resnet50_bwdwrw_fp16_026, conv_resnet50_bwdwrw_fp16_027, conv_resnet50_bwdwrw_fp16_028, 
-conv_resnet50_bwdwrw_fp16_029, conv_resnet50_bwdwrw_fp16_030, conv_resnet50_bwdwrw_fp16_031, conv_resnet50_bwdwrw_fp16_032, 
-conv_resnet50_bwdwrw_fp16_033, conv_resnet50_bwdwrw_fp16_034, conv_resnet50_bwdwrw_fp16_035, conv_resnet50_bwdwrw_fp16_036, 
-conv_resnet50_bwdwrw_fp16_037, conv_resnet50_bwdwrw_fp16_038, conv_resnet50_bwdwrw_fp16_039, conv_resnet50_bwdwrw_fp16_040, 
-conv_resnet50_bwdwrw_fp16_041, conv_resnet50_bwdwrw_fp16_042, conv_resnet50_bwdwrw_fp16_043, conv_resnet50_bwdwrw_fp16_044, 
-conv_resnet50_bwdwrw_fp16_045, conv_resnet50_bwdwrw_fp16_046, conv_resnet50_bwdwrw_fp16_047, conv_resnet50_bwdwrw_fp16_048, 
+    conv_resnet50_bwdwrw_fp16_001, conv_resnet50_bwdwrw_fp16_002, 
+    conv_resnet50_bwdwrw_fp16_003, conv_resnet50_bwdwrw_fp16_004, 
+    conv_resnet50_bwdwrw_fp16_005, conv_resnet50_bwdwrw_fp16_006, 
+    conv_resnet50_bwdwrw_fp16_007, conv_resnet50_bwdwrw_fp16_008, 
+    conv_resnet50_bwdwrw_fp16_009, conv_resnet50_bwdwrw_fp16_010, 
+    conv_resnet50_bwdwrw_fp16_011, conv_resnet50_bwdwrw_fp16_012, 
+    conv_resnet50_bwdwrw_fp16_013, conv_resnet50_bwdwrw_fp16_014, 
+    conv_resnet50_bwdwrw_fp16_015, conv_resnet50_bwdwrw_fp16_016, 
+    conv_resnet50_bwdwrw_fp16_017, conv_resnet50_bwdwrw_fp16_018, 
+    conv_resnet50_bwdwrw_fp16_019, conv_resnet50_bwdwrw_fp16_020, 
+    conv_resnet50_bwdwrw_fp16_021, conv_resnet50_bwdwrw_fp16_022, 
+    conv_resnet50_bwdwrw_fp16_023, conv_resnet50_bwdwrw_fp16_024, 
+    conv_resnet50_bwdwrw_fp16_025, conv_resnet50_bwdwrw_fp16_026, 
+    conv_resnet50_bwdwrw_fp16_027, conv_resnet50_bwdwrw_fp16_028, 
+    conv_resnet50_bwdwrw_fp16_029, conv_resnet50_bwdwrw_fp16_030, 
+    conv_resnet50_bwdwrw_fp16_031, conv_resnet50_bwdwrw_fp16_032, 
+    conv_resnet50_bwdwrw_fp16_033, conv_resnet50_bwdwrw_fp16_034, 
+    conv_resnet50_bwdwrw_fp16_035, conv_resnet50_bwdwrw_fp16_036, 
+    conv_resnet50_bwdwrw_fp16_037, conv_resnet50_bwdwrw_fp16_038, 
+    conv_resnet50_bwdwrw_fp16_039, conv_resnet50_bwdwrw_fp16_040, 
+    conv_resnet50_bwdwrw_fp16_041, conv_resnet50_bwdwrw_fp16_042, 
+    conv_resnet50_bwdwrw_fp16_043, conv_resnet50_bwdwrw_fp16_044, 
+    conv_resnet50_bwdwrw_fp16_045, conv_resnet50_bwdwrw_fp16_046, 
+    conv_resnet50_bwdwrw_fp16_047, conv_resnet50_bwdwrw_fp16_048, 
 };
 
 gemm_tuple conv_resnet50_bwddata_fp32_001 {{12544, 147, 64, 12544, 147, 12544}, {1, 0}, {'N', 'T'}};
@@ -475,12 +501,12 @@ gemm_tuple conv_resnet50_bwddata_fp32_011 {{50176, 256, 512, 50176, 256, 50176},
 gemm_tuple conv_resnet50_bwddata_fp32_012 {{784, 1152, 128, 784, 1152, 784}, {1, 0}, {'N', 'T'}};
 
 const vector<gemm_tuple> conv_resnet50_bwddata_fp32 = {
-conv_resnet50_bwddata_fp32_001, conv_resnet50_bwddata_fp32_002, 
-conv_resnet50_bwddata_fp32_003, conv_resnet50_bwddata_fp32_004, 
-conv_resnet50_bwddata_fp32_005, conv_resnet50_bwddata_fp32_006, 
-conv_resnet50_bwddata_fp32_007, conv_resnet50_bwddata_fp32_008, 
-conv_resnet50_bwddata_fp32_009, conv_resnet50_bwddata_fp32_010, 
-conv_resnet50_bwddata_fp32_011, conv_resnet50_bwddata_fp32_012, 
+    conv_resnet50_bwddata_fp32_001, conv_resnet50_bwddata_fp32_002, 
+    conv_resnet50_bwddata_fp32_003, conv_resnet50_bwddata_fp32_004, 
+    conv_resnet50_bwddata_fp32_005, conv_resnet50_bwddata_fp32_006, 
+    conv_resnet50_bwddata_fp32_007, conv_resnet50_bwddata_fp32_008, 
+    conv_resnet50_bwddata_fp32_009, conv_resnet50_bwddata_fp32_010, 
+    conv_resnet50_bwddata_fp32_011, conv_resnet50_bwddata_fp32_012, 
 };
 
 gemm_tuple conv_resnet50_bwddata_fp16_001 {{12544, 147, 64, 12544, 147, 12544}, {15360, 0}, {'N', 'T'}};
@@ -497,14 +523,275 @@ gemm_tuple conv_resnet50_bwddata_fp16_011 {{50176, 256, 512, 50176, 256, 50176},
 gemm_tuple conv_resnet50_bwddata_fp16_012 {{784, 1152, 128, 784, 1152, 784}, {15360, 0}, {'N', 'T'}};
 
 const vector<gemm_tuple> conv_resnet50_bwddata_fp16 = {
-conv_resnet50_bwddata_fp16_001, conv_resnet50_bwddata_fp16_002, 
-conv_resnet50_bwddata_fp16_003, conv_resnet50_bwddata_fp16_004, 
-conv_resnet50_bwddata_fp16_005, conv_resnet50_bwddata_fp16_006, 
-conv_resnet50_bwddata_fp16_007, conv_resnet50_bwddata_fp16_008, 
-conv_resnet50_bwddata_fp16_009, conv_resnet50_bwddata_fp16_010, 
-conv_resnet50_bwddata_fp16_011, conv_resnet50_bwddata_fp16_012, 
+    conv_resnet50_bwddata_fp16_001, conv_resnet50_bwddata_fp16_002, 
+    conv_resnet50_bwddata_fp16_003, conv_resnet50_bwddata_fp16_004, 
+    conv_resnet50_bwddata_fp16_005, conv_resnet50_bwddata_fp16_006, 
+    conv_resnet50_bwddata_fp16_007, conv_resnet50_bwddata_fp16_008, 
+    conv_resnet50_bwddata_fp16_009, conv_resnet50_bwddata_fp16_010, 
+    conv_resnet50_bwddata_fp16_011, conv_resnet50_bwddata_fp16_012, 
 };
 
+gemm_tuple conv_inception4_fwd_fp16_001 {{1225, 192, 1728, 1225, 1728, 1225}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_002 {{1225, 224, 1728, 1225, 1728, 1225}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_003 {{1225, 96, 576, 1225, 576, 1225}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_004 {{1225, 96, 864, 1225, 864, 1225}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_005 {{2048, 256, 1536, 2048, 1536, 2048}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_006 {{2048, 384, 1536, 2048, 1536, 2048}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_007 {{21609, 32, 288, 21609, 288, 21609}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_008 {{21609, 64, 288, 21609, 288, 21609}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_009 {{22201, 32, 27, 22201, 27, 22201}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_010 {{289, 192, 1344, 289, 1344, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_011 {{289, 224, 1344, 289, 1344, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_012 {{289, 224, 1568, 289, 1568, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_013 {{289, 256, 1568, 289, 1568, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_014 {{289, 256, 1792, 289, 1792, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_015 {{289, 256, 2016, 289, 2016, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_016 {{289, 320, 1792, 289, 1792, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_017 {{289, 384, 3456, 289, 3456, 289}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_018 {{5041, 96, 576, 5041, 576, 5041}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_019 {{5329, 64, 448, 5329, 448, 5329}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_020 {{5329, 96, 576, 5329, 576, 5329}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_021 {{64, 192, 1728, 64, 1728, 64}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_022 {{64, 256, 1152, 64, 1152, 64}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_023 {{64, 256, 1536, 64, 1536, 64}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_024 {{64, 320, 2880, 64, 2880, 64}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_025 {{64, 448, 1152, 64, 1152, 64}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp16_026 {{64, 512, 1344, 64, 1344, 64}, {15360, 0}, {'N', 'N'}};
+
+const vector<gemm_tuple> conv_inception4_fwd_fp16 = {
+    conv_inception4_fwd_fp16_001, conv_inception4_fwd_fp16_002, conv_inception4_fwd_fp16_003, conv_inception4_fwd_fp16_004, 
+    conv_inception4_fwd_fp16_005, conv_inception4_fwd_fp16_006, conv_inception4_fwd_fp16_007, conv_inception4_fwd_fp16_008, 
+    conv_inception4_fwd_fp16_009, conv_inception4_fwd_fp16_010, conv_inception4_fwd_fp16_011, conv_inception4_fwd_fp16_012, 
+    conv_inception4_fwd_fp16_013, conv_inception4_fwd_fp16_014, conv_inception4_fwd_fp16_015, conv_inception4_fwd_fp16_016, 
+    conv_inception4_fwd_fp16_017, conv_inception4_fwd_fp16_018, conv_inception4_fwd_fp16_019, conv_inception4_fwd_fp16_020, 
+    conv_inception4_fwd_fp16_021, conv_inception4_fwd_fp16_022, conv_inception4_fwd_fp16_023, conv_inception4_fwd_fp16_024, 
+    conv_inception4_fwd_fp16_025, conv_inception4_fwd_fp16_026, 
+};
+
+gemm_tuple conv_inception4_fwd_fp32_001 {{1225, 192, 1728, 1225, 1728, 1225}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_002 {{1225, 224, 1728, 1225, 1728, 1225}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_003 {{1225, 96, 576, 1225, 576, 1225}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_004 {{1225, 96, 864, 1225, 864, 1225}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_005 {{2048, 256, 1536, 2048, 1536, 2048}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_006 {{2048, 384, 1536, 2048, 1536, 2048}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_007 {{21609, 32, 288, 21609, 288, 21609}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_008 {{21609, 64, 288, 21609, 288, 21609}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_009 {{22201, 32, 27, 22201, 27, 22201}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_010 {{289, 192, 1344, 289, 1344, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_011 {{289, 224, 1344, 289, 1344, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_012 {{289, 224, 1568, 289, 1568, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_013 {{289, 256, 1568, 289, 1568, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_014 {{289, 256, 1792, 289, 1792, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_015 {{289, 256, 2016, 289, 2016, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_016 {{289, 320, 1792, 289, 1792, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_017 {{289, 384, 3456, 289, 3456, 289}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_018 {{5041, 96, 576, 5041, 576, 5041}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_019 {{5329, 64, 448, 5329, 448, 5329}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_020 {{5329, 96, 576, 5329, 576, 5329}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_021 {{64, 192, 1728, 64, 1728, 64}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_022 {{64, 256, 1152, 64, 1152, 64}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_023 {{64, 256, 1536, 64, 1536, 64}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_024 {{64, 320, 2880, 64, 2880, 64}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_025 {{64, 448, 1152, 64, 1152, 64}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_inception4_fwd_fp32_026 {{64, 512, 1344, 64, 1344, 64}, {1, 0}, {'N', 'N'}};
+
+const vector<gemm_tuple> conv_inception4_fwd_fp32 = {
+    conv_inception4_fwd_fp32_001, conv_inception4_fwd_fp32_002, conv_inception4_fwd_fp32_003, conv_inception4_fwd_fp32_004, 
+    conv_inception4_fwd_fp32_005, conv_inception4_fwd_fp32_006, conv_inception4_fwd_fp32_007, conv_inception4_fwd_fp32_008, 
+    conv_inception4_fwd_fp32_009, conv_inception4_fwd_fp32_010, conv_inception4_fwd_fp32_011, conv_inception4_fwd_fp32_012, 
+    conv_inception4_fwd_fp32_013, conv_inception4_fwd_fp32_014, conv_inception4_fwd_fp32_015, conv_inception4_fwd_fp32_016, 
+    conv_inception4_fwd_fp32_017, conv_inception4_fwd_fp32_018, conv_inception4_fwd_fp32_019, conv_inception4_fwd_fp32_020, 
+    conv_inception4_fwd_fp32_021, conv_inception4_fwd_fp32_022, conv_inception4_fwd_fp32_023, conv_inception4_fwd_fp32_024, 
+    conv_inception4_fwd_fp32_025, conv_inception4_fwd_fp32_026, 
+};
+
+gemm_tuple conv_inception4_bwdwrw_fp32_001 {{1024, 128, 289, 289, 289, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_002 {{1024, 192, 289, 289, 289, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_003 {{1024, 256, 289, 289, 289, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_004 {{1024, 384, 289, 289, 289, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_005 {{1152, 256, 64, 64, 64, 1152}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_006 {{1152, 448, 64, 64, 64, 1152}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_007 {{1344, 192, 289, 289, 289, 1344}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_008 {{1344, 224, 289, 289, 289, 1344}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_009 {{1344, 512, 64, 64, 64, 1344}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_010 {{1536, 256, 64, 64, 64, 1536}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_011 {{1536, 384, 64, 64, 64, 1536}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_012 {{1568, 224, 289, 289, 289, 1568}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_013 {{1568, 256, 289, 289, 289, 1568}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_014 {{160, 64, 5329, 5329, 5329, 160}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_015 {{1728, 192, 1225, 1225, 1225, 1728}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_016 {{1728, 192, 64, 64, 64, 1728}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_017 {{1728, 224, 1225, 1225, 1225, 1728}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_018 {{1792, 256, 289, 289, 289, 1792}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_019 {{1792, 320, 289, 289, 289, 1792}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_020 {{2016, 256, 289, 289, 289, 2016}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_021 {{27, 32, 22201, 22201, 22201, 27}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_022 {{2880, 320, 64, 64, 64, 2880}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_023 {{288, 32, 21609, 21609, 21609, 288}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_024 {{288, 64, 21609, 21609, 21609, 288}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_025 {{3456, 384, 289, 289, 289, 3456}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_026 {{384, 192, 1225, 1225, 1225, 384}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_027 {{384, 64, 1225, 1225, 1225, 384}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_028 {{384, 96, 1225, 1225, 1225, 384}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_029 {{448, 64, 5329, 5329, 5329, 448}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_030 {{576, 96, 1225, 1225, 1225, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_031 {{576, 96, 5041, 5041, 5041, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_032 {{576, 96, 5329, 5329, 5329, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp32_033 {{864, 96, 1225, 1225, 1225, 864}, {1, 1}, {'T', 'N'}};
+
+const vector<gemm_tuple> conv_inception4_bwdwrw_fp32 = {
+    conv_inception4_bwdwrw_fp32_001, conv_inception4_bwdwrw_fp32_002, 
+    conv_inception4_bwdwrw_fp32_003, conv_inception4_bwdwrw_fp32_004, 
+    conv_inception4_bwdwrw_fp32_005, conv_inception4_bwdwrw_fp32_006, 
+    conv_inception4_bwdwrw_fp32_007, conv_inception4_bwdwrw_fp32_008, 
+    conv_inception4_bwdwrw_fp32_009, conv_inception4_bwdwrw_fp32_010, 
+    conv_inception4_bwdwrw_fp32_011, conv_inception4_bwdwrw_fp32_012, 
+    conv_inception4_bwdwrw_fp32_013, conv_inception4_bwdwrw_fp32_014, 
+    conv_inception4_bwdwrw_fp32_015, conv_inception4_bwdwrw_fp32_016, 
+    conv_inception4_bwdwrw_fp32_017, conv_inception4_bwdwrw_fp32_018, 
+    conv_inception4_bwdwrw_fp32_019, conv_inception4_bwdwrw_fp32_020, 
+    conv_inception4_bwdwrw_fp32_021, conv_inception4_bwdwrw_fp32_022, 
+    conv_inception4_bwdwrw_fp32_023, conv_inception4_bwdwrw_fp32_024, 
+    conv_inception4_bwdwrw_fp32_025, conv_inception4_bwdwrw_fp32_026, 
+    conv_inception4_bwdwrw_fp32_027, conv_inception4_bwdwrw_fp32_028, 
+    conv_inception4_bwdwrw_fp32_029, conv_inception4_bwdwrw_fp32_030, 
+    conv_inception4_bwdwrw_fp32_031, conv_inception4_bwdwrw_fp32_032, 
+    conv_inception4_bwdwrw_fp32_033, 
+};
+
+gemm_tuple conv_inception4_bwdwrw_fp16_001 {{1024, 128, 289, 289, 289, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_002 {{1024, 192, 289, 289, 289, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_003 {{1024, 256, 289, 289, 289, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_004 {{1024, 384, 289, 289, 289, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_005 {{1152, 256, 64, 64, 64, 1152}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_006 {{1152, 448, 64, 64, 64, 1152}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_007 {{1344, 192, 289, 289, 289, 1344}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_008 {{1344, 224, 289, 289, 289, 1344}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_009 {{1344, 512, 64, 64, 64, 1344}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_010 {{1536, 256, 64, 64, 64, 1536}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_011 {{1536, 384, 64, 64, 64, 1536}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_012 {{1568, 224, 289, 289, 289, 1568}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_013 {{1568, 256, 289, 289, 289, 1568}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_014 {{160, 64, 5329, 5329, 5329, 160}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_015 {{1728, 192, 1225, 1225, 1225, 1728}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_016 {{1728, 192, 64, 64, 64, 1728}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_017 {{1728, 224, 1225, 1225, 1225, 1728}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_018 {{1792, 256, 289, 289, 289, 1792}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_019 {{1792, 320, 289, 289, 289, 1792}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_020 {{2016, 256, 289, 289, 289, 2016}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_021 {{27, 32, 22201, 22201, 22201, 27}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_022 {{2880, 320, 64, 64, 64, 2880}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_023 {{288, 32, 21609, 21609, 21609, 288}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_024 {{288, 64, 21609, 21609, 21609, 288}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_025 {{3456, 384, 289, 289, 289, 3456}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_026 {{384, 192, 1225, 1225, 1225, 384}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_027 {{384, 64, 1225, 1225, 1225, 384}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_028 {{384, 96, 1225, 1225, 1225, 384}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_029 {{448, 64, 5329, 5329, 5329, 448}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_030 {{576, 96, 1225, 1225, 1225, 576}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_031 {{576, 96, 5041, 5041, 5041, 576}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_032 {{576, 96, 5329, 5329, 5329, 576}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_inception4_bwdwrw_fp16_033 {{864, 96, 1225, 1225, 1225, 864}, {15360, 15360}, {'T', 'N'}};
+
+const vector<gemm_tuple> conv_inception4_bwdwrw_fp16 = {
+    conv_inception4_bwdwrw_fp16_001, conv_inception4_bwdwrw_fp16_002, 
+    conv_inception4_bwdwrw_fp16_003, conv_inception4_bwdwrw_fp16_004, 
+    conv_inception4_bwdwrw_fp16_005, conv_inception4_bwdwrw_fp16_006, 
+    conv_inception4_bwdwrw_fp16_007, conv_inception4_bwdwrw_fp16_008, 
+    conv_inception4_bwdwrw_fp16_009, conv_inception4_bwdwrw_fp16_010, 
+    conv_inception4_bwdwrw_fp16_011, conv_inception4_bwdwrw_fp16_012, 
+    conv_inception4_bwdwrw_fp16_013, conv_inception4_bwdwrw_fp16_014, 
+    conv_inception4_bwdwrw_fp16_015, conv_inception4_bwdwrw_fp16_016, 
+    conv_inception4_bwdwrw_fp16_017, conv_inception4_bwdwrw_fp16_018, 
+    conv_inception4_bwdwrw_fp16_019, conv_inception4_bwdwrw_fp16_020, 
+    conv_inception4_bwdwrw_fp16_021, conv_inception4_bwdwrw_fp16_022, 
+    conv_inception4_bwdwrw_fp16_023, conv_inception4_bwdwrw_fp16_024, 
+    conv_inception4_bwdwrw_fp16_025, conv_inception4_bwdwrw_fp16_026, 
+    conv_inception4_bwdwrw_fp16_027, conv_inception4_bwdwrw_fp16_028, 
+    conv_inception4_bwdwrw_fp16_029, conv_inception4_bwdwrw_fp16_030, 
+    conv_inception4_bwdwrw_fp16_031, conv_inception4_bwdwrw_fp16_032, 
+    conv_inception4_bwdwrw_fp16_033, 
+};
+
+gemm_tuple conv_inception4_bwddata_fp32_001 {{1225, 1728, 192, 1225, 1728, 1225}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_002 {{1225, 1728, 224, 1225, 1728, 1225}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_003 {{1225, 576, 96, 1225, 576, 1225}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_004 {{1225, 864, 96, 1225, 864, 1225}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_005 {{21609, 288, 32, 21609, 288, 21609}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_006 {{21609, 288, 64, 21609, 288, 21609}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_007 {{22201, 27, 32, 22201, 27, 22201}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_008 {{289, 1344, 192, 289, 1344, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_009 {{289, 1344, 224, 289, 1344, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_010 {{289, 1568, 224, 289, 1568, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_011 {{289, 1568, 256, 289, 1568, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_012 {{289, 1792, 256, 289, 1792, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_013 {{289, 1792, 320, 289, 1792, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_014 {{289, 2016, 256, 289, 2016, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_015 {{289, 3456, 384, 289, 3456, 289}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_016 {{5041, 576, 96, 5041, 576, 5041}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_017 {{5329, 448, 64, 5329, 448, 5329}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_018 {{5329, 576, 96, 5329, 576, 5329}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_019 {{64, 1152, 256, 64, 1152, 64}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_020 {{64, 1152, 448, 64, 1152, 64}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_021 {{64, 1344, 512, 64, 1344, 64}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_022 {{64, 1536, 256, 64, 1536, 64}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_023 {{64, 1728, 192, 64, 1728, 64}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp32_024 {{64, 2880, 320, 64, 2880, 64}, {1, 0}, {'N', 'T'}};
+
+const vector<gemm_tuple> conv_inception4_bwddata_fp32 = {
+    conv_inception4_bwddata_fp32_001, conv_inception4_bwddata_fp32_002, 
+    conv_inception4_bwddata_fp32_003, conv_inception4_bwddata_fp32_004, 
+    conv_inception4_bwddata_fp32_005, conv_inception4_bwddata_fp32_006, 
+    conv_inception4_bwddata_fp32_007, conv_inception4_bwddata_fp32_008, 
+    conv_inception4_bwddata_fp32_009, conv_inception4_bwddata_fp32_010, 
+    conv_inception4_bwddata_fp32_011, conv_inception4_bwddata_fp32_012, 
+    conv_inception4_bwddata_fp32_013, conv_inception4_bwddata_fp32_014, 
+    conv_inception4_bwddata_fp32_015, conv_inception4_bwddata_fp32_016, 
+    conv_inception4_bwddata_fp32_017, conv_inception4_bwddata_fp32_018, 
+    conv_inception4_bwddata_fp32_019, conv_inception4_bwddata_fp32_020, 
+    conv_inception4_bwddata_fp32_021, conv_inception4_bwddata_fp32_022, 
+    conv_inception4_bwddata_fp32_023, conv_inception4_bwddata_fp32_024, 
+};
+
+gemm_tuple conv_inception4_bwddata_fp16_001 {{1225, 1728, 192, 1225, 1728, 1225}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_002 {{1225, 1728, 224, 1225, 1728, 1225}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_003 {{1225, 576, 96, 1225, 576, 1225}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_004 {{1225, 864, 96, 1225, 864, 1225}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_005 {{21609, 288, 32, 21609, 288, 21609}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_006 {{21609, 288, 64, 21609, 288, 21609}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_007 {{22201, 27, 32, 22201, 27, 22201}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_008 {{289, 1344, 192, 289, 1344, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_009 {{289, 1344, 224, 289, 1344, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_010 {{289, 1568, 224, 289, 1568, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_011 {{289, 1568, 256, 289, 1568, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_012 {{289, 1792, 256, 289, 1792, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_013 {{289, 1792, 320, 289, 1792, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_014 {{289, 2016, 256, 289, 2016, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_015 {{289, 3456, 384, 289, 3456, 289}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_016 {{5041, 576, 96, 5041, 576, 5041}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_017 {{5329, 448, 64, 5329, 448, 5329}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_018 {{5329, 576, 96, 5329, 576, 5329}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_019 {{64, 1152, 256, 64, 1152, 64}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_020 {{64, 1152, 448, 64, 1152, 64}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_021 {{64, 1344, 512, 64, 1344, 64}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_022 {{64, 1536, 256, 64, 1536, 64}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_023 {{64, 1728, 192, 64, 1728, 64}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_inception4_bwddata_fp16_024 {{64, 2880, 320, 64, 2880, 64}, {15360, 0}, {'N', 'T'}};
+
+const vector<gemm_tuple> conv_inception4_bwddata_fp16 = {
+    conv_inception4_bwddata_fp16_001, conv_inception4_bwddata_fp16_002, 
+    conv_inception4_bwddata_fp16_003, conv_inception4_bwddata_fp16_004, 
+    conv_inception4_bwddata_fp16_005, conv_inception4_bwddata_fp16_006, 
+    conv_inception4_bwddata_fp16_007, conv_inception4_bwddata_fp16_008, 
+    conv_inception4_bwddata_fp16_009, conv_inception4_bwddata_fp16_010, 
+    conv_inception4_bwddata_fp16_011, conv_inception4_bwddata_fp16_012, 
+    conv_inception4_bwddata_fp16_013, conv_inception4_bwddata_fp16_014, 
+    conv_inception4_bwddata_fp16_015, conv_inception4_bwddata_fp16_016, 
+    conv_inception4_bwddata_fp16_017, conv_inception4_bwddata_fp16_018, 
+    conv_inception4_bwddata_fp16_019, conv_inception4_bwddata_fp16_020, 
+    conv_inception4_bwddata_fp16_021, conv_inception4_bwddata_fp16_022, 
+    conv_inception4_bwddata_fp16_023, conv_inception4_bwddata_fp16_024, 
+};
 
 
 // clang-format on
@@ -1033,6 +1320,15 @@ INSTANTIATE_TEST_CASE_P(known_bug_conv_resnet50_bwdwrw_fp16, parameterized_gemm_
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_bwddata_fp32));
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_bwddata_fp16));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_inception4_fwd_fp32, parameterized_gemm_float, ValuesIn(conv_inception4_fwd_fp32));
+INSTANTIATE_TEST_CASE_P(nightly_conv_inception4_fwd_fp16, parameterized_gemm_half, ValuesIn(conv_inception4_fwd_fp16));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_inception4_bwdwrw_fp32, parameterized_gemm_float, ValuesIn(conv_inception4_bwdwrw_fp32));
+INSTANTIATE_TEST_CASE_P(known_bug_conv_inception4_bwdwrw_fp16, parameterized_gemm_half, ValuesIn(conv_inception4_bwdwrw_fp16));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_inception4_bwddata_fp32, parameterized_gemm_float, ValuesIn(conv_inception4_bwddata_fp32));
+INSTANTIATE_TEST_CASE_P(nightly_conv_inception4_bwddata_fp16, parameterized_gemm_half, ValuesIn(conv_inception4_bwddata_fp16));
 
 // clang-format on
 
