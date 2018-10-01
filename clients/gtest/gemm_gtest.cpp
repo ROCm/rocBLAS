@@ -154,8 +154,6 @@ const vector<vector<char>> transA_transB_N_N_range = {{'N', 'N'}};
 
 // clang-format off
 
-gemm_tuple fixed_bug0{{9, 1, 9, 9, 9, 9}, {1, 0}, {'N', 'N'}};
-
 gemm_tuple deepbench0{{192, 64, 784, 784, 784, 192}, {1, 1}, {'T', 'N'}};
 gemm_tuple deepbench1{{12544, 128, 256, 12544, 256, 12544}, {1, 0}, {'N', 'N'}};
 gemm_tuple deepbench2{{12544, 256, 64, 12544, 64, 12544}, {1, 0}, {'N', 'N'}};
@@ -310,9 +308,64 @@ const vector<gemm_tuple> deepbench_vec = {
     deepbench120, deepbench121, deepbench122, deepbench123, deepbench124, deepbench125,
     deepbench126, deepbench127, deepbench128,
 };
+
+gemm_tuple fixed_bug0{{9, 1, 9, 9, 9, 9}, {1, 0}, {'N', 'N'}};
+
 const vector<gemm_tuple> fixed_bug_vec = {
     fixed_bug0,
 };
+
+gemm_tuple conv_resnet50_fwd_fp32_001 {{12544, 1024, 256, 12544, 256, 12544}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_002 {{12544, 1024, 512, 12544, 512, 12544}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_003 {{12544, 256, 1024, 12544, 1024, 12544}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_004 {{12544, 256, 512, 12544, 512, 12544}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_005 {{12544, 64, 147, 12544, 147, 12544}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_006 {{196, 256, 2304, 196, 2304, 196}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_007 {{3025, 64, 576, 3025, 576, 3025}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_008 {{3136, 2048, 1024, 3136, 1024, 3136}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_009 {{3136, 2048, 512, 3136, 512, 3136}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_010 {{3136, 512, 1024, 3136, 1024, 3136}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_011 {{3136, 512, 2048, 3136, 2048, 3136}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_012 {{3136, 64, 576, 3136, 576, 3136}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_013 {{49, 512, 4608, 49, 4608, 49}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_014 {{50176, 128, 256, 50176, 256, 50176}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_015 {{50176, 512, 256, 50176, 256, 50176}, {1, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp32_016 {{784, 128, 1152, 784, 1152, 784}, {1, 0}, {'N', 'N'}};
+
+const vector<gemm_tuple> conv_resnet50_fwd_fp32 = {
+conv_resnet50_fwd_fp32_001, conv_resnet50_fwd_fp32_002, conv_resnet50_fwd_fp32_003, conv_resnet50_fwd_fp32_004,
+conv_resnet50_fwd_fp32_005, conv_resnet50_fwd_fp32_006, conv_resnet50_fwd_fp32_007, conv_resnet50_fwd_fp32_008,
+conv_resnet50_fwd_fp32_009, conv_resnet50_fwd_fp32_010, conv_resnet50_fwd_fp32_011, conv_resnet50_fwd_fp32_012,
+conv_resnet50_fwd_fp32_013, conv_resnet50_fwd_fp32_014, conv_resnet50_fwd_fp32_015, conv_resnet50_fwd_fp32_016,
+};
+
+gemm_tuple conv_resnet50_fwd_fp16_001 {{12544, 1024, 256, 12544, 256, 12544}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_002 {{12544, 1024, 512, 12544, 512, 12544}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_003 {{12544, 256, 1024, 12544, 1024, 12544}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_004 {{12544, 256, 512, 12544, 512, 12544}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_005 {{12544, 64, 147, 12544, 147, 12544}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_006 {{196, 256, 2304, 196, 2304, 196}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_007 {{3025, 64, 576, 3025, 576, 3025}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_008 {{3136, 2048, 1024, 3136, 1024, 3136}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_009 {{3136, 2048, 512, 3136, 512, 3136}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_010 {{3136, 512, 1024, 3136, 1024, 3136}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_011 {{3136, 512, 2048, 3136, 2048, 3136}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_012 {{3136, 64, 576, 3136, 576, 3136}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_013 {{49, 512, 4608, 49, 4608, 49}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_014 {{50176, 128, 256, 50176, 256, 50176}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_015 {{50176, 512, 256, 50176, 256, 50176}, {15360, 0}, {'N', 'N'}};
+gemm_tuple conv_resnet50_fwd_fp16_016 {{784, 128, 1152, 784, 1152, 784}, {15360, 0}, {'N', 'N'}};
+
+const vector<gemm_tuple> conv_resnet50_fwd_fp16 = {
+conv_resnet50_fwd_fp16_001, conv_resnet50_fwd_fp16_002, conv_resnet50_fwd_fp16_003, conv_resnet50_fwd_fp16_004, 
+conv_resnet50_fwd_fp16_005, conv_resnet50_fwd_fp16_006, conv_resnet50_fwd_fp16_007, conv_resnet50_fwd_fp16_008, 
+conv_resnet50_fwd_fp16_009, conv_resnet50_fwd_fp16_010, conv_resnet50_fwd_fp16_011, conv_resnet50_fwd_fp16_012, 
+conv_resnet50_fwd_fp16_013, conv_resnet50_fwd_fp16_014, conv_resnet50_fwd_fp16_015, conv_resnet50_fwd_fp16_016, 
+};
+
+
+
+
 // clang-format on
 
 /* ===============Google Unit Test==================================================== */
@@ -639,16 +692,16 @@ TEST_P(parameterized_chunk_gemm, float)
     }
 }
 
-class parameterized_half_gemm : public ::TestWithParam<gemm_tuple>
+class parameterized_gemm_half : public ::TestWithParam<gemm_tuple>
 {
     protected:
-    parameterized_half_gemm() {}
-    virtual ~parameterized_half_gemm() {}
+    parameterized_gemm_half() {}
+    virtual ~parameterized_gemm_half() {}
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
 
-TEST_P(parameterized_half_gemm, half)
+TEST_P(parameterized_gemm_half, half)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
     // and initializes arg(Arguments) which will be passed to testing routine
@@ -658,6 +711,90 @@ TEST_P(parameterized_half_gemm, half)
     Arguments arg = setup_gemm_arguments(GetParam());
 
     rocblas_status status = testing_gemm<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+class parameterized_gemm_float : public ::TestWithParam<gemm_tuple>
+{
+    protected:
+    parameterized_gemm_float() {}
+    virtual ~parameterized_gemm_float() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+TEST_P(parameterized_gemm_float, float)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<float>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+class parameterized_gemm_double : public ::TestWithParam<gemm_tuple>
+{
+    protected:
+    parameterized_gemm_double() {}
+    virtual ~parameterized_gemm_double() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+TEST_P(parameterized_gemm_double, double)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_arguments(GetParam());
+
+    rocblas_status status = testing_gemm<double>(arg);
 
     // if not success, then the input argument is problematic, so detect the error message
     if(status != rocblas_status_success)
@@ -706,7 +843,7 @@ INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                                 ValuesIn(transA_transB_range)));
 
 INSTANTIATE_TEST_CASE_P(quick_blas3_small,
-                        parameterized_half_gemm,
+                        parameterized_gemm_half,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
@@ -718,7 +855,7 @@ INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
                                 ValuesIn(transA_transB_range)));
 
 INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_medium,
-                        parameterized_half_gemm,
+                        parameterized_gemm_half,
                         Combine(ValuesIn(medium_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
@@ -730,7 +867,7 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
                                 ValuesIn(transA_transB_range)));
 
 INSTANTIATE_TEST_CASE_P(nightly_blas3_large,
-                        parameterized_half_gemm,
+                        parameterized_gemm_half,
                         Combine(ValuesIn(large_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range)));
@@ -743,12 +880,17 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_chunk,
 
 // clang-format off
 INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, parameterized_gemm, ValuesIn(deepbench_vec));
+
 INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_gemm, ValuesIn(fixed_bug_vec));
-INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_half_gemm, ValuesIn(fixed_bug_vec));
+INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_gemm_half, ValuesIn(fixed_bug_vec));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_fwd_fp32));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_fwd_fp16));
+
 // clang-format on
 
 INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
-                        parameterized_half_gemm,
+                        parameterized_gemm_half,
                         ValuesIn(deepbench_vec));
 
 //--- sweep tests

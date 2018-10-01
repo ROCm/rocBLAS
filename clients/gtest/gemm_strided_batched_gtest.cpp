@@ -156,6 +156,41 @@ const vector<gemm_strided_batched_tuple> deepbench_sb_vec = {
     db_sb_10, db_sb_11, db_sb_12, db_sb_13, db_sb_14, db_sb_15, db_sb_16, db_sb_17, db_sb_18,
     db_sb_19, db_sb_20, db_sb_21, db_sb_22, db_sb_23, db_sb_24, db_sb_25, db_sb_26, db_sb_27,
     db_sb_28, db_sb_29, db_sb_30, db_sb_31, db_sb_32, db_sb_33, db_sb_34, db_sb_35, db_sb_36};
+
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_001 {{3025, 256, 64, 3025, 64, 3025, 193600, 0, 774400}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_002 {{3025, 64, 256, 3025, 256, 3025, 774400, 0, 193600}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_003 {{3025, 64, 64, 3025, 64, 3025, 193600, 0, 193600}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_004 {{3136, 256, 64, 3136, 64, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_005 {{3136, 64, 256, 3136, 256, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_006 {{3136, 64, 64, 3136, 64, 3136, 200704, 0, 200704}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_007 {{784, 128, 512, 784, 512, 784, 401408, 0, 100352}, {1, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp32_sb_008 {{784, 512, 128, 784, 128, 784, 100352, 0, 401408}, {1, 0}, {'N', 'N'}, 64};
+
+const vector<gemm_strided_batched_tuple> conv_resnet50_fwd_fp32_sb = {
+    conv_resnet50_fwd_fp32_sb_001, conv_resnet50_fwd_fp32_sb_002,                                conv_resnet50_fwd_fp32_sb_004,
+    conv_resnet50_fwd_fp32_sb_005, conv_resnet50_fwd_fp32_sb_006, conv_resnet50_fwd_fp32_sb_007, conv_resnet50_fwd_fp32_sb_008,
+};
+const vector<gemm_strided_batched_tuple> known_bug_conv_resnet50_fwd_fp32_sb = {
+                                                                  conv_resnet50_fwd_fp32_sb_003,
+};
+
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_001 {{3025, 256, 64, 3025, 64, 3025, 193600, 0, 774400}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_002 {{3025, 64, 256, 3025, 256, 3025, 774400, 0, 193600}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_003 {{3025, 64, 64, 3025, 64, 3025, 193600, 0, 193600}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_004 {{3136, 256, 64, 3136, 64, 3136, 200704, 0, 802816}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_005 {{3136, 64, 256, 3136, 256, 3136, 802816, 0, 200704}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_006 {{3136, 64, 64, 3136, 64, 3136, 200704, 0, 200704}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_007 {{784, 128, 512, 784, 512, 784, 401408, 0, 100352}, {15360, 0}, {'N', 'N'}, 64};
+gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_008 {{784, 512, 128, 784, 128, 784, 100352, 0, 401408}, {15360, 0}, {'N', 'N'}, 64};
+
+const vector<gemm_strided_batched_tuple> conv_resnet50_fwd_fp16_sb = {
+    conv_resnet50_fwd_fp16_sb_001, conv_resnet50_fwd_fp16_sb_002, conv_resnet50_fwd_fp16_sb_003, conv_resnet50_fwd_fp16_sb_004, 
+    conv_resnet50_fwd_fp16_sb_005, conv_resnet50_fwd_fp16_sb_006, conv_resnet50_fwd_fp16_sb_007, conv_resnet50_fwd_fp16_sb_008, 
+};
+
+
+
+
 // clang-format on
 
 /* ===============Google Unit Test==================================================== */
@@ -216,6 +251,153 @@ class gemm_strided_batched : public ::TestWithParam<gemm_strided_batched_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+class gemm_strided_batched_half : public ::TestWithParam<gemm_strided_batched_tuple>
+{
+    protected:
+    gemm_strided_batched_half() {}
+    virtual ~gemm_strided_batched_half() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+
+class gemm_strided_batched_float : public ::TestWithParam<gemm_strided_batched_tuple>
+{
+    protected:
+    gemm_strided_batched_float() {}
+    virtual ~gemm_strided_batched_float() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+
+class gemm_strided_batched_double : public ::TestWithParam<gemm_strided_batched_tuple>
+{
+    protected:
+    gemm_strided_batched_double() {}
+    virtual ~gemm_strided_batched_double() {}
+    virtual void SetUp() {}
+    virtual void TearDown() {}
+};
+
+
+TEST_P(gemm_strided_batched_half, standard)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_strided_batched_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_strided_batched<rocblas_half>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.batch_count < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+
+
+TEST_P(gemm_strided_batched_float, standard)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_strided_batched_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_strided_batched<float>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.batch_count < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+
+
+TEST_P(gemm_strided_batched_double, standard)
+{
+    // GetParam return a tuple. Tee setup routine unpack the tuple
+    // and initializes arg(Arguments) which will be passed to testing routine
+    // The Arguments data struture have physical meaning associated.
+    // while the tuple is non-intuitive.
+
+    Arguments arg = setup_gemm_strided_batched_arguments(GetParam());
+
+    rocblas_status status = testing_gemm_strided_batched<double>(arg);
+
+    // if not success, then the input argument is problematic, so detect the error message
+    if(status != rocblas_status_success)
+    {
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.batch_count < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+    }
+}
+
+
 
 TEST_P(gemm_strided_batched, half)
 {
@@ -396,6 +578,9 @@ INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_large_stride_zero,
                                 ValuesIn(transA_transB_stride_a_range),
                                 ValuesIn(small_batch_count_range)));
 
-INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes,
-                        gemm_strided_batched,
-                        ValuesIn(deepbench_sb_vec));
+// clang-format off
+INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, gemm_strided_batched, ValuesIn(deepbench_sb_vec));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp32_sb, gemm_strided_batched_float, ValuesIn(conv_resnet50_fwd_fp32_sb));
+INSTANTIATE_TEST_CASE_P(known_bug_conv_resnet50_fwd_fp32_sb, gemm_strided_batched_float, ValuesIn(known_bug_conv_resnet50_fwd_fp32_sb));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp16_sb, gemm_strided_batched_half, ValuesIn(conv_resnet50_fwd_fp16_sb));
+// clang-format on
