@@ -184,8 +184,46 @@ gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_007 {{784, 128, 512, 784, 5
 gemm_strided_batched_tuple conv_resnet50_fwd_fp16_sb_008 {{784, 512, 128, 784, 128, 784, 100352, 0, 401408}, {15360, 0}, {'N', 'N'}, 64};
 
 const vector<gemm_strided_batched_tuple> conv_resnet50_fwd_fp16_sb = {
-    conv_resnet50_fwd_fp16_sb_001, conv_resnet50_fwd_fp16_sb_002, conv_resnet50_fwd_fp16_sb_003, conv_resnet50_fwd_fp16_sb_004, 
-    conv_resnet50_fwd_fp16_sb_005, conv_resnet50_fwd_fp16_sb_006, conv_resnet50_fwd_fp16_sb_007, conv_resnet50_fwd_fp16_sb_008, 
+conv_resnet50_fwd_fp16_sb_001, conv_resnet50_fwd_fp16_sb_002, conv_resnet50_fwd_fp16_sb_003, conv_resnet50_fwd_fp16_sb_004, 
+conv_resnet50_fwd_fp16_sb_005, conv_resnet50_fwd_fp16_sb_006, conv_resnet50_fwd_fp16_sb_007, conv_resnet50_fwd_fp16_sb_008, 
+};
+
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_001 {{196, 1024, 256, 196, 1024, 196, 50176, 0, 200704}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_002 {{196, 256, 1024, 196, 256, 196, 200704, 0, 50176}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_003 {{3025, 256, 64, 3025, 256, 3025, 193600, 0, 774400}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_004 {{3025, 64, 256, 3025, 64, 3025, 774400, 0, 193600}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_005 {{3025, 64, 64, 3025, 64, 3025, 193600, 0, 193600}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_006 {{3136, 256, 64, 3136, 256, 3136, 200704, 0, 802816}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_007 {{3136, 64, 256, 3136, 64, 3136, 802816, 0, 200704}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_008 {{3136, 64, 64, 3136, 64, 3136, 200704, 0, 200704}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_009 {{49, 2048, 512, 49, 2048, 49, 25088, 0, 100352}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_010 {{49, 512, 2048, 49, 512, 49, 100352, 0, 25088}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_011 {{784, 128, 512, 784, 128, 784, 401408, 0, 100352}, {1, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp32_sb_012 {{784, 512, 128, 784, 512, 784, 100352, 0, 401408}, {1, 0}, {'N', 'T'}, 64};
+
+const vector<gemm_strided_batched_tuple> conv_resnet50_bwddata_fp32_sb = {
+conv_resnet50_bwddata_fp32_sb_001, conv_resnet50_bwddata_fp32_sb_002, conv_resnet50_bwddata_fp32_sb_003, conv_resnet50_bwddata_fp32_sb_004, 
+conv_resnet50_bwddata_fp32_sb_005, conv_resnet50_bwddata_fp32_sb_006, conv_resnet50_bwddata_fp32_sb_007, conv_resnet50_bwddata_fp32_sb_008, 
+conv_resnet50_bwddata_fp32_sb_009, conv_resnet50_bwddata_fp32_sb_010, conv_resnet50_bwddata_fp32_sb_011, conv_resnet50_bwddata_fp32_sb_012, 
+};
+
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_001 {{196, 1024, 256, 196, 1024, 196, 50176, 0, 200704}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_002 {{196, 256, 1024, 196, 256, 196, 200704, 0, 50176}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_003 {{3025, 256, 64, 3025, 256, 3025, 193600, 0, 774400}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_004 {{3025, 64, 256, 3025, 64, 3025, 774400, 0, 193600}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_005 {{3025, 64, 64, 3025, 64, 3025, 193600, 0, 193600}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_006 {{3136, 256, 64, 3136, 256, 3136, 200704, 0, 802816}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_007 {{3136, 64, 256, 3136, 64, 3136, 802816, 0, 200704}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_008 {{3136, 64, 64, 3136, 64, 3136, 200704, 0, 200704}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_009 {{49, 2048, 512, 49, 2048, 49, 25088, 0, 100352}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_010 {{49, 512, 2048, 49, 512, 49, 100352, 0, 25088}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_011 {{784, 128, 512, 784, 128, 784, 401408, 0, 100352}, {15360, 0}, {'N', 'T'}, 64};
+gemm_strided_batched_tuple conv_resnet50_bwddata_fp16_sb_012 {{784, 512, 128, 784, 512, 784, 100352, 0, 401408}, {15360, 0}, {'N', 'T'}, 64};
+
+const vector<gemm_strided_batched_tuple> conv_resnet50_bwddata_fp16_sb = {
+conv_resnet50_bwddata_fp16_sb_001, conv_resnet50_bwddata_fp16_sb_002, conv_resnet50_bwddata_fp16_sb_003, conv_resnet50_bwddata_fp16_sb_004, 
+conv_resnet50_bwddata_fp16_sb_005, conv_resnet50_bwddata_fp16_sb_006, conv_resnet50_bwddata_fp16_sb_007, conv_resnet50_bwddata_fp16_sb_008, 
+conv_resnet50_bwddata_fp16_sb_009, conv_resnet50_bwddata_fp16_sb_010, conv_resnet50_bwddata_fp16_sb_011, conv_resnet50_bwddata_fp16_sb_012, 
 };
 
 
@@ -583,4 +621,6 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_deepbench_sizes, gemm_strided_batched, Val
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp32_sb, gemm_strided_batched_float, ValuesIn(conv_resnet50_fwd_fp32_sb));
 INSTANTIATE_TEST_CASE_P(known_bug_conv_resnet50_fwd_fp32_sb, gemm_strided_batched_float, ValuesIn(known_bug_conv_resnet50_fwd_fp32_sb));
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp16_sb, gemm_strided_batched_half, ValuesIn(conv_resnet50_fwd_fp16_sb));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp32_sb, gemm_strided_batched_float, ValuesIn(conv_resnet50_bwddata_fp32_sb));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp16_sb, gemm_strided_batched_half, ValuesIn(conv_resnet50_bwddata_fp16_sb));
 // clang-format on

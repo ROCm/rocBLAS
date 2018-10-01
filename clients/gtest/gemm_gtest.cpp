@@ -461,6 +461,49 @@ conv_resnet50_bwdwrw_fp16_041, conv_resnet50_bwdwrw_fp16_042, conv_resnet50_bwdw
 conv_resnet50_bwdwrw_fp16_045, conv_resnet50_bwdwrw_fp16_046, conv_resnet50_bwdwrw_fp16_047, conv_resnet50_bwdwrw_fp16_048, 
 };
 
+gemm_tuple conv_resnet50_bwddata_fp32_001 {{12544, 147, 64, 12544, 147, 12544}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_002 {{12544, 512, 1024, 12544, 512, 12544}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_003 {{12544, 512, 256, 12544, 512, 12544}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_004 {{196, 2304, 256, 196, 2304, 196}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_005 {{3025, 576, 64, 3025, 576, 3025}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_006 {{3136, 1024, 2048, 3136, 1024, 3136}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_007 {{3136, 1024, 512, 3136, 1024, 3136}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_008 {{3136, 576, 64, 3136, 576, 3136}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_009 {{49, 4608, 512, 49, 4608, 49}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_010 {{50176, 256, 128, 50176, 256, 50176}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_011 {{50176, 256, 512, 50176, 256, 50176}, {1, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp32_012 {{784, 1152, 128, 784, 1152, 784}, {1, 0}, {'N', 'T'}};
+
+const vector<gemm_tuple> conv_resnet50_bwddata_fp32 = {
+conv_resnet50_bwddata_fp32_001, conv_resnet50_bwddata_fp32_002, 
+conv_resnet50_bwddata_fp32_003, conv_resnet50_bwddata_fp32_004, 
+conv_resnet50_bwddata_fp32_005, conv_resnet50_bwddata_fp32_006, 
+conv_resnet50_bwddata_fp32_007, conv_resnet50_bwddata_fp32_008, 
+conv_resnet50_bwddata_fp32_009, conv_resnet50_bwddata_fp32_010, 
+conv_resnet50_bwddata_fp32_011, conv_resnet50_bwddata_fp32_012, 
+};
+
+gemm_tuple conv_resnet50_bwddata_fp16_001 {{12544, 147, 64, 12544, 147, 12544}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_002 {{12544, 512, 1024, 12544, 512, 12544}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_003 {{12544, 512, 256, 12544, 512, 12544}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_004 {{196, 2304, 256, 196, 2304, 196}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_005 {{3025, 576, 64, 3025, 576, 3025}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_006 {{3136, 1024, 2048, 3136, 1024, 3136}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_007 {{3136, 1024, 512, 3136, 1024, 3136}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_008 {{3136, 576, 64, 3136, 576, 3136}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_009 {{49, 4608, 512, 49, 4608, 49}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_010 {{50176, 256, 128, 50176, 256, 50176}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_011 {{50176, 256, 512, 50176, 256, 50176}, {15360, 0}, {'N', 'T'}};
+gemm_tuple conv_resnet50_bwddata_fp16_012 {{784, 1152, 128, 784, 1152, 784}, {15360, 0}, {'N', 'T'}};
+
+const vector<gemm_tuple> conv_resnet50_bwddata_fp16 = {
+conv_resnet50_bwddata_fp16_001, conv_resnet50_bwddata_fp16_002, 
+conv_resnet50_bwddata_fp16_003, conv_resnet50_bwddata_fp16_004, 
+conv_resnet50_bwddata_fp16_005, conv_resnet50_bwddata_fp16_006, 
+conv_resnet50_bwddata_fp16_007, conv_resnet50_bwddata_fp16_008, 
+conv_resnet50_bwddata_fp16_009, conv_resnet50_bwddata_fp16_010, 
+conv_resnet50_bwddata_fp16_011, conv_resnet50_bwddata_fp16_012, 
+};
 
 
 
@@ -987,6 +1030,9 @@ INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp16, parameterized_gemm_half,
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwdwrw_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_bwdwrw_fp32));
 INSTANTIATE_TEST_CASE_P(known_bug_conv_resnet50_bwdwrw_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_bwdwrw_fp16));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_bwddata_fp32));
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwddata_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_bwddata_fp16));
 
 // clang-format on
 
