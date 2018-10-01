@@ -363,6 +363,104 @@ conv_resnet50_fwd_fp16_009, conv_resnet50_fwd_fp16_010, conv_resnet50_fwd_fp16_0
 conv_resnet50_fwd_fp16_013, conv_resnet50_fwd_fp16_014, conv_resnet50_fwd_fp16_015, conv_resnet50_fwd_fp16_016, 
 };
 
+gemm_tuple conv_resnet50_bwdwrw_fp32_001 {{1024, 2048, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_002 {{1024, 256, 196, 196, 196, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_003 {{1024, 512, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_004 {{1152, 128, 784, 784, 784, 1152}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_005 {{128, 512, 784, 784, 784, 128}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_006 {{147, 64, 12544, 12544, 12544, 147}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_007 {{2048, 512, 49, 49, 49, 2048}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_008 {{2304, 256, 196, 196, 196, 2304}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_009 {{256, 1024, 196, 196, 196, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_010 {{256, 128, 784, 784, 784, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_011 {{256, 512, 784, 784, 784, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_012 {{256, 64, 3025, 3025, 3025, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_013 {{256, 64, 3136, 3136, 3136, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_014 {{4608, 512, 49, 49, 49, 4608}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_015 {{512, 1024, 196, 196, 196, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_016 {{512, 128, 784, 784, 784, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_017 {{512, 2048, 49, 49, 49, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_018 {{512, 256, 196, 196, 196, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_019 {{576, 64, 3025, 3025, 3025, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_020 {{576, 64, 3136, 3136, 3136, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_021 {{64, 256, 3025, 3025, 3025, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_022 {{64, 256, 3136, 3136, 3136, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_023 {{64, 64, 3025, 3025, 3025, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp32_024 {{64, 64, 3136, 3136, 3136, 64}, {1, 1}, {'T', 'N'}};
+
+const vector<gemm_tuple> conv_resnet50_bwdwrw_fp32 = {
+conv_resnet50_bwdwrw_fp32_001, conv_resnet50_bwdwrw_fp32_002, conv_resnet50_bwdwrw_fp32_003, conv_resnet50_bwdwrw_fp32_004, 
+conv_resnet50_bwdwrw_fp32_005, conv_resnet50_bwdwrw_fp32_006, conv_resnet50_bwdwrw_fp32_007, conv_resnet50_bwdwrw_fp32_008, 
+conv_resnet50_bwdwrw_fp32_009, conv_resnet50_bwdwrw_fp32_010, conv_resnet50_bwdwrw_fp32_011, conv_resnet50_bwdwrw_fp32_012, 
+conv_resnet50_bwdwrw_fp32_013, conv_resnet50_bwdwrw_fp32_014, conv_resnet50_bwdwrw_fp32_015, conv_resnet50_bwdwrw_fp32_016, 
+conv_resnet50_bwdwrw_fp32_017, conv_resnet50_bwdwrw_fp32_018, conv_resnet50_bwdwrw_fp32_019, conv_resnet50_bwdwrw_fp32_020, 
+conv_resnet50_bwdwrw_fp32_021, conv_resnet50_bwdwrw_fp32_022, conv_resnet50_bwdwrw_fp32_023, conv_resnet50_bwdwrw_fp32_024, 
+};
+
+gemm_tuple conv_resnet50_bwdwrw_fp16_001 {{1024, 2048, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_002 {{1024, 256, 196, 196, 196, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_003 {{1024, 512, 49, 49, 49, 1024}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_004 {{1152, 128, 784, 784, 784, 1152}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_005 {{128, 512, 784, 784, 784, 128}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_006 {{147, 64, 12544, 12544, 12544, 147}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_007 {{2048, 512, 49, 49, 49, 2048}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_008 {{2304, 256, 196, 196, 196, 2304}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_009 {{256, 1024, 196, 196, 196, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_010 {{256, 128, 784, 784, 784, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_011 {{256, 512, 784, 784, 784, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_012 {{256, 64, 3025, 3025, 3025, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_013 {{256, 64, 3136, 3136, 3136, 256}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_014 {{4608, 512, 49, 49, 49, 4608}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_015 {{512, 1024, 196, 196, 196, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_016 {{512, 128, 784, 784, 784, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_017 {{512, 2048, 49, 49, 49, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_018 {{512, 256, 196, 196, 196, 512}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_019 {{576, 64, 3025, 3025, 3025, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_020 {{576, 64, 3136, 3136, 3136, 576}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_021 {{64, 256, 3025, 3025, 3025, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_022 {{64, 256, 3136, 3136, 3136, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_023 {{64, 64, 3025, 3025, 3025, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_024 {{64, 64, 3136, 3136, 3136, 64}, {1, 1}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_025 {{1024, 2048, 49, 49, 49, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_026 {{1024, 256, 196, 196, 196, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_027 {{1024, 512, 49, 49, 49, 1024}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_028 {{1152, 128, 784, 784, 784, 1152}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_029 {{128, 512, 784, 784, 784, 128}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_030 {{147, 64, 12544, 12544, 12544, 147}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_031 {{2048, 512, 49, 49, 49, 2048}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_032 {{2304, 256, 196, 196, 196, 2304}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_033 {{256, 1024, 196, 196, 196, 256}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_034 {{256, 128, 784, 784, 784, 256}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_035 {{256, 512, 784, 784, 784, 256}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_036 {{256, 64, 3025, 3025, 3025, 256}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_037 {{256, 64, 3136, 3136, 3136, 256}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_038 {{4608, 512, 49, 49, 49, 4608}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_039 {{512, 1024, 196, 196, 196, 512}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_040 {{512, 128, 784, 784, 784, 512}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_041 {{512, 2048, 49, 49, 49, 512}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_042 {{512, 256, 196, 196, 196, 512}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_043 {{576, 64, 3025, 3025, 3025, 576}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_044 {{576, 64, 3136, 3136, 3136, 576}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_045 {{64, 256, 3025, 3025, 3025, 64}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_046 {{64, 256, 3136, 3136, 3136, 64}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_047 {{64, 64, 3025, 3025, 3025, 64}, {15360, 15360}, {'T', 'N'}};
+gemm_tuple conv_resnet50_bwdwrw_fp16_048 {{64, 64, 3136, 3136, 3136, 64}, {15360, 15360}, {'T', 'N'}};
+
+const vector<gemm_tuple> conv_resnet50_bwdwrw_fp16 = {
+conv_resnet50_bwdwrw_fp16_001, conv_resnet50_bwdwrw_fp16_002, conv_resnet50_bwdwrw_fp16_003, conv_resnet50_bwdwrw_fp16_004, 
+conv_resnet50_bwdwrw_fp16_005, conv_resnet50_bwdwrw_fp16_006, conv_resnet50_bwdwrw_fp16_007, conv_resnet50_bwdwrw_fp16_008, 
+conv_resnet50_bwdwrw_fp16_009, conv_resnet50_bwdwrw_fp16_010, conv_resnet50_bwdwrw_fp16_011, conv_resnet50_bwdwrw_fp16_012, 
+conv_resnet50_bwdwrw_fp16_013, conv_resnet50_bwdwrw_fp16_014, conv_resnet50_bwdwrw_fp16_015, conv_resnet50_bwdwrw_fp16_016, 
+conv_resnet50_bwdwrw_fp16_017, conv_resnet50_bwdwrw_fp16_018, conv_resnet50_bwdwrw_fp16_019, conv_resnet50_bwdwrw_fp16_020, 
+conv_resnet50_bwdwrw_fp16_021, conv_resnet50_bwdwrw_fp16_022, conv_resnet50_bwdwrw_fp16_023, conv_resnet50_bwdwrw_fp16_024, 
+conv_resnet50_bwdwrw_fp16_025, conv_resnet50_bwdwrw_fp16_026, conv_resnet50_bwdwrw_fp16_027, conv_resnet50_bwdwrw_fp16_028, 
+conv_resnet50_bwdwrw_fp16_029, conv_resnet50_bwdwrw_fp16_030, conv_resnet50_bwdwrw_fp16_031, conv_resnet50_bwdwrw_fp16_032, 
+conv_resnet50_bwdwrw_fp16_033, conv_resnet50_bwdwrw_fp16_034, conv_resnet50_bwdwrw_fp16_035, conv_resnet50_bwdwrw_fp16_036, 
+conv_resnet50_bwdwrw_fp16_037, conv_resnet50_bwdwrw_fp16_038, conv_resnet50_bwdwrw_fp16_039, conv_resnet50_bwdwrw_fp16_040, 
+conv_resnet50_bwdwrw_fp16_041, conv_resnet50_bwdwrw_fp16_042, conv_resnet50_bwdwrw_fp16_043, conv_resnet50_bwdwrw_fp16_044, 
+conv_resnet50_bwdwrw_fp16_045, conv_resnet50_bwdwrw_fp16_046, conv_resnet50_bwdwrw_fp16_047, conv_resnet50_bwdwrw_fp16_048, 
+};
+
 
 
 
@@ -886,6 +984,9 @@ INSTANTIATE_TEST_CASE_P(nightly_blas3_fixed_bug_sizes, parameterized_gemm_half, 
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_fwd_fp32));
 INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_fwd_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_fwd_fp16));
+
+INSTANTIATE_TEST_CASE_P(nightly_conv_resnet50_bwdwrw_fp32, parameterized_gemm_float, ValuesIn(conv_resnet50_bwdwrw_fp32));
+INSTANTIATE_TEST_CASE_P(known_bug_conv_resnet50_bwdwrw_fp16, parameterized_gemm_half, ValuesIn(conv_resnet50_bwdwrw_fp16));
 
 // clang-format on
 
