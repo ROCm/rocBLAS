@@ -488,12 +488,6 @@ const vector<gemm_strided_batched_tuple> conv_ctest_fwd_fp16_sb = {
     conv_ctest_fwd_fp16_sb_015, conv_ctest_fwd_fp16_sb_016,
 };
 
-
-
-
-
-
-
 // clang-format on
 
 /* ===============Google Unit Test==================================================== */
@@ -564,7 +558,6 @@ class gemm_strided_batched_half : public ::TestWithParam<gemm_strided_batched_tu
     virtual void TearDown() {}
 };
 
-
 class gemm_strided_batched_float : public ::TestWithParam<gemm_strided_batched_tuple>
 {
     protected:
@@ -574,7 +567,6 @@ class gemm_strided_batched_float : public ::TestWithParam<gemm_strided_batched_t
     virtual void TearDown() {}
 };
 
-
 class gemm_strided_batched_double : public ::TestWithParam<gemm_strided_batched_tuple>
 {
     protected:
@@ -583,7 +575,6 @@ class gemm_strided_batched_double : public ::TestWithParam<gemm_strided_batched_
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
-
 
 TEST_P(gemm_strided_batched_half, standard)
 {
@@ -622,8 +613,6 @@ TEST_P(gemm_strided_batched_half, standard)
     }
 }
 
-
-
 TEST_P(gemm_strided_batched_float, standard)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -661,8 +650,6 @@ TEST_P(gemm_strided_batched_float, standard)
     }
 }
 
-
-
 TEST_P(gemm_strided_batched_double, standard)
 {
     // GetParam return a tuple. Tee setup routine unpack the tuple
@@ -699,8 +686,6 @@ TEST_P(gemm_strided_batched_double, standard)
         }
     }
 }
-
-
 
 TEST_P(gemm_strided_batched, half)
 {
