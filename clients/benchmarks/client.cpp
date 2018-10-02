@@ -33,6 +33,7 @@
 #include "testing_gemm_strided_batched_kernel_name.hpp"
 #include "testing_trsm.hpp"
 #include "testing_gemm_ex.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
 #endif
 
 namespace po = boost::program_options;
@@ -499,6 +500,38 @@ int main(int argc, char* argv[])
             testing_gemm_strided_batched<float>(argus);
         else if(precision == 'd')
             testing_gemm_strided_batched<double>(argus);
+    }
+    else if(function == "gemm_strided_batched_ex")
+    {
+        // adjust dimension for GEMM routines
+        rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
+        rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
+        rocblas_int min_ldc = argus.M;
+        if(argus.lda < min_lda)
+        {
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            argus.lda = min_lda;
+        }
+        if(argus.ldb < min_ldb)
+        {
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            argus.ldb = min_ldb;
+        }
+        if(argus.ldc < min_ldc)
+        {
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            argus.ldc = min_ldc;
+        }
+
+        rocblas_int min_stride_c = argus.ldc * argus.N;
+        if(argus.stride_c < min_stride_c)
+        {
+            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                      << min_stride_c << std::endl;
+            argus.stride_c = min_stride_c;
+        }
+
+        testing_gemm_strided_batched_ex(argus);
     }
     else if(function == "gemm_kernel_name")
     {
