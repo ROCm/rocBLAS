@@ -841,6 +841,9 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         }
     }
 
+    std::cout << "before return" << std::endl;
+    //  return rocblas_status_success;
+
     if(timing)
     {
         int number_cold_calls = 2;
@@ -855,7 +858,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             M,
                                             N,
                                             K,
-                                            d_alpha_Tc,
+                                            &h_alpha_Tc,
                                             dA,
                                             a_type,
                                             lda,
@@ -864,7 +867,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             b_type,
                                             ldb,
                                             stride_b,
-                                            d_beta_Tc,
+                                            &h_beta_Tc,
                                             dC,
                                             c_type,
                                             ldc,
@@ -891,7 +894,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             M,
                                             N,
                                             K,
-                                            d_alpha_Tc,
+                                            &h_alpha_Tc,
                                             dA,
                                             a_type,
                                             lda,
@@ -900,7 +903,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             b_type,
                                             ldb,
                                             stride_b,
-                                            d_beta_Tc,
+                                            &h_beta_Tc,
                                             dC,
                                             c_type,
                                             ldc,
