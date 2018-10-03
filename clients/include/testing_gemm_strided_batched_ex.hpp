@@ -841,9 +841,6 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         }
     }
 
-    std::cout << "before return" << std::endl;
-    //  return rocblas_status_success;
-
     if(timing)
     {
         int number_cold_calls = 2;
