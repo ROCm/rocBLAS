@@ -6922,7 +6922,7 @@ INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_bwddata_fp32, parameterized_gemm_floa
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_bwddata_fp16, parameterized_gemm_half, ValuesIn(conv_ctest_bwddata_fp16));
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_bwdwrw_fp32, parameterized_gemm_float, ValuesIn(conv_ctest_bwdwrw_fp32));
-INSTANTIATE_TEST_CASE_P(kown_bug_conv_ctest_bwdwrw_fp16, parameterized_gemm_half, ValuesIn(conv_ctest_bwdwrw_fp16));
+INSTANTIATE_TEST_CASE_P(known_bug_conv_ctest_bwdwrw_fp16, parameterized_gemm_half, ValuesIn(conv_ctest_bwdwrw_fp16));
 
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_fwd_fp32, parameterized_gemm_float, ValuesIn(conv_ctest_fwd_fp32));
 INSTANTIATE_TEST_CASE_P(nightly_conv_ctest_fwd_fp16, parameterized_gemm_half, ValuesIn(conv_ctest_fwd_fp16));
