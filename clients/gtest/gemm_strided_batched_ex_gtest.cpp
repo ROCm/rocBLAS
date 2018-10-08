@@ -367,6 +367,14 @@ INSTANTIATE_TEST_CASE_P(quick_blas3_small_no_stride_zero,
                                 ValuesIn(full_transA_transB_range),
                                 ValuesIn(batch_count_n1_0_1_3),
                                 ValuesIn(precision_type_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_small_no_stride_zero,
+                        gemm_strided_batched_ex,
+                        Combine(ValuesIn(known_bug_small_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(full_transA_transB_range),
+                                ValuesIn(batch_count_n1_0_1_3),
+                                ValuesIn(precision_type_range)));
 // tests with stride_a == 0
 INSTANTIATE_TEST_CASE_P(pre_checkin_blas3_small_stride_zero,
                         gemm_strided_batched_ex,
