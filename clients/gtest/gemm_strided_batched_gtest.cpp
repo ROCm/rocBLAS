@@ -38,6 +38,12 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
 // add/delete as a group, in batched gemm, the matrix is much smaller than standard gemm
 // clang-format off
+//
+const vector<vector<int>> known_bug_matrix_size_range = {
+    {  3,   3,   3,   3,   3,   3,    0,      9,      9},
+};
+
+
 const vector<vector<int>> small_matrix_size_range = {
     { -1,  -1,  -1,  -1,   1,   1,      1,      1,     1},
     { 31,  33,  35, 101, 102, 103,   3605,   3605,   3605},
@@ -56,7 +62,6 @@ const vector<vector<int>> small_matrix_size_range = {
 
 const vector<vector<int>> small_matrix_size_stride_a_range = {
     {  3,   3,   3,   3,   3,   3,    9,      9,      9},
-    {  3,   3,   3,   3,   3,   3,    0,      9,      9},
     { 15,  15,  15,  15,  15,  15,  225,      0,    225},
     { 16,  16,  16,  16,  16,  16,    0,    256,    256},
     { 17,  17,  17,  17,  17,  17,  289,      0,    289},
@@ -820,6 +825,13 @@ INSTANTIATE_TEST_CASE_P(quick_blas3_small_stride_zero,
 INSTANTIATE_TEST_CASE_P(quick_blas3_small,
                         gemm_strided_batched,
                         Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range),
+                                ValuesIn(small_batch_count_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_small,
+                        gemm_strided_batched,
+                        Combine(ValuesIn(known_bug_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(small_batch_count_range)));
