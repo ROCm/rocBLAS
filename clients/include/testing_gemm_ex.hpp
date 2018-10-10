@@ -510,7 +510,7 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
         rocblas_half positive_two       = float_to_half(2.0);
         rocblas_half negative_two       = float_to_half(-2.0);
-        if(M >= 2 && N >= 2)
+        if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = ieee_half_near_max;
             hA[1]       = ieee_half_near_max;
