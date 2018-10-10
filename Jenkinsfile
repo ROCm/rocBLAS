@@ -487,58 +487,90 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 }
 
 // The following launches 3 builds in parallel: hcc-ctu, hcc-1.6 and cuda
-parallel hcc_ctu:
+//parallel hcc_ctu:
+//{
+//  try
+//  {
+//    node( 'docker && rocm && gfx900')
+//    {
+//      def docker_args = new docker_data(
+//          from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
+//          build_docker_file:'dockerfile-build-ubuntu',
+//          install_docker_file:'dockerfile-install-ubuntu',
+//          docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
+//          docker_build_args:' --pull' )
+//
+//      def compiler_args = new compiler_data(
+//          compiler_name:'hcc-ctu',
+//          build_config:'Release',
+//          compiler_path:'/opt/rocm/bin/hcc' )
+//
+//      def rocblas_paths = new project_paths(
+//          project_name:'rocblas-hcc-ctu',
+//          src_prefix:'src',
+//          build_prefix:'src',
+//          build_command: './install.sh -c' )
+//
+//      def print_version_closure = {
+//        sh  """
+//            set -x
+//            /opt/rocm/bin/hcc --version
+//          """
+//      }
+//
+//      build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
+//    }
+//  }
+//  catch( err )
+//  {
+//    currentBuild.result = 'UNSTABLE'
+//  }
+//},
+//parallel rocm_ubuntu:
+//{
+//  node( 'docker && rocm && gfx900')
+//  {
+//    def hcc_docker_args = new docker_data(
+//        from_image:'rocm/dev-ubuntu-16.04:1.7.1',
+//        build_docker_file:'dockerfile-build-ubuntu',
+//        install_docker_file:'dockerfile-install-ubuntu',
+//        docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
+//        docker_build_args:' --pull' )
+//
+//    def hcc_compiler_args = new compiler_data(
+//        compiler_name:'hcc-rocm-ubuntu',
+//        build_config:'Release',
+//        compiler_path:'/opt/rocm/bin/hcc' )
+//
+//    def rocblas_paths = new project_paths(
+//        project_name:'rocblas-ubuntu',
+//        src_prefix:'src',
+//        build_prefix:'src',
+//        build_command: './install.sh -c' )
+//
+//    def print_version_closure = {
+//      sh  """
+//          set -x
+//          /opt/rocm/bin/hcc --version
+//        """
+//    }
+//
+//    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+//  }
+//},
+parallel rocm19_ubuntu:
 {
-  try
-  {
-    node( 'docker && rocm && gfx900')
-    {
-      def docker_args = new docker_data(
-          from_image:'compute-artifactory:5001/rocm-developer-tools/hip/master/hip-hcc-ctu-ubuntu-16.04:latest',
-          build_docker_file:'dockerfile-build-ubuntu',
-          install_docker_file:'dockerfile-install-ubuntu',
-          docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
-          docker_build_args:' --pull' )
-
-      def compiler_args = new compiler_data(
-          compiler_name:'hcc-ctu',
-          build_config:'Release',
-          compiler_path:'/opt/rocm/bin/hcc' )
-
-      def rocblas_paths = new project_paths(
-          project_name:'rocblas-hcc-ctu',
-          src_prefix:'src',
-          build_prefix:'src',
-          build_command: './install.sh -c' )
-
-      def print_version_closure = {
-        sh  """
-            set -x
-            /opt/rocm/bin/hcc --version
-          """
-      }
-
-      build_pipeline( compiler_args, docker_args, rocblas_paths, print_version_closure )
-    }
-  }
-  catch( err )
-  {
-    currentBuild.result = 'UNSTABLE'
-  }
-},
-rocm_ubuntu:
-{
-  node( 'docker && rocm && gfx900')
+  node( 'docker && rocm19 && gfx900')
   {
     def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-ubuntu-16.04:1.7.1',
-        build_docker_file:'dockerfile-build-ubuntu',
+        from_image:'rocm/dev-ubuntu-16.04:1.9.0',
+        build_docker_file:'dockerfile-build-ubuntu-rock',
         install_docker_file:'dockerfile-install-ubuntu',
         docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
         docker_build_args:' --pull' )
 
     def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm-ubuntu',
+        compiler_name:'hcc-rocm19-ubuntu',
         build_config:'Release',
         compiler_path:'/opt/rocm/bin/hcc' )
 
