@@ -324,6 +324,38 @@ void testing_logging()
                                      flags,
                                      workspace_size,
                                      workspace);
+
+            status = rocblas_gemm_strided_batched_ex(handle,
+                                                     transA,
+                                                     transB,
+                                                     m,
+                                                     n,
+                                                     k,
+                                                     alpha,
+                                                     da,
+                                                     a_type,
+                                                     lda,
+                                                     stride_a,
+                                                     db,
+                                                     b_type,
+                                                     ldb,
+                                                     stride_b,
+                                                     beta,
+                                                     dc,
+                                                     c_type,
+                                                     ldc,
+                                                     stride_c,
+                                                     dd,
+                                                     d_type,
+                                                     ldd,
+                                                     stride_d,
+                                                     batch_count,
+                                                     compute_type,
+                                                     algo,
+                                                     solution_index,
+                                                     flags,
+                                                     workspace_size,
+                                                     workspace);
         }
     }
 
@@ -674,6 +706,28 @@ void testing_logging()
                        << " --a_type " << a_type << " --lda " << lda << " --b_type " << b_type
                        << " --ldb " << ldb << " --beta " << beta << " --c_type " << c_type
                        << " --ldc " << ldc << " --d_type " << d_type << " --ldd " << ldd
+                       << " --compute_type " << compute_type << " --algo " << algo
+                       << " --solution_index " << solution_index << " --flags " << flags
+                       << " --workspace_size " << workspace_size << '\n';
+
+            trace_ofs2 << "rocblas_gemm_strided_batched_ex"
+                       << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
+                       << alpha << "," << (void*)da << "," << a_type << "," << lda << ","
+                       << stride_a << "," << (void*)db << "," << b_type << "," << ldb << ","
+                       << stride_b << "," << beta << "," << (void*)dc << "," << c_type << "," << ldc
+                       << "," << stride_c << "," << (void*)dd << "," << d_type << "," << ldd << ","
+                       << stride_d << "," << batch_count << "," << compute_type << "," << algo
+                       << "," << solution_index << "," << flags << "," << workspace_size << ","
+                       << (void*)workspace << '\n';
+
+            bench_ofs2 << "./rocblas-bench -f gemm_strided_batched_ex"
+                       << " --transposeA " << transA_letter << " --transposeB " << transB_letter
+                       << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
+                       << " --a_type " << a_type << " --lda " << lda << " --stride_a " << stride_a
+                       << " --b_type " << b_type << " --ldb " << ldb << " --stride_b " << stride_b
+                       << " --beta " << beta << " --c_type " << c_type << " --ldc " << ldc
+                       << " --stride_c " << stride_c << " --d_type " << d_type << " --ldd " << ldd
+                       << " --stride_d " << stride_d << " --batch_count " << batch_count
                        << " --compute_type " << compute_type << " --algo " << algo
                        << " --solution_index " << solution_index << " --flags " << flags
                        << " --workspace_size " << workspace_size << '\n';

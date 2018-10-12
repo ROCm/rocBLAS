@@ -143,6 +143,20 @@ inline rocblas_half random_generator_negative<rocblas_half>()
 /*! \brief  matrix/vector initialization: */
 // for vector x (M=1, N=lengthX, lda=incx);
 // for complex number, the real/imag part would be initialized with the same value
+
+// initializing vector with a constant value passed as a parameter
+template <typename T>
+void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
+{
+    for(rocblas_int i = 0; i < M; ++i)
+    {
+        for(rocblas_int j = 0; j < N; ++j)
+        {
+            A[i + j * lda] = value;
+        }
+    }
+};
+
 template <typename T>
 void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
@@ -236,17 +250,58 @@ void rocblas_init_alternating_sign(vector<T>& A,
     }
 };
 
-/*! \brief  matrix/vector initialization: */
-// for vector x (M=1, N=lengthX, lda=incx);
-// initializing vector with a constant value passed as a parameter
 template <typename T>
-void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
+void rocblas_init_alternating_sign(vector<T>& A,
+                                   rocblas_int M,
+                                   rocblas_int N,
+                                   rocblas_int lda,
+                                   rocblas_int stride,
+                                   rocblas_int batch_count,
+                                   double value)
 {
-    for(rocblas_int i = 0; i < M; ++i)
+    // Initialize matrix so adjacent entries have alternating sign.
+    // In gemm if either A or B are initialized with alernating
+    // sign the reduction sum will be summing positive
+    // and negative numbers, so it should not get too large.
+    // This helps reduce floating point inaccuracies for 16bit
+    // arithmetic where the exponent has only 5 bits, and the
+    // mantissa 10 bits.
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
     {
-        for(rocblas_int j = 0; j < N; ++j)
+        for(rocblas_int i = 0; i < M; ++i)
         {
-            A[i + j * lda] = value;
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                if(j % 2 ^ i % 2)
+                {
+                    A[i + j * lda + i_batch * stride] = value;
+                }
+                else
+                {
+                    A[i + j * lda + i_batch * stride] = -value;
+                }
+            }
+        }
+    }
+};
+
+template <typename T>
+void rocblas_init(vector<T>& A,
+                  rocblas_int M,
+                  rocblas_int N,
+                  rocblas_int lda,
+                  rocblas_int stride_a,
+                  rocblas_int batch_count,
+                  double value)
+{
+    for(rocblas_int k = 0; k < batch_count; ++k)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda + k * stride_a] = value;
+            }
         }
     }
 };
@@ -259,7 +314,28 @@ rocblas_init(vector<rocblas_half>& A, rocblas_int M, rocblas_int N, rocblas_int 
     {
         for(rocblas_int j = 0; j < N; ++j)
         {
-            A[i + j * lda] = float_to_half(value);
+            A[i + j * lda] = float_to_half(static_cast<float>(value));
+        }
+    }
+};
+
+template <>
+inline void rocblas_init(vector<rocblas_half>& A,
+                         rocblas_int M,
+                         rocblas_int N,
+                         rocblas_int lda,
+                         rocblas_int stride_a,
+                         rocblas_int batch_count,
+                         double value)
+{
+    for(rocblas_int k = 0; k < batch_count; ++k)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda + k * stride_a] = float_to_half(static_cast<float>(value));
+            }
         }
     }
 };
@@ -442,6 +518,7 @@ class Arguments
     rocblas_int stride_a = 128 * 128; //  stride_a > transA_option == 'N' ? lda * K : lda * M
     rocblas_int stride_b = 128 * 128; //  stride_b > transB_option == 'N' ? ldb * N : ldb * K
     rocblas_int stride_c = 128 * 128; //  stride_c > ldc * N
+    rocblas_int stride_d = 128 * 128; //  stride_d > ldd * N
 
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;

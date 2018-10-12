@@ -114,7 +114,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = 0.0;
+    double rocblas_error = 0.0;
 
     size_t size_one_a = transA == rocblas_operation_none
                             ? static_cast<size_t>(K) * static_cast<size_t>(lda)
@@ -265,10 +265,15 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>(
-                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_1.data());
-            rocblas_error = norm_check_general<T>(
-                'F', M, N, lda, stride_a, batch_count, hC_gold.data(), hC_2.data());
+            double error_hst_ptr = norm_check_general<T>(
+                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_1.data());
+            double error_dev_ptr = norm_check_general<T>(
+                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_2.data());
+
+            error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
+            error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;
+
+            rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }
 
@@ -338,9 +343,11 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         cout << endl;
 
         cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
-             << K << "," << h_alpha << "," << lda << "," << stride_a << "," << ldb << ","
-             << stride_b << "," << h_beta << "," << ldc << "," << stride_c << "," << batch_count
-             << "," << rocblas_gflops << "," << gpu_time_used;
+             << K << "," << (is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
+             << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
+             << (is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << "," << ldc
+             << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
+             << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
