@@ -19,8 +19,10 @@
  */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
+typedef int64_t rocblas_long;
 #else
 typedef int32_t rocblas_int;
+typedef int64_t rocblas_long;
 #endif
 // complex type
 typedef float2 rocblas_float_complex;
