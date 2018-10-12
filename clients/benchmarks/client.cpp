@@ -141,23 +141,23 @@ int main(int argc, char* argv[])
          po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
         
         ("a_type", 
-         po::value<char>(&a_type)->default_value('s'), "Options: h,s,d"
+         po::value<char>(&a_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix A, only applicable to BLAS_EX")
         
         ("b_type", 
-         po::value<char>(&b_type)->default_value('s'), "Options: h,s,d"
+         po::value<char>(&b_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix B, only applicable to BLAS_EX")
         
         ("c_type", 
-         po::value<char>(&c_type)->default_value('s'), "Options: h,s,d"
+         po::value<char>(&c_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix C, only applicable to BLAS_EX")
         
         ("d_type", 
-         po::value<char>(&d_type)->default_value('s'), "Options: h,s,d"
+         po::value<char>(&d_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix D, only applicable to BLAS_EX")
         
         ("compute_type", 
-         po::value<char>(&compute_type)->default_value('s'), "Options: h,s,d"
+         po::value<char>(&compute_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of computation, only applicable to BLAS_EX")
         
         ("transposeA",
@@ -191,6 +191,28 @@ int main(int argc, char* argv[])
         ("iters,i",
          po::value<rocblas_int>(&argus.iters)->default_value(10),
          "Iterations to run inside timing loop")
+
+
+
+
+        ("algo",
+         po::value<uint32_t>(&argus.algo)->default_value(0),
+         "extended precision gemm algorithm")
+        
+        ("solution_index",
+         po::value<uint32_t>(&argus.solution_index)->default_value(0),
+         "extended precision gemm solution index")
+        
+        ("flags",
+         po::value<uint32_t>(&argus.flags)->default_value(10),
+         "extended precision gemm flags")
+        
+        ("workspace_size",
+         po::value<size_t>(&argus.workspace_size)->default_value(10),
+         "extended precision gemm workspace size")
+
+
+        
         
         ("device",
          po::value<rocblas_int>(&device_id)->default_value(0),
@@ -219,31 +241,35 @@ int main(int argc, char* argv[])
         std::cerr << "Invalid value for --a_type" << std::endl;
         return -1;
     }
+    argus.a_type = char2rocblas_datatype(a_type);
 
     if(b_type != 'h' && b_type != 's' && b_type != 'd')
     {
         std::cerr << "Invalid value for --b_type" << std::endl;
         return -1;
     }
+    argus.b_type = char2rocblas_datatype(b_type);
 
     if(c_type != 'h' && c_type != 's' && c_type != 'd')
     {
         std::cerr << "Invalid value for --c_type" << std::endl;
         return -1;
     }
+    argus.c_type = char2rocblas_datatype(c_type);
 
     if(d_type != 'h' && d_type != 's' && d_type != 'd')
     {
         std::cerr << "Invalid value for --d_type" << std::endl;
         return -1;
     }
+    argus.d_type = char2rocblas_datatype(d_type);
 
     if(compute_type != 'h' && compute_type != 's' && compute_type != 'd')
     {
         std::cerr << "Invalid value for --compute_type" << std::endl;
         return -1;
     }
-    argus.a_type = char2rocblas_datatype(a_type);
+    argus.compute_type = char2rocblas_datatype(compute_type);
 
     // Device Query
     rocblas_int device_count = query_device_property();
