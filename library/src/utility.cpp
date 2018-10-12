@@ -86,3 +86,36 @@ std::string rocblas_diag_letter(rocblas_diagonal diag)
         return " ";
     }
 }
+// return letter h, s, d, k, c, z in place of rocblas_datatype
+std::string rocblas_datatype_letter(rocblas_datatype type)
+{
+    if(type == rocblas_datatype_f16_r)
+    {
+        return "h";
+    }
+    else if(type == rocblas_datatype_f32_r)
+    {
+        return "s";
+    }
+    else if(type == rocblas_datatype_f64_r)
+    {
+        return "d";
+    }
+    else if(type == rocblas_datatype_f16_c)
+    {
+        return "k";
+    }
+    else if(type == rocblas_datatype_f16_c)
+    {
+        return "c";
+    }
+    else if(type == rocblas_datatype_f16_c)
+    {
+        return "z";
+    }
+    else
+    {
+        std::cerr << "rocblas ERROR: datatype != h, s, d, k, c, z" << std::endl;
+        return " ";
+    }
+}

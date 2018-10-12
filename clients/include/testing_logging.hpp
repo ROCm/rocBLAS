@@ -703,10 +703,12 @@ void testing_logging()
             bench_ofs2 << "./rocblas-bench -f gemm_ex"
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
                        << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
-                       << " --a_type " << a_type << " --lda " << lda << " --b_type " << b_type
-                       << " --ldb " << ldb << " --beta " << beta << " --c_type " << c_type
-                       << " --ldc " << ldc << " --d_type " << d_type << " --ldd " << ldd
-                       << " --compute_type " << compute_type << " --algo " << algo
+                       << " --a_type " << rocblas_datatype2char(a_type) << " --lda " << lda
+                       << " --b_type " << rocblas_datatype2char(b_type) << " --ldb " << ldb
+                       << " --beta " << beta << " --c_type " << rocblas_datatype2char(c_type)
+                       << " --ldc " << ldc << " --d_type " << rocblas_datatype2char(d_type)
+                       << " --ldd " << ldd << " --compute_type "
+                       << rocblas_datatype2char(compute_type) << " --algo " << algo
                        << " --solution_index " << solution_index << " --flags " << flags
                        << " --workspace_size " << workspace_size << '\n';
 
@@ -723,13 +725,15 @@ void testing_logging()
             bench_ofs2 << "./rocblas-bench -f gemm_strided_batched_ex"
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
                        << " -m " << m << " -n " << n << " -k " << k << " --alpha " << alpha
-                       << " --a_type " << a_type << " --lda " << lda << " --stride_a " << stride_a
-                       << " --b_type " << b_type << " --ldb " << ldb << " --stride_b " << stride_b
-                       << " --beta " << beta << " --c_type " << c_type << " --ldc " << ldc
-                       << " --stride_c " << stride_c << " --d_type " << d_type << " --ldd " << ldd
-                       << " --stride_d " << stride_d << " --batch_count " << batch_count
-                       << " --compute_type " << compute_type << " --algo " << algo
-                       << " --solution_index " << solution_index << " --flags " << flags
+                       << " --a_type " << rocblas_datatype2char(a_type) << " --lda " << lda
+                       << " --stride_a " << stride_a << " --b_type "
+                       << rocblas_datatype2char(b_type) << " --ldb " << ldb << " --stride_b "
+                       << stride_b << " --beta " << beta << " --c_type "
+                       << rocblas_datatype2char(c_type) << " --ldc " << ldc << " --stride_c "
+                       << stride_c << " --d_type " << rocblas_datatype2char(d_type) << " --ldd "
+                       << ldd << " --stride_d " << stride_d << " --batch " << batch_count
+                       << " --compute_type " << rocblas_datatype2char(compute_type) << " --algo "
+                       << algo << " --solution_index " << solution_index << " --flags " << flags
                        << " --workspace_size " << workspace_size << '\n';
         }
         else

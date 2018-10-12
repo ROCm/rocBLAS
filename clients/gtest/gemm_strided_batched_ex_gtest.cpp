@@ -186,7 +186,7 @@ rocblas_datatype_f64_r}};
 // clang-format on
 
 // clang-format off
-// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
+// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c},{alpha,beta},{transA,transB},batch_count,precision;
 //gemm_strided_batched_ex_tuple db_sb_1 {{12544,  64,  64,12544,  64,12544,802816, 0, 802816},{1, 0},{'N','N'},16,precision_half};
 //gemm_strided_batched_ex_tuple db_sb_2 {{12544,  64,  64,12544,  64,12544,802816, 0, 802816},{1, 0},{'N','N'}, 8,precision_half};
 //gemm_strided_batched_ex_tuple db_sb_3 {{ 3136, 256,  64, 3136,  64, 3136,200704, 0, 802816},{1, 0},{'N','N'},16,precision_half};
