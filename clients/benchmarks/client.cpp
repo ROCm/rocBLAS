@@ -426,6 +426,7 @@ int main(int argc, char* argv[])
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
+        rocblas_int min_ldd = argus.M;
 
         if(argus.lda < min_lda)
         {
@@ -441,6 +442,11 @@ int main(int argc, char* argv[])
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
+        }
+        if(argus.ldd < min_ldd)
+        {
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            argus.ldd = min_ldd;
         }
         testing_gemm_ex(argus);
     }
@@ -507,6 +513,7 @@ int main(int argc, char* argv[])
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
+        rocblas_int min_ldd = argus.M;
         if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
@@ -521,6 +528,11 @@ int main(int argc, char* argv[])
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
+        }
+        if(argus.ldd < min_ldd)
+        {
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            argus.ldd = min_ldd;
         }
 
         rocblas_int min_stride_c = argus.ldc * argus.N;
