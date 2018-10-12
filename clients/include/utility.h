@@ -452,6 +452,8 @@ char rocblas2char_diagonal(rocblas_diagonal value);
 
 char rocblas2char_side(rocblas_side value);
 
+char rocblas_datatype2char(rocblas_datatype value);
+
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
