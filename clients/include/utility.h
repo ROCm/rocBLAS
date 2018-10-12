@@ -452,6 +452,8 @@ char rocblas2char_diagonal(rocblas_diagonal value);
 
 char rocblas2char_side(rocblas_side value);
 
+char rocblas_datatype2char(rocblas_datatype value);
+
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
@@ -526,6 +528,11 @@ class Arguments
 
     rocblas_int iters = 10;
 
+    uint32_t algo           = 0;
+    uint32_t solution_index = 0;
+    uint32_t flags          = 0;
+    size_t workspace_size   = 0;
+
     Arguments& operator=(const Arguments& rhs)
     {
         M = rhs.M;
@@ -567,6 +574,11 @@ class Arguments
         norm_check = rhs.norm_check;
         unit_check = rhs.unit_check;
         timing     = rhs.timing;
+
+        algo           = rhs.algo;
+        solution_index = rhs.solution_index;
+        flags          = rhs.flags;
+        workspace_size = rhs.workspace_size;
 
         return *this;
     }
