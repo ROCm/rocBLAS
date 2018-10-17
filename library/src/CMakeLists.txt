@@ -198,7 +198,7 @@ rocm_install_targets(
 rocm_export_targets(
   TARGETS roc::rocblas
   PREFIX rocblas
-  DEPENDS PACKAGE hip
+  DEPENDS PACKAGE HIP
   NAMESPACE roc::
  )
 
