@@ -869,10 +869,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             c_type,
                                             ldc,
                                             stride_c,
-                                            dD,
-                                            d_type,
-                                            ldd,
-                                            stride_d,
+                                            dC,
+                                            c_type,
+                                            ldc,
+                                            stride_c,
                                             batch_count,
                                             compute_type,
                                             algo,
@@ -905,10 +905,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             c_type,
                                             ldc,
                                             stride_c,
-                                            dD,
-                                            d_type,
-                                            ldd,
-                                            stride_d,
+                                            dC,
+                                            c_type,
+                                            ldc,
+                                            stride_c,
                                             batch_count,
                                             compute_type,
                                             algo,
@@ -917,8 +917,9 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             workspace_size,
                                             workspace);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<Td>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops =
+            gemm_gflop_count<Td>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
         cout << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,ldd,stride_"
                 "d,batch_count,rocblas-Gflops,us";
@@ -928,10 +929,13 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
 
         cout << endl;
 
-        cout << transA << "," << transB << "," << M << "," << N << "," << K << "," << h_alpha_Td
-             << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << "," << h_beta_Td
-             << "," << ldc << "," << stride_c << "," << ldd << "," << stride_d << "," << batch_count
-             << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << "," << M
+             << "," << N << "," << K << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_alpha_Td) : h_alpha_Td) << ","
+             << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_beta_Td) : h_beta_Td) << ","
+             << ldc << "," << stride_c << "," << ldd << "," << stride_d << "," << batch_count << ","
+             << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(unit_check || norm_check)
         {
