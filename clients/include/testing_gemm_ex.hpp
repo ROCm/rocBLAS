@@ -730,9 +730,9 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                             dC,
                             c_type,
                             ldc,
-                            dD,
-                            d_type,
-                            ldd,
+                            dC,
+                            c_type,
+                            ldc,
                             compute_type,
                             algo,
                             solution_index,
@@ -761,9 +761,9 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                             dC,
                             c_type,
                             ldc,
-                            dD,
-                            d_type,
-                            ldd,
+                            dC,
+                            c_type,
+                            ldc,
                             compute_type,
                             algo,
                             solution_index,
@@ -781,9 +781,12 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         cout << endl;
 
-        cout << transA << "," << transB << "," << M << "," << N << "," << K << "," << h_alpha_Td
-             << "," << lda << "," << ldb << "," << h_beta_Td << "," << ldc << "," << rocblas_gflops
-             << "," << gpu_time_used / number_hot_calls;
+        cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << "," << M
+             << "," << N << "," << K << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_alpha_Td) : h_alpha_Td) << ","
+             << lda << "," << ldb << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_beta_Td) : h_beta_Td) << ","
+             << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(unit_check || norm_check)
         {
