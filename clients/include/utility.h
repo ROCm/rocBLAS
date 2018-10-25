@@ -6,23 +6,32 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <sys/time.h>
 #include <immintrin.h>
 #include <typeinfo>
-
+#include <fstream>
+#include <iterator>
+#include <cerrno>
+#include <boost/iterator/filter_iterator.hpp>
+#include <functional>
+#include <cstring>
+#include <cmath>
 #include "rocblas.h"
 
 using namespace std;
+
+typedef rocblas_half half;
 
 /*!\file
  * \brief provide data initialization, timing, rocblas type <-> lapack char conversion utilities.
  */
 
 #define CHECK_HIP_ERROR(error)                \
+  do                                          \
     if(error != hipSuccess)                   \
     {                                         \
         fprintf(stderr,                       \
@@ -32,9 +41,11 @@ using namespace std;
                 __FILE__,                     \
                 __LINE__);                    \
         exit(EXIT_FAILURE);                   \
-    }
+    }                                         \
+  while (0)
 
 #define CHECK_ROCBLAS_ERROR(error)                              \
+  do                                                            \
     if(error != rocblas_status_success)                         \
     {                                                           \
         fprintf(stderr, "rocBLAS error: ");                     \
@@ -68,9 +79,11 @@ using namespace std;
         }                                                       \
         fprintf(stderr, "\n");                                  \
         return error;                                           \
-    }
+    }                                                           \
+  while (0)
 
 #define BLAS_1_RESULT_PRINT                       \
+  do                                              \
     if(argus.timing)                              \
     {                                             \
         cout << "N, rocblas (us), ";              \
@@ -86,7 +99,8 @@ using namespace std;
             cout << rocblas_error;                \
         }                                         \
         cout << endl;                             \
-    }
+    }                                             \
+  while (0)
 
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
 inline rocblas_half float_to_half(float val)
@@ -472,13 +486,8 @@ rocblas_datatype char2rocblas_datatype(char value);
 /* ============================================================================================ */
 
 /*! \brief Class used to parse command arguments in both client & gtest   */
-
-// has to compile with option "-std=c++11", and this rocblas library uses c++11 everywhere
-// c++11 allows intilization of member of a struct
-
-class Arguments
+struct Arguments
 {
-    public:
     rocblas_int M = 128;
     rocblas_int N = 128;
     rocblas_int K = 128;
@@ -498,10 +507,6 @@ class Arguments
     rocblas_int incy = 1;
     rocblas_int incd = 1;
     rocblas_int incb = 1;
-
-    rocblas_int start = 1024;
-    rocblas_int end   = 10240;
-    rocblas_int step  = 1000;
 
     double alpha = 1.0;
     double beta  = 0.0;
@@ -523,53 +528,75 @@ class Arguments
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
     rocblas_int timing     = 0;
-
     rocblas_int iters = 10;
 
-    Arguments& operator=(const Arguments& rhs)
+    char function[32] = "";
+    char namex[32] = "";
+    char category[32] = "";
+
+    // Function to read Structures data from stream
+    friend istream& operator>>(istream& s, Arguments& arg)
     {
-        M = rhs.M;
-        N = rhs.N;
-        K = rhs.K;
-
-        lda = rhs.lda;
-        ldb = rhs.ldb;
-        ldc = rhs.ldc;
-        ldd = rhs.ldd;
-
-        a_type       = rhs.a_type;
-        b_type       = rhs.b_type;
-        c_type       = rhs.c_type;
-        d_type       = rhs.d_type;
-        compute_type = rhs.compute_type;
-
-        incx = rhs.incx;
-        incy = rhs.incy;
-        incd = rhs.incd;
-        incb = rhs.incb;
-
-        start = rhs.start;
-        end   = rhs.end;
-        step  = rhs.step;
-
-        alpha = rhs.alpha;
-        beta  = rhs.beta;
-
-        transA_option = rhs.transA_option;
-        transB_option = rhs.transB_option;
-        side_option   = rhs.side_option;
-        uplo_option   = rhs.uplo_option;
-        diag_option   = rhs.diag_option;
-
-        apiCallCount = rhs.apiCallCount;
-        batch_count  = rhs.batch_count;
-
-        norm_check = rhs.norm_check;
-        unit_check = rhs.unit_check;
-        timing     = rhs.timing;
-
-        return *this;
+        s.read(reinterpret_cast<char*>(&arg), sizeof(arg));
+        return s;
     }
+
+    // Function to print Structures data out to stream (for debugging)
+    friend ostream& operator<<(ostream& o, const Arguments &arg)
+    {
+        o << "transA = " << arg.transA_option << "  transB = " << arg.transB_option
+          << "\nM = " << arg.M << "  N = " << arg.N << "  K = " << arg.K <<
+            "\nlda = " << arg.lda << "  ldb = " << arg.ldb << "  ldc = " << arg.ldc <<
+            "\nalpha = " << arg.alpha << "  beta = " << arg.beta << "\n";
+        return o;
+    }
+};
+
+// Class used to read Arguments data into the tests
+struct RocBLAS_Data
+{
+    // filter iterator
+    typedef boost::filter_iterator<std::function<bool (const Arguments&)>, istream_iterator<Arguments>> iterator;
+
+    // begin() iterator which accepts an optional filter
+    static iterator begin(std::function<bool (const Arguments&)>
+                          filter = [](const Arguments&){return true;})
+    {
+        // We re-seek the file back to position 0
+        get().ifs.clear();
+        get().ifs.seekg(0);
+
+        // We create a filter iterator which will choose only those test cases
+        // we want right now. This is to preserve Gtest output structure while
+        // not creating no-op tests which "always pass".
+        return iterator(filter, istream_iterator<Arguments>(get().ifs));
+    }
+
+    // end() iterator
+    static iterator end()
+    {
+        return iterator();
+    }
+
+  private:
+    // We define this function to generate a single instance of the class on
+    // first use so that we don't depend on the static initialization order.
+    static RocBLAS_Data& get() {
+        static RocBLAS_Data singleton("rocblas_gtest.data");
+        return singleton;
+    }
+
+    // Constructor which opens file
+    explicit RocBLAS_Data(const string& file)
+    {
+        ifs.open(file, ifstream::binary);
+        if (ifs.fail()) {
+            cerr << "Cannot open " << file << ": " << strerror(errno) << endl;
+            throw ifstream::failure("Cannot open " + file);
+        }
+    }
+
+    ifstream ifs;
 };
 
 #endif
