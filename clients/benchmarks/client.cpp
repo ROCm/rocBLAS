@@ -54,25 +54,15 @@ int main(int argc, char* argv[])
     char compute_type;
 
     rocblas_int device_id;
-    vector<rocblas_int> range = {-1, -1, -1};
 
     po::options_description desc("rocblas client command line options");
     desc.add_options()("help,h", "produces this help message")
         // clang-format off
-        ("range",
-         po::value<vector<rocblas_int>>(&range)->multitoken(),
-         "Range matrix size testing: BLAS-3 benchmarking only. Accept three positive integers. "
-         "Usage: "
-         "--range start end step"
-         ". e.g "
-         "--range 100 1000 200"
-         ". Diabled if not specified. If enabled, user specified m,n,k will be nullified")
-        
         ("sizem,m",
          po::value<rocblas_int>(&argus.M)->default_value(128),
          "Specific matrix size: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
          "rows or columns in matrix.")
-        
+
         ("sizen,n",
          po::value<rocblas_int>(&argus.N)->default_value(128),
          "Specific matrix/vector size: BLAS-1: the length of the vector. BLAS-2 & "
@@ -127,51 +117,51 @@ int main(int argc, char* argv[])
          po::value<rocblas_int>(&argus.incy)->default_value(1),
          "increment between values in y vector")
 
-        ("alpha", 
+        ("alpha",
           po::value<double>(&argus.alpha)->default_value(1.0), "specifies the scalar alpha")
-        
+
         ("beta",
          po::value<double>(&argus.beta)->default_value(0.0), "specifies the scalar beta")
-              
+
         ("function,f",
          po::value<std::string>(&function)->default_value("gemv"),
          "BLAS function to test. Options: gemv, ger, syr, trsm, trmm, symv, syrk, syr2k")
-        
-        ("precision,r", 
+
+        ("precision,r",
          po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
-        
-        ("a_type", 
+
+        ("a_type",
          po::value<char>(&a_type)->default_value('s'), "Options: h,s,d"
          "Precision of matrix A, only applicable to BLAS_EX")
-        
-        ("b_type", 
+
+        ("b_type",
          po::value<char>(&b_type)->default_value('s'), "Options: h,s,d"
          "Precision of matrix B, only applicable to BLAS_EX")
-        
-        ("c_type", 
+
+        ("c_type",
          po::value<char>(&c_type)->default_value('s'), "Options: h,s,d"
          "Precision of matrix C, only applicable to BLAS_EX")
-        
-        ("d_type", 
+
+        ("d_type",
          po::value<char>(&d_type)->default_value('s'), "Options: h,s,d"
          "Precision of matrix D, only applicable to BLAS_EX")
-        
-        ("compute_type", 
+
+        ("compute_type",
          po::value<char>(&compute_type)->default_value('s'), "Options: h,s,d"
          "Precision of computation, only applicable to BLAS_EX")
-        
+
         ("transposeA",
          po::value<char>(&argus.transA_option)->default_value('N'),
          "N = no transpose, T = transpose, C = conjugate transpose")
-        
+
         ("transposeB",
          po::value<char>(&argus.transB_option)->default_value('N'),
          "N = no transpose, T = transpose, C = conjugate transpose")
-        
+
         ("side",
          po::value<char>(&argus.side_option)->default_value('L'),
          "L = left, R = right. Only applicable to certain routines")
-        
+
         ("uplo",
          po::value<char>(&argus.uplo_option)->default_value('U'),
          "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
@@ -191,7 +181,7 @@ int main(int argc, char* argv[])
         ("iters,i",
          po::value<rocblas_int>(&argus.iters)->default_value(10),
          "Iterations to run inside timing loop")
-        
+
         ("device",
          po::value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs");
@@ -263,10 +253,6 @@ int main(int argc, char* argv[])
     {
         printf("Invalide matrix dimension\n");
     }
-
-    argus.start = range[0];
-    argus.step  = range[1];
-    argus.end   = range[2];
 
     if(function == "asum")
     {
