@@ -98,7 +98,15 @@ typedef enum rocblas_datatype_ {
     rocblas_datatype_f64_r = 152,
     rocblas_datatype_f16_c = 153,
     rocblas_datatype_f32_c = 154,
-    rocblas_datatype_f64_c = 155
+    rocblas_datatype_f64_c = 155,
+    rocblas_datatype_i8_r  = 160,
+    rocblas_datatype_u8_r  = 161,
+    rocblas_datatype_i32_r = 162,
+    rocblas_datatype_u32_r = 163,
+    rocblas_datatype_i8_c  = 164,
+    rocblas_datatype_u8_c  = 165,
+    rocblas_datatype_i32_c = 166,
+    rocblas_datatype_u32_c = 167,
 } rocblas_datatype;
 
 /*! \brief Indicates the pointer is device pointer or host pointer */

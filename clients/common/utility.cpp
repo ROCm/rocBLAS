@@ -170,6 +170,7 @@ char rocblas_datatype2char(rocblas_datatype value)
     case rocblas_datatype_f16_c: return 'k';
     case rocblas_datatype_f32_c: return 'c';
     case rocblas_datatype_f64_c: return 'z';
+    default: return 'e'; // todo, handle integer types
     }
     return '\0';
 }
