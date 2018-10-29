@@ -128,7 +128,7 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-rocm_setup_version( VERSION 0.15.3.1 NO_GIT_TAG_VERSION )
+rocm_setup_version( VERSION 0.15.3.2 NO_GIT_TAG_VERSION )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
