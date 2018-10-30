@@ -1,5 +1,5 @@
 #!/usr/bin/python
-"""Expand GEMM YAML test data file into binary Arguments records"""
+"""Expand rocBLAS YAML test data file into binary Arguments records"""
 
 import re
 import sys
@@ -16,17 +16,16 @@ INCLUDE_RE = re.compile("(?i)include")
 
 datatypes = {}
 param = {}
+testcases = set()
 
 
 def main():
-    global datatypes, param
-
     # Parse YAML file
     (infile, param['outfile'], param['filter']) = parse_args()
     doc = get_doc(infile)
 
     # Return dictionary of all known datatypes
-    datatypes = get_datatypes(doc)
+    datatypes.update(get_datatypes(doc))
 
     # Arguments structure corresponding to C/C++ structure
     param['Arguments'] = type('Arguments', (ctypes.Structure,),
@@ -53,7 +52,7 @@ def parse_args():
 
     import argparse
     parser = argparse.ArgumentParser(description="""
-Expand GEMM YAML test data file into binary Arguments records
+Expand rocBLAS YAML test data file into binary Arguments records
 """)
     parser.add_argument('infile',
                         nargs='?',
@@ -164,22 +163,8 @@ def setdefaults(test):
     test.setdefault('stride_d', test['ldd'] * test['N'])
 
 
-def instantiate(test):
-    """Instantiate a given test case"""
-
-    # Filter based on test_class
-    if param['filter'] and test.get("category") not in param['filter']:
-        return
-
-    test = test.copy()
-    setdefaults(test)
-
-    arguments = param['Arguments']._fields_
-
-    # For type arguments, replace type name with type
-    for typename in [decl[0] for decl in arguments
-                     if decl[1] == datatypes.get('rocblas_datatype')]:
-        test[typename] = datatypes[test[typename]]
+def write_test(test):
+    """Write the test case out to the binary file if not seen already"""
 
     # For each argument declared in arguments, we generate a positional
     # argument in the Arguments constructor. For strings, we pass the
@@ -192,11 +177,32 @@ def instantiate(test):
         else ctype(*test[name])                        # Arrays
         if issubclass(ctype, ctypes.Array)
         else ctype(test[name])                         # Scalars
-        for (name, ctype) in arguments
+        for (name, ctype) in param['Arguments']._fields_
     ))
 
-    # Write the Arguments struct out to the binary file
-    param['outfile'].write(bytearray(arg))
+    byt = bytearray(arg)
+    sig = tuple(byt)
+    if sig not in testcases:
+        testcases.add(sig)
+        param['outfile'].write(byt)
+
+
+def instantiate(test):
+    """Instantiate a given test case"""
+
+    # Filter based on test_class
+    if param['filter'] and test.get("category") not in param['filter']:
+        return
+
+    test = test.copy()
+    setdefaults(test)
+
+    # For type arguments, replace type name with type
+    for typename in [decl[0] for decl in param['Arguments']._fields_
+                     if decl[1] == datatypes.get('rocblas_datatype')]:
+        test[typename] = datatypes[test[typename]]
+
+    write_test(test)
 
 
 def generate(test, function):
