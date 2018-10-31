@@ -206,6 +206,13 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
 
         std::string trans_a_letter = rocblas_transpose_letter(trans_a);
         std::string trans_b_letter = rocblas_transpose_letter(trans_b);
+
+        std::string a_type_letter       = rocblas_datatype_letter(a_type);
+        std::string b_type_letter       = rocblas_datatype_letter(b_type);
+        std::string c_type_letter       = rocblas_datatype_letter(c_type);
+        std::string d_type_letter       = rocblas_datatype_letter(d_type);
+        std::string compute_type_letter = rocblas_datatype_letter(compute_type);
+
         log_bench(handle,
                   "./rocblas-bench -f gemm_ex",
                   "--transposeA",
@@ -221,25 +228,25 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                   "--alpha",
                   alpha_double,
                   "--a_type",
-                  a_type,
+                  a_type_letter,
                   "--lda",
                   lda,
                   "--b_type",
-                  b_type,
+                  b_type_letter,
                   "--ldb",
                   ldb,
                   "--beta",
                   beta_double,
                   "--c_type",
-                  c_type,
+                  c_type_letter,
                   "--ldc",
                   ldc,
                   "--d_type",
-                  d_type,
+                  d_type_letter,
                   "--ldd",
                   ldd,
                   "--compute_type",
-                  compute_type,
+                  compute_type_letter,
                   "--algo",
                   algo,
                   "--solution_index",
@@ -651,6 +658,13 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
 
         std::string trans_a_letter = rocblas_transpose_letter(trans_a);
         std::string trans_b_letter = rocblas_transpose_letter(trans_b);
+
+        std::string a_type_letter       = rocblas_datatype_letter(a_type);
+        std::string b_type_letter       = rocblas_datatype_letter(b_type);
+        std::string c_type_letter       = rocblas_datatype_letter(c_type);
+        std::string d_type_letter       = rocblas_datatype_letter(d_type);
+        std::string compute_type_letter = rocblas_datatype_letter(compute_type);
+
         log_bench(handle,
                   "./rocblas-bench -f gemm_strided_batched_ex",
                   "--transposeA",
@@ -666,13 +680,13 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                   "--alpha",
                   alpha_double,
                   "--a_type",
-                  a_type,
+                  a_type_letter,
                   "--lda",
                   lda,
                   "--stride_a",
                   stride_a,
                   "--b_type",
-                  b_type,
+                  b_type_letter,
                   "--ldb",
                   ldb,
                   "--stride_b",
@@ -680,21 +694,21 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                   "--beta",
                   beta_double,
                   "--c_type",
-                  c_type,
+                  c_type_letter,
                   "--ldc",
                   ldc,
                   "--stride_c",
                   stride_c,
                   "--d_type",
-                  d_type,
+                  d_type_letter,
                   "--ldd",
                   ldd,
                   "--stride_d",
                   stride_d,
-                  "--batch_count",
+                  "--batch",
                   batch_count,
                   "--compute_type",
-                  compute_type,
+                  compute_type_letter,
                   "--algo",
                   algo,
                   "--solution_index",

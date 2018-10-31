@@ -2289,7 +2289,6 @@ Tests:
   category: nightly
   function: testing_gemm
   arguments: *conv_resnet50_bwdwrw
-  known_bug: half
 
 - name: conv_resnet50_bwddata
   category: nightly
@@ -2320,7 +2319,6 @@ Tests:
   category: nightly
   function: testing_gemm
   arguments: *conv_ctest_bwdwrw
-  known_bug: half
 
 - name: conv_ctest_fwd
   category: nightly

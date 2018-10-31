@@ -46,6 +46,10 @@ Arguments:
   - unit_check: rocblas_int
   - timing: rocblas_int
   - iters: rocblas_int
+  - algo: c_uint
+  - solution_index: c_uint
+  - flags: c_uint
+  - workspace_size: c_size_t
   - function: c_char*32
   - name: c_char*32
   - category: c_char*32
@@ -65,7 +69,7 @@ Dictionary lists to expand:
 # it needs to be listed here to avoid being expanded into multiple test
 # cases with each of its elements.
 Lists to not expand:
-  - eg, argument not to be expanded
+  - e.g., an array argument not to be expanded
 
 
 # Defaults
@@ -87,3 +91,7 @@ Defaults:
   unit_check: 1
   iters: 10
   timing: 0
+  algo: 0
+  solution_index: 0
+  flags: 0
+  workspace_size: 0

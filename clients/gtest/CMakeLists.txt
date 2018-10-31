@@ -44,6 +44,7 @@ endif( )
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
+    ${Tensile_TEST_SRC}
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
     set_get_vector_gtest.cpp
@@ -53,7 +54,6 @@ set(rocblas_test_source
     ger_gtest.cpp
     syr_gtest.cpp
     geam_gtest.cpp
-    ${Tensile_TEST_SRC}
     )
 
 

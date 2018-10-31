@@ -466,6 +466,8 @@ char rocblas2char_diagonal(rocblas_diagonal value);
 
 char rocblas2char_side(rocblas_side value);
 
+char rocblas_datatype2char(rocblas_datatype value);
+
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
@@ -530,6 +532,11 @@ struct Arguments
     rocblas_int timing     = 0;
     rocblas_int iters = 10;
 
+    uint32_t algo           = 0;
+    uint32_t solution_index = 0;
+    uint32_t flags          = 0;
+    size_t workspace_size   = 0;
+
     char function[32] = "";
     char namex[32] = "";
     char category[32] = "";
@@ -569,8 +576,7 @@ struct RocBLAS_Data
         get(file);
     }
 
-    // begin() iterator which accepts an optional filter and file name.
-    // Only the first call needs to specify file.
+    // begin() iterator which accepts an optional filter.
     static iterator begin(std::function<bool (const Arguments&)>
                           filter = [](const Arguments&){return true;})
     {

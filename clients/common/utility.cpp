@@ -164,6 +164,22 @@ char rocblas2char_side(rocblas_side value)
     return '\0';
 }
 
+char rocblas_datatype2char(rocblas_datatype value)
+{
+    switch(value)
+    {
+    case rocblas_datatype_f16_r: return 'h';
+    case rocblas_datatype_f32_r: return 's';
+    case rocblas_datatype_f64_r: return 'd';
+    case rocblas_datatype_f16_c: return 'k';
+    case rocblas_datatype_f32_c: return 'c';
+    case rocblas_datatype_f64_c: return 'z';
+    default:
+        return 'e'; // todo, handle integer types
+    }
+    return '\0';
+}
+
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
@@ -227,6 +243,10 @@ rocblas_datatype char2rocblas_datatype(char value)
     case 'S': return rocblas_datatype_f32_r;
     case 'd': return rocblas_datatype_f64_r;
     case 'D': return rocblas_datatype_f64_r;
+    case 'c': return rocblas_datatype_f32_c;
+    case 'C': return rocblas_datatype_f32_c;
+    case 'z': return rocblas_datatype_f64_c;
+    case 'Z': return rocblas_datatype_f64_c;
     default:  return static_cast<rocblas_datatype>(-1);
     }
 }

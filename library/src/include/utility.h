@@ -54,6 +54,7 @@ std::string rocblas_transpose_letter(rocblas_operation trans);
 std::string rocblas_side_letter(rocblas_side side);
 std::string rocblas_fill_letter(rocblas_fill fill);
 std::string rocblas_diag_letter(rocblas_diagonal diag);
+std::string rocblas_datatype_letter(rocblas_datatype type);
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>

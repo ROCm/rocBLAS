@@ -494,6 +494,35 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     rocblas_init<Td>(hC, M, N, ldc);
     rocblas_init<Td>(hD_1, M, N, ldd);
 
+    if(is_same<Td, rocblas_half>::value && is_same<Tc, float>::value)
+    {
+        // half precision IEEE has max and lowest values 65504 and -65504,
+        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // the following will overflow to inf in half arithmetic,
+        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
+        //
+        // set matrix A and matrix B upper left block to values below to cause
+        // inf overflow with 16 bit arithmetic, but no overflow for 32 bit arithmetic
+        //
+        // 65500 65500             2   -2
+        // 65500 65500            -2    2
+        //
+        rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
+        rocblas_half positive_two       = float_to_half(2.0);
+        rocblas_half negative_two       = float_to_half(-2.0);
+        if(M >= 2 && N >= 2 && K >= 2)
+        {
+            hA[0]       = ieee_half_near_max;
+            hA[1]       = ieee_half_near_max;
+            hA[lda]     = ieee_half_near_max;
+            hA[lda + 1] = ieee_half_near_max;
+            hB[0]       = positive_two;
+            hB[1]       = negative_two;
+            hB[ldb]     = negative_two;
+            hB[ldb + 1] = positive_two;
+        }
+    }
+
     //  if(is_same<Td, rocblas_half>::value)
     //  {
     //      std::cout << "----A-----------------" << std::endl;
@@ -690,20 +719,20 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                             M,
                             N,
                             K,
-                            d_alpha_Tc,
+                            &h_alpha_Tc,
                             dA,
                             a_type,
                             lda,
                             dB,
                             b_type,
                             ldb,
-                            d_beta_Tc,
+                            &h_beta_Tc,
                             dC,
                             c_type,
                             ldc,
-                            dD,
-                            d_type,
-                            ldd,
+                            dC,
+                            c_type,
+                            ldc,
                             compute_type,
                             algo,
                             solution_index,
@@ -721,20 +750,20 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                             M,
                             N,
                             K,
-                            d_alpha_Tc,
+                            &h_alpha_Tc,
                             dA,
                             a_type,
                             lda,
                             dB,
                             b_type,
                             ldb,
-                            d_beta_Tc,
+                            &h_beta_Tc,
                             dC,
                             c_type,
                             ldc,
-                            dD,
-                            d_type,
-                            ldd,
+                            dC,
+                            c_type,
+                            ldc,
                             compute_type,
                             algo,
                             solution_index,
@@ -752,9 +781,12 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
         cout << endl;
 
-        cout << transA << "," << transB << "," << M << "," << N << "," << K << "," << h_alpha_Td
-             << "," << lda << "," << ldb << "," << h_beta_Td << "," << ldc << "," << rocblas_gflops
-             << "," << gpu_time_used / number_hot_calls;
+        cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << "," << M
+             << "," << N << "," << K << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_alpha_Td) : h_alpha_Td) << ","
+             << lda << "," << ldb << ","
+             << (is_same<Td, rocblas_half>::value ? half_to_float(h_beta_Td) : h_beta_Td) << ","
+             << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(unit_check || norm_check)
         {

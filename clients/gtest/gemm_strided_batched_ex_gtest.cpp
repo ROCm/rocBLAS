@@ -45,6 +45,8 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 const vector<vector<int>> known_bug_small_matrix_size_range= {
     {  8,   9,  10,     8,  10,   8,    8,       80,    90,     82,    82 },   // NT gives error
     {  4,   3,   4,     4,   4,   4,    4,       16,    12,     12,    12 },   // NT, TC gives error
+    {  3,   3,   3,   3,   3,   3,   3,     0,      9,      9,      9}, // CI error after re-trained gfx900/gfx906
+    {  3,   3,   3,   3,   3,   3,   3,     9,      0,      9,      9}, // CI error after re-trained gfx900/gfx906
 };
 
 const vector<vector<int>> small_matrix_size_range = {
@@ -71,8 +73,6 @@ const vector<vector<int>> small_matrix_size_range = {
 
 const vector<vector<int>> small_matrix_size_stride_a_range = {
     {  3,   3,   3,   3,   3,   3,   3,     9,      9,      9,      9},
-    {  3,   3,   3,   3,   3,   3,   3,     0,      9,      9,      9},
-    {  3,   3,   3,   3,   3,   3,   3,     9,      0,      9,      9},
     { 15,  15,  15,  15,  15,  15,  15,   225,      0,    225,    225},
     { 16,  16,  16,  16,  16,  16,  16,     0,    256,    256,    256},
     { 17,  17,  17,  17,  17,  17,  17,   289,      0,    289,    289},
@@ -186,7 +186,7 @@ rocblas_datatype_f64_r}};
 // clang-format on
 
 // clang-format off
-// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c};
+// vector of vector, each vector is a {M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c},{alpha,beta},{transA,transB},batch_count,precision;
 //gemm_strided_batched_ex_tuple db_sb_1 {{12544,  64,  64,12544,  64,12544,802816, 0, 802816},{1, 0},{'N','N'},16,precision_half};
 //gemm_strided_batched_ex_tuple db_sb_2 {{12544,  64,  64,12544,  64,12544,802816, 0, 802816},{1, 0},{'N','N'}, 8,precision_half};
 //gemm_strided_batched_ex_tuple db_sb_3 {{ 3136, 256,  64, 3136,  64, 3136,200704, 0, 802816},{1, 0},{'N','N'},16,precision_half};
@@ -363,6 +363,14 @@ INSTANTIATE_TEST_CASE_P(quick_blas3_small_stride_zero,
 INSTANTIATE_TEST_CASE_P(quick_blas3_small_no_stride_zero,
                         gemm_strided_batched_ex,
                         Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(full_alpha_beta_range),
+                                ValuesIn(full_transA_transB_range),
+                                ValuesIn(batch_count_n1_0_1_3),
+                                ValuesIn(precision_type_range)));
+
+INSTANTIATE_TEST_CASE_P(known_bug_blas3_small,
+                        gemm_strided_batched_ex,
+                        Combine(ValuesIn(known_bug_small_matrix_size_range),
                                 ValuesIn(full_alpha_beta_range),
                                 ValuesIn(full_transA_transB_range),
                                 ValuesIn(batch_count_n1_0_1_3),
