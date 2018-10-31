@@ -257,7 +257,7 @@ void testing_logging()
             double alpha_double     = static_cast<double>(alpha_float);
             double beta_double      = static_cast<double>(beta_float);
             rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
-            uint32_t solution_index = 0;
+            int32_t solution_index  = 0;
             uint32_t flags          = 0;
             size_t* workspace_size  = 0;
             void* workspace         = 0;
@@ -685,11 +685,11 @@ void testing_logging()
                 compute_type = rocblas_datatype_f64_r;
             }
 
-            rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
-            uint32_t solution_index = 0;
-            uint32_t flags          = 0;
-            size_t* workspace_size  = 0;
-            void* workspace         = 0;
+            rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+            int32_t solution_index = 0;
+            uint32_t flags         = 0;
+            size_t* workspace_size = 0;
+            void* workspace        = 0;
 
             trace_ofs2 << "rocblas_gemm_ex"
                        << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
