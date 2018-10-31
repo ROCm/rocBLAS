@@ -528,10 +528,10 @@ class Arguments
 
     rocblas_int iters = 10;
 
-    uint32_t algo           = 0;
-    uint32_t solution_index = 0;
-    uint32_t flags          = 0;
-    size_t workspace_size   = 0;
+    uint32_t algo          = 0;
+    int32_t solution_index = 0;
+    uint32_t flags         = 0;
+    size_t workspace_size  = 0;
 
     Arguments& operator=(const Arguments& rhs)
     {
