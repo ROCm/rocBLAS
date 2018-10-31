@@ -1,4 +1,4 @@
 ---
 Include 1: !include rocblas.yaml
-Include 2: !include gemm.yaml
+Include 2: !include dgemm_perf.yaml
 ...

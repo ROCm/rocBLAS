@@ -86,7 +86,10 @@ TEST_P(gemm, gemm)
 }
 
 // The tests are instantiated by filtering through the RocBLAS_Data stream
-INSTANTIATE_TEST_CASE_P(prefix, gemm, \
- ::testing::ValuesIn(RocBLAS_Data::begin(gemm::filter()), RocBLAS_Data::end()));
+INSTANTIATE_TEST_CASE_P(prefix,                                       \
+                        gemm,                                         \
+                        ::testing::ValuesIn(                          \
+                            RocBLAS_TestData::begin(gemm::filter()),  \
+                            RocBLAS_TestData::end()));
 
 } // namespace

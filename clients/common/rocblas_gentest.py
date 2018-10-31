@@ -21,7 +21,7 @@ testcases = set()
 
 def main():
     # Parse YAML file
-    (infile, param['outfile'], param['filter']) = parse_args()
+    (infile, param['outfile'], param['filter'], param['includes']) = parse_args()
     doc = get_doc(infile)
 
     # Return dictionary of all known datatypes
@@ -62,13 +62,17 @@ Expand rocBLAS YAML test data file into binary Arguments records
                         dest='outfile',
                         type=argparse.FileType('wb'),
                         default=sys.stdout)
+    parser.add_argument('-I',
+                        help="Add include path",
+                        action='append',
+                        dest='includes')
     parser.add_argument('-f', '--filter',
                         dest='filter',
                         metavar="FILTER[,FILTER...]",
                         help="Filter tests based on nightly, pre_checkin, etc.",
                         type=lambda s: s.split(','))
     parsed = parser.parse_args()
-    return (parsed.infile, parsed.outfile, parsed.filter)
+    return (parsed.infile, parsed.outfile, parsed.filter, parsed.includes)
 
 
 def get_doc(infile):
@@ -87,7 +91,13 @@ def get_doc(infile):
             super(Loader, self).__init__(stream)
 
         def include(self, node):
-            filename = os.path.join(self._root, self.construct_scalar(node))
+            name = self.construct_scalar(node)
+            filename = os.path.join(self._root, name)
+            if not os.path.isfile(filename):
+                for path in param['includes']:
+                    filename = os.path.join(path, name)
+                    if os.path.isfile(filename):
+                        break
             with open(filename, 'r') as f:
                 return yaml.load(f, Loader)
 
