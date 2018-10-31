@@ -544,32 +544,46 @@ struct Arguments
     // Function to print Structures data out to stream (for debugging)
     friend ostream& operator<<(ostream& o, const Arguments &arg)
     {
-        o << "transA = " << arg.transA_option << "  transB = " << arg.transB_option
-          << "\nM = " << arg.M << "  N = " << arg.N << "  K = " << arg.K <<
-            "\nlda = " << arg.lda << "  ldb = " << arg.ldb << "  ldc = " << arg.ldc <<
-            "\nalpha = " << arg.alpha << "  beta = " << arg.beta << "\n";
-        return o;
+        return
+            o << "{ 'transA': '" << arg.transA_option << "', 'transB': '" <<
+            arg.transB_option << "', 'M': '" << arg.M << "', 'N': '" <<
+            arg.N << "', 'K': '" << arg.K << "', 'lda': '" << arg.lda <<
+            "', 'ldb': '" << arg.ldb << "', 'ldc': '" << arg.ldc <<
+            "', 'alpha': " << arg.alpha << ", 'beta': " << arg.beta << " }\n";
     }
 };
 
+enum rocblas_data_class { rocblas_test_data, rocblas_perf_data };
+
 // Class used to read Arguments data into the tests
+template<rocblas_data_class>
 struct RocBLAS_Data
 {
     // filter iterator
-    typedef boost::filter_iterator<std::function<bool (const Arguments&)>, istream_iterator<Arguments>> iterator;
+    typedef boost::filter_iterator<std::function<bool (const Arguments&)>,
+        istream_iterator<Arguments>> iterator;
 
-    // begin() iterator which accepts an optional filter
+    // Initialize class
+    static void init(const string &file)
+    {
+        get(file);
+    }
+
+    // begin() iterator which accepts an optional filter and file name.
+    // Only the first call needs to specify file.
     static iterator begin(std::function<bool (const Arguments&)>
                           filter = [](const Arguments&){return true;})
     {
+        auto &ifs = get().ifs;
+
         // We re-seek the file back to position 0
-        get().ifs.clear();
-        get().ifs.seekg(0);
+        ifs.clear();
+        ifs.seekg(0);
 
         // We create a filter iterator which will choose only those test cases
         // we want right now. This is to preserve Gtest output structure while
         // not creating no-op tests which "always pass".
-        return iterator(filter, istream_iterator<Arguments>(get().ifs));
+        return iterator(filter, istream_iterator<Arguments>(ifs));
     }
 
     // end() iterator
@@ -581,13 +595,14 @@ struct RocBLAS_Data
   private:
     // We define this function to generate a single instance of the class on
     // first use so that we don't depend on the static initialization order.
-    static RocBLAS_Data& get() {
-        static RocBLAS_Data singleton("rocblas_gtest.data");
+    // Only the first call needs to specify file.
+    static RocBLAS_Data& get(const string &file = "<unspecified file>") {
+        static RocBLAS_Data singleton(file);
         return singleton;
     }
 
     // Constructor which opens file
-    explicit RocBLAS_Data(const string& file)
+    explicit RocBLAS_Data(const string &file)
     {
         ifs.open(file, ifstream::binary);
         if (ifs.fail()) {
@@ -598,5 +613,8 @@ struct RocBLAS_Data
 
     ifstream ifs;
 };
+
+typedef RocBLAS_Data<rocblas_test_data> RocBLAS_TestData;
+typedef RocBLAS_Data<rocblas_perf_data> RocBLAS_PerfData;
 
 #endif

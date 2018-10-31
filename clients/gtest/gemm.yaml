@@ -1,6 +1,3 @@
----
-Include: !include common.yaml
-
 # Definitions is a placeholder for defining YAML anchors to alias later.
 Definitions:
   - &small_matrix_size_range

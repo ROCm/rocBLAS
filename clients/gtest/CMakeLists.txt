@@ -109,15 +109,15 @@ else( )
   target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 
-set( ROCBLAS_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
-add_custom_command( OUTPUT "${ROCBLAS_DATA}"
-                    COMMAND ./rocblas_gentest.py gtest.yaml -o "${ROCBLAS_DATA}"
-                    DEPENDS rocblas_gentest.py gtest.yaml common.yaml gemm.yaml
+set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
+add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
+                    COMMAND ../common/rocblas_gentest.py -I ../include gtest.yaml -o "${ROCBLAS_TEST_DATA}"
+                    DEPENDS ../common/rocblas_gentest.py gtest.yaml ../include/rocblas.yaml gemm.yaml
 		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
-add_custom_target( rocblas-data
-                   DEPENDS "${ROCBLAS_DATA}" )
-add_dependencies(  rocblas-test rocblas-data )
-add_dependencies(  rocblas-bench rocblas-data )
+add_custom_target( rocblas-test-data
+                   DEPENDS "${ROCBLAS_TEST_DATA}" )
+
+add_dependencies( rocblas-test rocblas-test-data )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
