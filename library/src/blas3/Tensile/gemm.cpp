@@ -331,7 +331,7 @@
             {                                                                                       \
                 if(strideA1 * sizeL > int_limit)                                                    \
                 {                                                                                   \
-                    std::cerr << "rocBLAS ERROR: lda*k exceeds address limit" << std::endl;         \
+                    std::cerr << "rocBLAS WARNING: lda*k exceeds address limit" << std::endl;       \
                 }                                                                                   \
             }                                                                                       \
             else                                                                                    \
@@ -352,7 +352,7 @@
             {                                                                                       \
                 if(strideB1 * sizeL > int_limit)                                                    \
                 {                                                                                   \
-                    std::cerr << "rocBLAS ERROR: ldb*k exceeds address limit" << std::endl;         \
+                    std::cerr << "rocBLAS WARNING: ldb*k exceeds address limit" << std::endl;       \
                 }                                                                                   \
             }                                                                                       \
             if(strideC1 * n_chunk_sizeJ > int_limit)                                                \

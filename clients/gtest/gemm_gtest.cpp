@@ -4,6 +4,7 @@
 
 #include <gtest/gtest.h>
 #include "testing_gemm.hpp"
+#include <unordered_map>
 
 using namespace std;
 
@@ -17,18 +18,40 @@ namespace {
 struct gemm : ::testing::TestWithParam<Arguments>
 {
     // Filter for which tests get into gemm right now
-    static function<bool(const Arguments&)> filter()
+    static std::function<bool(const Arguments&)> filter()
     {
         return [](const Arguments &arg)
         {
-            return (arg.a_type == rocblas_datatype_f64_r ||
-                    arg.a_type == rocblas_datatype_f32_r ||
-                    arg.a_type == rocblas_datatype_f16_r) &&
-                   (!strcmp(arg.function, "testing_gemm") ||
-                    !strcmp(arg.function, "testing_gemm_NaN") ||
-                    !strcmp(arg.function, "testing_gemm_bad_arg"));
+            return
+                !strcmp(arg.function, "testing_gemm") ||
+                !strcmp(arg.function, "testing_gemm_NaN") ||
+                !strcmp(arg.function, "testing_gemm_bad_arg");
         };
     }
+
+    struct PrintToStringParamName
+    {
+        template <class ParamType>
+        std::string operator()(const ParamType& info) const
+        {
+            auto arg = info.param;
+            static std::unordered_map<std::string, unsigned> hit;
+            char str[128];
+            int len = snprintf(str, sizeof(str),
+                               "%c_%c%c_%ld_%ld_%ld_%ld_%ld_%ld",
+                               rocblas_datatype2char(arg.a_type),
+                               arg.transA_option, arg.transB_option,
+                               labs(arg.M), labs(arg.N), labs(arg.K),
+                               labs(arg.lda), labs(arg.ldb), labs(arg.ldc));
+            if (len < sizeof(str)) {
+                auto p = hit.find(str);
+                snprintf(str+len, sizeof(str)-len, "_%u",
+                         p == hit.end() ? hit[str]=1 : ++p->second);
+            }
+            return str;
+        }
+    };
+
 };
 
 template<class ...T>
@@ -65,14 +88,12 @@ void testit(const Arguments &arg)
     }
 }
 
-// The testit function is instantiated with zero or more types
-// depending on the *_type Arguments.
-TEST_P(gemm, gemm)
+TEST_P(gemm,test)
 {
     const Arguments &arg = GetParam();
     switch (arg.a_type)
     {
-    default: return; // Skip unrecognized types
+    default: FAIL() << "Unknown data type"; break;
     case rocblas_datatype_f64_r: return testit<double>(arg);
     case rocblas_datatype_f32_r: return testit<float>(arg);
     case rocblas_datatype_f16_r: return testit<half>(arg);
@@ -86,10 +107,20 @@ TEST_P(gemm, gemm)
 }
 
 // The tests are instantiated by filtering through the RocBLAS_Data stream
-INSTANTIATE_TEST_CASE_P(prefix,                                       \
-                        gemm,                                         \
-                        ::testing::ValuesIn(                          \
-                            RocBLAS_TestData::begin(gemm::filter()),  \
-                            RocBLAS_TestData::end()));
+#define INSTANTIATE_CATEGORY(cat)                                        \
+    INSTANTIATE_TEST_CASE_P(cat,                                         \
+                            gemm,                                        \
+                            ::testing::ValuesIn(                         \
+                                RocBLAS_TestData::begin(                 \
+                                    [](const Arguments& arg) { return    \
+                                        !strcmp(arg.category, #cat)      \
+                                        && gemm::filter()(arg); }        \
+                                    ), RocBLAS_TestData::end()),         \
+                            gemm::PrintToStringParamName());
+
+INSTANTIATE_CATEGORY(quick)
+INSTANTIATE_CATEGORY(pre_checkin)
+INSTANTIATE_CATEGORY(nightly)
+INSTANTIATE_CATEGORY(known_bug)
 
 } // namespace

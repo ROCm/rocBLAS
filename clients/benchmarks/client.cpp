@@ -202,6 +202,7 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
+        rocblas_int min_ldd = argus.M;
 
         if (argus.lda < min_lda)
         {
@@ -217,6 +218,11 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
+        }
+        if (argus.ldd < min_ldd)
+        {
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            argus.ldd = min_ldd;
         }
         testing_gemm_ex(argus);
     }
@@ -283,6 +289,7 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
+        rocblas_int min_ldd = argus.M;
         if (argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
@@ -298,7 +305,11 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
-
+        if(argus.ldd < min_ldd)
+        {
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            argus.ldd = min_ldd;
+        }
         rocblas_int min_stride_c = argus.ldc * argus.N;
         if (argus.stride_c < min_stride_c)
         {
@@ -534,23 +545,23 @@ int main(int argc, char* argv[])
          value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
 
         ("a_type",
-         value<char>(&a_type)->default_value('s'), "Options: h,s,d"
+         value<char>(&a_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix A, only applicable to BLAS_EX")
 
         ("b_type",
-         value<char>(&b_type)->default_value('s'), "Options: h,s,d"
+         value<char>(&b_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix B, only applicable to BLAS_EX")
 
         ("c_type",
-         value<char>(&c_type)->default_value('s'), "Options: h,s,d"
+         value<char>(&c_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix C, only applicable to BLAS_EX")
 
         ("d_type",
-         value<char>(&d_type)->default_value('s'), "Options: h,s,d"
+         value<char>(&d_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of matrix D, only applicable to BLAS_EX")
 
         ("compute_type",
-         value<char>(&compute_type)->default_value('s'), "Options: h,s,d"
+         value<char>(&compute_type)->default_value('s'), "Options: h,s,d,c,z"
          "Precision of computation, only applicable to BLAS_EX")
 
         ("transposeA",
@@ -584,6 +595,22 @@ int main(int argc, char* argv[])
         ("iters,i",
          value<rocblas_int>(&argus.iters)->default_value(10),
          "Iterations to run inside timing loop")
+
+        ("algo",
+         value<uint32_t>(&argus.algo)->default_value(0),
+         "extended precision gemm algorithm")
+
+        ("solution_index",
+         value<uint32_t>(&argus.solution_index)->default_value(0),
+         "extended precision gemm solution index")
+
+        ("flags",
+         value<uint32_t>(&argus.flags)->default_value(10),
+         "extended precision gemm flags")
+
+        ("workspace_size",
+         value<size_t>(&argus.workspace_size)->default_value(10),
+         "extended precision gemm workspace size")
 
         ("data",
          value<string>(&datafile),

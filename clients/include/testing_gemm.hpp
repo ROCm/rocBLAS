@@ -469,7 +469,9 @@ rocblas_status testing_gemm(Arguments const& argus)
         cout << endl;
 
         cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
-             << K << "," << h_alpha << "," << lda << "," << ldb << "," << h_beta << "," << ldc
+             << K << "," << (is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
+             << "," << lda << "," << ldb << ","
+             << (is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << "," << ldc
              << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if (argus.unit_check || argus.norm_check)
