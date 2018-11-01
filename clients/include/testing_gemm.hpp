@@ -56,7 +56,7 @@ void testing_gemm_NaN(Arguments const& argus)
     const size_t size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
 
     // check here to prevent undefined memory allocation error
-    if (M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
+    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
     {
         // bad arguments are tested in other tests
         return;
@@ -77,7 +77,7 @@ void testing_gemm_NaN(Arguments const& argus)
     auto dA = static_cast<T*>(dA_managed.get());
     auto dB = static_cast<T*>(dB_managed.get());
     auto dC = static_cast<T*>(dC_managed.get());
-    if (!dA || !dB || !dC)
+    if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -118,7 +118,7 @@ void testing_gemm_NaN(Arguments const& argus)
         for(int j = 0; j < M; j++)
         {
             verify_not_nan(hC[j + i * ldc]);
-            if (hC[j + i * ldc] != hC[j + i * ldc])
+            if(hC[j + i * ldc] != hC[j + i * ldc])
                 goto finish_nested_loops;
         }
     }
@@ -161,7 +161,7 @@ void testing_gemm_bad_arg()
     auto dA = static_cast<T*>(dA_managed.get());
     auto dB = static_cast<T*>(dB_managed.get());
     auto dC = static_cast<T*>(dC_managed.get());
-    if (!dA || !dB || !dC)
+    if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -235,7 +235,7 @@ rocblas_status testing_gemm(Arguments const& argus)
 
     T h_alpha;
     T h_beta;
-    if (is_same<T, rocblas_half>::value)
+    if(is_same<T, rocblas_half>::value)
     {
         float alpha_float = argus.alpha;
         float beta_float  = argus.beta;
@@ -267,7 +267,7 @@ rocblas_status testing_gemm(Arguments const& argus)
     rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
     // check here to prevent undefined memory allocation error
-    if (M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
+    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
@@ -278,7 +278,7 @@ rocblas_status testing_gemm(Arguments const& argus)
         auto dA = static_cast<T*>(dA_managed.get());
         auto dB = static_cast<T*>(dB_managed.get());
         auto dC = static_cast<T*>(dC_managed.get());
-        if (!dA || !dB || !dC)
+        if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
             return rocblas_status_memory_error;
@@ -312,7 +312,7 @@ rocblas_status testing_gemm(Arguments const& argus)
     auto dC      = static_cast<T*>(dC_managed.get());
     auto d_alpha = static_cast<T*>(d_alpha_managed.get());
     auto d_beta  = static_cast<T*>(d_beta_managed.get());
-    if (!dA || !dB || !dC || !d_alpha || !d_beta)
+    if(!dA || !dB || !dC || !d_alpha || !d_beta)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
@@ -350,7 +350,7 @@ rocblas_status testing_gemm(Arguments const& argus)
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
 
-    if (argus.unit_check || argus.norm_check)
+    if(argus.unit_check || argus.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -388,7 +388,8 @@ rocblas_status testing_gemm(Arguments const& argus)
         CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        if (argus.timing) {
+        if(argus.timing)
+        {
             cpu_time_used = get_time_us();
         }
 
@@ -406,7 +407,8 @@ rocblas_status testing_gemm(Arguments const& argus)
                       hC_gold.data(),
                       ldc);
 
-        if (argus.timing) {
+        if(argus.timing)
+        {
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
@@ -420,7 +422,7 @@ rocblas_status testing_gemm(Arguments const& argus)
 
         // enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
-        if (argus.unit_check)
+        if(argus.unit_check)
         {
             unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_1.data());
             unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_2.data());
@@ -429,7 +431,7 @@ rocblas_status testing_gemm(Arguments const& argus)
         // if enable norm check, norm check is invasive
         // any typeinfo(T) will not work here, because template deduction is matched
         // in compilation time
-        if (argus.norm_check)
+        if(argus.norm_check)
         {
             double error_hst_ptr =
                 fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data()));
@@ -439,7 +441,7 @@ rocblas_status testing_gemm(Arguments const& argus)
         }
     }
 
-    if (argus.timing)
+    if(argus.timing)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = argus.iters;
@@ -463,7 +465,7 @@ rocblas_status testing_gemm(Arguments const& argus)
 
         cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
-        if (argus.unit_check || argus.norm_check)
+        if(argus.unit_check || argus.norm_check)
             cout << ",CPU-Gflops,us,norm-error";
 
         cout << endl;
@@ -474,7 +476,7 @@ rocblas_status testing_gemm(Arguments const& argus)
              << (is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << "," << ldc
              << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
-        if (argus.unit_check || argus.norm_check)
+        if(argus.unit_check || argus.norm_check)
         {
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
         }

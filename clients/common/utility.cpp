@@ -75,7 +75,8 @@ rocblas_int query_device_property()
     {
         puts("-------------------------------------------------------------------------------");
 
-        if (i >= device_count) {
+        if(i >= device_count)
+        {
             break;
         }
 
@@ -87,9 +88,7 @@ rocblas_int query_device_property()
         }
         else
         {
-            printf("Device ID %d : %s\n",
-                   i,
-                   props.name);
+            printf("Device ID %d : %s\n", i, props.name);
             printf("with %3.1f GB memory, clock rate %dMHz @ computing capability %d.%d \n",
                    props.totalGlobalMem / 1e9,
                    (int)(props.clockRate / 1000),
@@ -193,7 +192,7 @@ rocblas_operation char2rocblas_operation(char value)
     case 'n': return rocblas_operation_none;
     case 't': return rocblas_operation_transpose;
     case 'c': return rocblas_operation_conjugate_transpose;
-    default:  return static_cast<rocblas_operation>(-1);
+    default: return static_cast<rocblas_operation>(-1);
     }
 }
 
@@ -205,7 +204,7 @@ rocblas_fill char2rocblas_fill(char value)
     case 'L': return rocblas_fill_lower;
     case 'u': return rocblas_fill_upper;
     case 'l': return rocblas_fill_lower;
-    default:  return static_cast<rocblas_fill>(-1);
+    default: return static_cast<rocblas_fill>(-1);
     }
 }
 
@@ -217,7 +216,7 @@ rocblas_diagonal char2rocblas_diagonal(char value)
     case 'N': return rocblas_diagonal_non_unit;
     case 'u': return rocblas_diagonal_unit;
     case 'n': return rocblas_diagonal_non_unit;
-    default:  return static_cast<rocblas_diagonal>(-1);
+    default: return static_cast<rocblas_diagonal>(-1);
     }
 }
 
@@ -229,7 +228,7 @@ rocblas_side char2rocblas_side(char value)
     case 'R': return rocblas_side_right;
     case 'l': return rocblas_side_left;
     case 'r': return rocblas_side_right;
-    default:  return static_cast<rocblas_side>(-1);
+    default: return static_cast<rocblas_side>(-1);
     }
 }
 
@@ -247,7 +246,7 @@ rocblas_datatype char2rocblas_datatype(char value)
     case 'C': return rocblas_datatype_f32_c;
     case 'z': return rocblas_datatype_f64_c;
     case 'Z': return rocblas_datatype_f64_c;
-    default:  return static_cast<rocblas_datatype>(-1);
+    default: return static_cast<rocblas_datatype>(-1);
     }
 }
 
