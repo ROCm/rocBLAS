@@ -210,19 +210,28 @@ def instantiate(test):
     test = test.copy()
     setdefaults(test)
 
+    # Any Arguments fields declared as rocblas_datatype denote types
+    type_args = [decl[0] for decl in param['Arguments']._fields_
+                 if decl[1] == datatypes.get('rocblas_datatype')]
+
     # For type arguments, replace type name with type
-    for typename in [decl[0] for decl in param['Arguments']._fields_
-                     if decl[1] == datatypes.get('rocblas_datatype')]:
+    for typename in type_args:
         test[typename] = datatypes[test[typename]]
 
     # Match known bugs
-    for bug in param['known_bugs']:
-        for key in bug:
-            if test.get(key) != bug[key]:
-                break
-        else:
-            test['category'] = 'known_bug'
-            break
+    if test.get('category') != 'known_bug':
+        for bug in param['known_bugs']:
+            if bug:
+                for key in bug:
+                    value = bug[key]
+                    # For keys declared as datatypes, compare resulting types
+                    if key in type_args:
+                        value = datatypes[value]
+                    if test.get(key) != value:
+                        break
+                else:  # All values specified in known bug match test case
+                    test['category'] = 'known_bug'
+                    break
 
     write_test(test)
 
