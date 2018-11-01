@@ -442,7 +442,7 @@ static int rocblas_bench_datafile(const string& datafile)
         case rocblas_datatype_f16_r: precision = 'h'; break;
         case rocblas_datatype_f64_c: precision = 'z'; break;
         case rocblas_datatype_f32_c: precision = 'c'; break;
-        case rocblas_datatype_f16_c: precision = 'h'; break;
+        case rocblas_datatype_f16_c: precision = 'k'; break;
         default: precision                     = 's'; break;
         }
         run_bench_test(argus.function, precision, argus);
