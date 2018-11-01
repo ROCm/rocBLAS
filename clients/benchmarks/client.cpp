@@ -200,7 +200,7 @@ int main(int argc, char* argv[])
          "extended precision gemm algorithm")
         
         ("solution_index",
-         po::value<uint32_t>(&argus.solution_index)->default_value(0),
+         po::value<int32_t>(&argus.solution_index)->default_value(0),
          "extended precision gemm solution index")
         
         ("flags",

@@ -99,7 +99,7 @@
               enumerant specifying the algorithm type.
     @param[in]
     solution_index
-              uint32_t
+              int32_t
               reserved for future use
     @param[in]
     flags     uint32_t
@@ -136,7 +136,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_int ldd,
                                           rocblas_datatype compute_type,
                                           rocblas_gemm_algo algo,
-                                          uint32_t solution_index,
+                                          int32_t solution_index,
                                           uint32_t flags,
                                           size_t* workspace_size,
                                           void* workspace)
@@ -575,7 +575,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
               enumerant specifying the algorithm type.
     @param[in]
     solution_index
-              uint32_t
+              int32_t
               reserved for future use
     @param[in]
     flags     uint32_t
@@ -617,7 +617,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                           rocblas_int batch_count,
                                                           rocblas_datatype compute_type,
                                                           rocblas_gemm_algo algo,
-                                                          uint32_t solution_index,
+                                                          int32_t solution_index,
                                                           uint32_t flags,
                                                           size_t* workspace_size,
                                                           void* workspace)
