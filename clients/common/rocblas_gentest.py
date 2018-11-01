@@ -219,7 +219,7 @@ def instantiate(test):
         test[typename] = datatypes[test[typename]]
 
     # Match known bugs
-    if test.get('category') != 'known_bug':
+    if test.get('category') not in ('known_bug', 'disabled'):
         for bug in param['known_bugs']:
             if bug:
                 for key in bug:
