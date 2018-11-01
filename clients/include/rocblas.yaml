@@ -47,7 +47,7 @@ Arguments:
   - timing: rocblas_int
   - iters: rocblas_int
   - algo: c_uint
-  - solution_index: c_uint
+  - solution_index: c_int
   - flags: c_uint
   - workspace_size: c_size_t
   - function: c_char*32
