@@ -37,166 +37,167 @@
 #include "testing_gemm_strided_batched_ex.hpp"
 #endif
 
-static int run_bench_test(const char *function, char precision, Arguments argus)
+static int run_bench_test(const char* function, char precision, Arguments argus)
 {
     static const char prefix[] = "testing_";
-    if (!strncmp(function, prefix, sizeof(prefix)-1)) {
-        function += sizeof(prefix)-1;
+    if(!strncmp(function, prefix, sizeof(prefix) - 1))
+    {
+        function += sizeof(prefix) - 1;
     }
 
-    if (!strcmp(function,"asum"))
+    if(!strcmp(function, "asum"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_asum<float, float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_asum<double, double>(argus);
     }
-    else if (!strcmp(function,"axpy"))
+    else if(!strcmp(function, "axpy"))
     {
-        if (precision == 'h')
+        if(precision == 'h')
             testing_axpy<rocblas_half>(argus);
-        else if (precision == 's')
+        else if(precision == 's')
             testing_axpy<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_axpy<double>(argus);
     }
-    else if (!strcmp(function,"copy"))
+    else if(!strcmp(function, "copy"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_copy<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_copy<double>(argus);
     }
-    else if (!strcmp(function,"dot"))
+    else if(!strcmp(function, "dot"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_dot<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_dot<double>(argus);
     }
-    else if (!strcmp(function,"swap"))
+    else if(!strcmp(function, "swap"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_swap<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_swap<double>(argus);
     }
-    else if (!strcmp(function,"iamax"))
+    else if(!strcmp(function, "iamax"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_iamax<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_iamax<double>(argus);
     }
-    else if (!strcmp(function,"iamin"))
+    else if(!strcmp(function, "iamin"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_iamin<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_iamin<double>(argus);
     }
-    else if (!strcmp(function,"nrm2"))
+    else if(!strcmp(function, "nrm2"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_nrm2<float, float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_nrm2<double, double>(argus);
     }
-    else if (!strcmp(function,"scal"))
+    else if(!strcmp(function, "scal"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_scal<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_scal<double>(argus);
     }
-    else if (!strcmp(function,"gemv"))
+    else if(!strcmp(function, "gemv"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_gemv<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_gemv<double>(argus);
     }
-    else if (!strcmp(function,"ger"))
+    else if(!strcmp(function, "ger"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_ger<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_ger<double>(argus);
     }
-    else if (!strcmp(function,"syr"))
+    else if(!strcmp(function, "syr"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_syr<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_syr<double>(argus);
     }
-    else if (!strcmp(function,"trtri"))
+    else if(!strcmp(function, "trtri"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_trtri<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_trtri<double>(argus);
     }
-    else if (!strcmp(function,"trtri_batched"))
+    else if(!strcmp(function, "trtri_batched"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_trtri_batched<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_trtri_batched<double>(argus);
     }
-    else if (!strcmp(function,"geam"))
+    else if(!strcmp(function, "geam"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_geam<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_geam<double>(argus);
     }
-    else if (!strcmp(function,"set_get_vector"))
+    else if(!strcmp(function, "set_get_vector"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_set_get_vector<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_set_get_vector<double>(argus);
     }
-    else if (!strcmp(function,"set_get_matrix"))
+    else if(!strcmp(function, "set_get_matrix"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_set_get_matrix<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_set_get_matrix<double>(argus);
     }
 #if BUILD_WITH_TENSILE
-    else if (!strcmp(function,"gemm"))
+    else if(!strcmp(function, "gemm"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
 
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
 
-        if (precision == 'h')
+        if(precision == 'h')
             testing_gemm<rocblas_half>(argus);
-        else if (precision == 's')
+        else if(precision == 's')
             testing_gemm<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_gemm<double>(argus);
     }
-    else if (!strcmp(function,"gemm_ex"))
+    else if(!strcmp(function, "gemm_ex"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
@@ -204,45 +205,45 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         rocblas_int min_ldc = argus.M;
         rocblas_int min_ldd = argus.M;
 
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
-        if (argus.ldd < min_ldd)
+        if(argus.ldd < min_ldd)
         {
             std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             argus.ldd = min_ldd;
         }
         testing_gemm_ex(argus);
     }
-    else if (!strcmp(function,"gemm_strided_batched"))
+    else if(!strcmp(function, "gemm_strided_batched"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
@@ -269,38 +270,38 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         //          min_stride_b << std::endl;
         //          argus.stride_b = min_stride_b;
         //      }
-        if (argus.stride_c < min_stride_c)
+        if(argus.stride_c < min_stride_c)
         {
             std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                       << min_stride_c << std::endl;
             argus.stride_c = min_stride_c;
         }
 
-        if (precision == 'h')
+        if(precision == 'h')
             testing_gemm_strided_batched<rocblas_half>(argus);
-        else if (precision == 's')
+        else if(precision == 's')
             testing_gemm_strided_batched<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_gemm_strided_batched<double>(argus);
     }
-    else if (!strcmp(function,"gemm_strided_batched_ex"))
+    else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
         rocblas_int min_ldd = argus.M;
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
@@ -311,7 +312,7 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
             argus.ldd = min_ldd;
         }
         rocblas_int min_stride_c = argus.ldc * argus.N;
-        if (argus.stride_c < min_stride_c)
+        if(argus.stride_c < min_stride_c)
         {
             std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                       << min_stride_c << std::endl;
@@ -320,52 +321,52 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
 
         testing_gemm_strided_batched_ex(argus);
     }
-    else if (!strcmp(function,"gemm_kernel_name"))
+    else if(!strcmp(function, "gemm_kernel_name"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
         }
 
-        if (precision == 'h')
+        if(precision == 'h')
             testing_gemm_strided_batched_kernel_name<rocblas_half>(argus);
-        else if (precision == 's')
+        else if(precision == 's')
             testing_gemm_strided_batched_kernel_name<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_gemm_strided_batched_kernel_name<double>(argus);
     }
-    else if (!strcmp(function,"gemm_strided_batched_kernel_name"))
+    else if(!strcmp(function, "gemm_strided_batched_kernel_name"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = argus.transA_option == 'N' ? argus.M : argus.K;
         rocblas_int min_ldb = argus.transB_option == 'N' ? argus.K : argus.N;
         rocblas_int min_ldc = argus.M;
-        if (argus.lda < min_lda)
+        if(argus.lda < min_lda)
         {
             std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             argus.lda = min_lda;
         }
-        if (argus.ldb < min_ldb)
+        if(argus.ldb < min_ldb)
         {
             std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             argus.ldb = min_ldb;
         }
-        if (argus.ldc < min_ldc)
+        if(argus.ldc < min_ldc)
         {
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             argus.ldc = min_ldc;
@@ -388,25 +389,25 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         //          min_stride_b << std::endl;
         //          argus.stride_b = min_stride_b;
         //      }
-        if (argus.stride_c < min_stride_c)
+        if(argus.stride_c < min_stride_c)
         {
             std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
                       << min_stride_c << std::endl;
             argus.stride_c = min_stride_c;
         }
 
-        if (precision == 'h')
+        if(precision == 'h')
             testing_gemm_strided_batched_kernel_name<rocblas_half>(argus);
-        else if (precision == 's')
+        else if(precision == 's')
             testing_gemm_strided_batched_kernel_name<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_gemm_strided_batched_kernel_name<double>(argus);
     }
-    else if (!strcmp(function,"trsm"))
+    else if(!strcmp(function, "trsm"))
     {
-        if (precision == 's')
+        if(precision == 's')
             testing_trsm<float>(argus);
-        else if (precision == 'd')
+        else if(precision == 'd')
             testing_trsm<double>(argus);
     }
 #endif
@@ -416,14 +417,14 @@ static int run_bench_test(const char *function, char precision, Arguments argus)
         return -1;
     }
 
-   return 0;
+    return 0;
 }
 
 static int rocblas_bench_datafile(const string& datafile)
 {
     RocBLAS_PerfData::init(datafile);
 
-    for (auto i = RocBLAS_PerfData::begin(); i != RocBLAS_PerfData::end(); ++i)
+    for(auto i = RocBLAS_PerfData::begin(); i != RocBLAS_PerfData::end(); ++i)
     {
         Arguments argus = *i;
         char precision;
@@ -434,14 +435,15 @@ static int rocblas_bench_datafile(const string& datafile)
         // enable timing check,otherwise no performance data collected
         argus.timing = 1;
 
-        switch (argus.a_type) {
+        switch(argus.a_type)
+        {
         case rocblas_datatype_f64_r: precision = 'd'; break;
         case rocblas_datatype_f32_r: precision = 's'; break;
         case rocblas_datatype_f16_r: precision = 'h'; break;
         case rocblas_datatype_f64_c: precision = 'z'; break;
         case rocblas_datatype_f32_c: precision = 'c'; break;
         case rocblas_datatype_f16_c: precision = 'h'; break;
-        default:                     precision = 's'; break;
+        default: precision                     = 's'; break;
         }
         run_bench_test(argus.function, precision, argus);
     }
@@ -627,7 +629,7 @@ int main(int argc, char* argv[])
     store(parse_command_line(argc, argv, desc), vm);
     notify(vm);
 
-    if (vm.count("help"))
+    if(vm.count("help"))
     {
         std::cout << desc << std::endl;
         return 0;
@@ -637,7 +639,7 @@ int main(int argc, char* argv[])
     rocblas_int device_count = query_device_property();
 
     std::cout << std::endl;
-    if (device_count <= device_id)
+    if(device_count <= device_id)
     {
         printf("Error: Invalid device ID. There may not be such device ID. Will exit \n");
         return -1;
@@ -647,52 +649,53 @@ int main(int argc, char* argv[])
         set_device(device_id);
     }
 
-    if (datafile != "") {
+    if(datafile != "")
+    {
         return rocblas_bench_datafile(datafile);
     }
 
-    if (!strchr("hsdcz", tolower(precision)))
+    if(!strchr("hsdcz", tolower(precision)))
     {
         std::cerr << "Invalid value for --precision" << std::endl;
         return -1;
     }
 
     argus.a_type = char2rocblas_datatype(a_type);
-    if (argus.a_type == static_cast<rocblas_datatype>(-1))
+    if(argus.a_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --a_type" << std::endl;
         return -1;
     }
 
     argus.b_type = char2rocblas_datatype(b_type);
-    if (argus.b_type == static_cast<rocblas_datatype>(-1))
+    if(argus.b_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --b_type" << std::endl;
         return -1;
     }
 
     argus.c_type = char2rocblas_datatype(c_type);
-    if (argus.c_type == static_cast<rocblas_datatype>(-1))
+    if(argus.c_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --c_type" << std::endl;
         return -1;
     }
 
     argus.d_type = char2rocblas_datatype(d_type);
-    if (argus.d_type == static_cast<rocblas_datatype>(-1))
+    if(argus.d_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --d_type" << std::endl;
         return -1;
     }
 
     argus.compute_type = char2rocblas_datatype(compute_type);
-    if (argus.compute_type == static_cast<rocblas_datatype>(-1))
+    if(argus.compute_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --compute_type" << std::endl;
         return -1;
     }
 
-    if (argus.M < 0 || argus.N < 0 || argus.K < 0)
+    if(argus.M < 0 || argus.N < 0 || argus.K < 0)
     {
         printf("Invalid matrix dimension\n");
     }
