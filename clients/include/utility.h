@@ -532,10 +532,10 @@ struct Arguments
     rocblas_int timing     = 0;
     rocblas_int iters      = 10;
 
-    uint32_t algo           = 0;
-    uint32_t solution_index = 0;
-    uint32_t flags          = 0;
-    size_t workspace_size   = 0;
+    uint32_t algo          = 0;
+    int32_t solution_index = 0;
+    uint32_t flags         = 0;
+    size_t workspace_size  = 0;
 
     char function[32] = "";
     char namex[32]    = "";
