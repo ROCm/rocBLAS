@@ -112,7 +112,7 @@ endif( )
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py gtest.yaml ../include/rocblas.yaml gemm.yaml
+                    DEPENDS ../common/rocblas_gentest.py gtest.yaml ../include/rocblas.yaml gemm.yaml known_bugs.yaml
 		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data
                    DEPENDS "${ROCBLAS_TEST_DATA}" )
