@@ -1,0 +1,5 @@
+# A list of known bugs/failures. The bug can be specific or general.
+# A test case is considered as matching if all indicated parameters match.
+
+Known Bugs:
+  - { function: testing_gemm, transA: T, transB: N, M: 363, N: 1, K: 50176, lda: 50176, ldb: 50176, ldc: 363 }

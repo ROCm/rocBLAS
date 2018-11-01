@@ -40,6 +40,9 @@ def main():
     # Defaults
     defaults = doc.get('Defaults') or {}
 
+    # Known Bugs
+    param['known_bugs'] = doc.get('Known Bugs') or []
+
     # Instantiate all of the tests, starting with defaults
     for test in doc['Tests']:
         case = defaults.copy()
@@ -211,6 +214,15 @@ def instantiate(test):
     for typename in [decl[0] for decl in param['Arguments']._fields_
                      if decl[1] == datatypes.get('rocblas_datatype')]:
         test[typename] = datatypes[test[typename]]
+
+    # Match known bugs
+    for bug in param['known_bugs']:
+        for key in bug:
+            if test.get(key) != bug[key]:
+                break
+        else:
+            test['category'] = 'known_bug'
+            break
 
     write_test(test)
 
