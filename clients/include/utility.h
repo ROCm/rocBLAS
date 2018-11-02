@@ -20,6 +20,9 @@
 #include <functional>
 #include <cstring>
 #include <cmath>
+#include <unordered_map>
+#include <algorithm>
+#include <utility>
 #include "rocblas.h"
 
 using namespace std;
@@ -32,6 +35,7 @@ typedef rocblas_half half;
 
 #define CHECK_HIP_ERROR(error)                    \
     do                                            \
+    {                                             \
         if(error != hipSuccess)                   \
         {                                         \
             fprintf(stderr,                       \
@@ -42,10 +46,11 @@ typedef rocblas_half half;
                     __LINE__);                    \
             exit(EXIT_FAILURE);                   \
         }                                         \
-    while(0)
+    } while(0)
 
 #define CHECK_ROCBLAS_ERROR(error)                                  \
     do                                                              \
+    {                                                               \
         if(error != rocblas_status_success)                         \
         {                                                           \
             fprintf(stderr, "rocBLAS error: ");                     \
@@ -80,10 +85,11 @@ typedef rocblas_half half;
             fprintf(stderr, "\n");                                  \
             return error;                                           \
         }                                                           \
-    while(0)
+    } while(0)
 
 #define BLAS_1_RESULT_PRINT                           \
     do                                                \
+    {                                                 \
         if(argus.timing)                              \
         {                                             \
             cout << "N, rocblas (us), ";              \
@@ -100,7 +106,7 @@ typedef rocblas_half half;
             }                                         \
             cout << endl;                             \
         }                                             \
-    while(0)
+    } while(0)
 
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
 inline rocblas_half float_to_half(float val)
@@ -392,11 +398,11 @@ template <typename T>
 void rocblas_print_vector(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
     if(typeid(T) == typeid(float))
-        std::cout << "vec[float]: ";
+        cout << "vec[float]: ";
     else if(typeid(T) == typeid(double))
-        std::cout << "vec[double]: ";
+        cout << "vec[double]: ";
     else if(typeid(T) == typeid(rocblas_half))
-        std::cout << "vec[rocblas_half]: ";
+        cout << "vec[rocblas_half]: ";
 
     for(rocblas_int i = 0; i < M; ++i)
     {
@@ -405,10 +411,10 @@ void rocblas_print_vector(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_in
             if(typeid(T) == typeid(rocblas_half))
                 printf("%04x,", A[i + j * lda]);
             else
-                std::cout << A[i + j * lda] << ", ";
+                cout << A[i + j * lda] << ", ";
         }
     }
-    std::cout << std::endl;
+    cout << endl;
 };
 
 /* ============================================================================================ */
@@ -432,6 +438,33 @@ void print_matrix(
                    CPU_result[j + i * lda],
                    GPU_result[j + i * lda]);
         }
+}
+
+/* ============================================================================================ */
+/*! \brief  Return normalized test name to conform to Google Tests */
+/* ============================================================================================ */
+/*! \brief  Return normalized test name to conform to Google Tests */
+template <class STRING>
+string normalized_test_name(STRING&& prefix, unordered_map<string, size_t>& hit)
+{
+    auto p = hit.find(prefix);
+    string str;
+
+    // If parameters are repeated, append an incrementing suffix
+    if(p != hit.end())
+    {
+        str = forward<STRING>(prefix) + "_t" + to_string(++p->second);
+    }
+    else
+    {
+        hit[prefix] = 1;
+        str         = forward<STRING>(prefix);
+    }
+
+    // Replace non-alphanumeric characters with letters
+    replace(str.begin(), str.end(), '-', 'n');
+    replace(str.begin(), str.end(), '.', 'p');
+    return str;
 }
 
 #ifdef __cplusplus
@@ -569,15 +602,14 @@ template <rocblas_data_class>
 struct RocBLAS_Data
 {
     // filter iterator
-    typedef boost::filter_iterator<std::function<bool(const Arguments&)>,
-                                   istream_iterator<Arguments>>
+    typedef boost::filter_iterator<function<bool(const Arguments&)>, istream_iterator<Arguments>>
         iterator;
 
     // Initialize class
     static void init(const string& file) { get(file); }
 
     // begin() iterator which accepts an optional filter.
-    static iterator begin(std::function<bool(const Arguments&)> filter = [](const Arguments&) {
+    static iterator begin(function<bool(const Arguments&)> filter = [](const Arguments&) {
         return true;
     })
     {
