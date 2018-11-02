@@ -932,7 +932,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r &&
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
-            compute_type == rocblas_datatype_f32_r)
+            compute_type == rocblas_datatype_i32_r)
     {
         rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
                                                                                    trans_a,
