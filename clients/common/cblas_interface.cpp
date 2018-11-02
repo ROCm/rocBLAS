@@ -741,7 +741,53 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
                                  int32_t* C,
                                  rocblas_int ldc)
 {
-    // TODO: CPU reference implementation for int8
+    // cblas does not support int8_t input / int32_t output, however non-overflowing
+    // 32-bit integer operations can be represented accurately with double-precision
+    // floats, so convert to doubles and downcast result down to int32_t.
+    // NOTE: This will not properly account for 32-bit integer overflow, however
+    //       the result should be acceptable for testing.
+
+    int const sizeA = ((transA == rocblas_operation_none) ? k * lda : m * lda);
+    int const sizeB = ((transB == rocblas_operation_none) ? n * ldb : k * ldb);
+    int const sizeC = n * ldc;
+
+    std::unique_ptr<double[]> A_double(new double[sizeA]());
+    std::unique_ptr<double[]> B_double(new double[sizeB]());
+    std::unique_ptr<double[]> C_double(new double[sizeC]());
+
+    for(int i = 0; i < sizeA; i++)
+    {
+        A_double[i] = static_cast<double>(A[i]);
+    }
+    for(int i = 0; i < sizeB; i++)
+    {
+        B_double[i] = static_cast<double>(B[i]);
+    }
+    for(int i = 0; i < sizeC; i++)
+    {
+        C_double[i] = static_cast<double>(C[i]);
+    }
+
+    // just directly cast, since transA, transB are integers in the enum
+    cblas_dgemm(CblasColMajor,
+                (CBLAS_TRANSPOSE)transA,
+                (CBLAS_TRANSPOSE)transB,
+                m,
+                n,
+                k,
+                alpha,
+                const_cast<const double*>(A_double.get()),
+                lda,
+                const_cast<const double*>(B_double.get()),
+                ldb,
+                beta,
+                static_cast<double*>(C_double.get()),
+                ldc);
+
+    for(int i = 0; i < sizeC; i++)
+    {
+        C[i] = static_cast<int32_t>(C_double[i]);
+    }
 }
 
 // trsm
