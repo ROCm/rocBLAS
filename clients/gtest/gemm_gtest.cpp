@@ -18,7 +18,7 @@ namespace {
 struct gemm : ::testing::TestWithParam<Arguments>
 {
     // Filter for which tests get into gemm right now
-    static std::function<bool(const Arguments&)> filter()
+    static function<bool(const Arguments&)> filter()
     {
         return [](const Arguments& arg) {
             return !strcmp(arg.function, "testing_gemm") ||
@@ -30,32 +30,16 @@ struct gemm : ::testing::TestWithParam<Arguments>
     struct PrintToStringParamName
     {
         template <class ParamType>
-        std::string operator()(const ParamType& info) const
+        string operator()(const ParamType& info) const
         {
             auto arg = info.param;
-            static std::unordered_map<std::string, unsigned> hit;
-            char str[128];
-            int len = snprintf(str,
-                               sizeof(str),
-                               "%c_%c%c_%ld_%ld_%ld_%ld_%ld_%ld",
-                               rocblas_datatype2char(arg.a_type),
-                               arg.transA_option,
-                               arg.transB_option,
-                               labs(arg.M),
-                               labs(arg.N),
-                               labs(arg.K),
-                               labs(arg.lda),
-                               labs(arg.ldb),
-                               labs(arg.ldc));
-            if(len < sizeof(str))
-            {
-                auto p = hit.find(str);
-                snprintf(str + len,
-                         sizeof(str) - len,
-                         "_%u",
-                         p == hit.end() ? hit[str] = 1 : ++p->second);
-            }
-            return str;
+            static unordered_map<string, size_t> hit;
+            ostringstream strm;
+            strm << rocblas_datatype2char(arg.a_type) << '_' << arg.transA_option << '_'
+                 << arg.transB_option << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_'
+                 << arg.lda << '_' << arg.ldb << '_' << arg.ldc << '_' << arg.alpha << '_'
+                 << arg.beta;
+            return normalized_test_name(strm.str(), hit);
         }
     };
 };
