@@ -584,6 +584,13 @@ rocblas_status gemm_ex_typecasting(rocblas_handle handle,
         h_beta = *(static_cast<const Tc*>(beta));
     }
 
+    // check alignment of pointers before casting
+    if(!isAligned(a, sizeof(Ti)) || !isAligned(b, sizeof(Ti)) ||
+       !isAligned(c, sizeof(To)) || !isAligned(d, sizeof(To)))
+    {
+        return rocblas_status_invalid_size;
+    }
+
     return gemm_ex_chunking<Ti,To,Tc>(handle,
                                       trans_a,
                                       trans_b,

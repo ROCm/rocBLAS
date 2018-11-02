@@ -534,19 +534,19 @@ void cblas_syr<double>(rocblas_fill uplo,
  */
 // gemm
 template <>
-void cblas_gemm<rocblas_half>(rocblas_operation transA,
-                              rocblas_operation transB,
-                              rocblas_int m,
-                              rocblas_int n,
-                              rocblas_int k,
-                              rocblas_half alpha,
-                              rocblas_half* A,
-                              rocblas_int lda,
-                              rocblas_half* B,
-                              rocblas_int ldb,
-                              rocblas_half beta,
-                              rocblas_half* C,
-                              rocblas_int ldc)
+void cblas_gemm<rocblas_half, rocblas_half>(rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            rocblas_int k,
+                                            rocblas_half alpha,
+                                            rocblas_half* A,
+                                            rocblas_int lda,
+                                            rocblas_half* B,
+                                            rocblas_int ldb,
+                                            rocblas_half beta,
+                                            rocblas_half* C,
+                                            rocblas_int ldc)
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
@@ -598,19 +598,19 @@ void cblas_gemm<rocblas_half>(rocblas_operation transA,
 }
 
 template <>
-void cblas_gemm<float>(rocblas_operation transA,
-                       rocblas_operation transB,
-                       rocblas_int m,
-                       rocblas_int n,
-                       rocblas_int k,
-                       float alpha,
-                       float* A,
-                       rocblas_int lda,
-                       float* B,
-                       rocblas_int ldb,
-                       float beta,
-                       float* C,
-                       rocblas_int ldc)
+void cblas_gemm<float, float>(rocblas_operation transA,
+                              rocblas_operation transB,
+                              rocblas_int m,
+                              rocblas_int n,
+                              rocblas_int k,
+                              float alpha,
+                              float* A,
+                              rocblas_int lda,
+                              float* B,
+                              rocblas_int ldb,
+                              float beta,
+                              float* C,
+                              rocblas_int ldc)
 {
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
@@ -631,19 +631,19 @@ void cblas_gemm<float>(rocblas_operation transA,
 }
 
 template <>
-void cblas_gemm<double>(rocblas_operation transA,
-                        rocblas_operation transB,
-                        rocblas_int m,
-                        rocblas_int n,
-                        rocblas_int k,
-                        double alpha,
-                        double* A,
-                        rocblas_int lda,
-                        double* B,
-                        rocblas_int ldb,
-                        double beta,
-                        double* C,
-                        rocblas_int ldc)
+void cblas_gemm<double, double>(rocblas_operation transA,
+                                rocblas_operation transB,
+                                rocblas_int m,
+                                rocblas_int n,
+                                rocblas_int k,
+                                double alpha,
+                                double* A,
+                                rocblas_int lda,
+                                double* B,
+                                rocblas_int ldb,
+                                double beta,
+                                double* C,
+                                rocblas_int ldc)
 {
     cblas_dgemm(CblasColMajor,
                 (CBLAS_TRANSPOSE)transA,
@@ -662,7 +662,8 @@ void cblas_gemm<double>(rocblas_operation transA,
 }
 
 template <>
-void cblas_gemm<rocblas_float_complex>(rocblas_operation transA,
+void cblas_gemm<rocblas_float_complex,
+                rocblas_float_complex>(rocblas_operation transA,
                                        rocblas_operation transB,
                                        rocblas_int m,
                                        rocblas_int n,
@@ -694,7 +695,8 @@ void cblas_gemm<rocblas_float_complex>(rocblas_operation transA,
 }
 
 template <>
-void cblas_gemm<rocblas_double_complex>(rocblas_operation transA,
+void cblas_gemm<rocblas_double_complex,
+                rocblas_double_complex>(rocblas_operation transA,
                                         rocblas_operation transB,
                                         rocblas_int m,
                                         rocblas_int n,
@@ -722,6 +724,24 @@ void cblas_gemm<rocblas_double_complex>(rocblas_operation transA,
                 &beta,
                 C,
                 ldc);
+}
+
+template <>
+void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
+                                 rocblas_operation transB,
+                                 rocblas_int m,
+                                 rocblas_int n,
+                                 rocblas_int k,
+                                 int32_t alpha,
+                                 int8_t* A,
+                                 rocblas_int lda,
+                                 int8_t* B,
+                                 rocblas_int ldb,
+                                 int32_t beta,
+                                 int32_t* C,
+                                 rocblas_int ldc)
+{
+    // TODO: CPU reference implementation for int8
 }
 
 // trsm
