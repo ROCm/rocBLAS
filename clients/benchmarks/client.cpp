@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include <iostream>
+#include <cstdio>
 #include <cstring>
 #include <cctype>
 #include <boost/program_options.hpp>
