@@ -6,87 +6,107 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
-#include <stdio.h>
+#include <cstdio>
 #include <iostream>
 #include <stdlib.h>
 #include <vector>
 #include <sys/time.h>
 #include <immintrin.h>
 #include <typeinfo>
-
+#include <fstream>
+#include <iterator>
+#include <cerrno>
+#include <boost/iterator/filter_iterator.hpp>
+#include <functional>
+#include <cstring>
+#include <cmath>
+#include <unordered_map>
+#include <algorithm>
+#include <utility>
 #include "rocblas.h"
 
 using namespace std;
+
+typedef rocblas_half half;
 
 /*!\file
  * \brief provide data initialization, timing, rocblas type <-> lapack char conversion utilities.
  */
 
-#define CHECK_HIP_ERROR(error)                \
-    if(error != hipSuccess)                   \
-    {                                         \
-        fprintf(stderr,                       \
-                "error: '%s'(%d) at %s:%d\n", \
-                hipGetErrorString(error),     \
-                error,                        \
-                __FILE__,                     \
-                __LINE__);                    \
-        exit(EXIT_FAILURE);                   \
-    }
-
-#define CHECK_ROCBLAS_ERROR(error)                              \
-    if(error != rocblas_status_success)                         \
-    {                                                           \
-        fprintf(stderr, "rocBLAS error: ");                     \
-        if(error == rocblas_status_invalid_handle)              \
-        {                                                       \
-            fprintf(stderr, "rocblas_status_invalid_handle");   \
-        }                                                       \
-        else if(error == rocblas_status_not_implemented)        \
-        {                                                       \
-            fprintf(stderr, " rocblas_status_not_implemented"); \
-        }                                                       \
-        else if(error == rocblas_status_invalid_pointer)        \
-        {                                                       \
-            fprintf(stderr, "rocblas_status_invalid_pointer");  \
-        }                                                       \
-        else if(error == rocblas_status_invalid_size)           \
-        {                                                       \
-            fprintf(stderr, "rocblas_status_invalid_size");     \
-        }                                                       \
-        else if(error == rocblas_status_memory_error)           \
-        {                                                       \
-            fprintf(stderr, "rocblas_status_memory_error");     \
-        }                                                       \
-        else if(error == rocblas_status_internal_error)         \
-        {                                                       \
-            fprintf(stderr, "rocblas_status_internal_error");   \
-        }                                                       \
-        else                                                    \
-        {                                                       \
-            fprintf(stderr, "rocblas_status error");            \
-        }                                                       \
-        fprintf(stderr, "\n");                                  \
-        return error;                                           \
-    }
-
-#define BLAS_1_RESULT_PRINT                       \
-    if(argus.timing)                              \
+#define CHECK_HIP_ERROR(error)                    \
+    do                                            \
     {                                             \
-        cout << "N, rocblas (us), ";              \
-        if(argus.norm_check)                      \
+        if(error != hipSuccess)                   \
         {                                         \
-            cout << "CPU (us), error";            \
+            fprintf(stderr,                       \
+                    "error: '%s'(%d) at %s:%d\n", \
+                    hipGetErrorString(error),     \
+                    error,                        \
+                    __FILE__,                     \
+                    __LINE__);                    \
+            exit(EXIT_FAILURE);                   \
         }                                         \
-        cout << endl;                             \
-        cout << N << ',' << gpu_time_used << ','; \
-        if(argus.norm_check)                      \
-        {                                         \
-            cout << cpu_time_used << ',';         \
-            cout << rocblas_error;                \
-        }                                         \
-        cout << endl;                             \
-    }
+    } while(0)
+
+#define CHECK_ROCBLAS_ERROR(error)                                  \
+    do                                                              \
+    {                                                               \
+        if(error != rocblas_status_success)                         \
+        {                                                           \
+            fprintf(stderr, "rocBLAS error: ");                     \
+            if(error == rocblas_status_invalid_handle)              \
+            {                                                       \
+                fprintf(stderr, "rocblas_status_invalid_handle");   \
+            }                                                       \
+            else if(error == rocblas_status_not_implemented)        \
+            {                                                       \
+                fprintf(stderr, " rocblas_status_not_implemented"); \
+            }                                                       \
+            else if(error == rocblas_status_invalid_pointer)        \
+            {                                                       \
+                fprintf(stderr, "rocblas_status_invalid_pointer");  \
+            }                                                       \
+            else if(error == rocblas_status_invalid_size)           \
+            {                                                       \
+                fprintf(stderr, "rocblas_status_invalid_size");     \
+            }                                                       \
+            else if(error == rocblas_status_memory_error)           \
+            {                                                       \
+                fprintf(stderr, "rocblas_status_memory_error");     \
+            }                                                       \
+            else if(error == rocblas_status_internal_error)         \
+            {                                                       \
+                fprintf(stderr, "rocblas_status_internal_error");   \
+            }                                                       \
+            else                                                    \
+            {                                                       \
+                fprintf(stderr, "rocblas_status error");            \
+            }                                                       \
+            fprintf(stderr, "\n");                                  \
+            return error;                                           \
+        }                                                           \
+    } while(0)
+
+#define BLAS_1_RESULT_PRINT                           \
+    do                                                \
+    {                                                 \
+        if(argus.timing)                              \
+        {                                             \
+            cout << "N, rocblas (us), ";              \
+            if(argus.norm_check)                      \
+            {                                         \
+                cout << "CPU (us), error";            \
+            }                                         \
+            cout << endl;                             \
+            cout << N << ',' << gpu_time_used << ','; \
+            if(argus.norm_check)                      \
+            {                                         \
+                cout << cpu_time_used << ',';         \
+                cout << rocblas_error;                \
+            }                                         \
+            cout << endl;                             \
+        }                                             \
+    } while(0)
 
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
 inline rocblas_half float_to_half(float val)
@@ -378,11 +398,11 @@ template <typename T>
 void rocblas_print_vector(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
     if(typeid(T) == typeid(float))
-        std::cout << "vec[float]: ";
+        cout << "vec[float]: ";
     else if(typeid(T) == typeid(double))
-        std::cout << "vec[double]: ";
+        cout << "vec[double]: ";
     else if(typeid(T) == typeid(rocblas_half))
-        std::cout << "vec[rocblas_half]: ";
+        cout << "vec[rocblas_half]: ";
 
     for(rocblas_int i = 0; i < M; ++i)
     {
@@ -391,10 +411,10 @@ void rocblas_print_vector(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_in
             if(typeid(T) == typeid(rocblas_half))
                 printf("%04x,", A[i + j * lda]);
             else
-                std::cout << A[i + j * lda] << ", ";
+                cout << A[i + j * lda] << ", ";
         }
     }
-    std::cout << std::endl;
+    cout << endl;
 };
 
 /* ============================================================================================ */
@@ -418,6 +438,33 @@ void print_matrix(
                    CPU_result[j + i * lda],
                    GPU_result[j + i * lda]);
         }
+}
+
+/* ============================================================================================ */
+/*! \brief  Return normalized test name to conform to Google Tests */
+/* ============================================================================================ */
+/*! \brief  Return normalized test name to conform to Google Tests */
+template <class STRING>
+string normalized_test_name(STRING&& prefix, unordered_map<string, size_t>& hit)
+{
+    auto p = hit.find(prefix);
+    string str;
+
+    // If parameters are repeated, append an incrementing suffix
+    if(p != hit.end())
+    {
+        str = forward<STRING>(prefix) + "_t" + to_string(++p->second);
+    }
+    else
+    {
+        hit[prefix] = 1;
+        str         = forward<STRING>(prefix);
+    }
+
+    // Replace non-alphanumeric characters with letters
+    replace(str.begin(), str.end(), '-', 'n');
+    replace(str.begin(), str.end(), '.', 'p');
+    return str;
 }
 
 #ifdef __cplusplus
@@ -474,13 +521,8 @@ rocblas_datatype char2rocblas_datatype(char value);
 /* ============================================================================================ */
 
 /*! \brief Class used to parse command arguments in both client & gtest   */
-
-// has to compile with option "-std=c++11", and this rocblas library uses c++11 everywhere
-// c++11 allows intilization of member of a struct
-
-class Arguments
+struct Arguments
 {
-    public:
     rocblas_int M = 128;
     rocblas_int N = 128;
     rocblas_int K = 128;
@@ -500,10 +542,6 @@ class Arguments
     rocblas_int incy = 1;
     rocblas_int incd = 1;
     rocblas_int incb = 1;
-
-    rocblas_int start = 1024;
-    rocblas_int end   = 10240;
-    rocblas_int step  = 1000;
 
     double alpha = 1.0;
     double beta  = 0.0;
@@ -525,63 +563,96 @@ class Arguments
     rocblas_int norm_check = 0;
     rocblas_int unit_check = 1;
     rocblas_int timing     = 0;
-
-    rocblas_int iters = 10;
+    rocblas_int iters      = 10;
 
     uint32_t algo          = 0;
     int32_t solution_index = 0;
     uint32_t flags         = 0;
     size_t workspace_size  = 0;
 
-    Arguments& operator=(const Arguments& rhs)
+    char function[32] = "";
+    char namex[32]    = "";
+    char category[32] = "";
+
+    // Function to read Structures data from stream
+    friend istream& operator>>(istream& s, Arguments& arg)
     {
-        M = rhs.M;
-        N = rhs.N;
-        K = rhs.K;
+        s.read(reinterpret_cast<char*>(&arg), sizeof(arg));
+        return s;
+    }
 
-        lda = rhs.lda;
-        ldb = rhs.ldb;
-        ldc = rhs.ldc;
-        ldd = rhs.ldd;
-
-        a_type       = rhs.a_type;
-        b_type       = rhs.b_type;
-        c_type       = rhs.c_type;
-        d_type       = rhs.d_type;
-        compute_type = rhs.compute_type;
-
-        incx = rhs.incx;
-        incy = rhs.incy;
-        incd = rhs.incd;
-        incb = rhs.incb;
-
-        start = rhs.start;
-        end   = rhs.end;
-        step  = rhs.step;
-
-        alpha = rhs.alpha;
-        beta  = rhs.beta;
-
-        transA_option = rhs.transA_option;
-        transB_option = rhs.transB_option;
-        side_option   = rhs.side_option;
-        uplo_option   = rhs.uplo_option;
-        diag_option   = rhs.diag_option;
-
-        apiCallCount = rhs.apiCallCount;
-        batch_count  = rhs.batch_count;
-
-        norm_check = rhs.norm_check;
-        unit_check = rhs.unit_check;
-        timing     = rhs.timing;
-
-        algo           = rhs.algo;
-        solution_index = rhs.solution_index;
-        flags          = rhs.flags;
-        workspace_size = rhs.workspace_size;
-
-        return *this;
+    // Function to print Structures data out to stream (for debugging)
+    friend ostream& operator<<(ostream& o, const Arguments& arg)
+    {
+        return o << "{ 'transA': '" << arg.transA_option << "', 'transB': '" << arg.transB_option
+                 << "', 'M': '" << arg.M << "', 'N': '" << arg.N << "', 'K': '" << arg.K
+                 << "', 'lda': '" << arg.lda << "', 'ldb': '" << arg.ldb << "', 'ldc': '" << arg.ldc
+                 << "', 'alpha': " << arg.alpha << ", 'beta': " << arg.beta << " }\n";
     }
 };
+
+enum rocblas_data_class
+{
+    rocblas_test_data,
+    rocblas_perf_data,
+};
+
+// Class used to read Arguments data into the tests
+template <rocblas_data_class>
+struct RocBLAS_Data
+{
+    // filter iterator
+    typedef boost::filter_iterator<function<bool(const Arguments&)>, istream_iterator<Arguments>>
+        iterator;
+
+    // Initialize class
+    static void init(const string& file) { get(file); }
+
+    // begin() iterator which accepts an optional filter.
+    static iterator begin(function<bool(const Arguments&)> filter = [](const Arguments&) {
+        return true;
+    })
+    {
+        auto& ifs = get().ifs;
+
+        // We re-seek the file back to position 0
+        ifs.clear();
+        ifs.seekg(0);
+
+        // We create a filter iterator which will choose only those test cases
+        // we want right now. This is to preserve Gtest output structure while
+        // not creating no-op tests which "always pass".
+        return iterator(filter, istream_iterator<Arguments>(ifs));
+    }
+
+    // end() iterator
+    static iterator end() { return iterator(); }
+
+    private:
+    // We define this function to generate a single instance of the class on
+    // first use so that we don't depend on the static initialization order.
+    // Only the first call needs to specify file.
+    static RocBLAS_Data& get(const string& file = "<unspecified file>")
+    {
+        static RocBLAS_Data singleton(file);
+        return singleton;
+    }
+
+    // Constructor which opens file
+    explicit RocBLAS_Data(const string& file)
+    {
+        ifs.open(file, ifstream::binary);
+        if(ifs.fail())
+        {
+            cerr << "Cannot open " << file << ": " << strerror(errno) << endl;
+            throw ifstream::failure("Cannot open " + file);
+        }
+    }
+
+    ifstream ifs;
+};
+
+typedef RocBLAS_Data<rocblas_test_data> RocBLAS_TestData;
+typedef RocBLAS_Data<rocblas_perf_data> RocBLAS_PerfData;
 
 #endif

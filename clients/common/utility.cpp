@@ -71,8 +71,15 @@ rocblas_int query_device_property()
         printf("Query device success: there are %d devices \n", device_count);
     }
 
-    for(rocblas_int i = 0; i < device_count; i++)
+    for(rocblas_int i = 0;; i++)
     {
+        puts("-------------------------------------------------------------------------------");
+
+        if(i >= device_count)
+        {
+            break;
+        }
+
         hipDeviceProp_t props;
         rocblas_status status = (rocblas_status)hipGetDeviceProperties(&props, i);
         if(status != rocblas_status_success)
@@ -81,9 +88,7 @@ rocblas_int query_device_property()
         }
         else
         {
-            printf("Device ID %d : %s ------------------------------------------------------\n",
-                   i,
-                   props.name);
+            printf("Device ID %d : %s\n", i, props.name);
             printf("with %3.1f GB memory, clock rate %dMHz @ computing capability %d.%d \n",
                    props.totalGlobalMem / 1e9,
                    (int)(props.clockRate / 1000),
@@ -95,8 +100,6 @@ rocblas_int query_device_property()
                 props.sharedMemPerBlock / 1e3,
                 props.maxThreadsPerBlock,
                 props.warpSize);
-
-            printf("-------------------------------------------------------------------------\n");
         }
     }
 
@@ -189,8 +192,8 @@ rocblas_operation char2rocblas_operation(char value)
     case 'n': return rocblas_operation_none;
     case 't': return rocblas_operation_transpose;
     case 'c': return rocblas_operation_conjugate_transpose;
+    default: return static_cast<rocblas_operation>(-1);
     }
-    return rocblas_operation_none;
 }
 
 rocblas_fill char2rocblas_fill(char value)
@@ -201,8 +204,8 @@ rocblas_fill char2rocblas_fill(char value)
     case 'L': return rocblas_fill_lower;
     case 'u': return rocblas_fill_upper;
     case 'l': return rocblas_fill_lower;
+    default: return static_cast<rocblas_fill>(-1);
     }
-    return rocblas_fill_lower;
 }
 
 rocblas_diagonal char2rocblas_diagonal(char value)
@@ -213,8 +216,8 @@ rocblas_diagonal char2rocblas_diagonal(char value)
     case 'N': return rocblas_diagonal_non_unit;
     case 'u': return rocblas_diagonal_unit;
     case 'n': return rocblas_diagonal_non_unit;
+    default: return static_cast<rocblas_diagonal>(-1);
     }
-    return rocblas_diagonal_non_unit;
 }
 
 rocblas_side char2rocblas_side(char value)
@@ -225,8 +228,8 @@ rocblas_side char2rocblas_side(char value)
     case 'R': return rocblas_side_right;
     case 'l': return rocblas_side_left;
     case 'r': return rocblas_side_right;
+    default: return static_cast<rocblas_side>(-1);
     }
-    return rocblas_side_left;
 }
 
 rocblas_datatype char2rocblas_datatype(char value)
@@ -243,8 +246,8 @@ rocblas_datatype char2rocblas_datatype(char value)
     case 'C': return rocblas_datatype_f32_c;
     case 'z': return rocblas_datatype_f64_c;
     case 'Z': return rocblas_datatype_f64_c;
+    default: return static_cast<rocblas_datatype>(-1);
     }
-    return rocblas_datatype_f32_r;
 }
 
 #ifdef __cplusplus
