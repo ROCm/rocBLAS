@@ -4,6 +4,7 @@
 #include <memory>
 
 #define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
+    do                                                            \
     {                                                             \
         hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
         if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
@@ -13,9 +14,8 @@
                     TMP_STATUS_FOR_CHECK,                         \
                     __FILE__,                                     \
                     __LINE__);                                    \
-        \
-}                                                      \
-    }
+        }                                                         \
+    } while(0)
 
 namespace rocblas_test {
 // device_malloc wraps hipMalloc and provides same API as malloc
