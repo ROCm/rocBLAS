@@ -199,6 +199,12 @@ const vector<vector<rocblas_datatype>> precision_double = {{ rocblas_datatype_f6
                                                               rocblas_datatype_f64_r,
                                                               rocblas_datatype_f64_r  }};
 
+const vector<vector<rocblas_datatype>> precision_int8 = {{ rocblas_datatype_i8_r,
+                                                           rocblas_datatype_i8_r,
+                                                           rocblas_datatype_i32_r,
+                                                           rocblas_datatype_i32_r,
+                                                           rocblas_datatype_i32_r  }};
+
 const vector<vector<rocblas_datatype>> precision_type_range = {{rocblas_datatype_f16_r,
                                                                  rocblas_datatype_f16_r,
                                                                  rocblas_datatype_f16_r,
@@ -396,6 +402,13 @@ INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_double,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
+
+INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_int8,
+                        parameterized_gemm_ex,
+                        Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range),
+                                ValuesIn(precision_int8)));
 //----medium
 INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_hpa_half,
                         parameterized_gemm_ex,
