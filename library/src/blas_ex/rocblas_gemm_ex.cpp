@@ -438,27 +438,35 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
             compute_type == rocblas_datatype_i32_r)
     {
-        rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
-                                                                                   trans_a,
-                                                                                   trans_b,
-                                                                                   m,
-                                                                                   n,
-                                                                                   k,
-                                                                                   alpha,
-                                                                                   a,
-                                                                                   lda,
-                                                                                   stride_a,
-                                                                                   b,
-                                                                                   ldb,
-                                                                                   stride_b,
-                                                                                   beta,
-                                                                                   c,
-                                                                                   ldc,
-                                                                                   stride_c,
-                                                                                   d,
-                                                                                   ldd,
-                                                                                   stride_d,
-                                                                                   batch_count);
+        // For now, K must be a multiple of 4
+        if (k % 4 != 0)
+        {
+            rb_status = rocblas_status_invalid_size;
+        }
+        else
+        {
+            rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
+                                                                                       trans_a,
+                                                                                       trans_b,
+                                                                                       m,
+                                                                                       n,
+                                                                                       k / 4,
+                                                                                       alpha,
+                                                                                       a,
+                                                                                       lda,
+                                                                                       stride_a,
+                                                                                       b,
+                                                                                       ldb,
+                                                                                       stride_b,
+                                                                                       beta,
+                                                                                       c,
+                                                                                       ldc,
+                                                                                       stride_c,
+                                                                                       d,
+                                                                                       ldd,
+                                                                                       stride_d,
+                                                                                       batch_count);
+        }
     }
     else
     {

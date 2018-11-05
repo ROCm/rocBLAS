@@ -32,9 +32,9 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>, vector<rocblas_dat
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 // add/delete as a group
 const vector<vector<int>> small_matrix_size_range = {
-    {1, 1,  1,  1,  1,  1,  1}, 
-    {1, 2,  3,  4,  5,  6,  6}, 
-    {7, 9, 15, 17, 18, 19, 19}, 
+    {1, 1,  1,  1,  1,  1,  1},
+    {1, 2,  3,  4,  5,  6,  6},
+    {7, 9, 15, 17, 18, 19, 19},
     {8, 1,  1,  8,  8,  8,  8},
     { 2,  2,  2,  2,  2,  2,  2},
     { 3,  3,  3,  3,  3,  3,  3},
@@ -142,7 +142,7 @@ const vector<vector<int>> chunk_matrix_size_range = {
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 const vector<vector<int>> NaN_matrix_size_range = {
-    {   5,    6,   7,    8,    9,   10,   10}, 
+    {   5,    6,   7,    8,    9,   10,   10},
     {4011, 4012, 111, 4013, 4014, 4015, 4015},
 };
 
@@ -286,6 +286,109 @@ class parameterized_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+TEST(Int8_Test, SmallOnesMatrix)
+{
+    // A simple test case consisting of multiply two 8x8 matrices full of ones
+    // (Result is expected to be 8x8 matrix full of 8s
+
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_operation transB = rocblas_operation_none;
+
+    int M = 8;
+    int N = 8;
+    int K = 8;
+
+    const rocblas_int lda = 8;
+    const rocblas_int ldb = 8;
+    const rocblas_int ldc = 8;
+    const rocblas_int ldd = 8;
+
+    std::unique_ptr<int8_t[]>  hA(new  int8_t[M * N]());
+    std::unique_ptr<int8_t[]>  hB(new  int8_t[M * N]());
+    std::unique_ptr<int32_t[]> hC(new int32_t[M * N]());
+    std::unique_ptr<int32_t[]> hD(new int32_t[M * N]());
+
+    rocblas_datatype a_type       = rocblas_datatype_i8_r;
+    rocblas_datatype b_type       = rocblas_datatype_i8_r;
+    rocblas_datatype c_type       = rocblas_datatype_i32_r;
+    rocblas_datatype d_type       = rocblas_datatype_i32_r;
+    rocblas_datatype compute_type = rocblas_datatype_i32_r;
+
+    const float alpha_float = 1.0;
+    const float beta_float  = 1.0;
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+    int32_t solution_index;
+    rocblas_int flags;
+    size_t* workspace_size = 0;
+    void* workspace;
+
+    rocblas_status status;
+
+    // allocate memory on CPU
+    for (int i = 0; i < M * N; i++)
+    {
+        hA[i] = 1;
+        hB[i] = 1;
+        hC[i] = 0;
+        hD[i] = 0;
+    }
+
+    // allocate memory on device
+    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * N),
+                                         rocblas_test::device_free};
+    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * N),
+                                         rocblas_test::device_free};
+    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                         rocblas_test::device_free};
+    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                         rocblas_test::device_free};
+    int8_t*  dA = (int8_t*)dA_managed.get();
+    int8_t*  dB = (int8_t*)dB_managed.get();
+    int32_t* dC = (int32_t*)dC_managed.get();
+    int32_t* dD = (int32_t*)dC_managed.get();
+
+    hipMemcpy(dA, hA.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
+    hipMemcpy(dB, hB.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
+    hipMemcpy(dC, hC.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+    hipMemcpy(dD, hD.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+
+    status = rocblas_gemm_ex(handle,
+                             transA,
+                             transB,
+                             M,
+                             N,
+                             K,
+                             &alpha_float,
+                             dA,
+                             a_type,
+                             lda,
+                             dB,
+                             b_type,
+                             ldb,
+                             &beta_float,
+                             dC,
+                             c_type,
+                             ldc,
+                             dD,
+                             d_type,
+                             ldd,
+                             compute_type,
+                             algo,
+                             solution_index,
+                             flags,
+                             workspace_size,
+                             workspace);
+
+    hipMemcpy(hC.get(), dC, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+
+    for (int i = 0; i < M; i++)
+        EXPECT_EQ(hC[i], 8);
+}
 
 TEST_P(parameterized_gemm_ex, standard)
 {
