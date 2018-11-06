@@ -100,7 +100,8 @@ TEST_P(gemm, test)
     default: FAIL() << "Unknown data type"; break;
     case rocblas_datatype_f64_r: return testit<double>(arg);
     case rocblas_datatype_f32_r: return testit<float>(arg);
-    case rocblas_datatype_f16_r: return testit<half>(arg);
+    case rocblas_datatype_f16_r:
+        return testit<half>(arg);
         // case rocblas_datatype_f64_c: return testit<rocblas_double_complex>(arg);
         // case rocblas_datatype_f32_c: return testit<rocblas_float_complex>(arg);
         // case rocblas_datatype_f16_c: return testit<rocblas_half_complex>(arg);
@@ -132,9 +133,7 @@ struct parallel_gemm : ::testing::TestWithParam<std::vector<Arguments>>
     // Filter for which tests get into gemm right now
     static function<bool(const Arguments&)> filter()
     {
-        return [](const Arguments& arg) {
-            return !strcmp(arg.function, "testing_gemm");
-        };
+        return [](const Arguments& arg) { return !strcmp(arg.function, "testing_gemm"); };
     }
 };
 
@@ -149,7 +148,7 @@ TEST_P(parallel_gemm, test)
     std::list<std::future<void>> futures;
 
     int i = 0;
-    for(auto const& arg: args)
+    for(auto const& arg : args)
     {
         while(futures.size() >= max_threads)
         {
@@ -157,9 +156,7 @@ TEST_P(parallel_gemm, test)
             futures.pop_front();
         }
 
-        futures.emplace_back(async(launch::async,
-        [&,this,i]()
-        {
+        futures.emplace_back(async(launch::async, [&, this, i]() {
             rocblas_status status = testing_gemm<float>(arg);
 
             if(arg.M < 0 || arg.N < 0 || arg.K < 0)
@@ -186,7 +183,7 @@ TEST_P(parallel_gemm, test)
         i++;
     }
 
-    for(auto& future: futures)
+    for(auto& future : futures)
         future.wait();
 }
 #else
@@ -226,16 +223,14 @@ TEST_P(parallel_gemm, test)
 }
 #endif
 
-INSTANTIATE_TEST_CASE_P(parallel,
-                        parallel_gemm,
-                        ::testing::Values(
-                            vector<Arguments>(RocBLAS_TestData::begin([](const Arguments& arg)
-                            {
-                                return arg.a_type == rocblas_datatype_f32_r
-                                    && !strcmp(arg.category, "quick")
-                                    && parallel_gemm::filter()(arg);
-                            }),
-                            RocBLAS_TestData::end())
-                        ));
+INSTANTIATE_TEST_CASE_P(
+    parallel,
+    parallel_gemm,
+    ::testing::Values(vector<Arguments>(RocBLAS_TestData::begin([](const Arguments& arg) {
+                                            return arg.a_type == rocblas_datatype_f32_r &&
+                                                   !strcmp(arg.category, "quick") &&
+                                                   parallel_gemm::filter()(arg);
+                                        }),
+                                        RocBLAS_TestData::end())));
 
 } // namespace
