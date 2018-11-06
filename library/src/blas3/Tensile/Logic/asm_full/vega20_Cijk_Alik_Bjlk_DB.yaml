@@ -1,4 +1,4 @@
-- {MinimumRequiredVersion: 4.5.0}
+- {MinimumRequiredVersion: 4.6.0}
 - vega20
 - gfx906
 - [Device 66a0, Device 66a1, Device 66a7]
@@ -7,6 +7,7 @@
   ComplexConjugateA: false
   ComplexConjugateB: false
   DataType: 1
+  DestDataType: 1
   HighPrecisionAccumulate: false
   Index0: 0
   Index01A: 0
@@ -37,7 +38,8 @@
   TransposeB: true
   UseBeta: true
   UseInitialStrides: false
-- - AssertFree0ElementMultiple: 1
+- - AggressivePerfMode: false
+    AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
     AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
@@ -66,6 +68,8 @@
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GuaranteeNoPartialA: false
+    GuaranteeNoPartialB: false
     InnerUnroll: 1
     KernelLanguage: Assembly
     LSCA: 8
@@ -120,7 +124,6 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
-    PreciseBoundsCheck: false
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
     ProblemType:
@@ -129,6 +132,7 @@
       ComplexConjugateA: false
       ComplexConjugateB: false
       DataType: 1
+      DestDataType: 1
       HighPrecisionAccumulate: false
       Index0: 0
       Index01A: 0
@@ -171,7 +175,7 @@
     ThreadTileA: 4
     ThreadTileB: 4
     UnrollMemFence: false
-    UseSgprForGRO: 0
+    UseSgprForGRO: false
     Valid: true
     VectorAtomicWidth: 1
     VectorStore: true
@@ -179,7 +183,8 @@
     WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
-  - AssertFree0ElementMultiple: 1
+  - AggressivePerfMode: false
+    AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
     AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
@@ -208,6 +213,8 @@
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 2
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
     InnerUnroll: 1
     KernelLanguage: Assembly
     LSCA: 4
@@ -262,7 +269,6 @@
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
     PersistentKernel: 0
-    PreciseBoundsCheck: true
     PrefetchGlobalRead: true
     PrefetchLocalRead: true
     ProblemType:
@@ -271,6 +277,7 @@
       ComplexConjugateA: false
       ComplexConjugateB: false
       DataType: 1
+      DestDataType: 1
       HighPrecisionAccumulate: false
       Index0: 0
       Index01A: 0
