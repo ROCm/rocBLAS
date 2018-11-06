@@ -287,42 +287,42 @@
 #define PRINT_RETURN_STATUS
 #endif
 
-#define CALL_TENSILE(PREC, TYPE, TRANS)                                                             \
-    PRINT_SOLUTION_NAME(PREC, TRANS)                                                                \
-    TYPE alpha_h;                                                                                   \
-    TYPE beta_h;                                                                                    \
-    if(rocblas_pointer_mode_host == handle->pointer_mode)                                           \
-    {                                                                                               \
-        alpha_h = *alpha;                                                                           \
-        beta_h  = *beta;                                                                            \
-    }                                                                                               \
-    else                                                                                            \
-    {                                                                                               \
-        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);                            \
-        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);                              \
-    }                                                                                               \
-            status = tensile_##TRANS##_##PREC##B(C,                                                 \
-                                                 A,                                                 \
-                                                 B,                                                 \
-                                                 alpha_h,                                           \
-                                                 beta_h,                                            \
-                                                 0,                                                 \
-                                                 0,                                                 \
-                                                 0,                                                 \
-                                                 strideC1,                                          \
-                                                 strideC2,                                          \
-                                                 strideA1,                                          \
-                                                 strideA2,                                          \
-                                                 strideB1,                                          \
-                                                 strideB2,                                          \
-                                                 sizeI,                                             \
-                                                 sizeJ,                                             \
-                                                 sizeK,                                             \
-                                                 sizeL,                                             \
-                                                 handle->rocblas_stream,                            \
-                                                 0,                                                 \
-                                                 nullptr,                                           \
-                                                 nullptr);                                          \
+#define CALL_TENSILE(PREC, TYPE, TRANS)                                  \
+    PRINT_SOLUTION_NAME(PREC, TRANS)                                     \
+    TYPE alpha_h;                                                        \
+    TYPE beta_h;                                                         \
+    if(rocblas_pointer_mode_host == handle->pointer_mode)                \
+    {                                                                    \
+        alpha_h = *alpha;                                                \
+        beta_h  = *beta;                                                 \
+    }                                                                    \
+    else                                                                 \
+    {                                                                    \
+        hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost); \
+        hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);   \
+    }                                                                    \
+    status = tensile_##TRANS##_##PREC##B(C,                              \
+                                         A,                              \
+                                         B,                              \
+                                         alpha_h,                        \
+                                         beta_h,                         \
+                                         0,                              \
+                                         0,                              \
+                                         0,                              \
+                                         strideC1,                       \
+                                         strideC2,                       \
+                                         strideA1,                       \
+                                         strideA2,                       \
+                                         strideB1,                       \
+                                         strideB2,                       \
+                                         sizeI,                          \
+                                         sizeJ,                          \
+                                         sizeK,                          \
+                                         sizeL,                          \
+                                         handle->rocblas_stream,         \
+                                         0,                              \
+                                         nullptr,                        \
+                                         nullptr);                       \
     PRINT_RETURN_STATUS
 
 #define CALL_HTENSILE(PREC, TYPE, TRANS)                                         \
