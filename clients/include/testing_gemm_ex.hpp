@@ -341,12 +341,8 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         h_alpha_To = float_to_half(alpha_float);
         h_beta_To  = float_to_half(beta_float);
     }
-    else if(is_same<To, float>::value)
-    {
-        h_alpha_To = static_cast<To>(alpha_float);
-        h_beta_To  = static_cast<To>(beta_float);
-    }
-    else if(is_same<To, double>::value)
+
+    else if(is_same<To, float>::value || is_same<To, double>::value || is_same<To, int32_t>::value)
     {
         h_alpha_To = static_cast<To>(alpha_float);
         h_beta_To  = static_cast<To>(beta_float);
@@ -364,12 +360,8 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         h_alpha_Tc = float_to_half(alpha_float);
         h_beta_Tc  = float_to_half(beta_float);
     }
-    else if(is_same<Tc, float>::value)
-    {
-        h_alpha_Tc = static_cast<Tc>(alpha_float);
-        h_beta_Tc  = static_cast<Tc>(beta_float);
-    }
-    else if(is_same<Tc, double>::value)
+
+    else if(is_same<Tc, float>::value || is_same<Tc, double>::value || is_same<Tc, int32_t>::value)
     {
         h_alpha_Tc = static_cast<Tc>(alpha_float);
         h_beta_Tc  = static_cast<Tc>(beta_float);
@@ -655,19 +647,19 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         }
         cpu_time_used = get_time_us();
 
-        cblas_gemm<Ti,To>(transA,
-                          transB,
-                          M,
-                          N,
-                          K,
-                          h_alpha_To,
-                          hA.data(),
-                          lda,
-                          hB.data(),
-                          ldb,
-                          h_beta_To,
-                          hD_gold.data(),
-                          ldd);
+        cblas_gemm<Ti, To>(transA,
+                           transB,
+                           M,
+                           N,
+                           K,
+                           h_alpha_To,
+                           hA.data(),
+                           lda,
+                           hB.data(),
+                           ldb,
+                           h_beta_To,
+                           hD_gold.data(),
+                           ldd);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<To>(M, N, K) / cpu_time_used * 1e6;
