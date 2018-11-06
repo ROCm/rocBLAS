@@ -301,77 +301,9 @@
         hipMemcpy(&alpha_h, alpha, sizeof(TYPE), hipMemcpyDeviceToHost);                            \
         hipMemcpy(&beta_h, beta, sizeof(TYPE), hipMemcpyDeviceToHost);                              \
     }                                                                                               \
-    unsigned int int_limit      = std::numeric_limits<int>::max() / sizeof(TYPE);                   \
-    unsigned int n_chunk_size_c = int_limit / strideC1;                                             \
-    unsigned int n_chunk_size_b =                                                                   \
-        (trans_b == rocblas_operation_none) ? int_limit / strideB1 : n_chunk_size_c;                \
-    unsigned int n_chunk_size  = n_chunk_size_c < n_chunk_size_b ? n_chunk_size_c : n_chunk_size_b; \
-    unsigned int m_chunk_size  = int_limit / strideA1;                                              \
-    unsigned int n_chunk_count = ((sizeJ - 1) / n_chunk_size) + 1;                                  \
-    unsigned int m_chunk_count = ((sizeI - 1) / m_chunk_size) + 1;                                  \
-                                                                                                    \
-    if(trans_a == rocblas_operation_none)                                                           \
-    {                                                                                               \
-        m_chunk_size  = sizeI;                                                                      \
-        m_chunk_count = 1;                                                                          \
-    };                                                                                              \
-                                                                                                    \
-    for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)             \
-    {                                                                                               \
-        unsigned int n_chunk_remaining = sizeJ - (n_chunk_size * n_chunk_iterator);                 \
-        unsigned int n_chunk_sizeJ =                                                                \
-            n_chunk_size < n_chunk_remaining ? n_chunk_size : n_chunk_remaining;                    \
-        for(int m_chunk_iterator = 0; m_chunk_iterator < m_chunk_count; m_chunk_iterator++)         \
-        {                                                                                           \
-            unsigned int m_chunk_remaining = sizeI - (m_chunk_size * m_chunk_iterator);             \
-            unsigned int m_chunk_sizeI =                                                            \
-                m_chunk_size < m_chunk_remaining ? m_chunk_size : m_chunk_remaining;                \
-                                                                                                    \
-            if(trans_a == rocblas_operation_none)                                                   \
-            {                                                                                       \
-                if(strideA1 * sizeL > int_limit)                                                    \
-                {                                                                                   \
-                    std::cerr << "rocBLAS WARNING: lda*k exceeds address limit" << std::endl;       \
-                }                                                                                   \
-            }                                                                                       \
-            else                                                                                    \
-            {                                                                                       \
-                if(strideA1 * m_chunk_sizeI > int_limit)                                            \
-                {                                                                                   \
-                    std::cerr << "rocBLAS ERROR: lda*m exceeds address limit" << std::endl;         \
-                }                                                                                   \
-            }                                                                                       \
-            if(trans_b == rocblas_operation_none)                                                   \
-            {                                                                                       \
-                if(strideB1 * n_chunk_sizeJ > int_limit)                                            \
-                {                                                                                   \
-                    std::cerr << "rocBLAS ERROR: ldb*n exceeds address limit" << std::endl;         \
-                }                                                                                   \
-            }                                                                                       \
-            else                                                                                    \
-            {                                                                                       \
-                if(strideB1 * sizeL > int_limit)                                                    \
-                {                                                                                   \
-                    std::cerr << "rocBLAS WARNING: ldb*k exceeds address limit" << std::endl;       \
-                }                                                                                   \
-            }                                                                                       \
-            if(strideC1 * n_chunk_sizeJ > int_limit)                                                \
-            {                                                                                       \
-                std::cerr << "rocBLAS ERROR: ldc*n exceeds address limit" << std::endl;             \
-            }                                                                                       \
-                                                                                                    \
-            size_t C_offset =                                                                       \
-                n_chunk_iterator * n_chunk_size * strideC1 + m_chunk_iterator * m_chunk_size;       \
-            size_t B_offset = n_chunk_iterator * n_chunk_size;                                      \
-            size_t A_offset = m_chunk_iterator * m_chunk_size;                                      \
-            if(trans_b == rocblas_operation_none)                                                   \
-                B_offset *= strideB1;                                                               \
-            if(trans_a != rocblas_operation_none)                                                   \
-                A_offset *= strideA1;                                                               \
-                                                                                                    \
-            status = tensile_##TRANS##_##PREC##B(C + C_offset,                                      \
-                                                 A + A_offset,                                      \
-                                                 B + B_offset,                                      \
+            status = tensile_##TRANS##_##PREC##B(C,                                                 \
+                                                 A,                                                 \
+                                                 B,                                                 \
                                                  alpha_h,                                           \
                                                  beta_h,                                            \
                                                  0,                                                 \
@@ -383,16 +315,14 @@
                                                  strideA2,                                          \
                                                  strideB1,                                          \
                                                  strideB2,                                          \
-                                                 m_chunk_sizeI,                                     \
-                                                 n_chunk_sizeJ,                                     \
+                                                 sizeI,                                             \
+                                                 sizeJ,                                             \
                                                  sizeK,                                             \
                                                  sizeL,                                             \
                                                  handle->rocblas_stream,                            \
                                                  0,                                                 \
                                                  nullptr,                                           \
                                                  nullptr);                                          \
-        }                                                                                           \
-    }                                                                                               \
     PRINT_RETURN_STATUS
 
 #define CALL_HTENSILE(PREC, TYPE, TRANS)                                         \
