@@ -147,7 +147,7 @@ double norm_check_general<int32_t>(
     std::unique_ptr<double[]> hCPU_double(new double[M * N]());
     std::unique_ptr<double[]> hGPU_double(new double[M * N]());
 
-    for (int i = 0; i < M * N; i++)
+    for(int i = 0; i < M * N; i++)
     {
         hCPU_double[i] = static_cast<double>(hCPU[i]);
         hGPU_double[i] = static_cast<double>(hGPU[i]);

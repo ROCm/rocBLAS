@@ -83,8 +83,8 @@ std::string replaceX(std::string input_string)
     return input_string;
 }
 
-static inline bool isAligned(const void *pointer, size_t byte_count)
-{ 
+static inline bool isAligned(const void* pointer, size_t byte_count)
+{
     return (uintptr_t)pointer % byte_count == 0;
 }
 

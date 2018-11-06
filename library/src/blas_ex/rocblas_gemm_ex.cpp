@@ -438,13 +438,20 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
             compute_type == rocblas_datatype_i32_r)
     {
-        // For now, K must be a multiple of 4
-        if (k % 4 != 0)
+        // For now, K must be a multiple of 4, and/or LDA/LDB based on transpose mode
+        if(k % 4 != 0 || (trans_a != rocblas_operation_none && lda % 4 != 0) ||
+           (trans_b == rocblas_operation_none && ldb % 4 != 0))
         {
             rb_status = rocblas_status_invalid_size;
         }
         else
         {
+            // adjust by 4 for Tensile
+            lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
+            ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
+            stride_a = (trans_a == rocblas_operation_none) ? stride_a / 4 : stride_a;
+            stride_b = (trans_b == rocblas_operation_none) ? stride_b : stride_b / 4;
+
             rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
                                                                                        trans_a,
                                                                                        trans_b,
