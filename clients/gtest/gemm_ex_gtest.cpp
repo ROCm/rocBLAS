@@ -318,8 +318,8 @@ TEST(Int8_Test, SmallOnesMatrix)
     rocblas_datatype d_type       = rocblas_datatype_i32_r;
     rocblas_datatype compute_type = rocblas_datatype_i32_r;
 
-    const float alpha_float = 1.0;
-    const float beta_float  = 1.0;
+    int32_t alpha = 1;
+    int32_t beta  = 1;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     int32_t solution_index;
@@ -350,7 +350,7 @@ TEST(Int8_Test, SmallOnesMatrix)
     int8_t*  dA = (int8_t*)dA_managed.get();
     int8_t*  dB = (int8_t*)dB_managed.get();
     int32_t* dC = (int32_t*)dC_managed.get();
-    int32_t* dD = (int32_t*)dC_managed.get();
+    int32_t* dD = (int32_t*)dD_managed.get();
 
     hipMemcpy(dA, hA.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
     hipMemcpy(dB, hB.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
@@ -363,14 +363,14 @@ TEST(Int8_Test, SmallOnesMatrix)
                              M,
                              N,
                              K,
-                             &alpha_float,
+                             &alpha,
                              dA,
                              a_type,
                              lda,
                              dB,
                              b_type,
                              ldb,
-                             &beta_float,
+                             &beta,
                              dC,
                              c_type,
                              ldc,
@@ -384,10 +384,21 @@ TEST(Int8_Test, SmallOnesMatrix)
                              workspace_size,
                              workspace);
 
-    hipMemcpy(hC.get(), dC, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+    hipMemcpy(hD.get(), dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+
+    /*for (int i = 0; i < N; i++)
+    {
+        std::cout << std::endl;
+        for(int j = 0; j < M; j++)
+        {
+            std::cout << hD[i*8 + j] << " ";
+        }
+    }
+    std::cout << std::endl;*/
 
     for (int i = 0; i < M; i++)
-        EXPECT_EQ(hC[i], 8);
+        for (int j = 0; j < N; j++)
+            EXPECT_EQ(hD[i*8 + j], 8);
 }
 
 TEST_P(parameterized_gemm_ex, standard)

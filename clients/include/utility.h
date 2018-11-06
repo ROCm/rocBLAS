@@ -143,6 +143,13 @@ inline rocblas_half random_generator<rocblas_half>()
         static_cast<float>((rand() % 3 + 1))); // generate a integer number in range [1,2,3]
 };
 
+/*! \brief  generate a random number in range [1,2,3] */
+template <>
+inline int8_t random_generator<int8_t>()
+{
+    return (int8_t)(rand() % 3 + 1);
+};
+
 /*! \brief  generate a random number in range [-1,-2,-3,-4,-5,-6,-7,-8,-9,-10] */
 template <typename T>
 T random_generator_negative()
@@ -157,6 +164,13 @@ template <>
 inline rocblas_half random_generator_negative<rocblas_half>()
 {
     return float_to_half(-static_cast<float>((rand() % 3 + 1)));
+};
+
+/*! \brief  generate a random number in range [1,2,3] */
+template <>
+inline int8_t random_generator_negative<int8_t>()
+{
+    return -(int8_t)(rand() % 3 + 1);
 };
 
 /* ============================================================================================ */
