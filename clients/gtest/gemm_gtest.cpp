@@ -10,6 +10,7 @@
 #include <list>
 #include <future>
 #include <thread>
+#include <omp.h>
 
 using namespace std;
 
@@ -137,10 +138,12 @@ struct parallel_gemm : ::testing::TestWithParam<std::vector<Arguments>>
     }
 };
 
+#if 1
 TEST_P(parallel_gemm, test)
 {
     std::vector<Arguments> args = GetParam();
     std::random_shuffle(args.begin(), args.end());
+
     // should up this to 64 once the 2-thread case passes.
     const int max_threads = 2;
     std::list<std::future<void>> futures;
@@ -186,6 +189,42 @@ TEST_P(parallel_gemm, test)
     for(auto& future: futures)
         future.wait();
 }
+#else
+TEST_P(parallel_gemm, test)
+{
+    std::vector<Arguments> args = GetParam();
+    std::random_shuffle(args.begin(), args.end());
+
+#pragma omp parallel for
+    for(int i = 0; i < args.size(); i++)
+    {
+        auto arg = args[i];
+        EXPECT_GT(omp_get_num_threads(), 1);
+        rocblas_status status = testing_gemm<float>(arg);
+
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+    }
+}
+#endif
 
 INSTANTIATE_TEST_CASE_P(parallel,
                         parallel_gemm,
