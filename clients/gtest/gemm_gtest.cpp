@@ -6,6 +6,11 @@
 #include "testing_gemm.hpp"
 #include <unordered_map>
 
+#include <algorithm>
+#include <list>
+#include <future>
+#include <thread>
+
 using namespace std;
 
 /* =====================================================================
@@ -51,35 +56,38 @@ void testit(const Arguments& arg)
     {
         rocblas_status status = testing_gemm<T...>(arg);
 
-        /* if not success, then the input argument is problematic,
-           so detect the error message */
-        if(status != rocblas_status_success)
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
         {
-            if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.ldc < arg.M)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(!strcmp(arg.function, "testing_gemm_NaN"))
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
         {
-            testing_gemm_NaN<T...>(arg);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
         {
-            testing_gemm_bad_arg<T...>();
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+    }
+    else if(!strcmp(arg.function, "testing_gemm_NaN"))
+    {
+        testing_gemm_NaN<T...>(arg);
+    }
+    else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+    {
+        testing_gemm_bad_arg<T...>();
+    }
+    else
+    {
+        FAIL() << "Unknown test type.";
     }
 }
 
@@ -91,8 +99,7 @@ TEST_P(gemm, test)
     default: FAIL() << "Unknown data type"; break;
     case rocblas_datatype_f64_r: return testit<double>(arg);
     case rocblas_datatype_f32_r: return testit<float>(arg);
-    case rocblas_datatype_f16_r:
-        return testit<half>(arg);
+    case rocblas_datatype_f16_r: return testit<half>(arg);
         // case rocblas_datatype_f64_c: return testit<rocblas_double_complex>(arg);
         // case rocblas_datatype_f32_c: return testit<rocblas_float_complex>(arg);
         // case rocblas_datatype_f16_c: return testit<rocblas_half_complex>(arg);
@@ -117,5 +124,79 @@ INSTANTIATE_CATEGORY(quick)
 INSTANTIATE_CATEGORY(pre_checkin)
 INSTANTIATE_CATEGORY(nightly)
 INSTANTIATE_CATEGORY(known_bug)
+
+// Parallel GEMM testing class
+struct parallel_gemm : ::testing::TestWithParam<std::vector<Arguments>>
+{
+    // Filter for which tests get into gemm right now
+    static function<bool(const Arguments&)> filter()
+    {
+        return [](const Arguments& arg) {
+            return !strcmp(arg.function, "testing_gemm");
+        };
+    }
+};
+
+TEST_P(parallel_gemm, test)
+{
+    std::vector<Arguments> args = GetParam();
+    std::random_shuffle(args.begin(), args.end());
+    // should up this to 64 once the 2-thread case passes.
+    const int max_threads = 2;
+    std::list<std::future<void>> futures;
+
+    int i = 0;
+    for(auto const& arg: args)
+    {
+        while(futures.size() >= max_threads)
+        {
+            futures.front().wait();
+            futures.pop_front();
+        }
+
+        futures.emplace_back(async(launch::async,
+        [&,this,i]()
+        {
+            rocblas_status status = testing_gemm<float>(arg);
+
+            if(arg.M < 0 || arg.N < 0 || arg.K < 0)
+            {
+                EXPECT_EQ(rocblas_status_invalid_size, status);
+            }
+            else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
+            {
+                EXPECT_EQ(rocblas_status_invalid_size, status);
+            }
+            else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
+            {
+                EXPECT_EQ(rocblas_status_invalid_size, status);
+            }
+            else if(arg.ldc < arg.M)
+            {
+                EXPECT_EQ(rocblas_status_invalid_size, status);
+            }
+            else
+            {
+                EXPECT_EQ(rocblas_status_success, status);
+            }
+        }));
+        i++;
+    }
+
+    for(auto& future: futures)
+        future.wait();
+}
+
+INSTANTIATE_TEST_CASE_P(parallel,
+                        parallel_gemm,
+                        ::testing::Values(
+                            vector<Arguments>(RocBLAS_TestData::begin([](const Arguments& arg)
+                            {
+                                return arg.a_type == rocblas_datatype_f32_r
+                                    && !strcmp(arg.category, "quick")
+                                    && parallel_gemm::filter()(arg);
+                            }),
+                            RocBLAS_TestData::end())
+                        ));
 
 } // namespace
