@@ -10,7 +10,7 @@
 #include <list>
 #include <future>
 #include <thread>
-#include <omp.h>
+//#include <omp.h>
 
 using namespace std;
 
