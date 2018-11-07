@@ -158,8 +158,8 @@ void unit_check_general(rocblas_int M,
             for(rocblas_int i = 0; i < M; i++)
             {
 #ifdef GOOGLE_TEST
-                float cpu_float = static_cast<float>(hCPU[i + j * lda + k * strideA]);
-                float gpu_float = static_cast<float>(hGPU[i + j * lda + k * strideA]);
+                float cpu_float = half_to_float(hCPU[i + j * lda + k * strideA]);
+                float gpu_float = half_to_float(hGPU[i + j * lda + k * strideA]);
                 ASSERT_FLOAT_EQ(cpu_float, gpu_float);
 #endif
             }
