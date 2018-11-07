@@ -425,6 +425,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     return rb_status;
 }
 
+#if defined(USE_CHUNKING)
 template <typename Td, typename Tc>
 rocblas_status gemm_ex_chunking(rocblas_handle handle,
                             rocblas_operation trans_a,
@@ -514,6 +515,9 @@ rocblas_status gemm_ex_chunking(rocblas_handle handle,
     }
     return return_status;
 }
+#else
+#define gemm_ex_chunking        gemm_ex_handle_transpose
+#endif  // defined(USE_CHUNKING)
 
 template <typename Td, typename Tc>
 rocblas_status gemm_ex_typecasting(rocblas_handle handle,
