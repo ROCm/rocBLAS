@@ -12,6 +12,8 @@
 
 int main(int argc, char** argv)
 {
+    // Open data file
+    RocBLAS_TestData::init("rocblas_gtest.data");
 
     // Device Query
 
