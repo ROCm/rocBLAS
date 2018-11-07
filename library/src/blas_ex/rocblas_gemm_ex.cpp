@@ -438,16 +438,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
             compute_type == rocblas_datatype_i32_r)
     {
-<<<<<<< 956c5380ed992f429360e65a88c65343336248a2
         // For now, K must be a multiple of 4, and/or LDA/LDB based on transpose mode
         if(k % 4 != 0 || (trans_a != rocblas_operation_none && lda % 4 != 0) ||
            (trans_b == rocblas_operation_none && ldb % 4 != 0))
-=======
-        // For now, K must be a multiple of 4
-        if (k % 4 != 0 ||
-            ((trans_a != rocblas_operation_none) && (lda % 4 != 0)) ||
-            ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)))
->>>>>>> fixing restrictions for Int8
         {
             rb_status = rocblas_status_invalid_size;
         }
