@@ -287,118 +287,121 @@ class parameterized_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
     virtual void TearDown() {}
 };
 
-TEST(Int8_Test, SmallOnesMatrix)
+TEST(quick_blas_ex_small_int8, AllOnesMatrices)
 {
-    // A simple test case consisting of multiply two 8x8 matrices full of ones
-    // (Result is expected to be 8x8 matrix full of 8s
-
+    // Simple test cases running on matrices full of ones
     std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
     rocblas_handle handle = unique_ptr_handle->handle;
-
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_operation transB = rocblas_operation_none;
-
-    int M = 8;
-    int N = 8;
-    int K = 8;
-
-    const rocblas_int lda = 8;
-    const rocblas_int ldb = 8;
-    const rocblas_int ldc = 8;
-    const rocblas_int ldd = 8;
-
-    std::unique_ptr<int8_t[]>  hA(new  int8_t[M * N]());
-    std::unique_ptr<int8_t[]>  hB(new  int8_t[M * N]());
-    std::unique_ptr<int32_t[]> hC(new int32_t[M * N]());
-    std::unique_ptr<int32_t[]> hD(new int32_t[M * N]());
-
-    rocblas_datatype a_type       = rocblas_datatype_i8_r;
-    rocblas_datatype b_type       = rocblas_datatype_i8_r;
-    rocblas_datatype c_type       = rocblas_datatype_i32_r;
-    rocblas_datatype d_type       = rocblas_datatype_i32_r;
-    rocblas_datatype compute_type = rocblas_datatype_i32_r;
-
-    int32_t alpha = 1;
-    int32_t beta  = 1;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     int32_t solution_index;
     rocblas_int flags;
     size_t* workspace_size = 0;
     void* workspace;
-
     rocblas_status status;
 
-    // allocate memory on CPU
-    for (int i = 0; i < M * N; i++)
+    const int32_t alpha = 1;
+    const int32_t beta  = 1;
+
+    // Loop over possible transpose modes
+    for(int transposeMode = 0; transposeMode < 4; transposeMode++)
     {
-        hA[i] = 1;
-        hB[i] = 1;
-        hC[i] = 0;
-        hD[i] = 0;
+        const rocblas_operation transA =
+            ((transposeMode & 1) ? rocblas_operation_transpose : rocblas_operation_none);
+        const rocblas_operation transB =
+            ((transposeMode & 2) ? rocblas_operation_transpose : rocblas_operation_none);
+
+        // Loop over a small number of matrix sizes
+        for(int M = 4; M <= 12; M += 2)
+            for(int N = 4; N <= 12; N += 2)
+                for(int K = 4; K <= 12; K += 4)
+                {
+                    // Set up leading dimensions (based on tranpose type)
+                    const rocblas_int lda = (transA == rocblas_operation_none) ? M : K;
+                    const rocblas_int ldb = (transB == rocblas_operation_none) ? K : N;
+                    const rocblas_int ldc = M;
+                    const rocblas_int ldd = M;
+
+                    // Allocate CPU memory
+                    std::unique_ptr<int8_t[]> hA(new int8_t[M * K]());
+                    std::unique_ptr<int8_t[]> hB(new int8_t[K * N]());
+                    std::unique_ptr<int32_t[]> hC(new int32_t[M * N]());
+                    std::unique_ptr<int32_t[]> hD(new int32_t[M * N]());
+
+                    // Initialize CPU matrices
+                    for(int i = 0; i < M * K; i++)
+                        hA[i] = 1;
+                    for(int i = 0; i < K * N; i++)
+                        hB[i] = 1;
+                    for(int i = 0; i < M * N; i++)
+                        hC[i] = 0;
+                    for(int i = 0; i < M * N; i++)
+                        hD[i] = 0;
+
+                    // Allocate GPU memory
+                    auto dA_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * K),
+                                           rocblas_test::device_free};
+                    auto dB_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * K * N),
+                                           rocblas_test::device_free};
+                    auto dC_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                           rocblas_test::device_free};
+                    auto dD_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                           rocblas_test::device_free};
+
+                    // Initialize GPU matrices by copying CPU matrices
+                    int8_t* dA  = (int8_t*)dA_managed.get();
+                    int8_t* dB  = (int8_t*)dB_managed.get();
+                    int32_t* dC = (int32_t*)dC_managed.get();
+                    int32_t* dD = (int32_t*)dD_managed.get();
+
+                    hipMemcpy(dA, hA.get(), M * K * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dB, hB.get(), K * N * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dC, hC.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dD, hD.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+
+                    // Call rocBLAS
+                    status = rocblas_gemm_ex(handle,
+                                             transA,
+                                             transB,
+                                             M,
+                                             N,
+                                             K,
+                                             &alpha,
+                                             dA,
+                                             rocblas_datatype_i8_r,
+                                             lda,
+                                             dB,
+                                             rocblas_datatype_i8_r,
+                                             ldb,
+                                             &beta,
+                                             dC,
+                                             rocblas_datatype_i32_r,
+                                             ldc,
+                                             dD,
+                                             rocblas_datatype_i32_r,
+                                             ldd,
+                                             rocblas_datatype_i32_r,
+                                             algo,
+                                             solution_index,
+                                             flags,
+                                             workspace_size,
+                                             workspace);
+
+                    EXPECT_EQ(status, rocblas_status_success);
+
+                    // Copy results back to host
+                    hipMemcpy(hD.get(), dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+
+                    bool isMatch = true;
+                    for(int i = 0; i < M * N; i++)
+                        isMatch &= (hD[i] == K);
+                    EXPECT_EQ(isMatch, true);
+                }
     }
-
-    // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * N),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * N),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
-                                         rocblas_test::device_free};
-    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
-                                         rocblas_test::device_free};
-    int8_t*  dA = (int8_t*)dA_managed.get();
-    int8_t*  dB = (int8_t*)dB_managed.get();
-    int32_t* dC = (int32_t*)dC_managed.get();
-    int32_t* dD = (int32_t*)dD_managed.get();
-
-    hipMemcpy(dA, hA.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
-    hipMemcpy(dB, hB.get(), M * N * sizeof(int8_t), hipMemcpyHostToDevice);
-    hipMemcpy(dC, hC.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
-    hipMemcpy(dD, hD.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
-
-    status = rocblas_gemm_ex(handle,
-                             transA,
-                             transB,
-                             M,
-                             N,
-                             K,
-                             &alpha,
-                             dA,
-                             a_type,
-                             lda,
-                             dB,
-                             b_type,
-                             ldb,
-                             &beta,
-                             dC,
-                             c_type,
-                             ldc,
-                             dD,
-                             d_type,
-                             ldd,
-                             compute_type,
-                             algo,
-                             solution_index,
-                             flags,
-                             workspace_size,
-                             workspace);
-
-    hipMemcpy(hD.get(), dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
-
-    /*for (int i = 0; i < N; i++)
-    {
-        std::cout << std::endl;
-        for(int j = 0; j < M; j++)
-        {
-            std::cout << hD[i*8 + j] << " ";
-        }
-    }
-    std::cout << std::endl;*/
-
-    for (int i = 0; i < M; i++)
-        for (int j = 0; j < N; j++)
-            EXPECT_EQ(hD[i*8 + j], 8);
 }
 
 TEST_P(parameterized_gemm_ex, standard)
