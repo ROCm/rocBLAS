@@ -439,7 +439,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             compute_type == rocblas_datatype_i32_r)
     {
         // For now, K must be a multiple of 4
-        if (k % 4 != 0)
+        if (k % 4 != 0 ||
+            ((trans_a != rocblas_operation_none) && (lda % 4 != 0)) ||
+            ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)))
         {
             rb_status = rocblas_status_invalid_size;
         }
@@ -448,8 +450,8 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             // adjust by 4 for Tensile
             lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
             ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-            stride_a = (trans_a == rocblas_operation_none) ? stride_a / 4 : stride_a;
-            stride_b = (trans_b == rocblas_operation_none) ? stride_b : stride_b / 4;
+            stride_a = stride_a / 4;
+            stride_b = stride_b / 4;
             k = k / 4;
 
             rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
@@ -950,7 +952,11 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
             compute_type == rocblas_datatype_i32_r)
     {
         // For now, K must be a multiple of 4
-        if (k % 4 != 0)
+        if (k % 4 != 0 ||
+            ((trans_a != rocblas_operation_none) && (lda % 4 != 0)) ||
+            ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) ||
+            stride_a % 4 != 0 ||
+            stride_b % 4 != 0)
         {
             rb_status = rocblas_status_invalid_size;
         }
@@ -959,8 +965,8 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
             // adjust by 4 for Tensile
             lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
             ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-            stride_a = (trans_a == rocblas_operation_none) ? stride_a / 4 : stride_a;
-            stride_b = (trans_b == rocblas_operation_none) ? stride_b : stride_b / 4;
+            stride_a = stride_a / 4;
+            stride_b = stride_b / 4;
             k = k / 4;
 
             rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
