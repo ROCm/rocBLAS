@@ -134,6 +134,9 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
     if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
+    if(!A || !x || !y || !alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
         log_trace(handle,
@@ -188,9 +191,6 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                   (const void*&)y,
                   incy);
     }
-
-    if(!A || !x || !y || !alpha || !beta)
-        return rocblas_status_invalid_pointer;
 
     if(m < 0 || n < 0 || lda < m || lda < 1 || incx == 0 || incy == 0)
         return rocblas_status_invalid_size;
