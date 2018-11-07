@@ -189,24 +189,10 @@ rocblas_status rocblas_gemv_template(rocblas_handle handle,
                   incy);
     }
 
-    if(nullptr == A)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == y)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == beta)
+    if(!A || !x || !y || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    if(m < 0)
-        return rocblas_status_invalid_size;
-    else if(n < 0)
-        return rocblas_status_invalid_size;
-    else if(lda < m || lda < 1)
-        return rocblas_status_invalid_size;
-    else if(0 == incx)
-        return rocblas_status_invalid_size;
-    else if(0 == incy)
+    if(m < 0 || n < 0 || lda < m || lda < 1 || incx == 0 || incy == 0)
         return rocblas_status_invalid_size;
 
     /*
