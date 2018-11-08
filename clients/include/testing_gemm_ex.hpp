@@ -341,7 +341,6 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         h_alpha_To = float_to_half(alpha_float);
         h_beta_To  = float_to_half(beta_float);
     }
-
     else if(is_same<To, float>::value || is_same<To, double>::value || is_same<To, int32_t>::value)
     {
         h_alpha_To = static_cast<To>(alpha_float);
@@ -360,7 +359,6 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
         h_alpha_Tc = float_to_half(alpha_float);
         h_beta_Tc  = float_to_half(beta_float);
     }
-
     else if(is_same<Tc, float>::value || is_same<Tc, double>::value || is_same<Tc, int32_t>::value)
     {
         h_alpha_Tc = static_cast<Tc>(alpha_float);
@@ -437,7 +435,6 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
                                  workspace);
 
         gemm_arg_check(status, M, N, K, lda, ldb, ldc);
-
         return status;
     }
 
