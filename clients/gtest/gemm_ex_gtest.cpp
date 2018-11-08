@@ -676,7 +676,7 @@ INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_double,
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
 
-INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_int8,
+INSTANTIATE_TEST_CASE_P(known_bugs_quick_blas_ex_small_int8,
                         parameterized_gemm_ex,
                         Combine(ValuesIn(small_matrix_size_range),
                                 ValuesIn(alpha_beta_range),
