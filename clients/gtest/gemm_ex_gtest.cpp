@@ -32,9 +32,9 @@ typedef std::tuple<vector<int>, vector<double>, vector<char>, vector<rocblas_dat
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 // add/delete as a group
 const vector<vector<int>> small_matrix_size_range = {
-    {1, 1,  1,  1,  1,  1,  1}, 
-    {1, 2,  3,  4,  5,  6,  6}, 
-    {7, 9, 15, 17, 18, 19, 19}, 
+    {1, 1,  1,  1,  1,  1,  1},
+    {1, 2,  3,  4,  5,  6,  6},
+    {7, 9, 15, 17, 18, 19, 19},
     {8, 1,  1,  8,  8,  8,  8},
     { 2,  2,  2,  2,  2,  2,  2},
     { 3,  3,  3,  3,  3,  3,  3},
@@ -142,7 +142,7 @@ const vector<vector<int>> chunk_matrix_size_range = {
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
 const vector<vector<int>> NaN_matrix_size_range = {
-    {   5,    6,   7,    8,    9,   10,   10}, 
+    {   5,    6,   7,    8,    9,   10,   10},
     {4011, 4012, 111, 4013, 4014, 4015, 4015},
 };
 
@@ -173,6 +173,7 @@ const vector<vector<double>> full_alpha_beta_range = {
 // sgemm/dgemm,
 const vector<vector<char>> small_transA_transB_range = {{'N', 'N'}};
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
+const vector<vector<char>> transA_transB_range_int8 =  {{'N', 'N'}, {'N', 'T'}, {'T', 'N'}, {'T', 'T'}};
 
 // a_type, b_type, c_type, d_type, compute_type
 const vector<vector<rocblas_datatype>> precision_half = {{ rocblas_datatype_f16_r,
@@ -198,6 +199,12 @@ const vector<vector<rocblas_datatype>> precision_double = {{ rocblas_datatype_f6
                                                               rocblas_datatype_f64_r,
                                                               rocblas_datatype_f64_r,
                                                               rocblas_datatype_f64_r  }};
+
+const vector<vector<rocblas_datatype>> precision_int8 = {{ rocblas_datatype_i8_r,
+                                                           rocblas_datatype_i8_r,
+                                                           rocblas_datatype_i32_r,
+                                                           rocblas_datatype_i32_r,
+                                                           rocblas_datatype_i32_r  }};
 
 const vector<vector<rocblas_datatype>> precision_type_range = {{rocblas_datatype_f16_r,
                                                                  rocblas_datatype_f16_r,
@@ -280,6 +287,278 @@ class parameterized_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
     virtual void SetUp() {}
     virtual void TearDown() {}
 };
+
+TEST(known_bugs_int8, IdentityMatrix)
+{
+    // Simple test cases running on matrices full of ones
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+    int32_t solution_index;
+    rocblas_int flags;
+    size_t* workspace_size = 0;
+    void* workspace;
+    rocblas_status status;
+
+    const int32_t alpha = 1;
+    const int32_t beta  = 0;
+
+    // Loop over possible transpose modes
+    for(int transposeMode = 0; transposeMode < 4; transposeMode++)
+    {
+        const rocblas_operation transA =
+            ((transposeMode & 1) ? rocblas_operation_transpose : rocblas_operation_none);
+        const rocblas_operation transB =
+            ((transposeMode & 2) ? rocblas_operation_transpose : rocblas_operation_none);
+
+        // Loop over a small number of matrix sizes
+        for(int L = 4; L <= 8; L += 4)
+        {
+            const rocblas_int lda = L;
+            const rocblas_int ldb = L;
+            const rocblas_int ldc = L;
+            const rocblas_int ldd = L;
+
+            // Allocate CPU memory
+            std::unique_ptr<int8_t[]> hA(new int8_t[L * L]());
+            std::unique_ptr<int8_t[]> hB(new int8_t[L * L]());
+            std::unique_ptr<int32_t[]> hC(new int32_t[L * L]());
+            std::unique_ptr<int32_t[]> hD(new int32_t[L * L]());
+
+            // Initialize CPU matrices
+            if(transA == rocblas_operation_none)
+            {
+                for(int j = 0; j < L; j += 4)
+                {
+                    for(int i = 0; i < L; i++)
+                    {
+                        for(int k = 0; k < 4; k++)
+                        {
+                            hA[j * L + i * 4 + k] = (j + k) * L + i;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for(int i = 0; i < L; i++)
+                {
+                    for(int j = 0; j < L; j++)
+                    {
+                        hA[j * L + i] = (i * L + j);
+                    }
+                }
+            }
+
+            if(transB == rocblas_operation_transpose)
+            {
+                for(int j = 0; j < L; j += 4)
+                {
+                    for(int i = 0; i < L; i++)
+                    {
+                        for(int k = 0; k < 4; k++)
+                        {
+                            hB[j * L + i * 4 + k] = (i == (j + k)) ? 1 : 0;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                for(int i = 0; i < L; i++)
+                    for(int j         = 0; j < L; j++)
+                        hB[j * L + i] = (i == j) ? 1 : 0;
+            }
+
+            for(int i = 0; i < L * L; i++)
+                hC[i] = 0;
+            for(int i = 0; i < L * L; i++)
+                hD[i] = 0;
+
+            // Allocate GPU memory
+            auto dA_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
+            auto dB_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
+            auto dC_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
+            auto dD_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
+
+            // Initialize GPU matrices by copying CPU matrices
+            int8_t* dA  = (int8_t*)dA_managed.get();
+            int8_t* dB  = (int8_t*)dB_managed.get();
+            int32_t* dC = (int32_t*)dC_managed.get();
+            int32_t* dD = (int32_t*)dD_managed.get();
+
+            hipMemcpy(dA, hA.get(), L * L * sizeof(int8_t), hipMemcpyHostToDevice);
+            hipMemcpy(dB, hB.get(), L * L * sizeof(int8_t), hipMemcpyHostToDevice);
+            hipMemcpy(dC, hC.get(), L * L * sizeof(int32_t), hipMemcpyHostToDevice);
+            hipMemcpy(dD, hD.get(), L * L * sizeof(int32_t), hipMemcpyHostToDevice);
+
+            // Call rocBLAS
+            status = rocblas_gemm_ex(handle,
+                                     transA,
+                                     transB,
+                                     L,
+                                     L,
+                                     L,
+                                     &alpha,
+                                     dA,
+                                     rocblas_datatype_i8_r,
+                                     lda,
+                                     dB,
+                                     rocblas_datatype_i8_r,
+                                     ldb,
+                                     &beta,
+                                     dC,
+                                     rocblas_datatype_i32_r,
+                                     ldc,
+                                     dD,
+                                     rocblas_datatype_i32_r,
+                                     ldd,
+                                     rocblas_datatype_i32_r,
+                                     algo,
+                                     solution_index,
+                                     flags,
+                                     workspace_size,
+                                     workspace);
+
+            EXPECT_EQ(status, rocblas_status_success);
+
+            // Copy results back to host
+            hipMemcpy(hD.get(), dD, L * L * sizeof(int32_t), hipMemcpyDeviceToHost);
+
+            bool isMatch = true;
+            for(int i = 0; i < L; i++)
+            {
+                for(int j = 0; j < L; j++)
+                {
+                    isMatch &= (hD[j * L + i] == j * L + i);
+                }
+            }
+            EXPECT_EQ(isMatch, true);
+        }
+    }
+}
+
+TEST(known_bugs_int8, AllOnesMatrices)
+{
+    // Simple test cases running on matrices full of ones
+    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
+    rocblas_handle handle = unique_ptr_handle->handle;
+
+    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+    int32_t solution_index;
+    rocblas_int flags;
+    size_t* workspace_size = 0;
+    void* workspace;
+    rocblas_status status;
+
+    const int32_t alpha = 1;
+    const int32_t beta  = 1;
+
+    // Loop over possible transpose modes
+    for(int transposeMode = 0; transposeMode < 4; transposeMode++)
+    {
+        const rocblas_operation transA =
+            ((transposeMode & 1) ? rocblas_operation_transpose : rocblas_operation_none);
+        const rocblas_operation transB =
+            ((transposeMode & 2) ? rocblas_operation_transpose : rocblas_operation_none);
+
+        // Loop over a small number of matrix sizes
+        for(int M = 4; M <= 12; M += 2)
+            for(int N = 4; N <= 12; N += 2)
+                for(int K = 4; K <= 12; K += 4)
+                {
+                    // Set up leading dimensions (based on tranpose type)
+                    const rocblas_int lda = (transA == rocblas_operation_none) ? M : K;
+                    const rocblas_int ldb = (transB == rocblas_operation_none) ? K : N;
+                    const rocblas_int ldc = M;
+                    const rocblas_int ldd = M;
+
+                    // Allocate CPU memory
+                    std::unique_ptr<int8_t[]> hA(new int8_t[M * K]());
+                    std::unique_ptr<int8_t[]> hB(new int8_t[K * N]());
+                    std::unique_ptr<int32_t[]> hC(new int32_t[M * N]());
+                    std::unique_ptr<int32_t[]> hD(new int32_t[M * N]());
+
+                    // Initialize CPU matrices
+                    for(int i = 0; i < M * K; i++)
+                        hA[i] = 1;
+                    for(int i = 0; i < K * N; i++)
+                        hB[i] = 1;
+                    for(int i = 0; i < M * N; i++)
+                        hC[i] = 0;
+                    for(int i = 0; i < M * N; i++)
+                        hD[i] = 0;
+
+                    // Allocate GPU memory
+                    auto dA_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * K),
+                                           rocblas_test::device_free};
+                    auto dB_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * K * N),
+                                           rocblas_test::device_free};
+                    auto dC_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                           rocblas_test::device_free};
+                    auto dD_managed =
+                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
+                                           rocblas_test::device_free};
+
+                    // Initialize GPU matrices by copying CPU matrices
+                    int8_t* dA  = (int8_t*)dA_managed.get();
+                    int8_t* dB  = (int8_t*)dB_managed.get();
+                    int32_t* dC = (int32_t*)dC_managed.get();
+                    int32_t* dD = (int32_t*)dD_managed.get();
+
+                    hipMemcpy(dA, hA.get(), M * K * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dB, hB.get(), K * N * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dC, hC.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dD, hD.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+
+                    // Call rocBLAS
+                    status = rocblas_gemm_ex(handle,
+                                             transA,
+                                             transB,
+                                             M,
+                                             N,
+                                             K,
+                                             &alpha,
+                                             dA,
+                                             rocblas_datatype_i8_r,
+                                             lda,
+                                             dB,
+                                             rocblas_datatype_i8_r,
+                                             ldb,
+                                             &beta,
+                                             dC,
+                                             rocblas_datatype_i32_r,
+                                             ldc,
+                                             dD,
+                                             rocblas_datatype_i32_r,
+                                             ldd,
+                                             rocblas_datatype_i32_r,
+                                             algo,
+                                             solution_index,
+                                             flags,
+                                             workspace_size,
+                                             workspace);
+
+                    EXPECT_EQ(status, rocblas_status_success);
+
+                    // Copy results back to host
+                    hipMemcpy(hD.get(), dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+
+                    bool isMatch = true;
+                    for(int i = 0; i < M * N; i++)
+                        isMatch &= (hD[i] == K);
+                    EXPECT_EQ(isMatch, true);
+                }
+    }
+}
 
 TEST_P(parameterized_gemm_ex, standard)
 {
@@ -396,6 +675,13 @@ INSTANTIATE_TEST_CASE_P(quick_blas_ex_small_double,
                                 ValuesIn(alpha_beta_range),
                                 ValuesIn(transA_transB_range),
                                 ValuesIn(precision_double)));
+
+INSTANTIATE_TEST_CASE_P(known_bugs_quick_blas_ex_small_int8,
+                        parameterized_gemm_ex,
+                        Combine(ValuesIn(small_matrix_size_range),
+                                ValuesIn(alpha_beta_range),
+                                ValuesIn(transA_transB_range_int8),
+                                ValuesIn(precision_int8)));
 //----medium
 INSTANTIATE_TEST_CASE_P(pre_checkin_blas_ex_medium_hpa_half,
                         parameterized_gemm_ex,
