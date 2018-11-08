@@ -313,7 +313,7 @@ TEST(known_bugs_int8, IdentityMatrix)
             ((transposeMode & 2) ? rocblas_operation_transpose : rocblas_operation_none);
 
         // Loop over a small number of matrix sizes
-        for (int L = 4; L <= 8; L += 4)
+        for(int L = 4; L <= 8; L += 4)
         {
             const rocblas_int lda = L;
             const rocblas_int ldb = L;
@@ -327,13 +327,13 @@ TEST(known_bugs_int8, IdentityMatrix)
             std::unique_ptr<int32_t[]> hD(new int32_t[L * L]());
 
             // Initialize CPU matrices
-            if (transA == rocblas_operation_none)
+            if(transA == rocblas_operation_none)
             {
-                for (int j = 0; j < L; j+= 4)
+                for(int j = 0; j < L; j += 4)
                 {
-                    for (int i = 0; i < L; i++)
+                    for(int i = 0; i < L; i++)
                     {
-                        for (int k = 0; k < 4; k++)
+                        for(int k = 0; k < 4; k++)
                         {
                             hA[j * L + i * 4 + k] = (j + k) * L + i;
                         }
@@ -342,24 +342,24 @@ TEST(known_bugs_int8, IdentityMatrix)
             }
             else
             {
-                for (int i = 0; i < L; i++)
+                for(int i = 0; i < L; i++)
                 {
-                    for (int j = 0; j < L; j++)
+                    for(int j = 0; j < L; j++)
                     {
                         hA[j * L + i] = (i * L + j);
                     }
                 }
             }
 
-            if (transB == rocblas_operation_transpose)
+            if(transB == rocblas_operation_transpose)
             {
-                for (int j = 0; j < L; j += 4)
+                for(int j = 0; j < L; j += 4)
                 {
-                    for (int i = 0; i < L; i++)
+                    for(int i = 0; i < L; i++)
                     {
-                        for (int k = 0; k < 4; k++)
+                        for(int k = 0; k < 4; k++)
                         {
-                            hB[j * L  + i * 4 + k] = (i == (j + k)) ? 1 : 0;
+                            hB[j * L + i * 4 + k] = (i == (j + k)) ? 1 : 0;
                         }
                     }
                 }
@@ -367,26 +367,24 @@ TEST(known_bugs_int8, IdentityMatrix)
             else
             {
                 for(int i = 0; i < L; i++)
-                    for (int j = 0; j < L; j++)
+                    for(int j         = 0; j < L; j++)
                         hB[j * L + i] = (i == j) ? 1 : 0;
             }
 
-            for(int i = 0; i < L * L; i++) hC[i] = 0;
-            for(int i = 0; i < L * L; i++) hD[i] = 0;
+            for(int i = 0; i < L * L; i++)
+                hC[i] = 0;
+            for(int i = 0; i < L * L; i++)
+                hD[i] = 0;
 
             // Allocate GPU memory
-            auto dA_managed =
-                rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * L * L),
-                                   rocblas_test::device_free};
-            auto dB_managed =
-                rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * L * L),
-                                   rocblas_test::device_free};
-            auto dC_managed =
-                rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * L * L),
-                                   rocblas_test::device_free};
-            auto dD_managed =
-                rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * L * L),
-                                   rocblas_test::device_free};
+            auto dA_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
+            auto dB_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
+            auto dC_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
+            auto dD_managed = rocblas_unique_ptr{
+                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
 
             // Initialize GPU matrices by copying CPU matrices
             int8_t* dA  = (int8_t*)dA_managed.get();
@@ -400,17 +398,32 @@ TEST(known_bugs_int8, IdentityMatrix)
             hipMemcpy(dD, hD.get(), L * L * sizeof(int32_t), hipMemcpyHostToDevice);
 
             // Call rocBLAS
-            status = rocblas_gemm_ex(handle, transA, transB,
-                                     L, L, L,
+            status = rocblas_gemm_ex(handle,
+                                     transA,
+                                     transB,
+                                     L,
+                                     L,
+                                     L,
                                      &alpha,
-                                     dA, rocblas_datatype_i8_r, lda,
-                                     dB, rocblas_datatype_i8_r, ldb,
+                                     dA,
+                                     rocblas_datatype_i8_r,
+                                     lda,
+                                     dB,
+                                     rocblas_datatype_i8_r,
+                                     ldb,
                                      &beta,
-                                     dC, rocblas_datatype_i32_r, ldc,
-                                     dD, rocblas_datatype_i32_r, ldd,
+                                     dC,
                                      rocblas_datatype_i32_r,
-                                     algo, solution_index, flags,
-                                     workspace_size, workspace);
+                                     ldc,
+                                     dD,
+                                     rocblas_datatype_i32_r,
+                                     ldd,
+                                     rocblas_datatype_i32_r,
+                                     algo,
+                                     solution_index,
+                                     flags,
+                                     workspace_size,
+                                     workspace);
 
             EXPECT_EQ(status, rocblas_status_success);
 
@@ -420,7 +433,7 @@ TEST(known_bugs_int8, IdentityMatrix)
             bool isMatch = true;
             for(int i = 0; i < L; i++)
             {
-                for (int j = 0; j < L; j++)
+                for(int j = 0; j < L; j++)
                 {
                     isMatch &= (hD[j * L + i] == j * L + i);
                 }
@@ -429,7 +442,6 @@ TEST(known_bugs_int8, IdentityMatrix)
         }
     }
 }
-
 
 TEST(known_bugs_int8, AllOnesMatrices)
 {

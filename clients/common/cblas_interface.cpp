@@ -755,13 +755,13 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
     std::unique_ptr<double[]> B_double(new double[sizeB]());
     std::unique_ptr<double[]> C_double(new double[sizeC]());
 
-    if (transA == rocblas_operation_none)
+    if(transA == rocblas_operation_none)
     {
-        for (int colBase = 0; colBase < k; colBase += 4)
+        for(int colBase = 0; colBase < k; colBase += 4)
         {
-            for (int row = 0; row < m; row++)
+            for(int row = 0; row < m; row++)
             {
-                for (int colOffset = 0; colOffset < 4; colOffset++)
+                for(int colOffset = 0; colOffset < 4; colOffset++)
                 {
                     A_double[(colBase + colOffset) * lda + row] =
                         static_cast<double>(A[colBase * lda + row * 4 + colOffset]);
@@ -777,13 +777,13 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
         }
     }
 
-    if (transB == rocblas_operation_transpose)
+    if(transB == rocblas_operation_transpose)
     {
-        for (int colBase = 0; colBase < k; colBase += 4)
+        for(int colBase = 0; colBase < k; colBase += 4)
         {
-            for (int row = 0; row < n; row++)
+            for(int row = 0; row < n; row++)
             {
-                for (int colOffset = 0; colOffset < 4; colOffset++)
+                for(int colOffset = 0; colOffset < 4; colOffset++)
                 {
                     B_double[(colBase + colOffset) * ldb + row] =
                         static_cast<double>(B[colBase * ldb + row * 4 + colOffset]);
