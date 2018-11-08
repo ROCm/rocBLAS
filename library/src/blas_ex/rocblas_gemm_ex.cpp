@@ -175,6 +175,13 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             alpha_double = *(static_cast<const double*>(alpha));
             beta_double  = *(static_cast<const double*>(beta));
         }
+        else if(compute_type == rocblas_datatype_i32_r)
+        {
+            int alpha_int = *(static_cast<const int32_t*>(alpha));
+            int beta_int  = *(static_cast<const int32_t*>(beta));
+            alpha_double  = static_cast<const double>(alpha_int);
+            beta_double   = static_cast<const double>(beta_int);
+        }
 
         log_trace(handle,
                   "rocblas_gemm_ex",
@@ -327,105 +334,147 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
        c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r &&
        compute_type == rocblas_datatype_f64_r)
     {
-        rb_status = gemm_ex_typecasting<double, double>(handle,
-                                                        trans_a,
-                                                        trans_b,
-                                                        m,
-                                                        n,
-                                                        k,
-                                                        alpha,
-                                                        a,
-                                                        lda,
-                                                        stride_a,
-                                                        b,
-                                                        ldb,
-                                                        stride_b,
-                                                        beta,
-                                                        c,
-                                                        ldc,
-                                                        stride_c,
-                                                        d,
-                                                        ldd,
-                                                        stride_d,
-                                                        batch_count);
+        rb_status = gemm_ex_typecasting<double, double, double>(handle,
+                                                                trans_a,
+                                                                trans_b,
+                                                                m,
+                                                                n,
+                                                                k,
+                                                                alpha,
+                                                                a,
+                                                                lda,
+                                                                stride_a,
+                                                                b,
+                                                                ldb,
+                                                                stride_b,
+                                                                beta,
+                                                                c,
+                                                                ldc,
+                                                                stride_c,
+                                                                d,
+                                                                ldd,
+                                                                stride_d,
+                                                                batch_count);
     }
     else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r &&
             c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r &&
             compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<float, float>(handle,
-                                                      trans_a,
-                                                      trans_b,
-                                                      m,
-                                                      n,
-                                                      k,
-                                                      alpha,
-                                                      a,
-                                                      lda,
-                                                      stride_a,
-                                                      b,
-                                                      ldb,
-                                                      stride_b,
-                                                      beta,
-                                                      c,
-                                                      ldc,
-                                                      stride_c,
-                                                      d,
-                                                      ldd,
-                                                      stride_d,
-                                                      batch_count);
+        rb_status = gemm_ex_typecasting<float, float, float>(handle,
+                                                             trans_a,
+                                                             trans_b,
+                                                             m,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             a,
+                                                             lda,
+                                                             stride_a,
+                                                             b,
+                                                             ldb,
+                                                             stride_b,
+                                                             beta,
+                                                             c,
+                                                             ldc,
+                                                             stride_c,
+                                                             d,
+                                                             ldd,
+                                                             stride_d,
+                                                             batch_count);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
             c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
             compute_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ex_typecasting<_Float16, _Float16>(handle,
-                                                            trans_a,
-                                                            trans_b,
-                                                            m,
-                                                            n,
-                                                            k,
-                                                            alpha,
-                                                            a,
-                                                            lda,
-                                                            stride_a,
-                                                            b,
-                                                            ldb,
-                                                            stride_b,
-                                                            beta,
-                                                            c,
-                                                            ldc,
-                                                            stride_c,
-                                                            d,
-                                                            ldd,
-                                                            stride_d,
-                                                            batch_count);
+        rb_status = gemm_ex_typecasting<_Float16, _Float16, _Float16>(handle,
+                                                                      trans_a,
+                                                                      trans_b,
+                                                                      m,
+                                                                      n,
+                                                                      k,
+                                                                      alpha,
+                                                                      a,
+                                                                      lda,
+                                                                      stride_a,
+                                                                      b,
+                                                                      ldb,
+                                                                      stride_b,
+                                                                      beta,
+                                                                      c,
+                                                                      ldc,
+                                                                      stride_c,
+                                                                      d,
+                                                                      ldd,
+                                                                      stride_d,
+                                                                      batch_count);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
             c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
             compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<_Float16, float>(handle,
-                                                         trans_a,
-                                                         trans_b,
-                                                         m,
-                                                         n,
-                                                         k,
-                                                         alpha,
-                                                         a,
-                                                         lda,
-                                                         stride_a,
-                                                         b,
-                                                         ldb,
-                                                         stride_b,
-                                                         beta,
-                                                         c,
-                                                         ldc,
-                                                         stride_c,
-                                                         d,
-                                                         ldd,
-                                                         stride_d,
-                                                         batch_count);
+        rb_status = gemm_ex_typecasting<_Float16, _Float16, float>(handle,
+                                                                   trans_a,
+                                                                   trans_b,
+                                                                   m,
+                                                                   n,
+                                                                   k,
+                                                                   alpha,
+                                                                   a,
+                                                                   lda,
+                                                                   stride_a,
+                                                                   b,
+                                                                   ldb,
+                                                                   stride_b,
+                                                                   beta,
+                                                                   c,
+                                                                   ldc,
+                                                                   stride_c,
+                                                                   d,
+                                                                   ldd,
+                                                                   stride_d,
+                                                                   batch_count);
+    }
+    else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r &&
+            c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
+            compute_type == rocblas_datatype_i32_r)
+    {
+        // For now, K must be a multiple of 4, and/or LDA/LDB based on transpose mode
+        if(k % 4 != 0 || (trans_a != rocblas_operation_none && lda % 4 != 0) ||
+           (trans_b == rocblas_operation_none && ldb % 4 != 0))
+        {
+            rb_status = rocblas_status_invalid_size;
+        }
+        else
+        {
+            // adjust by 4 for Tensile
+            lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
+            ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
+            stride_a = stride_a / 4;
+            stride_b = stride_b / 4;
+            k        = k / 4;
+
+            rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
+                                                                                       trans_a,
+                                                                                       trans_b,
+                                                                                       m,
+                                                                                       n,
+                                                                                       k,
+                                                                                       alpha,
+                                                                                       a,
+                                                                                       lda,
+                                                                                       stride_a,
+                                                                                       b,
+                                                                                       ldb,
+                                                                                       stride_b,
+                                                                                       beta,
+                                                                                       c,
+                                                                                       ldc,
+                                                                                       stride_c,
+                                                                                       d,
+                                                                                       ldd,
+                                                                                       stride_d,
+                                                                                       batch_count);
+        }
     }
     else
     {
@@ -622,6 +671,13 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
             alpha_double = *(static_cast<const double*>(alpha));
             beta_double  = *(static_cast<const double*>(beta));
         }
+        if(compute_type == rocblas_datatype_i32_r)
+        {
+            int alpha_int = *(static_cast<const int*>(alpha));
+            int beta_int  = *(static_cast<const int*>(beta));
+            alpha_double  = static_cast<const double>(alpha_int);
+            beta_double   = static_cast<const double>(beta_int);
+        }
 
         log_trace(handle,
                   "rocblas_gemm_strided_batched_ex",
@@ -790,105 +846,148 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
        c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r &&
        compute_type == rocblas_datatype_f64_r)
     {
-        rb_status = gemm_ex_typecasting<double, double>(handle,
-                                                        trans_a,
-                                                        trans_b,
-                                                        m,
-                                                        n,
-                                                        k,
-                                                        alpha,
-                                                        a,
-                                                        lda,
-                                                        stride_a,
-                                                        b,
-                                                        ldb,
-                                                        stride_b,
-                                                        beta,
-                                                        c,
-                                                        ldc,
-                                                        stride_c,
-                                                        d,
-                                                        ldd,
-                                                        stride_d,
-                                                        batch_count);
+        rb_status = gemm_ex_typecasting<double, double, double>(handle,
+                                                                trans_a,
+                                                                trans_b,
+                                                                m,
+                                                                n,
+                                                                k,
+                                                                alpha,
+                                                                a,
+                                                                lda,
+                                                                stride_a,
+                                                                b,
+                                                                ldb,
+                                                                stride_b,
+                                                                beta,
+                                                                c,
+                                                                ldc,
+                                                                stride_c,
+                                                                d,
+                                                                ldd,
+                                                                stride_d,
+                                                                batch_count);
     }
     else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r &&
             c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r &&
             compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<float, float>(handle,
-                                                      trans_a,
-                                                      trans_b,
-                                                      m,
-                                                      n,
-                                                      k,
-                                                      alpha,
-                                                      a,
-                                                      lda,
-                                                      stride_a,
-                                                      b,
-                                                      ldb,
-                                                      stride_b,
-                                                      beta,
-                                                      c,
-                                                      ldc,
-                                                      stride_c,
-                                                      d,
-                                                      ldd,
-                                                      stride_d,
-                                                      batch_count);
+        rb_status = gemm_ex_typecasting<float, float, float>(handle,
+                                                             trans_a,
+                                                             trans_b,
+                                                             m,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             a,
+                                                             lda,
+                                                             stride_a,
+                                                             b,
+                                                             ldb,
+                                                             stride_b,
+                                                             beta,
+                                                             c,
+                                                             ldc,
+                                                             stride_c,
+                                                             d,
+                                                             ldd,
+                                                             stride_d,
+                                                             batch_count);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
             c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
             compute_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ex_typecasting<_Float16, _Float16>(handle,
-                                                            trans_a,
-                                                            trans_b,
-                                                            m,
-                                                            n,
-                                                            k,
-                                                            alpha,
-                                                            a,
-                                                            lda,
-                                                            stride_a,
-                                                            b,
-                                                            ldb,
-                                                            stride_b,
-                                                            beta,
-                                                            c,
-                                                            ldc,
-                                                            stride_c,
-                                                            d,
-                                                            ldd,
-                                                            stride_d,
-                                                            batch_count);
+        rb_status = gemm_ex_typecasting<_Float16, _Float16, _Float16>(handle,
+                                                                      trans_a,
+                                                                      trans_b,
+                                                                      m,
+                                                                      n,
+                                                                      k,
+                                                                      alpha,
+                                                                      a,
+                                                                      lda,
+                                                                      stride_a,
+                                                                      b,
+                                                                      ldb,
+                                                                      stride_b,
+                                                                      beta,
+                                                                      c,
+                                                                      ldc,
+                                                                      stride_c,
+                                                                      d,
+                                                                      ldd,
+                                                                      stride_d,
+                                                                      batch_count);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
             c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
             compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<_Float16, float>(handle,
-                                                         trans_a,
-                                                         trans_b,
-                                                         m,
-                                                         n,
-                                                         k,
-                                                         alpha,
-                                                         a,
-                                                         lda,
-                                                         stride_a,
-                                                         b,
-                                                         ldb,
-                                                         stride_b,
-                                                         beta,
-                                                         c,
-                                                         ldc,
-                                                         stride_c,
-                                                         d,
-                                                         ldd,
-                                                         stride_d,
-                                                         batch_count);
+        rb_status = gemm_ex_typecasting<_Float16, _Float16, float>(handle,
+                                                                   trans_a,
+                                                                   trans_b,
+                                                                   m,
+                                                                   n,
+                                                                   k,
+                                                                   alpha,
+                                                                   a,
+                                                                   lda,
+                                                                   stride_a,
+                                                                   b,
+                                                                   ldb,
+                                                                   stride_b,
+                                                                   beta,
+                                                                   c,
+                                                                   ldc,
+                                                                   stride_c,
+                                                                   d,
+                                                                   ldd,
+                                                                   stride_d,
+                                                                   batch_count);
+    }
+    else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r &&
+            c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
+            compute_type == rocblas_datatype_i32_r)
+    {
+        // For now, K must be a multiple of 4
+        if(k % 4 != 0 || ((trans_a != rocblas_operation_none) && (lda % 4 != 0)) ||
+           ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) || stride_a % 4 != 0 ||
+           stride_b % 4 != 0)
+        {
+            rb_status = rocblas_status_invalid_size;
+        }
+        else
+        {
+            // adjust by 4 for Tensile
+            lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
+            ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
+            stride_a = stride_a / 4;
+            stride_b = stride_b / 4;
+            k        = k / 4;
+
+            rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(handle,
+                                                                                       trans_a,
+                                                                                       trans_b,
+                                                                                       m,
+                                                                                       n,
+                                                                                       k,
+                                                                                       alpha,
+                                                                                       a,
+                                                                                       lda,
+                                                                                       stride_a,
+                                                                                       b,
+                                                                                       ldb,
+                                                                                       stride_b,
+                                                                                       beta,
+                                                                                       c,
+                                                                                       ldc,
+                                                                                       stride_c,
+                                                                                       d,
+                                                                                       ldd,
+                                                                                       stride_d,
+                                                                                       batch_count);
+        }
     }
     else
     {
