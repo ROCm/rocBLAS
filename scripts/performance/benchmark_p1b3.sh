@@ -20,5 +20,5 @@ ${bench} -f gemm -r s --transposeA N --transposeB T -m 500 -n 1000 -k 200 --alph
 ${bench} -f gemm -r s --transposeA N --transposeB T -m 1000 -n 29532 -k 200 --alpha 1 --lda 1000 --ldb 29532 --beta 0 --ldc 1000
 ${bench} -f gemm -r s --transposeA N --transposeB N -m 1000 -n 200 -k 29532 --alpha 1 --lda 1000 --ldb 29532 --beta 0 --ldc 1000
 
-
-
+${bench} -f gemv -r s --transposeA T -m 50 -n 200 --alpha 1 --lda 50 --incx 1 --beta 0 --incy 1
+${bench} -f gemv -r s --transposeA N -m 50 -n 200 --alpha 1 --lda 50 --incx 1 --beta 0 --incy 1
