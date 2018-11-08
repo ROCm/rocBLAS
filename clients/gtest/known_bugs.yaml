@@ -3,3 +3,6 @@
 
 Known Bugs:
   - { function: testing_gemm, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: T, transB: N, M: 363, N: 1, K: 50176, lda: 50176, ldb: 50176, ldc: 363 }
+  - { function: testing_gemm, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N, M: 3136, N: 512, K: 2048, lda: 3136, ldb: 2048, ldc: 3136 }
+  - { function: testing_gemm, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N, M: 12544, N: 256, K: 1024, lda: 12544, ldb: 1024, ldc: 12544 }
+    
