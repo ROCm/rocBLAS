@@ -6,6 +6,26 @@
 #include <stdexcept>
 #include "utility.h"
 
+#define GTEST_DATA "rocblas_gtest.data"
+
+// Return path of this executable
+static string exepath()
+{
+    string pathstr;
+    char* path = realpath("/proc/self/exe", 0);
+    if(path)
+    {
+        char* p = rindex(path, '/');
+        if(p)
+        {
+            p[1]    = 0;
+            pathstr = path;
+        }
+        free(path);
+    }
+    return pathstr;
+}
+
 /* =====================================================================
       Main function:
 =================================================================== */
@@ -13,7 +33,7 @@
 int main(int argc, char** argv)
 {
     // Open data file
-    RocBLAS_TestData::init("rocblas_gtest.data");
+    RocBLAS_TestData::init(exepath() + GTEST_DATA);
 
     // Device Query
 
