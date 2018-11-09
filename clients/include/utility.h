@@ -620,7 +620,7 @@ struct RocBLAS_Data
         iterator;
 
     // Initialize class
-    static void init(const string& file) { get(file); }
+    static void init(const string& file) { datafile = file; }
 
     // begin() iterator which accepts an optional filter.
     static iterator begin(function<bool(const Arguments&)> filter = [](const Arguments&) {
@@ -645,26 +645,30 @@ struct RocBLAS_Data
     private:
     // We define this function to generate a single instance of the class on
     // first use so that we don't depend on the static initialization order.
-    // Only the first call needs to specify file.
-    static RocBLAS_Data& get(const string& file = "<unspecified file>")
+    static RocBLAS_Data& get()
     {
-        static RocBLAS_Data singleton(file);
+        static RocBLAS_Data singleton;
         return singleton;
     }
 
     // Constructor which opens file
-    explicit RocBLAS_Data(const string& file)
+    RocBLAS_Data()
     {
-        ifs.open(file, ifstream::binary);
+        ifs.open(datafile, ifstream::binary);
         if(ifs.fail())
         {
-            cerr << "Cannot open " << file << ": " << strerror(errno) << endl;
-            throw ifstream::failure("Cannot open " + file);
+            cerr << "Cannot open " << datafile << ": " << strerror(errno) << endl;
+            throw ifstream::failure("Cannot open " + datafile);
         }
     }
 
+    static string datafile;
     ifstream ifs;
 };
+
+template <rocblas_data_class C>
+string RocBLAS_Data<C>::datafile =
+    "(Uninitialized data. RocBLAS_Data<...>::init needs to be called first.)";
 
 typedef RocBLAS_Data<rocblas_test_data> RocBLAS_TestData;
 typedef RocBLAS_Data<rocblas_perf_data> RocBLAS_PerfData;
