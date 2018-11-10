@@ -140,6 +140,22 @@ double norm_check_general<double>(
 }
 
 template <>
+double norm_check_general<int32_t>(
+    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, int32_t* hCPU, int32_t* hGPU)
+{
+    // Upconvert int32_t to double and call double version
+    std::unique_ptr<double[]> hCPU_double(new double[M * N]());
+    std::unique_ptr<double[]> hGPU_double(new double[M * N]());
+
+    for(int i = 0; i < M * N; i++)
+    {
+        hCPU_double[i] = static_cast<double>(hCPU[i]);
+        hGPU_double[i] = static_cast<double>(hGPU[i]);
+    }
+    return norm_check_general<double>(norm_type, M, N, lda, hCPU_double.get(), hGPU_double.get());
+}
+
+template <>
 double norm_check_general<rocblas_float_complex>(char norm_type,
                                                  rocblas_int M,
                                                  rocblas_int N,
