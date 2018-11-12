@@ -10,7 +10,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -40,9 +39,7 @@ rocblas_status testing_gemm_kernel_name(Arguments argus)
     rocblas_int safe_size = 100; // arbitrarily set to 100
 
     rocblas_status status;
-
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
@@ -54,7 +51,7 @@ rocblas_status testing_gemm_kernel_name(Arguments argus)
     rocblas_int bsb = ldb * B_col * 2;
     rocblas_int bsc = ldc * N * 2;
 
-    T *dA, *dB, *dC;
+    T *dA = nullptr, *dB = nullptr, *dC = nullptr;
 
     return rocblas_gemm_kernel_name<T>(handle,
                                        transA,

@@ -9,7 +9,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -31,27 +30,24 @@ rocblas_status testing_set_get_vector(Arguments argus)
     rocblas_status status_set = rocblas_status_success;
     rocblas_status status_get = rocblas_status_success;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
     if(M < 0 || incx <= 0 || incy <= 0 || incb <= 0 || nullptr == handle)
     {
-        vector<T> hx(safe_size);
-        vector<T> hy(safe_size);
+        host_vector<T> hx(safe_size);
+        host_vector<T> hy(safe_size);
 
-        auto db_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        T* db = (T*)db_managed.get();
+        device_vector<T> db(safe_size);
         if(!db)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
             return rocblas_status_memory_error;
         }
 
-        status_set = rocblas_set_vector(M, sizeof(T), (void*)hx.data(), incx, (void*)db, incb);
-        status_get = rocblas_get_vector(M, sizeof(T), (void*)db, incb, (void*)hy.data(), incy);
+        status_set = rocblas_set_vector(M, sizeof(T), hx, incx, db, incb);
+        status_get = rocblas_get_vector(M, sizeof(T), db, incb, hy, incy);
 
         if(nullptr == handle)
         {
@@ -79,19 +75,17 @@ rocblas_status testing_set_get_vector(Arguments argus)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hx(M * incx);
-    vector<T> hy(M * incy);
-    vector<T> hb(M * incb);
-    vector<T> hy_gold(M * incy);
+    host_vector<T> hx(M * incx);
+    host_vector<T> hy(M * incy);
+    host_vector<T> hb(M * incb);
+    host_vector<T> hy_gold(M * incy);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    auto db_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * M * incb),
-                                         rocblas_test::device_free};
-    T* db = (T*)db_managed.get();
+    device_vector<T> db(M * incb);
     if(!db)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -99,7 +93,7 @@ rocblas_status testing_set_get_vector(Arguments argus)
     }
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hx, 1, M, incx);
     rocblas_init<T>(hy, 1, M, incy);
     rocblas_init<T>(hb, 1, M, incb);
@@ -110,10 +104,10 @@ rocblas_status testing_set_get_vector(Arguments argus)
         // GPU BLAS
         rocblas_init<T>(hy, 1, M, incy);
         rocblas_init<T>(hb, 1, M, incb);
-        CHECK_HIP_ERROR(hipMemcpy(db, hb.data(), sizeof(T) * incb * M, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * incb * M, hipMemcpyHostToDevice));
 
-        status_set = rocblas_set_vector(M, sizeof(T), (void*)hx.data(), incx, (void*)db, incb);
-        status_get = rocblas_get_vector(M, sizeof(T), (void*)db, incb, (void*)hy.data(), incy);
+        status_set = rocblas_set_vector(M, sizeof(T), hx, incx, db, incb);
+        status_get = rocblas_get_vector(M, sizeof(T), db, incb, hy, incy);
 
         cpu_time_used = get_time_us();
 
@@ -130,7 +124,7 @@ rocblas_status testing_set_get_vector(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(1, M, incy, hy.data(), hy_gold.data());
+            unit_check_general<T>(1, M, incy, hy, hy_gold);
         }
 
         // if enable norm check, norm check is invasive
@@ -138,7 +132,7 @@ rocblas_status testing_set_get_vector(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, incy, hy.data(), hy_gold.data());
+            rocblas_error = norm_check_general<T>('F', 1, M, incy, hy, hy_gold);
         }
     }
 
@@ -149,8 +143,8 @@ rocblas_status testing_set_get_vector(Arguments argus)
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
-            rocblas_set_vector(M, sizeof(T), (void*)hx.data(), incx, (void*)db, incb);
-            rocblas_get_vector(M, sizeof(T), (void*)db, incb, (void*)hy.data(), incy);
+            rocblas_set_vector(M, sizeof(T), hx, incx, db, incb);
+            rocblas_get_vector(M, sizeof(T), db, incb, hy, incy);
         }
 
         gpu_time_used     = get_time_us() - gpu_time_used;
