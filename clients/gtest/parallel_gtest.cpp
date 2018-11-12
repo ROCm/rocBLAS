@@ -27,11 +27,9 @@ struct parallel_gemm : ::testing::TestWithParam<std::vector<Arguments>>
     // Filter for which tests get into gemm right now
     static function<bool(const Arguments&)> filter()
     {
-        return [](const Arguments& arg)
-        {
-            return !strcmp(arg.function, "testing_gemm")
-                && (arg.unit_check || arg.norm_check)
-                && !arg.timing;
+        return [](const Arguments& arg) {
+            return !strcmp(arg.function, "testing_gemm") && (arg.unit_check || arg.norm_check) &&
+                   !arg.timing;
         };
     }
 };
@@ -48,9 +46,10 @@ TEST_P(parallel_gemm_synchronized, test)
 
     std::condition_variable cv;
     int waiting_threads = 0;
-    int num_threads = max_threads;
+    int num_threads     = max_threads;
 
-    std::cout << "Running " << args.size() << " tests in " << max_threads << " threads." << std::endl;
+    std::cout << "Running " << args.size() << " tests in " << max_threads << " threads."
+              << std::endl;
 
     for(auto it = args.begin(); it != args.end(); it++)
     {
@@ -62,7 +61,8 @@ TEST_P(parallel_gemm_synchronized, test)
         }
 
         futures.emplace_back(async(launch::async, [&, this, num_threads]() {
-            rocblas_status status = testing_gemm_parallel<float>(arg, cv, waiting_threads, num_threads);
+            rocblas_status status =
+                testing_gemm_parallel<float>(arg, cv, waiting_threads, num_threads);
 
             if(arg.M < 0 || arg.N < 0 || arg.K < 0)
             {
@@ -95,7 +95,6 @@ TEST_P(parallel_gemm_synchronized, test)
 
             CHECK_HIP_ERROR(hipDeviceReset());
         }
-
     }
 
     for(auto& future : futures)
@@ -110,7 +109,8 @@ TEST_P(parallel_gemm, DISABLED_test)
     const int max_threads = 64;
     std::list<std::future<void>> futures;
 
-    std::cout << "Running " << args.size() << " tests in " << max_threads << " threads." << std::endl;
+    std::cout << "Running " << args.size() << " tests in " << max_threads << " threads."
+              << std::endl;
 
     int i = 0;
     for(auto const& arg : args)
@@ -151,43 +151,6 @@ TEST_P(parallel_gemm, DISABLED_test)
     for(auto& future : futures)
         future.wait();
 }
-
-#if 0
-TEST_P(parallel_gemm, test)
-{
-    std::vector<Arguments> args = GetParam();
-    std::random_shuffle(args.begin(), args.end());
-
-#pragma omp parallel for
-    for(int i = 0; i < args.size(); i++)
-    {
-        auto arg = args[i];
-        EXPECT_GT(omp_get_num_threads(), 1);
-        rocblas_status status = testing_gemm<float>(arg);
-
-        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldc < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else
-        {
-            EXPECT_EQ(rocblas_status_success, status);
-        }
-    }
-}
-#endif
 
 INSTANTIATE_TEST_CASE_P(
     parallel,
