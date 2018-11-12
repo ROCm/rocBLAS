@@ -140,24 +140,12 @@ void testing_logging()
     rocblas_int size_d   = (ldd > stride_d ? ldd : stride_d) * safe_dim * batch_count;
 
     // allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_y),
-                                         rocblas_test::device_free};
-    auto da_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_a),
-                                         rocblas_test::device_free};
-    auto db_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_b),
-                                         rocblas_test::device_free};
-    auto dc_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_c),
-                                         rocblas_test::device_free};
-    auto dd_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_d),
-                                         rocblas_test::device_free};
-    T* dx = (T*)dx_managed.get();
-    T* dy = (T*)dy_managed.get();
-    T* da = (T*)da_managed.get();
-    T* db = (T*)db_managed.get();
-    T* dc = (T*)dc_managed.get();
-    T* dd = (T*)dd_managed.get();
+    device_vector<T> dx(size_x);
+    device_vector<T> dy(size_y);
+    device_vector<T> da(size_a);
+    device_vector<T> db(size_b);
+    device_vector<T> dc(size_c);
+    device_vector<T> dd(size_d);
     if(!dx || !dy || !da || !db || !dc || !dd)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -166,16 +154,14 @@ void testing_logging()
 
     rocblas_status status;
 
-    // enclose in {} so rocblas_handle destructor called as it goes out of scope
+    // enclose in {} so rocblas_local_handle destructor called as it goes out of scope
     {
         int i_result;
         T result;
         rocblas_pointer_mode mode;
 
         // Auxiliary functions
-        std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(
-            new rocblas_test::handle_struct);
-        rocblas_handle handle = unique_ptr_handle->handle;
+        rocblas_local_handle handle;
 
         status = rocblas_set_pointer_mode(handle, test_pointer_mode);
         status = rocblas_get_pointer_mode(handle, &mode);
@@ -213,8 +199,8 @@ void testing_logging()
         if(BUILD_WITH_TENSILE)
         {
             /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
-                        status = rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da,
-               lda, db, ldb);
+               status = rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da, lda, db,
+               ldb);
             */
             status = rocblas_gemm<T>(
                 handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
@@ -608,7 +594,8 @@ void testing_logging()
                     trace_ofs2 << "\n"
                                << replaceX<T>("rocblas_Xtrsm") << "," << side << "," << uplo
                                << "," << transA << "," << diag << "," << m
-                               << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda
+                               << "," << n << "," << (void*)&alpha << "," << (void*)da << ","
+           << lda
                                << "," << (void*)db << "," << ldb;
                 }
         */

@@ -27,15 +27,10 @@ rocblas_status testing_nrm2_bad_arg()
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),
-                                         rocblas_test::device_free};
-    auto d_rocblas_result_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
-    T1* dx               = (T1*)dx_managed.get();
-    T2* d_rocblas_result = (T2*)d_rocblas_result_managed.get();
+    device_vector<T1> dx(safe_size);
+    device_vector<T2> d_rocblas_result(1);
     if(!dx || !d_rocblas_result)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -87,19 +82,13 @@ rocblas_status testing_nrm2(Arguments argus)
     double rocblas_error_2;
 
     rocblas_status status;
-
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * safe_size),
-                                             rocblas_test::device_free};
-        auto d_rocblas_result_managed =
-            rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
-        T1* dx               = (T1*)dx_managed.get();
-        T2* d_rocblas_result = (T2*)d_rocblas_result_managed.get();
+        device_vector<T1> dx(safe_size);
+        device_vector<T2> d_rocblas_result(1);
         if(!dx || !d_rocblas_result)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -108,21 +97,15 @@ rocblas_status testing_nrm2(Arguments argus)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         status = rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result);
-
-        nrm2_dot_arg_check(status, d_rocblas_result);
-
+        nrm2_dot_arg_check<T2>(status, d_rocblas_result);
         return status;
     }
 
     rocblas_int size_x = N * incx;
 
     // allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T1) * size_x),
-                                         rocblas_test::device_free};
-    auto d_rocblas_result_managed_2 =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T2)), rocblas_test::device_free};
-    T1* dx                 = (T1*)dx_managed.get();
-    T2* d_rocblas_result_2 = (T2*)d_rocblas_result_managed_2.get();
+    device_vector<T1> dx(size_x);
+    device_vector<T2> d_rocblas_result_2(1);
     if(!dx || !d_rocblas_result_2)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -130,14 +113,14 @@ rocblas_status testing_nrm2(Arguments argus)
     }
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    vector<T1> hx(size_x);
+    host_vector<T1> hx(size_x);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T1>(hx, 1, N, incx);
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T1) * N * incx, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * N * incx, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
 
@@ -155,7 +138,7 @@ rocblas_status testing_nrm2(Arguments argus)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_nrm2<T1, T2>(N, hx.data(), incx, &cpu_result);
+        cblas_nrm2<T1, T2>(N, hx, incx, &cpu_result);
         cpu_time_used = get_time_us() - cpu_time_used;
 
         //      allowable error is sqrt of precision. This is based on nrm2 calculating the
