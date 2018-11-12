@@ -120,10 +120,6 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC_1, M, N, ldc);
 
-    //  rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
-    //  rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);
-    //  rocblas_init<T>(hC_1, M, N, ldc, 1.0);
-
     //  std::cout << "------------------------------------------------" << std::endl;
     //  for(int i = 0; i < size_A; i++){ cout << half_to_float(hA[i]) << "  "; }
     //  std::cout << std::endl << "------------------------------------------------" << std::endl;
@@ -224,47 +220,5 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
         rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
     }
 
-    //if(argus.timing)
-    //{
-    //    int number_cold_calls = 2;
-    //    int number_hot_calls  = argus.iters;
-
-    //    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-    //    for(int i = 0; i < number_cold_calls; i++)
-    //    {
-    //        CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
-    //            handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
-    //    }
-
-    //    gpu_time_used = get_time_us(); // in microseconds
-    //    for(int i = 0; i < number_hot_calls; i++)
-    //    {
-    //        rocblas_gemm<T>(
-    //            handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
-    //    }
-    //    gpu_time_used  = get_time_us() - gpu_time_used;
-    //    rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
-
-    //    cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
-
-    //    if(argus.unit_check || argus.norm_check)
-    //        cout << ",CPU-Gflops,us,norm-error";
-
-    //    cout << endl;
-
-    //    cout << argus.transA_option << "," << argus.transB_option << "," << M << "," << N << ","
-    //         << K << "," << (is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
-    //         << "," << lda << "," << ldb << ","
-    //         << (is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << "," << ldc
-    //         << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
-
-    //    if(argus.unit_check || argus.norm_check)
-    //    {
-    //        cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-    //    }
-
-    //    cout << endl;
-    //}
     return status;
 }
