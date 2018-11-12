@@ -5,6 +5,14 @@
 #include <sys/time.h>
 #include "rocblas.h"
 #include "utility.h"
+#include <random>
+
+// Random number generator
+// Note: We do not use random_device to initialize the RNG, because we want
+// repeatability in case of test failure. TODO: Add seed as an optional CLI
+// argument, and print the seed on output, to ensure repeatability.
+rocblas_rng_t rocblas_rng(69069);
+rocblas_rng_t rocblas_seed(rocblas_rng);
 
 template <>
 char type2char<float>()

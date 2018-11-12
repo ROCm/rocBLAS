@@ -9,7 +9,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -29,20 +28,15 @@ void testing_syr_bad_arg()
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int size_A   = lda * N;
     rocblas_int size_x   = N * abs_incx;
 
     // allocate memory on device
-    auto dA_1_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                           rocblas_test::device_free};
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-    T* dA_1 = (T*)dA_1_managed.get();
-    T* dx   = (T*)dx_managed.get();
+    device_vector<T> dA_1(size_A);
+    device_vector<T> dx(size_x);
     if(!dA_1 || !dx)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -52,21 +46,21 @@ void testing_syr_bad_arg()
     // test if (nullptr == dx)
     {
         T* dx_null = nullptr;
-        status     = rocblas_syr<T>(handle, uplo, N, (T*)&alpha, dx_null, incx, dA_1, lda);
+        status     = rocblas_syr<T>(handle, uplo, N, &alpha, dx_null, incx, dA_1, lda);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A or x is null pointer");
     }
     // test if (nullptr == dA_1)
     {
         T* dA_1_null = nullptr;
-        status       = rocblas_syr<T>(handle, uplo, N, (T*)&alpha, dx, incx, dA_1_null, lda);
+        status       = rocblas_syr<T>(handle, uplo, N, &alpha, dx, incx, dA_1_null, lda);
 
         verify_rocblas_status_invalid_pointer(status, "ERROR: A or x is null pointer");
     }
     // test if (handle == nullptr)
     {
         rocblas_handle handle_null = nullptr;
-        status = rocblas_syr<T>(handle_null, uplo, N, (T*)&alpha, dx, incx, dA_1, lda);
+        status = rocblas_syr<T>(handle_null, uplo, N, &alpha, dx, incx, dA_1, lda);
 
         verify_rocblas_status_invalid_handle(status);
     }
@@ -87,25 +81,20 @@ rocblas_status testing_syr(Arguments argus)
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
     if(N <= 0 || lda < N || lda < 1 || 0 == incx)
     {
-        auto dA_1_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                               rocblas_test::device_free};
-        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        T* dA_1 = (T*)dA_1_managed.get();
-        T* dx   = (T*)dx_managed.get();
+        device_vector<T> dA_1(safe_size);
+        device_vector<T> dx(safe_size);
         if(!dA_1 || !dx)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
             return rocblas_status_memory_error;
         }
 
-        status = rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda);
+        status = rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
 
         syr_arg_check(status, N, lda, incx);
 
@@ -117,24 +106,16 @@ rocblas_status testing_syr(Arguments argus)
     rocblas_int size_x   = N * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA_1(size_A);
-    vector<T> hA_2(size_A);
-    vector<T> hA_gold(size_A);
-    vector<T> hx(N * abs_incx);
+    host_vector<T> hA_1(size_A);
+    host_vector<T> hA_2(size_A);
+    host_vector<T> hA_gold(size_A);
+    host_vector<T> hx(N * abs_incx);
 
     // allocate memory on device
-    auto dA_1_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                           rocblas_test::device_free};
-    auto dA_2_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                           rocblas_test::device_free};
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-    auto d_alpha_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    T* dA_1    = (T*)dA_1_managed.get();
-    T* dA_2    = (T*)dA_2_managed.get();
-    T* dx      = (T*)dx_managed.get();
-    T* d_alpha = (T*)d_alpha_managed.get();
+    device_vector<T> dA_1(size_A);
+    device_vector<T> dA_2(size_A);
+    device_vector<T> dx(size_x);
+    device_vector<T> d_alpha(1);
     if(!dA_1 || !dA_2 || !dx || !d_alpha)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -147,7 +128,7 @@ rocblas_status testing_syr(Arguments argus)
     double rocblas_error_2;
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     if(lda >= N)
     {
         rocblas_init_symmetric<T>(hA_1, N, lda);
@@ -160,29 +141,29 @@ rocblas_status testing_syr(Arguments argus)
     hA_2    = hA_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1.data(), sizeof(T) * lda * N, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * N * abs_incx, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1, sizeof(T) * lda * N, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * N * abs_incx, hipMemcpyHostToDevice));
 
     if(argus.unit_check || argus.norm_check)
     {
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2.data(), sizeof(T) * lda * N, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda));
+        CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
 
         // copy output from device to CPU
-        hipMemcpy(hA_1.data(), dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
-        hipMemcpy(hA_2.data(), dA_2, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
 
         // CPU BLAS
         cpu_time_used = get_time_us();
 
-        cblas_syr<T>(uplo, N, h_alpha, hx.data(), incx, hA_gold.data(), lda);
+        cblas_syr<T>(uplo, N, h_alpha, hx, incx, hA_gold, lda);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = syr_gflop_count<T>(N) / cpu_time_used * 1e6;
@@ -191,8 +172,8 @@ rocblas_status testing_syr(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(N, N, lda, hA_gold.data(), hA_1.data());
-            unit_check_general<T>(N, N, lda, hA_gold.data(), hA_2.data());
+            unit_check_general<T>(N, N, lda, hA_gold, hA_1);
+            unit_check_general<T>(N, N, lda, hA_gold, hA_2);
         }
 
         // if enable norm check, norm check is invasive
@@ -200,8 +181,8 @@ rocblas_status testing_syr(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold.data(), hA_1.data());
-            rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold.data(), hA_2.data());
+            rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_1);
+            rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold, hA_2);
         }
     }
 
@@ -213,18 +194,18 @@ rocblas_status testing_syr(Arguments argus)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda);
+            rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_syr<T>(handle, uplo, N, (T*)&h_alpha, dx, incx, dA_1, lda);
+            rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = syr_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = syr_gflop_count<T>(N) / gpu_time_used * 1e6;
         rocblas_bandwidth = (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything

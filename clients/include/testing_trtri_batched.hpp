@@ -9,7 +9,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -49,12 +48,12 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hB(size_A);
-    vector<T> hA;
+    host_vector<T> hB(size_A);
+    host_vector<T> hA;
 
     // Initial Data on CPU
-    srand(1);
-    vector<T> hA_sub(bsa);
+    rocblas_seedrand();
+    host_vector<T> hA_sub(bsa);
     for(size_t i = 0; i < batch_count; i++)
     {
         rocblas_init_symmetric<T>(hA_sub, N, lda);
@@ -76,15 +75,10 @@ rocblas_status testing_trtri_batched(Arguments argus)
     rocblas_fill uplo     = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                         rocblas_test::device_free};
-    auto dinvA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                            rocblas_test::device_free};
-    T* dA    = (T*)dA_managed.get();
-    T* dinvA = (T*)dinvA_managed.get();
+    device_vector<T> dA(size_A);
+    device_vector<T> dinvA(size_A);
     if(!dA || !dinvA)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -92,8 +86,8 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dinvA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dinvA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
 
     /* =====================================================================
            ROCBLAS
@@ -116,7 +110,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
     }
 
     // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hA.data(), dinvA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hA, dinvA, sizeof(T) * size_A, hipMemcpyDeviceToHost));
 
     if(argus.unit_check || argus.norm_check)
     {
@@ -130,7 +124,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
 
         for(size_t i = 0; i < batch_count; i++)
         {
-            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB.data() + i * bsa, lda);
+            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB + i * bsa, lda);
             if(info != 0)
                 printf("error in cblas_trtri\n");
         }
@@ -144,7 +138,7 @@ rocblas_status testing_trtri_batched(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(N, N * batch_count, lda, hB.data(), hA.data());
+            unit_check_general<T>(N, N * batch_count, lda, hB, hA);
         }
 
         for(int i = 0; i < 32; i++)
@@ -157,10 +151,9 @@ rocblas_status testing_trtri_batched(Arguments argus)
         {
             for(size_t i = 0; i < batch_count; i++)
             {
-                rocblas_error =
-                    fmax(rocblas_error,
-                         norm_check_symmetric<T>(
-                             'F', char_uplo, N, lda, hB.data() + i * bsa, hA.data() + i * bsa));
+                rocblas_error = fmax(
+                    rocblas_error,
+                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
                 // printf("error=%f, %lu\n", rocblas_error, i);
             }
         }

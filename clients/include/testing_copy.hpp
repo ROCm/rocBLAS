@@ -25,15 +25,9 @@ void testing_copy_bad_arg()
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
-
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                         rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                         rocblas_test::device_free};
-    T* dx = (T*)dx_managed.get();
-    T* dy = (T*)dy_managed.get();
+    rocblas_local_handle handle;
+    device_vector<T> dx(safe_size);
+    device_vector<T> dy(safe_size);
     if(!dx || !dy)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -77,19 +71,13 @@ rocblas_status testing_copy(Arguments argus)
     rocblas_int safe_size = 100; //  arbitrarily set to 100
 
     rocblas_status status;
-
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        T* dx = (T*)dx_managed.get();
-        T* dy = (T*)dy_managed.get();
+        device_vector<T> dx(safe_size);
+        device_vector<T> dy(safe_size);
         if(!dx || !dy)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -107,12 +95,8 @@ rocblas_status testing_copy(Arguments argus)
     rocblas_int size_y   = N * abs_incy;
 
     // allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_x),
-                                         rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_y),
-                                         rocblas_test::device_free};
-    T* dx = (T*)dx_managed.get();
-    T* dy = (T*)dy_managed.get();
+    device_vector<T> dx(size_x);
+    device_vector<T> dy(size_y);
     if(!dx || !dy)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -120,12 +104,12 @@ rocblas_status testing_copy(Arguments argus)
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hx(size_x);
-    vector<T> hy(size_y);
-    vector<T> hy_gold(size_y);
+    host_vector<T> hx(size_x);
+    host_vector<T> hy(size_y);
+    host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
@@ -134,8 +118,8 @@ rocblas_status testing_copy(Arguments argus)
     hy_gold = hy;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy.data(), sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
@@ -144,18 +128,18 @@ rocblas_status testing_copy(Arguments argus)
     {
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_copy<T>(handle, N, dx, incx, dy, incy));
-        CHECK_HIP_ERROR(hipMemcpy(hy.data(), dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hy, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_copy<T>(N, hx.data(), incx, hy_gold.data(), incy);
+        cblas_copy<T>(N, hx, incx, hy_gold, incy);
         cpu_time_used = get_time_us() - cpu_time_used;
 
         // enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incy, hy_gold.data(), hy.data());
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
         }
 
         // if enable norm check, norm check is invasive
@@ -163,7 +147,7 @@ rocblas_status testing_copy(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold.data(), hy.data());
+            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
         }
     }
 

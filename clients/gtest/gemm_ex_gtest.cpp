@@ -291,8 +291,7 @@ class parameterized_gemm_ex : public ::TestWithParam<gemm_ex_tuple>
 TEST(known_bugs_int8, IdentityMatrix)
 {
     // Simple test cases running on matrices full of ones
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     int32_t solution_index;
@@ -321,10 +320,10 @@ TEST(known_bugs_int8, IdentityMatrix)
             const rocblas_int ldd = L;
 
             // Allocate CPU memory
-            std::unique_ptr<int8_t[]> hA(new int8_t[L * L]());
-            std::unique_ptr<int8_t[]> hB(new int8_t[L * L]());
-            std::unique_ptr<int32_t[]> hC(new int32_t[L * L]());
-            std::unique_ptr<int32_t[]> hD(new int32_t[L * L]());
+            host_vector<int8_t> hA(L * L);
+            host_vector<int8_t> hB(L * L);
+            host_vector<int32_t> hC(L * L);
+            host_vector<int32_t> hD(L * L);
 
             // Initialize CPU matrices
             if(transA == rocblas_operation_none)
@@ -372,30 +371,19 @@ TEST(known_bugs_int8, IdentityMatrix)
             }
 
             for(int i = 0; i < L * L; i++)
-                hC[i] = 0;
-            for(int i = 0; i < L * L; i++)
-                hD[i] = 0;
+                hC[i] = hD[i] = 0;
 
             // Allocate GPU memory
-            auto dA_managed = rocblas_unique_ptr{
-                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
-            auto dB_managed = rocblas_unique_ptr{
-                rocblas_test::device_malloc(sizeof(int8_t) * L * L), rocblas_test::device_free};
-            auto dC_managed = rocblas_unique_ptr{
-                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
-            auto dD_managed = rocblas_unique_ptr{
-                rocblas_test::device_malloc(sizeof(int32_t) * L * L), rocblas_test::device_free};
+            device_vector<int8_t> dA(L * L);
+            device_vector<int8_t> dB(L * L);
+            device_vector<int32_t> dC(L * L);
+            device_vector<int32_t> dD(L * L);
 
             // Initialize GPU matrices by copying CPU matrices
-            int8_t* dA  = (int8_t*)dA_managed.get();
-            int8_t* dB  = (int8_t*)dB_managed.get();
-            int32_t* dC = (int32_t*)dC_managed.get();
-            int32_t* dD = (int32_t*)dD_managed.get();
-
-            hipMemcpy(dA, hA.get(), L * L * sizeof(int8_t), hipMemcpyHostToDevice);
-            hipMemcpy(dB, hB.get(), L * L * sizeof(int8_t), hipMemcpyHostToDevice);
-            hipMemcpy(dC, hC.get(), L * L * sizeof(int32_t), hipMemcpyHostToDevice);
-            hipMemcpy(dD, hD.get(), L * L * sizeof(int32_t), hipMemcpyHostToDevice);
+            hipMemcpy(dA, hA, L * L * sizeof(int8_t), hipMemcpyHostToDevice);
+            hipMemcpy(dB, hB, L * L * sizeof(int8_t), hipMemcpyHostToDevice);
+            hipMemcpy(dC, hC, L * L * sizeof(int32_t), hipMemcpyHostToDevice);
+            hipMemcpy(dD, hD, L * L * sizeof(int32_t), hipMemcpyHostToDevice);
 
             // Call rocBLAS
             status = rocblas_gemm_ex(handle,
@@ -428,16 +416,22 @@ TEST(known_bugs_int8, IdentityMatrix)
             EXPECT_EQ(status, rocblas_status_success);
 
             // Copy results back to host
-            hipMemcpy(hD.get(), dD, L * L * sizeof(int32_t), hipMemcpyDeviceToHost);
+            hipMemcpy(hD, dD, L * L * sizeof(int32_t), hipMemcpyDeviceToHost);
 
             bool isMatch = true;
             for(int i = 0; i < L; i++)
             {
                 for(int j = 0; j < L; j++)
                 {
-                    isMatch &= (hD[j * L + i] == j * L + i);
+                    if(hD[j * L + i] != j * L + i)
+                    {
+                        isMatch = false;
+                        goto end;
+                    }
                 }
             }
+        end:
+
             EXPECT_EQ(isMatch, true);
         }
     }
@@ -446,8 +440,7 @@ TEST(known_bugs_int8, IdentityMatrix)
 TEST(known_bugs_int8, AllOnesMatrices)
 {
     // Simple test cases running on matrices full of ones
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
     int32_t solution_index;
@@ -479,10 +472,10 @@ TEST(known_bugs_int8, AllOnesMatrices)
                     const rocblas_int ldd = M;
 
                     // Allocate CPU memory
-                    std::unique_ptr<int8_t[]> hA(new int8_t[M * K]());
-                    std::unique_ptr<int8_t[]> hB(new int8_t[K * N]());
-                    std::unique_ptr<int32_t[]> hC(new int32_t[M * N]());
-                    std::unique_ptr<int32_t[]> hD(new int32_t[M * N]());
+                    host_vector<int8_t> hA(M * K);
+                    host_vector<int8_t> hB(K * N);
+                    host_vector<int32_t> hC(M * N);
+                    host_vector<int32_t> hD(M * N);
 
                     // Initialize CPU matrices
                     for(int i = 0; i < M * K; i++)
@@ -490,34 +483,19 @@ TEST(known_bugs_int8, AllOnesMatrices)
                     for(int i = 0; i < K * N; i++)
                         hB[i] = 1;
                     for(int i = 0; i < M * N; i++)
-                        hC[i] = 0;
-                    for(int i = 0; i < M * N; i++)
-                        hD[i] = 0;
+                        hC[i] = hD[i] = 0;
 
                     // Allocate GPU memory
-                    auto dA_managed =
-                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * M * K),
-                                           rocblas_test::device_free};
-                    auto dB_managed =
-                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int8_t) * K * N),
-                                           rocblas_test::device_free};
-                    auto dC_managed =
-                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
-                                           rocblas_test::device_free};
-                    auto dD_managed =
-                        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(int32_t) * M * N),
-                                           rocblas_test::device_free};
+                    device_vector<int8_t> dA(M * K);
+                    device_vector<int8_t> dB(K * N);
+                    device_vector<int32_t> dC(M * N);
+                    device_vector<int32_t> dD(M * N);
 
                     // Initialize GPU matrices by copying CPU matrices
-                    int8_t* dA  = (int8_t*)dA_managed.get();
-                    int8_t* dB  = (int8_t*)dB_managed.get();
-                    int32_t* dC = (int32_t*)dC_managed.get();
-                    int32_t* dD = (int32_t*)dD_managed.get();
-
-                    hipMemcpy(dA, hA.get(), M * K * sizeof(int8_t), hipMemcpyHostToDevice);
-                    hipMemcpy(dB, hB.get(), K * N * sizeof(int8_t), hipMemcpyHostToDevice);
-                    hipMemcpy(dC, hC.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
-                    hipMemcpy(dD, hD.get(), M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dA, hA, M * K * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dB, hB, K * N * sizeof(int8_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dC, hC, M * N * sizeof(int32_t), hipMemcpyHostToDevice);
+                    hipMemcpy(dD, hD, M * N * sizeof(int32_t), hipMemcpyHostToDevice);
 
                     // Call rocBLAS
                     status = rocblas_gemm_ex(handle,
@@ -550,11 +528,15 @@ TEST(known_bugs_int8, AllOnesMatrices)
                     EXPECT_EQ(status, rocblas_status_success);
 
                     // Copy results back to host
-                    hipMemcpy(hD.get(), dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
+                    hipMemcpy(hD, dD, M * N * sizeof(int32_t), hipMemcpyDeviceToHost);
 
                     bool isMatch = true;
                     for(int i = 0; i < M * N; i++)
-                        isMatch &= (hD[i] == K);
+                        if(hD[i] != K)
+                        {
+                            isMatch = false;
+                            break;
+                        }
                     EXPECT_EQ(isMatch, true);
                 }
     }

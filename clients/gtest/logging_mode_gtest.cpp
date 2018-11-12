@@ -10,8 +10,6 @@
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "utility.h"
-#include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "testing_logging.hpp"
 
 using namespace std;

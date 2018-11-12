@@ -7,8 +7,6 @@
 #include <stdexcept>
 #include "rocblas.hpp"
 #include "utility.h"
-#include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 
 using namespace std;
 
@@ -28,9 +26,7 @@ TEST(quick_auxilliary, set_pointer_mode_get_pointer_mode)
 {
     rocblas_status status     = rocblas_status_success;
     rocblas_pointer_mode mode = rocblas_pointer_mode_device;
-
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     status = rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device);
     EXPECT_EQ(status, rocblas_status_success);
