@@ -10,7 +10,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -59,8 +58,7 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
@@ -71,15 +69,9 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count <= 0 ||
        stride_a < 0 || stride_b < 0 || stride_c < N * ldc)
     {
-        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
+        device_vector<T> dA(safe_size);
+        device_vector<T> dB(safe_size);
+        device_vector<T> dC(safe_size);
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -132,21 +124,11 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         size_one_c + static_cast<size_t>(stride_c) * static_cast<size_t>(batch_count - 1);
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_a),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_b),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_c),
-                                         rocblas_test::device_free};
-    auto d_alpha_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    auto d_beta_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    T* dA      = (T*)dA_managed.get();
-    T* dB      = (T*)dB_managed.get();
-    T* dC      = (T*)dC_managed.get();
-    T* d_alpha = (T*)d_alpha_managed.get();
-    T* d_beta  = (T*)d_beta_managed.get();
+    device_vector<T> dA(size_a);
+    device_vector<T> dB(size_b);
+    device_vector<T> dC(size_c);
+    device_vector<T> d_alpha(1);
+    device_vector<T> d_beta(1);
     if((!dA && (size_a != 0)) || (!dB && (size_b != 0)) || (!dC && (size_c != 0)) || !d_alpha ||
        !d_beta)
     {
@@ -155,14 +137,14 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hA(size_a);
-    vector<T> hB(size_b);
-    vector<T> hC_1(size_c);
-    vector<T> hC_2(size_c);
-    vector<T> hC_gold(size_c);
+    host_vector<T> hA(size_a);
+    host_vector<T> hB(size_b);
+    host_vector<T> hC_1(size_c);
+    host_vector<T> hC_2(size_c);
+    host_vector<T> hC_gold(size_c);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
@@ -172,15 +154,15 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
     hC_gold = hC_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_a, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_b, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_a, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_b, hipMemcpyHostToDevice));
 
     if(argus.unit_check || argus.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_1.data(), sizeof(T) * size_c, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_c, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
                                                             transA,
@@ -201,12 +183,12 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                                             stride_c,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_1.data(), dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_2.data(), sizeof(T) * size_c, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_c, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
@@ -229,25 +211,25 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
                                                             stride_c,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<T>(transA,
-                          transB,
-                          M,
-                          N,
-                          K,
-                          h_alpha,
-                          hA.data() + stride_a * i,
-                          lda,
-                          hB.data() + stride_b * i,
-                          ldb,
-                          h_beta,
-                          hC_gold.data() + stride_c * i,
-                          ldc);
+            cblas_gemm<T, T>(transA,
+                             transB,
+                             M,
+                             N,
+                             K,
+                             h_alpha,
+                             hA + stride_a * i,
+                             lda,
+                             hB + stride_b * i,
+                             ldb,
+                             h_beta,
+                             hC_gold + stride_c * i,
+                             ldc);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
@@ -256,8 +238,8 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold.data(), hC_1.data());
-            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold.data(), hC_2.data());
+            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
+            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
         }
 
         // if enable norm check, norm check is invasive
@@ -265,10 +247,10 @@ rocblas_status testing_gemm_strided_batched(Arguments argus)
         // time
         if(argus.norm_check)
         {
-            double error_hst_ptr = norm_check_general<T>(
-                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_1.data());
-            double error_dev_ptr = norm_check_general<T>(
-                'F', M, N, ldc, stride_c, batch_count, hC_gold.data(), hC_2.data());
+            double error_hst_ptr =
+                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1);
+            double error_dev_ptr =
+                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2);
 
             error_hst_ptr = error_hst_ptr >= 0.0 ? error_hst_ptr : -error_hst_ptr;
             error_dev_ptr = error_dev_ptr >= 0.0 ? error_dev_ptr : -error_dev_ptr;

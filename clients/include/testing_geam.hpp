@@ -11,7 +11,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "norm.h"
 #include "unit.h"
@@ -40,32 +39,25 @@ void testing_geam_bad_arg()
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_int size_A = N * lda;
     rocblas_int size_B = N * ldb;
     rocblas_int size_C = N * ldc;
 
-    vector<T> hA(size_A);
-    vector<T> hB(size_B);
-    vector<T> hC(size_C);
+    host_vector<T> hA(size_A);
+    host_vector<T> hB(size_B);
+    host_vector<T> hC(size_C);
 
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hA, M, N, lda);
     rocblas_init<T>(hB, M, N, ldb);
     rocblas_init<T>(hC, M, N, ldc);
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
-                                         rocblas_test::device_free};
-    T* dA = (T*)dA_managed.get();
-    T* dB = (T*)dB_managed.get();
-    T* dC = (T*)dC_managed.get();
+    device_vector<T> dA(size_A);
+    device_vector<T> dB(size_B);
+    device_vector<T> dC(size_C);
     if(!dA || !dB || !dC)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -73,9 +65,9 @@ void testing_geam_bad_arg()
     }
 
     // copy data from CPU to device, does not work for lda != A_row
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(T) * size_C, hipMemcpyHostToDevice));
 
     {
         T* dA_null = nullptr;
@@ -162,8 +154,7 @@ rocblas_status testing_geam(Arguments argus)
     rocblas_status status_h = rocblas_status_success;
     rocblas_status status_d = rocblas_status_success;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     if(transA == rocblas_operation_none)
     {
@@ -201,15 +192,9 @@ rocblas_status testing_geam(Arguments argus)
     // check here to prevent undefined memory allocation error
     if(M <= 0 || N <= 0 || lda < A_row || ldb < B_row || ldc < M)
     {
-        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                             rocblas_test::device_free};
-        T* dA = (T*)dA_managed.get();
-        T* dB = (T*)dB_managed.get();
-        T* dC = (T*)dC_managed.get();
+        device_vector<T> dA(safe_size);
+        device_vector<T> dB(safe_size);
+        device_vector<T> dC(safe_size);
         if(!dA || !dB || !dC)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -226,14 +211,14 @@ rocblas_status testing_geam(Arguments argus)
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(size_A), hA_copy(size_A);
-    vector<T> hB(size_B), hB_copy(size_B);
-    vector<T> hC_1(size_C);
-    vector<T> hC_2(size_C);
-    vector<T> hC_gold(size_C);
+    host_vector<T> hA(size_A), hA_copy(size_A);
+    host_vector<T> hB(size_B), hB_copy(size_B);
+    host_vector<T> hC_1(size_C);
+    host_vector<T> hC_2(size_C);
+    host_vector<T> hC_gold(size_C);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hA, A_row, A_col, lda);
     rocblas_init<T>(hB, B_row, B_col, ldb);
 
@@ -241,21 +226,11 @@ rocblas_status testing_geam(Arguments argus)
     hB_copy = hB;
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
-                                         rocblas_test::device_free};
-    auto d_alpha_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    auto d_beta_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    T* dA      = (T*)dA_managed.get();
-    T* dB      = (T*)dB_managed.get();
-    T* dC      = (T*)dC_managed.get();
-    T* d_alpha = (T*)d_alpha_managed.get();
-    T* d_beta  = (T*)d_beta_managed.get();
+    device_vector<T> dA(size_A);
+    device_vector<T> dB(size_B);
+    device_vector<T> dC(size_C);
+    device_vector<T> d_alpha(1);
+    device_vector<T> d_beta(1);
     if(!dA || !dB || !dC || !d_alpha || !d_beta)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -263,8 +238,8 @@ rocblas_status testing_geam(Arguments argus)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
@@ -275,13 +250,13 @@ rocblas_status testing_geam(Arguments argus)
         CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
             handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_1.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
             handle, transA, transB, M, N, d_alpha, dA, lda, d_beta, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         // reference calculation for golden result
         cpu_time_used = get_time_us();
@@ -302,8 +277,8 @@ rocblas_status testing_geam(Arguments argus)
         // unit check and norm check can not be interchanged their order
         if(argus.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_1.data());
-            unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_2.data());
+            unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
         }
 
         // if enable norm check, norm check is invasive
@@ -311,8 +286,8 @@ rocblas_status testing_geam(Arguments argus)
         // in compilation time
         if(argus.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
-            rocblas_error_2 = norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data());
+            rocblas_error_1 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
+            rocblas_error_2 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2);
         }
 
         // inplace check for dC == dA
@@ -341,10 +316,9 @@ rocblas_status testing_geam(Arguments argus)
             else
             {
                 CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1.data(), dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
-                CHECK_HIP_ERROR(
-                    hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
+                CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
 
                 // reference calculation
                 for(int i1 = 0; i1 < M; i1++)
@@ -360,7 +334,7 @@ rocblas_status testing_geam(Arguments argus)
                 // unit check and norm check can not be interchanged their order
                 if(argus.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_1.data());
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
                 }
 
                 // if enable norm check, norm check is invasive
@@ -368,8 +342,7 @@ rocblas_status testing_geam(Arguments argus)
                 // in compilation time
                 if(argus.norm_check)
                 {
-                    rocblas_error =
-                        norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
+                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
                 }
             }
         }
@@ -402,7 +375,7 @@ rocblas_status testing_geam(Arguments argus)
                 verify_rocblas_status_success(status_h, "status_h rocblas_geam inplace C==A");
 
                 CHECK_HIP_ERROR(
-                    hipMemcpy(hC_1.data(), dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+                    hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
                 for(int i1 = 0; i1 < M; i1++)
@@ -418,7 +391,7 @@ rocblas_status testing_geam(Arguments argus)
                 // unit check and norm check can not be interchanged their order
                 if(argus.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold.data(), hC_1.data());
+                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
                 }
 
                 // if enable norm check, norm check is invasive
@@ -426,8 +399,7 @@ rocblas_status testing_geam(Arguments argus)
                 // in compilation time
                 if(argus.norm_check)
                 {
-                    rocblas_error =
-                        norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data());
+                    rocblas_error = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1);
                 }
             }
         }
