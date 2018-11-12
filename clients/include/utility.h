@@ -1,3 +1,4 @@
+
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
@@ -24,6 +25,13 @@
 #include <algorithm>
 #include <utility>
 #include "rocblas.h"
+#include <memory>
+#include <random>
+#include <limits>
+#include <type_traits>
+#include <cinttypes>
+#include "arg_check.h"
+#include <gtest/gtest.h>
 
 using namespace std;
 
@@ -46,6 +54,20 @@ typedef rocblas_half half;
                     __LINE__);                    \
             exit(EXIT_FAILURE);                   \
         }                                         \
+    } while(0)
+
+#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
+    do                                                            \
+    {                                                             \
+        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
+        if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
+        {                                                         \
+            fprintf(stderr,                                       \
+                    "hip error code: %d at %s:%d\n",              \
+                    TMP_STATUS_FOR_CHECK,                         \
+                    __FILE__,                                     \
+                    __LINE__);                                    \
+        }                                                         \
     } while(0)
 
 #define CHECK_ROCBLAS_ERROR(error)                                  \
@@ -123,54 +145,259 @@ inline float half_to_float(rocblas_half val)
     return _cvtsh_ss(val);
 }
 
+// Random number generator
+typedef mt19937 rocblas_rng_t;
+extern rocblas_rng_t rocblas_rng, rocblas_seed;
+
+// Reset the seed (mainly to ensure repeatability of failures in a given suite)
+inline void rocblas_seedrand() { rocblas_rng = rocblas_seed; }
+
+/* ============================================================================================ */
+/*! \brief  Memory guard detects memory coruption */
+template <class T, size_t PAD>
+class memory_guard
+{
+    T guard[PAD];
+
+    // Generate random NaN values
+    template <typename U, typename UINT_T, int SIG, int EXP>
+    static U random_nan_data()
+    {
+        static_assert(sizeof(UINT_T) == sizeof(U), "Type sizes do not match");
+        union
+        {
+            UINT_T u;
+            U fp;
+        } x;
+        do
+            x.u = uniform_int_distribution<UINT_T>()(rocblas_rng);
+        while(!(x.u & (((UINT_T)1 << SIG) - 1))); // Reject Inf (mantissa == 0)
+        x.u |= (((UINT_T)1 << EXP) - 1) << SIG;   // Exponent = all 1's
+        return x.fp;                              // NaN with random bits
+    }
+
+    // Random integer
+    template <typename U>
+    static typename enable_if<is_integral<U>::value>::type random_data(U* data, size_t size = 1)
+    {
+        for(size_t i = 0; i < size; ++i)
+            data[i]  = uniform_int_distribution<U>()(rocblas_rng);
+    }
+
+    // Random NaN double
+    static void random_data(double* data, size_t size = 1)
+    {
+        for(size_t i = 0; i < size; ++i)
+            data[i]  = random_nan_data<double, uint64_t, 52, 11>();
+    }
+
+    // Random NaN float
+    static void random_data(float* data, size_t size = 1)
+    {
+        for(size_t i = 0; i < size; ++i)
+            data[i]  = random_nan_data<float, uint32_t, 23, 8>();
+    }
+
+    // Random NaN half (takes priority over templated integer function above)
+    static void random_data(rocblas_half* data, size_t size = 1)
+    {
+        for(size_t i = 0; i < size; ++i)
+            data[i]  = random_nan_data<rocblas_half, uint16_t, 10, 5>();
+    }
+
+    public:
+    // Constructor initializes random data and saves it for later verification
+    explicit memory_guard(T* data)
+    {
+        if(data)
+        {
+            // Fill with random data
+            random_data(data, PAD);
+
+            // Save random data in guard
+            memcpy(guard, data, sizeof(guard));
+        }
+    }
+
+    // Verify that random data has not been modified
+    void check(const T* data) const { EXPECT_EQ(memcmp(data, guard, sizeof(guard)), 0); }
+};
+
+/* ============================================================================================ */
+/*! \brief  pseudo-vector class which uses device memory */
+template <typename T, size_t PAD = 4096>
+class device_vector
+{
+#ifdef GOOGLE_TEST
+
+    // Declaration order is important
+    T host_front[PAD], host_back[PAD], *data;
+    size_t size;
+    bool empty;
+    memory_guard<T, PAD> front, back;
+
+    public:
+    // Allocate device memory and initialize host_front and host_back with random NaN Data
+    explicit device_vector(size_t size)
+        : size(size),
+          empty(size == 0 || hipMalloc(&data, (size + PAD * 2) * sizeof(T)) != hipSuccess),
+          front(empty ? nullptr : host_front),
+          back(empty ? nullptr : host_back)
+    {
+        if(empty)
+        {
+            data = nullptr;
+        }
+        else
+        {
+            // Copy host_front to device memory
+            CHECK_HIP_ERROR(hipMemcpy(data, host_front, PAD * sizeof(T), hipMemcpyHostToDevice));
+
+            // Point to allocated block
+            data += PAD;
+
+            // Copy host_back to device memory
+            CHECK_HIP_ERROR(
+                hipMemcpy(data + size, host_back, PAD * sizeof(T), hipMemcpyHostToDevice));
+        }
+    }
+
+    ~device_vector()
+    {
+        if(!empty)
+        {
+            // Copy device memory to host_back
+            CHECK_HIP_ERROR(
+                hipMemcpy(host_back, data + size, PAD * sizeof(T), hipMemcpyDeviceToHost));
+
+            // Point to beginning of device memory
+            data -= PAD;
+
+            // Copy device memory to host_front
+            CHECK_HIP_ERROR(hipMemcpy(host_front, data, PAD * sizeof(T), hipMemcpyDeviceToHost));
+
+            // Check integrity of host_front and host_back
+            front.check(host_front);
+            back.check(host_back);
+
+            // Free device memory
+            CHECK_HIP_ERROR(hipFree(data));
+        }
+    }
+
+#else // GOOGLE_TEST
+
+    // Code without memory guards
+    T* data;
+
+    public:
+    explicit device_vector(size_t size)
+    {
+        if(size == 0 || hipMalloc(&data, size * sizeof(T)) != hipSuccess)
+            data = nullptr;
+    }
+
+    ~device_vector()
+    {
+        if(data != nullptr)
+            CHECK_HIP_ERROR(hipFree(data));
+    }
+
+#endif // GOOGLE_TEST
+
+    // Decay into pointer wherever pointer is expected
+    operator T*() { return data; }
+    operator const T*() const { return data; }
+
+    // Tell whether malloc failed
+    explicit operator bool() const { return data != nullptr; }
+
+    // Disallow copying or assigning
+    device_vector(const device_vector&) = delete;
+    device_vector& operator=(const device_vector&) = delete;
+};
+
+/* ============================================================================================ */
+/*! \brief  pseudo-vector class which uses host memory */
+template <typename T>
+struct host_vector : vector<T>
+{
+    // Inherit constructors
+    using vector<T>::vector;
+
+    // Decay into pointer wherever pointer is expected
+    operator T*() { return this->data(); }
+    operator const T*() const { return this->data(); }
+};
+
+/* ============================================================================================ */
+/*! \brief  local handle which is automatically created and destroyed  */
+class rocblas_local_handle
+{
+    rocblas_handle handle;
+
+    public:
+    rocblas_local_handle()
+    {
+        auto status = rocblas_create_handle(&handle);
+        verify_rocblas_status_success(status, "ERROR: rocblas_local_handle constructor");
+    }
+
+    ~rocblas_local_handle()
+    {
+        auto status = rocblas_destroy_handle(handle);
+        verify_rocblas_status_success(status, "ERROR: rocblas_local_handle destructor");
+    }
+
+    // Allow rocblas_local_handle to be used anywhere rocblas_handle is expected
+    operator rocblas_handle&() { return handle; }
+    operator const rocblas_handle&() const { return handle; }
+};
+
 /* ============================================================================================ */
 /* generate random number :*/
 
 /*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
 template <typename T>
-T random_generator()
+inline T random_generator()
 {
-    // return rand()/( (T)RAND_MAX + 1);
-    return (T)(rand() % 10 + 1);
-};
+    return uniform_int_distribution<int>(1, 10)(rocblas_rng);
+}
 
 // for rocblas_half, generate float, and convert to rocblas_half
 /*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
-    return float_to_half(
-        static_cast<float>((rand() % 3 + 1))); // generate a integer number in range [1,2,3]
+    return float_to_half(uniform_int_distribution<int>(1, 3)(rocblas_rng));
 };
 
 /*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline int8_t random_generator<int8_t>()
 {
-    return (int8_t)(rand() % 3 + 1);
+    return uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
 };
 
-/*! \brief  generate a random number in range [-1,-2,-3,-4,-5,-6,-7,-8,-9,-10] */
+/*! \brief  generate a random number in range [-10,-9,-8,-7,-6,-5,-4,-3,-2,-1] */
 template <typename T>
-T random_generator_negative()
+inline T random_generator_negative()
 {
-    // return rand()/( (T)RAND_MAX + 1);
-    return -(T)(rand() % 10 + 1);
+    return uniform_int_distribution<int>(-10, -1)(rocblas_rng);
 };
 
-// for rocblas_half, generate float, and convert to rocblas_half
-/*! \brief  generate a random number in range [-1,-2,-3] */
+/*! \brief  generate a random number in range [-3,-2,-1] */
 template <>
 inline rocblas_half random_generator_negative<rocblas_half>()
 {
-    return float_to_half(-static_cast<float>((rand() % 3 + 1)));
+    return float_to_half(uniform_int_distribution<int>(-3, -1)(rocblas_rng));
 };
 
-/*! \brief  generate a random number in range [1,2,3] */
+/*! \brief  generate a random number in range [-3,-2,-1] */
 template <>
 inline int8_t random_generator_negative<int8_t>()
 {
-    return -(int8_t)(rand() % 3 + 1);
+    return uniform_int_distribution<int8_t>(-3, -1)(rocblas_rng);
 };
 
 /* ============================================================================================ */
@@ -456,8 +683,8 @@ void print_matrix(
 
 /* ============================================================================================ */
 /*! \brief  Return normalized test name to conform to Google Tests */
-/* ============================================================================================ */
-/*! \brief  Return normalized test name to conform to Google Tests */
+// Note: forward<STRING> optimizes by eliminating copies of temporary strings
+// Note: hit is used to disambigutate duplicates
 template <class STRING>
 string normalized_test_name(STRING&& prefix, unordered_map<string, size_t>& hit)
 {
