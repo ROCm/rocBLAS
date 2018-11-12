@@ -30,9 +30,9 @@ std::mutex memcpy_mutex;
 
 template <typename T>
 rocblas_status testing_gemm_parallel(Arguments const& argus,
-                                     //std::shared_future<void> & start_rocblas,
-                                     std::condition_variable &cv,
-                                     int &waiting_threads,
+                                     // std::shared_future<void> & start_rocblas,
+                                     std::condition_variable& cv,
+                                     int& waiting_threads,
                                      int total_threads)
 {
     rocblas_operation transA = char2rocblas_operation(argus.transA_option);
@@ -142,10 +142,10 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
 
     waiting_threads++;
     cv.notify_all();
-    while(waiting_threads < total_threads) cv.wait(lock);
+    while(waiting_threads < total_threads)
+        cv.wait(lock);
 
     lock.unlock();
-
 
     CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
         handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
@@ -191,7 +191,6 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
     CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
     CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
-
 
 //  std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
 //  for(int i = 0; i < size_C; i++){ std::cout << half_to_float(hC_gold[i]) << "  "; }
