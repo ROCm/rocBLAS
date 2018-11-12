@@ -10,7 +10,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -35,8 +34,8 @@ rocblas_status testing_bandwidth(Arguments argus)
     T alpha            = 2.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<T> hx(size_X);
-    vector<T> hz(size_X);
+    host_vector<T> hx(size_X);
+    host_vector<T> hz(size_X);
 
     if(N > hx.max_size())
     {
@@ -46,19 +45,12 @@ rocblas_status testing_bandwidth(Arguments argus)
 
     double gpu_time_used, gpu_bandwidth;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // allocate memory on device
-    auto dx_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_X),
-                                         rocblas_test::device_free};
-    auto dy_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_X),
-                                         rocblas_test::device_free};
-    auto d_rocblas_result_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    T* dx               = (T*)dx_managed.get();
-    T* dy               = (T*)dy_managed.get();
-    T* d_rocblas_result = (T*)d_rocblas_result_managed.get();
+    device_vector<T> dx(size_X);
+    device_vector<T> dy(size_X);
+    device_vector<T> d_rocblas_result(1);
     if(!dx || !dy || !d_rocblas_result)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -66,13 +58,13 @@ rocblas_status testing_bandwidth(Arguments argus)
     }
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, incx);
 
     // hz = hx;
 
     // copy data from CPU to device,
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * N * incx, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * N * incx, hipMemcpyHostToDevice));
 
     printf("Bandwidth     MByte    GPU (GB/s)    Time (us) \n");
 
@@ -83,7 +75,7 @@ rocblas_status testing_bandwidth(Arguments argus)
     for(size_t size = 1e6; size <= N; size *= 2)
     {
 
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx.data(), sizeof(T) * size * incx, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size * incx, hipMemcpyHostToDevice));
 
         gpu_time_used = get_time_us(); // in microseconds
 
@@ -111,7 +103,7 @@ rocblas_status testing_bandwidth(Arguments argus)
         }
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hx.data(), dx, sizeof(T) * size * incx, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hx, dx, sizeof(T) * size * incx, hipMemcpyDeviceToHost));
 
         // check error with CPU result
         for(size_t i = 0; i < size; i++)
