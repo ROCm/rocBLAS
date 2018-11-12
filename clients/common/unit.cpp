@@ -8,19 +8,6 @@
 #include "unit.h"
 #include "utility.h"
 
-#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    {                                                             \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
-        {                                                         \
-            fprintf(stderr,                                       \
-                    "hip error code: %d at %s:%d\n",              \
-                    TMP_STATUS_FOR_CHECK,                         \
-                    __FILE__,                                     \
-                    __LINE__);                                    \
-        }                                                         \
-    }
-
 /* ========================================Gtest Unit Check
  * ==================================================== */
 
