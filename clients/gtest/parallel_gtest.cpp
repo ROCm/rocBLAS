@@ -41,7 +41,7 @@ TEST_P(parallel_gemm_synchronized, test)
     std::vector<Arguments> args = GetParam();
     std::random_shuffle(args.begin(), args.end());
 
-    const int max_threads = 4;
+    const int max_threads = 1;
     std::list<std::future<void>> futures;
 
     std::condition_variable cv;
