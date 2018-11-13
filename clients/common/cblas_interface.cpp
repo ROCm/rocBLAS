@@ -788,9 +788,9 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
 
     // NOTE: Packing is always done along 'K' dimension, which means unpacking to
     //       double depends on transpose mode
-    int const sizeA = ((transA == rocblas_operation_none) ? k * lda : m * lda);
-    int const sizeB = ((transB == rocblas_operation_none) ? n * ldb : k * ldb);
-    int const sizeC = n * ldc;
+    size_t const sizeA = ((transA == rocblas_operation_none) ? k : m) * static_cast<size_t>(lda);
+    size_t const sizeB = ((transB == rocblas_operation_none) ? n : k) * static_cast<size_t>(ldb);
+    size_t const sizeC = n * static_cast<size_t>(ldc);
 
     host_vector<double> A_double(sizeA);
     host_vector<double> B_double(sizeB);
