@@ -14,7 +14,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -73,8 +72,7 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
 
     std::unique_lock<std::mutex> lock(memcpy_mutex);
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
@@ -86,21 +84,12 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
     const auto size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_A),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_B),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * size_C),
-                                         rocblas_test::device_free};
-    auto d_alpha_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    auto d_beta_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T)), rocblas_test::device_free};
-    auto dA      = static_cast<T*>(dA_managed.get());
-    auto dB      = static_cast<T*>(dB_managed.get());
-    auto dC      = static_cast<T*>(dC_managed.get());
-    auto d_alpha = static_cast<T*>(d_alpha_managed.get());
-    auto d_beta  = static_cast<T*>(d_beta_managed.get());
+    device_vector<T> dA(size_A);
+    device_vector<T> dB(size_B);
+    device_vector<T> dC(size_C);
+    device_vector<T> d_alpha(1);
+    device_vector<T> d_beta(1);
+
     if(!dA || !dB || !dC || !d_alpha || !d_beta)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -108,14 +97,14 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
-    vector<T> hA(size_A);
-    vector<T> hB(size_B);
-    vector<T> hC_1(size_C);
-    vector<T> hC_2(size_C);
-    vector<T> hC_gold(size_C);
+    host_vector<T> hA(size_A);
+    host_vector<T> hB(size_B);
+    host_vector<T> hC_1(size_C);
+    host_vector<T> hC_2(size_C);
+    host_vector<T> hC_gold(size_C);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
     rocblas_init<T>(hA, A_row, A_col, lda);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
     rocblas_init<T>(hC_1, M, N, ldc);
@@ -132,13 +121,13 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
     hC_gold = hC_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
     // ROCBLAS rocblas_pointer_mode_host
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC_1.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
 
     waiting_threads++;
     cv.notify_all();
@@ -160,19 +149,7 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
         cpu_time_used = get_time_us();
     }
 
-    cblas_gemm<T>(transA,
-                  transB,
-                  M,
-                  N,
-                  K,
-                  h_alpha,
-                  hA.data(),
-                  lda,
-                  hB.data(),
-                  ldb,
-                  h_beta,
-                  hC_gold.data(),
-                  ldc);
+    cblas_gemm<T, T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
 
     if(argus.timing)
     {
@@ -182,15 +159,15 @@ rocblas_status testing_gemm_parallel(Arguments const& argus,
 
     lock.lock();
 
-    CHECK_HIP_ERROR(hipMemcpy(hC_1.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC_2.data(), sizeof(T) * size_C, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
 
     CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
     CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
-    CHECK_HIP_ERROR(hipMemcpy(hC_2.data(), dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+    CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
 //  std::cout << std::endl << "---gold---gold---gold---------------------------" << std::endl;
 //  for(int i = 0; i < size_C; i++){ std::cout << half_to_float(hC_gold[i]) << "  "; }
