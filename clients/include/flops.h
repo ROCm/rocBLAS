@@ -49,6 +49,18 @@ double gemv_gflop_count(rocblas_int m, rocblas_int n)
     return (2.0 * m * n) / 1e9;
 }
 
+/* \brief floating point counts of TRSV */
+template <typename T>
+double trsv_gflop_count(rocblas_int m)
+{
+    int sum = 0;
+    
+    for(int i =  0; i<m; i++)
+        sum += 1+2*(i-1);
+
+    return (double)sum / 1e9;
+}
+
 /* \brief floating point counts of SY(HE)MV */
 template <typename T>
 double symv_gflop_count(rocblas_int n)
