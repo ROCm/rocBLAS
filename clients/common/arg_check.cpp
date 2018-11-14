@@ -219,6 +219,17 @@ void trsm_arg_check(
 #endif
 }
 
+void trsv_arg_check(
+    rocblas_status status, rocblas_int M, rocblas_int lda, rocblas_int incx)
+{
+#ifdef GOOGLE_TEST
+    ASSERT_EQ(status, rocblas_status_invalid_size);
+#else
+    std::cerr << "rocBLAS TEST ERROR in arguments M, lda, incx: ";
+    std::cerr << M  << ',' << lda  << ',' << incx << std::endl;
+#endif
+}
+
 void symv_arg_check(
     rocblas_status status, rocblas_int N, rocblas_int lda, rocblas_int incx, rocblas_int incy)
 {

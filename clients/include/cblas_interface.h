@@ -61,6 +61,26 @@ void cblas_gemv(rocblas_operation transA,
                 rocblas_int incy);
 
 template <typename T>
+void cblas_trsv(rocblas_fill uplo,
+                rocblas_operation transA,
+                rocblas_diagonal diag,
+                rocblas_int m,
+                const T* A,
+                rocblas_int lda,
+                T* x,
+                rocblas_int incx);
+
+template <typename T>
+void cblas_trmv(rocblas_fill uplo,
+                rocblas_operation transA,
+                rocblas_diagonal diag,
+                rocblas_int m,
+                const T* A,
+                rocblas_int lda,
+                T* x,
+                rocblas_int incx);
+
+template <typename T>
 void cblas_symv(rocblas_fill uplo,
                 rocblas_int n,
                 T alpha,

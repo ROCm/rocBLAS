@@ -424,6 +424,34 @@ rocblas_status rocblas_gemv<double>(rocblas_handle handle,
 {
     return rocblas_dgemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
+ 
+template <>
+rocblas_status rocblas_trsv<float>(rocblas_handle handle,
+                                   rocblas_fill uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal  diag,
+                                   rocblas_int m,
+                                   const float* A ,
+                                   rocblas_int  lda, 
+                                   float* x,
+                                   rocblas_int incx)
+{
+    return rocblas_strsv(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
+
+template <>
+rocblas_status rocblas_trsv<double>(rocblas_handle handle,
+                                   rocblas_fill uplo,
+                                   rocblas_operation transA,
+                                   rocblas_diagonal diag,
+                                   rocblas_int m,
+                                   const double* A,
+                                   rocblas_int lda,
+                                   double* x,
+                                   rocblas_int incx)
+{
+    return rocblas_dtrsv(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
 
 /* not implemented
     template<>

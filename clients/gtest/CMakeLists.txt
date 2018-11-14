@@ -39,6 +39,7 @@ if( BUILD_WITH_TENSILE )
       gemm_ex_gtest.cpp
       gemm_strided_batched_ex_gtest.cpp
       trsm_gtest.cpp
+      trsv_gtest.cpp
       )
 endif( )
 
