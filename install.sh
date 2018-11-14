@@ -85,7 +85,7 @@ install_yum_packages( )
   for package in "${package_dependencies[@]}"; do
     if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root yum install -y ${package}
+      elevate_if_not_root yum -y --nogpgcheck install ${package}
     fi
   done
 }
@@ -384,7 +384,7 @@ pushd .
         elevate_if_not_root dpkg -i rocblas-*.deb
       ;;
       centos|rhel)
-        elevate_if_not_root yum localinstall rocblas-*.rpm
+        elevate_if_not_root yum -y localinstall rocblas-*.rpm
       ;;
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
