@@ -35,6 +35,11 @@ int main(int argc, char** argv)
     // Open data file
     RocBLAS_TestData::init(exepath() + GTEST_DATA);
 
+    // Print Version
+    char blas_version[100];
+    rocblas_get_version_string(blas_version, 100);
+    printf("rocBLAS version: %s\n\n", blas_version);
+
     // Device Query
 
     int device_id = 0;
