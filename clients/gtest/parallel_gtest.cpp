@@ -36,7 +36,7 @@ struct parallel_gemm : ::testing::TestWithParam<std::vector<Arguments>>
 
 using parallel_gemm_synchronized = parallel_gemm;
 
-TEST_P(parallel_gemm_synchronized, test)
+TEST_P(parallel_gemm_synchronized, DISABLED_test)
 {
     std::vector<Arguments> args = GetParam();
     std::random_shuffle(args.begin(), args.end());
