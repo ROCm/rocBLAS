@@ -366,7 +366,7 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
 
     To rocblas_error = 0.0;
 
-    rocblas_status status;
+    rocblas_status status = rocblas_status_success;
 
     rocblas_local_handle handle;
 
@@ -510,8 +510,32 @@ rocblas_status testing_gemm_ex_template(rocblas_operation transA,
     hD_gold = hD_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+    // if int8 and A not transposed and valid case, pack A
+    if(is_same<Ti, int8_t>::value && (transA == rocblas_operation_none) && (K % 4 == 0))
+    {
+        host_vector<Ti> hA_packed(hA);
+
+        rocblas_packInt8(hA_packed, M, K, lda);
+        CHECK_HIP_ERROR(hipMemcpy(dA, hA_packed, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+    }
+    else
+    {
+        CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
+    }
+
+    // if int8 and B transposed and valid case, pack B
+    if(is_same<Ti, int8_t>::value && (transB == rocblas_operation_transpose) && (K % 4 == 0))
+    {
+        host_vector<Ti> hB_packed(hB);
+
+        rocblas_packInt8(hB_packed, N, K, ldb);
+        CHECK_HIP_ERROR(hipMemcpy(dB, hB_packed, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+    }
+    else
+    {
+        CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_B, hipMemcpyHostToDevice));
+    }
+
     CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_C, hipMemcpyHostToDevice));
 
     if(unit_check || norm_check)
