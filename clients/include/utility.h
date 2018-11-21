@@ -685,12 +685,11 @@ inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, ro
     }
 
     host_vector<T> temp(A);
-
-    for(int colBase = 0; colBase < N; colBase += 4)
+    for(size_t colBase = 0; colBase < N; colBase += 4)
     {
-        for(int row = 0; row < lda; row++)
+        for(size_t row = 0; row < lda; row++)
         {
-            for(int colOffset = 0; colOffset < 4; colOffset++)
+            for(size_t colOffset = 0; colOffset < 4; colOffset++)
             {
                 A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
             }

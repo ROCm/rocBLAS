@@ -794,17 +794,17 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
     host_vector<double> B_double(sizeB);
     host_vector<double> C_double(sizeC);
 
-    for(int i = 0; i < sizeA; i++)
+    for(size_t i = 0; i < sizeA; i++)
     {
         A_double[i] = static_cast<double>(A[i]);
     }
 
-    for(int i = 0; i < sizeB; i++)
+    for(size_t i = 0; i < sizeB; i++)
     {
         B_double[i] = static_cast<double>(B[i]);
     }
 
-    for(int i = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
     {
         C_double[i] = static_cast<double>(C[i]);
     }
@@ -825,7 +825,7 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
                 C_double,
                 ldc);
 
-    for(int i = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
     {
         C[i] = static_cast<int32_t>(C_double[i]);
     }
