@@ -551,6 +551,45 @@ inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, ro
 }
 
 /* ============================================================================================ */
+/*! \brief  Packs matricies into groups of 4 in N */
+template <typename T>
+inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+{
+    /* Assumes original matrix provided in column major order, where N is a multiple of 4
+
+        ---------- N ----------
+   |  | 00 05 10 15 20 25 30 35      |00 05 10 15|20 25 30 35|
+   |  | 01 06 11 16 21 26 31 36      |01 06 11 16|21 26 31 36|
+   l  M 02 07 12 17 22 27 32 37  --> |02 07 12 17|22 27 32 37|
+   d  | 03 08 13 18 23 28 33 38      |03 08 13 18|23 28 33 38|
+   a  | 04 09 14 19 24 29 34 39      |04 09 14 19|24 29 34 39|
+   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
+   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
+
+     Input :  00 01 02 03 04 ** ** 05   ...  38 39 ** **
+     Output:  00 05 10 15 01 06 11 16   ...  ** ** ** **
+
+   */
+
+    if(N % 4 != 0)
+    {
+        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
+    }
+
+    host_vector<T> temp(A);
+    for(size_t colBase = 0; colBase < N; colBase += 4)
+    {
+        for(size_t row = 0; row < lda; row++)
+        {
+            for(size_t colOffset = 0; colOffset < 4; colOffset++)
+            {
+                A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
+            }
+        }
+    }
+}
+
+/* ============================================================================================ */
 /*! \brief  turn float -> 's', double -> 'd', rocblas_float_complex -> 'c', rocblas_double_complex
  * -> 'z' */
 template <typename T>
