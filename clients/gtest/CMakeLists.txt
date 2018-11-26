@@ -54,6 +54,7 @@ set(rocblas_test_source
     ger_gtest.cpp
     syr_gtest.cpp
     geam_gtest.cpp
+    trsm_gtest.cpp
     )
 
 
