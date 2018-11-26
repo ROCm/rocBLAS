@@ -7,11 +7,18 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
+#ifdef GOOGLE_TEST
+#include <gtest/gtest.h>
+#endif
+
 #include <cstdio>
 #include <iostream>
-#include <stdlib.h>
+#include <string>
+#include <sstream>
+#include <cstdlib>
 #include <vector>
 #include <sys/time.h>
+#include <sys/param.h>
 #include <immintrin.h>
 #include <typeinfo>
 #include <fstream>
@@ -30,20 +37,51 @@
 #include <limits>
 #include <type_traits>
 #include <cinttypes>
-#include "arg_check.h"
-#include <gtest/gtest.h>
-
-using namespace std;
-
-typedef rocblas_half half;
+#include <cctype>
+#include <locale.h>
 
 /*!\file
  * \brief provide data initialization, timing, rocblas type <-> lapack char conversion utilities.
  */
 
-#define CHECK_HIP_ERROR(error)                    \
+#ifdef GOOGLE_TEST
+
+#define EXPECT_ROCBLAS_STATUS EXPECT_EQ
+
+// Extra macro so that macro arguments get expanded before calling Google Test
+#define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
+#define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
+
+#else // GOOGLE_TEST
+
+inline const char* rocblas_status_to_string(rocblas_status status)
+{
+    switch(status)
+    {
+    case rocblas_status_success: return "rocblas_status_success";
+    case rocblas_status_invalid_handle: return "rocblas_status_invalid_handle";
+    case rocblas_status_not_implemented: return "rocblas_status_not_implemented";
+    case rocblas_status_invalid_pointer: return "rocblas_status_invalid_pointer";
+    case rocblas_status_invalid_size: return "rocblas_status_invalid_size";
+    case rocblas_status_memory_error: return "rocblas_status_memory_error";
+    case rocblas_status_internal_error: return "rocblas_status_internal_error";
+    default: return "<undefined rocblas_status value>";
+    }
+}
+
+inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
+{
+    if(status != expect)
+        std::cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
+                  << ", received " << rocblas_status_to_string(status) << std::endl;
+}
+
+#define EXPECT_ROCBLAS_STATUS rocblas_expect_status
+
+#define CHECK_HIP_ERROR(ERROR)                    \
     do                                            \
     {                                             \
+        auto error = ERROR;                       \
         if(error != hipSuccess)                   \
         {                                         \
             fprintf(stderr,                       \
@@ -56,245 +94,187 @@ typedef rocblas_half half;
         }                                         \
     } while(0)
 
-#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    do                                                            \
-    {                                                             \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
-        {                                                         \
-            fprintf(stderr,                                       \
-                    "hip error code: %d at %s:%d\n",              \
-                    TMP_STATUS_FOR_CHECK,                         \
-                    __FILE__,                                     \
-                    __LINE__);                                    \
-        }                                                         \
-    } while(0)
+#endif // GOOGLE_TEST
 
-#define CHECK_ROCBLAS_ERROR(error)                                  \
-    do                                                              \
-    {                                                               \
-        if(error != rocblas_status_success)                         \
-        {                                                           \
-            fprintf(stderr, "rocBLAS error: ");                     \
-            if(error == rocblas_status_invalid_handle)              \
-            {                                                       \
-                fprintf(stderr, "rocblas_status_invalid_handle");   \
-            }                                                       \
-            else if(error == rocblas_status_not_implemented)        \
-            {                                                       \
-                fprintf(stderr, " rocblas_status_not_implemented"); \
-            }                                                       \
-            else if(error == rocblas_status_invalid_pointer)        \
-            {                                                       \
-                fprintf(stderr, "rocblas_status_invalid_pointer");  \
-            }                                                       \
-            else if(error == rocblas_status_invalid_size)           \
-            {                                                       \
-                fprintf(stderr, "rocblas_status_invalid_size");     \
-            }                                                       \
-            else if(error == rocblas_status_memory_error)           \
-            {                                                       \
-                fprintf(stderr, "rocblas_status_memory_error");     \
-            }                                                       \
-            else if(error == rocblas_status_internal_error)         \
-            {                                                       \
-                fprintf(stderr, "rocblas_status_internal_error");   \
-            }                                                       \
-            else                                                    \
-            {                                                       \
-                fprintf(stderr, "rocblas_status error");            \
-            }                                                       \
-            fprintf(stderr, "\n");                                  \
-            return error;                                           \
-        }                                                           \
-    } while(0)
-
-#define BLAS_1_RESULT_PRINT                           \
-    do                                                \
-    {                                                 \
-        if(argus.timing)                              \
-        {                                             \
-            cout << "N, rocblas (us), ";              \
-            if(argus.norm_check)                      \
-            {                                         \
-                cout << "CPU (us), error";            \
-            }                                         \
-            cout << endl;                             \
-            cout << N << ',' << gpu_time_used << ','; \
-            if(argus.norm_check)                      \
-            {                                         \
-                cout << cpu_time_used << ',';         \
-                cout << rocblas_error;                \
-            }                                         \
-            cout << endl;                             \
-        }                                             \
-    } while(0)
+#define CHECK_ROCBLAS_ERROR2(STATUS) EXPECT_ROCBLAS_STATUS(STATUS, rocblas_status_success)
+#define CHECK_ROCBLAS_ERROR(STATUS) CHECK_ROCBLAS_ERROR2(STATUS)
 
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
-inline rocblas_half float_to_half(float val)
-{
-    // return static_cast<rocblas_half>( _mm_cvtsi128_si32( _mm_cvtps_ph( _mm_set_ss( val ), 0 ) )
-    // );
-    return _cvtss_sh(val, 0);
-}
+inline rocblas_half float_to_half(float val) { return _cvtss_sh(val, 0); }
 
 // Helper routine to convert halfs into their floats equivalent; uses F16C instructions
-inline float half_to_float(rocblas_half val)
+inline float half_to_float(rocblas_half val) { return _cvtsh_ss(val); }
+
+/* ============================================================================================ */
+/*! \brief  returns true if value is NaN */
+
+template <typename T>
+inline bool rocblas_isnan(T arg)
 {
-    // return static_cast<rocblas_half>(_mm_cvtss_f32(_mm_cvtph_ps(_mm_cvtsi32_si128(val), 0)));
-    return _cvtsh_ss(val);
+    return std::isnan(arg);
 }
 
+template <>
+inline bool rocblas_isnan(rocblas_half arg)
+{
+    return (~arg & 0x7c00) == 0 && (arg & 0x3ff) != 0;
+}
+
+/* ============================================================================================ */
+/*! \brief is_complex<T>::value returns true iff T is complex */
+
+template <typename>
+struct is_complex : std::false_type
+{
+};
+template <>
+struct is_complex<rocblas_double_complex> : std::true_type
+{
+};
+template <>
+struct is_complex<rocblas_float_complex> : std::true_type
+{
+};
+
+/* ============================================================================================ */
 // Random number generator
-typedef mt19937 rocblas_rng_t;
+using rocblas_rng_t = std::mt19937;
 extern rocblas_rng_t rocblas_rng, rocblas_seed;
 
 // Reset the seed (mainly to ensure repeatability of failures in a given suite)
 inline void rocblas_seedrand() { rocblas_rng = rocblas_seed; }
 
 /* ============================================================================================ */
-/*! \brief  Memory guard detects memory coruption */
-template <class T, size_t PAD>
-class memory_guard
+/*! \brief  Random number generator which generates NaN values */
+class rocblas_nan_rng
 {
-    T guard[PAD];
-
     // Generate random NaN values
-    template <typename U, typename UINT_T, int SIG, int EXP>
-    static U random_nan_data()
+    template <typename T, typename UINT_T, int SIG, int EXP>
+    static T random_nan_data()
     {
-        static_assert(sizeof(UINT_T) == sizeof(U), "Type sizes do not match");
+        static_assert(sizeof(UINT_T) == sizeof(T), "Type sizes do not match");
         union
         {
             UINT_T u;
-            U fp;
+            T fp;
         } x;
         do
-            x.u = uniform_int_distribution<UINT_T>()(rocblas_rng);
+            x.u = std::uniform_int_distribution<UINT_T>()(rocblas_rng);
         while(!(x.u & (((UINT_T)1 << SIG) - 1))); // Reject Inf (mantissa == 0)
         x.u |= (((UINT_T)1 << EXP) - 1) << SIG;   // Exponent = all 1's
         return x.fp;                              // NaN with random bits
     }
 
+    public:
     // Random integer
-    template <typename U>
-    static typename enable_if<is_integral<U>::value>::type random_data(U* data, size_t size = 1)
+    template <typename T, typename = typename std::enable_if<std::is_integral<T>::value>::type>
+    explicit operator T()
     {
-        for(size_t i = 0; i < size; ++i)
-            data[i]  = uniform_int_distribution<U>()(rocblas_rng);
+        return std::uniform_int_distribution<T>()(rocblas_rng);
     }
 
     // Random NaN double
-    static void random_data(double* data, size_t size = 1)
-    {
-        for(size_t i = 0; i < size; ++i)
-            data[i]  = random_nan_data<double, uint64_t, 52, 11>();
-    }
+    explicit operator double() { return random_nan_data<double, uint64_t, 52, 11>(); }
 
     // Random NaN float
-    static void random_data(float* data, size_t size = 1)
-    {
-        for(size_t i = 0; i < size; ++i)
-            data[i]  = random_nan_data<float, uint32_t, 23, 8>();
-    }
+    explicit operator float() { return random_nan_data<float, uint32_t, 23, 8>(); }
 
-    // Random NaN half (takes priority over templated integer function above)
-    static void random_data(rocblas_half* data, size_t size = 1)
-    {
-        for(size_t i = 0; i < size; ++i)
-            data[i]  = random_nan_data<rocblas_half, uint16_t, 10, 5>();
-    }
-
-    public:
-    // Constructor initializes random data and saves it for later verification
-    explicit memory_guard(T* data)
-    {
-        if(data)
-        {
-            // Fill with random data
-            random_data(data, PAD);
-
-            // Save random data in guard
-            memcpy(guard, data, sizeof(guard));
-        }
-    }
-
-    // Verify that random data has not been modified
-    void check(const T* data) const { EXPECT_EQ(memcmp(data, guard, sizeof(guard)), 0); }
+    // Random NaN half (non-template rocblas_half takes precedence over integer template above)
+    explicit operator rocblas_half() { return random_nan_data<rocblas_half, uint16_t, 10, 5>(); }
 };
 
 /* ============================================================================================ */
+/*! \brief  Initialize an array with random data, with NaN where apppropriate */
+
+template <typename T>
+void rocblas_init_nan(T* A, size_t N)
+{
+    for(size_t i = 0; i < N; ++i)
+        A[i]     = static_cast<T>(rocblas_nan_rng());
+}
+
+/* ============================================================================================ */
 /*! \brief  pseudo-vector class which uses device memory */
+
 template <typename T, size_t PAD = 4096>
 class device_vector
 {
 #ifdef GOOGLE_TEST
 
-    // Declaration order is important
-    T host_front[PAD], host_back[PAD], *data;
-    size_t size;
-    bool empty;
-    memory_guard<T, PAD> front, back;
+    T guard[PAD];
 
-    public:
-    // Allocate device memory and initialize host_front and host_back with random NaN Data
-    explicit device_vector(size_t size)
-        : size(size),
-          empty(size == 0 || hipMalloc(&data, (size + PAD * 2) * sizeof(T)) != hipSuccess),
-          front(empty ? nullptr : host_front),
-          back(empty ? nullptr : host_back)
+    void device_vector_setup()
     {
-        if(empty)
+        if(hipMalloc(&data, bytes) != hipSuccess)
         {
+            static char* lc = setlocale(LC_NUMERIC, "");
+            fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
             data = nullptr;
         }
         else
         {
-            // Copy host_front to device memory
-            CHECK_HIP_ERROR(hipMemcpy(data, host_front, PAD * sizeof(T), hipMemcpyHostToDevice));
+            // Initialize guard with random data
+            rocblas_init_nan(guard, PAD);
+
+            // Copy guard to device memory before allocated memory
+            CHECK_HIP_ERROR(hipMemcpy(data, guard, sizeof(guard), hipMemcpyHostToDevice));
 
             // Point to allocated block
             data += PAD;
 
-            // Copy host_back to device memory
-            CHECK_HIP_ERROR(
-                hipMemcpy(data + size, host_back, PAD * sizeof(T), hipMemcpyHostToDevice));
+            // Copy guard to device memory after allocated memory
+            CHECK_HIP_ERROR(hipMemcpy(data + size, guard, sizeof(guard), hipMemcpyHostToDevice));
         }
     }
 
-    ~device_vector()
+    void device_vector_teardown()
     {
-        if(!empty)
+        if(data != nullptr)
         {
-            // Copy device memory to host_back
-            CHECK_HIP_ERROR(
-                hipMemcpy(host_back, data + size, PAD * sizeof(T), hipMemcpyDeviceToHost));
+            T host[PAD];
 
-            // Point to beginning of device memory
+            // Copy device memory after allocated memory to host
+            CHECK_HIP_ERROR(hipMemcpy(host, data + size, sizeof(guard), hipMemcpyDeviceToHost));
+
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+
+            // Point to guard before allocated memory
             data -= PAD;
 
-            // Copy device memory to host_front
-            CHECK_HIP_ERROR(hipMemcpy(host_front, data, PAD * sizeof(T), hipMemcpyDeviceToHost));
+            // Copy device memory after allocated memory to host
+            CHECK_HIP_ERROR(hipMemcpy(host, data, sizeof(guard), hipMemcpyDeviceToHost));
 
-            // Check integrity of host_front and host_back
-            front.check(host_front);
-            back.check(host_back);
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
 
             // Free device memory
             CHECK_HIP_ERROR(hipFree(data));
         }
     }
 
+    public:
+    // Must wrap constructor and destructor in functions to allow Google Test macros to work
+    explicit device_vector(size_t size) : size(size), bytes((size + PAD * 2) * sizeof(T))
+    {
+        device_vector_setup();
+    }
+
+    ~device_vector() { device_vector_teardown(); }
+
 #else // GOOGLE_TEST
 
     // Code without memory guards
-    T* data;
 
     public:
-    explicit device_vector(size_t size)
+    explicit device_vector(size_t size) : size(size), bytes(size ? size * sizeof(T) : sizeof(T))
     {
-        if(size == 0 || hipMalloc(&data, size * sizeof(T)) != hipSuccess)
+        if(hipMalloc(&data, bytes) != hipSuccess)
+        {
+            static char* lc = setlocale(LC_NUMERIC, "");
+            fprintf(stderr, "Error allocating %'zu bytes (%'zu GB)\n", bytes, bytes >> 30);
             data = nullptr;
+        }
     }
 
     ~device_vector()
@@ -305,6 +285,7 @@ class device_vector
 
 #endif // GOOGLE_TEST
 
+    public:
     // Decay into pointer wherever pointer is expected
     operator T*() { return data; }
     operator const T*() const { return data; }
@@ -315,15 +296,19 @@ class device_vector
     // Disallow copying or assigning
     device_vector(const device_vector&) = delete;
     device_vector& operator=(const device_vector&) = delete;
+
+    private:
+    T* data;
+    const size_t size, bytes;
 };
 
 /* ============================================================================================ */
 /*! \brief  pseudo-vector class which uses host memory */
 template <typename T>
-struct host_vector : vector<T>
+struct host_vector : std::vector<T>
 {
     // Inherit constructors
-    using vector<T>::vector;
+    using std::vector<T>::vector;
 
     // Decay into pointer wherever pointer is expected
     operator T*() { return this->data(); }
@@ -337,17 +322,9 @@ class rocblas_local_handle
     rocblas_handle handle;
 
     public:
-    rocblas_local_handle()
-    {
-        auto status = rocblas_create_handle(&handle);
-        verify_rocblas_status_success(status, "ERROR: rocblas_local_handle constructor");
-    }
+    rocblas_local_handle() { CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle)); }
 
-    ~rocblas_local_handle()
-    {
-        auto status = rocblas_destroy_handle(handle);
-        verify_rocblas_status_success(status, "ERROR: rocblas_local_handle destructor");
-    }
+    ~rocblas_local_handle() { CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle)); }
 
     // Allow rocblas_local_handle to be used anywhere rocblas_handle is expected
     operator rocblas_handle&() { return handle; }
@@ -361,7 +338,7 @@ class rocblas_local_handle
 template <typename T>
 inline T random_generator()
 {
-    return uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
 }
 
 // for rocblas_half, generate float, and convert to rocblas_half
@@ -369,35 +346,14 @@ inline T random_generator()
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
-    return float_to_half(uniform_int_distribution<int>(1, 3)(rocblas_rng));
+    return float_to_half(std::uniform_int_distribution<int>(1, 3)(rocblas_rng));
 };
 
 /*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline int8_t random_generator<int8_t>()
 {
-    return uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
-};
-
-/*! \brief  generate a random number in range [-10,-9,-8,-7,-6,-5,-4,-3,-2,-1] */
-template <typename T>
-inline T random_generator_negative()
-{
-    return uniform_int_distribution<int>(-10, -1)(rocblas_rng);
-};
-
-/*! \brief  generate a random number in range [-3,-2,-1] */
-template <>
-inline rocblas_half random_generator_negative<rocblas_half>()
-{
-    return float_to_half(uniform_int_distribution<int>(-3, -1)(rocblas_rng));
-};
-
-/*! \brief  generate a random number in range [-3,-2,-1] */
-template <>
-inline int8_t random_generator_negative<int8_t>()
-{
-    return uniform_int_distribution<int8_t>(-3, -1)(rocblas_rng);
+    return std::uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
 };
 
 /* ============================================================================================ */
@@ -405,258 +361,194 @@ inline int8_t random_generator_negative<int8_t>()
 // for vector x (M=1, N=lengthX, lda=incx);
 // for complex number, the real/imag part would be initialized with the same value
 
-// initializing vector with a constant value passed as a parameter
+// Initializing vector with a constant value passed as a parameter
 template <typename T>
-void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
-{
-    for(rocblas_int i = 0; i < M; ++i)
-    {
-        for(rocblas_int j = 0; j < N; ++j)
-        {
-            A[i + j * lda] = value;
-        }
-    }
-};
-
-template <typename T>
-void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
-{
-    for(rocblas_int i = 0; i < M; ++i)
-    {
-        for(rocblas_int j = 0; j < N; ++j)
-        {
-            A[i + j * lda] = random_generator<T>();
-        }
-    }
-};
-
-// initialize strided_batched matrix
-template <typename T>
-void rocblas_init(vector<T>& A,
-                  rocblas_int M,
-                  rocblas_int N,
-                  rocblas_int lda,
-                  rocblas_int stride,
-                  rocblas_int batch_count)
-{
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-    {
-        for(rocblas_int i = 0; i < M; ++i)
-        {
-            for(rocblas_int j = 0; j < N; ++j)
-            {
-                A[i + j * lda + i_batch * stride] = random_generator<T>();
-            }
-        }
-    }
-};
-
-template <typename T>
-void rocblas_init_alternating_sign(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
-{
-    // Initialize matrix so adjacent entries have alternating sign.
-    // In gemm if either A or B are initialized with alernating
-    // sign the reduction sum will be summing positive
-    // and negative numbers, so it should not get too large.
-    // This helps reduce floating point inaccuracies for 16bit
-    // arithmetic where the exponent has only 5 bits, and the
-    // mantissa 10 bits.
-    for(rocblas_int i = 0; i < M; ++i)
-    {
-        for(rocblas_int j = 0; j < N; ++j)
-        {
-            if(j % 2 ^ i % 2)
-            {
-                A[i + j * lda] = random_generator<T>();
-            }
-            else
-            {
-                A[i + j * lda] = random_generator_negative<T>();
-            }
-        }
-    }
-};
-
-template <typename T>
-void rocblas_init_alternating_sign(vector<T>& A,
-                                   rocblas_int M,
-                                   rocblas_int N,
-                                   rocblas_int lda,
-                                   rocblas_int stride,
-                                   rocblas_int batch_count)
-{
-    // Initialize matrix so adjacent entries have alternating sign.
-    // In gemm if either A or B are initialized with alernating
-    // sign the reduction sum will be summing positive
-    // and negative numbers, so it should not get too large.
-    // This helps reduce floating point inaccuracies for 16bit
-    // arithmetic where the exponent has only 5 bits, and the
-    // mantissa 10 bits.
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-    {
-        for(rocblas_int i = 0; i < M; ++i)
-        {
-            for(rocblas_int j = 0; j < N; ++j)
-            {
-                if(j % 2 ^ i % 2)
-                {
-                    A[i + j * lda + i_batch * stride] = random_generator<T>();
-                }
-                else
-                {
-                    A[i + j * lda + i_batch * stride] = random_generator_negative<T>();
-                }
-            }
-        }
-    }
-};
-
-template <typename T>
-void rocblas_init_alternating_sign(vector<T>& A,
-                                   rocblas_int M,
-                                   rocblas_int N,
-                                   rocblas_int lda,
-                                   rocblas_int stride,
-                                   rocblas_int batch_count,
-                                   double value)
-{
-    // Initialize matrix so adjacent entries have alternating sign.
-    // In gemm if either A or B are initialized with alernating
-    // sign the reduction sum will be summing positive
-    // and negative numbers, so it should not get too large.
-    // This helps reduce floating point inaccuracies for 16bit
-    // arithmetic where the exponent has only 5 bits, and the
-    // mantissa 10 bits.
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-    {
-        for(rocblas_int i = 0; i < M; ++i)
-        {
-            for(rocblas_int j = 0; j < N; ++j)
-            {
-                if(j % 2 ^ i % 2)
-                {
-                    A[i + j * lda + i_batch * stride] = value;
-                }
-                else
-                {
-                    A[i + j * lda + i_batch * stride] = -value;
-                }
-            }
-        }
-    }
-};
-
-template <typename T>
-void rocblas_init(vector<T>& A,
-                  rocblas_int M,
-                  rocblas_int N,
-                  rocblas_int lda,
-                  rocblas_int stride_a,
-                  rocblas_int batch_count,
-                  double value)
-{
-    for(rocblas_int k = 0; k < batch_count; ++k)
-    {
-        for(rocblas_int i = 0; i < M; ++i)
-        {
-            for(rocblas_int j = 0; j < N; ++j)
-            {
-                A[i + j * lda + k * stride_a] = value;
-            }
-        }
-    }
-};
-
-template <>
-inline void
-rocblas_init(vector<rocblas_half>& A, rocblas_int M, rocblas_int N, rocblas_int lda, double value)
-{
-    for(rocblas_int i = 0; i < M; ++i)
-    {
-        for(rocblas_int j = 0; j < N; ++j)
-        {
-            A[i + j * lda] = float_to_half(static_cast<float>(value));
-        }
-    }
-};
-
-template <>
-inline void rocblas_init(vector<rocblas_half>& A,
+inline void rocblas_init(std::vector<T>& A,
                          rocblas_int M,
                          rocblas_int N,
                          rocblas_int lda,
                          rocblas_int stride_a,
                          rocblas_int batch_count,
-                         double value)
+                         T value)
 {
     for(rocblas_int k = 0; k < batch_count; ++k)
-    {
         for(rocblas_int i = 0; i < M; ++i)
-        {
+            for(rocblas_int j                 = 0; j < N; ++j)
+                A[i + j * lda + k * stride_a] = value;
+}
+
+template <typename T>
+inline void rocblas_init(std::vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda, T value)
+{
+    for(rocblas_int i = 0; i < M; ++i)
+        for(rocblas_int j  = 0; j < N; ++j)
+            A[i + j * lda] = value;
+}
+
+// Overloads for rocblas_half
+inline void rocblas_init(std::vector<rocblas_half>& A,
+                         rocblas_int M,
+                         rocblas_int N,
+                         rocblas_int lda,
+                         rocblas_int stride_a,
+                         rocblas_int batch_count,
+                         float value)
+{
+    rocblas_init<>(A, M, N, lda, stride_a, batch_count, float_to_half(value));
+}
+
+inline void rocblas_init(
+    std::vector<rocblas_half>& A, rocblas_int M, rocblas_int N, rocblas_int lda, float value)
+{
+    rocblas_init<>(A, M, N, lda, float_to_half(value));
+}
+
+// Initialize vector with random values
+template <typename T>
+inline void rocblas_init(std::vector<T>& A,
+                         rocblas_int M,
+                         rocblas_int N,
+                         rocblas_int lda,
+                         rocblas_int stride      = 0,
+                         rocblas_int batch_count = 1)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+        for(rocblas_int i = 0; i < M; ++i)
+            for(rocblas_int j                     = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = random_generator<T>();
+}
+
+// Initialize matrix so adjacent entries have alternating sign.
+// In gemm if either A or B are initialized with alernating
+// sign the reduction sum will be summing positive
+// and negative numbers, so it should not get too large.
+// This helps reduce floating point inaccuracies for 16bit
+// arithmetic where the exponent has only 5 bits, and the
+// mantissa 10 bits.
+template <typename T>
+void rocblas_init_alternating_sign(std::vector<T>& A,
+                                   rocblas_int M,
+                                   rocblas_int N,
+                                   rocblas_int lda,
+                                   rocblas_int stride      = 0,
+                                   rocblas_int batch_count = 1)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+        for(rocblas_int i = 0; i < M; ++i)
             for(rocblas_int j = 0; j < N; ++j)
             {
-                A[i + j * lda + k * stride_a] = float_to_half(static_cast<float>(value));
+                auto value                        = random_generator<T>();
+                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : -value;
             }
-        }
-    }
-};
+}
+
+template <typename T>
+void rocblas_init_alternating_sign(std::vector<T>& A,
+                                   rocblas_int M,
+                                   rocblas_int N,
+                                   rocblas_int lda,
+                                   T value,
+                                   rocblas_int stride      = 0,
+                                   rocblas_int batch_count = 1)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+        for(rocblas_int i = 0; i < M; ++i)
+            for(rocblas_int j                     = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : -value;
+}
 
 /*! \brief  symmetric matrix initialization: */
 // for real matrix only
 template <typename T>
-void rocblas_init_symmetric(vector<T>& A, rocblas_int N, rocblas_int lda)
+void rocblas_init_symmetric(std::vector<T>& A, rocblas_int N, rocblas_int lda)
 {
     for(rocblas_int i = 0; i < N; ++i)
-    {
         for(rocblas_int j = 0; j <= i; ++j)
         {
-            A[j + i * lda] = A[i + j * lda] = random_generator<T>();
+            auto value = random_generator<T>();
+            // Warning: It's undefined behavior to assign to the
+            // same array element twice in same statement (i==j)
+            A[j + i * lda] = value;
+            A[i + j * lda] = value;
         }
-    }
-};
+}
 
 /*! \brief  hermitian matrix initialization: */
 // for complex matrix only, the real/imag part would be initialized with the same value
 // except the diagonal elment must be real
 template <typename T>
-void rocblas_init_hermitian(vector<T>& A, rocblas_int N, rocblas_int lda)
+void rocblas_init_hermitian(std::vector<T>& A, rocblas_int N, rocblas_int lda)
 {
     for(rocblas_int i = 0; i < N; ++i)
-    {
         for(rocblas_int j = 0; j <= i; ++j)
         {
-            A[j + i * lda] = A[i + j * lda] = random_generator<T>();
-            if(i == j)
-                A[j + i * lda].y = 0.0;
+            auto value     = random_generator<T>();
+            A[j + i * lda] = value;
+            value.y        = (i == j) ? 0 : -value.y;
+            A[i + j * lda] = value;
         }
-    }
-};
+}
 
-/*! \brief  matrix/vector initialization: */
-// for vector x (M=1, N=lengthX, lda=incx);
-// initializing vector with a constant value passed as a parameter
+/*! \brief  print vector */
 template <typename T>
-void rocblas_print_vector(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+void rocblas_print_vector(std::vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
 {
     if(typeid(T) == typeid(float))
-        cout << "vec[float]: ";
+        std::cout << "vec[float]: ";
     else if(typeid(T) == typeid(double))
-        cout << "vec[double]: ";
+        std::cout << "vec[double]: ";
     else if(typeid(T) == typeid(rocblas_half))
-        cout << "vec[rocblas_half]: ";
+        std::cout << "vec[rocblas_half]: ";
 
     for(rocblas_int i = 0; i < M; ++i)
-    {
         for(rocblas_int j = 0; j < N; ++j)
         {
             if(typeid(T) == typeid(rocblas_half))
                 printf("%04x,", A[i + j * lda]);
             else
-                cout << A[i + j * lda] << ", ";
+                std::cout << A[i + j * lda] << ", ";
+        }
+    std::cout << std::endl;
+}
+
+/* ============================================================================================ */
+/*! \brief  Packs matricies into groups of 4 in N */
+template <typename T>
+inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+{
+    /* Assumes original matrix provided in column major order, where N is a multiple of 4
+
+        ---------- N ----------
+   |  | 00 05 10 15 20 25 30 35      |00 05 10 15|20 25 30 35|
+   |  | 01 06 11 16 21 26 31 36      |01 06 11 16|21 26 31 36|
+   l  M 02 07 12 17 22 27 32 37  --> |02 07 12 17|22 27 32 37|
+   d  | 03 08 13 18 23 28 33 38      |03 08 13 18|23 28 33 38|
+   a  | 04 09 14 19 24 29 34 39      |04 09 14 19|24 29 34 39|
+   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
+   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
+
+     Input :  00 01 02 03 04 ** ** 05   ...  38 39 ** **
+     Output:  00 05 10 15 01 06 11 16   ...  ** ** ** **
+
+   */
+
+    if(N % 4 != 0)
+    {
+        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
+    }
+
+    host_vector<T> temp(A);
+    for(size_t colBase = 0; colBase < N; colBase += 4)
+    {
+        for(size_t row = 0; row < lda; row++)
+        {
+            for(size_t colOffset = 0; colOffset < 4; colOffset++)
+            {
+                A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
+            }
         }
     }
-    cout << endl;
-};
+}
 
 /* ============================================================================================ */
 /*! \brief  turn float -> 's', double -> 'd', rocblas_float_complex -> 'c', rocblas_double_complex
@@ -667,8 +559,11 @@ char type2char();
 /* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
-void print_matrix(
-    vector<T> CPU_result, vector<T> GPU_result, rocblas_int m, rocblas_int n, rocblas_int lda)
+void print_matrix(std::vector<T> CPU_result,
+                  std::vector<T> GPU_result,
+                  rocblas_int m,
+                  rocblas_int n,
+                  rocblas_int lda)
 {
     for(int i = 0; i < m; i++)
         for(int j = 0; j < n; j++)
@@ -679,33 +574,6 @@ void print_matrix(
                    CPU_result[j + i * lda],
                    GPU_result[j + i * lda]);
         }
-}
-
-/* ============================================================================================ */
-/*! \brief  Return normalized test name to conform to Google Tests */
-// Note: forward<STRING> optimizes by eliminating copies of temporary strings
-// Note: hit is used to disambigutate duplicates
-template <class STRING>
-string normalized_test_name(STRING&& prefix, unordered_map<string, size_t>& hit)
-{
-    auto p = hit.find(prefix);
-    string str;
-
-    // If parameters are repeated, append an incrementing suffix
-    if(p != hit.end())
-    {
-        str = forward<STRING>(prefix) + "_t" + to_string(++p->second);
-    }
-    else
-    {
-        hit[prefix] = 1;
-        str         = forward<STRING>(prefix);
-    }
-
-    // Replace non-alphanumeric characters with letters
-    replace(str.begin(), str.end(), '-', 'n');
-    replace(str.begin(), str.end(), '.', 'p');
-    return str;
 }
 
 #ifdef __cplusplus
@@ -764,66 +632,66 @@ rocblas_datatype char2rocblas_datatype(char value);
 /*! \brief Class used to parse command arguments in both client & gtest   */
 struct Arguments
 {
-    rocblas_int M = 128;
-    rocblas_int N = 128;
-    rocblas_int K = 128;
+    rocblas_int M;
+    rocblas_int N;
+    rocblas_int K;
 
-    rocblas_int lda = 128;
-    rocblas_int ldb = 128;
-    rocblas_int ldc = 128;
-    rocblas_int ldd = 128;
+    rocblas_int lda;
+    rocblas_int ldb;
+    rocblas_int ldc;
+    rocblas_int ldd;
 
-    rocblas_datatype a_type       = rocblas_datatype_f32_r;
-    rocblas_datatype b_type       = rocblas_datatype_f32_r;
-    rocblas_datatype c_type       = rocblas_datatype_f32_r;
-    rocblas_datatype d_type       = rocblas_datatype_f32_r;
-    rocblas_datatype compute_type = rocblas_datatype_f32_r;
+    rocblas_datatype a_type;
+    rocblas_datatype b_type;
+    rocblas_datatype c_type;
+    rocblas_datatype d_type;
+    rocblas_datatype compute_type;
 
-    rocblas_int incx = 1;
-    rocblas_int incy = 1;
-    rocblas_int incd = 1;
-    rocblas_int incb = 1;
+    rocblas_int incx;
+    rocblas_int incy;
+    rocblas_int incd;
+    rocblas_int incb;
 
-    double alpha = 1.0;
-    double beta  = 0.0;
+    double alpha;
+    double beta;
 
-    char transA_option = 'N';
-    char transB_option = 'N';
-    char side_option   = 'L';
-    char uplo_option   = 'L';
-    char diag_option   = 'N';
+    char transA_option;
+    char transB_option;
+    char side_option;
+    char uplo_option;
+    char diag_option;
 
-    rocblas_int apiCallCount = 1;
-    rocblas_int batch_count  = 10;
+    rocblas_int apiCallCount;
+    rocblas_int batch_count;
 
-    rocblas_int stride_a = 128 * 128; //  stride_a > transA_option == 'N' ? lda * K : lda * M
-    rocblas_int stride_b = 128 * 128; //  stride_b > transB_option == 'N' ? ldb * N : ldb * K
-    rocblas_int stride_c = 128 * 128; //  stride_c > ldc * N
-    rocblas_int stride_d = 128 * 128; //  stride_d > ldd * N
+    rocblas_int stride_a; //  stride_a > transA_option == 'N' ? lda * K : lda * M
+    rocblas_int stride_b; //  stride_b > transB_option == 'N' ? ldb * N : ldb * K
+    rocblas_int stride_c; //  stride_c > ldc * N
+    rocblas_int stride_d; //  stride_d > ldd * N
 
-    rocblas_int norm_check = 0;
-    rocblas_int unit_check = 1;
-    rocblas_int timing     = 0;
-    rocblas_int iters      = 10;
+    rocblas_int norm_check;
+    rocblas_int unit_check;
+    rocblas_int timing;
+    rocblas_int iters;
 
-    uint32_t algo          = 0;
-    int32_t solution_index = 0;
-    uint32_t flags         = 0;
-    size_t workspace_size  = 0;
+    uint32_t algo;
+    int32_t solution_index;
+    uint32_t flags;
+    size_t workspace_size;
 
-    char function[32] = "";
-    char namex[32]    = "";
-    char category[32] = "";
+    char function[64];
+    char name[32];
+    char category[32];
 
     // Function to read Structures data from stream
-    friend istream& operator>>(istream& s, Arguments& arg)
+    friend std::istream& operator>>(std::istream& s, Arguments& arg)
     {
         s.read(reinterpret_cast<char*>(&arg), sizeof(arg));
         return s;
     }
 
     // Function to print Structures data out to stream (for debugging)
-    friend ostream& operator<<(ostream& o, const Arguments& arg)
+    friend std::ostream& operator<<(std::ostream& o, const Arguments& arg)
     {
         return o << "{ 'transA': '" << arg.transA_option << "', 'transB': '" << arg.transB_option
                  << "', 'M': '" << arg.M << "', 'N': '" << arg.N << "', 'K': '" << arg.K
@@ -831,6 +699,9 @@ struct Arguments
                  << "', 'alpha': " << arg.alpha << ", 'beta': " << arg.beta << " }\n";
     }
 };
+
+static_assert(std::is_pod<Arguments>::value,
+              "Arguments is not a POD type, and thus is incompatible with C.");
 
 enum rocblas_data_class
 {
@@ -843,14 +714,14 @@ template <rocblas_data_class>
 struct RocBLAS_Data
 {
     // filter iterator
-    typedef boost::filter_iterator<function<bool(const Arguments&)>, istream_iterator<Arguments>>
-        iterator;
+    using iterator = boost::filter_iterator<std::function<bool(const Arguments&)>,
+                                            std::istream_iterator<Arguments>>;
 
     // Initialize class
-    static void init(const string& file) { datafile = file; }
+    static void init(const std::string& file) { datafile = file; }
 
     // begin() iterator which accepts an optional filter.
-    static iterator begin(function<bool(const Arguments&)> filter = [](const Arguments&) {
+    static iterator begin(std::function<bool(const Arguments&)> filter = [](const Arguments&) {
         return true;
     })
     {
@@ -863,7 +734,7 @@ struct RocBLAS_Data
         // We create a filter iterator which will choose only those test cases
         // we want right now. This is to preserve Gtest output structure while
         // not creating no-op tests which "always pass".
-        return iterator(filter, istream_iterator<Arguments>(ifs));
+        return iterator(filter, std::istream_iterator<Arguments>(ifs));
     }
 
     // end() iterator
@@ -878,26 +749,159 @@ struct RocBLAS_Data
         return singleton;
     }
 
-    // Constructor which opens file
+    // Private constructor which opens file
     RocBLAS_Data()
     {
-        ifs.open(datafile, ifstream::binary);
+        ifs.open(datafile, std::ifstream::binary);
         if(ifs.fail())
         {
-            cerr << "Cannot open " << datafile << ": " << strerror(errno) << endl;
-            throw ifstream::failure("Cannot open " + datafile);
+            std::cerr << "Cannot open " << datafile << ": " << strerror(errno) << std::endl;
+            throw std::ifstream::failure("Cannot open " + datafile);
         }
     }
 
-    static string datafile;
-    ifstream ifs;
+    static std::string datafile;
+    std::ifstream ifs;
 };
 
+// The datafile must be initialized by calling RocBLAS_Data<>::init()
 template <rocblas_data_class C>
-string RocBLAS_Data<C>::datafile =
+std::string RocBLAS_Data<C>::datafile =
     "(Uninitialized data. RocBLAS_Data<...>::init needs to be called first.)";
 
-typedef RocBLAS_Data<rocblas_test_data> RocBLAS_TestData;
-typedef RocBLAS_Data<rocblas_perf_data> RocBLAS_PerfData;
+// RocBLAS_Data is instantiated once per rocblas_data_class enum
+// One is for the correctness tests; one is for the performance tests
+using RocBLAS_TestData = RocBLAS_Data<rocblas_test_data>;
+using RocBLAS_PerfData = RocBLAS_Data<rocblas_perf_data>;
+
+#ifdef GOOGLE_TEST
+
+// The tests are instantiated by filtering through the RocBLAS_Data stream
+// The filter is by category and by the type_filter() and function_filter()
+// functions in the testclass
+#define INSTANTIATE_TEST_CATEGORY(testclass, categ0ry)                                           \
+    INSTANTIATE_TEST_CASE_P(categ0ry,                                                            \
+                            testclass,                                                           \
+                            testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
+                                                  return !strcmp(arg.category, #categ0ry) &&     \
+                                                         testclass::type_filter(arg) &&          \
+                                                         testclass::function_filter(arg);        \
+                                              }),                                                \
+                                              RocBLAS_TestData::end()),                          \
+                            testclass::PrintToStringParamName());
+
+// Instantiate all test categories
+#define INSTANTIATE_TEST_CATEGORIES(testclass)        \
+    INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
+    INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
+    INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
+    INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
+
+/* ============================================================================================ */
+/*! \brief  Normalized test name to conform to Google Tests */
+// Template parameter is used to generate multiple instantiations
+template <typename>
+class RocBLAS_TestName
+{
+    std::ostringstream strm;
+
+    public:
+    // Convert stream to normalized Google Test name
+    // rvalue reference qualified so that it can only be called once
+    // The name should only be generated once before the stream is destroyed
+    operator std::string() &&
+    {
+        // This map is private to each instantation of RocBLAS_TestName
+        static std::unordered_map<std::string, size_t> table;
+        std::string name(strm.str());
+
+        // Replace non-alphanumeric characters with letters
+        std::replace(name.begin(), name.end(), '-', 'n'); // minus
+        std::replace(name.begin(), name.end(), '.', 'p'); // decimal point
+
+        // Complex (A,B) is replaced with ArBi
+        name.erase(std::remove(name.begin(), name.end(), '('), name.end());
+        std::replace(name.begin(), name.end(), ',', 'r');
+        std::replace(name.begin(), name.end(), ')', 'i');
+
+        // If parameters are repeated, append an incrementing suffix
+        auto p = table.find(name);
+        if(p != table.end())
+            name += "_t" + std::to_string(++p->second);
+        else
+            table[name] = 1;
+
+        return name;
+    }
+
+    // Stream output operations
+    template <typename U> // Lvalue LHS
+    friend RocBLAS_TestName& operator<<(RocBLAS_TestName& name, U&& obj)
+    {
+        name.strm << std::forward<U>(obj);
+        return name;
+    }
+
+    template <typename U> // Rvalue LHS
+    friend RocBLAS_TestName&& operator<<(RocBLAS_TestName&& name, U&& obj)
+    {
+        name.strm << std::forward<U>(obj);
+        return std::move(name);
+    }
+};
+
+// ----------------------------------------------------------------------------
+// RocBLAS_Test base class. All non-legacy rocBLAS Google tests derive from it.
+// It defines a type_filter() function and a PrintToStringParamName class
+// which calls name_suffix() in the derived class to form the test name suffix.
+// ----------------------------------------------------------------------------
+template <typename TEST, template <typename...> class FILTER>
+class RocBLAS_Test : public testing::TestWithParam<Arguments>
+{
+    protected:
+    // This template functor returns true if the type arguments are valid.
+    // It converts a FILTER specialization to bool to test type matching.
+    template <typename... T>
+    struct type_filter_functor
+    {
+        bool operator()(const Arguments&) { return static_cast<bool>(FILTER<T...>()); }
+    };
+
+    public:
+    // Wrapper functor class which calls name_suffix()
+    struct PrintToStringParamName
+    {
+        std::string operator()(const testing::TestParamInfo<Arguments>& info) const
+        {
+            return TEST::name_suffix(info.param);
+        }
+    };
+};
+
+#endif // GOOGLE_TEST
+
+// ----------------------------------------------------------------------------
+// Error case which returns false when converted to bool. A void specialization
+// of the FILTER class template above, should be derived from this class, in
+// order to indicate that the type combination is invalid.
+// ----------------------------------------------------------------------------
+struct rocblas_test_invalid
+{
+    // Return false to indicate the type combination is invalid, for filtering
+    explicit operator bool() { return false; }
+
+    // If this specialization is actually called, print fatal error message
+    void operator()(const Arguments&)
+    {
+        static constexpr char msg[] = "Internal error: Test called with invalid types\n";
+
+#ifdef GOOGLE_TEST
+        FAIL() << msg;
+#else
+        fputs(msg, stderr);
+        exit(1);
+#endif
+    }
+};
 
 #endif

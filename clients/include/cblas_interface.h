@@ -22,9 +22,6 @@
 template <typename T>
 void cblas_iamax(rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result);
 
-template <typename T>
-void cblas_iamin(rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result);
-
 template <typename T1, typename T2>
 void cblas_asum(rocblas_int n, const T1* x, rocblas_int incx, T2* result);
 

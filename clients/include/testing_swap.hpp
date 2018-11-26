@@ -2,28 +2,20 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-
-#include "rocblas.hpp"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
 #include <complex.h>
 
-using namespace std;
-
 template <typename T>
-void testing_swap_bad_arg()
+void testing_swap_bad_arg(const Arguments& arg)
 {
     rocblas_int N         = 100;
     rocblas_int incx      = 1;
     rocblas_int incy      = 1;
     rocblas_int safe_size = 100; //  arbitrarily set to 100
-
-    rocblas_status status;
 
     rocblas_local_handle handle;
 
@@ -32,59 +24,40 @@ void testing_swap_bad_arg()
     device_vector<T> dy(safe_size);
     if(!dx || !dy)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    // test if (nullptr == dx)
-    {
-        T* dx_null = nullptr;
-
-        status = rocblas_swap<T>(handle, N, dx_null, incx, dy, incy);
-
-        verify_rocblas_status_invalid_pointer(status, "Error: x, y, is nullptr");
-    }
-    // test if (nullptr == dy)
-    {
-        T* dy_null = nullptr;
-
-        status = rocblas_swap<T>(handle, N, dx, incx, dy_null, incy);
-
-        verify_rocblas_status_invalid_pointer(status, "Error: x, y, is nullptr");
-    }
-    // test if (nullptr == handle)
-    {
-        rocblas_handle handle_null = nullptr;
-
-        status = rocblas_swap<T>(handle_null, N, dx, incx, dy, incy);
-
-        verify_rocblas_status_invalid_handle(status);
-    }
+    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(handle, N, nullptr, incx, dy, incy),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(handle, N, dx, incx, nullptr, incy),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(nullptr, N, dx, incx, dy, incy),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
-rocblas_status testing_swap(Arguments argus)
+void testing_swap(const Arguments& arg)
 {
-    rocblas_int N         = argus.N;
-    rocblas_int incx      = argus.incx;
-    rocblas_int incy      = argus.incy;
-    rocblas_int safe_size = 100; //  arbitrarily set to 100
+    rocblas_int N    = arg.N;
+    rocblas_int incx = arg.incx;
+    rocblas_int incy = arg.incy;
     rocblas_local_handle handle;
-    rocblas_status status;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
+        const rocblas_int safe_size = 100; //  arbitrarily set to 100
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);
         if(!dx || !dy)
         {
-            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-            return rocblas_status_memory_error;
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
         }
 
-        status = rocblas_swap<T>(handle, N, dx, incx, dy, incy);
-        return status;
+        CHECK_ROCBLAS_ERROR(rocblas_swap<T>(handle, N, dx, incx, dy, incy));
+        return;
     }
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
@@ -117,8 +90,8 @@ rocblas_status testing_swap(Arguments argus)
     device_vector<T> dy(size_y);
     if(!dx || !dy)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return rocblas_status_memory_error;
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
     }
 
     // copy data from CPU to device
@@ -128,7 +101,7 @@ rocblas_status testing_swap(Arguments argus)
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
 
-    if(argus.unit_check || argus.norm_check)
+    if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
         CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -142,25 +115,20 @@ rocblas_status testing_swap(Arguments argus)
         cblas_swap<T>(N, hx_gold, incx, hy_gold, incy);
         cpu_time_used = get_time_us() - cpu_time_used;
 
-        // enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check)
+        if(arg.unit_check)
         {
             unit_check_general<T>(1, N, abs_incx, hx_gold, hx);
             unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
         }
 
-        // if enable norm check, norm check is invasive
-        // any typeinfo(T) will not work here, because template deduction is matched in compilation
-        // time
-        if(argus.norm_check)
+        if(arg.norm_check)
         {
             rocblas_error = norm_check_general<T>('F', 1, N, abs_incx, hx_gold, hx);
             rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy);
         }
     }
 
-    if(argus.timing)
+    if(arg.timing)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = 100;
@@ -180,11 +148,7 @@ rocblas_status testing_swap(Arguments argus)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        cout << "N,incx,incy,rocblas-us";
-        cout << endl;
-        cout << N << "," << incx << "," << incy << "," << gpu_time_used;
-        cout << endl;
+        std::cout << "N,incx,incy,rocblas-us" << std::endl;
+        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << std::endl;
     }
-
-    return rocblas_status_success;
 }

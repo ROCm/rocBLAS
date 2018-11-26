@@ -2,26 +2,12 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <vector>
-
-#include "rocblas.hpp"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
-#include <complex.h>
 #include <unistd.h>
-#include <pwd.h>
-#include <fstream>
-#include <string>
-#include <algorithm>
-#include <iterator>
-#include <sys/param.h>
-#include <type_traits>
-
-using namespace std;
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>
@@ -88,22 +74,32 @@ void testing_logging()
     // ROCBLAS_LAYER = 2 turns on log_bench
     // ROCBLAS_LAYER = 3 turns on log_trace and log_bench
     char env_rocblas_layer[80] = "ROCBLAS_LAYER=3";
-    verify_equal(
-        putenv(env_rocblas_layer), 0, "failed to set environment variable ROCBLAS_LAYER=3");
+    int putenv_status;
+
+    putenv_status = putenv(env_rocblas_layer);
+
+#ifdef GOOGLE_TEST
+    EXPECT_EQ(putenv_status, 0);
+#endif
 
     // set environment variable to give pathname of for log_trace file
     std::string trace_name1             = "stream_trace.csv";
     char env_rocblas_log_trace_path[80] = "ROCBLAS_LOG_TRACE_PATH=stream_trace.csv";
-    verify_equal(putenv(env_rocblas_log_trace_path),
-                 0,
-                 "failed to set environment variable ROCBLAS_LOG_TRACE_PATH=stream_trace.csv");
+    putenv_status                       = putenv(env_rocblas_log_trace_path);
+
+#ifdef GOOGLE_TEST
+    EXPECT_EQ(putenv_status, 0);
+#endif
 
     // set environment variable to give pathname of for log_bench file
     std::string bench_name1             = "stream_bench.txt";
     char env_rocblas_log_bench_path[80] = "ROCBLAS_LOG_BENCH_PATH=stream_bench.txt";
-    verify_equal(putenv(env_rocblas_log_bench_path),
-                 0,
-                 "failed to set environment variable ROCBLAS_LOG_BENCH_PATH=stream_bench.txt");
+
+    putenv_status = putenv(env_rocblas_log_bench_path);
+
+#ifdef GOOGLE_TEST
+    EXPECT_EQ(putenv_status, 0);
+#endif
 
     //
     // call rocBLAS functions with log_trace and log_bench to output log_trace and log_bench files
@@ -148,11 +144,9 @@ void testing_logging()
     device_vector<T> dd(size_d);
     if(!dx || !dy || !da || !db || !dc || !dd)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
-
-    rocblas_status status;
 
     // enclose in {} so rocblas_local_handle destructor called as it goes out of scope
     {
@@ -163,70 +157,69 @@ void testing_logging()
         // Auxiliary functions
         rocblas_local_handle handle;
 
-        status = rocblas_set_pointer_mode(handle, test_pointer_mode);
-        status = rocblas_get_pointer_mode(handle, &mode);
+        rocblas_set_pointer_mode(handle, test_pointer_mode);
+        rocblas_get_pointer_mode(handle, &mode);
 
         // BLAS1
-        status = rocblas_iamax<T>(handle, n, dx, incx, &i_result);
+        rocblas_iamax<T>(handle, n, dx, incx, &i_result);
 
-        status = rocblas_iamin<T>(handle, n, dx, incx, &i_result);
+        rocblas_iamin<T>(handle, n, dx, incx, &i_result);
 
-        status = rocblas_asum<T, T>(handle, n, dx, incx, &result);
+        rocblas_asum<T, T>(handle, n, dx, incx, &result);
 
-        status = rocblas_axpy<T>(handle, n, &alpha, dx, incx, dy, incy);
+        rocblas_axpy<T>(handle, n, &alpha, dx, incx, dy, incy);
 
-        status = rocblas_copy<T>(handle, n, dx, incx, dy, incy);
+        rocblas_copy<T>(handle, n, dx, incx, dy, incy);
 
-        status = rocblas_dot<T>(handle, n, dx, incx, dy, incy, &result);
+        rocblas_dot<T>(handle, n, dx, incx, dy, incy, &result);
 
-        status = rocblas_nrm2<T, T>(handle, n, dx, incx, &result);
+        rocblas_nrm2<T, T>(handle, n, dx, incx, &result);
 
-        status = rocblas_scal<T>(handle, n, &alpha, dx, incx);
+        rocblas_scal<T>(handle, n, &alpha, dx, incx);
 
-        status = rocblas_swap<T>(handle, n, dx, incx, dy, incy);
+        rocblas_swap<T>(handle, n, dx, incx, dy, incy);
 
         // BLAS2
-        status = rocblas_ger<T>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
+        rocblas_ger<T>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
 
-        status = rocblas_syr<T>(handle, uplo, n, &alpha, dx, incx, da, lda);
+        rocblas_syr<T>(handle, uplo, n, &alpha, dx, incx, da, lda);
 
-        status = rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
+        rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
 
         // BLAS3
-        status =
-            rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
+        rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
 
         if(BUILD_WITH_TENSILE)
         {
             /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
-               status = rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da, lda, db,
+               rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da, lda, db,
                ldb);
             */
-            status = rocblas_gemm<T>(
+            rocblas_gemm<T>(
                 handle, transA, transB, m, n, k, &alpha, da, lda, db, ldb, &beta, dc, ldc);
 
-            status = rocblas_gemm_strided_batched<T>(handle,
-                                                     transA,
-                                                     transB,
-                                                     m,
-                                                     n,
-                                                     k,
-                                                     &alpha,
-                                                     da,
-                                                     lda,
-                                                     stride_a,
-                                                     db,
-                                                     ldb,
-                                                     stride_b,
-                                                     &beta,
-                                                     dc,
-                                                     ldc,
-                                                     stride_c,
-                                                     batch_count);
+            rocblas_gemm_strided_batched<T>(handle,
+                                            transA,
+                                            transB,
+                                            m,
+                                            n,
+                                            k,
+                                            &alpha,
+                                            da,
+                                            lda,
+                                            stride_a,
+                                            db,
+                                            ldb,
+                                            stride_b,
+                                            &beta,
+                                            dc,
+                                            ldc,
+                                            stride_c,
+                                            batch_count);
         }
 
         // exclude trtri as it is an internal function
-        //      status = rocblas_trtri<T>(handle, uplo, diag, n, da, lda, db, ldb);
+        //      rocblas_trtri<T>(handle, uplo, diag, n, da, lda, db, ldb);
 
         // trmm
         // tritri
@@ -284,64 +277,64 @@ void testing_logging()
                 beta         = static_cast<void*>(&beta_double);
             }
 
-            status = rocblas_gemm_ex(handle,
-                                     transA,
-                                     transB,
-                                     m,
-                                     n,
-                                     k,
-                                     alpha,
-                                     da,
-                                     a_type,
-                                     lda,
-                                     db,
-                                     b_type,
-                                     ldb,
-                                     beta,
-                                     dc,
-                                     c_type,
-                                     ldc,
-                                     dd,
-                                     d_type,
-                                     ldd,
-                                     compute_type,
-                                     algo,
-                                     solution_index,
-                                     flags,
-                                     workspace_size,
-                                     workspace);
+            rocblas_gemm_ex(handle,
+                            transA,
+                            transB,
+                            m,
+                            n,
+                            k,
+                            alpha,
+                            da,
+                            a_type,
+                            lda,
+                            db,
+                            b_type,
+                            ldb,
+                            beta,
+                            dc,
+                            c_type,
+                            ldc,
+                            dd,
+                            d_type,
+                            ldd,
+                            compute_type,
+                            algo,
+                            solution_index,
+                            flags,
+                            workspace_size,
+                            workspace);
 
-            status = rocblas_gemm_strided_batched_ex(handle,
-                                                     transA,
-                                                     transB,
-                                                     m,
-                                                     n,
-                                                     k,
-                                                     alpha,
-                                                     da,
-                                                     a_type,
-                                                     lda,
-                                                     stride_a,
-                                                     db,
-                                                     b_type,
-                                                     ldb,
-                                                     stride_b,
-                                                     beta,
-                                                     dc,
-                                                     c_type,
-                                                     ldc,
-                                                     stride_c,
-                                                     dd,
-                                                     d_type,
-                                                     ldd,
-                                                     stride_d,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags,
-                                                     workspace_size,
-                                                     workspace);
+            rocblas_gemm_strided_batched_ex(handle,
+                                            transA,
+                                            transB,
+                                            m,
+                                            n,
+                                            k,
+                                            alpha,
+                                            da,
+                                            a_type,
+                                            lda,
+                                            stride_a,
+                                            db,
+                                            b_type,
+                                            ldb,
+                                            stride_b,
+                                            beta,
+                                            dc,
+                                            c_type,
+                                            ldc,
+                                            stride_c,
+                                            dd,
+                                            d_type,
+                                            ldd,
+                                            stride_d,
+                                            batch_count,
+                                            compute_type,
+                                            algo,
+                                            solution_index,
+                                            flags,
+                                            workspace_size,
+                                            workspace);
         }
     }
 
@@ -436,71 +429,11 @@ void testing_logging()
                << incx << " --incy " << incy << '\n';
 
     // BLAS2
-    std::string transA_letter;
-    if(transA == rocblas_operation_none)
-    {
-        transA_letter = "N";
-    }
-    else if(transA == rocblas_operation_transpose)
-    {
-        transA_letter = "T";
-    }
-    else if(transA == rocblas_operation_conjugate_transpose)
-    {
-        transA_letter = "C";
-    }
-
-    std::string transB_letter;
-    if(transB == rocblas_operation_none)
-    {
-        transB_letter = "N";
-    }
-    else if(transB == rocblas_operation_transpose)
-    {
-        transB_letter = "T";
-    }
-    else if(transB == rocblas_operation_conjugate_transpose)
-    {
-        transB_letter = "C";
-    }
-
-    std::string side_letter;
-    if(side == rocblas_side_left)
-    {
-        side_letter = "L";
-    }
-    else if(side == rocblas_side_right)
-    {
-        side_letter = "R";
-    }
-    else if(side == rocblas_side_both)
-    {
-        side_letter = "B";
-    }
-
-    std::string uplo_letter;
-    if(uplo == rocblas_fill_upper)
-    {
-        uplo_letter = "U";
-    }
-    else if(uplo == rocblas_fill_lower)
-    {
-        uplo_letter = "L";
-    }
-    else if(uplo == rocblas_fill_full)
-    {
-        uplo_letter = "F";
-    }
-
-    std::string diag_letter;
-    if(diag == rocblas_diagonal_non_unit)
-    {
-        diag_letter = "N";
-    }
-    else if(diag == rocblas_diagonal_unit)
-    {
-        diag_letter = "U";
-    }
+    auto transA_letter = rocblas2char_operation(transA);
+    auto transB_letter = rocblas2char_operation(transB);
+    auto side_letter   = rocblas2char_side(side);
+    auto uplo_letter   = rocblas2char_fill(uplo);
+    auto diag_letter   = rocblas2char_diagonal(diag);
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
@@ -758,7 +691,11 @@ void testing_logging()
     std::istreambuf_iterator<char> end;
 
     // check that files are the same
-    verify_equal(true, range_equal(begin1, end, begin2, end), "log_trace file corrupt");
+    bool sizes_same = range_equal(begin1, end, begin2, end);
+
+#ifdef GOOGLE_TEST
+    EXPECT_TRUE(sizes_same);
+#endif
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
@@ -774,7 +711,12 @@ void testing_logging()
         std::istreambuf_iterator<char> end;
 
         // check that files are the same
-        verify_equal(true, range_equal(begin1, end, begin2, end), "log_bench file corrupt");
+        sizes_same = range_equal(begin1, end, begin2, end);
+
+#ifdef GOOGLE_TEST
+        EXPECT_TRUE(sizes_same);
+#endif
+
         bench_ifs1.close();
         bench_ifs2.close();
     }
@@ -782,8 +724,12 @@ void testing_logging()
     trace_ifs1.close();
     trace_ifs2.close();
 
-    char env_close_string[80] = "ROCBLAS_LAYER=0";
-    verify_equal(putenv(env_close_string), 0, "failed to set environment variable ROCBLAS_LAYER=0");
+    static char env_close_string[80] = "ROCBLAS_LAYER=0";
+    putenv_status                    = putenv(env_close_string);
+
+#ifdef GOOOGLE_TEST
+    EXPECT_EQ(putenv_status, 0);
+#endif
 
     return;
 }

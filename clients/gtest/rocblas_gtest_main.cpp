@@ -9,13 +9,13 @@
 #define GTEST_DATA "rocblas_gtest.data"
 
 // Return path of this executable
-static string exepath()
+static std::string exepath()
 {
-    string pathstr;
+    std::string pathstr;
     char* path = realpath("/proc/self/exe", 0);
     if(path)
     {
-        char* p = rindex(path, '/');
+        char* p = strrchr(path, '/');
         if(p)
         {
             p[1]    = 0;
@@ -51,7 +51,7 @@ int main(int argc, char** argv)
         set_device(device_id);
     }
 
-    ::testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&argc, argv);
 
     return RUN_ALL_TESTS();
 }

@@ -3,15 +3,14 @@
  *
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <vector>
 #include <iostream>
 
 #include "rocblas.h"
 #include "utility.h"
-
-using namespace std;
+using std::vector;
 
 /* ============================================================================================ */
 

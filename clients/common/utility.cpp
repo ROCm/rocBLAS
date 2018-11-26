@@ -194,11 +194,11 @@ rocblas_operation char2rocblas_operation(char value)
 {
     switch(value)
     {
-    case 'N': return rocblas_operation_none;
-    case 'T': return rocblas_operation_transpose;
-    case 'C': return rocblas_operation_conjugate_transpose;
+    case 'N':
     case 'n': return rocblas_operation_none;
+    case 'T':
     case 't': return rocblas_operation_transpose;
+    case 'C':
     case 'c': return rocblas_operation_conjugate_transpose;
     default: return static_cast<rocblas_operation>(-1);
     }
@@ -208,9 +208,9 @@ rocblas_fill char2rocblas_fill(char value)
 {
     switch(value)
     {
-    case 'U': return rocblas_fill_upper;
-    case 'L': return rocblas_fill_lower;
+    case 'U':
     case 'u': return rocblas_fill_upper;
+    case 'L':
     case 'l': return rocblas_fill_lower;
     default: return static_cast<rocblas_fill>(-1);
     }
@@ -220,9 +220,9 @@ rocblas_diagonal char2rocblas_diagonal(char value)
 {
     switch(value)
     {
-    case 'U': return rocblas_diagonal_unit;
-    case 'N': return rocblas_diagonal_non_unit;
+    case 'U':
     case 'u': return rocblas_diagonal_unit;
+    case 'N':
     case 'n': return rocblas_diagonal_non_unit;
     default: return static_cast<rocblas_diagonal>(-1);
     }
@@ -232,9 +232,9 @@ rocblas_side char2rocblas_side(char value)
 {
     switch(value)
     {
-    case 'L': return rocblas_side_left;
-    case 'R': return rocblas_side_right;
+    case 'L':
     case 'l': return rocblas_side_left;
+    case 'R':
     case 'r': return rocblas_side_right;
     default: return static_cast<rocblas_side>(-1);
     }
@@ -244,16 +244,16 @@ rocblas_datatype char2rocblas_datatype(char value)
 {
     switch(value)
     {
+    case 'H':
     case 'h': return rocblas_datatype_f16_r;
-    case 'H': return rocblas_datatype_f16_r;
+    case 'S':
     case 's': return rocblas_datatype_f32_r;
-    case 'S': return rocblas_datatype_f32_r;
+    case 'D':
     case 'd': return rocblas_datatype_f64_r;
-    case 'D': return rocblas_datatype_f64_r;
+    case 'C':
     case 'c': return rocblas_datatype_f32_c;
-    case 'C': return rocblas_datatype_f32_c;
+    case 'Z':
     case 'z': return rocblas_datatype_f64_c;
-    case 'Z': return rocblas_datatype_f64_c;
     default: return static_cast<rocblas_datatype>(-1);
     }
 }

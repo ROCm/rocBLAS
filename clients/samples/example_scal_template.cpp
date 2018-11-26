@@ -3,15 +3,10 @@
  *
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-
+#include <cstdlib>
+#include <cstdio>
 #include "rocblas.hpp"
 #include "utility.h"
-#include <iostream>
-
-using namespace std;
 
 /* ============================================================================================ */
 
@@ -23,8 +18,8 @@ int main()
     float alpha           = 10.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<float> hx(N);
-    vector<float> hz(N);
+    std::vector<float> hx(N);
+    std::vector<float> hz(N);
     float* dx;
 
     double gpu_time_used;

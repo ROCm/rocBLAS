@@ -3,7 +3,14 @@
 
 import re
 import sys
+import os
+import argparse
 import ctypes
+try:  # Import either the C or pure-Python YAML parser
+    from yaml import CLoader as Loader
+except ImportError:
+    from yaml import Loader
+import yaml
 
 # Regex for type names in the YAML file. Optional *nnn indicates array.
 TYPE_RE = re.compile(r'\w+(:?\s*\*\s*\d+)?$')
@@ -11,25 +18,38 @@ TYPE_RE = re.compile(r'\w+(:?\s*\*\s*\d+)?$')
 # Regex for integer ranges A..B[..C]
 INT_RANGE_RE = re.compile(r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
 
-# Regex for Include dictionary entries
-INCLUDE_RE = re.compile("(?i)include")
+# Regex for include: YAML extension
+INCLUDE_RE = re.compile(r'include\s*:\s*(.*)')
 
+args = {}
+testcases = set()
 datatypes = {}
 param = {}
-testcases = set()
 
 
 def main():
-    # Parse YAML file
-    (infile, param['outfile'], param['filter'], param['includes']) = parse_args()
-    doc = get_doc(infile)
+    (infile, args['outfile'], args['includes']) = parse_args()
+    for doc in get_yaml_docs(infile):
+        process_doc(doc)
+
+
+def process_doc(doc):
+    """Process one document in the YAML file"""
+
+    # Ignore empty documents
+    if not doc or not doc.get('Tests'):
+        return
+
+    # Clear datatypes and params from previous documents
+    datatypes.clear()
+    param.clear()
 
     # Return dictionary of all known datatypes
     datatypes.update(get_datatypes(doc))
 
     # Arguments structure corresponding to C/C++ structure
     param['Arguments'] = type('Arguments', (ctypes.Structure,),
-                              {"_fields_": get_arguments(doc)})
+                              {'_fields_': get_arguments(doc)})
 
     # Special names which get expanded as lists of arguments
     param['dict_lists_to_expand'] = doc.get('Dictionary lists to expand') or ()
@@ -41,7 +61,7 @@ def main():
     defaults = doc.get('Defaults') or {}
 
     # Known Bugs
-    param['known_bugs'] = doc.get('Known Bugs') or []
+    param['known_bugs'] = doc.get('Known bugs') or []
 
     # Instantiate all of the tests, starting with defaults
     for test in doc['Tests']:
@@ -51,9 +71,7 @@ def main():
 
 
 def parse_args():
-    '''Parse command-line arguments, returning input and output files'''
-
-    import argparse
+    """Parse command-line arguments, returning input and output files"""
     parser = argparse.ArgumentParser(description="""
 Expand rocBLAS YAML test data file into binary Arguments records
 """)
@@ -68,55 +86,64 @@ Expand rocBLAS YAML test data file into binary Arguments records
     parser.add_argument('-I',
                         help="Add include path",
                         action='append',
-                        dest='includes')
-    parser.add_argument('-f', '--filter',
-                        dest='filter',
-                        metavar="FILTER[,FILTER...]",
-                        help="Filter tests based on nightly, pre_checkin, etc.",
-                        type=lambda s: s.split(','))
+                        dest='includes',
+                        default=[])
     parsed = parser.parse_args()
-    return (parsed.infile, parsed.outfile, parsed.filter, parsed.includes)
+    return (parsed.infile, parsed.outfile, parsed.includes)
 
 
-def get_doc(infile):
-    '''Parse the YAML file, handling !include files and include dictionaries'''
-    try:          # Import either the C or pure-Python YAML parser
-        from yaml import CLoader as BaseLoader
-    except ImportError:
-        from yaml import BaseLoader
-    import yaml
-    import os.path
+def read_yaml_file(file):
+    """Read the YAML file, processing include: lines as an extension"""
+    file_dir = os.path.dirname(file.name) or os.getcwd()
+    source = []
+    for line_no, line in enumerate(file, start=1):
+        # Keep track of file names and line numbers for each line of YAML
+        match = line.startswith('include') and INCLUDE_RE.match(line)
+        if not match:
+            source.append([line, file.name, line_no])
+        else:
+            include_file = match.group(1)
+            include_dirs = [file_dir] + args['includes']
+            for path in include_dirs:
+                path = os.path.join(path, include_file)
+                if os.path.exists(path):
+                    source.extend(read_yaml_file(open(path, 'r')))
+                    break
+            else:
+                sys.exit("In file " + file.name + ", line " +
+                         str(line_no) + ", column " + str(match.start(1)+1) +
+                         ":\n" + line.rstrip() + "\n" + " " * match.start(1) +
+                         "^\nCannot open " + include_file +
+                         "\n\nInclude paths:\n" + "\n".join(include_dirs))
+    file.close()
+    return source
 
-    # Define a Loader class which handles !include directives in YAML
-    class Loader(BaseLoader):
-        def __init__(self, stream):
-            self._root = os.path.split(stream.name)[0]
-            super(Loader, self).__init__(stream)
 
-        def include(self, node):
-            name = self.construct_scalar(node)
-            filename = os.path.join(self._root, name)
-            if not os.path.isfile(filename):
-                for path in param['includes']:
-                    filename = os.path.join(path, name)
-                    if os.path.isfile(filename):
-                        break
-            with open(filename, 'r') as f:
-                return yaml.load(f, Loader)
+def get_yaml_docs(infile):
+    """Parse the YAML file"""
+    source = read_yaml_file(infile)
+    source_str = ''.join([line[0] for line in source])
 
-    Loader.add_constructor('!include', Loader.include)
+    def mark_str(mark):
+        line = source[mark.line]
+        return("In file " + line[1] + ", line " + str(line[2]) + ", column " +
+               str(mark.column + 1) + ":\n" + line[0].rstrip() + "\n" +
+               ' ' * mark.column + "^\n")
 
-    # Load the YAML document, recursively expanding !include directives
-    doc = yaml.load(infile, Loader=Loader)
-
-    # For every key beginning with "include", inject its contents into document
-    for key in doc.keys():
-        if INCLUDE_RE.match(key):
-            inc = doc.pop(key)
-            inc.pop('Definitions', None)   # Keep Definitons entries local
-            doc.update(inc)
-
-    return doc
+    # We iterate through all of the documents to properly diagnose errors,
+    # because the load_all generator does not handle exceptions correctly.
+    docs = []
+    load = Loader(source_str)
+    while load.check_data():
+        try:
+            doc = load.get_data()
+        except yaml.YAMLError as err:
+            sys.exit((mark_str(err.problem_mark) if err.problem_mark else "") +
+                     (err.problem + "\n" if err.problem else "") +
+                     (err.note + "\n" if err.note else ""))
+        else:
+            docs.append(doc)
+    return docs
 
 
 def get_datatypes(doc):
@@ -134,8 +161,8 @@ def get_datatypes(doc):
                 # Import class' attributes into the datatype namespace
                 for subtype in decl.get('attr') or {}:
                     if TYPE_RE.match(subtype):
-                        dt[subtype] = eval(name+"."+subtype, dt)
-            elif isinstance(decl, basestring) and TYPE_RE.match(decl):
+                        dt[subtype] = eval(name+'.'+subtype, dt)
+            elif isinstance(decl, str) and TYPE_RE.match(decl):
                 dt[name] = dt[decl]
             else:
                 sys.exit("Unrecognized data type "+name+": "+repr(decl))
@@ -154,13 +181,6 @@ def get_arguments(doc):
 def setdefaults(test):
     """Set default values for parameters"""
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
-    if 'type' in test:
-        test.setdefault('a_type', test['type'])
-        test.setdefault('b_type', test['type'])
-        test.setdefault('c_type', test['type'])
-        test.setdefault('d_type', test['type'])
-        test.setdefault('compute_type', test['type'])
-
     test.setdefault('lda',
                     test['M'] if test['transA'].upper() == 'N' else test['K'])
     test.setdefault('ldb',
@@ -197,33 +217,26 @@ def write_test(test):
     sig = tuple(byt)
     if sig not in testcases:
         testcases.add(sig)
-        param['outfile'].write(byt)
+        args['outfile'].write(byt)
 
 
 def instantiate(test):
     """Instantiate a given test case"""
-
-    # Filter based on test_class
-    if param['filter'] and test.get("category") not in param['filter']:
-        return
-
     test = test.copy()
-    setdefaults(test)
 
     # Any Arguments fields declared as rocblas_datatype denote types
     type_args = [decl[0] for decl in param['Arguments']._fields_
                  if decl[1] == datatypes.get('rocblas_datatype')]
+    try:
+        setdefaults(test)
+        # For type arguments, replace type name with type
+        for typename in type_args:
+            test[typename] = datatypes[test[typename]]
 
-    # For type arguments, replace type name with type
-    for typename in type_args:
-        test[typename] = datatypes[test[typename]]
-
-    # Match known bugs
-    if test.get('category') not in ('known_bug', 'disabled'):
-        for bug in param['known_bugs']:
-            if bug:
-                for key in bug:
-                    value = bug[key]
+        # Match known bugs
+        if test['category'] not in ('known_bug', 'disabled'):
+            for bug in param['known_bugs']:
+                for key, value in bug.items():
                     # For keys declared as datatypes, compare resulting types
                     if key in type_args:
                         value = datatypes[value]
@@ -233,39 +246,57 @@ def instantiate(test):
                     test['category'] = 'known_bug'
                     break
 
-    write_test(test)
+        write_test(test)
+
+    except KeyError as err:
+        sys.exit("Undefined value " + str(err) + "\n" + str(test))
 
 
 def generate(test, function):
     """Generate test combinations by iterating across lists recursively"""
-
     test = test.copy()
 
-    # For specially named dictionary lists which list multiple argument sets,
-    # they are expanded and merged into the original test argument list
-    for key in param['dict_lists_to_expand']:
-        if key in test:
-            for item in test.pop(key):    # pop the list and iterate across it
+    # For specially named lists, they are expanded and merged into the test
+    # argument list. When the list name is a dictionary of length 1, its pairs
+    # indicate that the argument named by its key takes on values paired with
+    # the argument named by its value, which is another dictionary list. We
+    # process the value dictionaries' keys in alphabetic order, to ensure
+    # deterministic test ordering.
+    for argname in param['dict_lists_to_expand']:
+        if type(argname) == dict:
+            if len(argname) == 1:
+                arg, target = argname.items()[0]
+                if arg in test and type(test[arg]) == dict:
+                    pairs = sorted(test[arg].items(), key=lambda x: x[0])
+                    for test[arg], test[target] in pairs:
+                        generate(test, function)
+                    return
+        elif argname in test and type(test[argname]) in (tuple, list, dict):
+            # Pop the list and iterate across it
+            ilist = test.pop(argname)
+
+            # For a bare dictionary, wrap it in a list and apply it once
+            for item in [ilist] if type(ilist) == dict else ilist:
                 case = test.copy()
                 case.update(item)
                 generate(case, function)  # original test merged with each item
             return
 
-    # For any arguments which are sequences, they are expanded into scalars
-    for key in test:
-        if key not in param['lists_to_not_expand']:
-            if type(test[key]) in (tuple, list):
-                for test[key] in test[key]:
+    for key in sorted(test.keys()):
+        # Integer arguments which are ranges (A..B[..C]) are expanded
+        if type(test[key]) == str:
+            match = INT_RANGE_RE.match(str(test[key]))
+            if match:
+                for test[key] in range(int(match.group(1)),
+                                       int(match.group(2))+1,
+                                       int(match.group(3) or 1)):
                     generate(test, function)
                 return
 
-    # For integer arguments which are ranges (A..B[..C]), they are expanded
-    for key in test:
-        match = INT_RANGE_RE.match(str(test[key]))
-        if match:
-            for test[key] in xrange(int(match.group(1)),
-                                    int(match.group(2))+1,
-                                    int(match.group(3) or 1)):
+        # For sequence arguments, they are expanded into scalars
+        elif (type(test[key]) in (tuple, list) and
+              key not in param['lists_to_not_expand']):
+            for test[key] in test[key]:
                 generate(test, function)
             return
 

@@ -4,10 +4,44 @@ Datatypes:
   - rocblas_int: c_int
   - rocblas_datatype:
       bases: [ c_int ]
-      attr: { f16_r: 150, f32_r: 151, f64_r: 152, f16_c: 153, f32_c: 154, f64_c: 155 }
+      attr:
+        f16_r: 150
+        f32_r: 151
+        f64_r: 152
+        f16_c: 153
+        f32_c: 154
+        f64_c: 155
+        i8_r:  160
+        u8_r:  161
+        i32_r: 162
+        u32_r: 163
+        i8_c:  164
+        u8_c:  165
+        i32_c: 166
+        u32_c: 167
   - { half: f16_r, float: f32_r, double: f64_r }
   - { half complex: f16_c, complex: f32_c, double complex: f64_c }
 
+Real precisions: &real_precisions
+  - &half_precision
+    { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f16_r }
+  - &hpa_half_precision
+    { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r }
+  - &single_precision
+    { a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+  - &double_precision
+    { a_type: f64_r, b_type: f64_r, c_type: f64_r, d_type: f64_r, compute_type: f64_r }
+  - &int8_precision
+    { a_type:  i8_r, b_type:  i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r }
+
+C precisions: &float_double_precisions
+  - *single_precision
+  - *double_precision
+
+Simple precisions: &half_float_double_precisions
+  - *half_precision
+  - *single_precision
+  - *double_precision
 
 # The Arguments struct passed directly to C++. See clients/include/utility.h
 # The order of the entries is significant, so it can't simply be a dictionary.
@@ -50,20 +84,36 @@ Arguments:
   - solution_index: c_int
   - flags: c_uint
   - workspace_size: c_size_t
-  - function: c_char*32
+  - function: c_char*64
   - name: c_char*32
   - category: c_char*32
 
+# These named dictionary lists [ {dict1}, {dict2}, etc. ] supply subsets of
+# test arguments in a structured way. The dictionaries are applied to the test
+# one at a time, to generate combinations.  If one of this table's entries is
+# a dictionary of size one, it means that the argument named by its key takes
+# on values paired with argument named by its value. For example:
+#
+# - function: precision
+#
+# when used with the code:
+#
+# function:
+#   func1: prec1
+#   func2: prec2
+#   func3: prec3
+#
+# causes (function, precision) to take on the values (func1, prec1),
+# (func2, prec2), (func3, prec3), etc.
 
-# These named dictionary lists [ {dict1}, {dict2}, etc. ] supply subsets
-# of test arguments in a structured way. The dictionaries are applied to
-# each test case across the entire list, to generate combinations.
 Dictionary lists to expand:
   - arguments
   - transA_transB
   - alpha_beta
+  - incx_incy
   - matrix_size
-
+  - precision
+  - function: precision
 
 # In case an array argument needs to be passed directly to C as an array,
 # it needs to be listed here to avoid being expanded into multiple test
@@ -71,26 +121,41 @@ Dictionary lists to expand:
 Lists to not expand:
   - e.g., an array argument not to be expanded
 
-
 # Defaults
 Defaults:
-  type: [ half, float, double ]
-  category: nightly
-  alpha: 1.0
-  beta: 0.0
+  M: 128
+  N: 128
+  K: 128
+  lda: 128
+  ldb: 128
+  ldc: 128
+  ldd: 128
+  a_type: float
+  b_type: float
+  c_type: float
+  d_type: float
+  compute_type: float
   incx: 1
   incy: 1
   incd: 1
   incb: 1
+  alpha: 1.0
+  beta: 0.0
+  transA: N
+  transB: N
   side: L
   uplo: L
   diag: N
   apiCallCount: 1
   batch_count: 10
+  stride_a: 16384
+  stride_b: 16384
+  stride_c: 16384
+  stride_d: 16384
   norm_check: 0
   unit_check: 1
-  iters: 10
   timing: 0
+  iters: 10
   algo: 0
   solution_index: 0
   flags: 0

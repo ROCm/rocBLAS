@@ -2,16 +2,8 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <limits> // std::numeric_limits<T>::epsilon();
-#include <cmath>  // std::abs
-
-#include "rocblas.hpp"
-#include "arg_check.h"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
@@ -19,8 +11,6 @@
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 20
-
-using namespace std;
 
 template <typename T>
 void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
@@ -37,20 +27,18 @@ void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_i
 }
 
 template <typename T>
-rocblas_status testing_trsm(Arguments argus)
+void testing_trsm(const Arguments& arg)
 {
-    rocblas_int M   = argus.M;
-    rocblas_int N   = argus.N;
-    rocblas_int lda = argus.lda;
-    rocblas_int ldb = argus.ldb;
+    rocblas_int M   = arg.M;
+    rocblas_int N   = arg.N;
+    rocblas_int lda = arg.lda;
+    rocblas_int ldb = arg.ldb;
 
-    char char_side   = argus.side_option;
-    char char_uplo   = argus.uplo_option;
-    char char_transA = argus.transA_option;
-    char char_diag   = argus.diag_option;
-    T alpha_h        = argus.alpha;
-
-    rocblas_int safe_size = 100; // arbitrarily set to 100
+    char char_side   = arg.side_option;
+    char char_uplo   = arg.uplo_option;
+    char char_transA = arg.transA_option;
+    char char_diag   = arg.diag_option;
+    T alpha_h        = arg.alpha;
 
     rocblas_side side        = char2rocblas_side(char_side);
     rocblas_fill uplo        = char2rocblas_fill(char_uplo);
@@ -61,28 +49,25 @@ rocblas_status testing_trsm(Arguments argus)
     rocblas_int size_A = lda * K;
     rocblas_int size_B = ldb * N;
 
-    rocblas_status status;
-
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M)
     {
+        const rocblas_int safe_size = 100; // arbitrarily set to 100
         device_vector<T> dA(safe_size);
         device_vector<T> dXorB(safe_size);
         if(!dA || !dXorB)
         {
-            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-            return rocblas_status_memory_error;
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        status =
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb);
-
-        trsm_arg_check(status, M, N, lda, ldb);
-
-        return status;
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
+            rocblas_status_invalid_size);
+        return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
@@ -96,7 +81,6 @@ rocblas_status testing_trsm(Arguments argus)
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
     T error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     T residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     T eps                     = std::numeric_limits<T>::epsilon();
@@ -107,8 +91,8 @@ rocblas_status testing_trsm(Arguments argus)
     device_vector<T> alpha_d(1);
     if(!dA || !dXorB || !alpha_d)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return rocblas_status_memory_error;
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
     }
 
     //  Random lower triangular matrices have condition number
@@ -220,7 +204,7 @@ rocblas_status testing_trsm(Arguments argus)
     T max_err_2 = 0.0;
     T max_res_1 = 0.0;
     T max_res_2 = 0.0;
-    if(argus.unit_check || argus.norm_check)
+    if(arg.unit_check || arg.norm_check)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -301,7 +285,7 @@ rocblas_status testing_trsm(Arguments argus)
         trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
     }
 
-    if(argus.timing)
+    if(arg.timing)
     {
         // GPU rocBLAS
         CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
@@ -325,22 +309,21 @@ rocblas_status testing_trsm(Arguments argus)
         cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        std::cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
-        if(argus.norm_check)
-            cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+        if(arg.norm_check)
+            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        cout << endl;
+        std::cout << std::endl;
 
-        cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ',' << char_uplo
-             << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops << ","
-             << gpu_time_used;
+        std::cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
+                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
+                  << "," << gpu_time_used;
 
-        if(argus.norm_check)
-            cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                 << max_err_2;
+        if(arg.norm_check)
+            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                      << max_err_2;
 
-        cout << endl;
+        std::cout << std::endl;
     }
-    return rocblas_status_success;
 }

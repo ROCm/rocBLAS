@@ -3,7 +3,7 @@
  *
  * ************************************************************************ */
 
-#include <stdio.h>
+#include <cstdio>
 #include <memory>
 #include <limits>
 #include "rocblas.h"
@@ -251,6 +251,65 @@ double norm_check_general<rocblas_half>(char norm_type,
 
         float error =
             slange_(&norm_type, &M, &N, &hGPU_float[i * stride_a], &lda, &work) / cpu_norm;
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
+//=====Norm Check for strided_batched matrix
+template <>
+double norm_check_general(char norm_type,
+                          rocblas_int M,
+                          rocblas_int N,
+                          rocblas_int lda,
+                          rocblas_int stride_a,
+                          rocblas_int batch_count,
+                          rocblas_int* hCPU,
+                          rocblas_int* hGPU)
+{
+    // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+    //
+    // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
+    // of strided batched matrix
+
+    rocblas_int totalsize = N * lda + (batch_count - 1) * stride_a;
+    host_vector<double> hCPU_double(totalsize), hGPU_double(totalsize);
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < N * lda; i++)
+        {
+            auto index         = i + i_batch * stride_a;
+            hCPU_double[index] = hCPU[index];
+            hGPU_double[index] = hGPU[index];
+        }
+    }
+
+    double work;
+    rocblas_int incx        = 1;
+    double alpha            = -1.0f;
+    rocblas_int size        = lda * N;
+    double cumulative_error = 0.0;
+
+    for(rocblas_int i = 0; i < batch_count; i++)
+    {
+        double cpu_norm = dlange_(&norm_type, &M, &N, &hCPU_double[i * stride_a], &lda, &work);
+
+        daxpy_(&size, &alpha, &hCPU_double[i * stride_a], &incx, &hGPU_double[i * stride_a], &incx);
+
+        double error =
+            dlange_(&norm_type, &M, &N, &hGPU_double[i * stride_a], &lda, &work) / cpu_norm;
 
         if(norm_type == 'F' || norm_type == 'f')
         {

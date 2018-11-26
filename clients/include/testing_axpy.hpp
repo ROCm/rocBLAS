@@ -2,106 +2,78 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-
-#include "rocblas.hpp"
 #include "utility.h"
+#include "rocblas.hpp"
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include "arg_check.h"
 #include "flops.h"
 #include <complex.h>
 
-using namespace std;
-
 /* ============================================================================================ */
 template <typename T>
-void testing_axpy_bad_arg()
+void testing_axpy_bad_arg(const Arguments& arg)
 {
     rocblas_int N         = 100;
     rocblas_int incx      = 1;
     rocblas_int incy      = 1;
     rocblas_int safe_size = 100;
-    T alpha               = 0.6;
+    float alpha_float     = 0.6;
+    T alpha;
 
-    rocblas_status status;
+    if(typeid(T) == typeid(rocblas_half))
+        alpha = float_to_half(alpha_float);
+    else
+        alpha = alpha_float;
 
     rocblas_local_handle handle;
     device_vector<T> dx(safe_size);
     device_vector<T> dy(safe_size);
     if(!dx || !dy)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    // testing for (nullptr == dx)
-    {
-        T* dx_null = nullptr;
-
-        status = rocblas_axpy<T>(handle, N, &alpha, dx_null, incx, dy, incy);
-
-        verify_rocblas_status_invalid_pointer(status, "Error: x is nullptr");
-    }
-    // testing for (nullptr == dy)
-    {
-        T* dy_null = nullptr;
-
-        status = rocblas_axpy<T>(handle, N, &alpha, dx, incx, dy_null, incy);
-
-        verify_rocblas_status_invalid_pointer(status, "Error: y is nullptr");
-    }
-    // testing for (nullptr == d_alpha)
-    {
-        T* d_alpha_null = nullptr;
-
-        status = rocblas_axpy<T>(handle, N, d_alpha_null, dx, incx, dy, incy);
-
-        verify_rocblas_status_invalid_pointer(status, "Error: y is nullptr");
-    }
-    // testing (nullptr == handle)
-    {
-        rocblas_handle handle_null = nullptr;
-
-        status = rocblas_axpy<T>(handle_null, N, &alpha, dx, incx, dy, incy);
-
-        verify_rocblas_status_invalid_handle(status);
-    }
-    return;
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy<T>(handle, N, &alpha, nullptr, incx, dy, incy),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy<T>(handle, N, &alpha, dx, incx, nullptr, incy),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy<T>(handle, N, nullptr, dx, incx, dy, incy),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy<T>(nullptr, N, &alpha, dx, incx, dy, incy),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
-rocblas_status testing_axpy(Arguments argus)
+void testing_axpy(const Arguments& arg)
 {
-    rocblas_int N         = argus.N;
-    rocblas_int incx      = argus.incx;
-    rocblas_int incy      = argus.incy;
-    rocblas_int safe_size = 100; // arbitrarily set to 100
-    T h_alpha             = 0;
+    rocblas_int N    = arg.N;
+    rocblas_int incx = arg.incx;
+    rocblas_int incy = arg.incy;
+    T h_alpha        = 0;
     if(typeid(T) == typeid(rocblas_half))
-        h_alpha = float_to_half(argus.alpha);
+        h_alpha = float_to_half(arg.alpha);
     else
-        h_alpha = argus.alpha;
+        h_alpha = arg.alpha;
 
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
+        const rocblas_int safe_size = 100; // arbitrarily set to 100
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);
         if(!dx || !dy)
         {
-            verify_rocblas_status_success(rocblas_status_memory_error, "!dx || !dy");
-            return rocblas_status_memory_error;
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy, incy));
-        return rocblas_status_success;
+        return;
     }
 
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
@@ -132,9 +104,8 @@ rocblas_status testing_axpy(Arguments argus)
     device_vector<T> d_alpha(1);
     if(!dx || !dy_1 || !dy_2 || !d_alpha)
     {
-        verify_rocblas_status_success(rocblas_status_memory_error,
-                                      "!dx || !dy_1 || !dy_2 || !d_alpha");
-        return rocblas_status_memory_error;
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
     }
 
     // copy data from CPU to device
@@ -146,7 +117,7 @@ rocblas_status testing_axpy(Arguments argus)
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
-    if(argus.unit_check || argus.norm_check)
+    if(arg.unit_check || arg.norm_check)
     {
         CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
@@ -171,25 +142,20 @@ rocblas_status testing_axpy(Arguments argus)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6;
 
-        // enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(argus.unit_check)
+        if(arg.unit_check)
         {
             unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
             unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
         }
 
-        // if enable norm check, norm check is invasive
-        // any typeinfo(T) will not work here, because template deduction is matched in compilation
-        // time
-        if(argus.norm_check)
+        if(arg.norm_check)
         {
             rocblas_error_1 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1);
             rocblas_error_2 = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2);
         }
     }
 
-    if(argus.timing)
+    if(arg.timing)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = 100;
@@ -211,20 +177,19 @@ rocblas_status testing_axpy(Arguments argus)
         rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        std::cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
-        if(argus.norm_check)
-            cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+        if(arg.norm_check)
+            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        cout << endl;
+        std::cout << std::endl;
 
-        cout << N << "," << h_alpha << "," << incx << "," << incy << "," << rocblas_gflops << ","
-             << rocblas_bandwidth << "," << gpu_time_used;
+        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << rocblas_gflops
+                  << "," << rocblas_bandwidth << "," << gpu_time_used;
 
-        if(argus.norm_check)
-            cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+        if(arg.norm_check)
+            std::cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
 
-        cout << endl;
+        std::cout << std::endl;
     }
-    return rocblas_status_success;
 }

@@ -24,9 +24,7 @@ __global__ void nrm2_kernel_part1(rocblas_int n, const T1* x, rocblas_int incx, 
     // bound
     if(tid < n)
     {
-        T2 real        = fetch_real<T1, T2>(x[tid * incx]);
-        T2 imag        = fetch_imag<T1, T2>(x[tid * incx]);
-        shared_tep[tx] = real * real + imag * imag;
+        shared_tep[tx] = fetch_abs2<T1, T2>(x[tid * incx]);
     }
     else
     { // pad with zero

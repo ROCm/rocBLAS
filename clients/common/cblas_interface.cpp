@@ -786,8 +786,6 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
     // NOTE: This will not properly account for 32-bit integer overflow, however
     //       the result should be acceptable for testing.
 
-    // NOTE: Packing is always done along 'K' dimension, which means unpacking to
-    //       double depends on transpose mode
     size_t const sizeA = ((transA == rocblas_operation_none) ? k : m) * static_cast<size_t>(lda);
     size_t const sizeB = ((transB == rocblas_operation_none) ? n : k) * static_cast<size_t>(ldb);
     size_t const sizeC = n * static_cast<size_t>(ldc);
@@ -796,51 +794,17 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
     host_vector<double> B_double(sizeB);
     host_vector<double> C_double(sizeC);
 
-    if(transA == rocblas_operation_none)
+    for(size_t i = 0; i < sizeA; i++)
     {
-        for(int colBase = 0; colBase < k; colBase += 4)
-        {
-            for(int row = 0; row < m; row++)
-            {
-                for(int colOffset = 0; colOffset < 4; colOffset++)
-                {
-                    A_double[(colBase + colOffset) * lda + row] =
-                        static_cast<double>(A[colBase * lda + row * 4 + colOffset]);
-                }
-            }
-        }
-    }
-    else
-    {
-        for(int i = 0; i < sizeA; i++)
-        {
-            A_double[i] = static_cast<double>(A[i]);
-        }
+        A_double[i] = static_cast<double>(A[i]);
     }
 
-    if(transB == rocblas_operation_transpose)
+    for(size_t i = 0; i < sizeB; i++)
     {
-        for(int colBase = 0; colBase < k; colBase += 4)
-        {
-            for(int row = 0; row < n; row++)
-            {
-                for(int colOffset = 0; colOffset < 4; colOffset++)
-                {
-                    B_double[(colBase + colOffset) * ldb + row] =
-                        static_cast<double>(B[colBase * ldb + row * 4 + colOffset]);
-                }
-            }
-        }
-    }
-    else
-    {
-        for(int i = 0; i < sizeB; i++)
-        {
-            B_double[i] = static_cast<double>(B[i]);
-        }
+        B_double[i] = static_cast<double>(B[i]);
     }
 
-    for(int i = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
     {
         C_double[i] = static_cast<double>(C[i]);
     }
@@ -861,7 +825,7 @@ void cblas_gemm<int8_t, int32_t>(rocblas_operation transA,
                 C_double,
                 ldc);
 
-    for(int i = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
     {
         C[i] = static_cast<int32_t>(C_double[i]);
     }

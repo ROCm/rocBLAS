@@ -171,46 +171,6 @@ rocblas_status rocblas_gemm_strided_batched(rocblas_handle handle,
                                             rocblas_int batch_count);
 
 template <typename T>
-rocblas_status rocblas_gemm_kernel_name(rocblas_handle handle,
-                                        rocblas_operation transA,
-                                        rocblas_operation transB,
-                                        rocblas_int m,
-                                        rocblas_int n,
-                                        rocblas_int k,
-                                        const T* alpha,
-                                        const T* A,
-                                        rocblas_int lda,
-                                        rocblas_int bsa,
-                                        const T* B,
-                                        rocblas_int ldb,
-                                        rocblas_int bsb,
-                                        const T* beta,
-                                        T* C,
-                                        rocblas_int ldc,
-                                        rocblas_int bsc,
-                                        rocblas_int batch_count);
-
-template <typename T>
-rocblas_status rocblas_gemm_strided_batched_kernel_name(rocblas_handle handle,
-                                                        rocblas_operation transA,
-                                                        rocblas_operation transB,
-                                                        rocblas_int m,
-                                                        rocblas_int n,
-                                                        rocblas_int k,
-                                                        const T* alpha,
-                                                        const T* A,
-                                                        rocblas_int lda,
-                                                        rocblas_int bsa,
-                                                        const T* B,
-                                                        rocblas_int ldb,
-                                                        rocblas_int bsb,
-                                                        const T* beta,
-                                                        T* C,
-                                                        rocblas_int ldc,
-                                                        rocblas_int bsc,
-                                                        rocblas_int batch_count);
-
-template <typename T>
 rocblas_status rocblas_trsm(rocblas_handle handle,
                             rocblas_side side,
                             rocblas_fill uplo,

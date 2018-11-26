@@ -5,14 +5,12 @@
 #include <gtest/gtest.h>
 #include <stdexcept>
 #include <string>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "utility.h"
 #include "testing_logging.hpp"
-
-using namespace std;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of

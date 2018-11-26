@@ -1,288 +1,139 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <gtest/gtest.h>
-#include <math.h>
-#include <stdexcept>
-#include <vector>
-#include "arg_check.h"
+#include "utility.h"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
-#include "testing_iamax.hpp"
+#include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
-#include "utility.h"
+#include "type_dispatch.hpp"
 
-using ::testing::TestWithParam;
-using ::testing::Values;
-using ::testing::ValuesIn;
-using ::testing::Combine;
-using namespace std;
+namespace {
 
-// only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
-typedef std::tuple<int, vector<double>, vector<int>> blas1_tuple;
-
-/* =====================================================================
-README: This file contains testers to verify the correctness of
-        BLAS routines with google test
-
-        It is supposed to be played/used by advance / expert users
-        Normal users only need to get the library routines without testers
-      =================================================================== */
-
-/*
-
-When you see this error, do not hack this source code, hack the Makefile. It is due to compilation.
-
-from ‘testing::internal::CartesianProductHolder3<testing::internal::ParamGenerator<int>,
-testing::internal::ParamGenerator<std::vector<double> >,
-testing::internal::ParamGenerator<std::vector<int> > >’
-
-to ‘testing::internal::ParamGenerator<std::tuple<int, std::vector<double, std::allocator<double> >,
-std::vector<int, std::allocator<int> > > >’
-
-*/
-
-/* =====================================================================
-Advance users only: BrainStorm the parameters
-
-Representative sampling is sufficient, endless brute-force sampling is not necessary
-=================================================================== */
-
-int N_range[]       = {-1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792};
-int N_range_large[] = {1048576, 1049600, 4000000, 8000000};
-
-// vector of vector, each pair is a {alpha, beta};
-// add/delete this list in pairs, like {2.0, 4.0}
-vector<vector<double>> alpha_beta_range = {{1.0, 0.0}, /*{2.0, -1.0}*/};
-
-// vector of vector, each pair is a {incx, incy};
-// add/delete this list in pairs, like {1, 2}
-// incx , incy must > 0, otherwise there is no real computation taking place,
-// but throw a message, which will still be detected by gtest
-vector<vector<int>> incx_incy_range = {
-    {1, 1}, {1, 2}, {2, 1}, {1, -1}, {-1, 1}, {-1, -1},
+enum class blas1
+{
+    nrm2,
+    asum,
+    iamax,
+    iamin,
+    axpy,
+    copy,
+    dot,
+    scal,
+    swap,
 };
 
-/* ===============Google Unit Test==================================================== */
-
-/* =====================================================================
-     BLAS-1:  iamax, asum, axpy, copy, dot, nrm2, scal, swap
-=================================================================== */
-
-class parameterized : public ::TestWithParam<blas1_tuple>
+// ----------------------------------------------------------------------------
+// BLAS1 testing template
+// ----------------------------------------------------------------------------
+template <template <typename...> class FILTER, blas1 BLAS1>
+struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLAS1>, FILTER>
 {
-    protected:
-    parameterized() {}
-    virtual ~parameterized() {}
-    virtual void SetUp() {}
-    virtual void TearDown() {}
+    // Filter for which types apply to this suite
+    static bool type_filter(const Arguments& arg)
+    {
+        return rocblas_blas1_dispatch<blas1_test_template::template type_filter_functor>(arg);
+    }
+
+    // Filter for which functions apply to this suite
+    static bool function_filter(const Arguments& arg);
+
+    // Goggle Test name suffix based on parameters
+    static std::string name_suffix(const Arguments& arg)
+    {
+        RocBLAS_TestName<blas1_test_template> name;
+        name << rocblas_datatype2char(arg.a_type);
+
+        if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
+            name << rocblas_datatype2char(arg.d_type);
+
+        name << '_' << arg.N;
+
+        if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+            name << '_' << arg.alpha;
+
+        name << '_' << arg.incx;
+
+        if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot ||
+           BLAS1 == blas1::swap)
+            name << '_' << arg.incy;
+
+        return std::move(name);
+    }
 };
 
-Arguments setup_blas1_arguments(blas1_tuple tup)
-{
-    int N                     = std::get<0>(tup);
-    vector<double> alpha_beta = std::get<1>(tup);
-    vector<int> incx_incy     = std::get<2>(tup);
+// This tells whether the BLAS1 tests are enabled
+template <blas1 BLAS1, typename Ti, typename To, typename Tc>
+using blas1_enabled =
+    std::integral_constant<bool,
+                           std::is_same<Ti, To>::value && std::is_same<To, Tc>::value &&
+                               (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value ||
+                                (std::is_same<Ti, rocblas_half>::value && BLAS1 == blas1::axpy))>;
 
-    // the first element of alpha_beta_range is always alpha, and the second is always beta
-    double alpha = alpha_beta[0];
-    double beta  = alpha_beta[1];
+// Creates tests for one of the BLAS 1 functions
+// ARG passes one or two template arguments to the testing_* function
+// clang-format off
+#define BLAS1_TESTING(NAME, ARG)                                               \
+struct blas1_##NAME                                                            \
+{                                                                              \
+    template <typename Ti, typename To = Ti, typename Tc = To, typename = void>\
+    struct testing : rocblas_test_invalid {};                                  \
+                                                                               \
+    template <typename Ti, typename To, typename Tc>                           \
+    struct testing<Ti,                                                         \
+                   To,                                                         \
+                   Tc,                                                         \
+                   typename std::enable_if<                                    \
+                       blas1_enabled<blas1::NAME, Ti, To, Tc>::value>::type>   \
+    {                                                                          \
+        explicit operator bool() { return true; }                              \
+        void operator()(const Arguments& arg)                                  \
+        {                                                                      \
+            if(!strcmp(arg.function, "testing_" #NAME))                        \
+                testing_##NAME<ARG(Ti, To, Tc)>(arg);                          \
+            else if(!strcmp(arg.function, "testing_" #NAME "_bad_arg"))        \
+                testing_##NAME##_bad_arg<ARG(Ti, To, Tc)>(arg);                \
+            else                                                               \
+                FAIL() << "Internal error: Test called with unknown function: "\
+                       << arg.function;                                        \
+        }                                                                      \
+    };                                                                         \
+};                                                                             \
+                                                                               \
+using NAME = blas1_test_template<blas1_##NAME::template testing, blas1::NAME>; \
+                                                                               \
+template<>                                                                     \
+inline bool NAME::function_filter(const Arguments& arg)                        \
+{                                                                              \
+    return !strcmp(arg.function, "testing_" #NAME) ||                          \
+        !strcmp(arg.function, "testing_" #NAME "_bad_arg");                    \
+}                                                                              \
+                                                                               \
+TEST_P(NAME, blas1)                                                            \
+{                                                                              \
+    rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam());        \
+}                                                                              \
+                                                                               \
+INSTANTIATE_TEST_CATEGORIES(NAME)
 
-    int incx = incx_incy[0];
-    int incy = incx_incy[1];
+#define ARG1(Ti, To, Tc) Ti
+#define ARG2(Ti, To, Tc) Ti, To
+#define ARG3(Ti, To, Tc) Ti, To, Tc
 
-    Arguments arg;
-    arg.N     = N;
-    arg.alpha = alpha;
-    arg.beta  = beta;
-    arg.incx  = incx;
-    arg.incy  = incy;
+BLAS1_TESTING(asum,  ARG2)
+BLAS1_TESTING(nrm2,  ARG2)
+BLAS1_TESTING(iamax, ARG1)
+BLAS1_TESTING(iamin, ARG1)
+BLAS1_TESTING(axpy,  ARG1)
+BLAS1_TESTING(copy,  ARG1)
+BLAS1_TESTING(dot,   ARG1)
+BLAS1_TESTING(scal,  ARG1)
+BLAS1_TESTING(swap,  ARG1)
 
-    arg.timing =
-        0; // disable timing data print out. Not supposed to collect performance data in gtest
+// clang-format on
 
-    return arg;
-}
-
-TEST(checkin_blas1_bad_arg, iamax_float) { testing_iamax_bad_arg<float>(); }
-TEST(checkin_blas1_bad_arg, asum_float) { testing_asum_bad_arg<float, float>(); }
-TEST(checkin_blas1_bad_arg, axpy_float) { testing_axpy_bad_arg<float>(); }
-TEST(checkin_blas1_bad_arg, copy_float) { testing_copy_bad_arg<float>(); }
-TEST(checkin_blas1_bad_arg, dot_float)
-{
-    rocblas_status status = testing_dot_bad_arg<float>();
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST(checkin_blas1_bad_arg, nrm2_float)
-{
-    rocblas_status status = testing_nrm2_bad_arg<float, float>();
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST(checkin_blas1_bad_arg, scal_float) { testing_scal_bad_arg<float>(); }
-TEST(checkin_blas1_bad_arg, swap_float) { testing_swap_bad_arg<float>(); }
-
-TEST_P(parameterized, iamax_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_iamax<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, iamax_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_iamax<double>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, asum_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_asum<double, double>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, axpy_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_axpy<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, axpy_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_axpy<double>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, axpy_half)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_axpy<rocblas_half>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, copy_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_copy<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, dot_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_dot<double>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, nrm2_double)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_nrm2<double, double>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, scal_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_scal<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-TEST_P(parameterized, swap_float)
-{
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-    Arguments arg = setup_blas1_arguments(GetParam());
-
-    rocblas_status status = testing_swap<float>(arg);
-
-    EXPECT_EQ(rocblas_status_success, status);
-}
-
-// Values is for a single item; ValuesIn is for an array
-// notice we are using vector of vector
-// so each elment in xxx_range is a avector,
-// ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { N, {alpha, beta}, {incx, incy} }
-INSTANTIATE_TEST_CASE_P(quick_blas1,
-                        parameterized,
-                        Combine(ValuesIn(N_range),
-                                ValuesIn(alpha_beta_range),
-                                ValuesIn(incx_incy_range)));
-INSTANTIATE_TEST_CASE_P(pre_checkin_blas1,
-                        parameterized,
-                        Combine(ValuesIn(N_range_large),
-                                ValuesIn(alpha_beta_range),
-                                ValuesIn(incx_incy_range)));
+} // namespace
