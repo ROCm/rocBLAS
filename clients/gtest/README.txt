@@ -113,7 +113,7 @@ To add new data-driven tests to the ROCblas Google Test Framework:
       combinations with enable_if, since this only excludes them at run-time,
       and they need to be excluded by step D at compile-time in order to avoid
       unresolved references or invalid instantiations.
-      
+
       Example:
 
           template <template <typename...> class TEST>
@@ -176,7 +176,7 @@ To add new data-driven tests to the ROCblas Google Test Framework:
               return !strcmp(arg.function, "testing_ger") ||
                   !strcmp(arg.function, "testing_ger_bad_arg");
           }
-                        
+
       III. static std::string name_suffix(const Arguments& arg) returns a
       string which will be used as the Google Test name's suffix. It will
       provide an alphanumeric representation of the test's arguments.
@@ -199,21 +199,21 @@ To add new data-driven tests to the ROCblas Google Test Framework:
       Since the conversion of the stream into a string is a destructive
       one-time operation, the RocBLAS_TestName value converted to std::string
       needs to be an rvalue. For example:
-  
+
           static std::string name_suffix(const Arguments& arg)
           {
               // Okay: rvalue RocBLAS_TestName object streamed to and returned
               return RocBLAS_TestName<syr>() << rocblas_datatype2char(arg.a_type)
                   << '_' << (char) std::toupper(arg.uplo_option) << '_' << arg.N
-		  << '_' << arg.alpha << '_' << arg.incx << '_' << arg.lda;
+                  << '_' << arg.alpha << '_' << arg.incx << '_' << arg.lda;
           }
- 
+
           static std::string name_suffix(const Arguments& arg)
           {
               RocBLAS_TestName<gemm_test_template> name;
 
               name << rocblas_datatype2char(arg.a_type);
-  
+
               if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
                   name << rocblas_datatype2char(arg.b_type)
                       << rocblas_datatype2char(arg.c_type)
@@ -221,17 +221,17 @@ To add new data-driven tests to the ROCblas Google Test Framework:
                       << rocblas_datatype2char(arg.compute_type);
 
               name << '_' << (char) std::toupper(arg.transA_option)
-                  << (char) std::toupper(arg.transB_option) << '_' << arg.M 
+                  << (char) std::toupper(arg.transB_option) << '_' << arg.M
                   << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_'
                   << arg.lda << '_' << arg.ldb << '_' << arg.beta << '_'
-		  << arg.ldc;
+                  << arg.ldc;
 
               // name is an lvalue: Must use std::move to convert it to rvalue.
               // name cannot be used after it's converted to a string, which
               // is why it must be "moved" to a string.
               return std::move(name);
           }
-            
+
     G. Choose a non-type-specific shorthand name for the test which will be
        displayed as part of the test name in the Google Tests output. Create a
        type alias for this name, unless the name is already the name of the
