@@ -35,7 +35,8 @@ if( NOT TARGET rocblas )
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
-find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
+list( APPEND CMAKE_PREFIX_PATH /opt/rocm )
+find_package( hip REQUIRED CONFIG PATHS ${CMAKE_PREFIX_PATH} )
 
 # Quietly look for CUDA, but if not found it's not an error
 # The presense of hip is not sufficient to determine if we want a rocm or cuda backend
