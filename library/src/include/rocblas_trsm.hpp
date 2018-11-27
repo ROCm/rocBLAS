@@ -1,18 +1,9 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-// #include <hip/hip_runtime_api.h>
-// #include <hip/hip_runtime.h>
-
 #include "rocblas.h"
 #include "status.h"
-// #include "definitions.h"
-// #include "gemm.hpp"
-// #include "trtri_trsm.hpp"
-// #include "rocblas_unique_ptr.hpp"
-// #include "handle.h"
-// #include "logging.h"
-// #include "utility.h"
+
 
 /* ============================================================================================ */
 

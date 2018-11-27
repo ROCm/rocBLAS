@@ -575,10 +575,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle handle,
     m         rocblas_int
               m specifies the number of rows of b. m >= 0.
 
-//    @param[in]
-//    n         rocblas_int
-//              n specifies the number of rows of b. n >= 0.
-
     @param[in]
     alpha
               specifies the scalar alpha.
