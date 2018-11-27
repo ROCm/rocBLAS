@@ -17,6 +17,7 @@
 #include "testing_dot.hpp"
 #include "testing_swap.hpp"
 #include "testing_gemv.hpp"
+#include "testing_trsv.hpp"
 #include "testing_ger.hpp"
 #include "testing_syr.hpp"
 #include "testing_nrm2.hpp"
@@ -135,7 +136,7 @@ int main(int argc, char* argv[])
               
         ("function,f",
          po::value<std::string>(&function)->default_value("gemv"),
-         "BLAS function to test. Options: gemv, ger, syr, trsm, trmm, symv, syrk, syr2k")
+         "BLAS function to test. Options: gemv, trsv, ger, syr, trsm, trmm, symv, syrk, syr2k")
         
         ("precision,r", 
          po::value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
@@ -175,10 +176,10 @@ int main(int argc, char* argv[])
         ("uplo",
          po::value<char>(&argus.uplo_option)->default_value('U'),
          "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
-                                                                     // xtrmm
+                                                                     // xtrmm xtrsv
         ("diag",
          po::value<char>(&argus.diag_option)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
                                                                                           // xtrmm
         ("batch",
          po::value<rocblas_int>(&argus.batch_count)->default_value(1),
@@ -365,6 +366,13 @@ int main(int argc, char* argv[])
             testing_gemv<float>(argus);
         else if(precision == 'd')
             testing_gemv<double>(argus);
+    }
+    else if(function == "trsv")
+    {
+        if(precision == 's')
+            testing_trsv<float>(argus);
+        else if(precision == 'd')
+            testing_trsv<double>(argus);
     }
     else if(function == "ger")
     {
