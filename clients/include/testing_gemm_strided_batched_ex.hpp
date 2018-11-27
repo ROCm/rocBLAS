@@ -11,7 +11,6 @@
 
 #include "rocblas.hpp"
 #include "arg_check.h"
-#include "rocblas_test_unique_ptr.hpp"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -52,7 +51,7 @@ void testing_gemm_strided_batched_ex_bad_arg()
     const float beta_float  = 1.0;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    rocblas_int solution_index;
+    int32_t solution_index;
     rocblas_int flags;
     size_t* workspace_size = 0;
     void* workspace;
@@ -64,22 +63,13 @@ void testing_gemm_strided_batched_ex_bad_arg()
 
     rocblas_status status;
 
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
+    rocblas_local_handle handle;
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
-                                         rocblas_test::device_free};
-    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(float) * safe_size),
-                                         rocblas_test::device_free};
-    float* dA = (float*)dA_managed.get();
-    float* dB = (float*)dB_managed.get();
-    float* dC = (float*)dC_managed.get();
-    float* dD = (float*)dC_managed.get();
+    device_vector<float> dA(safe_size);
+    device_vector<float> dB(safe_size);
+    device_vector<float> dC(safe_size);
+    device_vector<float> dD(safe_size);
     if(!dA || !dB || !dC || !dD)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -376,10 +366,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                                         rocblas_datatype d_type,
                                                         rocblas_datatype compute_type)
 {
-    rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
-    uint32_t solution_index = 0;
-    uint32_t flags          = 0;
-    size_t* workspace_size  = 0;
+    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
+    int32_t solution_index = 0;
+    uint32_t flags         = 0;
+    size_t* workspace_size = 0;
     void* workspace;
 
     Td h_alpha_Td;
@@ -419,17 +409,11 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     }
 
     const size_t safe_size = 100;
-
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
-
     double rocblas_error = 0.0;
-
     rocblas_status status;
-
-    std::unique_ptr<rocblas_test::handle_struct> unique_ptr_handle(new rocblas_test::handle_struct);
-    rocblas_handle handle = unique_ptr_handle->handle;
-
+    rocblas_local_handle handle;
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
     rocblas_int B_row = transB == rocblas_operation_none ? K : N;
@@ -439,18 +423,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
        batch_count < 0)
     {
-        auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
-                                             rocblas_test::device_free};
-        auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
-                                             rocblas_test::device_free};
-        auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
-                                             rocblas_test::device_free};
-        auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * safe_size),
-                                             rocblas_test::device_free};
-        Td* dA = (Td*)dA_managed.get();
-        Td* dB = (Td*)dB_managed.get();
-        Td* dC = (Td*)dC_managed.get();
-        Td* dD = (Td*)dD_managed.get();
+        device_vector<Td> dA(safe_size);
+        device_vector<Td> dB(safe_size);
+        device_vector<Td> dC(safe_size);
+        device_vector<Td> dD(safe_size);
         if(!dA || !dB || !dC || !dD)
         {
             PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
@@ -508,7 +484,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     size_t size_c     = size_one_c;
     size_t size_d     = size_one_d;
 
-    if(batch_count > 0)
+    if(batch_count > 1)
     {
         size_a += static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
         size_b += static_cast<size_t>(stride_b) * static_cast<size_t>(batch_count - 1);
@@ -517,41 +493,29 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     }
 
     // allocate memory on device
-    auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_a),
-                                         rocblas_test::device_free};
-    auto dB_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_b),
-                                         rocblas_test::device_free};
-    auto dC_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_c),
-                                         rocblas_test::device_free};
-    auto dD_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Td) * size_d),
-                                         rocblas_test::device_free};
-    auto d_alpha_Tc_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Tc)), rocblas_test::device_free};
-    auto d_beta_Tc_managed =
-        rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(Tc)), rocblas_test::device_free};
-    Td* dA         = (Td*)dA_managed.get();
-    Td* dB         = (Td*)dB_managed.get();
-    Td* dC         = (Td*)dC_managed.get();
-    Td* dD         = (Td*)dD_managed.get();
-    Tc* d_alpha_Tc = (Tc*)d_alpha_Tc_managed.get();
-    Tc* d_beta_Tc  = (Tc*)d_beta_Tc_managed.get();
-    if((!dA && (size_a != 0)) || (!dB && (size_b != 0)) || (!dC && (size_c != 0)) ||
-       (!dD && (size_d != 0)) || !d_alpha_Tc || !d_beta_Tc)
+    device_vector<Td> dA(size_a);
+    device_vector<Td> dB(size_b);
+    device_vector<Td> dC(size_c);
+    device_vector<Td> dD(size_d);
+    device_vector<Tc> d_alpha_Tc(1);
+    device_vector<Tc> d_beta_Tc(1);
+    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || (!dD && size_d) || !d_alpha_Tc ||
+       !d_beta_Tc)
     {
         PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
         return rocblas_status_memory_error;
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<Td> hA(size_a);
-    vector<Td> hB(size_b);
-    vector<Td> hC(size_c);
-    vector<Td> hD_1(size_d);
-    vector<Td> hD_2(size_d);
-    vector<Td> hD_gold(size_d);
+    host_vector<Td> hA(size_a);
+    host_vector<Td> hB(size_b);
+    host_vector<Td> hC(size_c);
+    host_vector<Td> hD_1(size_d);
+    host_vector<Td> hD_2(size_d);
+    host_vector<Td> hD_gold(size_d);
 
     // Initial Data on CPU
-    srand(1);
+    rocblas_seedrand();
 
     rocblas_init<Td>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<Td>(hB, B_row, B_col, ldb, stride_b, batch_count);
@@ -608,20 +572,21 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         std::cout << std::endl << "-----------------------" << std::endl;
     }
 #endif
+
     hD_2    = hD_1;
     hD_gold = hD_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(Td) * size_a, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB.data(), sizeof(Td) * size_b, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC.data(), sizeof(Td) * size_c, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Td) * size_a, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Td) * size_b, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(Td) * size_c, hipMemcpyHostToDevice));
 
     if(unit_check || norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1.data(), sizeof(Td) * size_d, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(Td) * size_d, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex(handle,
                                                             transA,
@@ -655,7 +620,8 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                                             workspace_size,
                                                             workspace));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1.data(), dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_1---------------------------------------" << std::endl;
         if(is_same<Td, rocblas_half>::value)
@@ -678,7 +644,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2.data(), sizeof(Td) * size_d, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(Td) * size_d, hipMemcpyHostToDevice));
 
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
 
@@ -716,7 +682,8 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                                             workspace_size,
                                                             workspace));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2.data(), dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_2---------------------------------------" << std::endl;
         if(is_same<Td, rocblas_half>::value)
@@ -756,23 +723,24 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
 
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<Td>(transA,
-                           transB,
-                           M,
-                           N,
-                           K,
-                           h_alpha_Td,
-                           hA.data() + stride_a * i,
-                           lda,
-                           hB.data() + stride_b * i,
-                           ldb,
-                           h_beta_Td,
-                           hD_gold.data() + stride_d * i,
-                           ldd);
+            cblas_gemm<Td, Td>(transA,
+                               transB,
+                               M,
+                               N,
+                               K,
+                               h_alpha_Td,
+                               hA + stride_a * i,
+                               lda,
+                               hB + stride_b * i,
+                               ldb,
+                               h_beta_Td,
+                               hD_gold + stride_d * i,
+                               ldd);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<Td>(M, N, K) / cpu_time_used * 1e6;
+        cblas_gflops  = gemm_gflop_count<Td>(M, N, K) * batch_count / cpu_time_used * 1e6;
+
 #if DEBUG_PRINT
         std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
         if(is_same<Td, rocblas_half>::value)
@@ -822,11 +790,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
 
         // enable unit check, notice unit check is not invasive, but norm check is,
         // unit check and norm check can not be interchanged their order
-
         if(unit_check)
         {
-            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold.data(), hD_1.data());
-            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold.data(), hD_2.data());
+            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold, hD_1);
+            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold, hD_2);
         }
 
         // if enable norm check, norm check is invasive
@@ -834,10 +801,10 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         // in compilation time
         if(norm_check)
         {
-            rocblas_error = norm_check_general<Td>(
-                'F', M, N, ldd, stride_d, batch_count, hD_gold.data(), hD_1.data());
-            rocblas_error = norm_check_general<Td>(
-                'F', M, N, ldd, stride_d, batch_count, hD_gold.data(), hD_2.data());
+            rocblas_error =
+                norm_check_general<Td>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1);
+            rocblas_error =
+                norm_check_general<Td>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2);
         }
     }
 

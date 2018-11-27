@@ -45,6 +45,7 @@ endif( )
 
 set(rocblas_test_source
     rocblas_gtest_main.cpp
+    ${Tensile_TEST_SRC}
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
     set_get_vector_gtest.cpp
@@ -54,7 +55,6 @@ set(rocblas_test_source
     ger_gtest.cpp
     syr_gtest.cpp
     geam_gtest.cpp
-    ${Tensile_TEST_SRC}
     )
 
 
@@ -109,6 +109,16 @@ else( )
   target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION} )
 endif( )
+
+set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
+add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
+                    COMMAND ../common/rocblas_gentest.py -I ../include gtest.yaml -o "${ROCBLAS_TEST_DATA}"
+                    DEPENDS ../common/rocblas_gentest.py gtest.yaml ../include/rocblas.yaml gemm.yaml known_bugs.yaml
+		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+add_custom_target( rocblas-test-data
+                   DEPENDS "${ROCBLAS_TEST_DATA}" )
+
+add_dependencies( rocblas-test rocblas-test-data )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1

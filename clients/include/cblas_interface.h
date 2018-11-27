@@ -119,19 +119,19 @@ void cblas_hemv(rocblas_fill uplo,
                 T* y,
                 rocblas_int incy);
 
-template <typename T>
+template <typename Ti, typename To>
 void cblas_gemm(rocblas_operation transA,
                 rocblas_operation transB,
                 rocblas_int m,
                 rocblas_int n,
                 rocblas_int k,
-                T alpha,
-                T* A,
+                To alpha,
+                Ti* A,
                 rocblas_int lda,
-                T* B,
+                Ti* B,
                 rocblas_int ldb,
-                T beta,
-                T* C,
+                To beta,
+                To* C,
                 rocblas_int ldc);
 
 template <typename T>

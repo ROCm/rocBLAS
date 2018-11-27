@@ -8,19 +8,6 @@
 #include "unit.h"
 #include "utility.h"
 
-#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    {                                                             \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
-        {                                                         \
-            fprintf(stderr,                                       \
-                    "hip error code: %d at %s:%d\n",              \
-                    TMP_STATUS_FOR_CHECK,                         \
-                    __FILE__,                                     \
-                    __LINE__);                                    \
-        }                                                         \
-    }
-
 /* ========================================Gtest Unit Check
  * ==================================================== */
 
@@ -158,8 +145,8 @@ void unit_check_general(rocblas_int M,
             for(rocblas_int i = 0; i < M; i++)
             {
 #ifdef GOOGLE_TEST
-                float cpu_float = static_cast<float>(hCPU[i + j * lda + k * strideA]);
-                float gpu_float = static_cast<float>(hGPU[i + j * lda + k * strideA]);
+                float cpu_float = half_to_float(hCPU[i + j * lda + k * strideA]);
+                float gpu_float = half_to_float(hGPU[i + j * lda + k * strideA]);
                 ASSERT_FLOAT_EQ(cpu_float, gpu_float);
 #endif
             }

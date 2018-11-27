@@ -89,33 +89,24 @@ std::string rocblas_diag_letter(rocblas_diagonal diag)
 // return letter h, s, d, k, c, z in place of rocblas_datatype
 std::string rocblas_datatype_letter(rocblas_datatype type)
 {
-    if(type == rocblas_datatype_f16_r)
+    switch(type)
     {
-        return "h";
-    }
-    else if(type == rocblas_datatype_f32_r)
-    {
-        return "s";
-    }
-    else if(type == rocblas_datatype_f64_r)
-    {
-        return "d";
-    }
-    else if(type == rocblas_datatype_f16_c)
-    {
-        return "k";
-    }
-    else if(type == rocblas_datatype_f16_c)
-    {
-        return "c";
-    }
-    else if(type == rocblas_datatype_f16_c)
-    {
-        return "z";
-    }
-    else
-    {
-        std::cerr << "rocblas ERROR: datatype != h, s, d, k, c, z" << std::endl;
+    case rocblas_datatype_f16_r: return "h";
+    case rocblas_datatype_f32_r: return "s";
+    case rocblas_datatype_f64_r: return "d";
+    case rocblas_datatype_f16_c: return "k";
+    case rocblas_datatype_f32_c: return "c";
+    case rocblas_datatype_f64_c: return "z";
+    case rocblas_datatype_i8_r: return "i8r";
+    case rocblas_datatype_u8_r: return "u8r";
+    case rocblas_datatype_i32_r: return "i32r";
+    case rocblas_datatype_u32_r: return "u32r";
+    case rocblas_datatype_i8_c: return "i8c";
+    case rocblas_datatype_u8_c: return "u8c";
+    case rocblas_datatype_i32_c: return "i32c";
+    case rocblas_datatype_u32_c: return "u32c";
+    default:
+        std::cerr << "rocblas ERROR: unsupported datatype (" << type << ")" << std::endl;
         return " ";
     }
 }

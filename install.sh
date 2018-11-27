@@ -85,7 +85,7 @@ install_yum_packages( )
   for package in "${package_dependencies[@]}"; do
     if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root yum install -y ${package}
+      elevate_if_not_root yum -y --nogpgcheck install ${package}
     fi
   done
 }
@@ -119,7 +119,7 @@ install_packages( )
 
   # dependencies needed for rocblas and clients to build
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "hip_hcc" "gcc-c++" )
+  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
   local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
 
   if [[ "${build_cuda}" == true ]]; then
@@ -384,7 +384,7 @@ pushd .
         elevate_if_not_root dpkg -i rocblas-*.deb
       ;;
       centos|rhel)
-        elevate_if_not_root yum localinstall rocblas-*.rpm
+        elevate_if_not_root yum -y localinstall rocblas-*.rpm
       ;;
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
