@@ -18,7 +18,7 @@ using namespace std;
 
 // only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
 
-typedef std::tuple<vector<int>, int, vector<char> > trsv_tuple;
+typedef std::tuple<vector<int>, int, vector<char>> trsv_tuple;
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of
@@ -40,9 +40,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 
 // vector of vector, each vector is a {M, lda};
 // add/delete as a group
-const vector<vector<int>> small_matrix_size_range = {
-    {-1, 1}, {4, 4},{10,20}
-};
+const vector<vector<int>> small_matrix_size_range = {{-1, 1}, {4, 4}, {10, 20}};
 
 const vector<vector<int>> medium_matrix_size_range = {
     {192, 192}, {600, 600}, {800, 801},
@@ -98,9 +96,9 @@ const vector<vector<char>> uplo_transA_diag_range = {
 
 Arguments setup_trsv_arguments(trsv_tuple tup)
 {
-    vector<int> matrix_size   = std::get<0>(tup);
-    int         incx          = std::get<1>(tup);
-    vector<char> uplo_transA_diag       = std::get<2>(tup);
+    vector<int> matrix_size       = std::get<0>(tup);
+    int incx                      = std::get<1>(tup);
+    vector<char> uplo_transA_diag = std::get<2>(tup);
 
     Arguments arg;
 
@@ -109,11 +107,11 @@ Arguments setup_trsv_arguments(trsv_tuple tup)
     arg.lda = matrix_size[1];
 
     // see the comments about matrix_size_range above
-    arg.incx = incx;
+    arg.incx          = incx;
     arg.uplo_option   = uplo_transA_diag[0];
     arg.transA_option = uplo_transA_diag[1];
     arg.diag_option   = uplo_transA_diag[2];
-    arg.timing = 0;
+    arg.timing        = 0;
 
     return arg;
 }
@@ -189,7 +187,6 @@ TEST_P(parameterized_trsv, double)
 // so each elment in xxx_range is a a vector,
 // ValuesIn take each element (a vector) and combine them and feed them to test_p
 // The combinations are  { {M, lda}, {incx}, {transA} }
-
 
 INSTANTIATE_TEST_CASE_P(quick_blas2_trsv,
                         parameterized_trsv,

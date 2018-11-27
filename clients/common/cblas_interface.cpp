@@ -440,13 +440,13 @@ void cblas_trsv<float>(rocblas_fill uplo,
 
 template <>
 void cblas_trsv<double>(rocblas_fill uplo,
-                       rocblas_operation transA,
-                       rocblas_diagonal diag,
-                       rocblas_int m,
-                       const double* A,
-                       rocblas_int lda,
-                       double* x,
-                       rocblas_int incx)
+                        rocblas_operation transA,
+                        rocblas_diagonal diag,
+                        rocblas_int m,
+                        const double* A,
+                        rocblas_int lda,
+                        double* x,
+                        rocblas_int incx)
 {
     // just directly cast, since transA is an integer in the enum
     cblas_dtrsv(CblasColMajor,
@@ -485,13 +485,13 @@ void cblas_trmv<float>(rocblas_fill uplo,
 
 template <>
 void cblas_trmv<double>(rocblas_fill uplo,
-                       rocblas_operation transA,
-                       rocblas_diagonal diag,
-                       rocblas_int m,
-                       const double* A,
-                       rocblas_int lda,
-                       double* x,
-                       rocblas_int incx)
+                        rocblas_operation transA,
+                        rocblas_diagonal diag,
+                        rocblas_int m,
+                        const double* A,
+                        rocblas_int lda,
+                        double* x,
+                        rocblas_int incx)
 {
     // just directly cast, since transA is an integer in the enum
     cblas_dtrmv(CblasColMajor,

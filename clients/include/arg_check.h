@@ -77,8 +77,7 @@ void geam_arg_check(rocblas_status status,
 void trsm_arg_check(
     rocblas_status status, rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_int ldb);
 
-void trsv_arg_check(
-    rocblas_status status, rocblas_int M, rocblas_int lda, rocblas_int incx);
+void trsv_arg_check(rocblas_status status, rocblas_int M, rocblas_int lda, rocblas_int incx);
 
 void symv_arg_check(
     rocblas_status status, rocblas_int N, rocblas_int lda, rocblas_int incx, rocblas_int incy);

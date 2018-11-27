@@ -4,7 +4,6 @@
 #include "rocblas.h"
 #include "status.h"
 
-
 /* ============================================================================================ */
 
 /*! \brief BLAS Level 3 API
@@ -96,5 +95,3 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                      rocblas_int lda,
                                      T* B,
                                      rocblas_int ldb);
-
-

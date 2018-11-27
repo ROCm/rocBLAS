@@ -40,9 +40,9 @@ using namespace std;
 template <typename T>
 rocblas_status testing_trsv(Arguments argus)
 {
-    rocblas_int M   = argus.M;
-    rocblas_int lda = argus.lda;
-    rocblas_int incx         = argus.incx;
+    rocblas_int M    = argus.M;
+    rocblas_int lda  = argus.lda;
+    rocblas_int incx = argus.incx;
     char char_uplo   = argus.uplo_option;
     char char_transA = argus.transA_option;
     char char_diag   = argus.diag_option;
@@ -63,9 +63,9 @@ rocblas_status testing_trsv(Arguments argus)
     {
         auto dA_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
                                              rocblas_test::device_free};
-        auto dx_or_b_managed = rocblas_unique_ptr{rocblas_test::device_malloc(sizeof(T) * safe_size),
-                                                rocblas_test::device_free};
-        T* dA    = (T*)dA_managed.get();
+        auto dx_or_b_managed = rocblas_unique_ptr{
+            rocblas_test::device_malloc(sizeof(T) * safe_size), rocblas_test::device_free};
+        T* dA      = (T*)dA_managed.get();
         T* dx_or_b = (T*)dx_or_b_managed.get();
         if(!dA || !dx_or_b)
         {
@@ -74,8 +74,7 @@ rocblas_status testing_trsv(Arguments argus)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        status =
-            rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
+        status = rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
 
         trsv_arg_check(status, M, lda, incx);
 
@@ -87,7 +86,7 @@ rocblas_status testing_trsv(Arguments argus)
     rocblas_int abs_incy;
 
     abs_incx = incx >= 0 ? incx : -incx;
-    size_x = M * abs_incx;
+    size_x   = M * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     vector<T> hA(size_A);
@@ -113,11 +112,11 @@ rocblas_status testing_trsv(Arguments argus)
                                             rocblas_test::device_free};
 
     T* dA      = (T*)dA_managed.get();
-    T* dx_or_b   = (T*)dxorb_managed.get();
+    T* dx_or_b = (T*)dxorb_managed.get();
 
     rocblas_init<T>(hA, M, M, lda);
 
-        //  calculate AAT = hA * hA ^ T
+    //  calculate AAT = hA * hA ^ T
     cblas_gemm(rocblas_operation_none,
                rocblas_operation_transpose,
                M,
@@ -130,7 +129,7 @@ rocblas_status testing_trsv(Arguments argus)
                lda,
                (T)0.0,
                AAT.data(),
-               lda); 
+               lda);
 
     //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
     for(int i = 0; i < M; i++)
@@ -173,20 +172,20 @@ rocblas_status testing_trsv(Arguments argus)
         }
     }
 
-    rocblas_init<T>(hx, 1, M, abs_incx); 
+    rocblas_init<T>(hx, 1, M, abs_incx);
     hb = hx;
 
     // Calculate hb = hA*hx;
-    cblas_trmv<T>(
-        uplo, transA, diag, M, (const T*)hA.data(), lda, hb.data(), incx);
-    cpu_x_or_b = hb; // cpuXorB <- B
-    hx_or_b_1 = hb;
-    hx_or_b_2 = hb;
-    my_cpu_x_or_b= hb;
+    cblas_trmv<T>(uplo, transA, diag, M, (const T*)hA.data(), lda, hb.data(), incx);
+    cpu_x_or_b    = hb; // cpuXorB <- B
+    hx_or_b_1     = hb;
+    hx_or_b_2     = hb;
+    my_cpu_x_or_b = hb;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA.data(), sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1.data(), sizeof(T) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(
+        hipMemcpy(dx_or_b, hx_or_b_1.data(), sizeof(T) * size_x, hipMemcpyHostToDevice));
     T max_err_1 = 0.0;
     T max_err_2 = 0.0;
     T max_res_1 = 0.0;
@@ -202,9 +201,11 @@ rocblas_status testing_trsv(Arguments argus)
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_2.data(), sizeof(T) * size_x, hipMemcpyHostToDevice))
+        CHECK_HIP_ERROR(
+            hipMemcpy(dx_or_b, hx_or_b_2.data(), sizeof(T) * size_x, hipMemcpyHostToDevice))
         CHECK_ROCBLAS_ERROR(rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
-        CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2.data(), dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(
+            hipMemcpy(hx_or_b_2.data(), dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
 
         T err_1 = 0.0;
         T err_2 = 0.0;
@@ -226,22 +227,8 @@ rocblas_status testing_trsv(Arguments argus)
         trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
         trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
-        cblas_trmv<T>(uplo,
-                    transA,
-                    diag,
-                    M,
-                    (const T*)hA.data(),
-                    lda,
-                    hx_or_b_1.data(),
-                    incx);
-        cblas_trmv<T>(uplo,
-                    transA,
-                    diag,
-                    M,
-                    (const T*)hA.data(),
-                    lda,
-                    hx_or_b_2.data(),
-                    incx);
+        cblas_trmv<T>(uplo, transA, diag, M, (const T*)hA.data(), lda, hx_or_b_1.data(), incx);
+        cblas_trmv<T>(uplo, transA, diag, M, (const T*)hA.data(), lda, hx_or_b_2.data(), incx);
         // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
         //                                                  = hx_or_b - hb
         // res is the one norm of the scaled residual for each column
@@ -278,8 +265,7 @@ rocblas_status testing_trsv(Arguments argus)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
 
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = trsv_gflop_count<T>(M) / gpu_time_used * 1e6;
@@ -287,8 +273,7 @@ rocblas_status testing_trsv(Arguments argus)
         // CPU cblas
         cpu_time_used = get_time_us();
 
-        cblas_trsv<T>(
-            uplo, transA, diag, M, (const T*)hA.data(), lda, cpu_x_or_b.data(), incx);
+        cblas_trsv<T>(uplo, transA, diag, M, (const T*)hA.data(), lda, cpu_x_or_b.data(), incx);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
@@ -301,9 +286,8 @@ rocblas_status testing_trsv(Arguments argus)
 
         cout << endl;
 
-        cout << M  << ',' << lda << ',' << incx  << ',' << char_uplo
-             << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops << ","
-             << gpu_time_used;
+        cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
+             << char_diag << ',' << rocblas_gflops << "," << gpu_time_used;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
