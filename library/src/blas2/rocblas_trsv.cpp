@@ -30,10 +30,16 @@ __global__ void strided_vector_copy_kernel(T* x,
     int id_x = incx*id_temp;
 
     if(id_temp<m)
+    {
         if(to_temp)
+        {
             x_temp[id_temp] = x[id_x];
+        }
         else
+        {
             x[id_x] = x_temp[id_temp];
+        }
+    }
 
 }
 
