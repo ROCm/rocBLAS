@@ -41,7 +41,7 @@ Representative sampling is sufficient, endless brute-force sampling is not neces
 // vector of vector, each vector is a {M, lda};
 // add/delete as a group
 const vector<vector<int>> small_matrix_size_range = {
-    {-1, 1}, {4, 4},
+    {-1, 1}, {4, 4},{10,20}
 };
 
 const vector<vector<int>> medium_matrix_size_range = {

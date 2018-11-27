@@ -18,7 +18,7 @@
 
 
 template <typename T, bool to_temp>
-__global__ void m_strided_vector_copy(T* x,
+__global__ void strided_vector_copy_kernel(T* x,
                                     rocblas_int m,
                                     T* x_temp,
                                     rocblas_int incx)
@@ -50,7 +50,7 @@ void strided_vector_copy(hipStream_t rocblas_stream,
     dim3 grid(blocksX, blocksY, 1);
     dim3 threads(128, 8, 1);
 
-    hipLaunchKernelGGL(m_strided_vector_copy<T, to_temp>,
+    hipLaunchKernelGGL(strided_vector_copy_kernel<T, to_temp>,
                     dim3(grid),
                     dim3(threads),
                     0,
@@ -191,17 +191,19 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
 
 
     //Calling TRSM for now 
-    auto      dx_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m),
-                                            rocblas::device_free};
-    T*        dx_mod   = (T*)dx_managed.get();
-    T alpha_h        = 1.0f;
-    auto alpha_d_managed =
-        rocblas_unique_ptr{rocblas::device_malloc(sizeof(T)), rocblas::device_free};
-    T* alpha_d = (T*)alpha_d_managed.get();
-    hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice);
     rocblas_status status;
-
     rocblas_pointer_mode pointer_mode = handle->pointer_mode;
+    T alpha_h        = 1.0f;
+
+    auto alpha_d_managed = rocblas_unique_ptr{rocblas::device_malloc(0), rocblas::device_free};
+    T* alpha_d;
+    if(pointer_mode==rocblas_pointer_mode_device)
+    {
+        alpha_d_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T)), rocblas::device_free};
+        alpha_d = (T*)alpha_d_managed.get();
+        hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice);
+    }
+    
 
     if(incx==1)
     {
@@ -220,8 +222,12 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     }
     else 
     {
+        auto    dx_managed = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m),
+                                            rocblas::device_free};
+        T*      dx_mod   = (T*)dx_managed.get();
+        int     offest =  (m-1)*abs(incx);
         strided_vector_copy<T, true>(handle->rocblas_stream,
-                            incx<0 ? x+(m-1)*abs(incx): x,
+                            incx<0 ? x+offest: x,
                             m,
                             dx_mod,
                             incx);
@@ -240,7 +246,7 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
                                         m);
 
         strided_vector_copy<T, false>(handle->rocblas_stream,
-                            incx<0 ? x+(m-1)*abs(incx): x,
+                            incx<0 ? x+offest: x,
                             m,
                             dx_mod,
                             incx);
