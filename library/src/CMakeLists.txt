@@ -88,6 +88,7 @@ set( rocblas_auxiliary_source
   utility.cpp
   rocblas_auxiliary.cpp
   status.cpp
+  buildinfo.cpp
 )
 
 set( rocblas_ex_source
