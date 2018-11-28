@@ -5,7 +5,6 @@
 
 #include "rocblas.h"
 #include "rocblas_trsm.hpp"
-
 #include "status.h"
 #include "definitions.h"
 #include "handle.h"
@@ -190,14 +189,12 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     rocblas_pointer_mode pointer_mode = handle->pointer_mode;
     T alpha_h                         = 1.0f;
 
-    auto alpha_d_managed = rocblas_unique_ptr{rocblas::device_malloc(0), rocblas::device_free};
-    T* alpha_d;
+    auto alpha_d = rocblas_unique_ptr{rocblas::device_malloc(0), rocblas::device_free};
+    // T* alpha_d;
     if(pointer_mode == rocblas_pointer_mode_device)
     {
-        alpha_d_managed =
-            rocblas_unique_ptr{rocblas::device_malloc(sizeof(T)), rocblas::device_free};
-        alpha_d = (T*)alpha_d_managed.get();
-        hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice);
+        alpha_d = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T)), rocblas::device_free};
+        hipMemcpy((T*)alpha_d.get(), &alpha_h, sizeof(T), hipMemcpyHostToDevice);
     }
 
     if(incx == 1)
@@ -210,7 +207,7 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
             diag,
             m,
             1,
-            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : alpha_d,
+            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d.get(),
             A,
             lda,
             x,
@@ -218,12 +215,11 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     }
     else
     {
-        auto dx_managed =
+        auto dx_mod =
             rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m), rocblas::device_free};
-        T* dx_mod  = (T*)dx_managed.get();
         int offest = (m - 1) * abs(incx);
         strided_vector_copy<T, true>(
-            handle->rocblas_stream, incx < 0 ? x + offest : x, m, dx_mod, incx);
+            handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
 
         status = rocblas_trsm_template<T, BLOCK>(
             handle,
@@ -233,14 +229,14 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
             diag,
             m,
             1,
-            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : alpha_d,
+            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d.get(),
             A,
             lda,
-            dx_mod,
+            (T*)dx_mod.get(),
             m);
 
         strided_vector_copy<T, false>(
-            handle->rocblas_stream, incx < 0 ? x + offest : x, m, dx_mod, incx);
+            handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
     }
 
     return status;

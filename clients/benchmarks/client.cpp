@@ -19,7 +19,6 @@
 #include "testing_dot.hpp"
 #include "testing_swap.hpp"
 #include "testing_gemv.hpp"
-#include "testing_trsv.hpp"
 #include "testing_ger.hpp"
 #include "testing_syr.hpp"
 #include "testing_nrm2.hpp"
@@ -35,6 +34,7 @@
 #include "testing_gemm_kernel_name.hpp"
 #include "testing_gemm_strided_batched_kernel_name.hpp"
 #include "testing_trsm.hpp"
+#include "testing_trsv.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #endif
@@ -118,13 +118,6 @@ static int run_bench_test(const char* function, char precision, Arguments argus)
             testing_gemv<float>(argus);
         else if(precision == 'd')
             testing_gemv<double>(argus);
-    }
-    else if(!strcmp(function, "trsv"))
-    {
-        if(precision == 's')
-            testing_trsv<float>(argus);
-        else if(precision == 'd')
-            testing_trsv<double>(argus);
     }
     else if(!strcmp(function, "ger"))
     {
@@ -419,6 +412,13 @@ static int run_bench_test(const char* function, char precision, Arguments argus)
         else if(precision == 'd')
             testing_trsm<double>(argus);
     }
+    else if(!strcmp(function, "trsv"))
+    {
+        if(precision == 's')
+            testing_trsv<float>(argus);
+        else if(precision == 'd')
+            testing_trsv<double>(argus);
+    }
 #endif
     else
     {
@@ -550,7 +550,7 @@ int main(int argc, char* argv[])
 
         ("function,f",
          value<std::string>(&function)->default_value("gemv"),
-         "BLAS function to test. Options: gemv, ger, syr, trsm, trmm, symv, syrk, syr2k")
+         "BLAS function to test. Options: gemv, ger, syr, trsm, trsv, trmm, symv, syrk, syr2k")
 
         ("precision,r",
          value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
@@ -590,10 +590,10 @@ int main(int argc, char* argv[])
         ("uplo",
          value<char>(&argus.uplo_option)->default_value('U'),
          "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
-                                                                     // xtrmm
+                                                                     // xtrmm xtrsv
         ("diag",
          value<char>(&argus.diag_option)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
                                                                                           // xtrmm
         ("batch",
          value<rocblas_int>(&argus.batch_count)->default_value(1),
