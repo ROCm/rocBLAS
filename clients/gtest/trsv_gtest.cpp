@@ -47,7 +47,7 @@ const vector<vector<int>> medium_matrix_size_range = {
 };
 
 const vector<vector<int>> large_matrix_size_range = {
-    {1000, 1000}, {2000, 2000}, {4011, 4011}, {8000, 8000},
+    {640, 960}, {1000, 1000}, {1024, 1024}, {2000, 2000},
 };
 
 // vector of vector, each item is a {incx};

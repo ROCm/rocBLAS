@@ -30,29 +30,6 @@ double gemv_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n)
     return (double)(8.0 * m * n) / 1e9;
 }
 
-/* \brief floating point counts of TRSV */
-template <>
-double trsv_gflop_count<rocblas_float_complex>(rocblas_int m)
-{
-    int sum = 0;
-
-    for(int i = 0; i < m; i++)
-        sum += 1 + 2 * i;
-
-    return (double)sum / 1e9;
-}
-
-template <>
-double trsv_gflop_count<rocblas_double_complex>(rocblas_int m)
-{
-    int sum = 0;
-
-    for(int i = 0; i < m; i++)
-        sum += 1 + 2 * i;
-
-    return (double)sum / 1e9;
-}
-
 /* \brief floating point counts of SY(HE)MV */
 
 /*
