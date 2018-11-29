@@ -253,7 +253,6 @@ const vector<vector<int>> deepbench_size_range = {
     {  256,    64,  3136,  3136,  3136,   256,   256},
     {   25,    64, 27920, 27920, 27920,    25,    25},
     {   27,    64,  2916,  2916,  2916,    27,    27},
-    {   27,    64, 50176, 50176, 50176,    27,    27},
     {  288,    64,  1440,  1440,  1440,   288,   288},
     { 3200,   256,  1653,  1653,  1653,  3200,  3200},
     { 4608,   512,   196,   196,   196,  4608,  4608},
@@ -277,6 +276,12 @@ const vector<vector<int>> deepbench_size_range = {
     {   64,    64, 12544, 12544, 12544,    64,    64},
     {  832,   256,    49,    49,    49,   832,   832},
     {    9,    16, 23040, 23040, 23040,     9,     9}
+};
+
+// this test is too large for all orientations, only running the 
+// one defined in the original suite
+const vector<vector<int>> deepbench_large_size_range = {
+    {   27,    64, 50176, 50176, 50176,    27,    27},
 };
 
 // vector of vector, each vector is a {M, N, K, lda, ldb, ldc, ldd};
@@ -388,6 +393,7 @@ const vector<vector<char>> small_transA_transB_range = {{'N', 'N'}};
 const vector<vector<char>> transA_transB_range = {{'N', 'N'}, {'N', 'T'}, {'C', 'N'}, {'T', 'C'}};
 const vector<vector<char>> transA_transB_range_int8 =  {{'N', 'N'}, {'N', 'T'}, {'T', 'N'}, {'T', 'T'}};
 const vector<vector<char>> deepbench_transA_transB_range =  {{'N', 'N'}, {'N', 'T'}, {'T', 'N'}};
+const vector<vector<char>> deepbench_large_transA_transB_range =  {{'T', 'N'}};
 const vector<vector<char>> resnet50_fwd_transA_transB_range =  {{'N', 'N'}};
 const vector<vector<char>> resnet50_bwdwrw_transA_transB_range =  {{'T', 'N'}};
 const vector<vector<char>> resnet50_bwddata_transA_transB_range =  {{'N', 'T'}};
@@ -721,6 +727,13 @@ INSTANTIATE_TEST_CASE_P(nightly_blas_ex_deepbench_int8,
                         Combine(ValuesIn(deepbench_size_range),
                                 ValuesIn(deepbench_alpha_beta_range),
                                 ValuesIn(deepbench_transA_transB_range),
+                                ValuesIn(precision_int8)));
+
+INSTANTIATE_TEST_CASE_P(nightly_blas_ex_deepbench_large_int8,
+                        parameterized_gemm_ex,
+                        Combine(ValuesIn(deepbench_large_size_range),
+                                ValuesIn(deepbench_alpha_beta_range),
+                                ValuesIn(deepbench_large_transA_transB_range),
                                 ValuesIn(precision_int8)));
 
 //----resnet50
