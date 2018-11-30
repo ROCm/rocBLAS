@@ -322,7 +322,7 @@ void testing_gemm_ex(const Arguments& arg)
     // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
        (std::is_same<Ti, int8_t>::value &&
-        (K % 4 != 0 || (transA == rocblas_operation_transpose && lda % 4 != 0) ||
+        (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
          (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
         static const size_t safe_size = 100;
@@ -446,7 +446,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>::value && transB == rocblas_operation_transpose)
+    if(std::is_same<Ti, int8_t>::value && transB != rocblas_operation_none)
     {
         host_vector<Ti> hB_packed(hB);
 

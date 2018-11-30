@@ -90,7 +90,7 @@ set( ROCBLAS_DGEMM_PERF_YAML "${CMAKE_CURRENT_BINARY_DIR}/dgemm_perf.yaml")
 add_custom_command( OUTPUT "${ROCBLAS_DGEMM_PERF_YAML}"
                     COMMAND ./dgemm_genperf.py -o "${ROCBLAS_DGEMM_PERF_YAML}"
                     DEPENDS dgemm_genperf.py
-		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-dgemm-perf-yaml
                    DEPENDS "${ROCBLAS_DGEMM_PERF_YAML}" )
 
@@ -98,11 +98,11 @@ set( ROCBLAS_PERF_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_perf.data")
 add_custom_command( OUTPUT "${ROCBLAS_PERF_DATA}"
                     COMMAND ../common/rocblas_gentest.py rocblas_bench.yaml -I ../include -I "${CMAKE_CURRENT_BINARY_DIR}" -o "${ROCBLAS_PERF_DATA}"
                     DEPENDS rocblas-dgemm-perf-yaml rocblas_bench.yaml ../common/rocblas_gentest.py ../include/rocblas_common.yaml
-		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-perf-data
                    DEPENDS "${ROCBLAS_PERF_DATA}" )
 
-# commented out for too much memory use on some machines
+# Commented out because it uses too much memory on some machines
 # add_dependencies(  rocblas-bench rocblas-perf-data )
 
 add_subdirectory ( ./perf_script )

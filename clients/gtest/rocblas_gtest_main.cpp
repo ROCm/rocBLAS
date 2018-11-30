@@ -32,8 +32,13 @@ static std::string exepath()
 
 int main(int argc, char** argv)
 {
-    // Open data file
+    // Set data file path
     RocBLAS_TestData::init(exepath() + GTEST_DATA);
+
+    // Print Version
+    char blas_version[100];
+    rocblas_get_version_string(blas_version, sizeof(blas_version));
+    printf("rocBLAS version: %s\n\n", blas_version);
 
     // Device Query
 

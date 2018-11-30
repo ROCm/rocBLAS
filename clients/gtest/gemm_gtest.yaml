@@ -64,7 +64,7 @@ Definitions:
     - { M:    56, N:    56, K:    56, lda:    56, ldb:    56, ldc:    56, ldd:    56 }
     - { M:    64, N:    64, K:    64, lda:    64, ldb:    64, ldc:    64, ldd:    64 }
     - { M:    72, N:    72, K:    72, lda:    72, ldb:    72, ldc:    72, ldd:    72 }
-   
+
   - &medium_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }
     - { M:     1, N:     1, K:     1, lda:     1, ldb:     1, ldc:     1, ldd:     1 }
@@ -280,7 +280,6 @@ Definitions:
     - { M:   256, N:    64, K:  3136, lda:  3136, ldb:  3136, ldc:   256, ldd:   256 }
     - { M:    25, N:    64, K: 27920, lda: 27920, ldb: 27920, ldc:    25, ldd:    25 }
     - { M:    27, N:    64, K:  2916, lda:  2916, ldb:  2916, ldc:    27, ldd:    27 }
-    - { M:    27, N:    64, K: 50176, lda: 50176, ldb: 50176, ldc:    27, ldd:    27 }
     - { M:   288, N:    64, K:  1440, lda:  1440, ldb:  1440, ldc:   288, ldd:   288 }
     - { M:  3200, N:   256, K:  1653, lda:  1653, ldb:  1653, ldc:  3200, ldd:  3200 }
     - { M:  4608, N:   512, K:   196, lda:   196, ldb:   196, ldc:  4608, ldd:  4608 }
@@ -304,6 +303,9 @@ Definitions:
     - { M:    64, N:    64, K: 12544, lda: 12544, ldb: 12544, ldc:    64, ldd:    64 }
     - { M:   832, N:   256, K:    49, lda:    49, ldb:    49, ldc:   832, ldd:   832 }
     - { M:     9, N:    16, K: 23040, lda: 23040, ldb: 23040, ldc:     9, ldd:     9 }
+
+  - &deepbench_large_sizes
+    - { M:    27, N:    64, K: 50176, lda: 50176, ldb: 50176, ldc:    27, ldd:    27 }
 
   - &resnet50_fwd_sizes
     - { M: 12544, N:  1024, K:   256, lda: 12544, ldb:   256, ldc: 12544, ldd: 12544 }
@@ -2366,7 +2368,7 @@ Tests:
   alpha: 2
   beta: 3
 
-- name: gemm_deepbench_sizes
+- name: gemm_deepbench
   category: nightly
   function:
     testing_gemm: *half_single_precisions
@@ -2374,6 +2376,15 @@ Tests:
   matrix_size: *deepbench_sizes
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
+
+- name: gemm_deepbench_large
+  category: nightly
+  function:
+    testing_gemm_ex: *int8_precision
+  matrix_size: *deepbench_large_sizes
+  alpha_beta: *deepbench_alpha_beta_range
+  transA: T
+  transB: N
 
 - name: resnet50_fwd
   category: nightly

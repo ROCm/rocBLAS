@@ -196,7 +196,7 @@ void testing_gemm(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
     {
-        const size_t safe_size = 100;
+        static const size_t safe_size = 100;
 
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
