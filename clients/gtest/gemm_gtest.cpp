@@ -6,6 +6,12 @@
 #include "testing_gemm.hpp"
 #include <unordered_map>
 
+#include <algorithm>
+#include <list>
+#include <future>
+#include <thread>
+//#include <omp.h>
+
 using namespace std;
 
 /* =====================================================================
@@ -51,35 +57,38 @@ void testit(const Arguments& arg)
     {
         rocblas_status status = testing_gemm<T...>(arg);
 
-        /* if not success, then the input argument is problematic,
-           so detect the error message */
-        if(status != rocblas_status_success)
+        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
         {
-            if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
-            else if(arg.ldc < arg.M)
-            {
-                EXPECT_EQ(rocblas_status_invalid_size, status);
-            }
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(!strcmp(arg.function, "testing_gemm_NaN"))
+        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
         {
-            testing_gemm_NaN<T...>(arg);
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
-        else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
         {
-            testing_gemm_bad_arg<T...>();
+            EXPECT_EQ(rocblas_status_invalid_size, status);
         }
+        else if(arg.ldc < arg.M)
+        {
+            EXPECT_EQ(rocblas_status_invalid_size, status);
+        }
+        else
+        {
+            EXPECT_EQ(rocblas_status_success, status);
+        }
+    }
+    else if(!strcmp(arg.function, "testing_gemm_NaN"))
+    {
+        testing_gemm_NaN<T...>(arg);
+    }
+    else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+    {
+        testing_gemm_bad_arg<T...>();
+    }
+    else
+    {
+        FAIL() << "Unknown test type.";
     }
 }
 
