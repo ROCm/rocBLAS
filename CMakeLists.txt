@@ -166,7 +166,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag b0e0ce85f8b77ce384296850f85715c39d123108 CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 4441b958ce09d91701b25fb2d006b29a2cb2b4f9 CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
