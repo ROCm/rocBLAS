@@ -8,7 +8,7 @@
 // Calls TEST template based on the argument types. TEST<> is expected to
 // return a functor which takes a const Arguments& argument. If the types do
 // not match a recognized type combination, then TEST<void> is called.  This
-// function returns the same type as TEST<void>()(arg), usually bool or void.
+// function returns the same type as TEST<...>()(arg), usually bool or void.
 // ----------------------------------------------------------------------------
 
 // Simple functions which take only one datatype
@@ -17,7 +17,7 @@
 // cases where the types are uniform, in which case one template type argument
 // is passed to TEST, and the rest are assumed to match the first.
 template <template <typename...> class TEST>
-auto rocblas_simple_dispatch(const Arguments& arg) -> decltype(TEST<void>()(arg))
+auto rocblas_simple_dispatch(const Arguments& arg)
 {
     switch(arg.a_type)
     {
@@ -33,7 +33,7 @@ auto rocblas_simple_dispatch(const Arguments& arg) -> decltype(TEST<void>()(arg)
 
 // BLAS1 functions
 template <template <typename...> class TEST>
-auto rocblas_blas1_dispatch(const Arguments& arg) -> decltype(TEST<void>()(arg))
+auto rocblas_blas1_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, To = arg.d_type;
 
@@ -51,7 +51,7 @@ auto rocblas_blas1_dispatch(const Arguments& arg) -> decltype(TEST<void>()(arg))
 
 // gemm functions
 template <template <typename...> class TEST>
-auto rocblas_gemm_dispatch(const Arguments& arg) -> decltype(TEST<void>()(arg))
+auto rocblas_gemm_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, To = arg.c_type, Tc = arg.compute_type;
 

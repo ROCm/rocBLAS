@@ -7,6 +7,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "near.h"
 #include "flops.h"
 
 /* ============================================================================================ */
@@ -284,8 +285,19 @@ void testing_gemm(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
+            if(std::is_same<T, rocblas_half>::value && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<T>;
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
+            }
         }
 
         if(arg.norm_check)

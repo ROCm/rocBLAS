@@ -22,15 +22,15 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   function:
-    - testing_nrm2:  *float_double_precisions
-    - testing_asum:  *float_double_precisions
-    - testing_iamax: *float_double_precisions
-#   - testing_iamin: *float_double_precisions
-    - testing_axpy:  *half_float_double_precisions
-    - testing_copy:  *float_double_precisions
-    - testing_dot:   *float_double_precisions
-    - testing_scal:  *float_double_precisions
-    - testing_swap:  *float_double_precisions
+    - testing_nrm2:  *single_double_precisions
+    - testing_asum:  *single_double_precisions
+    - testing_iamax: *single_double_precisions
+#   - testing_iamin: *single_double_precisions
+    - testing_axpy:  *half_single_double_precisions
+    - testing_copy:  *single_double_precisions
+    - testing_dot:   *single_double_precisions
+    - testing_scal:  *single_double_precisions
+    - testing_swap:  *single_double_precisions
 
 - name: blas1
   category: pre_checkin
@@ -40,24 +40,24 @@ Tests:
   function:
     - testing_nrm2:  *double_precision
     - testing_asum:  *double_precision
-    - testing_iamax: *float_double_precisions
-#   - testing_iamin: *float_double_precisions
-    - testing_axpy:  *half_float_double_precisions
-    - testing_copy:  *float_double_precisions
+    - testing_iamax: *single_double_precisions
+#   - testing_iamin: *single_double_precisions
+    - testing_axpy:  *half_single_double_precisions
+    - testing_copy:  *single_double_precisions
     - testing_dot:   *double_precision
-    - testing_scal:  *float_double_precisions
-    - testing_swap:  *float_double_precisions
+    - testing_scal:  *single_double_precisions
+    - testing_swap:  *single_double_precisions
 
 - name: blas1_bad_arg
   category: pre_checkin
   function:
-    - testing_nrm2_bad_arg:  *float_double_precisions
-    - testing_asum_bad_arg:  *float_double_precisions
-    - testing_iamax_bad_arg: *float_double_precisions
-    - testing_iamin_bad_arg: *float_double_precisions
-    - testing_axpy_bad_arg:  *half_float_double_precisions
-    - testing_copy_bad_arg:  *float_double_precisions
-    - testing_dot_bad_arg:   *float_double_precisions
-    - testing_scal_bad_arg:  *float_double_precisions
-    - testing_swap_bad_arg:  *float_double_precisions
+    - testing_nrm2_bad_arg:  *single_double_precisions
+    - testing_asum_bad_arg:  *single_double_precisions
+    - testing_iamax_bad_arg: *single_double_precisions
+    - testing_iamin_bad_arg: *single_double_precisions
+    - testing_axpy_bad_arg:  *half_single_double_precisions
+    - testing_copy_bad_arg:  *single_double_precisions
+    - testing_dot_bad_arg:   *single_double_precisions
+    - testing_scal_bad_arg:  *single_double_precisions
+    - testing_swap_bad_arg:  *single_double_precisions
 ...

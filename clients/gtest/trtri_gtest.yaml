@@ -15,7 +15,7 @@ Tests:
 - name: trtri
   category: pre_checkin
   function: testing_trtri
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *matrix_size_range
@@ -23,7 +23,7 @@ Tests:
 - name: trtri_batched
   category: disabled               # Not working right now; wasn't run before
   function: testing_trtri_batched
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *matrix_size_range

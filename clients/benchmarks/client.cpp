@@ -41,10 +41,9 @@
 template <typename Ti,
           typename To = Ti,
           typename Tc = To,
-          typename =
-              typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>::value,
-                                        std::true_type,
-                                        std::false_type>::type>
+          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
+                                               std::true_type,
+                                               std::false_type>::type>
 struct perf_gemm_ex
 {
     explicit operator bool() const { return true; }
@@ -61,10 +60,9 @@ struct perf_gemm_ex<Ti, To, Tc, std::false_type> : rocblas_test_invalid
 template <typename Ti,
           typename To = Ti,
           typename Tc = To,
-          typename =
-              typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>::value,
-                                        std::true_type,
-                                        std::false_type>::type>
+          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
+                                               std::true_type,
+                                               std::false_type>::type>
 struct perf_gemm_strided_batched_ex
 {
     explicit operator bool() const { return true; }

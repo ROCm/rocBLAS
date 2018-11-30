@@ -7,7 +7,6 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include <complex.h>
 
 template <typename T>
 void testing_scal_bad_arg(const Arguments& arg)
@@ -18,7 +17,7 @@ void testing_scal_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int size_x = N * incx;
+    size_t size_x = N * static_cast<size_t>(incx);
 
     // allocate memory on device
     device_vector<T> dx(size_x);
@@ -48,7 +47,7 @@ void testing_scal(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || incx <= 0)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T> dx(safe_size);
         if(!dx)
         {
@@ -61,7 +60,7 @@ void testing_scal(const Arguments& arg)
         return;
     }
 
-    rocblas_int size_x = N * incx;
+    size_t size_x = N * static_cast<size_t>(incx);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx_1(size_x);

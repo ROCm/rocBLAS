@@ -7,15 +7,14 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include <complex.h>
 
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int incy      = 1;
-    rocblas_int safe_size = 100; //  arbitrarily set to 100
+    rocblas_int N                 = 100;
+    rocblas_int incx              = 1;
+    rocblas_int incy              = 1;
+    static const size_t safe_size = 100; //  arbitrarily set to 100
 
     rocblas_local_handle handle;
     device_vector<T> dx(safe_size);
@@ -45,7 +44,7 @@ void testing_copy(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        const rocblas_int safe_size = 100; //  arbitrarily set to 100
+        static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);
         if(!dx || !dy)
@@ -60,8 +59,8 @@ void testing_copy(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    rocblas_int size_x   = N * abs_incx;
-    rocblas_int size_y   = N * abs_incy;
+    size_t size_x        = N * static_cast<size_t>(abs_incx);
+    size_t size_y        = N * static_cast<size_t>(abs_incy);
 
     // allocate memory on device
     device_vector<T> dx(size_x);

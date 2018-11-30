@@ -2,6 +2,9 @@
 # Copyright 2016 Advanced Micro Devices, Inc.
 # ########################################################################
 
+# For debugging, uncomment this
+# set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -O0" )
+
 # set( Boost_DEBUG ON )
 set( Boost_USE_MULTITHREADED ON )
 set( Boost_DETAILED_FAILURE_MSG ON )
@@ -59,15 +62,10 @@ set(rocblas_test_source
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/flops.cpp
       ../common/norm.cpp
-      ../common/unit.cpp
-      ../common/near.cpp
-      ../common/rocblas_template_specialization.cpp
     )
 
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
-target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )

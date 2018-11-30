@@ -8,17 +8,16 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
-#include <complex.h>
 
 /* ============================================================================================ */
 
 template <typename T>
 void testing_bandwidth(const Arguments& arg)
 {
-    rocblas_int N      = 25 * 1e7;
-    rocblas_int incx   = 1;
-    rocblas_int size_X = N * incx;
-    T alpha            = 2.0;
+    rocblas_int N    = 25 * 1e7;
+    rocblas_int incx = 1;
+    size_t size_X    = N * static_cast<size_t>(incx);
+    T alpha          = 2.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_X);

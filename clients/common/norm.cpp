@@ -24,10 +24,7 @@
     xlange and xaxpy prototype are like following
     =================================================================== */
 
-#ifdef __cplusplus
 extern "C" {
-#endif
-
 float slange_(char* norm_type, int* m, int* n, float* A, int* lda, float* work);
 double dlange_(char* norm_type, int* m, int* n, double* A, int* lda, double* work);
 float clange_(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work);
@@ -49,10 +46,7 @@ void zaxpy_(int* n,
             int* incx,
             rocblas_double_complex* y,
             int* incy);
-
-#ifdef __cplusplus
 }
-#endif
 
 /* ============================Norm Check for General Matrix: float/double/complex template
  * speciliazation ======================================= */

@@ -82,6 +82,13 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
              << arg.K << '_' << arg.alpha << '_' << arg.lda << '_' << arg.ldb << '_' << arg.beta
              << '_' << arg.ldc;
 
+        if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            name << '_' << arg.ldd;
+
+        if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            name << '_' << arg.batch_count << '_' << arg.stride_a << '_' << arg.stride_b << '_'
+                 << arg.stride_c;
+
         return std::move(name);
     }
 };
@@ -103,11 +110,10 @@ struct gemm_testing : rocblas_test_invalid
 // When converted to bool, this functor returns true.
 // Complex is not supported yet.
 template <typename T>
-struct gemm_testing<
-    T,
-    T,
-    T,
-    typename std::enable_if<!std::is_same<T, void>::value && !is_complex<T>::value>::type>
+struct gemm_testing<T,
+                    T,
+                    T,
+                    typename std::enable_if<!std::is_same<T, void>::value && !is_complex<T>>::type>
 {
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
@@ -154,7 +160,7 @@ struct gemm_ex_testing<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void>::value && !is_complex<Ti>::value>::type>
+    typename std::enable_if<!std::is_same<Ti, void>::value && !is_complex<Ti>>::type>
 {
     explicit operator bool() { return true; }
 

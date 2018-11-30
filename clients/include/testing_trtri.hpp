@@ -18,7 +18,7 @@ void testing_trtri(const Arguments& arg)
     rocblas_int ldinvA;
     ldinvA = lda = arg.lda;
 
-    rocblas_int size_A = lda * N;
+    size_t size_A = static_cast<size_t>(lda) * N;
 
     char char_uplo = arg.uplo_option;
     char char_diag = arg.diag_option;
@@ -31,7 +31,7 @@ void testing_trtri(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(N < 0 || lda < 0 || lda < N)
     {
-        const rocblas_int safe_size = 100;
+        static const size_t safe_size = 100;
         device_vector<T> dA(safe_size);
         device_vector<T> dinvA(safe_size);
         if(!dA || !dinvA)
@@ -66,9 +66,9 @@ void testing_trtri(const Arguments& arg)
     rocblas_init_symmetric<T>(hA, N, lda);
 
     // proprocess the matrix to avoid ill-conditioned matrix
-    for(int i = 0; i < N; i++)
+    for(size_t i = 0; i < N; i++)
     {
-        for(int j = 0; j < N; j++)
+        for(size_t j = 0; j < N; j++)
         {
             hA[i + j * lda] *= 0.01;
 

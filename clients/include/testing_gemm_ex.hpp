@@ -7,6 +7,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "near.h"
 #include "flops.h"
 
 /* ============================================================================================ */
@@ -324,7 +325,7 @@ void testing_gemm_ex(const Arguments& arg)
         (K % 4 != 0 || (transA == rocblas_operation_transpose && lda % 4 != 0) ||
          (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
-        const size_t safe_size = 100;
+        static const size_t safe_size = 100;
         device_vector<Ti> dA(safe_size);
         device_vector<Ti> dB(safe_size);
         device_vector<To> dC(safe_size);
@@ -547,8 +548,19 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<To>(M, N, ldd, hD_gold, hD_1);
-            unit_check_general<To>(M, N, ldd, hD_gold, hD_2);
+            if(std::is_same<Tc, rocblas_half>::value && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<Tc>;
+                near_check_general<To>(M, N, ldd, hD_gold, hD_1, tol);
+                near_check_general<To>(M, N, ldd, hD_gold, hD_2, tol);
+            }
+            else
+            {
+                unit_check_general<To>(M, N, ldd, hD_gold, hD_1);
+                unit_check_general<To>(M, N, ldd, hD_gold, hD_2);
+            }
         }
 
         if(arg.norm_check)

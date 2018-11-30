@@ -23,7 +23,7 @@ void testing_set_get_matrix(const Arguments& arg)
     if(rows < 0 || lda <= 0 || lda < rows || cols < 0 || ldb <= 0 || ldb < rows || ldc <= 0 ||
        ldc < rows)
     {
-        const rocblas_int safe_size = 100; // arbritrarily set to 100
+        static const size_t safe_size = 100; // arbritrarily set to 100
 
         host_vector<T> ha(safe_size);
         host_vector<T> hb(safe_size);
@@ -44,17 +44,17 @@ void testing_set_get_matrix(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> ha(cols * lda);
-    host_vector<T> hb(cols * ldb);
-    host_vector<T> hc(cols * ldc);
-    host_vector<T> hb_gold(cols * ldb);
+    host_vector<T> ha(cols * static_cast<size_t>(lda));
+    host_vector<T> hb(cols * static_cast<size_t>(ldb));
+    host_vector<T> hc(cols * static_cast<size_t>(ldc));
+    host_vector<T> hb_gold(cols * static_cast<size_t>(ldb));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dc(cols * ldc);
+    device_vector<T> dc(cols * static_cast<size_t>(ldc));
     if(!dc)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

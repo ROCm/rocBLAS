@@ -8,20 +8,19 @@
 #include "norm.h"
 #include "unit.h"
 #include "flops.h"
-#include <complex.h>
 
 /* ============================================================================================ */
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int incy      = 1;
-    rocblas_int safe_size = 100;
-    float alpha_float     = 0.6;
+    rocblas_int N                 = 100;
+    rocblas_int incx              = 1;
+    rocblas_int incy              = 1;
+    static const size_t safe_size = 100;
+    float alpha_float             = 0.6;
     T alpha;
 
-    if(typeid(T) == typeid(rocblas_half))
+    if(std::is_same<T, rocblas_half>::value)
         alpha = float_to_half(alpha_float);
     else
         alpha = alpha_float;
@@ -51,8 +50,8 @@ void testing_axpy(const Arguments& arg)
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
-    T h_alpha        = 0;
-    if(typeid(T) == typeid(rocblas_half))
+    T h_alpha;
+    if(std::is_same<T, rocblas_half>::value)
         h_alpha = float_to_half(arg.alpha);
     else
         h_alpha = arg.alpha;
@@ -62,7 +61,7 @@ void testing_axpy(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);
         if(!dx || !dy)
@@ -78,8 +77,8 @@ void testing_axpy(const Arguments& arg)
 
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
-    rocblas_int size_x   = N * abs_incx;
-    rocblas_int size_y   = N * abs_incy;
+    size_t size_x        = N * static_cast<size_t>(abs_incx);
+    size_t size_y        = N * static_cast<size_t>(abs_incy);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);

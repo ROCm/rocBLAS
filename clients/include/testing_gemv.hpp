@@ -24,9 +24,9 @@ void testing_gemv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int size_A = lda * N;
-    rocblas_int size_x = N * incx;
-    rocblas_int size_y = M * incy;
+    size_t size_A = lda * static_cast<size_t>(N);
+    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_y = M * static_cast<size_t>(incy);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
@@ -87,16 +87,16 @@ void testing_gemv(const Arguments& arg)
     rocblas_int lda          = arg.lda;
     rocblas_int incx         = arg.incx;
     rocblas_int incy         = arg.incy;
-    T h_alpha                = (T)arg.alpha;
-    T h_beta                 = (T)arg.beta;
+    T h_alpha                = static_cast<T>(arg.alpha);
+    T h_beta                 = static_cast<T>(arg.beta);
     rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_int safe_size    = 100; // arbitrarily set to 100
 
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T> dA1(safe_size);
         device_vector<T> dx1(safe_size);
         device_vector<T> dy1(safe_size);
@@ -114,9 +114,9 @@ void testing_gemv(const Arguments& arg)
         return;
     }
 
-    rocblas_int size_A = lda * N;
-    rocblas_int size_x, dim_x, abs_incx;
-    rocblas_int size_y, dim_y, abs_incy;
+    size_t size_A = lda * static_cast<size_t>(N);
+    size_t size_x, dim_x, abs_incx;
+    size_t size_y, dim_y, abs_incy;
 
     if(transA == rocblas_operation_none)
     {

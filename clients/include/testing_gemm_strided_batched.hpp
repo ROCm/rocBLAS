@@ -7,6 +7,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "near.h"
 #include "flops.h"
 
 template <typename T>
@@ -55,7 +56,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
     if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count <= 0 ||
        stride_a < 0 || stride_b < 0 || stride_c < N * ldc)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
 
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
@@ -220,8 +221,19 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
-            unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+            if(std::is_same<T, rocblas_half>::value && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<T>;
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+            }
         }
 
         if(arg.norm_check)

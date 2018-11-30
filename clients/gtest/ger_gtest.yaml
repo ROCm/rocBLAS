@@ -42,12 +42,12 @@ Tests:
 - name: ger_bad_arg
   category: pre_checkin
   function: testing_ger_bad_arg
-  precision: *float_double_precisions
+  precision: *single_double_precisions
 
 - name: ger_small
   category: quick
   function: testing_ger
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
@@ -55,7 +55,7 @@ Tests:
 - name: ger_medium
   category: pre_checkin
   function: testing_ger
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
@@ -63,7 +63,7 @@ Tests:
 - name: ger_large
   category: nightly
   function: testing_ger
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0, 0.6 ]

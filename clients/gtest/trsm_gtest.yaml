@@ -24,7 +24,7 @@ Tests:
 - name: trsm_small
   category: quick
   function: testing_trsm
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
@@ -35,7 +35,7 @@ Tests:
 - name: trsm_medium
   category: pre_checkin
   function: testing_trsm
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
@@ -46,7 +46,7 @@ Tests:
 - name: trsm_large
   category: nightly
   function: testing_trsm
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, unit: N }
     - { side: R, uplo: L, transA: N, unit: N }

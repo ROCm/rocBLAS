@@ -42,19 +42,19 @@ Tests:
 - name: auxilliary_1
   category: quick
   function: testing_set_get_matrix
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *M_N_range
   arguments: *lda_ldb_ldc_range
 
 - name: auxilliary_2
   category: quick
   function: testing_set_get_matrix
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *small_gemm_values
 
 - name: auxilliary
   category: pre_checkin
   function: testing_set_get_matrix
-  precision: *float_double_precisions
+  precision: *single_double_precisions
   matrix_size: *large_gemm_values
 ...

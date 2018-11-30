@@ -11,11 +11,11 @@
 template <typename T1, typename T2>
 void testing_asum_bad_arg(const Arguments& arg)
 {
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int safe_size = 100;
-    T2 rocblas_result     = 10;
-    T2* h_rocblas_result  = &rocblas_result;
+    rocblas_int N                 = 100;
+    rocblas_int incx              = 1;
+    static const size_t safe_size = 100;
+    T2 rocblas_result             = 10;
+    T2* h_rocblas_result          = &rocblas_result;
 
     rocblas_local_handle handle;
     device_vector<T1> dx(safe_size);
@@ -49,7 +49,7 @@ void testing_asum(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T1> dx(safe_size);
         device_vector<T2> d_rocblas_result_2(1);
         if(!dx || !d_rocblas_result_2)
@@ -63,7 +63,7 @@ void testing_asum(const Arguments& arg)
         return;
     }
 
-    rocblas_int size_x = N * incx;
+    size_t size_x = N * static_cast<size_t>(incx);
 
     // allocate memory on device
     device_vector<T1> dx(size_x);

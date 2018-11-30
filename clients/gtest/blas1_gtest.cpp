@@ -75,7 +75,7 @@ using blas1_enabled =
                                 (std::is_same<Ti, rocblas_half>::value && BLAS1 == blas1::axpy))>;
 
 // Creates tests for one of the BLAS 1 functions
-// ARG passes one or two template arguments to the testing_* function
+// ARG passes 1-3 template arguments to the testing_* function
 // clang-format off
 #define BLAS1_TESTING(NAME, ARG)                                               \
 struct blas1_##NAME                                                            \

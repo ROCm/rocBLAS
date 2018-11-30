@@ -19,9 +19,9 @@ void testing_syr_bad_arg()
     T alpha           = 0.6;
     rocblas_local_handle handle;
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int size_A   = lda * N;
-    rocblas_int size_x   = N * abs_incx;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t size_A   = lda * N;
+    size_t size_x   = N * abs_incx;
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -55,7 +55,7 @@ void testing_syr(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N < 0 || lda < N || lda < 1 || !incx)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
 
         device_vector<T> dA_1(safe_size);
         device_vector<T> dx(safe_size);
@@ -71,9 +71,9 @@ void testing_syr(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int size_A   = lda * N;
-    rocblas_int size_x   = N * abs_incx;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t size_A   = lda * N;
+    size_t size_x   = N * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);

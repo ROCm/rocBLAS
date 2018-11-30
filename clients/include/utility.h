@@ -20,7 +20,6 @@
 #include <sys/time.h>
 #include <sys/param.h>
 #include <immintrin.h>
-#include <typeinfo>
 #include <fstream>
 #include <iterator>
 #include <cerrno>
@@ -121,20 +120,16 @@ inline bool rocblas_isnan(rocblas_half arg)
 }
 
 /* ============================================================================================ */
-/*! \brief is_complex<T>::value returns true iff T is complex */
+/*! \brief is_complex<T> returns true iff T is complex */
 
 template <typename>
-struct is_complex : std::false_type
-{
-};
+constexpr bool is_complex = false;
+
 template <>
-struct is_complex<rocblas_double_complex> : std::true_type
-{
-};
+constexpr bool is_complex<rocblas_double_complex> = true;
+
 template <>
-struct is_complex<rocblas_float_complex> : std::true_type
-{
-};
+constexpr bool is_complex<rocblas_float_complex> = true;
 
 /* ============================================================================================ */
 // Random number generator
@@ -187,7 +182,7 @@ class rocblas_nan_rng
 /*! \brief  Initialize an array with random data, with NaN where apppropriate */
 
 template <typename T>
-void rocblas_init_nan(T* A, size_t N)
+inline void rocblas_init_nan(T* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
         A[i]     = static_cast<T>(rocblas_nan_rng());
@@ -357,64 +352,54 @@ inline int8_t random_generator<int8_t>()
 };
 
 /* ============================================================================================ */
+/*! \brief  negate a value */
+
+template <class T>
+inline T negate(T x)
+{
+    return -x;
+}
+
+template <>
+inline rocblas_half negate(rocblas_half x)
+{
+    return x ^ 0x8000;
+}
+
+/* ============================================================================================ */
+/*! \brief  print vector */
+template <typename T>
+inline void rocblas_print_vector(std::vector<T>& A, size_t M, size_t N, size_t lda)
+{
+    if(std::is_same<T, float>::value)
+        std::cout << "vec[float]: ";
+    else if(std::is_same<T, double>::value)
+        std::cout << "vec[double]: ";
+    else if(std::is_same<T, rocblas_half>::value)
+        std::cout << "vec[rocblas_half]: ";
+
+    for(size_t i = 0; i < M; ++i)
+        for(size_t j = 0; j < N; ++j)
+            std::cout << (std::is_same<T, rocblas_half>::value ? half_to_float(A[i + j * lda])
+                                                               : A[i + j * lda])
+                      << ", ";
+
+    std::cout << std::endl;
+}
+
+/* ============================================================================================ */
 /*! \brief  matrix/vector initialization: */
 // for vector x (M=1, N=lengthX, lda=incx);
 // for complex number, the real/imag part would be initialized with the same value
 
-// Initializing vector with a constant value passed as a parameter
-template <typename T>
-inline void rocblas_init(std::vector<T>& A,
-                         rocblas_int M,
-                         rocblas_int N,
-                         rocblas_int lda,
-                         rocblas_int stride_a,
-                         rocblas_int batch_count,
-                         T value)
-{
-    for(rocblas_int k = 0; k < batch_count; ++k)
-        for(rocblas_int i = 0; i < M; ++i)
-            for(rocblas_int j                 = 0; j < N; ++j)
-                A[i + j * lda + k * stride_a] = value;
-}
-
-template <typename T>
-inline void rocblas_init(std::vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda, T value)
-{
-    for(rocblas_int i = 0; i < M; ++i)
-        for(rocblas_int j  = 0; j < N; ++j)
-            A[i + j * lda] = value;
-}
-
-// Overloads for rocblas_half
-inline void rocblas_init(std::vector<rocblas_half>& A,
-                         rocblas_int M,
-                         rocblas_int N,
-                         rocblas_int lda,
-                         rocblas_int stride_a,
-                         rocblas_int batch_count,
-                         float value)
-{
-    rocblas_init<>(A, M, N, lda, stride_a, batch_count, float_to_half(value));
-}
-
-inline void rocblas_init(
-    std::vector<rocblas_half>& A, rocblas_int M, rocblas_int N, rocblas_int lda, float value)
-{
-    rocblas_init<>(A, M, N, lda, float_to_half(value));
-}
-
 // Initialize vector with random values
 template <typename T>
-inline void rocblas_init(std::vector<T>& A,
-                         rocblas_int M,
-                         rocblas_int N,
-                         rocblas_int lda,
-                         rocblas_int stride      = 0,
-                         rocblas_int batch_count = 1)
+inline void rocblas_init(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-        for(rocblas_int i = 0; i < M; ++i)
-            for(rocblas_int j                     = 0; j < N; ++j)
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j                          = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = random_generator<T>();
 }
 
@@ -426,44 +411,25 @@ inline void rocblas_init(std::vector<T>& A,
 // arithmetic where the exponent has only 5 bits, and the
 // mantissa 10 bits.
 template <typename T>
-void rocblas_init_alternating_sign(std::vector<T>& A,
-                                   rocblas_int M,
-                                   rocblas_int N,
-                                   rocblas_int lda,
-                                   rocblas_int stride      = 0,
-                                   rocblas_int batch_count = 1)
+inline void rocblas_init_alternating_sign(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-        for(rocblas_int i = 0; i < M; ++i)
-            for(rocblas_int j = 0; j < N; ++j)
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
             {
                 auto value                        = random_generator<T>();
-                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : -value;
+                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : negate(value);
             }
-}
-
-template <typename T>
-void rocblas_init_alternating_sign(std::vector<T>& A,
-                                   rocblas_int M,
-                                   rocblas_int N,
-                                   rocblas_int lda,
-                                   T value,
-                                   rocblas_int stride      = 0,
-                                   rocblas_int batch_count = 1)
-{
-    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
-        for(rocblas_int i = 0; i < M; ++i)
-            for(rocblas_int j                     = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : -value;
 }
 
 /*! \brief  symmetric matrix initialization: */
 // for real matrix only
 template <typename T>
-void rocblas_init_symmetric(std::vector<T>& A, rocblas_int N, rocblas_int lda)
+inline void rocblas_init_symmetric(std::vector<T>& A, size_t N, size_t lda)
 {
-    for(rocblas_int i = 0; i < N; ++i)
-        for(rocblas_int j = 0; j <= i; ++j)
+    for(size_t i = 0; i < N; ++i)
+        for(size_t j = 0; j <= i; ++j)
         {
             auto value = random_generator<T>();
             // Warning: It's undefined behavior to assign to the
@@ -477,44 +443,22 @@ void rocblas_init_symmetric(std::vector<T>& A, rocblas_int N, rocblas_int lda)
 // for complex matrix only, the real/imag part would be initialized with the same value
 // except the diagonal elment must be real
 template <typename T>
-void rocblas_init_hermitian(std::vector<T>& A, rocblas_int N, rocblas_int lda)
+inline void rocblas_init_hermitian(std::vector<T>& A, size_t N, size_t lda)
 {
-    for(rocblas_int i = 0; i < N; ++i)
-        for(rocblas_int j = 0; j <= i; ++j)
+    for(size_t i = 0; i < N; ++i)
+        for(size_t j = 0; j <= i; ++j)
         {
             auto value     = random_generator<T>();
             A[j + i * lda] = value;
-            value.y        = (i == j) ? 0 : -value.y;
+            value.y        = (i == j) ? 0 : negate(value.y);
             A[i + j * lda] = value;
         }
 }
 
-/*! \brief  print vector */
-template <typename T>
-void rocblas_print_vector(std::vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
-{
-    if(typeid(T) == typeid(float))
-        std::cout << "vec[float]: ";
-    else if(typeid(T) == typeid(double))
-        std::cout << "vec[double]: ";
-    else if(typeid(T) == typeid(rocblas_half))
-        std::cout << "vec[rocblas_half]: ";
-
-    for(rocblas_int i = 0; i < M; ++i)
-        for(rocblas_int j = 0; j < N; ++j)
-        {
-            if(typeid(T) == typeid(rocblas_half))
-                printf("%04x,", A[i + j * lda]);
-            else
-                std::cout << A[i + j * lda] << ", ";
-        }
-    std::cout << std::endl;
-}
-
 /* ============================================================================================ */
 /*! \brief  Packs matricies into groups of 4 in N */
 template <typename T>
-inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+inline void rocblas_packInt8(host_vector<T>& A, size_t M, size_t N, size_t lda)
 {
     /* Assumes original matrix provided in column major order, where N is a multiple of 4
 
@@ -549,63 +493,15 @@ inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, ro
         }
     }
 }
-
-/* ============================================================================================ */
-/*! \brief  Packs matricies into groups of 4 in N */
-template <typename T>
-inline void rocblas_packInt8(host_vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
-{
-    /* Assumes original matrix provided in column major order, where N is a multiple of 4
-
-        ---------- N ----------
-   |  | 00 05 10 15 20 25 30 35      |00 05 10 15|20 25 30 35|
-   |  | 01 06 11 16 21 26 31 36      |01 06 11 16|21 26 31 36|
-   l  M 02 07 12 17 22 27 32 37  --> |02 07 12 17|22 27 32 37|
-   d  | 03 08 13 18 23 28 33 38      |03 08 13 18|23 28 33 38|
-   a  | 04 09 14 19 24 29 34 39      |04 09 14 19|24 29 34 39|
-   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
-   |    ** ** ** ** ** ** ** **      |** ** ** **|** ** ** **|
-
-     Input :  00 01 02 03 04 ** ** 05   ...  38 39 ** **
-     Output:  00 05 10 15 01 06 11 16   ...  ** ** ** **
-
-   */
-
-    if(N % 4 != 0)
-    {
-        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
-    }
-
-    host_vector<T> temp(A);
-    for(size_t colBase = 0; colBase < N; colBase += 4)
-    {
-        for(size_t row = 0; row < lda; row++)
-        {
-            for(size_t colOffset = 0; colOffset < 4; colOffset++)
-            {
-                A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
-            }
-        }
-    }
-}
-
-/* ============================================================================================ */
-/*! \brief  turn float -> 's', double -> 'd', rocblas_float_complex -> 'c', rocblas_double_complex
- * -> 'z' */
-template <typename T>
-char type2char();
 
 /* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
-void print_matrix(std::vector<T> CPU_result,
-                  std::vector<T> GPU_result,
-                  rocblas_int m,
-                  rocblas_int n,
-                  rocblas_int lda)
+inline void
+print_matrix(std::vector<T> CPU_result, std::vector<T> GPU_result, size_t m, size_t n, size_t lda)
 {
-    for(int i = 0; i < m; i++)
-        for(int j = 0; j < n; j++)
+    for(size_t i = 0; i < m; i++)
+        for(size_t j = 0; j < n; j++)
         {
             printf("matrix  col %d, row %d, CPU result=%f, GPU result=%f\n",
                    i,
@@ -614,10 +510,6 @@ void print_matrix(std::vector<T> CPU_result,
                    GPU_result[j + i * lda]);
         }
 }
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* ============================================================================================ */
 /*  device query and print out their ID and name */
@@ -639,32 +531,135 @@ double get_time_us_sync(hipStream_t stream);
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
 
-char rocblas2char_operation(rocblas_operation value);
+constexpr char rocblas2char_operation(rocblas_operation value)
+{
+    switch(value)
+    {
+    case rocblas_operation_none: return 'N';
+    case rocblas_operation_transpose: return 'T';
+    case rocblas_operation_conjugate_transpose: return 'C';
+    }
+    return '\0';
+}
 
-char rocblas2char_fill(rocblas_fill value);
+constexpr char rocblas2char_fill(rocblas_fill value)
+{
+    switch(value)
+    {
+    case rocblas_fill_upper: return 'U';
+    case rocblas_fill_lower: return 'L';
+    case rocblas_fill_full: return 'F';
+    }
+    return '\0';
+}
 
-char rocblas2char_diagonal(rocblas_diagonal value);
+constexpr char rocblas2char_diagonal(rocblas_diagonal value)
+{
+    switch(value)
+    {
+    case rocblas_diagonal_unit: return 'U';
+    case rocblas_diagonal_non_unit: return 'N';
+    }
+    return '\0';
+}
 
-char rocblas2char_side(rocblas_side value);
+constexpr char rocblas2char_side(rocblas_side value)
+{
+    switch(value)
+    {
+    case rocblas_side_left: return 'L';
+    case rocblas_side_right: return 'R';
+    case rocblas_side_both: return 'B';
+    }
+    return '\0';
+}
 
-char rocblas_datatype2char(rocblas_datatype value);
+constexpr char rocblas_datatype2char(rocblas_datatype value)
+{
+    switch(value)
+    {
+    case rocblas_datatype_f16_r: return 'h';
+    case rocblas_datatype_f32_r: return 's';
+    case rocblas_datatype_f64_r: return 'd';
+    case rocblas_datatype_f16_c: return 'k';
+    case rocblas_datatype_f32_c: return 'c';
+    case rocblas_datatype_f64_c: return 'z';
+    default:
+        return 'e'; // todo, handle integer types
+    }
+    return '\0';
+}
 
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
-rocblas_operation char2rocblas_operation(char value);
-
-rocblas_fill char2rocblas_fill(char value);
-
-rocblas_diagonal char2rocblas_diagonal(char value);
-
-rocblas_side char2rocblas_side(char value);
-
-rocblas_datatype char2rocblas_datatype(char value);
-
-#ifdef __cplusplus
+constexpr rocblas_operation char2rocblas_operation(char value)
+{
+    switch(value)
+    {
+    case 'N':
+    case 'n': return rocblas_operation_none;
+    case 'T':
+    case 't': return rocblas_operation_transpose;
+    case 'C':
+    case 'c': return rocblas_operation_conjugate_transpose;
+    default: return static_cast<rocblas_operation>(-1);
+    }
 }
-#endif
+
+constexpr rocblas_fill char2rocblas_fill(char value)
+{
+    switch(value)
+    {
+    case 'U':
+    case 'u': return rocblas_fill_upper;
+    case 'L':
+    case 'l': return rocblas_fill_lower;
+    default: return static_cast<rocblas_fill>(-1);
+    }
+}
+
+constexpr rocblas_diagonal char2rocblas_diagonal(char value)
+{
+    switch(value)
+    {
+    case 'U':
+    case 'u': return rocblas_diagonal_unit;
+    case 'N':
+    case 'n': return rocblas_diagonal_non_unit;
+    default: return static_cast<rocblas_diagonal>(-1);
+    }
+}
+
+constexpr rocblas_side char2rocblas_side(char value)
+{
+    switch(value)
+    {
+    case 'L':
+    case 'l': return rocblas_side_left;
+    case 'R':
+    case 'r': return rocblas_side_right;
+    default: return static_cast<rocblas_side>(-1);
+    }
+}
+
+constexpr rocblas_datatype char2rocblas_datatype(char value)
+{
+    switch(value)
+    {
+    case 'H':
+    case 'h': return rocblas_datatype_f16_r;
+    case 'S':
+    case 's': return rocblas_datatype_f32_r;
+    case 'D':
+    case 'd': return rocblas_datatype_f64_r;
+    case 'C':
+    case 'c': return rocblas_datatype_f32_c;
+    case 'Z':
+    case 'z': return rocblas_datatype_f64_c;
+    default: return static_cast<rocblas_datatype>(-1);
+    }
+}
 
 /* ============================================================================================ */
 

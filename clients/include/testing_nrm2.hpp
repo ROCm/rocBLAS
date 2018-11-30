@@ -8,14 +8,13 @@
 #include "norm.h"
 #include "near.h"
 #include "unit.h"
-#include <complex.h>
 
 template <typename T1, typename T2>
 void testing_nrm2_bad_arg(const Arguments& arg)
 {
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int safe_size = 100;
+    rocblas_int N                 = 100;
+    rocblas_int incx              = 1;
+    static const size_t safe_size = 100;
 
     rocblas_local_handle handle;
 
@@ -55,7 +54,7 @@ void testing_nrm2(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        const rocblas_int safe_size = 100; //  arbitrarily set to zero
+        static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1> dx(safe_size);
         device_vector<T2> d_rocblas_result(1);
         if(!dx || !d_rocblas_result)
@@ -69,7 +68,7 @@ void testing_nrm2(const Arguments& arg)
         return;
     }
 
-    rocblas_int size_x = N * incx;
+    size_t size_x = N * static_cast<size_t>(incx);
 
     // allocate memory on device
     device_vector<T1> dx(size_x);
@@ -118,8 +117,8 @@ void testing_nrm2(const Arguments& arg)
         rel_error *= tolerance;
         if(arg.unit_check)
         {
-            near_check_general<T1, T2>(1, 1, 1, &cpu_result, &rocblas_result_1, rel_error);
-            near_check_general<T1, T2>(1, 1, 1, &cpu_result, &rocblas_result_2, rel_error);
+            near_check_general<T1>(1, 1, 1, &cpu_result, &rocblas_result_1, rel_error);
+            near_check_general<T1>(1, 1, 1, &cpu_result, &rocblas_result_2, rel_error);
         }
 
         if(arg.norm_check)

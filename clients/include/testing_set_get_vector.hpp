@@ -22,7 +22,7 @@ void testing_set_get_vector(const Arguments& arg)
     // memory
     if(M < 0 || incx <= 0 || incy <= 0 || incb <= 0)
     {
-        const rocblas_int safe_size = 100;
+        static const size_t safe_size = 100;
 
         host_vector<T> hx(safe_size);
         host_vector<T> hy(safe_size);
@@ -40,17 +40,17 @@ void testing_set_get_vector(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hx(M * incx);
-    host_vector<T> hy(M * incy);
-    host_vector<T> hb(M * incb);
-    host_vector<T> hy_gold(M * incy);
+    host_vector<T> hx(M * static_cast<size_t>(incx));
+    host_vector<T> hy(M * static_cast<size_t>(incy));
+    host_vector<T> hb(M * static_cast<size_t>(incb));
+    host_vector<T> hy_gold(M * static_cast<size_t>(incy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> db(M * incb);
+    device_vector<T> db(M * static_cast<size_t>(incb));
     if(!db)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

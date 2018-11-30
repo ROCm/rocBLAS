@@ -28,9 +28,9 @@ void testing_geam_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int size_A = N * lda;
-    rocblas_int size_B = N * ldb;
-    rocblas_int size_C = N * ldc;
+    size_t size_A = N * static_cast<size_t>(lda);
+    size_t size_B = N * static_cast<size_t>(ldb);
+    size_t size_C = N * static_cast<size_t>(ldc);
 
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
@@ -103,7 +103,7 @@ void testing_geam(const Arguments& arg)
 
     T* dC_in_place;
 
-    rocblas_int size_A, size_B, size_C, A_row, A_col, B_row, B_col;
+    rocblas_int A_row, A_col, B_row, B_col;
     rocblas_int inc1_A, inc2_A, inc1_B, inc2_B;
 
     double gpu_time_used, cpu_time_used;
@@ -144,14 +144,14 @@ void testing_geam(const Arguments& arg)
         inc2_B = 1;
     }
 
-    size_A = lda * A_col;
-    size_B = ldb * B_col;
-    size_C = ldc * N;
+    size_t size_A = lda * static_cast<size_t>(A_col);
+    size_t size_B = ldb * static_cast<size_t>(B_col);
+    size_t size_C = ldc * static_cast<size_t>(N);
 
     // check here to prevent undefined memory allocation error
     if(M <= 0 || N <= 0 || lda < A_row || ldb < B_row || ldc < M)
     {
-        const rocblas_int safe_size = 100; // arbitararily set to 100
+        static const size_t safe_size = 100; // arbitararily set to 100
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
         device_vector<T> dC(safe_size);

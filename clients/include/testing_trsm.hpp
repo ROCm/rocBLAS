@@ -45,16 +45,16 @@ void testing_trsm(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal diag    = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = side == rocblas_side_left ? M : N;
-    rocblas_int size_A = lda * K;
-    rocblas_int size_B = ldb * N;
+    rocblas_int K = side == rocblas_side_left ? M : N;
+    size_t size_A = lda * static_cast<size_t>(K);
+    size_t size_B = ldb * static_cast<size_t>(N);
 
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T> dA(safe_size);
         device_vector<T> dXorB(safe_size);
         if(!dA || !dXorB)

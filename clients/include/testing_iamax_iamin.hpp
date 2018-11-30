@@ -7,15 +7,14 @@
 #include "rocblas.hpp"
 #include "unit.h"
 #include "utility.h"
-#include <complex.h>
 
 template <typename T,
-          rocblas_status FUNC(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*)>
+          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*)>
 void testing_iamax_iamin_bad_arg(const Arguments& arg)
 {
-    rocblas_int N         = 100;
-    rocblas_int incx      = 1;
-    rocblas_int safe_size = 100;
+    rocblas_int N                 = 100;
+    rocblas_int incx              = 1;
+    static const size_t safe_size = 100;
 
     rocblas_local_handle handle;
     device_vector<T> dx(safe_size);
@@ -47,7 +46,7 @@ void testing_iamin_bad_arg(const Arguments& arg)
 }
 
 template <typename T,
-          rocblas_status FUNC(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*),
+          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*),
           void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
 void testing_iamax_iamin(const Arguments& arg)
 {
@@ -65,7 +64,7 @@ void testing_iamax_iamin(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        const rocblas_int safe_size = 100; // arbritrarily set to 100
+        static const size_t safe_size = 100; // arbritrarily set to 100
         device_vector<T> dx(safe_size);
         if(!dx)
         {

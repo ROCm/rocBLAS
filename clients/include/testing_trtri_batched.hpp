@@ -7,6 +7,7 @@
 #include "cblas_interface.h"
 #include "norm.h"
 #include "unit.h"
+#include "near.h"
 #include "flops.h"
 
 template <typename T>
@@ -16,8 +17,8 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_int size_A = lda * N * batch_count;
-    rocblas_int bsa    = lda * N;
+    rocblas_int bsa = lda * N;
+    size_t size_A   = static_cast<size_t>(bsa) * batch_count;
 
     char char_uplo = arg.uplo_option;
     char char_diag = arg.diag_option;
@@ -32,7 +33,7 @@ void testing_trtri_batched(const Arguments& arg)
     // memory
     if(N < 0 || lda < 0 || batch_count < 0)
     {
-        const rocblas_int safe_size = 100;
+        static const size_t safe_size = 100;
         device_vector<T> dA(safe_size);
         device_vector<T> dinvA(safe_size);
         if(!dA || !dinvA)

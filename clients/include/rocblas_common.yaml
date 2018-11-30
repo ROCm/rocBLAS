@@ -19,8 +19,8 @@ Datatypes:
         u8_c:  165
         i32_c: 166
         u32_c: 167
-  - { half: f16_r, float: f32_r, double: f64_r }
-  - { half complex: f16_c, complex: f32_c, double complex: f64_c }
+  - { half: f16_r, single: f32_r, double: f64_r }
+  - { half complex: f16_c, single complex: f32_c, double complex: f64_c }
 
 Real precisions: &real_precisions
   - &half_precision
@@ -34,11 +34,31 @@ Real precisions: &real_precisions
   - &int8_precision
     { a_type:  i8_r, b_type:  i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r }
 
-C precisions: &float_double_precisions
+C precisions: &single_double_precisions
   - *single_precision
   - *double_precision
 
-Simple precisions: &half_float_double_precisions
+Short simple precisions: &half_single_precisions
+  - *half_precision
+  - *single_precision
+
+Short precisions: &int8_half_single_precisions
+  - *int8_precision
+  - *half_precision
+  - *single_precision
+
+ML precisions: &hpa_half_single_precisions
+  - *hpa_half_precision
+  - *half_precision
+  - *single_precision
+
+Non-int precisions: &hpa_half_single_double_precisions
+  - *hpa_half_precision
+  - *half_precision
+  - *single_precision
+  - *double_precision
+
+Simple precisions: &half_single_double_precisions
   - *half_precision
   - *single_precision
   - *double_precision
@@ -126,15 +146,11 @@ Defaults:
   M: 128
   N: 128
   K: 128
-  lda: 128
-  ldb: 128
-  ldc: 128
-  ldd: 128
-  a_type: float
-  b_type: float
-  c_type: float
-  d_type: float
-  compute_type: float
+  a_type: single
+  b_type: single
+  c_type: single
+  d_type: single
+  compute_type: single
   incx: 1
   incy: 1
   incd: 1
@@ -148,10 +164,6 @@ Defaults:
   diag: N
   apiCallCount: 1
   batch_count: 10
-  stride_a: 16384
-  stride_b: 16384
-  stride_c: 16384
-  stride_d: 16384
   norm_check: 0
   unit_check: 1
   timing: 0

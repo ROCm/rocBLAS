@@ -30,11 +30,7 @@ endif( )
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/flops.cpp
       ../common/norm.cpp
-      ../common/unit.cpp
-      ../common/near.cpp
-      ../common/rocblas_template_specialization.cpp
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
@@ -106,6 +102,7 @@ add_custom_command( OUTPUT "${ROCBLAS_PERF_DATA}"
 add_custom_target( rocblas-perf-data
                    DEPENDS "${ROCBLAS_PERF_DATA}" )
 
-add_dependencies(  rocblas-bench rocblas-perf-data )
+# commented out for too much memory use on some machines
+# add_dependencies(  rocblas-bench rocblas-perf-data )
 
 add_subdirectory ( ./perf_script )

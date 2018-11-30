@@ -28,14 +28,14 @@ void testing_trmm(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal diag    = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = (side == rocblas_side_left ? M : N);
-    rocblas_int size_A = lda * K;
-    rocblas_int size_B = ldb * N;
+    rocblas_int K = (side == rocblas_side_left ? M : N);
+    size_t size_A = lda * static_cast<size_t>(K);
+    size_t size_B = ldb * static_cast<size_t>(N);
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < 0 || ldb < 0)
     {
-        const rocblas_int safe_size = 100;
+        static const size_t safe_size = 100;
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
         device_vector<T> dC(safe_size);
@@ -57,8 +57,6 @@ void testing_trmm(const Arguments& arg)
     host_vector<T> hB(size_B);
     host_vector<T> hC(size_B);
     host_vector<T> hB_copy(size_B);
-
-    T *dA, *dB, *dC;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -95,16 +93,8 @@ void testing_trmm(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
     }
 
-#if 0 // TODO: This is commented out for some reason
-    CHECK_ROCBLAS_ERROR(rocblas_trmm<T>(handle,
-               side, uplo,
-                transA, diag,
-                M, N,
-                &alpha,
-                dA, lda,
-                dB, ldb,
-                                        dC, ldc));
-#endif
+    CHECK_ROCBLAS_ERROR(
+        rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, dC, ldc));
 
     if(arg.timing)
     {

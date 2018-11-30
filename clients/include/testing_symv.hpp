@@ -31,7 +31,7 @@ void testing_symv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N < 0 || lda < 0 || incx < 0 || incy < 0)
     {
-        const rocblas_int safe_size = 100;
+        static const size_t safe_size = 100;
         device_vector<T> dA(safe_size);
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);

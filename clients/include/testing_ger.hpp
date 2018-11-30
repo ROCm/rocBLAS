@@ -23,9 +23,9 @@ void testing_ger_bad_arg(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    rocblas_int size_A   = lda * N;
-    rocblas_int size_x   = M * abs_incx;
-    rocblas_int size_y   = N * abs_incy;
+    size_t size_A        = lda * static_cast<size_t>(N);
+    size_t size_x        = M * static_cast<size_t>(abs_incx);
+    size_t size_y        = N * static_cast<size_t>(abs_incy);
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -62,7 +62,7 @@ void testing_ger(const Arguments& arg)
     // argument check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
-        const rocblas_int safe_size = 100; // arbitrarily set to 100
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T> dA_1(safe_size);
         device_vector<T> dx(safe_size);
         device_vector<T> dy(safe_size);
@@ -78,11 +78,11 @@ void testing_ger(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    rocblas_int size_A   = lda * N;
-    rocblas_int size_x   = M * abs_incx;
-    rocblas_int size_y   = N * abs_incy;
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_A   = lda * N;
+    size_t size_x   = M * abs_incx;
+    size_t size_y   = N * abs_incy;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);
