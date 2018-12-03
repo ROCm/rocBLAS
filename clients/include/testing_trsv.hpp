@@ -246,17 +246,29 @@ rocblas_status testing_trsv(Arguments argus)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
+        int number_cold_calls = 2;
+        int number_hot_calls = argus.iters;
+
+        for(int i = 0; i < number_cold_calls; i++)
+        {
+            rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
+        }
+
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
+        for(int i = 0; i < number_hot_calls; i++)
+        {
+            rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
+        }
 
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsv_gflop_count<T>(M) / gpu_time_used * 1e6;
+        rocblas_gflops = trsv_gflop_count<T>(M) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us();
 
-        cblas_trsv<T>(uplo, transA, diag, M, (const T*)hA, lda, cpu_x_or_b, incx);
+        if(argus.norm_check)
+            cblas_trsv<T>(uplo, transA, diag, M, (const T*)hA, lda, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
@@ -270,7 +282,7 @@ rocblas_status testing_trsv(Arguments argus)
         cout << endl;
 
         cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
-             << char_diag << ',' << rocblas_gflops << "," << gpu_time_used;
+             << char_diag << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(argus.norm_check)
             cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
