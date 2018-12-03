@@ -247,7 +247,7 @@ rocblas_status testing_trsv(Arguments argus)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         int number_cold_calls = 2;
-        int number_hot_calls = argus.iters;
+        int number_hot_calls  = argus.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
         {
