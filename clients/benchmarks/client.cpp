@@ -631,7 +631,9 @@ int main(int argc, char* argv[])
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
-        ("help,h", "produces this help message");
+        ("help,h", "produces this help message")
+
+        ("version", "Prints the version number");
     // clang-format on
 
     variables_map vm;
@@ -644,6 +646,13 @@ int main(int argc, char* argv[])
         return 0;
     }
 
+    if(vm.find("version") != vm.end())
+    {
+        char blas_version[100];
+        rocblas_get_version_string(blas_version, 100);
+        std::cout << "rocBLAS version: " << blas_version << std::endl;
+        return 0;
+    }
     // Device Query
     rocblas_int device_count = query_device_property();
 

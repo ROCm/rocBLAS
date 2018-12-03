@@ -38,6 +38,7 @@ if( BUILD_WITH_TENSILE )
       gemm_strided_batched_gtest.cpp
       gemm_ex_gtest.cpp
       gemm_strided_batched_ex_gtest.cpp
+      parallel_gtest.cpp
       trsm_gtest.cpp
       trsv_gtest.cpp
       )
@@ -55,6 +56,7 @@ set(rocblas_test_source
     ger_gtest.cpp
     syr_gtest.cpp
     geam_gtest.cpp
+    trsm_gtest.cpp
     )
 
 

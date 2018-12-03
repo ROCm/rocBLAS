@@ -107,6 +107,7 @@ add_custom_command( OUTPUT "${ROCBLAS_PERF_DATA}"
 add_custom_target( rocblas-perf-data
                    DEPENDS "${ROCBLAS_PERF_DATA}" )
 
-add_dependencies(  rocblas-bench rocblas-perf-data )
+# Commented out because it uses too much memory on some machines
+# add_dependencies(  rocblas-bench rocblas-perf-data )
 
 add_subdirectory ( ./perf_script )

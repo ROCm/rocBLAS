@@ -402,7 +402,7 @@ void verify_rocblas_status_invalid_handle(rocblas_status status)
 void verify_rocblas_status_success(rocblas_status status, const char* message)
 {
 #ifdef GOOGLE_TEST
-    ASSERT_EQ(status, rocblas_status_success);
+    ASSERT_EQ(status, rocblas_status_success) << message;
 #else
     if(status != rocblas_status_success)
     {
