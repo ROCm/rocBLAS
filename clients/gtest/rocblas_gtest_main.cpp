@@ -1,30 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
-#include <stdexcept>
 #include "utility.h"
+#include "rocblas_data.h"
 
 #define GTEST_DATA "rocblas_gtest.data"
-
-// Return path of this executable
-static std::string exepath()
-{
-    std::string pathstr;
-    char* path = realpath("/proc/self/exe", 0);
-    if(path)
-    {
-        char* p = strrchr(path, '/');
-        if(p)
-        {
-            p[1]    = 0;
-            pathstr = path;
-        }
-        free(path);
-    }
-    return pathstr;
-}
 
 /* =====================================================================
       Main function:
@@ -33,7 +15,7 @@ static std::string exepath()
 int main(int argc, char** argv)
 {
     // Set data file path
-    RocBLAS_TestData::init(exepath() + GTEST_DATA);
+    RocBLAS_TestData::init(rocblas_exepath() + GTEST_DATA);
 
     // Print Version
     char blas_version[100];

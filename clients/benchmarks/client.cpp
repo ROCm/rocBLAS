@@ -11,6 +11,8 @@
 #include "rocblas.h"
 #include "utility.h"
 #include "rocblas.hpp"
+#include "rocblas_data.h"
+#include "rocblas_datatype2char.h"
 #include "testing_iamax_iamin.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
@@ -209,8 +211,8 @@ int run_bench_test(const char* function, char precision, Arguments arg)
     else if(!strcmp(function, "gemm"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA_option == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB_option == 'N' ? arg.K : arg.N;
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
         rocblas_int min_ldc = arg.M;
 
         if(arg.lda < min_lda)
@@ -239,8 +241,8 @@ int run_bench_test(const char* function, char precision, Arguments arg)
     else if(!strcmp(function, "gemm_ex"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA_option == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB_option == 'N' ? arg.K : arg.N;
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
         rocblas_int min_ldc = arg.M;
         rocblas_int min_ldd = arg.M;
 
@@ -269,8 +271,8 @@ int run_bench_test(const char* function, char precision, Arguments arg)
     else if(!strcmp(function, "gemm_strided_batched"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA_option == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB_option == 'N' ? arg.K : arg.N;
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
         rocblas_int min_ldc = arg.M;
         if(arg.lda < min_lda)
         {
@@ -289,13 +291,13 @@ int run_bench_test(const char* function, char precision, Arguments arg)
         }
 
         //      rocblas_int min_stride_a =
-        //          arg.transA_option == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
+        //          arg.transA == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
         //      rocblas_int min_stride_b =
-        //          arg.transB_option == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
+        //          arg.transB == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
         //      rocblas_int min_stride_a =
-        //          arg.transA_option == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
+        //          arg.transA == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
         //      rocblas_int min_stride_b =
-        //          arg.transB_option == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
+        //          arg.transB == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
         rocblas_int min_stride_c = arg.ldc * arg.N;
         //      if (arg.stride_a < min_stride_a)
         //      {
@@ -326,8 +328,8 @@ int run_bench_test(const char* function, char precision, Arguments arg)
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
         // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA_option == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB_option == 'N' ? arg.K : arg.N;
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
         rocblas_int min_ldc = arg.M;
         rocblas_int min_ldd = arg.M;
         if(arg.lda < min_lda)
@@ -524,23 +526,23 @@ int main(int argc, char* argv[])
          "Precision of computation, only applicable to BLAS_EX")
 
         ("transposeA",
-         value<char>(&arg.transA_option)->default_value('N'),
+         value<char>(&arg.transA)->default_value('N'),
          "N = no transpose, T = transpose, C = conjugate transpose")
 
         ("transposeB",
-         value<char>(&arg.transB_option)->default_value('N'),
+         value<char>(&arg.transB)->default_value('N'),
          "N = no transpose, T = transpose, C = conjugate transpose")
 
         ("side",
-         value<char>(&arg.side_option)->default_value('L'),
+         value<char>(&arg.side)->default_value('L'),
          "L = left, R = right. Only applicable to certain routines")
 
         ("uplo",
-         value<char>(&arg.uplo_option)->default_value('U'),
+         value<char>(&arg.uplo)->default_value('U'),
          "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
                                                                      // xtrmm
         ("diag",
-         value<char>(&arg.diag_option)->default_value('N'),
+         value<char>(&arg.diag)->default_value('N'),
          "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm
                                                                                           // xtrmm
         ("batch",

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -8,7 +8,6 @@
 
 /*! \brief gtest unit compare two matrices float/double/complex */
 
-#pragma once
 #ifndef _UNIT_H
 #define _UNIT_H
 

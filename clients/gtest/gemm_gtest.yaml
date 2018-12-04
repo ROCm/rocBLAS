@@ -207,7 +207,6 @@ Definitions:
     - { M:   392, N:   512, K:   512, lda:   392, ldb:   512, ldc:   392, ldd:   392 }
     - { M:    49, N:   128, K: 20800, lda:    49, ldb: 20800, ldc:    49, ldd:    49 }
     - { M:    49, N:   512, K:  2048, lda:    49, ldb:  2048, ldc:    49, ldd:    49 }
-    - { M: 50176, N:    64, K:    27, lda: 50176, ldb:    27, ldc: 50176, ldd: 50176 }
     - { M:  5760, N:    32, K:   144, lda:  5760, ldb:   144, ldc:  5760, ldd:  5760 }
     - { M:  6272, N:   128, K:   256, lda:  6272, ldb:   256, ldc:  6272, ldd:  6272 }
     - { M:  6272, N:   256, K:    64, lda:  6272, ldb:    64, ldc:  6272, ldd:  6272 }
@@ -306,6 +305,7 @@ Definitions:
 
   - &deepbench_large_sizes
     - { M:    27, N:    64, K: 50176, lda: 50176, ldb: 50176, ldc:    27, ldd:    27 }
+    - { M: 50176, N:    64, K:    27, lda: 50176, ldb:    27, ldc: 50176, ldd: 50176 }
 
   - &resnet50_fwd_sizes
     - { M: 12544, N:  1024, K:   256, lda: 12544, ldb:   256, ldc: 12544, ldd: 12544 }

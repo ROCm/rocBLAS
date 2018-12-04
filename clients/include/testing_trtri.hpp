@@ -1,7 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -20,8 +25,8 @@ void testing_trtri(const Arguments& arg)
 
     size_t size_A = static_cast<size_t>(lda) * N;
 
-    char char_uplo = arg.uplo_option;
-    char char_diag = arg.diag_option;
+    char char_uplo = arg.uplo;
+    char char_diag = arg.diag;
 
     rocblas_fill uplo     = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
@@ -130,7 +135,7 @@ void testing_trtri(const Arguments& arg)
         }
 
 #ifndef NDEBUG
-        print_matrix(hB, hA, N, N, lda);
+        rocblas_print_matrix(hB, hA, N, N, lda);
 #endif
 
         if(arg.unit_check)

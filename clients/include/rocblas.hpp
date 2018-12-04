@@ -1,9 +1,8 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
-#pragma once
 #ifndef _ROCBLAS_HPP_
 #define _ROCBLAS_HPP_
 

@@ -1,8 +1,14 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -89,7 +95,7 @@ void testing_gemv(const Arguments& arg)
     rocblas_int incy         = arg.incy;
     T h_alpha                = static_cast<T>(arg.alpha);
     T h_beta                 = static_cast<T>(arg.beta);
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
 
     rocblas_local_handle handle;
 

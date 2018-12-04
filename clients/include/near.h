@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -11,7 +11,6 @@
  * \brief compares two results (usually, CPU and GPU results); provides Google Near check.
  */
 
-#pragma once
 #ifndef _NEAR_H
 #define _NEAR_H
 
@@ -22,11 +21,11 @@ constexpr double sqrthalf = 0.7071067811865475244;
 
 // Sum error tolerance for large sums. Multiplied by the number of items
 // in the sum to get an expected absolute error bound.
-template<class T>
+template <class T>
 constexpr double sum_error_tolerance = 0.0;
 
-template<>
-constexpr double sum_error_tolerance<rocblas_half> = 1/900.0;
+template <>
+constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)

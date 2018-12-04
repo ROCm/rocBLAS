@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -22,8 +28,8 @@ void testing_gemm_NaN(Arguments const& arg)
     rocblas_int ldb = arg.ldb;
     rocblas_int ldc = arg.ldc;
 
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_operation transB = char2rocblas_operation(arg.transB_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    rocblas_operation transB = char2rocblas_operation(arg.transB);
 
     rocblas_int A_row, A_col, B_row, B_col;
     T alpha = arg.alpha;
@@ -159,8 +165,8 @@ void testing_gemm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_operation transB = char2rocblas_operation(arg.transB_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    rocblas_operation transB = char2rocblas_operation(arg.transB);
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
@@ -337,8 +343,7 @@ void testing_gemm(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << arg.transA_option << "," << arg.transB_option << "," << M << "," << N << ","
-                  << K << ","
+        std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
                   << (std::is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
                   << "," << lda << "," << ldb << ","
                   << (std::is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << ","

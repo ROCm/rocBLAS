@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
@@ -7,6 +7,8 @@
 #include <string>
 #include <cstdio>
 #include <cstdlib>
+#include <fstream>
+#include <sys/param.h>
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "utility.h"

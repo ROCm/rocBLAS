@@ -1,7 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -49,7 +54,7 @@ void testing_syr(const Arguments& arg)
     rocblas_int incx  = arg.incx;
     rocblas_int lda   = arg.lda;
     T h_alpha         = arg.alpha;
-    rocblas_fill uplo = char2rocblas_fill(arg.uplo_option);
+    rocblas_fill uplo = char2rocblas_fill(arg.uplo);
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory

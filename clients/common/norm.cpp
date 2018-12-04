@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -10,6 +10,7 @@
 #include "norm.h"
 #include "cblas.h"
 #include "utility.h"
+#include "rocblas_vector.h"
 
 /* =====================================================================
      README: Norm check: norm(A-B)/norm(A), evaluate relative error

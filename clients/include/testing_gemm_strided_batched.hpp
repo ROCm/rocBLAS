@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -42,8 +48,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int stride_c    = arg.stride_c;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_operation transB = char2rocblas_operation(arg.transB_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    rocblas_operation transB = char2rocblas_operation(arg.transB);
 
     rocblas_local_handle handle;
 
@@ -52,12 +58,14 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int B_row = transB == rocblas_operation_none ? K : N;
     rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
+    // Early exit
+    if(!M || !N || !batch_count)
+        return;
+
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || K < 0 || lda < 0 || ldb < 0 || ldc < 0 || batch_count <= 0 ||
-       stride_a < 0 || stride_b < 0 || stride_c < N * ldc)
+    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
         device_vector<T> dC(safe_size);
@@ -312,8 +320,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << arg.transA_option << "," << arg.transB_option << "," << M << "," << N << ","
-                  << K << ","
+        std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
                   << (std::is_same<T, rocblas_half>::value ? half_to_float(h_alpha) : h_alpha)
                   << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
                   << (std::is_same<T, rocblas_half>::value ? half_to_float(h_beta) : h_beta) << ","

@@ -10,6 +10,7 @@
 
 #include "rocblas.h"
 #include "utility.h"
+#include "rocblas_init.h"
 using std::vector;
 
 /* ============================================================================================ */

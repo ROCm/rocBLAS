@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -34,10 +40,10 @@ void testing_trsm(const Arguments& arg)
     rocblas_int lda = arg.lda;
     rocblas_int ldb = arg.ldb;
 
-    char char_side   = arg.side_option;
-    char char_uplo   = arg.uplo_option;
-    char char_transA = arg.transA_option;
-    char char_diag   = arg.diag_option;
+    char char_side   = arg.side;
+    char char_uplo   = arg.uplo;
+    char char_transA = arg.transA;
+    char char_diag   = arg.diag;
     T alpha_h        = arg.alpha;
 
     rocblas_side side        = char2rocblas_side(char_side);

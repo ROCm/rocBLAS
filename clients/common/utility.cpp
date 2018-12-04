@@ -1,8 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "utility.h"
+#include "rocblas_random.h"
+#include <sys/time.h>
+#include <cstring>
+#include <cstdlib>
 
 // Random number generator
 // Note: We do not use random_device to initialize the RNG, because we want
@@ -10,6 +14,25 @@
 // argument, and print the seed on output, to ensure repeatability.
 rocblas_rng_t rocblas_rng(69069);
 rocblas_rng_t rocblas_seed(rocblas_rng);
+
+/* ============================================================================================ */
+// Return path of this executable
+std::string rocblas_exepath()
+{
+    std::string pathstr;
+    char* path = realpath("/proc/self/exe", 0);
+    if(path)
+    {
+        char* p = strrchr(path, '/');
+        if(p)
+        {
+            p[1]    = 0;
+            pathstr = path;
+        }
+        free(path);
+    }
+    return pathstr;
+}
 
 /* ============================================================================================ */
 /*  timing:*/

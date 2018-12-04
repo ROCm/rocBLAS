@@ -1,8 +1,9 @@
-#pragma once
 #ifndef _ROCBLAS_TYPE_DISPATCH_
 #define _ROCBLAS_TYPE_DISPATCH_
 
-#include "utility.h"
+#include <type_traits>
+#include "rocblas.h"
+#include "rocblas_arguments.h"
 
 // ----------------------------------------------------------------------------
 // Calls TEST template based on the argument types. TEST<> is expected to

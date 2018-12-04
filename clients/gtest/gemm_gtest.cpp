@@ -1,6 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.h"
+#include "rocblas_data.h"
+#include "rocblas_datatype2char.h"
 #include "testing_gemm.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
@@ -77,10 +83,9 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
             name << rocblas_datatype2char(arg.b_type) << rocblas_datatype2char(arg.c_type)
                  << rocblas_datatype2char(arg.d_type) << rocblas_datatype2char(arg.compute_type);
 
-        name << '_' << (char)std::toupper(arg.transA_option)
-             << (char)std::toupper(arg.transB_option) << '_' << arg.M << '_' << arg.N << '_'
-             << arg.K << '_' << arg.alpha << '_' << arg.lda << '_' << arg.ldb << '_' << arg.beta
-             << '_' << arg.ldc;
+        name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB) << '_'
+             << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda << '_'
+             << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
         if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
             name << '_' << arg.ldd;

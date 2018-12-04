@@ -7,6 +7,7 @@
 #include <cstdio>
 #include "rocblas.hpp"
 #include "utility.h"
+#include "rocblas_init.h"
 
 /* ============================================================================================ */
 

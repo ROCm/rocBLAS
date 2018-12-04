@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -35,12 +41,12 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
     const float alpha_float = 1.0;
     const float beta_float  = 1.0;
 
-    const rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    const size_t safe_size       = 100;
+    const rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+    static const size_t safe_size = 100;
 
     int32_t solution_index = 0;
     rocblas_int flags      = 0;
-    size_t* workspace_size = 0;
+    size_t workspace_size  = 0;
     void* workspace        = nullptr;
     rocblas_local_handle handle;
 
@@ -79,7 +85,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -107,7 +113,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -135,7 +141,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -163,7 +169,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -191,7 +197,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -219,7 +225,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_pointer);
 
@@ -247,7 +253,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           algo,
                                           solution_index,
                                           flags,
-                                          workspace_size,
+                                          &workspace_size,
                                           workspace),
                           rocblas_status_invalid_handle);
 }
@@ -255,10 +261,10 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index = 0;
-    uint32_t flags         = 0;
-    size_t* workspace_size = 0;
+    rocblas_gemm_algo algo = static_cast<rocblas_gemm_algo>(arg.algo);
+    int32_t solution_index = arg.solution_index;
+    uint32_t flags         = arg.flags;
+    size_t workspace_size  = arg.workspace_size;
     void* workspace        = nullptr;
 
     To h_alpha_To, h_beta_To;
@@ -310,8 +316,8 @@ void testing_gemm_ex(const Arguments& arg)
     double rocblas_error = 0.0;
 
     rocblas_local_handle handle;
-    auto transA = char2rocblas_operation(arg.transA_option);
-    auto transB = char2rocblas_operation(arg.transB_option);
+    auto transA = char2rocblas_operation(arg.transA);
+    auto transB = char2rocblas_operation(arg.transB);
     auto M = arg.M, N = arg.N, K = arg.K;
     auto lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
     auto A_row = transA == rocblas_operation_none ? M : K;
@@ -360,7 +366,7 @@ void testing_gemm_ex(const Arguments& arg)
                                               algo,
                                               solution_index,
                                               flags,
-                                              workspace_size,
+                                              &workspace_size,
                                               workspace),
                               rocblas_status_invalid_size);
         return;
@@ -490,7 +496,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             algo,
                                             solution_index,
                                             flags,
-                                            workspace_size,
+                                            &workspace_size,
                                             workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
@@ -524,7 +530,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             algo,
                                             solution_index,
                                             flags,
-                                            workspace_size,
+                                            &workspace_size,
                                             workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
@@ -604,7 +610,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                 algo,
                                                 solution_index,
                                                 flags,
-                                                workspace_size,
+                                                &workspace_size,
                                                 workspace));
         }
 
@@ -635,7 +641,7 @@ void testing_gemm_ex(const Arguments& arg)
                             algo,
                             solution_index,
                             flags,
-                            workspace_size,
+                            &workspace_size,
                             workspace);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;

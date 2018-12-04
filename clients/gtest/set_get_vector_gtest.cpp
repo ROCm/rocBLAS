@@ -1,9 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <type_traits>
+#include <cstring>
 #include "testing_set_get_vector.hpp"
 #include "type_dispatch.hpp"
+#include "rocblas_data.h"
+#include "rocblas_datatype2char.h"
 
 namespace {
 

@@ -1,12 +1,11 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <gtest/gtest.h>
+#include "rocblas_data.h"
 #include "testing_gemm_parallel.hpp"
 #include "testing_gemm.hpp"
 #include <unordered_map>
-
 #include <algorithm>
 #include <list>
 #include <future>
@@ -19,18 +18,16 @@
 
 namespace {
 
-# if 0
+#if 0 // TODO: Need to refactor into new framework; currently disabled because of HIP bug
 
 // Parallel GEMM testing class
 struct parallel_gemm : testing::TestWithParam<std::vector<Arguments>>
 {
     // Filter for which tests get into gemm right now
-    static std::function<bool(const Arguments&)> filter()
+    static bool filter(const Arguments& arg)
     {
-        return [](const Arguments& arg) {
-            return !strcmp(arg.function, "testing_gemm") && (arg.unit_check || arg.norm_check) &&
-                   !arg.timing;
-        };
+        return !strcmp(arg.function, "testing_gemm") && (arg.unit_check || arg.norm_check) &&
+            !arg.timing;
     }
 };
 
@@ -114,7 +111,7 @@ INSTANTIATE_TEST_CASE_P(
     testing::Values(std::vector<Arguments>(RocBLAS_TestData::begin([](const Arguments& arg) {
                                                return arg.a_type == rocblas_datatype_f32_r &&
                                                       !strcmp(arg.category, "quick") &&
-                                                      parallel_gemm::filter()(arg);
+                                                      parallel_gemm::filter(arg);
                                            }),
                                            RocBLAS_TestData::end())));
 
@@ -124,7 +121,7 @@ INSTANTIATE_TEST_CASE_P(
     testing::Values(std::vector<Arguments>(RocBLAS_TestData::begin([](const Arguments& arg) {
                                                return arg.a_type == rocblas_datatype_f32_r &&
                                                       !strcmp(arg.category, "quick") &&
-                                                      parallel_gemm::filter()(arg);
+                                                      parallel_gemm::filter(arg);
                                            }),
                                            RocBLAS_TestData::end())));
 

@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.h"
+#include "rocblas_data.h"
+#include "rocblas_datatype2char.h"
 #include "testing_gemv.hpp"
 #include "type_dispatch.hpp"
 
@@ -51,10 +57,10 @@ struct gemv : RocBLAS_Test<gemv, gemv_testing>
     // Goggle Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<gemv>() << rocblas_datatype2char(arg.a_type) << '_'
-                                        << (char)std::toupper(arg.transA_option) << '_' << arg.M
-                                        << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_'
-                                        << arg.incx << '_' << arg.beta << '_' << arg.incy;
+        return RocBLAS_TestName<gemv>()
+               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.transA) << '_'
+               << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx
+               << '_' << arg.beta << '_' << arg.incy;
     }
 };
 

@@ -1,10 +1,16 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.h"
+#include "rocblas_data.h"
 #include "testing_symv.hpp"
 #include "type_dispatch.hpp"
+#include "rocblas_datatype2char.h"
 
 namespace {
 
@@ -54,9 +60,9 @@ struct symv : RocBLAS_Test<symv, symv_testing>
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<symv>()
-               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.uplo_option)
-               << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx << '_'
-               << arg.beta << '_' << arg.incy;
+               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.uplo) << '_'
+               << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx << '_' << arg.beta
+               << '_' << arg.incy;
     }
 };
 

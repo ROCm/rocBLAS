@@ -1,7 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -20,8 +25,8 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_int bsa = lda * N;
     size_t size_A   = static_cast<size_t>(bsa) * batch_count;
 
-    char char_uplo = arg.uplo_option;
-    char char_diag = arg.diag_option;
+    char char_uplo = arg.uplo;
+    char char_diag = arg.diag;
 
     // char_uplo = 'U';
     rocblas_fill uplo     = char2rocblas_fill(char_uplo);

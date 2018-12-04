@@ -1,7 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "norm.h"
@@ -88,8 +94,8 @@ void testing_geam_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_geam(const Arguments& arg)
 {
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_operation transB = char2rocblas_operation(arg.transB_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    rocblas_operation transB = char2rocblas_operation(arg.transB);
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
@@ -388,9 +394,9 @@ void testing_geam(const Arguments& arg)
         }
         std::cout << std::endl;
 
-        std::cout << arg.transA_option << arg.transB_option << "," << M << "," << N << ","
-                  << h_alpha << "," << lda << "," << h_beta << "," << ldb << "," << ldc << ","
-                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls << ",";
+        std::cout << arg.transA << arg.transB << "," << M << "," << N << "," << h_alpha << ","
+                  << lda << "," << h_beta << "," << ldb << "," << ldc << "," << rocblas_gflops
+                  << "," << gpu_time_used / number_hot_calls << ",";
 
         if(arg.unit_check || arg.norm_check)
         {

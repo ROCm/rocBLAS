@@ -63,7 +63,7 @@ Simple precisions: &half_single_double_precisions
   - *single_precision
   - *double_precision
 
-# The Arguments struct passed directly to C++. See clients/include/utility.h
+# The Arguments struct passed directly to C++. See rocblas_arguments.h.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes.
 Arguments:
@@ -90,7 +90,6 @@ Arguments:
   - side: c_char
   - uplo: c_char
   - diag: c_char
-  - apiCallCount: rocblas_int
   - batch_count: rocblas_int
   - stride_a: rocblas_int
   - stride_b: rocblas_int
@@ -105,7 +104,7 @@ Arguments:
   - flags: c_uint
   - workspace_size: c_size_t
   - function: c_char*64
-  - name: c_char*32
+  - name: c_char*64
   - category: c_char*32
 
 # These named dictionary lists [ {dict1}, {dict2}, etc. ] supply subsets of
@@ -162,8 +161,7 @@ Defaults:
   side: L
   uplo: L
   diag: N
-  apiCallCount: 1
-  batch_count: 10
+  batch_count: -1
   norm_check: 0
   unit_check: 1
   timing: 0

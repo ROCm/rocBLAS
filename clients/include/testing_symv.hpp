@@ -1,7 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
 #include "utility.h"
 #include "rocblas.hpp"
 #include "cblas_interface.h"
@@ -20,7 +25,7 @@ void testing_symv(const Arguments& arg)
     T alpha = static_cast<T>(arg.alpha);
     T beta  = static_cast<T>(arg.beta);
 
-    rocblas_fill uplo = char2rocblas_fill(arg.uplo_option);
+    rocblas_fill uplo = char2rocblas_fill(arg.uplo);
 
     rocblas_int size_A = lda * N;
     rocblas_int size_X = N * incx;
@@ -57,7 +62,7 @@ void testing_symv(const Arguments& arg)
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
 
-    char char_fill = arg.uplo_option;
+    char char_fill = arg.uplo;
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_X);

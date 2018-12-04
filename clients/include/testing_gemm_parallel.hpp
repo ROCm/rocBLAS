@@ -5,7 +5,13 @@
 #include <mutex>
 #include <condition_variable>
 
+#include "rocblas_test.h"
+#include "rocblas_math.h"
+#include "rocblas_random.h"
+#include "rocblas_vector.h"
+#include "rocblas_init.h"
 #include "rocblas.hpp"
+#include "rocblas_datatype2char.h"
 #include "utility.h"
 #include "cblas_interface.h"
 #include "norm.h"
@@ -23,8 +29,8 @@ void testing_gemm_parallel(const Arguments& arg,
                            int& waiting_threads,
                            int total_threads)
 {
-    rocblas_operation transA = char2rocblas_operation(arg.transA_option);
-    rocblas_operation transB = char2rocblas_operation(arg.transB_option);
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    rocblas_operation transB = char2rocblas_operation(arg.transB);
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
