@@ -11,8 +11,9 @@
 #ifndef _UNIT_H
 #define _UNIT_H
 
-#include "utility.h"
-#include "near.h"
+#include "rocblas.h"
+#include "rocblas_math.h"
+#include "rocblas_test.h"
 
 #ifndef GOOGLE_TEST
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)
