@@ -181,19 +181,33 @@ def get_arguments(doc):
 def setdefaults(test):
     """Set default values for parameters"""
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
-    test.setdefault('lda',
-                    test['M'] if test['transA'].upper() == 'N' else test['K'])
-    test.setdefault('ldb',
-                    test['K'] if test['transB'].upper() == 'N' else test['N'])
-    test.setdefault('ldc', test['M'])
-    test.setdefault('ldd', test['M'])
+    if test['transA'] == '*' or test['transB'] == '*':
+        test.setdefault('lda', 0)
+        test.setdefault('ldb', 0)
+        test.setdefault('ldc', 0)
+        test.setdefault('ldd', 0)
+    else:
+        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N' else
+                        test['K'])
+        test.setdefault('ldb', test['K'] if test['transB'].upper() == 'N' else
+                        test['N'])
+        test.setdefault('ldc', test['M'])
+        test.setdefault('ldd', test['M'])
+        if test['batch_count'] > 0:
+            test.setdefault('stride_a', test['lda'] *
+                            (test['K'] if test['transA'].upper() == 'N' else
+                             test['M']))
+            test.setdefault('stride_b', test['ldb'] *
+                            (test['N'] if test['transB'].upper() == 'N' else
+                             test['K']))
+            test.setdefault('stride_c', test['ldc'] * test['N'])
+            test.setdefault('stride_d', test['ldd'] * test['N'])
+            return
 
-    test.setdefault('stride_a', test['lda'] *
-                    (test['K'] if test['transA'].upper() == 'N' else test['M']))
-    test.setdefault('stride_b', test['ldb'] *
-                    (test['N'] if test['transB'].upper() == 'N' else test['K']))
-    test.setdefault('stride_c', test['ldc'] * test['N'])
-    test.setdefault('stride_d', test['ldd'] * test['N'])
+    test.setdefault('stride_a', 0)
+    test.setdefault('stride_b', 0)
+    test.setdefault('stride_c', 0)
+    test.setdefault('stride_d', 0)
 
 
 def write_test(test):

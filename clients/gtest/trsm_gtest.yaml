@@ -28,7 +28,7 @@ Tests:
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
-  unit: [N, U]
+  diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
 
@@ -39,7 +39,7 @@ Tests:
   side: [L, R]
   uplo: [L, U]
   transA: [N, C]
-  unit: [N, U]
+  diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
 
@@ -48,9 +48,9 @@ Tests:
   function: testing_trsm
   precision: *single_double_precisions
   arguments:
-    - { side: L, uplo: L, transA: N, unit: N }
-    - { side: R, uplo: L, transA: N, unit: N }
-    - { side: L, uplo: U, transA: C, unit: N }
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
 ...

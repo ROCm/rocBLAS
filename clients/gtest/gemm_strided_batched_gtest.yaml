@@ -228,6 +228,8 @@ Tests:
   category: pre_checkin
   function:
     - testing_gemm_strided_batched_ex_bad_arg: *real_precisions
+  transA: N
+  transB: N
 
 # TODO: Add int8 precisions by replacing *hpa_half_single_double_precisions with *real_precisions
 

@@ -15,6 +15,7 @@
 #include <utility>
 #include "rocblas.h"
 #include "rocblas_arguments.h"
+#include "test_cleanup.h"
 
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>
@@ -105,7 +106,20 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 template <typename>
 class RocBLAS_TestName
 {
+    using table_t = std::unordered_map<std::string, size_t>;
     std::ostringstream str;
+
+    table_t& get_table()
+    {
+        // Placed inside function to avoid dependency on initialization order
+        static table_t* table = test_cleanup::allocate<table_t>(&table);
+        if(!table)
+        {
+            fputs("Internal error: nullptr\n", stderr);
+            exit(EXIT_FAILURE);
+        }
+        return *table;
+    }
 
     public:
     // Convert stream to normalized Google Test name
@@ -113,9 +127,21 @@ class RocBLAS_TestName
     // The name should only be generated once before the stream is destroyed
     operator std::string() &&
     {
-        // This map is private to each instantation of RocBLAS_TestName
-        static std::unordered_map<std::string, size_t> table;
+        // This table is private to each instantation of RocBLAS_TestName
+        table_t& table = get_table();
         std::string name(str.str());
+
+        // Warn about unset letter parameters
+        if(name.find('*') != name.npos)
+            fputs("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                  "Warning: Character * found in name."
+                  " This means a required letter parameter\n"
+                  "(e.g., transA, diag, etc.) not been set in the YAML file."
+                  " Check the YAML file.\n"
+                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
+                  stderr);
 
         // Replace non-alphanumeric characters with letters
         std::replace(name.begin(), name.end(), '-', 'n'); // minus

@@ -2322,6 +2322,8 @@ Tests:
     - testing_gemm_ex_bad_arg
     - testing_gemm_strided_batched_ex_bad_arg
   precision: *half_single_double_precisions
+  transA: N
+  transB: N
 
 - name: gemm_NaN
   category: pre_checkin

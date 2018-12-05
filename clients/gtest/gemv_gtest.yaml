@@ -46,6 +46,7 @@ Tests:
   category: pre_checkin
   function: testing_gemv_bad_arg
   precision: *single_double_precisions
+  transA: N
 
 - name: gemv_small
   category: quick

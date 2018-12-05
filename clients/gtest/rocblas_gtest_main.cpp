@@ -5,6 +5,7 @@
 #include <gtest/gtest.h>
 #include "utility.h"
 #include "rocblas_data.h"
+#include "test_cleanup.h"
 
 #define GTEST_DATA "rocblas_gtest.data"
 
@@ -39,6 +40,9 @@ int main(int argc, char** argv)
     }
 
     testing::InitGoogleTest(&argc, argv);
+
+    // Free up all temporary data generated during test creation
+    test_cleanup::cleanup();
 
     return RUN_ALL_TESTS();
 }

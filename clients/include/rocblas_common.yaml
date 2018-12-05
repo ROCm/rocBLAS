@@ -142,25 +142,20 @@ Lists to not expand:
 
 # Defaults
 Defaults:
-  M: 128
-  N: 128
-  K: 128
-  a_type: single
-  b_type: single
-  c_type: single
-  d_type: single
-  compute_type: single
-  incx: 1
-  incy: 1
-  incd: 1
-  incb: 1
+  M: -1
+  N: -1
+  K: -1
+  incx: 0
+  incy: 0
+  incd: 0
+  incb: 0
   alpha: 1.0
   beta: 0.0
-  transA: N
-  transB: N
-  side: L
-  uplo: L
-  diag: N
+  transA: '*'
+  transB: '*'
+  side: '*'
+  uplo: '*'
+  diag: '*'
   batch_count: -1
   norm_check: 0
   unit_check: 1
