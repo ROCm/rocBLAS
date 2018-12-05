@@ -63,7 +63,8 @@ __device__ __host__ inline float fetch_asum<rocblas_float_complex, float>(rocbla
 }
 
 template <>
-__device__ __host__ inline double fetch_asum<rocblas_double_complex, double>(rocblas_double_complex A)
+__device__ __host__ inline double
+fetch_asum<rocblas_double_complex, double>(rocblas_double_complex A)
 {
     return fabs(A.x) + fabs(A.y);
 }
@@ -81,7 +82,8 @@ __device__ __host__ inline float fetch_abs2<rocblas_float_complex, float>(rocbla
 }
 
 template <>
-__device__ __host__ inline double fetch_abs2<rocblas_double_complex, double>(rocblas_double_complex A)
+__device__ __host__ inline double
+fetch_abs2<rocblas_double_complex, double>(rocblas_double_complex A)
 {
     return A.x * A.x + A.y * A.y;
 }
