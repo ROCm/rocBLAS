@@ -18,7 +18,6 @@ class test_cleanup
     }
 
     public:
-
     // Push a cleanup handler on the stack
     static void push(std::function<void()> handler) { stack().push(handler); }
 
