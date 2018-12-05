@@ -6,6 +6,7 @@ import sys
 import os
 import argparse
 import ctypes
+from fnmatch import fnmatchcase
 try:  # Import either the C or pure-Python YAML parser
     from yaml import CLoader as Loader
 except ImportError:
@@ -251,10 +252,14 @@ def instantiate(test):
         if test['category'] not in ('known_bug', 'disabled'):
             for bug in param['known_bugs']:
                 for key, value in bug.items():
+                    if key not in test:
+                        break
+                    if key == 'function':
+                        if not fnmatchcase(test[key], value):
+                            break
                     # For keys declared as datatypes, compare resulting types
-                    if key in type_args:
-                        value = datatypes[value]
-                    if test.get(key) != value:
+                    elif test[key] != (datatypes.get(value) if key in type_args
+                                       else value):
                         break
                 else:  # All values specified in known bug match test case
                     test['category'] = 'known_bug'
