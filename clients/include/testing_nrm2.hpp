@@ -117,7 +117,7 @@ void testing_nrm2(const Arguments& arg)
         //      square root of a sum. It is assumed that the sum will have accuracy =approx=
         //      precision, so nrm2 will have accuracy =approx= sqrt(precision)
         T2 rel_error = std::sqrt(std::numeric_limits<T2>::epsilon());
-        T2 tolerance = .05; //  accounts for rounding in reduction sum. depends on n.
+        T2 tolerance = .15; //  accounts for rounding in reduction sum. depends on n.
                             //  If test fails, try decreasing n or increasing tolerance.
         rel_error *= tolerance;
         if(arg.unit_check)

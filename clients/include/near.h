@@ -32,7 +32,6 @@ constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)
 #else
-#include "gtest/gtest.h"
 // clang-format off
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT) \
     do                                                            \
