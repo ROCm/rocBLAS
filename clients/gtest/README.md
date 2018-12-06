@@ -75,7 +75,7 @@ The type dispatch function takes a `template` template parameter of `template<ty
 
 It treats the passed template as a functor, passing the Arguments argument to a particular instantiation of it.
 
-The combinations of types handled by this "runtime type to template type instantiation mapping" function can be general, because the type combinations which do not apply to a particular test case will have the template argument set to derive from rocblas_test_invalid, which will not create any unresolved instantiations. If unresolved instantiation compile or link errors occur, then the `enable_if<>` condition in step 4 needs to be refined to be false for type combinations which do not apply.
+The combinations of types handled by this "runtime type to template type instantiation mapping" function can be general, because the type combinations which do not apply to a particular test case will have the template argument set to derive from `rocblas_test_invalid`, which will not create any unresolved instantiations. If unresolved instantiation compile or link errors occur, then the `enable_if<>` condition in step D needs to be refined to be false for type combinations which do not apply.
 
 The return type of this function needs to be auto, picking up the return type of the functor.
 
