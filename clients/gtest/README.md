@@ -46,7 +46,7 @@ D. Create one or more partial specializations of the class template conditionall
 If the first type argument is `void`, then these partial specializations must
 not apply, so that the default based on `rocblas_test_invalid` can perform the correct behavior when `void` is passed to indicate failure.
 
-In the partial specialzation(s), create an explicit conversion to `bool` which returns `true` in the specialization. (By contrast, `rocblas_test_invalid` returns false when converted to `bool`.)
+In the partial specialzation(s), create an explicit conversion to `bool` which returns `true` in the specialization. (By contrast, `rocblas_test_invalid` returns `false` when converted to `bool`.)
 
 In the partial specialization(s), create a functional `operator()` which takes a `const Arguments&` parameter and calls templated test functions (usually in `include/testing_*.hpp`) with the specialization's template arguments when the `arg.function` string matches the function name. If `arg.function` does not match any function related to this test, mark it as a test failure. For example:
 ```c++
@@ -75,9 +75,9 @@ The type dispatch function takes a `template` template parameter of `template<ty
 
 It treats the passed template as a functor, passing the Arguments argument to a particular instantiation of it.
 
-The combinations of types handled by this "runtime type to template type instantiation mapping" function can be general, because the type combinations which do not apply to a particular test case will have the template argument set to derive from `rocblas_test_invalid`, which will not create any unresolved instantiations. If unresolved instantiation compile or link errors occur, then the `enable_if<>` condition in step D needs to be refined to be false for type combinations which do not apply.
+The combinations of types handled by this "runtime type to template type instantiation mapping" function can be general, because the type combinations which do not apply to a particular test case will have the template argument set to derive from `rocblas_test_invalid`, which will not create any unresolved instantiations. If unresolved instantiation compile or link errors occur, then the `enable_if<>` condition in step D needs to be refined to be `false` for type combinations which do not apply.
 
-The return type of this function needs to be auto, picking up the return type of the functor.
+The return type of this function needs to be `auto`, picking up the return type of the functor.
 
 If the runtime type combinations do not apply, then this function should return `TEST<void>()(arg)`, where `TEST` is the template parameter. However, this is less important than step D above in excluding invalid type
 combinations with `enable_if`, since this only excludes them at run-time, and they need to be excluded by step D at compile-time in order to avoid unresolved references or invalid instantiations. For example:
@@ -97,7 +97,7 @@ auto rocblas_simple_dispatch(const Arguments& arg)
     }
 }
 ```
-F. Create a (possibly-templated) test implemention class which derives from the `RocBLAS_Test` template class, passing itself to `RocBLAS_Test` (the CRTP pattern) as well as the template class defined above. Example:
+F. Create a (possibly-templated) test implementation class which derives from the `RocBLAS_Test` template class, passing itself to `RocBLAS_Test` (the CRTP pattern) as well as the template class defined above. Example:
 ```c++
 struct syr : RocBLAS_Test<syr, syr_testing>
 {
@@ -108,7 +108,7 @@ In this class, implement three static functions:
 
  `static bool type_filter(const Arguments& arg)` returns `true` if the types described by `*_type` in the `Arguments` structure, match a valid type combination.
 
-This is usually implemented simply by calling the dispatch function in step E, passing it the helper type_filter_functor template class defined in `RocBLAS_Test`. This functor uses the same runtime type checks as are used to instantiate test functions with particular type arguments, but instead, this returns true or false depending on whether a function would have been called. It is used to filter out tests whose runtime parameters do not match a valid test.
+This is usually implemented simply by calling the dispatch function in step E, passing it the helper `type_filter_functor` template class defined in `RocBLAS_Test`. This functor uses the same runtime type checks as are used to instantiate test functions with particular type arguments, but instead, this returns `true` or `false` depending on whether a function would have been called. It is used to filter out tests whose runtime parameters do not match a valid test.
 
 Since `RocBLAS_Test` is a dependent base class if this test implementation class is templated, you may need to use a fully-qualified name (`A::B`) to resolve `type_filter_functor`, and in the last part of this name, the keyword `template` needs to precede `type_filter_functor`. The first half of the fully-qualified name can be this class itself, or the full instantation of `RocBLAS_Test<...>`. For example:
 ```c++
@@ -118,7 +118,7 @@ static bool type_filter(const Arguments& arg)
         blas1_test_template::template type_filter_functor>(arg);
 }
 ```
-`static bool function_filter(const Arguments& arg)` returns true if the function name in `Arguments` matches one of the functions handled by this test. For example:
+`static bool function_filter(const Arguments& arg)` returns `true` if the function name in `Arguments` matches one of the functions handled by this test. For example:
 ```c++
 // Filter for which functions apply to this suite
 static bool function_filter(const Arguments& arg)
