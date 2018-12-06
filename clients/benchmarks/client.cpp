@@ -381,9 +381,9 @@ int run_bench_test(const char* function, char precision, Arguments arg)
 
 int rocblas_bench_datafile(const std::string& datafile)
 {
-    RocBLAS_PerfData::init(datafile);
+    RocBLAS_TestData::set_filename(datafile);
 
-    for(auto i = RocBLAS_PerfData::begin(); i != RocBLAS_PerfData::end(); ++i)
+    for(auto i = RocBLAS_TestData::begin(); i != RocBLAS_TestData::end(); ++i)
     {
         Arguments arg = *i;
         char precision;
@@ -407,6 +407,7 @@ int rocblas_bench_datafile(const std::string& datafile)
         run_bench_test(arg.function, precision, arg);
     }
 
+    test_cleanup::cleanup();
     return 0;
 }
 

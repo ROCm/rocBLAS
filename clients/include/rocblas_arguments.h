@@ -9,6 +9,7 @@
 #include <cstdio>
 #include <iostream>
 #include <iomanip>
+#include <cstring>
 #include <type_traits>
 #include "rocblas.h"
 #include "rocblas_datatype2char.h"
@@ -82,54 +83,37 @@ struct Arguments
         return str;
     }
 
-    // print_value class is specialized for formatting different data types
+    // print_value is for formatting different data types
 
     // Default output
-    template <typename T, typename = void>
-    struct print_value
+    template <typename T>
+    static void print_value(std::ostream& str, const T& x)
     {
-        void operator()(std::ostream& str, const T& x) { str << x; }
-    };
+        str << x;
+    }
 
     // Floating-point output
-    template <typename T>
-    struct print_value<T, typename std::enable_if<std::is_floating_point<T>::value>::type>
+    static void print_value(std::ostream& str, double x)
     {
-        void operator()(std::ostream& str, T x)
-        {
-            char s[32];
-            snprintf(s, sizeof(s), "%.17g", x);
-            str << s;
-            // If no decimal point or exponent, append decimal point to indicate FP
-            if(!strpbrk(s, ".eE"))
-                str << ".0";
-        }
-    };
+        char s[32];
+        snprintf(s, sizeof(s) - 2, "%.17g", x);
+        if(!strpbrk(s, ".eE"))
+            strcat(s, ".0"); // If no decimal point or exponent, append one
+        str << s;
+    }
 
     // Character output
-    template <>
-    struct print_value<char>
+    static void print_value(std::ostream& str, char c)
     {
-        void operator()(std::ostream& str, char c)
-        {
-            char s[2] = {c, 0};
-            str << std::quoted(s, '\'');
-        }
-    };
+        char s[]{c, 0};
+        str << std::quoted(s, '\'');
+    }
 
     // bool output
-    template <>
-    struct print_value<bool>
-    {
-        void operator()(std::ostream& str, bool b) { str << (b ? "true" : "false"); }
-    };
+    static void print_value(std::ostream& str, bool b) { str << (b ? "true" : "false"); }
 
     // string output
-    template <typename T>
-    struct print_value<T, typename std::enable_if<!std::is_arithmetic<T>::value>::type>
-    {
-        void operator()(std::ostream& str, const char* s) { str << std::quoted(s); }
-    };
+    static void print_value(std::ostream& str, const char* s) { str << std::quoted(s); }
 
     // Function to print Arguments out to stream in YAML format
     // Google Tests uses this automatically to dump parameters
@@ -139,7 +123,7 @@ struct Arguments
         auto print = [&, delim = '{' ](const char* name, auto x) mutable
         {
             str << delim << " " << name << ": ";
-            print_value<decltype(x)>()(str, x);
+            print_value(str, x);
             delim = ',';
         };
 
@@ -186,7 +170,7 @@ struct Arguments
     }
 };
 
-static_assert(std::is_pod<Arguments>::value,
+static_assert(std::is_pod<Arguments>(),
               "Arguments is not a POD type, and thus is incompatible with C.");
 
 #endif

@@ -16,7 +16,7 @@
 int main(int argc, char** argv)
 {
     // Set data file path
-    RocBLAS_TestData::init(rocblas_exepath() + GTEST_DATA);
+    RocBLAS_TestData::set_filename(rocblas_exepath() + GTEST_DATA);
 
     // Print Version
     char blas_version[100];
