@@ -129,18 +129,7 @@ void checkout_and_version( project_paths paths )
       extensions: scm.extensions + [[$class: 'CleanCheckout']],
       userRemoteConfigs: scm.userRemoteConfigs
     ])
-
-    if( fileExists( 'CMakeLists.txt' ) )
-    {
-      def cmake_version_file = readFile( 'CMakeLists.txt' ).trim()
-      //echo "cmake_version_file:\n${cmake_version_file}"
-
-      cmake_version_file = cmake_version_file.replaceAll(/(\d+\.)(\d+\.)(\d+\.)\d+/, "\$1\$2\$3${env.BUILD_ID}")
-      //echo "cmake_version_file:\n${cmake_version_file}"
-      writeFile( file: 'CMakeLists.txt', text: cmake_version_file )
-    }
   }
-
 }
 
 ////////////////////////////////////////////////////////////////////////
