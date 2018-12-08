@@ -16,22 +16,22 @@
 #include "rocblas.hpp"
 #include "cblas_interface.hpp"
 
-template<typename T>
+template <typename T>
 char precision_letter;
 
-template<>
+template <>
 constexpr char precision_letter<rocblas_half> = 'h';
 
-template<>
+template <>
 constexpr char precision_letter<float> = 's';
 
-template<>
+template <>
 constexpr char precision_letter<double> = 'd';
 
-template<>
+template <>
 constexpr char precision_letter<rocblas_float_complex> = 'c';
 
-template<>
+template <>
 constexpr char precision_letter<rocblas_double_complex> = 'z';
 
 // replaces X in string with s, d, c, z or h depending on typename T
