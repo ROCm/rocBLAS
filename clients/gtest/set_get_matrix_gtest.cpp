@@ -6,8 +6,8 @@
 #include <cstring>
 #include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_data.h"
-#include "rocblas_datatype2char.h"
+#include "rocblas_data.hpp"
+#include "rocblas_datatype2char.hpp"
 
 namespace {
 

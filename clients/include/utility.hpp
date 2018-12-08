@@ -8,9 +8,10 @@
 #include <type_traits>
 #include <string>
 #include <iostream>
+#include <cstdio>
 #include <vector>
 #include "rocblas.h"
-#include "rocblas_test.h"
+#include "rocblas_test.hpp"
 
 /*!\file
  * \brief provide common utilities

@@ -15,8 +15,8 @@
 #include <cerrno>
 #include <utility>
 #include <boost/iterator/filter_iterator.hpp>
-#include "rocblas_arguments.h"
-#include "test_cleanup.h"
+#include "rocblas_arguments.hpp"
+#include "test_cleanup.hpp"
 
 // Class used to read Arguments data into the tests
 class RocBLAS_TestData

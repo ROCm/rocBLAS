@@ -27,7 +27,7 @@
 #include <vector>
 
 #include "rocblas.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 #define NUM_THREADS 4
 

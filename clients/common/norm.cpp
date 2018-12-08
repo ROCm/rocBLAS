@@ -7,10 +7,10 @@
 #include <memory>
 #include <limits>
 #include "rocblas.h"
-#include "norm.h"
 #include "cblas.h"
-#include "utility.h"
-#include "rocblas_vector.h"
+#include "norm.hpp"
+#include "utility.hpp"
+#include "rocblas_vector.hpp"
 
 /* =====================================================================
      README: Norm check: norm(A-B)/norm(A), evaluate relative error

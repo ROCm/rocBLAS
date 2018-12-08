@@ -2,8 +2,8 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "utility.h"
-#include "rocblas_random.h"
+#include "utility.hpp"
+#include "rocblas_random.hpp"
 #include <sys/time.h>
 #include <cstring>
 #include <cstdlib>

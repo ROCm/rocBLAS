@@ -12,13 +12,12 @@
 #define _UNIT_H
 
 #include "rocblas.h"
-#include "rocblas_math.h"
-#include "rocblas_test.h"
+#include "rocblas_math.hpp"
+#include "rocblas_test.hpp"
 
 #ifndef GOOGLE_TEST
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)
 #else
-#include "gtest/gtest.h"
 // clang-format off
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ) \
     do                                                                          \

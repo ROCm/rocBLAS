@@ -12,7 +12,7 @@
 #include <cstring>
 #include <type_traits>
 #include "rocblas.h"
-#include "rocblas_datatype2char.h"
+#include "rocblas_datatype2char.hpp"
 
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */

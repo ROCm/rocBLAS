@@ -2,9 +2,9 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
-#include "cblas_interface.h"
-#include "utility.h"
-#include "rocblas_vector.h"
+#include "cblas_interface.hpp"
+#include "utility.hpp"
+#include "rocblas_vector.hpp"
 
 /*
  * ===========================================================================

@@ -5,9 +5,9 @@
 
 #include <type_traits>
 #include <cstring>
-#include "rocblas_datatype2char.h"
-#include "rocblas_test.h"
-#include "rocblas_data.h"
+#include "rocblas_datatype2char.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
 #include "testing_ger.hpp"
 #include "type_dispatch.hpp"
 

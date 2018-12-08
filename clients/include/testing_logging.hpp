@@ -2,67 +2,44 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.h"
-#include "rocblas_math.h"
-#include "rocblas_random.h"
-#include "rocblas_vector.h"
-#include "rocblas_init.h"
-#include "utility.h"
-#include "rocblas.hpp"
-#include "cblas_interface.h"
-#include "norm.h"
-#include "unit.h"
+#include <algorithm>
+#include <fstream>
+#include <fcntl.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/param.h>
 #include <unistd.h>
+#include "rocblas_test.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_vector.hpp"
+#include "utility.hpp"
+#include "rocblas.hpp"
+#include "cblas_interface.hpp"
+
+template<typename T>
+char precision_letter;
+
+template<>
+constexpr char precision_letter<rocblas_half> = 'h';
+
+template<>
+constexpr char precision_letter<float> = 's';
+
+template<>
+constexpr char precision_letter<double> = 'd';
+
+template<>
+constexpr char precision_letter<rocblas_float_complex> = 'c';
+
+template<>
+constexpr char precision_letter<rocblas_double_complex> = 'z';
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>
 std::string replaceX(std::string input_string)
 {
-    if(std::is_same<T, float>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 's');
-    }
-    else if(std::is_same<T, double>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'd');
-    }
-    else if(std::is_same<T, rocblas_float_complex>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'c');
-    }
-    else if(std::is_same<T, rocblas_double_complex>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'z');
-    }
-    else if(std::is_same<T, rocblas_half>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'h');
-    }
+    std::replace(input_string.begin(), input_string.end(), 'X', precision_letter<T>);
     return input_string;
-}
-
-// test for files equal
-template <typename InputIterator1, typename InputIterator2>
-bool range_equal(InputIterator1 first1,
-                 InputIterator1 last1,
-                 InputIterator2 first2,
-                 InputIterator2 last2)
-{
-    while(first1 != last1 && first2 != last2)
-    {
-        if(*first1 != *first2)
-        {
-            //          cout << std::endl << "----------<"<< *first1 << " " << *first2 <<
-            //          ">----------" << std::endl;
-            return false;
-        }
-        else
-        {
-            ++first1;
-            ++first2;
-        }
-    }
-    return (first1 == last1) && (first2 == last2);
 }
 
 template <typename T>
@@ -696,7 +673,7 @@ void testing_logging()
     std::istreambuf_iterator<char> end;
 
     // check that files are the same
-    bool sizes_same = range_equal(begin1, end, begin2, end);
+    bool sizes_same = std::equal(begin1, end, begin2, end);
 
 #ifdef GOOGLE_TEST
     EXPECT_TRUE(sizes_same);
@@ -716,7 +693,7 @@ void testing_logging()
         std::istreambuf_iterator<char> end;
 
         // check that files are the same
-        sizes_same = range_equal(begin1, end, begin2, end);
+        sizes_same = std::equal(begin1, end, begin2, end);
 
 #ifdef GOOGLE_TEST
         EXPECT_TRUE(sizes_same);

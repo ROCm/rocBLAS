@@ -4,7 +4,7 @@
  * ************************************************************************ */
 
 #include "rocblas.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 /* =====================================================================
 README: This file contains testers to verify the correctness of

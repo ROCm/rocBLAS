@@ -9,7 +9,7 @@
 #include <type_traits>
 #include <random>
 #include "rocblas.h"
-#include "rocblas_math.h"
+#include "rocblas_math.hpp"
 
 /* ============================================================================================ */
 // Random number generator

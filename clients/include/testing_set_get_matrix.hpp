@@ -2,17 +2,17 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.h"
-#include "rocblas_math.h"
-#include "rocblas_random.h"
-#include "rocblas_vector.h"
-#include "rocblas_init.h"
-#include "utility.h"
+#include "rocblas_test.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_vector.hpp"
+#include "rocblas_init.hpp"
+#include "utility.hpp"
 #include "rocblas.hpp"
-#include "cblas_interface.h"
-#include "norm.h"
-#include "unit.h"
-#include "flops.h"
+#include "cblas_interface.hpp"
+#include "norm.hpp"
+#include "unit.hpp"
+#include "flops.hpp"
 
 template <typename T>
 void testing_set_get_matrix(const Arguments& arg)

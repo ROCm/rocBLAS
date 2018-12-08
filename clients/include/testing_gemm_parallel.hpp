@@ -5,18 +5,18 @@
 #include <mutex>
 #include <condition_variable>
 
-#include "rocblas_test.h"
-#include "rocblas_math.h"
-#include "rocblas_random.h"
-#include "rocblas_vector.h"
-#include "rocblas_init.h"
+#include "rocblas_test.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_vector.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas.hpp"
-#include "rocblas_datatype2char.h"
-#include "utility.h"
-#include "cblas_interface.h"
-#include "norm.h"
-#include "unit.h"
-#include "flops.h"
+#include "rocblas_datatype2char.hpp"
+#include "utility.hpp"
+#include "cblas_interface.hpp"
+#include "norm.hpp"
+#include "unit.hpp"
+#include "flops.hpp"
 
 std::mutex memcpy_mutex;
 

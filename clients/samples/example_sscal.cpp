@@ -9,8 +9,8 @@
 #include <iostream>
 
 #include "rocblas.h"
-#include "utility.h"
-#include "rocblas_init.h"
+#include "utility.hpp"
+#include "rocblas_init.hpp"
 using std::vector;
 
 /* ============================================================================================ */

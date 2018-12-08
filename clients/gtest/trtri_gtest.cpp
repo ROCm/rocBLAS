@@ -6,12 +6,12 @@
 #include <type_traits>
 #include <cstring>
 #include <cctype>
-#include "rocblas_test.h"
-#include "rocblas_data.h"
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_datatype2char.h"
+#include "rocblas_datatype2char.hpp"
 
 namespace {
 

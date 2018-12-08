@@ -15,8 +15,8 @@
 #define _NEAR_H
 
 #include "rocblas.h"
-#include "rocblas_math.h"
-#include "rocblas_test.h"
+#include "rocblas_math.hpp"
+#include "rocblas_test.hpp"
 
 // sqrt(0.5) factor for complex cutoff calculations
 constexpr double sqrthalf = 0.7071067811865475244;

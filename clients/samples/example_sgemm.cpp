@@ -2,7 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "utility.h"
+#include "utility.hpp"
 #include "rocblas.h"
 
 #define DIM1 1023

@@ -10,8 +10,8 @@
 #include <vector>
 #include <locale.h>
 #include "rocblas.h"
-#include "rocblas_test.h"
-#include "rocblas_init.h"
+#include "rocblas_test.hpp"
+#include "rocblas_init.hpp"
 
 /* ============================================================================================ */
 /*! \brief  pseudo-vector class which uses device memory */

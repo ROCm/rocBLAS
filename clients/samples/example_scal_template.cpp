@@ -6,8 +6,8 @@
 #include <cstdlib>
 #include <cstdio>
 #include "rocblas.hpp"
-#include "utility.h"
-#include "rocblas_init.h"
+#include "utility.hpp"
+#include "rocblas_init.hpp"
 
 /* ============================================================================================ */
 

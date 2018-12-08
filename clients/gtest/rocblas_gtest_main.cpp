@@ -3,9 +3,9 @@
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
-#include "utility.h"
-#include "rocblas_data.h"
-#include "test_cleanup.h"
+#include "utility.hpp"
+#include "rocblas_data.hpp"
+#include "test_cleanup.hpp"
 
 #define GTEST_DATA "rocblas_gtest.data"
 

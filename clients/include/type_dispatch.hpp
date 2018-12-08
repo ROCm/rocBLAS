@@ -3,7 +3,7 @@
 
 #include <type_traits>
 #include "rocblas.h"
-#include "rocblas_arguments.h"
+#include "rocblas_arguments.hpp"
 
 // ----------------------------------------------------------------------------
 // Calls TEST template based on the argument types. TEST<> is expected to

@@ -14,8 +14,8 @@
 #include <algorithm>
 #include <utility>
 #include "rocblas.h"
-#include "rocblas_arguments.h"
-#include "test_cleanup.h"
+#include "rocblas_arguments.hpp"
+#include "test_cleanup.hpp"
 
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>

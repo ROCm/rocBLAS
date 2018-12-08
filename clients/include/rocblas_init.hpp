@@ -9,8 +9,8 @@
 #include <cinttypes>
 #include <vector>
 #include "rocblas.h"
-#include "rocblas_math.h"
-#include "rocblas_random.h"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
 
 /* ============================================================================================ */
 /*! \brief  matrix/vector initialization: */

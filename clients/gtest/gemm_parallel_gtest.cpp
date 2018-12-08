@@ -2,7 +2,7 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_data.h"
+#include "rocblas_data.hpp"
 #include "testing_gemm_parallel.hpp"
 #include "testing_gemm.hpp"
 #include <unordered_map>

@@ -5,9 +5,9 @@
 #include <type_traits>
 #include <cstring>
 #include <cctype>
-#include "rocblas_test.h"
-#include "rocblas_data.h"
-#include "rocblas_datatype2char.h"
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
+#include "rocblas_datatype2char.hpp"
 #include "testing_geam.hpp"
 #include "type_dispatch.hpp"
 

@@ -2,16 +2,7 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <gtest/gtest.h>
-#include <stdexcept>
-#include <string>
-#include <cstdio>
-#include <cstdlib>
-#include <fstream>
-#include <sys/param.h>
-#include "rocblas.h"
-#include "rocblas.hpp"
-#include "utility.h"
+#include "rocblas_test.hpp"
 #include "testing_logging.hpp"
 
 /* =====================================================================
