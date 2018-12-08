@@ -1,6 +1,71 @@
 # To add new data-driven tests to the ROCblas Google Test Framework:
-**I**. Create a C++ file with the name `<function>_gtest.cpp`, where `<function>`
-is a non-type-specific shorthand for the function(s) being tested. Examples:
+
+**I**. Create a C++ header file with the name `testing_<function>.hpp` in the
+`include` subdirectory, with templated functions for a specific rocBLAS
+routine. Examples:
+```
+testing_gemm.hpp
+testing_gemm_ex.hpp
+```
+In this `testing_*.hpp` file, create a templated function which returns `void`
+and accepts a `const Arguments&` parameter. For example:
+```
+template<typename Ti, typename To, typename Tc>
+void testing_gemm_ex(const Arguments& arg)
+{
+// ...
+}
+```
+This function should be generalized with template parameters as much as possible,
+to avoid copy-and-paste code.
+
+In this function, use the following macros to check results:
+```
+HIP_CHECK_ERROR             Verifies that a HIP call returns success
+ROCBLAS_CHECK_ERROR         Verifies that a rocBLAS call returns success
+EXPECT_ROCBLAS_STATUS       Verifies that a rocBLAS call returns a certain status
+UNIT_CHECK                  Check that two answers agree (see unit.hpp)
+NEAR_CHECK                  Check that two answers are close (see near.hpp)
+```
+In addition, you can use Google Test Macros such as the below, as long as they are
+guarded by `#ifdef GOOGLE_TEST`:
+```
+EXPECT_EQ
+ASSERT_EQ
+EXPECT_TRUE
+ASSERT_TRUE
+...
+```
+Note: The `device_vector` template allocates memory on the device. You must check whether
+converting the `device_vector` to `bool` returns `false`, and if so, report a HIP memory
+error and then exit the current function. For example:
+```
+// allocate memory on device
+device_vector<T> dx(size_x);
+device_vector<T> dy(size_y);
+if(!dx || !dy)
+{
+    CHECK_HIP_ERROR(hipErrorOutOfMemory);
+    return;
+}
+```
+
+The general outline of the function should be:
+1. Adjust any arguments (e.g. use `float_to_half` when the data type is `rocblas_half`).
+2. If the problem size arguments are invalid, use a `safe_size` to allocate arrays,
+call the rocBLAS routine with the original arugments, and verify that it returns
+`rocblas_status_invalid_size`. Return.
+3. Set up host and device arrays (see `rocblas_vector.hpp` and `rocblas_init.hpp`).
+4. Call a CBLAS or other reference implementation on the host arrays.
+5. Call rocBLAS using both device pointer mode and host pointer mode, verifying that
+every rocBLAS call is successful by wrapping it in `ROCBLAS_CHECK_ERROR`.
+6. If `arg.unit_check` is enabled, use `UNIT_CHECK` to validate.
+7. (Deprecated) If `arg.norm_check` is enabled, calculate and print out norms.
+8. If `arg.timing` is enabled, perform benchmarking (currently under refactoring).
+
+**II**. Create a C++ file with the name `<function>_gtest.cpp` in the `gtest`
+subdirectory, where `<function>` is a non-type-specific shorthand for the
+function(s) being tested. Examples:
 ```
 gemm_gtest.cpp
 trsm_gtest.cpp
@@ -8,7 +73,8 @@ blas1_gtest.cpp
 ```
 In the C++ file, perform these steps:
 
-A. Include the header files related to the tests, as well as `type_dispatch.hpp`. For example:
+A. Include the header files related to the tests, as well as `type_dispatch.hpp`.
+For example:
 ```c++
 #include "testing_syr.hpp"
 #include "type_dispatch.hpp"
@@ -197,18 +263,18 @@ J. Don't forget to close the anonymous namespace:
    The syntax and idioms of the YAML files is best described by looking at the
    existing `*_gtest.yaml` files as examples.
 
-**III.** Add the YAML file to `rocblas_gtest.yaml`, to be included. For examnple:
+**IV.** Add the YAML file to `rocblas_gtest.yaml`, to be included. For examnple:
 ```yaml
 include: blas1_gtest.yaml
 ```
-**IV.** Add the YAML file to the list of dependencies for `rocblas_gtest.data` in `CMakeLists.txt`.  For example:
+**V.** Add the YAML file to the list of dependencies for `rocblas_gtest.data` in `CMakeLists.txt`.  For example:
 ```cmake
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
                     DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 ```
- **V.** Add the `.cpp` file to the list of sources for `rocblas-test` in `CMakeLists.txt`. For example:
+**VI.** Add the `.cpp` file to the list of sources for `rocblas-test` in `CMakeLists.txt`. For example:
 ```c++
 set(rocblas_test_source
     rocblas_gtest_main.cpp
