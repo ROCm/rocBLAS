@@ -101,276 +101,171 @@ void device_strided_batched_matrix_copy(const void* src,
     }
 }
 //------------------------------------------------------------------------------
+#define TENSILE_IN_ARGS(Ti, To, Tc)                                                                               \
+              To* dataD, const To* dataC, const Ti* dataA, const Ti* dataB,                                       \
+              Tc alpha, Tc beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,                \
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,     \
+              unsigned int strideB1J, unsigned int strideB2K,                                                     \
+              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream
+
 // Ti is typename for input data, To is typename for output data, Tc is typename for compute
 template <typename Ti, typename To, typename Tc>
-TensileStatus tensile_Cijk_Ailk_Bljk_B(To* dataC, const Ti* dataA, const Ti* dataB, Tc alpha, Tc beta,
-              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+TensileStatus tensile_Cijk_Ailk_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B(To* dataC, const Ti* dataA, const Ti* dataB, Tc alpha, Tc beta,
-              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+TensileStatus tensile_Cijk_Ailk_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
-TensileStatus tensile_Cijk_Alik_Bljk_B(To* dataC, const Ti* dataA, const Ti* dataB, Tc alpha, Tc beta,
-              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+TensileStatus tensile_Cijk_Alik_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
-TensileStatus tensile_Cijk_Alik_Bjlk_B(To* dataC, const Ti* dataA, const Ti* dataB, Tc alpha, Tc beta,
-              unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream);
+TensileStatus tensile_Cijk_Alik_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
+
+#define TENSILE_OUT_ARGS_HALF                                                     \
+    dataD, dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB, \
+        strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,         \
+        sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 //---typename_data=TensileHalf-----typename_compute=float---------------------------
 template <>
 TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf,TensileHalf,float>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
     TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
     TensileHalf beta_half = static_cast<TensileHalf>(beta);
-    return tensile_Cijk_Ailk_Bljk_HBH(dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
 TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf,TensileHalf,float>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
     TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
     TensileHalf beta_half = static_cast<TensileHalf>(beta);
-    return tensile_Cijk_Ailk_Bjlk_HBH(dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
 TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf,TensileHalf,float>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
     TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
     TensileHalf beta_half = static_cast<TensileHalf>(beta);
-    return tensile_Cijk_Alik_Bljk_HBH(dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
 TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf,TensileHalf,float>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
     TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
     TensileHalf beta_half = static_cast<TensileHalf>(beta);
-    return tensile_Cijk_Alik_Bjlk_HBH(dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_HBH(TENSILE_OUT_ARGS_HALF);
 }
+#undef TENSILE_OUT_ARGS_HALF
+#define TENSILE_OUT_ARGS                                                  \
+    dataD, dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,   \
+        strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K, \
+        sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 //---typename_data=TensileHalf-----typename_compute=TensileHalf---------------------
 template <>
 TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf,TensileHalf,TensileHalf>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, TensileHalf))
 {
-    return tensile_Cijk_Ailk_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_HB(TENSILE_OUT_ARGS);
 }
 template <>
 TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf,TensileHalf,TensileHalf>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, TensileHalf))
 {
-    return tensile_Cijk_Ailk_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_HB(TENSILE_OUT_ARGS);
 }
 template <>
 TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf,TensileHalf,TensileHalf>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, TensileHalf))
 {
-    return tensile_Cijk_Alik_Bljk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_HB(TENSILE_OUT_ARGS);
 }
 template <>
 TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf,TensileHalf,TensileHalf>(
-              TensileHalf* dataC, const TensileHalf* dataA, const TensileHalf* dataB,
-              TensileHalf alpha, TensileHalf beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+    TENSILE_IN_ARGS(TensileHalf, TensileHalf, TensileHalf))
 {
-    return tensile_Cijk_Alik_Bjlk_HB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_HB(TENSILE_OUT_ARGS);
 }
 //---typename_data=float-----------typename_compute=float---------------------------
 template <>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<float,float,float>(float* dataC, const float* dataA, const float* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bljk_B<float,float,float>(
+    TENSILE_IN_ARGS(float, float, float))
 {
-    return tensile_Cijk_Ailk_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_SB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<float,float,float>(float* dataC, const float* dataA, const float* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<float,float,float>(
+    TENSILE_IN_ARGS(float, float, float))
 {
-    return tensile_Cijk_Ailk_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_SB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bljk_B<float,float,float>(float* dataC, const float* dataA, const float* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bljk_B<float,float,float>(
+    TENSILE_IN_ARGS(float, float, float))
 {
-    return tensile_Cijk_Alik_Bljk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_SB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<float,float,float>(float* dataC, const float* dataA, const float* dataB,
-              float alpha, float beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bjlk_B<float,float,float>(
+    TENSILE_IN_ARGS(float, float, float))
 {
-    return tensile_Cijk_Alik_Bjlk_SB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_SB(TENSILE_OUT_ARGS);
 }
 //---typename_data=double----------typename_compute=double--------------------------
 template <>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<double,double,double>(double* dataC, const double* dataA, const double* dataB,
-              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bljk_B<double,double,double>(
+    TENSILE_IN_ARGS(double, double, double))
 {
-    return tensile_Cijk_Ailk_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_DB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<double,double,double>(double* dataC, const double* dataA, const double* dataB,
-              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<double,double,double>(
+    TENSILE_IN_ARGS(double, double, double))
 {
-    return tensile_Cijk_Ailk_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_DB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bljk_B<double,double,double>(double* dataC, const double* dataA, const double* dataB,
-              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bljk_B<double,double,double>(
+    TENSILE_IN_ARGS(double, double, double))
 {
-    return tensile_Cijk_Alik_Bljk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_DB(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<double,double,double>(double* dataC, const double* dataA, const double* dataB,
-              double alpha, double beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bjlk_B<double,double,double>(
+    TENSILE_IN_ARGS(double, double, double))
 {
-    return tensile_Cijk_Alik_Bjlk_DB(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_DB(TENSILE_OUT_ARGS);
 }
 //---typename_input=int8----typename_output=int------typename_compute=int--------------------------
 template <>
-TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileInt8x4,TensileInt32,TensileInt32>(TensileInt32* dataC, const TensileInt8x4* dataA, const TensileInt8x4* dataB,
-              TensileInt32 alpha, TensileInt32 beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileInt8x4,TensileInt32,TensileInt32>(
+    TENSILE_IN_ARGS(TensileInt8x4, TensileInt32, TensileInt32))
 {
-    return tensile_Cijk_Ailk_Bljk_4xi8BH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bljk_4xi8BH(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(TensileInt32* dataC, const TensileInt8x4* dataA, const TensileInt8x4* dataB,
-              TensileInt32 alpha, TensileInt32 beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(
+    TENSILE_IN_ARGS(TensileInt8x4, TensileInt32, TensileInt32))
 {
-    return tensile_Cijk_Ailk_Bjlk_4xi8BH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Ailk_Bjlk_4xi8BH(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bljk_B<TensileInt8x4,TensileInt32,TensileInt32>(TensileInt32* dataC, const TensileInt8x4* dataA, const TensileInt8x4* dataB,
-              TensileInt32 alpha, TensileInt32 beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bljk_B<TensileInt8x4,TensileInt32,TensileInt32>(
+    TENSILE_IN_ARGS(TensileInt8x4, TensileInt32, TensileInt32))
 {
-    return tensile_Cijk_Alik_Bljk_4xi8BH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bljk_4xi8BH(TENSILE_OUT_ARGS);
 }
 template <>
-TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(TensileInt32* dataC, const TensileInt8x4* dataA, const TensileInt8x4* dataB,
-              TensileInt32 alpha, TensileInt32 beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,
-              unsigned int strideB1J, unsigned int strideB2K,
-              unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream)
+TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(
+    TENSILE_IN_ARGS(TensileInt8x4, TensileInt32, TensileInt32))
 {
-    return tensile_Cijk_Alik_Bjlk_4xi8BH(dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,
-           strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,
-           sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr);
+    return tensile_Cijk_Alik_Bjlk_4xi8BH(TENSILE_OUT_ARGS);
 }
+#undef TENSILE_IN_ARGS
+#undef TENSILE_OUT_ARGS
 //------------------------------------------------------------------------------
 
 template <typename Ti, typename To, typename Tc>
@@ -388,11 +283,21 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     TensileStatus t_status;
     rocblas_status rb_status;
 
-    device_strided_batched_matrix_copy(c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count, sizeof(To));
+    const To* c_in;
+    if(ldc == ldd && stride_c == stride_d)
+    {
+        c_in = c;
+    }
+    else
+    {
+        device_strided_batched_matrix_copy(c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count, sizeof(To));
+        c_in = d;
+    }
 
     if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none))
     {
         t_status = tensile_Cijk_Ailk_Bljk_B<Ti,To,Tc>(static_cast<To*>(d), 
+                                                      static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a), 
                                                       static_cast<const Ti*>(b),
                                                       alpha, beta, 0, 0, 0, 
@@ -409,6 +314,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
             (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
     {
         t_status = tensile_Cijk_Ailk_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d), 
+                                                      static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a), 
                                                       static_cast<const Ti*>(b),
                                                       alpha, beta, 0, 0, 0, 
@@ -425,6 +331,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
             (trans_b == rocblas_operation_none))
     {
         t_status = tensile_Cijk_Alik_Bljk_B<Ti,To,Tc>(static_cast<To*>(d),
+                                                      static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a),
                                                       static_cast<const Ti*>(b),
                                                       alpha, beta, 0, 0, 0, 
@@ -441,6 +348,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
             (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
     {
         t_status = tensile_Cijk_Alik_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d),
+                                                      static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a),
                                                       static_cast<const Ti*>(b),
                                                       alpha, beta, 0, 0, 0, 
