@@ -4,7 +4,7 @@ if [ -d docBin ]; then
     rm -rf docBin
 fi
 
-sed -e 's/ROCFFT_EXPORT //g' ../library/include/rocblas.h > rocblas.h
+sed -e 's/ROCBLAS_EXPORT //g' ../library/include/rocblas-functions.h > rocblas.h
 doxygen Doxyfile
 
 cd source
