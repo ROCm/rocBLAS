@@ -217,7 +217,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
-      timeout(time: 2, unit: 'HOURS')
+      timeout(time: 4, unit: 'HOURS')
       {
         if(isJobStartedByTimer())
         {

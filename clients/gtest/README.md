@@ -249,7 +249,7 @@ J. Don't forget to close the anonymous namespace:
 ```c++
 } // namespace
 ```
-**II.** Create a `<function>.yaml` file with the same name as the C++ file, just with
+**III.** Create a `<function>.yaml` file with the same name as the C++ file, just with
    a `.yaml` extension.
 
    In the YAML file, define tests with combinations of parameters.
