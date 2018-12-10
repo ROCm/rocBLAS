@@ -2,15 +2,14 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <vector>
 #include <limits>
 #include <iostream>
 #include <string>
 #include "rocblas.h"
-
-using namespace std;
+using std::vector;
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \
@@ -150,7 +149,6 @@ static void show_usage(char* argv[])
               << "\t--alpha \t\talpha \t\tGEMM_STRIDED_BATCHED argument alpha\n"
               << "\t--beta \t\t\tbeta \t\tGEMM_STRIDED_BATCHED argument beta\n"
               << "\t--header \t\theader \t\tprint header for output\n"
-              << "\t--name \t\t\tname \t\tprint kernel name\n"
               << std::endl;
 }
 
@@ -171,7 +169,6 @@ static int parse_arguments(int argc,
                            rocblas_operation& trans_a,
                            rocblas_operation& trans_b,
                            bool& header,
-                           bool& name,
                            bool& verbose)
 {
     if(argc >= 2)
@@ -193,10 +190,6 @@ static int parse_arguments(int argc,
                 else if(arg == "--header")
                 {
                     header = true;
-                }
-                else if(arg == "--name")
-                {
-                    name = true;
                 }
                 else if((arg == "-m") && (i + 1 < argc))
                 {
@@ -412,7 +405,6 @@ int main(int argc, char* argv[])
 
     bool verbose = false;
     bool header  = false;
-    bool name    = false;
 
     if(parse_arguments(argc,
                        argv,
@@ -431,7 +423,6 @@ int main(int argc, char* argv[])
                        trans_a,
                        trans_b,
                        header,
-                       name,
                        verbose))
     {
         show_usage(argv);
@@ -475,10 +466,6 @@ int main(int argc, char* argv[])
     {
         std::cout << "transAB,M,N,K,lda,ldb,ldc,stride_a,stride_b,stride_c,batch_count,alpha,beta,"
                      "result,error";
-        if(name)
-        {
-            std::cout << ",name";
-        }
         std::cout << std::endl;
     }
 
@@ -486,28 +473,28 @@ int main(int argc, char* argv[])
     int size_a1, size_b1, size_c1 = ldc * n;
     if(trans_a == rocblas_operation_none)
     {
-        cout << "N";
+        std::cout << "N";
         a_stride_1 = 1;
         a_stride_2 = lda;
         size_a1    = lda * k;
     }
     else
     {
-        cout << "T";
+        std::cout << "T";
         a_stride_1 = lda;
         a_stride_2 = 1;
         size_a1    = lda * m;
     }
     if(trans_b == rocblas_operation_none)
     {
-        cout << "N, ";
+        std::cout << "N, ";
         b_stride_1 = 1;
         b_stride_2 = ldb;
         size_b1    = ldb * n;
     }
     else
     {
-        cout << "T, ";
+        std::cout << "T, ";
         b_stride_1 = ldb;
         b_stride_2 = 1;
         size_b1    = ldb * k;
@@ -617,7 +604,7 @@ int main(int argc, char* argv[])
         print_strided_batched("hc calculated", &hc[0], m, n, batch_count, 1, ldc, stride_c);
     }
 
-    float max_relative_error = numeric_limits<float>::min();
+    float max_relative_error = std::numeric_limits<float>::min();
     for(int i = 0; i < size_c; i++)
     {
         float relative_error =
@@ -626,37 +613,15 @@ int main(int argc, char* argv[])
         max_relative_error =
             relative_error < max_relative_error ? max_relative_error : relative_error;
     }
-    float eps       = numeric_limits<float>::epsilon();
+    float eps       = std::numeric_limits<float>::epsilon();
     float tolerance = 10;
     if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
     {
-        cout << "FAIL, " << max_relative_error << endl;
+        std::cout << "FAIL, " << max_relative_error << std::endl;
     }
     else
     {
-        cout << "PASS, " << max_relative_error << endl;
-    }
-
-    if(name)
-    {
-        CHECK_ROCBLAS_ERROR(rocblas_sgemm_kernel_name(handle,
-                                                      trans_a,
-                                                      trans_b,
-                                                      m,
-                                                      n,
-                                                      k,
-                                                      &alpha,
-                                                      da,
-                                                      lda,
-                                                      stride_a,
-                                                      db,
-                                                      ldb,
-                                                      stride_b,
-                                                      &beta,
-                                                      dc,
-                                                      ldc,
-                                                      stride_c,
-                                                      batch_count));
+        std::cout << "PASS, " << max_relative_error << std::endl;
     }
 
     CHECK_HIP_ERROR(hipFree(da));

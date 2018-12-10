@@ -1,171 +1,86 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
-#include <gtest/gtest.h>
-#include <math.h>
-#include <stdexcept>
-#include <vector>
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
 #include "testing_trtri.hpp"
-#include "utility.h"
+#include "testing_trtri_batched.hpp"
+#include "type_dispatch.hpp"
+#include "rocblas_datatype2char.hpp"
 
-using ::testing::TestWithParam;
-using ::testing::Values;
-using ::testing::ValuesIn;
-using ::testing::Combine;
-using namespace std;
+namespace {
 
-typedef std::tuple<vector<int>, char, char, int> trtri_tuple;
-
-/* =====================================================================
-README: This file contains testers to verify the correctness of
-        BLAS routines with google test
-
-        It is supposed to be played/used by advance / expert users
-        Normal users only need to get the library routines without testers
-     =================================================================== */
-
-/* =====================================================================
-Advance users only: BrainStorm the parameters but do not make artificial one which invalidates the
-matrix.
-like lda pairs with M, and "lda must >= M". case "lda < M" will be guarded by argument-checkers
-inside API of course.
-Yet, the goal of this file is to verify result correctness not argument-checkers.
-
-Representative sampling is sufficient, endless brute-force sampling is not necessary
-=================================================================== */
-
-// vector of vector, each vector is a {N, lda}; N > 32 will return not implemented
-// add/delete as a group
-const vector<vector<int>> matrix_size_range = {
-    {-1, -1}, {10, 10}, {20, 160}, {21, 14}, {32, 32}, {111, 122}};
-
-const vector<char> uplo_range = {'U', 'L'};
-const vector<char> diag_range = {'N', 'U'};
-
-// it applies on trtri_batched only
-const vector<int> batch_range = {-1, 1, 100, 1000};
-
-/* ===============Google Unit Test==================================================== */
-
-/* =====================================================================
-     BLAS-3 TRTRI and TRTRI_Batched
-=================================================================== */
-
-/* ============================Setup Arguments======================================= */
-
-// Please use "class Arguments" (see utility.hpp) to pass parameters to templated testers;
-// Some routines may not touch/use certain "members" of objects "argus".
-// like BLAS-1 Scal does not have lda, BLAS-2 GEMV does not have ldb, ldc;
-// That is fine. These testers & routines will leave untouched members alone.
-// Do not use std::tuple to directly pass parameters to testers
-// If soe, you unpack it with extreme care for each one by like "std::get<0>" which is not intuitive
-// and error-prone
-
-Arguments setup_trtri_arguments(trtri_tuple tup)
+// By default, this test does not apply to any types.
+// The unnamed second parameter is used for enable_if below.
+template <typename T, typename = void>
+struct trtri_testing : rocblas_test_invalid
 {
-
-    vector<int> matrix_size = std::get<0>(tup);
-    char uplo               = std::get<1>(tup);
-    char diag               = std::get<2>(tup);
-    int batch_count         = std::get<2>(tup);
-
-    Arguments arg;
-
-    arg.N   = matrix_size[1];
-    arg.lda = matrix_size[2];
-
-    arg.uplo_option = uplo;
-    arg.diag_option = diag;
-    arg.batch_count = batch_count;
-
-    arg.timing = 0;
-
-    return arg;
-}
-
-class trtri_gtest : public ::TestWithParam<trtri_tuple>
-{
-    protected:
-    trtri_gtest() {}
-    virtual ~trtri_gtest() {}
-    virtual void SetUp() {}
-    virtual void TearDown() {}
 };
 
-TEST_P(trtri_gtest, trtri_float)
+// When the condition in the second argument is satisfied, the type combination
+// is valid. When the condition is false, this specialization does not apply.
+template <typename T>
+struct trtri_testing<
+    T,
+    typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value>::type>
 {
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-    Arguments arg = setup_trtri_arguments(GetParam());
-
-    rocblas_status status = testing_trtri<float>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg)
     {
-
-        if(arg.N < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.lda < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.N > 32)
-        {
-            EXPECT_EQ(rocblas_status_not_implemented, status);
-        }
+        if(!strcmp(arg.function, "testing_trtri"))
+            testing_trtri<T>(arg);
+        else if(!strcmp(arg.function, "testing_trtri_batched"))
+            testing_trtri_batched<T>(arg);
+        else
+            FAIL() << "Internal error: Test called with unknown function: " << arg.function;
     }
-}
+};
 
-TEST_P(trtri_gtest, trtri_batched_float)
+enum trtri_kind
 {
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
+    trtri_k,
+    trtri_batched_k
+};
 
-    Arguments arg = setup_trtri_arguments(GetParam());
-
-    rocblas_status status = testing_trtri_batched<float>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
+template <trtri_kind K>
+struct trtri_template : RocBLAS_Test<trtri_template<K>, trtri_testing>
+{
+    // Filter for which types apply to this suite
+    static bool type_filter(const Arguments& arg)
     {
-
-        if(arg.N < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.lda < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.N > 32)
-        {
-            EXPECT_EQ(rocblas_status_not_implemented, status);
-        }
-        else if(arg.batch_count < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
+        return rocblas_simple_dispatch<trtri_template::template type_filter_functor>(arg);
     }
-}
 
-// notice we are using vector of vector for matrix size, and vector for uplo, diag
-// ValuesIn take each element (a vector or a char) and combine them and feed them to test_p
-// The combinations are  { {N, lda}, uplo, diag }
+    // Filter for which functions apply to this suite
+    static bool function_filter(const Arguments& arg)
+    {
+        return K == trtri_k ? !strcmp(arg.function, "testing_trtri")
+                            : !strcmp(arg.function, "testing_trtri_batched");
+    }
 
-// THis function mainly test the scope of matrix_size.
-INSTANTIATE_TEST_CASE_P(rocblas_trtri,
-                        trtri_gtest,
-                        Combine(ValuesIn(matrix_size_range),
-                                ValuesIn(uplo_range),
-                                ValuesIn(diag_range),
-                                ValuesIn(batch_range)));
+    // Goggle Test name suffix based on parameters
+    static std::string name_suffix(const Arguments& arg)
+    {
+        RocBLAS_TestName<trtri_template> name;
+        name << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+             << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.lda;
+        if(K == trtri_batched_k)
+            name << '_' << arg.batch_count;
+        return std::move(name);
+    }
+};
+
+using trtri = trtri_template<trtri_k>;
+TEST_P(trtri, blas3) { rocblas_simple_dispatch<trtri_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(trtri);
+
+using trtri_batched = trtri_template<trtri_batched_k>;
+TEST_P(trtri_batched, blas3) { rocblas_simple_dispatch<trtri_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(trtri_batched);
+
+} // namespace

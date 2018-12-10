@@ -27,9 +27,7 @@ __global__ void iamax_kernel_part1(
     // bound
     if(tid < n)
     {
-        T2 real        = fetch_real<T1, T2>(x[tid * incx]);
-        T2 imag        = fetch_imag<T1, T2>(x[tid * incx]);
-        shared_tep[tx] = fabs(real) + fabs(imag);
+        shared_tep[tx] = fetch_asum<T1, T2>(x[tid * incx]);
         index[tx]      = tid;
     }
     else
@@ -86,7 +84,7 @@ iamax_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, ro
             *result = index[0] + 1; // result[0] works, too
         }
         else // if flag == 0, cannot write to result which is in host memory, instead write to
-             // worksapce
+             // workspace
         {
             workspace_index[0] = index[0];
         }
@@ -170,7 +168,7 @@ rocblas_status rocblas_iamax_template_workspace(rocblas_handle handle,
                                result);
         }
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
+            hipMemcpy(result, workspace_index, sizeof(*result), hipMemcpyDeviceToHost));
 
         // return Fortran 1 based index as in the BLAS standard, not C zero based index
         *result += 1;
@@ -228,7 +226,7 @@ rocblas_status rocblas_iamax_template(
     {
         if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
-            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(rocblas_int)));
+            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
         }
         else
         {

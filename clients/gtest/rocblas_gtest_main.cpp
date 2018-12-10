@@ -1,30 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include <gtest/gtest.h>
-#include <stdexcept>
-#include "utility.h"
+#include "utility.hpp"
+#include "rocblas_data.hpp"
+#include "test_cleanup.hpp"
 
 #define GTEST_DATA "rocblas_gtest.data"
-
-// Return path of this executable
-static string exepath()
-{
-    string pathstr;
-    char* path = realpath("/proc/self/exe", 0);
-    if(path)
-    {
-        char* p = rindex(path, '/');
-        if(p)
-        {
-            p[1]    = 0;
-            pathstr = path;
-        }
-        free(path);
-    }
-    return pathstr;
-}
 
 /* =====================================================================
       Main function:
@@ -32,12 +15,12 @@ static string exepath()
 
 int main(int argc, char** argv)
 {
-    // Open data file
-    RocBLAS_TestData::init(exepath() + GTEST_DATA);
+    // Set data file path
+    RocBLAS_TestData::set_filename(rocblas_exepath() + GTEST_DATA);
 
     // Print Version
     char blas_version[100];
-    rocblas_get_version_string(blas_version, 100);
+    rocblas_get_version_string(blas_version, sizeof(blas_version));
     printf("rocBLAS version: %s\n\n", blas_version);
 
     // Device Query
@@ -56,7 +39,10 @@ int main(int argc, char** argv)
         set_device(device_id);
     }
 
-    ::testing::InitGoogleTest(&argc, argv);
+    testing::InitGoogleTest(&argc, argv);
+
+    // Free up all temporary data generated during test creation
+    test_cleanup::cleanup();
 
     return RUN_ALL_TESTS();
 }

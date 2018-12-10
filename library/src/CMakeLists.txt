@@ -109,7 +109,6 @@ set( rocblas_blas2_source
 )
 
 set( rocblas_blas1_source
-  blas1/fetch_template.cpp
   blas1/rocblas_amin.cpp
   blas1/rocblas_amax.cpp
   blas1/rocblas_asum.cpp

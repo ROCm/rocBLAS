@@ -1,0 +1,77 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { M:    -1, N:     1, K:     1 }
+    - { M:     1, N:    -1, K:     1 }
+    - { M:     1, N:     1, K:     0 }
+    - { M:    10, N:    10, K:     9 }
+    - { M:     0, N:     1, K:     1 }
+    - { M:     1, N:     0, K:     1 }
+    - { M:    -1, N:    -1, K:    -1 }
+    - { M:    10, N:    10, K:     2 }
+    - { M:   100, N:   200, K:   200 }
+
+  - &medium_matrix_size_range
+    - { M:   300, N:   400, K:   400 }
+    - { M:   600, N:   500, K:   601 }
+
+  - &large_matrix_size_range
+    - { M:  1000, N:  1000, K:  1000 }
+    - { M:  2000, N:  2000, K:  2000 }
+    - { M:  4011, N:  4011, K:  4011 }
+    - { M:  8000, N:  8000, K:  8000 }
+
+  - &incx_incy_range
+    - { incx:   2, incy:   1 }
+    - { incx:  -1, incy:   2 }
+    - { incx:   1, incy:   1 }
+    - { incx:  -1, incy:   3 }
+    - { incx:   3, incy:  -1 }
+    - { incx:   0, incy:   1 }
+    - { incx:   1, incy:   0 }
+    - { incx:   0, incy:  -1 }
+    - { incx:  10, incy: 100 }
+
+  - &alpha_beta_range
+    - { alpha:  2.0, beta:  0.0 }
+    - { alpha: -1.0, beta: -1.0 }
+    - { alpha:  2.0, beta:  1.0 }
+    - { alpha:  0.0, beta:  1.0 }
+
+Tests:
+- name: gemv_bad_arg
+  category: pre_checkin
+  function: testing_gemv_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_small
+  category: quick
+  function: testing_gemv
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+
+- name: gemv_medium
+  category: pre_checkin
+  function: testing_gemv
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+
+- name: gemv_large
+  category: nightly
+  function: testing_gemv
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *large_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+...

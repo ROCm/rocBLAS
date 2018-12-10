@@ -1,6 +1,9 @@
 # ########################################################################
-# Copyright 2016 Advanced Micro Devices, Inc.
+# Copyright 2018 Advanced Micro Devices, Inc.
 # ########################################################################
+
+# For debugging, uncomment this
+# set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -O0" )
 
 # set( Boost_DEBUG ON )
 set( Boost_USE_MULTITHREADED ON )
@@ -35,10 +38,7 @@ find_package( Threads REQUIRED )
 if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
       gemm_gtest.cpp
-      gemm_strided_batched_gtest.cpp
-      gemm_ex_gtest.cpp
-      gemm_strided_batched_ex_gtest.cpp
-      parallel_gtest.cpp
+      gemm_parallel_gtest.cpp
       trsm_gtest.cpp
       )
 endif( )
@@ -54,24 +54,19 @@ set(rocblas_test_source
     gemv_gtest.cpp
     ger_gtest.cpp
     syr_gtest.cpp
+    symv_gtest.cpp
     geam_gtest.cpp
-    trsm_gtest.cpp
+    trtri_gtest.cpp
     )
 
 
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/flops.cpp
       ../common/norm.cpp
-      ../common/unit.cpp
-      ../common/near.cpp
-      ../common/arg_check.cpp
-      ../common/rocblas_template_specialization.cpp
     )
 
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
-target_compile_features( rocblas-test PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )
@@ -113,9 +108,10 @@ endif( )
 
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
-                    COMMAND ../common/rocblas_gentest.py -I ../include gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py gtest.yaml ../include/rocblas.yaml gemm.yaml known_bugs.yaml
-		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+                    COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
+                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml
+
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data
                    DEPENDS "${ROCBLAS_TEST_DATA}" )
 

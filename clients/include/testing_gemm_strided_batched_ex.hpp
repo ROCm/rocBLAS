@@ -1,29 +1,26 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <sys/time.h>
-#include <stdlib.h>
-#include <iostream>
-#include <fstream>
-#include <vector>
-#include <limits>
-
+#include "rocblas_test.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_vector.hpp"
+#include "rocblas_init.hpp"
+#include "utility.hpp"
+#include "rocblas_datatype2char.hpp"
 #include "rocblas.hpp"
-#include "arg_check.h"
-#include "utility.h"
-#include "cblas_interface.h"
-#include "norm.h"
-#include "unit.h"
-#include "flops.h"
-#include <typeinfo>
+#include "cblas_interface.hpp"
+#include "norm.hpp"
+#include "unit.hpp"
+#include "near.hpp"
+#include "flops.hpp"
 
 #define DEBUG_PRINT false
 
-using namespace std;
-
 /* ============================================================================================ */
-void testing_gemm_strided_batched_ex_bad_arg()
+template <typename Ti, typename To, typename Tc>
+void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 {
     const rocblas_int M = 100;
     const rocblas_int N = 100;
@@ -51,17 +48,15 @@ void testing_gemm_strided_batched_ex_bad_arg()
     const float beta_float  = 1.0;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index;
-    rocblas_int flags;
-    size_t* workspace_size = 0;
-    void* workspace;
+    int32_t solution_index = 0;
+    rocblas_int flags      = 0;
+    size_t workspace_size  = 0;
+    void* workspace        = nullptr;
 
     const size_t safe_size = 100;
 
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
-
-    rocblas_status status;
 
     rocblas_local_handle handle;
 
@@ -72,403 +67,363 @@ void testing_gemm_strided_batched_ex_bad_arg()
     device_vector<float> dD(safe_size);
     if(!dA || !dB || !dC || !dD)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    {
-        float* dA_null = nullptr;
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          nullptr,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA_null,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: A is nullptr");
-    }
-    {
-        float* dB_null = nullptr;
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          nullptr,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB_null,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          nullptr,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: B is nullptr");
-    }
-    {
-        float* dC_null = nullptr;
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          nullptr,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC_null,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          nullptr,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_pointer);
 
-        verify_rocblas_status_invalid_pointer(status, "ERROR: C is nullptr");
-    }
-    {
-        float* dD_null = nullptr;
-
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD_null,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
-
-        verify_rocblas_status_invalid_pointer(status, "ERROR: D is nullptr");
-    }
-    {
-        float* alpha_null = nullptr;
-
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 alpha_null,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
-
-        verify_rocblas_status_invalid_pointer(status, "ERROR: alpha is nullptr");
-    }
-    {
-        float* beta_null = nullptr;
-
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 beta_null,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
-
-        verify_rocblas_status_invalid_pointer(status, "ERROR: beta is nullptr");
-    }
-    {
-        rocblas_handle handle_null = nullptr;
-
-        status = rocblas_gemm_strided_batched_ex(handle_null,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &alpha_float,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &beta_float,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
-
-        verify_rocblas_status_invalid_handle(status);
-    }
-
-    return;
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(nullptr,
+                                                          transA,
+                                                          transB,
+                                                          M,
+                                                          N,
+                                                          K,
+                                                          &alpha_float,
+                                                          dA,
+                                                          a_type,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          b_type,
+                                                          ldb,
+                                                          stride_b,
+                                                          &beta_float,
+                                                          dC,
+                                                          c_type,
+                                                          ldc,
+                                                          stride_c,
+                                                          dD,
+                                                          d_type,
+                                                          ldd,
+                                                          stride_d,
+                                                          batch_count,
+                                                          compute_type,
+                                                          algo,
+                                                          solution_index,
+                                                          flags,
+                                                          &workspace_size,
+                                                          workspace),
+                          rocblas_status_invalid_handle);
 }
 
-template <typename Td, typename Tc>
-rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA,
-                                                        rocblas_operation transB,
-                                                        rocblas_int M,
-                                                        rocblas_int N,
-                                                        rocblas_int K,
-                                                        float alpha_float,
-                                                        rocblas_int lda,
-                                                        rocblas_int ldb,
-                                                        float beta_float,
-                                                        rocblas_int ldc,
-                                                        rocblas_int ldd,
-                                                        rocblas_int stride_a,
-                                                        rocblas_int stride_b,
-                                                        rocblas_int stride_c,
-                                                        rocblas_int stride_d,
-                                                        rocblas_int batch_count,
-                                                        rocblas_int norm_check,
-                                                        rocblas_int unit_check,
-                                                        rocblas_int timing,
-                                                        int number_hot_calls,
-                                                        rocblas_datatype a_type,
-                                                        rocblas_datatype b_type,
-                                                        rocblas_datatype c_type,
-                                                        rocblas_datatype d_type,
-                                                        rocblas_datatype compute_type)
+template <typename Ti, typename To, typename Tc>
+void testing_gemm_strided_batched_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index = 0;
-    uint32_t flags         = 0;
-    size_t* workspace_size = 0;
-    void* workspace;
+    rocblas_gemm_algo algo = static_cast<rocblas_gemm_algo>(arg.algo);
+    int32_t solution_index = arg.solution_index;
+    uint32_t flags         = arg.flags;
+    size_t workspace_size  = arg.workspace_size;
+    void* workspace        = nullptr;
 
-    Td h_alpha_Td;
-    Td h_beta_Td;
-
-    if(is_same<Td, rocblas_half>::value)
+    To h_alpha_To, h_beta_To;
+    if(std::is_same<To, rocblas_half>::value)
     {
-        h_alpha_Td = float_to_half(alpha_float);
-        h_beta_Td  = float_to_half(beta_float);
+        h_alpha_To = float_to_half(arg.alpha);
+        h_beta_To  = float_to_half(arg.beta);
     }
-    else if(is_same<Td, float>::value || is_same<Td, double>::value)
+    else if(std::is_same<To, float>::value || std::is_same<To, double>::value ||
+            std::is_same<To, int32_t>::value)
     {
-        h_alpha_Td = static_cast<Td>(alpha_float);
-        h_beta_Td  = static_cast<Td>(beta_float);
+        h_alpha_To = static_cast<To>(arg.alpha);
+        h_beta_To  = static_cast<To>(arg.beta);
     }
     else
     {
-        return rocblas_status_not_implemented;
+#ifdef GOOGLE_TEST
+        ADD_FAILURE() << "Unimplemented types";
+#else
+        fputs("Error: Unimplemented types\n", stderr);
+#endif
+        return;
     }
 
-    Tc h_alpha_Tc;
-    Tc h_beta_Tc;
-
-    if(is_same<Tc, rocblas_half>::value)
+    Tc h_alpha_Tc, h_beta_Tc;
+    if(std::is_same<Tc, rocblas_half>::value)
     {
-        h_alpha_Tc = float_to_half(alpha_float);
-        h_beta_Tc  = float_to_half(beta_float);
+        h_alpha_Tc = float_to_half(arg.alpha);
+        h_beta_Tc  = float_to_half(arg.beta);
     }
-    else if(is_same<Tc, float>::value || is_same<Tc, double>::value)
+    else if(std::is_same<Tc, float>::value || std::is_same<Tc, double>::value ||
+            std::is_same<Tc, int32_t>::value)
     {
-        h_alpha_Tc = static_cast<Tc>(alpha_float);
-        h_beta_Tc  = static_cast<Tc>(beta_float);
+        h_alpha_Tc = static_cast<Tc>(arg.alpha);
+        h_beta_Tc  = static_cast<Tc>(arg.beta);
     }
     else
     {
-        return rocblas_status_not_implemented;
+#ifdef GOOGLE_TEST
+        ADD_FAILURE() << "Unimplemented types";
+#endif
+        return;
     }
 
-    const size_t safe_size = 100;
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
-    rocblas_status status;
     rocblas_local_handle handle;
-    rocblas_int A_row = transA == rocblas_operation_none ? M : K;
-    rocblas_int A_col = transA == rocblas_operation_none ? K : M;
-    rocblas_int B_row = transB == rocblas_operation_none ? K : N;
-    rocblas_int B_col = transB == rocblas_operation_none ? N : K;
+    auto transA = char2rocblas_operation(arg.transA);
+    auto transB = char2rocblas_operation(arg.transB);
+    auto M = arg.M, N = arg.N, K = arg.K;
+    auto lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    auto stride_a = arg.stride_a, stride_b = arg.stride_b;
+    auto stride_c = arg.stride_c, stride_d = arg.stride_d;
+    auto A_row       = transA == rocblas_operation_none ? M : K;
+    auto A_col       = transA == rocblas_operation_none ? K : M;
+    auto B_row       = transB == rocblas_operation_none ? K : N;
+    auto B_col       = transB == rocblas_operation_none ? N : K;
+    auto batch_count = arg.batch_count;
 
-    // check here to prevent undefined memory allocation error
+    // Early exit
+    if(!M || !N || !batch_count)
+        return;
+
+    // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
-       batch_count < 0)
+       batch_count < 0 || (std::is_same<Ti, int8_t>::value &&
+                           (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
+                            (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
-        device_vector<Td> dA(safe_size);
-        device_vector<Td> dB(safe_size);
-        device_vector<Td> dC(safe_size);
-        device_vector<Td> dD(safe_size);
+        static const size_t safe_size = 100;
+        device_vector<Ti> dA(safe_size);
+        device_vector<Ti> dB(safe_size);
+        device_vector<To> dC(safe_size);
+        device_vector<To> dD(safe_size);
         if(!dA || !dB || !dC || !dD)
         {
-            PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-            return rocblas_status_memory_error;
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
         }
 
-        status = rocblas_gemm_strided_batched_ex(handle,
-                                                 transA,
-                                                 transB,
-                                                 M,
-                                                 N,
-                                                 K,
-                                                 &h_alpha_Tc,
-                                                 dA,
-                                                 a_type,
-                                                 lda,
-                                                 stride_a,
-                                                 dB,
-                                                 b_type,
-                                                 ldb,
-                                                 stride_b,
-                                                 &h_beta_Tc,
-                                                 dC,
-                                                 c_type,
-                                                 ldc,
-                                                 stride_c,
-                                                 dD,
-                                                 d_type,
-                                                 ldd,
-                                                 stride_d,
-                                                 batch_count,
-                                                 compute_type,
-                                                 algo,
-                                                 solution_index,
-                                                 flags,
-                                                 workspace_size,
-                                                 workspace);
-
-        gemm_strided_batched_arg_check(
-            status, M, N, K, lda, ldb, ldc, stride_a, stride_b, stride_c, batch_count);
-
-        return status;
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              &h_alpha_Tc,
+                                                              dA,
+                                                              arg.a_type,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              arg.b_type,
+                                                              ldb,
+                                                              stride_b,
+                                                              &h_beta_Tc,
+                                                              dC,
+                                                              arg.c_type,
+                                                              ldc,
+                                                              stride_c,
+                                                              dD,
+                                                              arg.d_type,
+                                                              ldd,
+                                                              stride_d,
+                                                              batch_count,
+                                                              arg.compute_type,
+                                                              algo,
+                                                              solution_index,
+                                                              flags,
+                                                              &workspace_size,
+                                                              workspace),
+                              rocblas_status_invalid_size);
+        return;
     }
 
     size_t size_one_a = transA == rocblas_operation_none
@@ -493,37 +448,37 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     }
 
     // allocate memory on device
-    device_vector<Td> dA(size_a);
-    device_vector<Td> dB(size_b);
-    device_vector<Td> dC(size_c);
-    device_vector<Td> dD(size_d);
+    device_vector<Ti> dA(size_a);
+    device_vector<Ti> dB(size_b);
+    device_vector<To> dC(size_c);
+    device_vector<To> dD(size_d);
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
     if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || (!dD && size_d) || !d_alpha_Tc ||
        !d_beta_Tc)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
-        return rocblas_status_memory_error;
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<Td> hA(size_a);
-    host_vector<Td> hB(size_b);
-    host_vector<Td> hC(size_c);
-    host_vector<Td> hD_1(size_d);
-    host_vector<Td> hD_2(size_d);
-    host_vector<Td> hD_gold(size_d);
+    host_vector<Ti> hA(size_a);
+    host_vector<Ti> hB(size_b);
+    host_vector<To> hC(size_c);
+    host_vector<To> hD_1(size_d);
+    host_vector<To> hD_2(size_d);
+    host_vector<To> hD_gold(size_d);
 
     // Initial Data on CPU
     rocblas_seedrand();
 
-    rocblas_init<Td>(hA, A_row, A_col, lda, stride_a, batch_count);
-    rocblas_init_alternating_sign<Td>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    rocblas_init<Td>(hC, M, N, ldc, stride_c, batch_count);
-    rocblas_init<Td>(hD_1, M, N, ldd, stride_d, batch_count);
+    rocblas_init<Ti>(hA, A_row, A_col, lda, stride_a, batch_count);
+    rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    rocblas_init<To>(hC, M, N, ldc, stride_c, batch_count);
+    rocblas_init<To>(hD_1, M, N, ldd, stride_d, batch_count);
 
 #if DEBUG_PRINT
-    if(is_same<Td, rocblas_half>::value)
+    if(std::is_same<To, rocblas_half>::value)
     {
         std::cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
@@ -573,20 +528,51 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
     }
 #endif
 
+#if 0 // Copied from testing_gemm_ex.hpp
+    if(std::is_same<To, rocblas_half>::value && std::is_same<Tc, float>::value)
+    {
+        // half precision IEEE has max and lowest values 65504 and -65504,
+        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // the following will overflow to inf in half arithmetic,
+        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
+        //
+        // set matrix A and matrix B upper left block to values below to cause
+        // inf overflow with 16 bit arithmetic, but no overflow for 32 bit arithmetic
+        //
+        // 65500 65500             2   -2
+        // 65500 65500            -2    2
+        //
+        const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
+        const rocblas_half positive_two       = float_to_half(2.0);
+        const rocblas_half negative_two       = float_to_half(-2.0);
+        if(M >= 2 && N >= 2 && K >= 2)
+        {
+            hA[0]       = ieee_half_near_max;
+            hA[1]       = ieee_half_near_max;
+            hA[lda]     = ieee_half_near_max;
+            hA[lda + 1] = ieee_half_near_max;
+            hB[0]       = positive_two;
+            hB[1]       = negative_two;
+            hB[ldb]     = negative_two;
+            hB[ldb + 1] = positive_two;
+        }
+    }
+#endif
+
     hD_2    = hD_1;
     hD_gold = hD_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Td) * size_a, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Td) * size_b, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(Td) * size_c, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_a, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(Ti) * size_b, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(To) * size_c, hipMemcpyHostToDevice));
 
-    if(unit_check || norm_check)
+    if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(Td) * size_d, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To) * size_d, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex(handle,
                                                             transA,
@@ -596,60 +582,48 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                                             K,
                                                             &h_alpha_Tc,
                                                             dA,
-                                                            a_type,
+                                                            arg.a_type,
                                                             lda,
                                                             stride_a,
                                                             dB,
-                                                            b_type,
+                                                            arg.b_type,
                                                             ldb,
                                                             stride_b,
                                                             &h_beta_Tc,
                                                             dC,
-                                                            c_type,
+                                                            arg.c_type,
                                                             ldc,
                                                             stride_c,
                                                             dD,
-                                                            d_type,
+                                                            arg.d_type,
                                                             ldd,
                                                             stride_d,
                                                             batch_count,
-                                                            compute_type,
+                                                            arg.compute_type,
                                                             algo,
                                                             solution_index,
                                                             flags,
-                                                            workspace_size,
+                                                            &workspace_size,
                                                             workspace));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_1---------------------------------------" << std::endl;
-        if(is_same<Td, rocblas_half>::value)
-        {
+        if(std::is_same<To, rocblas_half>::value)
             for(int i = 0; i < size_d; i++)
-            {
                 cout << half_to_float(hD_1[i]) << "  ";
-            }
-        }
         else
-        {
             for(int i = 0; i < size_d; i++)
-            {
                 cout << hD_1[i] << "  ";
-            }
-        }
         std::cout << std::endl;
 #endif
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(Td) * size_d, hipMemcpyHostToDevice));
-
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(To) * size_d, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
-
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex(handle,
                                                             transA,
                                                             transB,
@@ -658,105 +632,84 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                                             K,
                                                             d_alpha_Tc,
                                                             dA,
-                                                            a_type,
+                                                            arg.a_type,
                                                             lda,
                                                             stride_a,
                                                             dB,
-                                                            b_type,
+                                                            arg.b_type,
                                                             ldb,
                                                             stride_b,
                                                             d_beta_Tc,
                                                             dC,
-                                                            c_type,
+                                                            arg.c_type,
                                                             ldc,
                                                             stride_c,
                                                             dD,
-                                                            d_type,
+                                                            arg.d_type,
                                                             ldd,
                                                             stride_d,
                                                             batch_count,
-                                                            compute_type,
+                                                            arg.compute_type,
                                                             algo,
                                                             solution_index,
                                                             flags,
-                                                            workspace_size,
+                                                            &workspace_size,
                                                             workspace));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(Td) * size_d, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_2---------------------------------------" << std::endl;
-        if(is_same<Td, rocblas_half>::value)
-        {
+        if(std::is_same<To, rocblas_half>::value)
             for(int i = 0; i < size_d; i++)
-            {
                 cout << half_to_float(hD_2[i]) << "  ";
-            }
-        }
         else
-        {
             for(int i = 0; i < size_d; i++)
-            {
                 cout << hD_2[i] << "  ";
-            }
-        }
         std::cout << std::endl;
 #endif
 
         // CPU BLAS
         // copy C matrix into D matrix
         if(batch_count > 0 && N > 0 && M > 0)
-        {
             for(int i3 = 0; i3 < batch_count; i3++)
-            {
                 for(int i2 = 0; i2 < N; i2++)
-                {
                     for(int i1 = 0; i1 < M; i1++)
                     {
                         hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] =
                             hC[i1 + (i2 * ldc) + (i3 * stride_c)];
                     }
-                }
-            }
-        }
         cpu_time_used = get_time_us();
 
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<Td, Td>(transA,
+            cblas_gemm<Ti, To>(transA,
                                transB,
                                M,
                                N,
                                K,
-                               h_alpha_Td,
+                               h_alpha_To,
                                hA + stride_a * i,
                                lda,
                                hB + stride_b * i,
                                ldb,
-                               h_beta_Td,
+                               h_beta_To,
                                hD_gold + stride_d * i,
                                ldd);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<Td>(M, N, K) * batch_count / cpu_time_used * 1e6;
+        cblas_gflops  = gemm_gflop_count<To>(M, N, K) * batch_count / cpu_time_used * 1e6;
 
 #if DEBUG_PRINT
         std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
-        if(is_same<Td, rocblas_half>::value)
-        {
+        if(std::is_same<To, rocblas_half>::value)
             for(int i = 0; i < size_d; i++)
-            {
                 std::cout << half_to_float(hD_gold[i]) << "  ";
-            }
-        }
         else
-        {
             for(int i = 0; i < size_d; i++)
-            {
                 std::cout << hD_gold[i] << "  ";
-            }
-        }
+
         std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
         for(int i3 = 0; i3 < batch_count; i3++)
         {
@@ -767,7 +720,7 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                     if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] !=
                        hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
                     {
-                        if(is_same<Td, rocblas_half>::value)
+                        if(std::is_same<To, rocblas_half>::value)
                         {
                             std::cout
                                 << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
@@ -788,27 +741,34 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
         }
 #endif
 
-        // enable unit check, notice unit check is not invasive, but norm check is,
-        // unit check and norm check can not be interchanged their order
-        if(unit_check)
+        if(arg.unit_check)
         {
-            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold, hD_1);
-            unit_check_general<Td>(M, N, batch_count, ldd, stride_d, hD_gold, hD_2);
+            if(std::is_same<Tc, rocblas_half>::value && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<Tc>;
+                near_check_general<To>(M, N, batch_count, ldd, stride_d, hD_gold, hD_1, tol);
+                near_check_general<To>(M, N, batch_count, ldd, stride_d, hD_gold, hD_2, tol);
+            }
+            else
+            {
+                unit_check_general<To>(M, N, batch_count, ldd, stride_d, hD_gold, hD_1);
+                unit_check_general<To>(M, N, batch_count, ldd, stride_d, hD_gold, hD_2);
+            }
         }
 
-        // if enable norm check, norm check is invasive
-        // any typeinfo(Td) will not work here, because template deduction is matched
-        // in compilation time
-        if(norm_check)
+        if(arg.norm_check)
         {
-            rocblas_error =
-                norm_check_general<Td>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1);
-            rocblas_error =
-                norm_check_general<Td>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2);
+            auto err1 =
+                fabs(norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1));
+            auto err2 =
+                fabs(norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2));
+            rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
 
-    if(timing)
+    if(arg.timing)
     {
         int number_cold_calls = 2;
 
@@ -816,40 +776,41 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_gemm_strided_batched_ex(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            K,
-                                            &h_alpha_Tc,
-                                            dA,
-                                            a_type,
-                                            lda,
-                                            stride_a,
-                                            dB,
-                                            b_type,
-                                            ldb,
-                                            stride_b,
-                                            &h_beta_Tc,
-                                            dC,
-                                            c_type,
-                                            ldc,
-                                            stride_c,
-                                            dC,
-                                            c_type,
-                                            ldc,
-                                            stride_c,
-                                            batch_count,
-                                            compute_type,
-                                            algo,
-                                            solution_index,
-                                            flags,
-                                            workspace_size,
-                                            workspace);
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex(handle,
+                                                                transA,
+                                                                transB,
+                                                                M,
+                                                                N,
+                                                                K,
+                                                                &h_alpha_Tc,
+                                                                dA,
+                                                                arg.a_type,
+                                                                lda,
+                                                                stride_a,
+                                                                dB,
+                                                                arg.b_type,
+                                                                ldb,
+                                                                stride_b,
+                                                                &h_beta_Tc,
+                                                                dC,
+                                                                arg.c_type,
+                                                                ldc,
+                                                                stride_c,
+                                                                dC,
+                                                                arg.c_type,
+                                                                ldc,
+                                                                stride_c,
+                                                                batch_count,
+                                                                arg.compute_type,
+                                                                algo,
+                                                                solution_index,
+                                                                flags,
+                                                                &workspace_size,
+                                                                workspace));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        int number_hot_calls = arg.iters;
+        gpu_time_used        = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_gemm_strided_batched_ex(handle,
@@ -860,218 +821,58 @@ rocblas_status testing_gemm_strided_batched_ex_template(rocblas_operation transA
                                             K,
                                             &h_alpha_Tc,
                                             dA,
-                                            a_type,
+                                            arg.a_type,
                                             lda,
                                             stride_a,
                                             dB,
-                                            b_type,
+                                            arg.b_type,
                                             ldb,
                                             stride_b,
                                             &h_beta_Tc,
                                             dC,
-                                            c_type,
+                                            arg.c_type,
                                             ldc,
                                             stride_c,
                                             dC,
-                                            c_type,
+                                            arg.c_type,
                                             ldc,
                                             stride_c,
                                             batch_count,
-                                            compute_type,
+                                            arg.compute_type,
                                             algo,
                                             solution_index,
                                             flags,
-                                            workspace_size,
+                                            &workspace_size,
                                             workspace);
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops =
-            gemm_gflop_count<Td>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
+            gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
-        cout << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,ldd,stride_"
-                "d,batch_count,rocblas-Gflops,us";
+        std::cout
+            << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,ldd,stride_"
+               "d,batch_count,rocblas-Gflops,us";
 
-        if(unit_check || norm_check)
-            cout << ",CPU-Gflops(us),norm-error";
+        if(arg.unit_check || arg.norm_check)
+            std::cout << ",CPU-Gflops(us),norm-error";
 
-        cout << endl;
+        std::cout << std::endl;
 
-        cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << "," << M
-             << "," << N << "," << K << ","
-             << (is_same<Td, rocblas_half>::value ? half_to_float(h_alpha_Td) : h_alpha_Td) << ","
-             << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-             << (is_same<Td, rocblas_half>::value ? half_to_float(h_beta_Td) : h_beta_Td) << ","
-             << ldc << "," << stride_c << "," << ldd << "," << stride_d << "," << batch_count << ","
-             << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
+                  << M << "," << N << "," << K << ","
+                  << (std::is_same<To, rocblas_half>::value ? half_to_float(h_alpha_To)
+                                                            : h_alpha_To)
+                  << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
+                  << (std::is_same<To, rocblas_half>::value ? half_to_float(h_beta_To) : h_beta_To)
+                  << "," << ldc << "," << stride_c << "," << ldd << "," << stride_d << ","
+                  << batch_count << "," << rocblas_gflops << ","
+                  << gpu_time_used / number_hot_calls;
 
-        if(unit_check || norm_check)
+        if(arg.unit_check || arg.norm_check)
         {
-            cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
         }
 
-        cout << endl;
-    }
-    return status;
-}
-
-rocblas_status testing_gemm_strided_batched_ex(Arguments argus)
-{
-    rocblas_operation transA = char2rocblas_operation(argus.transA_option);
-    rocblas_operation transB = char2rocblas_operation(argus.transB_option);
-
-    rocblas_int M = argus.M;
-    rocblas_int N = argus.N;
-    rocblas_int K = argus.K;
-
-    rocblas_int lda = argus.lda;
-    rocblas_int ldb = argus.ldb;
-    rocblas_int ldc = argus.ldc;
-    rocblas_int ldd = argus.ldd;
-
-    rocblas_int stride_a = argus.stride_a;
-    rocblas_int stride_b = argus.stride_b;
-    rocblas_int stride_c = argus.stride_c;
-    rocblas_int stride_d = argus.stride_d;
-
-    rocblas_int batch_count = argus.batch_count;
-
-    rocblas_datatype a_type       = argus.a_type;
-    rocblas_datatype b_type       = argus.b_type;
-    rocblas_datatype c_type       = argus.c_type;
-    rocblas_datatype d_type       = argus.d_type;
-    rocblas_datatype compute_type = argus.compute_type;
-
-    float alpha = argus.alpha;
-    float beta  = argus.beta;
-
-    rocblas_int norm_check = argus.norm_check;
-    rocblas_int unit_check = argus.unit_check;
-    rocblas_int timing     = argus.timing;
-    int number_hot_calls   = argus.iters;
-
-    if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
-       c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
-       compute_type == rocblas_datatype_f16_r)
-    {
-        return testing_gemm_strided_batched_ex_template<rocblas_half, rocblas_half>(
-            transA,
-            transB,
-            M,
-            N,
-            K,
-            alpha,
-            lda,
-            ldb,
-            beta,
-            ldc,
-            ldd,
-            stride_a,
-            stride_b,
-            stride_c,
-            stride_d,
-            batch_count,
-            norm_check,
-            unit_check,
-            timing,
-            number_hot_calls,
-            a_type,
-            b_type,
-            c_type,
-            d_type,
-            compute_type);
-    }
-    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r &&
-            c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r &&
-            compute_type == rocblas_datatype_f32_r)
-    {
-        return testing_gemm_strided_batched_ex_template<rocblas_half, float>(transA,
-                                                                             transB,
-                                                                             M,
-                                                                             N,
-                                                                             K,
-                                                                             alpha,
-                                                                             lda,
-                                                                             ldb,
-                                                                             beta,
-                                                                             ldc,
-                                                                             ldd,
-                                                                             stride_a,
-                                                                             stride_b,
-                                                                             stride_c,
-                                                                             stride_d,
-                                                                             batch_count,
-                                                                             norm_check,
-                                                                             unit_check,
-                                                                             timing,
-                                                                             number_hot_calls,
-                                                                             a_type,
-                                                                             b_type,
-                                                                             c_type,
-                                                                             d_type,
-                                                                             compute_type);
-    }
-    else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r &&
-            c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r &&
-            compute_type == rocblas_datatype_f32_r)
-    {
-        return testing_gemm_strided_batched_ex_template<float, float>(transA,
-                                                                      transB,
-                                                                      M,
-                                                                      N,
-                                                                      K,
-                                                                      alpha,
-                                                                      lda,
-                                                                      ldb,
-                                                                      beta,
-                                                                      ldc,
-                                                                      ldd,
-                                                                      stride_a,
-                                                                      stride_b,
-                                                                      stride_c,
-                                                                      stride_d,
-                                                                      batch_count,
-                                                                      norm_check,
-                                                                      unit_check,
-                                                                      timing,
-                                                                      number_hot_calls,
-                                                                      a_type,
-                                                                      b_type,
-                                                                      c_type,
-                                                                      d_type,
-                                                                      compute_type);
-    }
-    else if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r &&
-            c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r &&
-            compute_type == rocblas_datatype_f64_r)
-    {
-        return testing_gemm_strided_batched_ex_template<double, double>(transA,
-                                                                        transB,
-                                                                        M,
-                                                                        N,
-                                                                        K,
-                                                                        alpha,
-                                                                        lda,
-                                                                        ldb,
-                                                                        beta,
-                                                                        ldc,
-                                                                        ldd,
-                                                                        stride_a,
-                                                                        stride_b,
-                                                                        stride_c,
-                                                                        stride_d,
-                                                                        batch_count,
-                                                                        norm_check,
-                                                                        unit_check,
-                                                                        timing,
-                                                                        number_hot_calls,
-                                                                        a_type,
-                                                                        b_type,
-                                                                        c_type,
-                                                                        d_type,
-                                                                        compute_type);
-    }
-    else
-    {
-        return rocblas_status_not_implemented;
+        std::cout << std::endl;
     }
 }

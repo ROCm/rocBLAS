@@ -1,238 +1,69 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
-#include <gtest/gtest.h>
-#include <math.h>
-#include <stdexcept>
-#include <vector>
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
 #include "testing_trsm.hpp"
-#include "utility.h"
+#include "type_dispatch.hpp"
+#include "rocblas_datatype2char.hpp"
 
-using ::testing::TestWithParam;
-using ::testing::Values;
-using ::testing::ValuesIn;
-using ::testing::Combine;
-using namespace std;
+namespace {
 
-// only GCC/VS 2010 comes with std::tr1::tuple, but it is unnecessary,  std::tuple is good enough;
-
-typedef std::tuple<vector<int>, double, vector<char>> trsm_tuple;
-
-/* =====================================================================
-README: This file contains testers to verify the correctness of
-        BLAS routines with google test
-
-        It is supposed to be played/used by advance / expert users
-        Normal users only need to get the library routines without testers
-     =================================================================== */
-
-/* =====================================================================
-Advance users only: BrainStorm the parameters but do not make artificial one which invalidates the
-matrix.
-like lda pairs with M, and "lda must >= M". case "lda < M" will be guarded by argument-checkers
-inside API of course.
-Yet, the goal of this file is to verify result correctness not argument-checkers.
-
-Representative sampling is sufficient, endless brute-force sampling is not necessary
-=================================================================== */
-
-// THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of
-// matrix_size_range is small
-
-// vector of vector, each vector is a {M, N, lda, ldb};
-// add/delete as a group
-const vector<vector<int>> small_matrix_size_range = {
-    {-1, -1, 1, 1}, {10, 10, 20, 100},
-};
-
-const vector<vector<int>> medium_matrix_size_range = {
-    {192, 192, 192, 192}, {600, 500, 600, 600}, {800, 700, 801, 701},
-};
-
-const vector<vector<int>> large_matrix_size_range = {
-    {640, 640, 960, 960},
-    {1000, 1000, 1000, 1000},
-    {1024, 1024, 1024, 1024},
-    {2000, 2000, 2000, 2000},
-};
-
-const vector<double> alpha_range = {1.0, -5.0};
-
-// vector of vector, each pair is a {side, uplo, transA, diag};
-// side has two option "Lefe (L), Right (R)"
-// uplo has two "Lower (L), Upper (U)"
-// transA has three ("Nontranspose (N), conjTranspose(C), transpose (T)")
-// for single/double precision, 'C'(conjTranspose) will downgraded to 'T' (transpose) automatically
-// in strsm/dtrsm,
-// so we use 'C'
-// Diag has two options ("Non-unit (N), Unit (U)")
-
-// Each letter is capitalizied, e.g. do not use 'l', but use 'L' instead.
-
-const vector<vector<char>> side_uplo_transA_diag_range = {
-    {'L', 'L', 'N', 'N'}, {'R', 'L', 'N', 'N'}, {'L', 'U', 'C', 'N'},
-};
-
-// has all the 16 options
-const vector<vector<char>> full_side_uplo_transA_diag_range = {
-    {'L', 'L', 'N', 'N'},
-    {'R', 'L', 'N', 'N'},
-    {'L', 'U', 'N', 'N'},
-    {'R', 'U', 'N', 'N'},
-    {'L', 'L', 'C', 'N'},
-    {'R', 'L', 'C', 'N'},
-    {'L', 'U', 'C', 'N'},
-    {'R', 'U', 'C', 'N'},
-    {'L', 'L', 'N', 'U'},
-    {'R', 'L', 'N', 'U'},
-    {'L', 'U', 'N', 'U'},
-    {'R', 'U', 'N', 'U'},
-    {'L', 'L', 'C', 'U'},
-    {'R', 'L', 'C', 'U'},
-    {'L', 'U', 'C', 'U'},
-    {'R', 'U', 'C', 'U'},
-};
-
-/* ===============Google Unit Test==================================================== */
-
-/* =====================================================================
-     BLAS-3 trsm:
-=================================================================== */
-
-/* ============================Setup Arguments======================================= */
-
-// Please use "class Arguments" (see utility.hpp) to pass parameters to templated testers;
-// Some routines may not touch/use certain "members" of objects "argus".
-// like BLAS-1 Scal does not have lda, BLAS-2 GEMV does not have ldb, ldc;
-// That is fine. These testers & routines will leave untouched members alone.
-// Do not use std::tuple to directly pass parameters to testers
-// by std:tuple, you have unpack it with extreme care for each one by like "std::get<0>" which is
-// not intuitive and error-prone
-
-Arguments setup_trsm_arguments(trsm_tuple tup)
+// By default, this test does not apply to any types.
+// The unnamed second parameter is used for enable_if below.
+template <typename T, typename = void>
+struct trsm_testing : rocblas_test_invalid
 {
-
-    vector<int> matrix_size            = std::get<0>(tup);
-    double alpha                       = std::get<1>(tup);
-    vector<char> side_uplo_transA_diag = std::get<2>(tup);
-
-    Arguments arg;
-
-    // see the comments about matrix_size_range above
-    arg.M   = matrix_size[0];
-    arg.N   = matrix_size[1];
-    arg.lda = matrix_size[2];
-    arg.ldb = matrix_size[3];
-
-    arg.alpha = alpha;
-
-    arg.side_option   = side_uplo_transA_diag[0];
-    arg.uplo_option   = side_uplo_transA_diag[1];
-    arg.transA_option = side_uplo_transA_diag[2];
-    arg.diag_option   = side_uplo_transA_diag[3];
-
-    arg.timing = 0;
-
-    return arg;
-}
-
-class trsm_gtest : public ::TestWithParam<trsm_tuple>
-{
-    protected:
-    trsm_gtest() {}
-    virtual ~trsm_gtest() {}
-    virtual void SetUp() {}
-    virtual void TearDown() {}
 };
 
-TEST_P(trsm_gtest, float)
+// When the condition in the second argument is satisfied, the type combination
+// is valid. When the condition is false, this specialization does not apply.
+template <typename T>
+struct trsm_testing<
+    T,
+    typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value>::type>
 {
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-    Arguments arg = setup_trsm_arguments(GetParam());
-
-    rocblas_status status = testing_trsm<float>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg)
     {
-
-        if(arg.M < 0 || arg.N < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.side_option == 'L' ? arg.lda < arg.M : arg.lda < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldb < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
+        if(!strcmp(arg.function, "testing_trsm"))
+            testing_trsm<T>(arg);
+        else
+            FAIL() << "Internal error: Test called with unknown function: " << arg.function;
     }
-}
+};
 
-TEST_P(trsm_gtest, double)
+struct trsm : RocBLAS_Test<trsm, trsm_testing>
 {
-    // GetParam return a tuple. Tee setup routine unpack the tuple
-    // and initializes arg(Arguments) which will be passed to testing routine
-    // The Arguments data struture have physical meaning associated.
-    // while the tuple is non-intuitive.
-
-    Arguments arg = setup_trsm_arguments(GetParam());
-
-    rocblas_status status = testing_trsm<double>(arg);
-
-    // if not success, then the input argument is problematic, so detect the error message
-    if(status != rocblas_status_success)
+    // Filter for which types apply to this suite
+    static bool type_filter(const Arguments& arg)
     {
-
-        if(arg.M < 0 || arg.N < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.side_option == 'L' ? arg.lda < arg.M : arg.lda < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldb < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
+        return rocblas_simple_dispatch<type_filter_functor>(arg);
     }
-}
 
-// notice we are using vector of vector
-// so each elment in xxx_range is a avector,
-// ValuesIn take each element (a vector) and combine them and feed them to test_p
-// The combinations are  { {M, N, lda, ldb}, alpha, {side, uplo, transA, diag} }
+    // Filter for which functions apply to this suite
+    static bool function_filter(const Arguments& arg)
+    {
+        return !strcmp(arg.function, "testing_trsm");
+    }
 
-// These function mainly test the scope of matrix_size. the scope of side_uplo_transA_diag_range is
-// small
-// Testing order: side_uplo_transA_xx first, alpha_range second, full_matrix_size last
-// i.e fix the matrix size and alpha, test all the side_uplo_transA_xx first.
-// INSTANTIATE_TEST_CASE_P(rocblas_trsm_matrix_size,
-INSTANTIATE_TEST_CASE_P(quick_blas3,
-                        trsm_gtest,
-                        Combine(ValuesIn(small_matrix_size_range),
-                                ValuesIn(alpha_range),
-                                ValuesIn(full_side_uplo_transA_diag_range)));
+    // Goggle Test name suffix based on parameters
+    static std::string name_suffix(const Arguments& arg)
+    {
+        return RocBLAS_TestName<trsm>()
+               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.side)
+               << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
+               << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
+               << '_' << arg.lda << '_' << arg.ldb;
+    }
+};
 
-INSTANTIATE_TEST_CASE_P(pre_checkin_blas3,
-                        trsm_gtest,
-                        Combine(ValuesIn(medium_matrix_size_range),
-                                ValuesIn(alpha_range),
-                                ValuesIn(full_side_uplo_transA_diag_range)));
+TEST_P(trsm, blas3) { rocblas_simple_dispatch<trsm_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(trsm);
 
-// THis function mainly test the scope of  full_side_uplo_transA_diag_range,.the scope of
-// matrix_size_range is small
-INSTANTIATE_TEST_CASE_P(nightly_blas3,
-                        trsm_gtest,
-                        Combine(ValuesIn(large_matrix_size_range),
-                                ValuesIn(alpha_range),
-                                ValuesIn(side_uplo_transA_diag_range)));
+} // namespace

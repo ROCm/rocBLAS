@@ -1,0 +1,63 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &incx_incy_range
+    - { incx:  1, incy:  1 }
+    - { incx:  1, incy:  2 }
+    - { incx:  2, incy:  1 }
+    - { incx:  1, incy: -1 }
+    - { incx: -1, incy:  1 }
+    - { incx: -1, incy: -1 }
+
+  - &alpha_beta_range
+    - { alpha:  1.0, beta:  0.0 }
+    - { alpha:  2.0, beta: -1.0 }
+
+Tests:
+- name: blas1
+  category: quick
+  N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  function:
+    - testing_nrm2:  *single_double_precisions
+    - testing_asum:  *single_double_precisions
+    - testing_iamax: *single_double_precisions
+#   - testing_iamin: *single_double_precisions
+    - testing_axpy:  *half_single_double_precisions
+    - testing_copy:  *single_double_precisions
+    - testing_dot:   *single_double_precisions
+    - testing_scal:  *single_double_precisions
+    - testing_swap:  *single_double_precisions
+
+- name: blas1
+  category: pre_checkin
+  N: [ 1048576, 1049600, 4000000, 8000000 ]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  function:
+    - testing_nrm2:  *double_precision
+    - testing_asum:  *double_precision
+    - testing_iamax: *single_double_precisions
+#   - testing_iamin: *single_double_precisions
+    - testing_axpy:  *half_single_double_precisions
+    - testing_copy:  *single_double_precisions
+    - testing_dot:   *double_precision
+    - testing_scal:  *single_double_precisions
+    - testing_swap:  *single_double_precisions
+
+- name: blas1_bad_arg
+  category: pre_checkin
+  function:
+    - testing_nrm2_bad_arg:  *single_double_precisions
+    - testing_asum_bad_arg:  *single_double_precisions
+    - testing_iamax_bad_arg: *single_double_precisions
+    - testing_iamin_bad_arg: *single_double_precisions
+    - testing_axpy_bad_arg:  *half_single_double_precisions
+    - testing_copy_bad_arg:  *single_double_precisions
+    - testing_dot_bad_arg:   *single_double_precisions
+    - testing_scal_bad_arg:  *single_double_precisions
+    - testing_swap_bad_arg:  *single_double_precisions
+...

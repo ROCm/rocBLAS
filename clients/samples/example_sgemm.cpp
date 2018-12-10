@@ -2,50 +2,8 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <vector>
-#include <limits>
+#include "utility.hpp"
 #include "rocblas.h"
-#include <iostream>
-
-using namespace std;
-
-#ifndef CHECK_HIP_ERROR
-#define CHECK_HIP_ERROR(error)                    \
-    if(error != hipSuccess)                       \
-    {                                             \
-        fprintf(stderr,                           \
-                "Hip error: '%s'(%d) at %s:%d\n", \
-                hipGetErrorString(error),         \
-                error,                            \
-                __FILE__,                         \
-                __LINE__);                        \
-        exit(EXIT_FAILURE);                       \
-    }
-#endif
-
-#ifndef CHECK_ROCBLAS_ERROR
-#define CHECK_ROCBLAS_ERROR(error)                              \
-    if(error != rocblas_status_success)                         \
-    {                                                           \
-        fprintf(stderr, "rocBLAS error: ");                     \
-        if(error == rocblas_status_invalid_handle)              \
-            fprintf(stderr, "rocblas_status_invalid_handle");   \
-        if(error == rocblas_status_not_implemented)             \
-            fprintf(stderr, " rocblas_status_not_implemented"); \
-        if(error == rocblas_status_invalid_pointer)             \
-            fprintf(stderr, "rocblas_status_invalid_pointer");  \
-        if(error == rocblas_status_invalid_size)                \
-            fprintf(stderr, "rocblas_status_invalid_size");     \
-        if(error == rocblas_status_memory_error)                \
-            fprintf(stderr, "rocblas_status_memory_error");     \
-        if(error == rocblas_status_internal_error)              \
-            fprintf(stderr, "rocblas_status_internal_error");   \
-        fprintf(stderr, "\n");                                  \
-        exit(EXIT_FAILURE);                                     \
-    }
-#endif
 
 #define DIM1 1023
 #define DIM2 1024
@@ -89,14 +47,14 @@ int main()
     rocblas_int m = DIM1, n = DIM2, k = DIM3;
     rocblas_int lda, ldb, ldc, size_a, size_b, size_c;
     int a_stride_1, a_stride_2, b_stride_1, b_stride_2;
-    cout << "sgemm example" << endl;
+    std::cout << "sgemm example" << std::endl;
     if(transa == rocblas_operation_none)
     {
         lda        = m;
         size_a     = k * lda;
         a_stride_1 = 1;
         a_stride_2 = lda;
-        cout << "N";
+        std::cout << "N";
     }
     else
     {
@@ -104,7 +62,7 @@ int main()
         size_a     = m * lda;
         a_stride_1 = lda;
         a_stride_2 = 1;
-        cout << "T";
+        std::cout << "T";
     }
     if(transb == rocblas_operation_none)
     {
@@ -112,7 +70,7 @@ int main()
         size_b     = n * ldb;
         b_stride_1 = 1;
         b_stride_2 = ldb;
-        cout << "N: ";
+        std::cout << "N: ";
     }
     else
     {
@@ -120,16 +78,16 @@ int main()
         size_b     = k * ldb;
         b_stride_1 = ldb;
         b_stride_2 = 1;
-        cout << "T: ";
+        std::cout << "T: ";
     }
     ldc    = m;
     size_c = n * ldc;
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
-    vector<float> ha(size_a);
-    vector<float> hb(size_b);
-    vector<float> hc(size_c);
-    vector<float> hc_gold(size_c);
+    std::vector<float> ha(size_a);
+    std::vector<float> hb(size_b);
+    std::vector<float> hc(size_c);
+    std::vector<float> hc_gold(size_c);
 
     // initial data on host
     srand(1);
@@ -167,10 +125,10 @@ int main()
     // copy output from device to CPU
     CHECK_HIP_ERROR(hipMemcpy(hc.data(), dc, sizeof(float) * size_c, hipMemcpyDeviceToHost));
 
-    cout << "m, n, k, lda, ldb, ldc = " << m << ", " << n << ", " << k << ", " << lda << ", " << ldb
-         << ", " << ldc << endl;
+    std::cout << "m, n, k, lda, ldb, ldc = " << m << ", " << n << ", " << k << ", " << lda << ", "
+              << ldb << ", " << ldc << std::endl;
 
-    float max_relative_error = numeric_limits<float>::min();
+    float max_relative_error = std::numeric_limits<float>::min();
 
     // calculate golden or correct result
     mat_mat_mult<float>(alpha,
@@ -195,15 +153,15 @@ int main()
         max_relative_error =
             relative_error < max_relative_error ? max_relative_error : relative_error;
     }
-    float eps       = numeric_limits<float>::epsilon();
+    float eps       = std::numeric_limits<float>::epsilon();
     float tolerance = 10;
     if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
     {
-        cout << "FAIL: max_relative_error = " << max_relative_error << endl;
+        std::cout << "FAIL: max_relative_error = " << max_relative_error << std::endl;
     }
     else
     {
-        cout << "PASS: max_relative_error = " << max_relative_error << endl;
+        std::cout << "PASS: max_relative_error = " << max_relative_error << std::endl;
     }
 
     CHECK_HIP_ERROR(hipFree(da));

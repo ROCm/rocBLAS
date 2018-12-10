@@ -1,0 +1,47 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &medium_matrix_size_range
+    - { N:    -1, lda:   -1 }
+    - { N:    10, lda:    2 }
+    - { N:   500, lda:  500 }
+
+  - &large_matrix_size_range
+    - { N:  1000, lda:  1000 }
+    - { N:  2000, lda:  2000 }
+    - { N:  4011, lda:  4011 }
+    - { N:  8000, lda:  8000 }
+
+  - &incx_incy_range
+    - { incx:   1, incy:   1 }
+    - { incx:   0, incy:  -1 }
+    - { incx:   2, incy:   1 }
+    - { incx:  10, incy: 100 }
+
+  - &alpha_beta_range
+    - { alpha:  1.0, beta:  0.0 }
+    - { alpha: -1.0, beta: -1.0 }
+    - { alpha:  2.0, beta:  1.0 }
+    - { alpha:  0.0, beta:  1.0 }
+
+Tests:
+- name: symv_medium
+  category: pre_checkin
+  function: testing_symv
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+
+- name: symv_large
+  category: nightly
+  function: testing_symv
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *large_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+...

@@ -249,7 +249,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     dim3 grid_trtri(2, 1, 1);
     dim3 threads(IB, 1, 1);
 
-    // first stage: invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in
+    // first stage: invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA
     hipLaunchKernelGGL((trtri_diagonal_kernel<T, IB>),
                        dim3(grid_trtri),

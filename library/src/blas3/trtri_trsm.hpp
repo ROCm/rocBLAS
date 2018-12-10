@@ -239,7 +239,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
 
         */
 
-        // invert IB * IB diagoanl blocks of A and write the result of invA11 and invA22 in invA
+        // invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in invA
 
         hipLaunchKernelGGL((trtri_trsm_kernel<T, NB, IB, IBD>),
                            dim3(grid),

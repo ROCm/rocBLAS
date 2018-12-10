@@ -14,6 +14,8 @@
 #include "logging.h"
 #include "utility.h"
 
+static constexpr float infinity = INFINITY;
+
 template <typename T1, typename T2, rocblas_int NB>
 __global__ void iamin_kernel_part1(
     rocblas_int n, const T1* x, rocblas_int incx, T2* workspace, rocblas_int* workspace_index)
@@ -27,18 +29,16 @@ __global__ void iamin_kernel_part1(
     // bound
     if(tid < n)
     {
-        T2 real        = fetch_real<T1, T2>(x[tid * incx]);
-        T2 imag        = fetch_imag<T1, T2>(x[tid * incx]);
-        shared_tep[tx] = fabs(real) + fabs(imag);
+        shared_tep[tx] = fetch_asum<T1, T2>(x[tid * incx]);
         index[tx]      = tid;
     }
     else
-    { // pad with zero
-        shared_tep[tx] = 0.0;
+    { // pad with infinity
+        shared_tep[tx] = infinity;
         index[tx]      = -1;
     }
 
-    rocblas_maxid_reduce<NB, T2>(tx, shared_tep, index);
+    rocblas_minid_reduce<NB, T2>(tx, shared_tep, index);
 
     if(tx == 0)
     {
@@ -56,7 +56,7 @@ iamin_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, ro
     __shared__ T shared_tep[NB];
     __shared__ rocblas_int index[NB];
 
-    shared_tep[tx] = 0.0;
+    shared_tep[tx] = infinity;
     index[tx]      = -1;
 
     // bound, loop
@@ -66,7 +66,7 @@ iamin_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, ro
         {
             index[tx] = min(index[tx], workspace_index[i]); // if equal take the smaller index
         }
-        else if(shared_tep[tx] < workspace[i]) // if smaller, then take the bigger one
+        else if(shared_tep[tx] > workspace[i]) // if larger, then take the smaller one
         {
             shared_tep[tx] = workspace[i];
             index[tx]      = workspace_index[i];
@@ -75,17 +75,18 @@ iamin_kernel_part2(rocblas_int n, T* workspace, rocblas_int* workspace_index, ro
 
     __syncthreads();
 
-    rocblas_maxid_reduce<NB, T>(tx, shared_tep, index);
+    rocblas_minid_reduce<NB, T>(tx, shared_tep, index);
 
     if(tx == 0)
     {
         if(flag)
         {
             // flag == 1, write the result on device memory
-            *result = index[0]; // result[0] works, too
+            // return Fortran 1 based index as in BLAS standard, not C zero based index
+            *result = index[0] + 1; // result[0] works, too
         }
         else // if flag == 0, cannot write to result which is in host memory, instead write to
-             // worksapce
+             // workspace
         {
             workspace_index[0] = index[0];
         }
@@ -107,7 +108,6 @@ rocblas_status rocblas_iamin_template_workspace(rocblas_handle handle,
                                                 rocblas_int* workspace_index,
                                                 rocblas_int lworkspace)
 {
-
     rocblas_int blocks = (n - 1) / NB_X + 1;
 
     // At least two kernels are needed to finish the reduction
@@ -158,6 +158,7 @@ rocblas_status rocblas_iamin_template_workspace(rocblas_handle handle,
         // printf("it is a host pointer\n");
         // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
         if(blocks > 1)
+        {
             hipLaunchKernelGGL((iamin_kernel_part2<T2, NB_X, 0>),
                                dim3(1, 1, 1),
                                dim3(threads),
@@ -167,10 +168,13 @@ rocblas_status rocblas_iamin_template_workspace(rocblas_handle handle,
                                workspace,
                                workspace_index,
                                result);
+        }
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(result, workspace_index, sizeof(rocblas_int), hipMemcpyDeviceToHost));
-    }
+            hipMemcpy(result, workspace_index, sizeof(*result), hipMemcpyDeviceToHost));
 
+        // return Fortran 1 based index as in the BLAS standard, not C zero based index
+        *result += 1;
+    }
     return rocblas_status_success;
 }
 
@@ -205,16 +209,16 @@ template <typename T1, typename T2>
 rocblas_status rocblas_iamin_template(
     rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, rocblas_int* result)
 {
-    if(handle == nullptr)
+    if(nullptr == handle)
         return rocblas_status_invalid_handle;
 
     log_trace(handle, replaceX<T1>("rocblas_iXamin"), n, (const void*&)x, incx);
 
     log_bench(handle, "./rocblas-bench -f iamin -r", replaceX<T1>("X"), "-n", n, "--incx", incx);
 
-    if(x == nullptr)
+    if(nullptr == x)
         return rocblas_status_invalid_pointer;
-    else if(result == nullptr)
+    else if(nullptr == result)
         return rocblas_status_invalid_pointer;
 
     /*
@@ -224,11 +228,11 @@ rocblas_status rocblas_iamin_template(
     {
         if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
-            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T2)));
+            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
         }
         else
         {
-            *result = 0.0;
+            *result = 0;
         }
         return rocblas_status_success;
     }

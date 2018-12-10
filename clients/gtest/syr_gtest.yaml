@@ -1,0 +1,56 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { N:     1, lda:     1 }
+    - { N:    -1, lda:     1 }
+    - { N:     1, lda:    -1 }
+    - { N:     0, lda:     1 }
+    - { N:     1, lda:     0 }
+    - { N:     0, lda:     0 }
+    - { N:    10, lda:     9 }
+    - { N:    11, lda:    12 }
+    - { N:    16, lda:    16 }
+    - { N:    33, lda:    32 }
+    - { N:    65, lda:    66 }
+
+  - &medium_matrix_size_range
+    - { N:  1000, lda:  1000 }
+    - { N:  2011, lda:  2011 }
+    - { N:  3000, lda:  3000 }
+
+  - &large_matrix_size_range
+    - { N:  2000, lda:  2000 }
+    - { N:  4011, lda:  4011 }
+    - { N:  8000, lda:  8000 }
+
+Tests:
+- name: syr_small
+  category: quick
+  function: testing_syr
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  alpha: [ -0.5, 2.0, 0.0 ]
+
+- name: syr_medium
+  category: pre_checkin
+  function: testing_syr
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx: [ 0, 2, -2 ]
+  alpha: [ -0.5, 2.0 ]
+
+- name: sry_large
+  category: nightly
+  function: testing_syr
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *large_matrix_size_range
+  incx: [ 1000 ]
+  alpha: [ 1000.6 ]
+...
