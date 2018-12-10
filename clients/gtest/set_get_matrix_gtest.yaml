@@ -1,0 +1,60 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &M_N_range
+    - { M:  3, N:  3 }
+    - { M:  3, N: 30 }
+    - { M: 30, N:  3 }
+
+  - &lda_ldb_ldc_range
+    - { lda:  3, ldb: 3..5, ldc: 3..5 }
+    - { lda:  5, ldb: 3..5, ldc: 3..5 }
+    - { lda: 30, ldb:   30, ldc:   30 }
+    - { lda: 31, ldb:   32, ldc:   33 }
+
+  - &small_gemm_values
+    - { M: 30000, N:    21, lda: 30000, ldb: 30001, ldc: 30002 }
+    - { M:    20, N: 30000, lda:    20, ldb:    21, ldc:    22 }
+
+  - &large_gemm_values
+    - { M: 300000, N:      21, lda: 300000, ldb: 300001, ldc: 300002 }
+    - { M: 300001, N:      22, lda: 300001, ldb: 300001, ldc: 300010 }
+    - { M: 300002, N:      23, lda: 300002, ldb: 300020, ldc: 300002 }
+    - { M: 300003, N:      24, lda: 300003, ldb: 300021, ldc: 300011 }
+    - { M: 300004, N:      25, lda: 300030, ldb: 300004, ldc: 300000 }
+    - { M: 300005, N:      26, lda: 300031, ldb: 300005, ldc: 300012 }
+    - { M: 300006, N:      27, lda: 300032, ldb: 300022, ldc: 300006 }
+    - { M: 300007, N:      28, lda: 300033, ldb: 300023, ldc: 300013 }
+    - { M:     20, N:  300000, lda:     20, ldb:     21, ldc:     22 }
+    - { M:     21, N:  300001, lda:     21, ldb:     21, ldc:     40 }
+    - { M:     22, N:  300011, lda:     22, ldb:     31, ldc:     22 }
+    - { M:     23, N:  300111, lda:     23, ldb:     32, ldc:     33 }
+    - { M:     24, N:  301111, lda:     34, ldb:     24, ldc:     24 }
+    - { M:     25, N:  311111, lda:     35, ldb:     25, ldc:     36 }
+    - { M:     26, N:  300002, lda:     37, ldb:     38, ldc:     36 }
+    - { M:     27, N:  300022, lda:     39, ldb:     40, ldc:     41 }
+    - { M:      3, N: 3000222, lda:      4, ldb:      4, ldc:      4 }
+    - { M:  16700, N:   16700, lda:  16700, ldb:  16700, ldc:  16700 }
+
+Tests:
+- name: auxilliary_1
+  category: quick
+  function: testing_set_get_matrix
+  precision: *single_double_precisions
+  matrix_size: *M_N_range
+  arguments: *lda_ldb_ldc_range
+
+- name: auxilliary_2
+  category: quick
+  function: testing_set_get_matrix
+  precision: *single_double_precisions
+  matrix_size: *small_gemm_values
+
+- name: auxilliary
+  category: pre_checkin
+  function: testing_set_get_matrix
+  precision: *single_double_precisions
+  matrix_size: *large_gemm_values
+...

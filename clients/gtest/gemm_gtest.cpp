@@ -1,130 +1,195 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <gtest/gtest.h>
+#include <type_traits>
+#include <cstring>
+#include <cctype>
+#include "rocblas_test.hpp"
+#include "rocblas_data.hpp"
+#include "rocblas_datatype2char.hpp"
 #include "testing_gemm.hpp"
-#include <unordered_map>
-
-#include <algorithm>
-#include <list>
-#include <future>
-#include <thread>
-//#include <omp.h>
-
-using namespace std;
-
-/* =====================================================================
-     BLAS-3 GEMM:
-   =================================================================== */
+#include "testing_gemm_ex.hpp"
+#include "testing_gemm_strided_batched.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
+#include "type_dispatch.hpp"
 
 namespace {
 
-// GEMM testing class
-struct gemm : ::testing::TestWithParam<Arguments>
+// Types of GEMM tests
+enum gemm_test_type
 {
-    // Filter for which tests get into gemm right now
-    static function<bool(const Arguments&)> filter()
+    GEMM,
+    GEMM_EX,
+    GEMM_STRIDED_BATCHED,
+    GEMM_STRIDED_BATCHED_EX,
+};
+
+// ----------------------------------------------------------------------------
+// GEMM testing template
+// ----------------------------------------------------------------------------
+// The first template parameter is a class template which determines which
+// combination of types applies to this test, and for those that do, instantiates
+// the test code based on the function named in the test Arguments. The second
+// template parameter is an enum which allows the 4 different flavors of GEMM to
+// be differentiated.
+//
+// The RocBLAS_Test base class takes this class (CRTP) and the first template
+// parameter as arguments, and provides common types such as type_filter_functor,
+// and derives from the Google Test parameterized base classes.
+//
+// This class defines functions for filtering the types and function names which
+// apply to this test, and for generating the suffix of the Google Test name
+// corresponding to each instance of this test.
+template <template <typename...> class FILTER, gemm_test_type GEMM_TYPE>
+struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, FILTER>
+{
+    // Filter for which types apply to this suite
+    static bool type_filter(const Arguments& arg)
     {
-        return [](const Arguments& arg) {
+        return rocblas_gemm_dispatch<gemm_test_template::template type_filter_functor>(arg);
+    }
+
+    // Filter for which functions apply to this suite
+    static bool function_filter(const Arguments& arg)
+    {
+        switch(GEMM_TYPE)
+        {
+        case GEMM:
             return !strcmp(arg.function, "testing_gemm") ||
                    !strcmp(arg.function, "testing_gemm_NaN") ||
                    !strcmp(arg.function, "testing_gemm_bad_arg");
-        };
+
+        case GEMM_EX:
+            return !strcmp(arg.function, "testing_gemm_ex") ||
+                   !strcmp(arg.function, "testing_gemm_ex_bad_arg");
+
+        case GEMM_STRIDED_BATCHED: return !strcmp(arg.function, "testing_gemm_strided_batched");
+
+        case GEMM_STRIDED_BATCHED_EX:
+            return !strcmp(arg.function, "testing_gemm_strided_batched_ex") ||
+                   !strcmp(arg.function, "testing_gemm_strided_batched_ex_bad_arg");
+        }
+
+        return false;
     }
 
-    struct PrintToStringParamName
+    // Goggle Test name suffix based on parameters
+    static std::string name_suffix(const Arguments& arg)
     {
-        template <class ParamType>
-        string operator()(const ParamType& info) const
-        {
-            auto arg = info.param;
-            static unordered_map<string, size_t> hit;
-            ostringstream strm;
-            strm << rocblas_datatype2char(arg.a_type) << '_' << arg.transA_option << '_'
-                 << arg.transB_option << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_'
-                 << arg.lda << '_' << arg.ldb << '_' << arg.ldc << '_' << arg.alpha << '_'
-                 << arg.beta;
-            return normalized_test_name(strm.str(), hit);
-        }
-    };
+        RocBLAS_TestName<gemm_test_template> name;
+        name << rocblas_datatype2char(arg.a_type);
+
+        if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            name << rocblas_datatype2char(arg.b_type) << rocblas_datatype2char(arg.c_type)
+                 << rocblas_datatype2char(arg.d_type) << rocblas_datatype2char(arg.compute_type);
+
+        name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB) << '_'
+             << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda << '_'
+             << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
+
+        if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            name << '_' << arg.ldd;
+
+        if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            name << '_' << arg.batch_count << '_' << arg.stride_a << '_' << arg.stride_b << '_'
+                 << arg.stride_c;
+
+        return std::move(name);
+    }
 };
 
-template <class... T>
-void testit(const Arguments& arg)
-{
-    if(!strcmp(arg.function, "testing_gemm"))
-    {
-        rocblas_status status = testing_gemm<T...>(arg);
+// ----------------------------------------------------------------------------
+// gemm
+// gemm_strided_batched
+// ----------------------------------------------------------------------------
 
-        if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transA_option == 'N' ? arg.lda < arg.M : arg.lda < arg.K)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.transB_option == 'N' ? arg.ldb < arg.K : arg.ldb < arg.N)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
-        else if(arg.ldc < arg.M)
-        {
-            EXPECT_EQ(rocblas_status_invalid_size, status);
-        }
+// In the general case of <Ti, To, Tc>, these tests do not apply, and if this
+// functor is called, an internal error message is generated. When converted
+// to bool, this functor returns false.
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct gemm_testing : rocblas_test_invalid
+{
+};
+
+// When Ti = To = Tc != void, this test applies.
+// When converted to bool, this functor returns true.
+// Complex is not supported yet.
+template <typename T>
+struct gemm_testing<T,
+                    T,
+                    T,
+                    typename std::enable_if<!std::is_same<T, void>::value && !is_complex<T>>::type>
+{
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "testing_gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_NaN"))
+            testing_gemm_NaN<T>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+            testing_gemm_bad_arg<T>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
         else
-        {
-            EXPECT_EQ(rocblas_status_success, status);
-        }
+            FAIL() << "Internal error: Test called with unknown function: " << arg.function;
     }
-    else if(!strcmp(arg.function, "testing_gemm_NaN"))
-    {
-        testing_gemm_NaN<T...>(arg);
-    }
-    else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
-    {
-        testing_gemm_bad_arg<T...>();
-    }
-    else
-    {
-        FAIL() << "Unknown test type.";
-    }
-}
+};
 
-TEST_P(gemm, test)
+using gemm = gemm_test_template<gemm_testing, GEMM>;
+TEST_P(gemm, blas3) { rocblas_gemm_dispatch<gemm_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(gemm);
+
+using gemm_strided_batched = gemm_test_template<gemm_testing, GEMM_STRIDED_BATCHED>;
+TEST_P(gemm_strided_batched, blas3) { rocblas_gemm_dispatch<gemm_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
+
+// ----------------------------------------------------------------------------
+// gemm_ex
+// gemm_strided_batched_ex
+// ----------------------------------------------------------------------------
+
+// In the general case of <Ti, To, Tc>, these tests do not apply, and if this
+// functor is called, an internal error message is generated. When converted
+// to bool, this functor returns false.
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct gemm_ex_testing : rocblas_test_invalid
 {
-    const Arguments& arg = GetParam();
-    switch(arg.a_type)
+};
+
+// When Ti != void, this test applies.
+// When converted to bool, this functor returns true.
+// Complex is not supported yet.
+template <typename Ti, typename To, typename Tc>
+struct gemm_ex_testing<
+    Ti,
+    To,
+    Tc,
+    typename std::enable_if<!std::is_same<Ti, void>::value && !is_complex<Ti>>::type>
+{
+    explicit operator bool() { return true; }
+
+    void operator()(const Arguments& arg)
     {
-    default: FAIL() << "Unknown data type"; break;
-    case rocblas_datatype_f64_r: return testit<double>(arg);
-    case rocblas_datatype_f32_r: return testit<float>(arg);
-    case rocblas_datatype_f16_r:
-        return testit<half>(arg);
-        // case rocblas_datatype_f64_c: return testit<rocblas_double_complex>(arg);
-        // case rocblas_datatype_f32_c: return testit<rocblas_float_complex>(arg);
-        // case rocblas_datatype_f16_c: return testit<rocblas_half_complex>(arg);
-        //
-        // TODO:^   NOTE: testit<...> is ready for multiple data types, if
-        // a_type, c_type, compute_type, etc. need to be passed separately.
+        if(!strcmp(arg.function, "testing_gemm_ex"))
+            testing_gemm_ex<Ti, To, Tc>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_ex_bad_arg"))
+            testing_gemm_ex_bad_arg<Ti, To, Tc>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_strided_batched_ex"))
+            testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
+        else if(!strcmp(arg.function, "testing_gemm_strided_batched_ex_bad_arg"))
+            testing_gemm_strided_batched_ex_bad_arg<Ti, To, Tc>(arg);
+        else
+            FAIL() << "Internal error: Test called with unknown function: " << arg.function;
     }
-}
+};
 
-// The tests are instantiated by filtering through the RocBLAS_Data stream
-#define INSTANTIATE_CATEGORY(cat)                                                                  \
-    INSTANTIATE_TEST_CASE_P(cat,                                                                   \
-                            gemm,                                                                  \
-                            ::testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                    return !strcmp(arg.category, #cat) &&          \
-                                                           gemm::filter()(arg);                    \
-                                                }),                                                \
-                                                RocBLAS_TestData::end()),                          \
-                            gemm::PrintToStringParamName());
+using gemm_ex = gemm_test_template<gemm_ex_testing, GEMM_EX>;
+TEST_P(gemm_ex, blas3) { rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(gemm_ex);
 
-INSTANTIATE_CATEGORY(quick)
-INSTANTIATE_CATEGORY(pre_checkin)
-INSTANTIATE_CATEGORY(nightly)
-INSTANTIATE_CATEGORY(known_bug)
+using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
+TEST_P(gemm_strided_batched_ex, blas3) { rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()); }
+INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
 
 } // namespace
