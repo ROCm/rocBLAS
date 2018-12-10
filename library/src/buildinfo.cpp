@@ -13,12 +13,14 @@
 
 #define TO_STR2(x) #x
 #define TO_STR(x) TO_STR2(x)
-#define VERSION_STRING \
+// clang-format off
+#define VERSION_STRING                 \
     (TO_STR(ROCBLAS_VERSION_MAJOR) "." \
-TO_STR(ROCBLAS_VERSION_MINOR) "." \
-TO_STR(ROCBLAS_VERSION_PATCH) "." \
-TO_STR(ROCBLAS_VERSION_TWEAK))
-
+     TO_STR(ROCBLAS_VERSION_MINOR) "." \
+     TO_STR(ROCBLAS_VERSION_PATCH) "." \
+     TO_STR(ROCBLAS_VERSION_TWEAK) "-" \
+     TO_STR(ROCBLAS_VERSION_COMMIT_ID))
+// clang-format on
 /*******************************************************************************
  *! \brief   loads char* buf with the rocblas library version. size_t len
      is the maximum length of char* buf.

@@ -128,7 +128,18 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-rocm_setup_version( VERSION 0.14.3.5 PARSE_VERSION )
+set ( VERSION_STRING "2.0.0." )
+# Check if BUILD_NUMBER is defined in a Jenkins envirnment
+if ($ENV{BUILD_NUMBER} )
+  string(CONCAT BUILD_VERSION ${VERSION_STRING} $ENV{BUILD_NUMBER}) 
+else ()
+  string(CONCAT BUILD_VERSION ${VERSION_STRING} "0") 
+endif ()
+rocm_setup_version( VERSION ${BUILD_VERSION} NO_GIT_TAG_VERSION )
+
+# Get the git tag version
+include ( cmake/version.cmake )
+rocm_get_git_commit_id ( rocblas_VERSION_COMMIT_ID )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
@@ -166,7 +177,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 4441b958ce09d91701b25fb2d006b29a2cb2b4f9 CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 7e50085d9e310349152f686275d0ad98cc58b130 CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/ROCmSoftwarePlatform/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
