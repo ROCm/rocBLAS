@@ -165,7 +165,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'rocfft', u'rocBLAS Documentation',
+    (master_doc, 'rocblas', u'rocBLAS Documentation',
      [author], 1)
 ]
 
@@ -180,6 +180,3 @@ texinfo_documents = [
      author, 'rocBLAS', 'One line description of project.',
      'Miscellaneous'),
 ]
-
-
-
