@@ -53,13 +53,13 @@ if(!dx || !dy)
 The general outline of the function should be:
 1. Adjust any arguments (e.g. use `float_to_half` when the data type is `rocblas_half`).
 2. If the problem size arguments are invalid, use a `safe_size` to allocate arrays,
-call the rocBLAS routine with the original arugments, and verify that it returns
+call the rocBLAS routine with the original arguments, and verify that it returns
 `rocblas_status_invalid_size`. Return.
 3. Set up host and device arrays (see `rocblas_vector.hpp` and `rocblas_init.hpp`).
 4. Call a CBLAS or other reference implementation on the host arrays.
 5. Call rocBLAS using both device pointer mode and host pointer mode, verifying that
-every rocBLAS call is successful by wrapping it in `ROCBLAS_CHECK_ERROR`.
-6. If `arg.unit_check` is enabled, use `UNIT_CHECK` to validate.
+every rocBLAS call is successful by wrapping it in `ROCBLAS_CHECK_ERROR()`.
+6. If `arg.unit_check` is enabled, use `UNIT_CHECK` to validate results.
 7. (Deprecated) If `arg.norm_check` is enabled, calculate and print out norms.
 8. If `arg.timing` is enabled, perform benchmarking (currently under refactoring).
 
@@ -135,7 +135,7 @@ In the partial specialization(s), create a functional `operator()` which takes a
     }
 };
 ```
-E. If necessary, create a type dispatch function for this function (or group of functions it belongs to) in `include/type_dispatch.hpp`.
+E. If necessary, create a type dispatch function for this function (or group of functions it belongs to) in `include/type_dispatch.hpp`. If possible, use one of the existing dispatch functions, even if it covers a superset of allowable types. The purpose of `type_dispatch.hpp` is to perform runtime type dispatch in a single place, rather than copying it across several test files.
 
 The type dispatch function takes a `template` template parameter of `template<typename...> class` and a function parameter of type `const Arguments&`. It looks at the runtime type values in `Arguments`, and instantiates the template with one or more static type arguments, corresponding to the dynamic runtime type arguments.
 
@@ -237,7 +237,7 @@ using gemm = gemm_test_template<gemm_testing, GEMM>;
 ```
 H. Pass the name created in step G to the `TEST_P` macro, along with a broad test category name that this test belongs to (so that Google Test filtering can be used to select all tests in a category).
 
-In the body following this `TEST_P` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, and passing the result of `GetParam()` as an Arguments structure. For example:
+In the body following this `TEST_P` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, and passing the result of `GetParam()` as an `Arguments` structure. For example:
 ```c++
 TEST_P(gemm, blas3) { rocblas_gemm_dispatch<gemm_testing>(GetParam()); }
 ```
