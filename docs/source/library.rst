@@ -4,7 +4,7 @@
    :caption: Contents:
 
 ======
-rocFFT
+rocBLAS
 ======
 
 Introduction
