@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rocBLAS'
-copyright = u'2016, Advanced Mirco Devices'
+copyright = u'2016-2018, Advanced Mirco Devices'
 author = u'Advanced Mirco Devices'
 
 # The version info for the project you're documenting, acts as replacement for
