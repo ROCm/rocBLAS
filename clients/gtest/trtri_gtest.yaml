@@ -1,0 +1,31 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &matrix_size_range
+    - { N:    -1, lda:    -1 }
+    - { N:    10, lda:    10 }
+    - { N:    20, lda:   160 }
+    - { N:    21, lda:    14 }
+    - { N:    32, lda:    32 }
+#   - { N:   111, lda:   122 }     # Not implemented for n > 32 ?
+
+Tests:
+- name: trtri
+  category: pre_checkin
+  function: testing_trtri
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *matrix_size_range
+
+- name: trtri_batched
+  category: disabled               # Not working right now; wasn't run before
+  function: testing_trtri_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *matrix_size_range
+  batch_count: [ -1, 1, 100, 1000 ]
+...

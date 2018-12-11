@@ -1,0 +1,4 @@
+---
+include: rocblas_common.yaml
+include: dgemm_perf.yaml
+...

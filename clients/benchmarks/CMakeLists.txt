@@ -30,12 +30,7 @@ endif( )
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/flops.cpp
       ../common/norm.cpp
-      ../common/unit.cpp
-      ../common/near.cpp
-      ../common/arg_check.cpp
-      ../common/rocblas_template_specialization.cpp
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
@@ -95,15 +90,15 @@ set( ROCBLAS_DGEMM_PERF_YAML "${CMAKE_CURRENT_BINARY_DIR}/dgemm_perf.yaml")
 add_custom_command( OUTPUT "${ROCBLAS_DGEMM_PERF_YAML}"
                     COMMAND ./dgemm_genperf.py -o "${ROCBLAS_DGEMM_PERF_YAML}"
                     DEPENDS dgemm_genperf.py
-		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-dgemm-perf-yaml
                    DEPENDS "${ROCBLAS_DGEMM_PERF_YAML}" )
 
 set( ROCBLAS_PERF_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_perf.data")
 add_custom_command( OUTPUT "${ROCBLAS_PERF_DATA}"
-                    COMMAND ../common/rocblas_gentest.py perf.yaml -I ../include -I "${CMAKE_CURRENT_BINARY_DIR}" -o "${ROCBLAS_PERF_DATA}"
-                    DEPENDS rocblas-dgemm-perf-yaml perf.yaml ../common/rocblas_gentest.py ../include/rocblas.yaml
-		    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+                    COMMAND ../common/rocblas_gentest.py rocblas_bench.yaml -I ../include -I "${CMAKE_CURRENT_BINARY_DIR}" -o "${ROCBLAS_PERF_DATA}"
+                    DEPENDS rocblas-dgemm-perf-yaml rocblas_bench.yaml ../common/rocblas_gentest.py ../include/rocblas_common.yaml
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-perf-data
                    DEPENDS "${ROCBLAS_PERF_DATA}" )
 

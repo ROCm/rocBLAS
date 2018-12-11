@@ -4,14 +4,16 @@
 ;; a newline at the end of file.
 
 (
- (prog-mode . (
+ (nil . (
   (require-final-newline . t)
   (indent-tabs-mode . nil)
+  (eval add-hook 'before-save-hook 'delete-trailing-whitespace)
+  (eval add-hook 'before-save-hook (lambda () (untabify (point-min) (point-max))))
+ ) )
+ (prog-mode . (
   (tab-width . 4)
   (c-basic-offset . 4)
   (c-file-style . "bsd")
-  (eval add-hook 'before-save-hook 'delete-trailing-whitespace)
-  (eval add-hook 'before-save-hook (lambda () (untabify (point-min) (point-max))))
  ) )
  (asm-mode . (
   (tab-width . 8)
@@ -25,4 +27,4 @@
   (eval require 'yaml-mode)
   (eval set-auto-mode t)
   ) )
- )
+)

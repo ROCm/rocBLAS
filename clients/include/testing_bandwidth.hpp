@@ -1,48 +1,32 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-#include <vector>
-
+#include "rocblas_test.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_vector.hpp"
+#include "rocblas_init.hpp"
+#include "utility.hpp"
 #include "rocblas.hpp"
-#include "arg_check.h"
-#include "utility.h"
-#include "cblas_interface.h"
-#include "norm.h"
-#include "unit.h"
-#include <complex.h>
-
-using namespace std;
+#include "cblas_interface.hpp"
+#include "norm.hpp"
+#include "unit.hpp"
 
 /* ============================================================================================ */
 
 template <typename T>
-rocblas_status testing_bandwidth(Arguments argus)
+void testing_bandwidth(const Arguments& arg)
 {
-
-    rocblas_int N = 25 * 1e7;
-
+    rocblas_int N    = 25 * 1e7;
     rocblas_int incx = 1;
-
-    rocblas_status status = rocblas_status_success;
-
-    rocblas_int size_X = N * incx;
-    T alpha            = 2.0;
+    size_t size_X    = N * static_cast<size_t>(incx);
+    T alpha          = 2.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_X);
     host_vector<T> hz(size_X);
-
-    if(N > hx.max_size())
-    {
-        printf("max_size of a std::vector is %lu, please reduce the input size \n", hx.max_size());
-        return status;
-    }
-
     double gpu_time_used, gpu_bandwidth;
 
     rocblas_local_handle handle;
@@ -53,7 +37,7 @@ rocblas_status testing_bandwidth(Arguments argus)
     device_vector<T> d_rocblas_result(1);
     if(!dx || !dy || !d_rocblas_result)
     {
-        PRINT_IF_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
@@ -80,12 +64,7 @@ rocblas_status testing_bandwidth(Arguments argus)
         gpu_time_used = get_time_us(); // in microseconds
 
         // scal dx
-        status = rocblas_scal<T>(handle, N, &alpha, dx, incx);
-        if(status != rocblas_status_success)
-        {
-            break;
-            return status;
-        }
+        CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, &alpha, dx, incx));
 
         //       hipMemcpy(dy, dx, sizeof(T)*size*incx, hipMemcpyDeviceToDevice);
 
@@ -121,6 +100,4 @@ rocblas_status testing_bandwidth(Arguments argus)
                gpu_bandwidth,
                gpu_time_used);
     }
-
-    return rocblas_status_success;
 }

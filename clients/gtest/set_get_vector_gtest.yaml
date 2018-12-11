@@ -1,0 +1,32 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_incx_incy_incb_range
+    - { incx: [1,3], incy:  1..3, incb:  1..3 }
+  - &large_incx_incy_incb_range
+    - { incx: [1,3], incy: [1,3], incb: [1,3] }
+
+Tests:
+- name: auxilliary_1
+  category: quick
+  function: testing_set_get_vector
+  precision: *single_double_precisions
+  M: [ 10, 600 ]
+  incx_incy: *small_incx_incy_incb_range
+
+- name: auxilliary_2
+  category: pre_checkin
+  function: testing_set_get_vector
+  precision: *single_double_precisions
+  M: [ 600000 ]
+  incx_incy: *large_incx_incy_incb_range
+
+- name: auxilliary
+  category: nightly
+  function: testing_set_get_vector
+  precision: *single_double_precisions
+  M: [ 1000000, 6000000 ]
+  incx_incy: *large_incx_incy_incb_range
+...

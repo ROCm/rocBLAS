@@ -21,15 +21,13 @@
 */
 
 #include <omp.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <cstdlib>
+#include <cstdio>
 #include <iostream>
 #include <vector>
 
 #include "rocblas.hpp"
-#include "utility.h"
-
-using namespace std;
+#include "utility.hpp"
 
 #define NUM_THREADS 4
 
@@ -46,8 +44,8 @@ int main()
     printf("%d OpenMP threads performing rocblas_scal \n", NUM_THREADS);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<float> hx(N * NUM_THREADS);
-    vector<float> hz(N * NUM_THREADS);
+    std::vector<float> hx(N * NUM_THREADS);
+    std::vector<float> hz(N * NUM_THREADS);
     float *dx, *dy;
 
     double gpu_time_used;

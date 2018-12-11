@@ -129,18 +129,7 @@ void checkout_and_version( project_paths paths )
       extensions: scm.extensions + [[$class: 'CleanCheckout']],
       userRemoteConfigs: scm.userRemoteConfigs
     ])
-
-    if( fileExists( 'CMakeLists.txt' ) )
-    {
-      def cmake_version_file = readFile( 'CMakeLists.txt' ).trim()
-      //echo "cmake_version_file:\n${cmake_version_file}"
-
-      cmake_version_file = cmake_version_file.replaceAll(/(\d+\.)(\d+\.)(\d+\.)\d+/, "\$1\$2\$3${env.BUILD_ID}")
-      //echo "cmake_version_file:\n${cmake_version_file}"
-      writeFile( file: 'CMakeLists.txt', text: cmake_version_file )
-    }
   }
-
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -217,7 +206,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
     stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
-      timeout(time: 2, unit: 'HOURS')
+      timeout(time: 4, unit: 'HOURS')
       {
         if(isJobStartedByTimer())
         {
@@ -234,15 +223,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
                 LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin* 
-            """
-          junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
-
-          sh """#!/usr/bin/env bash
-                set -x
-                cd ${paths.project_build_prefix}/build/release/clients/staging
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*parallel*  
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -597,7 +578,7 @@ parallel rocm19_ubuntu:
 
     build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
   }
-} 
+}
 //,
 // rocm_fedora:
 // {

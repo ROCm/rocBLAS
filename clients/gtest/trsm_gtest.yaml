@@ -1,0 +1,56 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { M:    -1, N:    -1, lda:     1, ldb:     1 }
+    - { M:    10, N:    10, lda:    20, ldb:   100 }
+
+  - &medium_matrix_size_range
+    - { M:   192, N:   192, lda:   192, ldb:   192 }
+    - { M:   600, N:   500, lda:   600, ldb:   600 }
+    - { M:   800, N:   700, lda:   801, ldb:   701 }
+
+  - &large_matrix_size_range
+    - { M:   640, N:   640, lda:   960, ldb:   960 }
+    - { M:  1000, N:  1000, lda:  1000, ldb:  1000 }
+    - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
+    - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
+
+  - &alpha_range [ 1.0, -5.0 ]
+
+Tests:
+- name: trsm_small
+  category: quick
+  function: testing_trsm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha: *alpha_range
+
+- name: trsm_medium
+  category: pre_checkin
+  function: testing_trsm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  alpha: *alpha_range
+
+- name: trsm_large
+  category: nightly
+  function: testing_trsm
+  precision: *single_double_precisions
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range
+  alpha: *alpha_range
+...

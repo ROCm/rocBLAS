@@ -9,7 +9,7 @@ set( rocblas_samples_common ../common/utility.cpp )
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
 add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
-add_executable( example-scal-template example_scal_template.cpp ../common/rocblas_template_specialization.cpp ${rocblas_samples_common} )
+add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
 
 set( sample_list example-sscal example-sgemm example-scal-template example-sgemm-strided-batched )
 foreach( exe ${sample_list} )

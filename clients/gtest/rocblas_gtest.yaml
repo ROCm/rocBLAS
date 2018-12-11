@@ -1,0 +1,13 @@
+include: blas1_gtest.yaml
+include: gemv_gtest.yaml
+include: gemm_gtest.yaml
+include: gemm_strided_batched_gtest.yaml
+include: symv_gtest.yaml
+include: syr_gtest.yaml
+include: ger_gtest.yaml
+include: trsm_gtest.yaml
+include: trtri_gtest.yaml
+include: geam_gtest.yaml
+include: set_get_matrix_gtest.yaml
+include: set_get_vector_gtest.yaml
+include: trsv_gtest.yaml
