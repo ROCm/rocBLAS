@@ -36,31 +36,29 @@ Level 1 BLAS
 
 .. doxygenfunction:: rocblas_dcopy
 
-.. doxygenfunction:: glob_func
-
-.. doxygenfunction:: saad_func
-
-rocblas_<type>dot
+rocblas_<type>dot()
 ^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sdot
 
 .. doxygenfunction:: rocblas_ddot
 
-rocblas_<type>swap
+rocblas_<type>swap()
 ^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sswap
 
 .. doxygenfunction:: rocblas_dswap
 
-rocblas_<type>swap
+rocblas_<type>axpy()
 ^^^^^^^^^^^^^^^^^
-.. doxygenfunction:: rocblas_haxpy
+.. doxygenfunction:: rocblas_daxpy
 
 .. doxygenfunction:: rocblas_saxpy
 
-.. doxygenfunction:: rocblas_daxpy
+.. doxygenfunction:: rocblas_haxpy
 
 
 Build Information
------------------
+=================
+rocblas_get_version_string()
+^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_version_string
