@@ -56,6 +56,7 @@ rocblas_<type>axpy()
 .. doxygenfunction:: rocblas_saxpy
 
 .. doxygenfunction:: rocblas_haxpy
+    :brief
 
 
 .. doxygengroup:: Group2
