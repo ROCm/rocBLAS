@@ -36,6 +36,8 @@ Level 1 BLAS
 
 .. doxygenfunction:: rocblas_dcopy
 
+.. doxygenfunction:: glob_func
+
 .. doxygenfunction:: rocblas_sdot
 
 .. doxygenfunction:: rocblas_ddot
