@@ -40,12 +40,14 @@ Level 1 BLAS
 
 .. doxygenfunction:: rocblas_status rocblas_ddot
 
-.. doxygenfunction::
+.. doxygenfunction:: rocblas_sswap
 
-.. doxygenfunction::
+.. doxygenfunction:: rocblas_dswap
 
-.. doxygenfunction::
+.. doxygenfunction:: rocblas_haxpy
 
-.. doxygenfunction::
+.. doxygenfunction:: rocblas_saxpy
+
+.. doxygenfunction:: rocblas_daxpy
 
 
