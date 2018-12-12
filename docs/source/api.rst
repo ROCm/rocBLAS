@@ -40,6 +40,8 @@ Level 1 BLAS
 
 .. doxygenfunction:: saad_func
 
+rocblas_<type>dot
+^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sdot
 
 .. doxygenfunction:: rocblas_ddot
