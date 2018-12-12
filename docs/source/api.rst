@@ -51,12 +51,10 @@ rocblas_<type>swap()
 rocblas_<type>axpy()
 ^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_daxpy
-    :brief
 
 .. doxygenfunction:: rocblas_saxpy
 
 .. doxygenfunction:: rocblas_haxpy
-    :brief
 
 
 .. doxygengroup:: Group2
