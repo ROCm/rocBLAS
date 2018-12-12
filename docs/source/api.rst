@@ -2,18 +2,24 @@
    :maxdepth: 4 
    :caption: Contents:
 
-===
+****
 API
-===
+****
 
 This section provides details of the library API
 
 Types
------
+=====
+Definitions
+------
 
+
+
+Enums
+------
 .. doxygenenum:: rocblas_status
-.. doxygenenum:: rocblas_datatype
 
+.. doxygenenum:: rocblas_datatype
 
 Functions
 ---------
