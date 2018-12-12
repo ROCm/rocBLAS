@@ -282,7 +282,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_daxpy(rocblas_handle handle,
                                             double* y,
                                             rocblas_int incy);
 
-/* not implemented
+
+                                            
+/** @name Group2
+ *  Description of group 2. 
+ */
+///@{
+/** Function 2 in group 2. Details. */
+void Memgrp_Test::func2InGroup2() {}
+/** Function 1 in group 2. Details. */
+void Memgrp_Test::func1InGroup2() {}
+///@}
+
+                                            
+                                            
+                                            /* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_caxpy(rocblas_handle handle,
     rocblas_int n,

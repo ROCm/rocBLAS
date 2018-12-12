@@ -57,6 +57,7 @@ rocblas_<type>axpy()
 .. doxygenfunction:: rocblas_haxpy
 
 
+.. doxygengroup:: Group2
 Build Information
 =================
 rocblas_get_version_string()
