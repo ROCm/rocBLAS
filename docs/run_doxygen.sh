@@ -12,4 +12,4 @@ sed -e 's/ROCBLAS_EXPORT //g' ../library/include/rocblas-types.h > rocblas-types
 
 
 doxygen Doxyfile
-rm rocblas.h
+rm *.h
