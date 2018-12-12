@@ -32,13 +32,13 @@ Level 1 BLAS
 
 .. doxygenfunction:: rocblas_sscal
 
-.. doxygenfunction:: rocblas_status rocblas_scopy
+.. doxygenfunction:: rocblas_scopy
 
-.. doxygenfunction:: rocblas_status rocblas_dcopy
+.. doxygenfunction:: rocblas_dcopy
 
-.. doxygenfunction:: rocblas_status rocblas_sdot
+.. doxygenfunction:: rocblas_sdot
 
-.. doxygenfunction:: rocblas_status rocblas_ddot
+.. doxygenfunction:: rocblas_ddot
 
 .. doxygenfunction:: rocblas_sswap
 
