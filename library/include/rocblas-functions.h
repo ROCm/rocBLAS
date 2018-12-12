@@ -163,6 +163,7 @@ rocblas_zcopy(rocblas_handle handle,
 #define A 1
 #define B 2
 void glob_func();
+void saad_func();
 //!@}
 
 
