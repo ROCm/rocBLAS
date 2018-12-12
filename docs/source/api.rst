@@ -11,8 +11,9 @@ This section provides details of the library API
 Types
 -----
 
-.. doxygentypedef:: rocblas_status
-Placeholder
+.. doxygenenum:: rocblas_status
+.. doxygenenum:: rocblas_datatype
+
 
 Functions
 ---------
