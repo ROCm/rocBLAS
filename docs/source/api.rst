@@ -51,3 +51,6 @@ Level 1 BLAS
 .. doxygenfunction:: rocblas_daxpy
 
 
+Build Information
+-----------------
+.. doxygenfunction:: rocblas_get_version_string
