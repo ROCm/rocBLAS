@@ -157,6 +157,15 @@ rocblas_zcopy(rocblas_handle handle,
     ********************************************************************/
 
     
+//!@{
+//! one description for all members of this group 
+//! (because DISTRIBUTE_GROUP_DOC is YES in the config file)
+#define A 1
+#define B 2
+void glob_func();
+//!@}
+
+
     
     
     
