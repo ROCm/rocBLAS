@@ -155,7 +155,16 @@ rocblas_zcopy(rocblas_handle handle,
               return is 0.0 if n <= 0.
 
     ********************************************************************/
-//@{
+
+    
+    
+    
+    
+/** @name Group2
+ *  Description of group 2. 
+ */
+ ///@{
+/** Function 2 in group 2. Details. */
 ROCBLAS_EXPORT rocblas_status rocblas_sdot(rocblas_handle handle,
                                            rocblas_int n,
                                            const float* x,
@@ -163,7 +172,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sdot(rocblas_handle handle,
                                            const float* y,
                                            rocblas_int incy,
                                            float* result);
-
+/** Function 1 in group 2. Details. */
 ROCBLAS_EXPORT rocblas_status rocblas_ddot(rocblas_handle handle,
                                            rocblas_int n,
                                            const double* x,
@@ -171,7 +180,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ddot(rocblas_handle handle,
                                            const double* y,
                                            rocblas_int incy,
                                            double* result);
-//@}
+///@}
 
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
