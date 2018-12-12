@@ -21,12 +21,31 @@ Enums
 
 .. doxygenenum:: rocblas_datatype
 
+.. doxygenenum:: rocblas_pointer_mode
+
+
 Functions
----------
+=========
 
 Level 1 BLAS
+-------------
 
 .. doxygenfunction:: rocblas_sscal
 
-.. doxygenfunction:: rocblas_hgemm_strided_batched
+.. doxygenfunction:: rocblas_status rocblas_scopy
+
+.. doxygenfunction:: rocblas_status rocblas_dcopy
+
+.. doxygenfunction:: rocblas_status rocblas_sdot
+
+.. doxygenfunction:: rocblas_status rocblas_ddot
+
+.. doxygenfunction::
+
+.. doxygenfunction::
+
+.. doxygenfunction::
+
+.. doxygenfunction::
+
 
