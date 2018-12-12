@@ -46,10 +46,14 @@ rocblas_<type>dot
 
 .. doxygenfunction:: rocblas_ddot
 
+rocblas_<type>swap
+^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sswap
 
 .. doxygenfunction:: rocblas_dswap
 
+rocblas_<type>swap
+^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_haxpy
 
 .. doxygenfunction:: rocblas_saxpy
