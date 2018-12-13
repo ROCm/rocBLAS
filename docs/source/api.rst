@@ -17,6 +17,11 @@ Definitions
 
 Enums
 ------
+Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
+rocblas_operation
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_operation
+
 .. doxygenenum:: rocblas_status
 
 .. doxygenenum:: rocblas_datatype
@@ -125,8 +130,101 @@ rocblas_<type>trtri_batched()
 
 .. doxygenfunction:: rocblas_strtri_batched
 
+rocblas_<type>trsm()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dtrsm
+
+.. doxygenfunction:: rocblas_strsm
+
+rocblas_<type>gemm()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dgemm
+
+.. doxygenfunction:: rocblas_sgemm
+
+.. doxygenfunction:: rocblas_hgemm
+
+rocblas_<type>gemm_strided_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dgemm_strided_batched
+
+.. doxygenfunction:: rocblas_sgemm_strided_batched
+
+.. doxygenfunction:: rocblas_hgemm_strided_batched
+
+rocblas_<type>gemm_kernel_name()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dgemm_kernel_name
+
+.. doxygenfunction:: rocblas_sgemm_kernel_name
+
+.. doxygenfunction:: rocblas_hgemm_kernel_name
+
+rocblas_<type>geam()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dgeam
+
+.. doxygenfunction:: rocblas_sgeam
+
+BLAS Extensions
+---------------
+rocblas_gemm_ex()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_gemm_ex
+
+rocblas_gemm_strided_batched_ex()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_strsm
+
 Build Information
 =================
 rocblas_get_version_string()
-^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_version_string
+
+
+Auxiliary
+=========
+rocblas_create_handle()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_create_handle
+
+rocblas_destroy_handle()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_destroy_handle
+
+rocblas_add_stream()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_add_stream
+
+rocblas_set_stream()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_set_stream
+
+rocblas_get_stream()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_get_stream
+
+rocblas_set_pointer_mode()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_set_pointer_mode
+
+rocblas_get_pointer_mode()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_get_pointer_mode
+
+rocblas_set_vector()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_set_vector
+
+rocblas_get_vector()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_get_vector
+
+rocblas_set_matrix()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_set_matrix
+
+rocblas_get_matrix()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction: rocblas_get_matrix

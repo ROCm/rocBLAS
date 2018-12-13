@@ -1410,7 +1410,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
 
 /*
  * ===========================================================================
- *    extensions BLAS
+ *    BLAS extensions
  * ===========================================================================
  */
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
