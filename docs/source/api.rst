@@ -30,6 +30,10 @@ Functions
 Level 1 BLAS
 -------------
 
+rocblas_<type>scal
+^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dscal
+
 .. doxygenfunction:: rocblas_sscal
 rocblas_<type>copy
 ^^^^^^^^^^^^^^^^^^
