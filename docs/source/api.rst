@@ -31,16 +31,17 @@ Level 1 BLAS
 -------------
 
 .. doxygenfunction:: rocblas_sscal
+rocblas_<type>copy
+^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dcopy
 
 .. doxygenfunction:: rocblas_scopy
 
-.. doxygenfunction:: rocblas_dcopy
-
 rocblas_<type>dot()
 ^^^^^^^^^^^^^^^^^
-.. doxygenfunction:: rocblas_sdot
-
 .. doxygenfunction:: rocblas_ddot
+
+.. doxygenfunction:: rocblas_sdot
 
 rocblas_<type>swap()
 ^^^^^^^^^^^^^^^^^
