@@ -13,6 +13,9 @@ Types
 Definitions
 ------
 
+rocblas_int
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_int
 
 
 Enums
@@ -23,12 +26,37 @@ rocblas_operation
 ^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_operation
 
+rocblas_fill
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_fill
+
+rocblas_diagonal
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_diagonal
+
+rocblas_side
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_side
+
+rocblas_status
+^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_status
 
+rocblas_datatype
+^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_datatype
 
+rocblas_pointer_mode
+^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_pointer_mode
 
+rocblas_layer_mode_
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_layer_mode_
+
+rocblas_gemm_algo
+^^^^^^^^^^^^^^^^^^
+.. doxygenenum:: rocblas_gemm_algo
 
 Functions
 =========
@@ -179,10 +207,10 @@ rocblas_gemm_strided_batched_ex()
 
 Build Information
 =================
+
 rocblas_get_version_string()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_version_string
-
 
 Auxiliary
 =========

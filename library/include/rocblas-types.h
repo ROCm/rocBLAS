@@ -33,15 +33,15 @@ typedef float2 rocblas_half_complex;
 
 typedef struct _rocblas_handle* rocblas_handle;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* ============================================================================================ */
 
 /*! parameter constants.
  *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Used to specify whether the matrix is to be transposed or not. */
 typedef enum rocblas_operation_ {
