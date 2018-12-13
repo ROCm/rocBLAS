@@ -1486,7 +1486,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
     buf             pointer to buffer for version string
 
     @param[in]
-    len             lenght of buf
+    len             length of buf
 
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
