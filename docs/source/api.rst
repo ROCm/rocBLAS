@@ -73,9 +73,9 @@ rocblas_pointer_mode
 ^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_pointer_mode
 
-rocblas_layer_mode_
+rocblas_layer_mode
 ^^^^^^^^^^^^^^^^^^
-.. doxygenenum:: rocblas_layer_mode_
+.. doxygenenum:: rocblas_layer_mode
 
 rocblas_gemm_algo
 ^^^^^^^^^^^^^^^^^^
