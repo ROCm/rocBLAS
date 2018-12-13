@@ -30,12 +30,12 @@ Functions
 Level 1 BLAS
 -------------
 
-rocblas_<type>scal
+rocblas_<type>scal()
 ^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_dscal
 
 .. doxygenfunction:: rocblas_sscal
-rocblas_<type>copy
+rocblas_<type>copy()
 ^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_dcopy
 
@@ -61,8 +61,19 @@ rocblas_<type>axpy()
 
 .. doxygenfunction:: rocblas_haxpy
 
+rocblas_<type>asum()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dasum
 
-.. doxygengroup:: Group2
+.. doxygenfunction:: rocblas_sasum
+
+
+rocblas_<type>nrm2()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dnrm2
+
+.. doxygenfunction:: rocblas_snrm2
+
 
 Build Information
 =================
