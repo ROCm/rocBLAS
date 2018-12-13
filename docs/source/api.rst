@@ -18,6 +18,7 @@ Definitions
 Enums
 ------
 Enumeration constants have numbering that is consistent with CBLAS, ACML and most standard C BLAS libraries.
+
 rocblas_operation
 ^^^^^^^^^^^^^^^^^^
 .. doxygenenum:: rocblas_operation
