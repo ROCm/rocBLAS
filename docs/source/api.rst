@@ -237,6 +237,7 @@ rocblas_get_version_string()
 
 Auxiliary
 ---------
+
 rocblas_create_handle()
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction: rocblas_create_handle
