@@ -240,23 +240,23 @@ Auxiliary
 
 rocblas_create_handle()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_create_handle
+.. doxygenfunction:: rocblas_create_handle
 
 rocblas_destroy_handle()
-^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_destroy_handle
+^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_destroy_handle
 
 rocblas_add_stream()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_add_stream
+.. doxygenfunction:: rocblas_add_stream
 
 rocblas_set_stream()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_set_stream
+.. doxygenfunction:: rocblas_set_stream
 
 rocblas_get_stream()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_get_stream
+.. doxygenfunction:: rocblas_get_stream
 
 rocblas_set_pointer_mode()
 ^^^^^^^^^^^^^^^^^^^^^^^
@@ -264,20 +264,20 @@ rocblas_set_pointer_mode()
 
 rocblas_get_pointer_mode()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_get_pointer_mode
+.. doxygenfunction:: rocblas_get_pointer_mode
 
 rocblas_set_vector()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_set_vector
+.. doxygenfunction:: rocblas_set_vector
 
 rocblas_get_vector()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_get_vector
+.. doxygenfunction:: rocblas_get_vector
 
 rocblas_set_matrix()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_set_matrix
+.. doxygenfunction:: rocblas_set_matrix
 
 rocblas_get_matrix()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_get_matrix
+.. doxygenfunction:: rocblas_get_matrix
