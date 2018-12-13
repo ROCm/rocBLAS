@@ -17,7 +17,7 @@
 
 /*
  * ===========================================================================
- *   READEME: Please follow the naming convention
+ *   README: Please follow the naming convention
  *   Big case for matrix, e.g. matrix A, B, C   GEMM (C = A*B)
  *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
  * ===========================================================================

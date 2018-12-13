@@ -75,6 +75,56 @@ rocblas_<type>nrm2()
 .. doxygenfunction:: rocblas_snrm2
 
 
+rocblas_i<type>amax()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_idamax
+
+.. doxygenfunction:: rocblas_isamax
+
+rocblas_i<type>amin()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_idamin
+
+.. doxygenfunction:: rocblas_isamin
+
+Level 2 BLAS
+-------------
+rocblas_<type>gemv()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dgemv
+
+.. doxygenfunction:: rocblas_sgemv
+
+rocblas_<type>symv()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_zsymv
+
+.. doxygenfunction:: rocblas_csymv
+
+.. doxygenfunction:: rocblas_dsymv
+
+.. doxygenfunction:: rocblas_ssymv
+
+rocblas_<type>ger()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dger
+
+.. doxygenfunction:: rocblas_sger
+
+rocblas_<type>syr()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dsyr
+
+.. doxygenfunction:: rocblas_ssyr
+
+Level 3 BLAS
+-------------
+rocblas_<type>trtri_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dtrtri_batched
+
+.. doxygenfunction:: rocblas_strtri_batched
+
 Build Information
 =================
 rocblas_get_version_string()
