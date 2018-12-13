@@ -238,6 +238,10 @@ rocblas_get_version_string()
 Auxiliary
 ---------
 
+rocblas_pointer_to_mode()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_pointer_to_mode
+
 rocblas_create_handle()
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_create_handle
