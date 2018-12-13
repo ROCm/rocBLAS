@@ -260,7 +260,7 @@ rocblas_get_stream()
 
 rocblas_set_pointer_mode()
 ^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction: rocblas_set_pointer_mode
+.. doxygenfunction:: rocblas_set_pointer_mode
 
 rocblas_get_pointer_mode()
 ^^^^^^^^^^^^^^^^^^^^^^^
