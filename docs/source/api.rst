@@ -17,6 +17,29 @@ rocblas_int
 ^^^^^^^^^^^^^^^^^^
 .. doxygentypedef:: rocblas_int
 
+rocblas_long
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_long
+
+rocblas_float_complex
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_float_complex
+
+rocblas_double_complex
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_double_complex
+
+rocblas_half
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_half
+
+rocblas_half_complex
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_half_complex
+
+rocblas_handle
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_handle
 
 Enums
 ------
