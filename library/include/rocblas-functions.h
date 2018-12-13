@@ -163,8 +163,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_sdot(rocblas_handle handle,
                                            rocblas_int incy,
                                            float* result);
 
-                                           
-                                           
 ROCBLAS_EXPORT rocblas_status rocblas_ddot(rocblas_handle handle,
                                            rocblas_int n,
                                            const double* x,
@@ -282,10 +280,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_daxpy(rocblas_handle handle,
                                             double* y,
                                             rocblas_int incy);
 
-
-                                            
 /** @name Group2
- *  Description of group 2. 
+ *  Description of group 2.
  */
 ///@{
 /** Function 2 in group 2. Details. */
@@ -294,22 +290,20 @@ void Memgrp_Test::func2InGroup2() {}
 void Memgrp_Test::func1InGroup2() {}
 ///@}
 
-                                            
-                                            
-                                            /* not implemented
+/* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_caxpy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *alpha,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex *y,  rocblas_int incy);
+rocblas_int n,
+const rocblas_float_complex *alpha,
+const rocblas_float_complex *x, rocblas_int incx,
+rocblas_float_complex *y,  rocblas_int incy);
 
 ROCBLAS_EXPORT rocblas_status
 rocblas_zaxpy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *alpha,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex *y,  rocblas_int incy);
+rocblas_int n,
+const rocblas_double_complex *alpha,
+const rocblas_double_complex *x, rocblas_int incx,
+rocblas_double_complex *y,  rocblas_int incy);
 */
 
 /*! \brief BLAS Level 1 API
@@ -1477,11 +1471,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
  *    build information
  * ===========================================================================
  */
- 
+
 /*! \brief   loads char* buf with the rocblas library version. size_t len
     is the maximum length of char* buf.
     \details
-    
+
     @param[in, out]
     buf             pointer to buffer for version string
 
