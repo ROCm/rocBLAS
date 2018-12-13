@@ -152,15 +152,15 @@ rocblas_<type>gemv()
 
 .. doxygenfunction:: rocblas_sgemv
 
-rocblas_<type>symv()
-^^^^^^^^^^^^^^^^^
-.. doxygenfunction:: rocblas_zsymv
+.. rocblas_<type>symv()
+.. ^^^^^^^^^^^^^^^^^
+.. .. doxygenfunction:: rocblas_zsymv
 
-.. doxygenfunction:: rocblas_csymv
+.. .. doxygenfunction:: rocblas_csymv
 
-.. doxygenfunction:: rocblas_dsymv
+.. .. doxygenfunction:: rocblas_dsymv
 
-.. doxygenfunction:: rocblas_ssymv
+.. .. doxygenfunction:: rocblas_ssymv
 
 rocblas_<type>ger()
 ^^^^^^^^^^^^^^^^^
