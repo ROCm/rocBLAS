@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -9,7 +9,7 @@
 #include "rocblas-types.h"
 
 /*!\file
- * \brief rocblas_netlib.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
+ * \brief rocblas_functions.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
  * NVIDIA GPUs.
  *  This file exposes C89 BLAS interface
@@ -17,7 +17,7 @@
 
 /*
  * ===========================================================================
- *   READEME: Please follow the naming convention
+ *   README: Please follow the naming convention
  *   Big case for matrix, e.g. matrix A, B, C   GEMM (C = A*B)
  *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
  * ===========================================================================
@@ -283,17 +283,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_daxpy(rocblas_handle handle,
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
 rocblas_caxpy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *alpha,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex *y,  rocblas_int incy);
+rocblas_int n,
+const rocblas_float_complex *alpha,
+const rocblas_float_complex *x, rocblas_int incx,
+rocblas_float_complex *y,  rocblas_int incy);
 
 ROCBLAS_EXPORT rocblas_status
 rocblas_zaxpy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *alpha,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex *y,  rocblas_int incy);
+rocblas_int n,
+const rocblas_double_complex *alpha,
+const rocblas_double_complex *x, rocblas_int incx,
+rocblas_double_complex *y,  rocblas_int incy);
 */
 
 /*! \brief BLAS Level 1 API
@@ -1394,7 +1394,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
 
 /*
  * ===========================================================================
- *    extensions BLAS
+ *    BLAS extensions
  * ===========================================================================
  */
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
@@ -1461,6 +1461,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
  *    build information
  * ===========================================================================
  */
+
+/*! \brief   loads char* buf with the rocblas library version. size_t len
+    is the maximum length of char* buf.
+    \details
+
+    @param[in, out]
+    buf             pointer to buffer for version string
+
+    @param[in]
+    len             length of buf
+
+ ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
 
 #ifdef __cplusplus

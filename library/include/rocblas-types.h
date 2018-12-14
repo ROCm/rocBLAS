@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -14,7 +14,7 @@
 #include <stdint.h>
 #include <hip/hip_vector_types.h>
 
-// integer type
+// integer types
 /*! \brief To specify whether int32 or int64 is used
  */
 #if defined(rocblas_ILP64)
@@ -24,24 +24,24 @@ typedef int64_t rocblas_long;
 typedef int32_t rocblas_int;
 typedef int64_t rocblas_long;
 #endif
-// complex type
+// complex types
 typedef float2 rocblas_float_complex;
 typedef double2 rocblas_double_complex;
-// half type TODO put name of half here
+// half types
 typedef uint16_t rocblas_half;
 typedef float2 rocblas_half_complex;
 
 typedef struct _rocblas_handle* rocblas_handle;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /* ============================================================================================ */
 
 /*! parameter constants.
  *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
  */
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /*! \brief Used to specify whether the matrix is to be transposed or not. */
 typedef enum rocblas_operation_ {
