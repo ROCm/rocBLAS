@@ -189,12 +189,11 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     rocblas_pointer_mode pointer_mode = handle->pointer_mode;
     T alpha_h                         = 1.0f;
 
-    auto alpha_d = rocblas_unique_ptr{rocblas::device_malloc(0), rocblas::device_free};
-    // T* alpha_d;
+    void* alpha_d;
     if(pointer_mode == rocblas_pointer_mode_device)
     {
-        alpha_d = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T)), rocblas::device_free};
-        hipMemcpy((T*)alpha_d.get(), &alpha_h, sizeof(T), hipMemcpyHostToDevice);
+        alpha_d = handle->get_trsv_alpha();
+        hipMemcpy((T*)alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice);
     }
 
     if(incx == 1)
@@ -207,7 +206,7 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
             diag,
             m,
             1,
-            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d.get(),
+            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
             A,
             lda,
             x,
@@ -215,28 +214,54 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     }
     else
     {
-        auto dx_mod =
-            rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m), rocblas::device_free};
         int offest = (m - 1) * abs(incx);
-        strided_vector_copy<T, true>(
-            handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
+        if(WORKBUF_TRSV_X_SZ <= m)
+        {
+            void* dx_mod = handle->get_trsv_x();
+            strided_vector_copy<T, true>(
+                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod, incx);
 
-        status = rocblas_trsm_template<T, BLOCK>(
-            handle,
-            rocblas_side_left,
-            uplo,
-            transA,
-            diag,
-            m,
-            1,
-            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d.get(),
-            A,
-            lda,
-            (T*)dx_mod.get(),
-            m);
+            status = rocblas_trsm_template<T, BLOCK>(
+                handle,
+                rocblas_side_left,
+                uplo,
+                transA,
+                diag,
+                m,
+                1,
+                pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
+                A,
+                lda,
+                (T*)dx_mod,
+                m);
 
-        strided_vector_copy<T, false>(
-            handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
+            strided_vector_copy<T, false>(
+                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod, incx);
+        }
+        else
+        {
+            auto dx_mod =
+                rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m), rocblas::device_free};
+            strided_vector_copy<T, true>(
+                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
+
+            status = rocblas_trsm_template<T, BLOCK>(
+                handle,
+                rocblas_side_left,
+                uplo,
+                transA,
+                diag,
+                m,
+                1,
+                pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
+                A,
+                lda,
+                (T*)dx_mod.get(),
+                m);
+
+            strided_vector_copy<T, false>(
+                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
+        }
     }
 
     return status;
