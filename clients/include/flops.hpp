@@ -58,6 +58,13 @@ constexpr double gemv_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas
     return (8.0 * m * n) / 1e9;
 }
 
+/* \brief floating point counts of TRSV */
+template <typename T>
+constexpr double trsv_gflop_count(rocblas_int m)
+{
+    return (m * (m + 1.0)) / 1e9;
+}
+
 /* \brief floating point counts of SY(HE)MV */
 template <typename T>
 constexpr double symv_gflop_count(rocblas_int n)

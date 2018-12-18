@@ -35,6 +35,10 @@ _rocblas_handle::_rocblas_handle()
     THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA, WORKBUF_TRSM_INVA_SZ));
     THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA_C, WORKBUF_TRSM_INVA_C_SZ));
 
+    // allocate trsv temp buffers
+    THROW_IF_HIP_ERROR(hipMalloc(&trsv_x, WORKBUF_TRSV_X_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsv_alpha, WORKBUF_TRSV_ALPHA_SZ));
+
     // open log file
     if(layer_mode & rocblas_layer_mode_log_trace)
     {
@@ -65,6 +69,12 @@ _rocblas_handle::~_rocblas_handle()
 
     if(trsm_invA_C)
         hipFree(trsm_invA_C);
+
+    if(trsv_x)
+        hipFree(trsv_x);
+
+    if(trsv_alpha)
+        hipFree(trsv_alpha);
 
     // Close log files
     if(log_trace_ofs.is_open())
@@ -109,3 +119,8 @@ void* _rocblas_handle::get_trsm_Y() { return trsm_Y; }
 void* _rocblas_handle::get_trsm_invA() { return trsm_invA; }
 
 void* _rocblas_handle::get_trsm_invA_C() { return trsm_invA_C; }
+
+// trsv get pointers
+void* _rocblas_handle::get_trsv_x() { return trsv_x; }
+
+void* _rocblas_handle::get_trsv_alpha() { return trsv_alpha; }

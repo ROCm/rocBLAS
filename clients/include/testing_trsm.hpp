@@ -19,20 +19,6 @@
 #define RESIDUAL_EPS_MULTIPLIER 20
 
 template <typename T>
-void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
-{
-    printf("---------- %s ----------\n", name);
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-        {
-            printf("%f ", A[i + j * lda]);
-        }
-        printf("\n");
-    }
-}
-
-template <typename T>
 void testing_trsm(const Arguments& arg)
 {
     rocblas_int M   = arg.M;
@@ -119,12 +105,8 @@ void testing_trsm(const Arguments& arg)
 
     //  pad untouched area into zero
     for(int i = K; i < lda; i++)
-    {
-        for(int j = 0; j < K; j++)
-        {
+        for(int j           = 0; j < K; j++)
             hA[i + j * lda] = 0.0;
-        }
-    }
 
     //  calculate AAT = hA * hA ^ T
     cblas_gemm<T, T>(rocblas_operation_none,
@@ -160,40 +142,28 @@ void testing_trsm(const Arguments& arg)
     if(char_diag == 'U' || char_diag == 'u')
     {
         if('L' == char_uplo || 'l' == char_uplo)
-        {
             for(int i = 0; i < K; i++)
             {
                 T diag = hA[i + i * lda];
-                for(int j = 0; j <= i; j++)
-                {
+                for(int j           = 0; j <= i; j++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
-                }
             }
-        }
         else
-        {
             for(int j = 0; j < K; j++)
             {
                 T diag = hA[j + j * lda];
-                for(int i = 0; i <= j; i++)
-                {
+                for(int i           = 0; i <= j; i++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
-                }
             }
-        }
     }
 
     // Initial hX
     rocblas_init<T>(hX, M, N, ldb);
     // pad untouched area into zero
     for(int i = M; i < ldb; i++)
-    {
-        for(int j = 0; j < N; j++)
-        {
+        for(int j           = 0; j < N; j++)
             hX[i + j * ldb] = 0.0;
-        }
-    }
-    hB = hX;
+    hB                      = hX;
 
     // Calculate hB = hA*hX;
     cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, ldb);

@@ -280,6 +280,24 @@ constexpr auto rocblas_gemv<float> = rocblas_sgemv;
 template <>
 constexpr auto rocblas_gemv<double> = rocblas_dgemv;
 
+// trsv
+template <typename T>
+rocblas_status (*rocblas_trsv)(rocblas_handle handle,
+                               rocblas_fill uplo,
+                               rocblas_operation transA,
+                               rocblas_diagonal diag,
+                               rocblas_int m,
+                               const T* A,
+                               rocblas_int lda,
+                               T* x,
+                               rocblas_int incx);
+
+template <>
+constexpr auto rocblas_trsv<float> = rocblas_strsv;
+
+template <>
+constexpr auto rocblas_trsv<double> = rocblas_dtrsv;
+
 // symv
 template <typename T>
 rocblas_status (*rocblas_symv)(rocblas_handle handle,

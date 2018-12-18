@@ -35,6 +35,7 @@
 #include "testing_gemm.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_trsm.hpp"
+#include "testing_trsv.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 
@@ -369,6 +370,13 @@ int run_bench_test(const char* function, char precision, Arguments arg)
         else if(precision == 'd')
             testing_trsm<double>(arg);
     }
+    else if(!strcmp(function, "trsv"))
+    {
+        if(precision == 's')
+            testing_trsv<float>(arg);
+        else if(precision == 'd')
+            testing_trsv<double>(arg);
+    }
 #endif
     else
     {
@@ -501,7 +509,7 @@ int main(int argc, char* argv[])
 
         ("function,f",
          value<std::string>(&function)->default_value("gemv"),
-         "BLAS function to test. Options: gemv, ger, syr, trsm, trmm, symv, syrk, syr2k")
+         "BLAS function to test. Options: gemv, ger, syr, trsm, trsv, trmm, symv, syrk, syr2k")
 
         ("precision,r",
          value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
@@ -541,10 +549,10 @@ int main(int argc, char* argv[])
         ("uplo",
          value<char>(&arg.uplo)->default_value('U'),
          "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
-                                                                     // xtrmm
+                                                                     // xtrmm xtrsv
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
                                                                                           // xtrmm
         ("batch",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
