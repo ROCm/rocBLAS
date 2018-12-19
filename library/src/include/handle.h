@@ -29,6 +29,9 @@ struct _rocblas_handle
     void* get_trsm_invA();
     void* get_trsm_invA_C();
 
+    void* get_trsv_x();
+    void* get_trsv_alpha();
+
     rocblas_int device;
     hipDeviceProp_t device_properties;
 
@@ -46,6 +49,10 @@ struct _rocblas_handle
     void* trsm_invA   = nullptr;
     void* trsm_invA_C = nullptr;
 
+    // space allocated for trsv
+    void* trsv_x     = nullptr;
+    void* trsv_alpha = nullptr;
+
     std::ofstream log_trace_ofs;
     std::ofstream log_bench_ofs;
     std::ostream* log_trace_os;
@@ -58,5 +65,7 @@ struct _rocblas_handle
 #define WORKBUF_TRSM_Y_SZ (32000 * 128 * sizeof(double))
 #define WORKBUF_TRSM_INVA_SZ (128 * 128 * 10 * sizeof(double))
 #define WORKBUF_TRSM_INVA_C_SZ (128 * 128 * 10 * sizeof(double) / 2)
+#define WORKBUF_TRSV_X_SZ (131072 * sizeof(double))
+#define WORKBUF_TRSV_ALPHA_SZ (1 * sizeof(double))
 
 #endif
