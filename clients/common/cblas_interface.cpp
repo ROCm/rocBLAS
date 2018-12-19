@@ -24,7 +24,7 @@ void cblas_axpy<rocblas_half>(rocblas_int n,
     size_t abs_incy = incy >= 0 ? incy : -incy;
     host_vector<float> x_float(n * abs_incx), y_float(n * abs_incy);
 
-    for(rocblas_int i = 0; i < n; i++)
+    for(size_t i = 0; i < n; i++)
     {
         x_float[i * abs_incx] = half_to_float(x[i * abs_incx]);
         y_float[i * abs_incy] = half_to_float(y[i * abs_incy]);
@@ -32,7 +32,7 @@ void cblas_axpy<rocblas_half>(rocblas_int n,
 
     cblas_saxpy(n, half_to_float(alpha), x_float, incx, y_float, incy);
 
-    for(rocblas_int i = 0; i < n; i++)
+    for(size_t i = 0; i < n; i++)
     {
         x[i * abs_incx] = float_to_half(x_float[i * abs_incx]);
         y[i * abs_incy] = float_to_half(y_float[i * abs_incy]);

@@ -1,0 +1,47 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { M:    -1, lda:     1 }
+    - { M:     4, lda:     4 }
+    - { M:    10, lda:    20 }
+
+  - &medium_matrix_size_range
+    - { M:   192, lda:   192 }
+    - { M:   600, lda:   600 }
+    - { M:   800, lda:   801 }
+
+  - &large_matrix_size_range
+    - { M:   640, lda:   960 }
+    - { M:  1000, lda:  1000 }
+    - { M:  1024, lda:  1024 }
+    - { M:  2000, lda:  2000 }
+
+  - &common_args
+    function: testing_trsv
+    precision: *single_double_precisions
+    uplo: [L, U]
+    transA: [N, C]
+    diag: [N, U]
+
+Tests:
+- name: trsv_small
+  category: quick
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3, 10, 100 ]
+
+- name: trsv_medium
+  category: pre_checkin
+  arguments: *common_args
+  matrix_size: *medium_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3, 10 ]
+
+- name: trsv_large
+  category: nightly
+  arguments: *common_args
+  matrix_size: *large_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3 ]
+...
