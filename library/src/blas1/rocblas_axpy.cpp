@@ -108,13 +108,13 @@ haxpy_mlt_8_device_scalar(int n_mlt_8, const _Float16* alpha, const half8* x, ha
 {
     int tid = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
 
-    half2 alpha_h2;
+    rocblas_half2 alpha_h2;
     alpha_h2[0] = (*alpha);
     alpha_h2[1] = (*alpha);
 
-    half2 y0, y1, y2, y3;
-    half2 x0, x1, x2, x3;
-    half2 z0, z1, z2, z3;
+    rocblas_half2 y0, y1, y2, y3;
+    rocblas_half2 x0, x1, x2, x3;
+    rocblas_half2 z0, z1, z2, z3;
 
     if(tid * 8 < n_mlt_8)
     {
@@ -152,13 +152,14 @@ haxpy_mlt_8_device_scalar(int n_mlt_8, const _Float16* alpha, const half8* x, ha
     }
 }
 
-__global__ void haxpy_mlt_8_host_scalar(int n_mlt_8, const half2 alpha, const half8* x, half8* y)
+__global__ void
+haxpy_mlt_8_host_scalar(int n_mlt_8, const rocblas_half2 alpha, const half8* x, half8* y)
 {
     int tid = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
 
-    half2 y0, y1, y2, y3;
-    half2 x0, x1, x2, x3;
-    half2 z0, z1, z2, z3;
+    rocblas_half2 y0, y1, y2, y3;
+    rocblas_half2 x0, x1, x2, x3;
+    rocblas_half2 z0, z1, z2, z3;
 
     if(tid * 8 < n_mlt_8)
     {
@@ -356,7 +357,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    if(1 != incx || 1 != incy) // slow code, no half8 or half2
+    if(1 != incx || 1 != incy) // slow code, no half8 or rocblas_half2
     {
         int blocks = ((n - 1) / NB_X) + 1;
 
@@ -401,7 +402,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                                incy);
         }
     }
-    else // half8 load-store and half2 arithmetic
+    else // half8 load-store and rocblas_half2 arithmetic
     {
         rocblas_int n_mlt_8 = (n / 8) * 8; // multiple of 8
         rocblas_int n_mod_8 = n - n_mlt_8; // n mod 8
@@ -446,7 +447,7 @@ rocblas_status rocblas_axpy_half(rocblas_handle handle,
                 return rocblas_status_success;
             }
 
-            half2 half2_alpha;
+            rocblas_half2 half2_alpha;
             half2_alpha[0] = *reinterpret_cast<const _Float16*>(alpha);
             half2_alpha[1] = *reinterpret_cast<const _Float16*>(alpha);
 
