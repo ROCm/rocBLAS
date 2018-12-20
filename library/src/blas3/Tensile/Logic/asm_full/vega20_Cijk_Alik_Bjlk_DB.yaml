@@ -41,6 +41,7 @@
 - - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 1
     AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -188,6 +189,7 @@
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
     AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 1
     AssertSummationElementMultiple: 1
     AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -333,11 +335,12 @@
     WorkGroupMapping: 8
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
-- []
-- - - -1
-    - - - -1
-        - - - 1
-            - - [-1, 1]
-          - - -1
-            - - [1, 1]
-              - [-1, 0]
+- - - [1, 64, 1, 64]
+    - [1, 0.0761908]
+  - - [64, 1, 1, 64]
+    - [1, 0.0630933]
+  - - [1, 1, 1, 64]
+    - [1, 0.000772203]
+  - - [64, 64, 1, 64]
+    - [0, 25.5004]
+- null
