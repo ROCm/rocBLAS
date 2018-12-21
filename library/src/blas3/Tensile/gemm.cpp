@@ -54,14 +54,12 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
                                    rocblas_int sizeI,
                                    rocblas_int sizeJ,
                                    rocblas_int sizeK,
-                                   rocblas_int sizeL,
-                                   rocblas_handle handle)
+                                   rocblas_int sizeL)
 {
 // This macro condenses all the identical arguments to the various
 // tensileGetSolutionName function calls for consistency / brevity
-#define TENSILE_ARG_NAMES                                                                   \
-    strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, \
-        handle->rocblas_stream
+#define TENSILE_ARG_NAMES \
+    strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL
 
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
 
@@ -135,8 +133,7 @@ hipError_t callTensile(const T* alpha,
                                                                 sizeI,
                                                                 sizeJ,
                                                                 sizeK,
-                                                                sizeL,
-                                                                handle->rocblas_stream)
+                                                                sizeL)
               << std::endl;
 #endif
 
@@ -519,8 +516,7 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle handle,
                                                           strideC1, strideC2,
                                                           strideA1, strideA2,
                                                           strideB1, strideB2,
-                                                          sizeI, sizeJ, sizeK, sizeL,
-                                                          handle);
+                                                          sizeI, sizeJ, sizeK, sizeL);
 
     std::cout << solution_name << std::endl;
 
