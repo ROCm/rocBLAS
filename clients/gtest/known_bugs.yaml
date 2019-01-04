@@ -6,3 +6,9 @@ Known bugs:
   - { function: testing_gemm*, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: T, transB: N, M: 363, N: 1, K: 50176, lda: 50176, ldb: 50176, ldc: 363 }
   - { function: testing_gemm*, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N, M: 3136, N: 512, K: 2048, lda: 3136, ldb: 2048, ldc: 3136 }
   - { function: testing_gemm*, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N, M: 12544, N: 256, K: 1024, lda: 12544, ldb: 1024, ldc: 12544 }
+  - { function: testing_gemm, M: 10816, N: 1, K: 1600, lda: 10816, ldb: 1600, ldc: 10816, ldd: 10816, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
+  - { function: testing_gemm, M: 11664, N: 1, K: 1600, lda: 11664, ldb: 1600, ldc: 11664, ldd: 11664, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
+  - { function: testing_gemm, M: 12100, N: 1, K: 1600, lda: 12100, ldb: 1600, ldc: 12100, ldd: 12100, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
+  - { function: testing_gemm,  M: 12544, N: 1, K: 1600, lda: 12544, ldb: 1600, ldc: 12544, ldd: 12544, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
+  - { function: testing_gemm, M: 3136, N: 1, K: 2304, lda: 3136, ldb: 2304, ldc: 3136, ldd: 3136, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
+  - { function: testing_gemm, M: 3364, N: 1, K: 2304, lda: 3364, ldb: 2304, ldc: 3364, ldd: 3364, a_type: half, b_type: half, c_type: half, d_type: half, compute_type: half, transA: N, transB: N }
