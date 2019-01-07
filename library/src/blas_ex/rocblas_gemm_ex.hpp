@@ -101,11 +101,11 @@ void device_strided_batched_matrix_copy(const void* src,
     }
 }
 //------------------------------------------------------------------------------
-#define TENSILE_IN_ARGS(Ti, To, Tc)                                                                               \
-              To* dataD, const To* dataC, const Ti* dataA, const Ti* dataB,                                       \
-              Tc alpha, Tc beta, unsigned int offsetC, unsigned int offsetA, unsigned int offsetB,                \
-              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,     \
-              unsigned int strideB1J, unsigned int strideB2K,                                                     \
+#define TENSILE_IN_ARGS(Ti, To, Tc)                                                                              \
+              To* dataD, const To* dataC, const Ti* dataA, const Ti* dataB,                                      \
+              Tc alpha, Tc beta,                                                                                 \
+              unsigned int strideC1J, unsigned int strideC2K, unsigned int strideA1L, unsigned int strideA2K,    \
+              unsigned int strideB1J, unsigned int strideB2K,                                                    \
               unsigned int sizeI, unsigned int sizeJ, unsigned int sizeK, unsigned int sizeL, hipStream_t stream
 
 // Ti is typename for input data, To is typename for output data, Tc is typename for compute
@@ -118,9 +118,9 @@ TensileStatus tensile_Cijk_Alik_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
 TensileStatus tensile_Cijk_Alik_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 
-#define TENSILE_OUT_ARGS_HALF                                                     \
-    dataD, dataC, dataA, dataB, alpha_half, beta_half, offsetC, offsetA, offsetB, \
-        strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K,         \
+#define TENSILE_OUT_ARGS_HALF                                             \
+    dataD, dataC, dataA, dataB, alpha_half, beta_half,                    \
+        strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K, \
         sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 //---typename_data=TensileHalf-----typename_compute=float---------------------------
 template <>
@@ -161,7 +161,7 @@ TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf,TensileHalf,float>(
 }
 #undef TENSILE_OUT_ARGS_HALF
 #define TENSILE_OUT_ARGS                                                  \
-    dataD, dataC, dataA, dataB, alpha, beta, offsetC, offsetA, offsetB,   \
+    dataD, dataC, dataA, dataB, alpha, beta,                              \
         strideC1J, strideC2K, strideA1L, strideA2K, strideB1J, strideB2K, \
         sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 //---typename_data=TensileHalf-----typename_compute=TensileHalf---------------------
@@ -300,7 +300,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a), 
                                                       static_cast<const Ti*>(b),
-                                                      alpha, beta, 0, 0, 0, 
+                                                      alpha, beta,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
@@ -317,7 +317,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a), 
                                                       static_cast<const Ti*>(b),
-                                                      alpha, beta, 0, 0, 0, 
+                                                      alpha, beta,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
@@ -334,7 +334,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a),
                                                       static_cast<const Ti*>(b),
-                                                      alpha, beta, 0, 0, 0, 
+                                                      alpha, beta,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
@@ -351,7 +351,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<const To*>(c_in), 
                                                       static_cast<const Ti*>(a),
                                                       static_cast<const Ti*>(b),
-                                                      alpha, beta, 0, 0, 0, 
+                                                      alpha, beta,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
