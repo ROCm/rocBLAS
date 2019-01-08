@@ -394,6 +394,9 @@ void testing_gemm_ex(const Arguments& arg)
     host_vector<Ti> hA(size_A);
     host_vector<Ti> hB(size_B);
     host_vector<To> hC(size_C);
+    host_vector<To> hC_1(size_C);
+    host_vector<To> hC_2(size_C);
+    host_vector<To> hC_gold(size_C);
     host_vector<To> hD_1(size_D);
     host_vector<To> hD_2(size_D);
     host_vector<To> hD_gold(size_D);
@@ -436,6 +439,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     hD_2    = hD_1;
     hD_gold = hD_1;
+    hC_gold = hC;
 
     // copy data from CPU to device
     // if int8 and A not transposed and valid case, pack A
@@ -500,6 +504,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -534,6 +539,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             workspace));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         // copy C matrix into D matrix
@@ -561,11 +567,15 @@ void testing_gemm_ex(const Arguments& arg)
                 const double tol = K * sum_error_tolerance<Tc>;
                 near_check_general<To>(M, N, ldd, hD_gold, hD_1, tol);
                 near_check_general<To>(M, N, ldd, hD_gold, hD_2, tol);
+                unit_check_general<To>(M, N, ldc, hC_gold, hC_1);
+                unit_check_general<To>(M, N, ldc, hC_gold, hC_2);
             }
             else
             {
                 unit_check_general<To>(M, N, ldd, hD_gold, hD_1);
                 unit_check_general<To>(M, N, ldd, hD_gold, hD_2);
+                unit_check_general<To>(M, N, ldc, hC_gold, hC_1);
+                unit_check_general<To>(M, N, ldc, hC_gold, hC_2);
             }
         }
 
@@ -573,7 +583,13 @@ void testing_gemm_ex(const Arguments& arg)
         {
             auto err1     = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
             auto err2     = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
-            rocblas_error = err1 > err2 ? err1 : err2;
+            auto errD     = err1 > err2 ? err1 : err2;
+
+            auto err3     = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
+            auto err4     = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
+            auto errC     = err3 > err4 ? err3 : err4;
+
+            rocblas_error = errD > errC ? errD : errC;
         }
     }
 
