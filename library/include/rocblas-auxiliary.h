@@ -109,6 +109,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
 
 #ifdef __cplusplus
 }
+
+namespace rocblas {
+ROCBLAS_EXPORT void reinit_logs(); // For testing only
+}
 #endif
 
 #endif /* _ROCBLAS_AUXILIARY_H_ */

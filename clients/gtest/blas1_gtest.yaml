@@ -25,7 +25,7 @@ Tests:
     - testing_nrm2:  *single_double_precisions
     - testing_asum:  *single_double_precisions
     - testing_iamax: *single_double_precisions
-#   - testing_iamin: *single_double_precisions
+    - testing_iamin: *single_double_precisions
     - testing_axpy:  *half_single_double_precisions
     - testing_copy:  *single_double_precisions
     - testing_dot:   *single_double_precisions
@@ -41,7 +41,7 @@ Tests:
     - testing_nrm2:  *double_precision
     - testing_asum:  *double_precision
     - testing_iamax: *single_double_precisions
-#   - testing_iamin: *single_double_precisions
+    - testing_iamin: *single_double_precisions
     - testing_axpy:  *half_single_double_precisions
     - testing_copy:  *single_double_precisions
     - testing_dot:   *double_precision

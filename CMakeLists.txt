@@ -131,9 +131,9 @@ include( ROCMInstallSymlinks )
 set ( VERSION_STRING "2.1.0." )
 # Check if BUILD_NUMBER is defined in a Jenkins envirnment
 if ($ENV{BUILD_NUMBER} )
-  string(CONCAT BUILD_VERSION ${VERSION_STRING} $ENV{BUILD_NUMBER}) 
+  string(CONCAT BUILD_VERSION ${VERSION_STRING} $ENV{BUILD_NUMBER})
 else ()
-  string(CONCAT BUILD_VERSION ${VERSION_STRING} "0") 
+  string(CONCAT BUILD_VERSION ${VERSION_STRING} "0")
 endif ()
 rocm_setup_version( VERSION ${BUILD_VERSION} NO_GIT_TAG_VERSION )
 

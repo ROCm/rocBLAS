@@ -117,9 +117,10 @@ typedef enum rocblas_pointer_mode_ {
 
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_ {
-    rocblas_layer_mode_none      = 0b0000000000,
-    rocblas_layer_mode_log_trace = 0b0000000001,
-    rocblas_layer_mode_log_bench = 0b0000000010,
+    rocblas_layer_mode_none        = 0b0000000000,
+    rocblas_layer_mode_log_trace   = 0b0000000001,
+    rocblas_layer_mode_log_bench   = 0b0000000010,
+    rocblas_layer_mode_log_profile = 0b0000000100,
 } rocblas_layer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/
