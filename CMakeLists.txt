@@ -177,7 +177,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "yoichiyoshida" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag "d_matrix_write" CACHE STRING "Tensile tag to download" )
+    set( tensile_tag "ldd_support" CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()

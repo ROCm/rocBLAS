@@ -2314,6 +2314,30 @@ Definitions:
     - { M:     9, N:     1, K:  9216, lda:     9, ldb:  9216, ldc:     9, ldd:     9 }
     - { M:     9, N:     1, K:     9, lda:     9, ldb:     9, ldc:     9, ldd:     9 }
 
+  - &ldd_size_range
+    - { M:     1, N:     2, K:     3, lda:     4, ldb:     5, ldc:     7, ldd:     1 }
+    - { M:     7, N:     9, K:    15, lda:    17, ldb:    18, ldc:    20, ldd:     7 }
+    - { M:     2, N:     3, K:     4, lda:     5, ldb:     6, ldc:     8, ldd:     2 }
+    - { M:     3, N:     4, K:     5, lda:     6, ldb:     7, ldc:     9, ldd:     3 }
+    - { M:     5, N:     6, K:     7, lda:     7, ldb:     8, ldc:    10, ldd:     5 }
+    - { M:     6, N:     7, K:     8, lda:    10, ldb:     9, ldc:    10, ldd:     6 }
+    - { M:     7, N:     8, K:     9, lda:    11, ldb:     9, ldc:    11, ldd:     7 }
+    - { M:     8, N:     9, K:    10, lda:    10, ldb:    11, ldc:    13, ldd:     8 }
+    - { M:     9, N:    10, K:    11, lda:    12, ldb:    11, ldc:    14, ldd:     9 }
+    - { M:    13, N:    12, K:    11, lda:    15, ldb:    14, ldc:    15, ldd:    13 }
+    - { M:    15, N:    16, K:    17, lda:    17, ldb:    18, ldc:    20, ldd:    15 }
+    - { M:    18, N:    17, K:    16, lda:    18, ldb:    18, ldc:    20, ldd:    18 }
+    - { M:    16, N:    17, K:    18, lda:    20, ldb:    19, ldc:    20, ldd:    16 }
+    - { M:   191, N:   193, K:   194, lda:   195, ldb:   196, ldc:   198, ldd:   191 }
+    - { M:   500, N:   501, K:   502, lda:   503, ldb:   604, ldc:   550, ldd:   500 }
+
+  - &ldd_transA_transB_range
+    - { transA: N, transB: N }
+    - { transA: N, transB: T }
+    - { transA: T, transB: N }
+    - { transA: T, transB: T }
+
+
 Tests:
 - name: gemm_bad_arg
   category: pre_checkin
@@ -2744,4 +2768,13 @@ Tests:
   K: 1023..1025
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
+
+- name: gemm_ldd
+  category: quick
+  function:
+    testing_gemm_ex: *real_precisions
+  matrix_size: *ldd_size_range
+  transA_transB: *ldd_transA_transB_range
+  alpha_beta: *alpha_beta_range
+
 ...
