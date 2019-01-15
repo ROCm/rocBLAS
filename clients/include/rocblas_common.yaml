@@ -63,9 +63,10 @@ Simple precisions: &half_single_double_precisions
   - *single_precision
   - *double_precision
 
-# The Arguments struct passed directly to C++. See rocblas_arguments.h.
+# The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
-# The types on the RHS are eval'd for Python-recognized types including ctypes.
+# The types on the RHS are eval'd for Python-recognized types including ctypes
+# and datatypes defined in Datatypes above. T*n represents array of length n.
 Arguments:
   - M: rocblas_int
   - N: rocblas_int

@@ -553,7 +553,7 @@ int main(int argc, char* argv[])
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
          "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
-                                                                                          // xtrmm
+
         ("batch",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
          "Number of matrices. Only applicable to batched routines") // xtrsm xtrmm xgemm

@@ -2,13 +2,14 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#pragma once
 #ifndef HANDLE_H
 #define HANDLE_H
-#include <hip/hip_runtime_api.h>
-#include <fstream>
 
+#include <fstream>
+#include <iostream>
 #include "rocblas.h"
+#include "definitions.h"
+#include <hip/hip_runtime_api.h>
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -18,19 +19,41 @@
 ******************************************************************************/
 struct _rocblas_handle
 {
-
     _rocblas_handle();
     ~_rocblas_handle();
 
-    rocblas_status set_stream(hipStream_t stream);
-    rocblas_status get_stream(hipStream_t* stream) const;
+    /*******************************************************************************
+     * Exactly like CUBLAS, ROCBLAS only uses one stream for one API routine
+     ******************************************************************************/
 
-    void* get_trsm_Y();
-    void* get_trsm_invA();
-    void* get_trsm_invA_C();
+    /*******************************************************************************
+     * set stream:
+        This API assumes user has already created a valid stream
+        Associate the following rocblas API call with this user provided stream
+     ******************************************************************************/
+    rocblas_status set_stream(hipStream_t user_stream)
+    {
+        // TODO: check the user_stream valid or not
+        rocblas_stream = user_stream;
+        return rocblas_status_success;
+    }
 
-    void* get_trsv_x();
-    void* get_trsv_alpha();
+    /*******************************************************************************
+     * get stream
+     ******************************************************************************/
+    rocblas_status get_stream(hipStream_t* stream) const
+    {
+        *stream = rocblas_stream;
+        return rocblas_status_success;
+    }
+
+    // trsm get pointers
+    void* get_trsm_Y() const { return trsm_Y; }
+    void* get_trsm_invA() const { return trsm_invA; }
+    void* get_trsm_invA_C() const { return trsm_invA_C; }
+
+    // trsv get pointers
+    void* get_trsv_x() const { return trsv_x; }
 
     rocblas_int device;
     hipDeviceProp_t device_properties;
@@ -41,31 +64,41 @@ struct _rocblas_handle
     // default pointer_mode is on host
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
 
-    // default logging_mode is no logging
-    rocblas_layer_mode layer_mode;
-
     // space allocated for trsm
     void* trsm_Y      = nullptr;
     void* trsm_invA   = nullptr;
     void* trsm_invA_C = nullptr;
 
     // space allocated for trsv
-    void* trsv_x     = nullptr;
-    void* trsv_alpha = nullptr;
+    void* trsv_x = nullptr;
 
-    std::ofstream log_trace_ofs;
-    std::ofstream log_bench_ofs;
-    std::ostream* log_trace_os;
-    std::ostream* log_bench_os;
+    // default logging_mode is no logging
+    static rocblas_layer_mode layer_mode;
+
+    // logging streams
+    static std::ofstream log_trace_ofs;
+    static std::ostream* log_trace_os;
+    static std::ofstream log_bench_ofs;
+    static std::ostream* log_bench_os;
+    static std::ofstream log_profile_ofs;
+    static std::ostream* log_profile_os;
+
+    // static data for startup initialization
+    static struct init
+    {
+        init();
+    } handle_init;
 };
 
-// work buffer size constants
-#define WORKBUF_TRSM_A_BLKS 10
-#define WORKBUF_TRSM_B_CHNK 32000
-#define WORKBUF_TRSM_Y_SZ (32000 * 128 * sizeof(double))
-#define WORKBUF_TRSM_INVA_SZ (128 * 128 * 10 * sizeof(double))
-#define WORKBUF_TRSM_INVA_C_SZ (128 * 128 * 10 * sizeof(double) / 2)
-#define WORKBUF_TRSV_X_SZ (131072 * sizeof(double))
-#define WORKBUF_TRSV_ALPHA_SZ (1 * sizeof(double))
+namespace rocblas {
+void reinit_logs(); // Reinitialize static data (for testing only)
+}
 
+// work buffer size constants
+constexpr size_t WORKBUF_TRSM_A_BLKS    = 10;
+constexpr size_t WORKBUF_TRSM_B_CHNK    = 32000;
+constexpr size_t WORKBUF_TRSM_Y_SZ      = 32000 * 128 * sizeof(double);
+constexpr size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
+constexpr size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
+constexpr size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
 #endif
