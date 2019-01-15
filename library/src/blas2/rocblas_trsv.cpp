@@ -12,50 +12,47 @@
 #include "utility.h"
 #include "rocblas_unique_ptr.hpp"
 
-#define STRSV_BLOCK 128
-#define DTRSV_BLOCK 128
+namespace {
 
-template <typename T, bool to_temp>
+template <bool to_temp, typename T>
 __global__ void strided_vector_copy_kernel(T* x, rocblas_int m, T* x_temp, rocblas_int incx)
 {
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    ssize_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ssize_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
-    int id_temp = ty * hipBlockDim_x * hipGridDim_x + tx;
-    int id_x    = incx * id_temp;
+    ssize_t id_temp = ty * hipBlockDim_x * hipGridDim_x + tx;
+    ssize_t id_x    = incx * id_temp;
 
     if(id_temp < m)
     {
         if(to_temp)
-        {
             x_temp[id_temp] = x[id_x];
-        }
         else
-        {
             x[id_x] = x_temp[id_temp];
-        }
     }
 }
 
-template <typename T, bool to_temp>
+template <bool to_temp, typename T>
 void strided_vector_copy(
     hipStream_t rocblas_stream, T* x, rocblas_int m, T* x_temp, rocblas_int incx)
 {
-    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-    rocblas_int blocksY = ((m - 1) / 8) + 1;
-    dim3 grid(blocksX, blocksY, 1);
-    dim3 threads(128, 8, 1);
+    static constexpr int NB_X = 128;
+    static constexpr int NB_Y = 8;
+    rocblas_int blocksX       = (m - 1) / NB_X + 1; // parameters for device kernel
+    rocblas_int blocksY       = (m - 1) / NB_Y + 1;
+    dim3 grid(blocksX, blocksY);
+    dim3 threads(NB_X, NB_Y);
 
-    hipLaunchKernelGGL(strided_vector_copy_kernel<T, to_temp>,
-                       dim3(grid),
-                       dim3(threads),
-                       0,
-                       rocblas_stream,
-                       x,
-                       m,
-                       x_temp,
-                       incx);
+    hipLaunchKernelGGL(
+        strided_vector_copy_kernel<to_temp>, grid, threads, 0, rocblas_stream, x, m, x_temp, incx);
 }
+
+template <typename>
+constexpr char rocblas_trsv_name[] = "unknown";
+template <>
+constexpr char rocblas_trsv_name<float>[] = "rocblas_strsv";
+template <>
+constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
 
 /*! \brief BLAS Level 2 API
 
@@ -106,166 +103,115 @@ void strided_vector_copy(
 
     ********************************************************************/
 
-template <typename T, rocblas_int BLOCK>
-rocblas_status rocblas_trsv_template(rocblas_handle handle,
-                                     rocblas_fill uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal diag,
-                                     rocblas_int m,
-                                     const T* A,
-                                     rocblas_int lda,
-                                     T* x,
-                                     rocblas_int incx)
+template <rocblas_int BLOCK, typename T>
+rocblas_status rocblas_trsv(rocblas_handle handle,
+                            rocblas_fill uplo,
+                            rocblas_operation transA,
+                            rocblas_diagonal diag,
+                            rocblas_int m,
+                            const T* A,
+                            rocblas_int lda,
+                            T* x,
+                            rocblas_int incx)
 {
-    if(handle == nullptr)
+    if(!handle)
         return rocblas_status_invalid_handle;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
-    {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xtrsv"),
-                  uplo,
-                  transA,
-                  diag,
-                  m,
-                  (const void*&)A,
-                  lda,
-                  (const void*&)x,
-                  incx);
+    auto pointer_mode = handle->pointer_mode;
+    auto layer_mode   = handle->layer_mode;
+    if(layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
 
-        std::string uplo_letter   = rocblas_fill_letter(uplo);
-        std::string transA_letter = rocblas_transpose_letter(transA);
-        std::string diag_letter   = rocblas_diag_letter(diag);
-
-        log_bench(handle,
-                  "./rocblas-bench -f trsv -r",
-                  replaceX<T>("X"),
-                  "--uplo",
-                  uplo_letter,
-                  "--transposeA",
-                  transA_letter,
-                  "--diag",
-                  diag_letter,
-                  "-m",
-                  m,
-                  "--lda",
-                  lda,
-                  "--incx",
-                  incx);
-    }
-    else
+    if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
     {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xtrsv"),
-                  uplo,
-                  transA,
-                  diag,
-                  m,
-                  (const void*&)A,
-                  lda,
-                  (const void*&)x,
-                  incx);
+        auto uplo_letter   = rocblas_fill_letter(uplo);
+        auto transA_letter = rocblas_transpose_letter(transA);
+        auto diag_letter   = rocblas_diag_letter(diag);
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+        {
+            if(pointer_mode == rocblas_pointer_mode_host)
+                log_bench(handle,
+                          "./rocblas-bench -f trsv -r",
+                          rocblas_precision_letter<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "--diag",
+                          diag_letter,
+                          "-m",
+                          m,
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx);
+        }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_trsv_name<T>,
+                        "uplo",
+                        uplo_letter,
+                        "transA",
+                        transA_letter,
+                        "diag",
+                        diag_letter,
+                        "M",
+                        m,
+                        "lda",
+                        lda,
+                        "incx",
+                        incx);
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_not_implemented;
-    else if(nullptr == A)
+    if(!A || !x)
         return rocblas_status_invalid_pointer;
-    else if(nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if(m < 0)
-        return rocblas_status_invalid_size;
-    else if(lda < m || lda < 1)
-        return rocblas_status_invalid_size;
-    else if(0 == incx)
+    if(m < 0 || lda < m || lda < 1 || !incx)
         return rocblas_status_invalid_size;
 
     // quick return if possible.
-    if(m == 0)
+    if(!m)
         return rocblas_status_success;
 
     // Calling TRSM for now
     rocblas_status status;
-    rocblas_pointer_mode pointer_mode = handle->pointer_mode;
-    T alpha_h                         = 1.0f;
 
-    void* alpha_d;
-    if(pointer_mode == rocblas_pointer_mode_device)
-    {
-        alpha_d = handle->get_trsv_alpha();
-        hipMemcpy((T*)alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice);
-    }
+    // alpha is a constant value of 1.0 either on host or device depending on pointer mode
+    static constexpr T alpha_h{1};
+    static const __device__ T alpha_d{1};
+    const T* alpha = pointer_mode == rocblas_pointer_mode_device ? &alpha_d : &alpha_h;
 
     if(incx == 1)
     {
-        status = rocblas_trsm_template<T, BLOCK>(
-            handle,
-            rocblas_side_left,
-            uplo,
-            transA,
-            diag,
-            m,
-            1,
-            pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
-            A,
-            lda,
-            x,
-            m);
+        status = rocblas_trsm_template<BLOCK>(
+            handle, rocblas_side_left, uplo, transA, diag, m, 1, alpha, A, lda, x, m);
     }
     else
     {
-        int offest = (m - 1) * abs(incx);
-        if(WORKBUF_TRSV_X_SZ <= m)
-        {
-            void* dx_mod = handle->get_trsv_x();
-            strided_vector_copy<T, true>(
-                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod, incx);
+        if(incx < 0)
+            x -= ssize_t(incx) * (m - 1);
 
-            status = rocblas_trsm_template<T, BLOCK>(
-                handle,
-                rocblas_side_left,
-                uplo,
-                transA,
-                diag,
-                m,
-                1,
-                pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
-                A,
-                lda,
-                (T*)dx_mod,
-                m);
+        T* dx_mod = sizeof(T) * m <= WORKBUF_TRSV_X_SZ
+                        ? (T*)handle->get_trsv_x()
+                        : (T*)rocblas_unique_ptr(rocblas::device_malloc(sizeof(T) * m),
+                                                 rocblas::device_free)
+                              .get();
 
-            strided_vector_copy<T, false>(
-                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod, incx);
-        }
-        else
-        {
-            auto dx_mod =
-                rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * m), rocblas::device_free};
-            strided_vector_copy<T, true>(
-                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
+        strided_vector_copy<true>(handle->rocblas_stream, x, m, dx_mod, incx);
 
-            status = rocblas_trsm_template<T, BLOCK>(
-                handle,
-                rocblas_side_left,
-                uplo,
-                transA,
-                diag,
-                m,
-                1,
-                pointer_mode == rocblas_pointer_mode_host ? &alpha_h : (T*)alpha_d,
-                A,
-                lda,
-                (T*)dx_mod.get(),
-                m);
+        status = rocblas_trsm_template<BLOCK>(
+            handle, rocblas_side_left, uplo, transA, diag, m, 1, alpha, A, lda, dx_mod, m);
 
-            strided_vector_copy<T, false>(
-                handle->rocblas_stream, incx < 0 ? x + offest : x, m, (T*)dx_mod.get(), incx);
-        }
+        strided_vector_copy<false>(handle->rocblas_stream, x, m, dx_mod, incx);
     }
 
     return status;
 }
+
+} // namespace
 
 /*
  * ===========================================================================
@@ -273,30 +219,34 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
  * ===========================================================================
  */
 
-extern "C" rocblas_status rocblas_strsv(rocblas_handle handle,
-                                        rocblas_fill uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal diag,
-                                        rocblas_int m,
-                                        const float* A,
-                                        rocblas_int lda,
-                                        float* x,
-                                        rocblas_int incx)
+extern "C" {
+
+rocblas_status rocblas_strsv(rocblas_handle handle,
+                             rocblas_fill uplo,
+                             rocblas_operation transA,
+                             rocblas_diagonal diag,
+                             rocblas_int m,
+                             const float* A,
+                             rocblas_int lda,
+                             float* x,
+                             rocblas_int incx)
 {
-    return rocblas_trsv_template<float, STRSV_BLOCK>(
-        handle, uplo, transA, diag, m, A, lda, x, incx);
+    static constexpr rocblas_int STRSV_BLOCK = 128;
+    return rocblas_trsv<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 
-extern "C" rocblas_status rocblas_dtrsv(rocblas_handle handle,
-                                        rocblas_fill uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal diag,
-                                        rocblas_int m,
-                                        const double* A,
-                                        rocblas_int lda,
-                                        double* x,
-                                        rocblas_int incx)
+rocblas_status rocblas_dtrsv(rocblas_handle handle,
+                             rocblas_fill uplo,
+                             rocblas_operation transA,
+                             rocblas_diagonal diag,
+                             rocblas_int m,
+                             const double* A,
+                             rocblas_int lda,
+                             double* x,
+                             rocblas_int incx)
 {
-    return rocblas_trsv_template<double, DTRSV_BLOCK>(
-        handle, uplo, transA, diag, m, A, lda, x, incx);
+    static constexpr rocblas_int DTRSV_BLOCK = 128;
+    return rocblas_trsv<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
+
+} // extern "C"
