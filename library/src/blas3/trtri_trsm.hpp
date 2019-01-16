@@ -206,7 +206,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
 
     if(blocks > 0)
     {
-        constexpr rocblas_int IBD = 4;
+        constexpr rocblas_int IBD = 8;
         constexpr rocblas_int IB  = NB / IBD;
         dim3 grid(blocks * IBD);
         dim3 threads(IB);
@@ -252,20 +252,41 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
                            lda,
                            invA);
 
-        constexpr rocblas_int JB = IB * 2;
+        constexpr rocblas_int JB = IB * 4;
         rocblas_int stride_A     = NB * lda + NB;
         rocblas_int stride_invA  = NB * NB;
         rocblas_int stride_C     = JB * JB;
 
+        for(int i = 0; i < blocks; i++)
+            trtri_strided_gemm_block<T>(
+                handle,
+                IB,
+                (const T*)(A + ((uplo == rocblas_fill_lower) ? IB + i * stride_A
+                                                             : IB * lda + i * stride_A)),
+                lda,
+                2 * IB * lda + 2 * IB,
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * stride_invA
+                                                                : IB * NB + IB + i * stride_invA)),
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * NB + IB + i * stride_invA
+                                                                : 0 + i * stride_invA)),
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? IB + i * stride_invA
+                                                          : IB * NB + i * stride_invA)),
+                NB,
+                2 * IB * NB + 2 * IB,
+                (T*)C_tmp,
+                IB,
+                IB * IB,
+                NB / JB * 2);
+
         trtri_strided_gemm_block<T>(
             handle,
-            IB,
-            (const T*)(A + ((uplo == rocblas_fill_lower) ? IB : IB * lda)),
+            IB * 2,
+            (const T*)(A + ((uplo == rocblas_fill_lower) ? IB * 2 : IB * 2 * lda)),
             lda,
             stride_A,
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 : IB * NB + IB)),
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * NB + IB : 0)),
-            (T*)(invA + ((uplo == rocblas_fill_lower) ? IB : IB * NB)),
+            (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 : IB * 2 * NB + IB * 2)),
+            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 2 * NB + IB * 2 : 0)),
+            (T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 2 : IB * 2 * NB)),
             NB,
             stride_invA,
             (T*)C_tmp,
@@ -275,17 +296,17 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
 
         trtri_strided_gemm_block<T>(
             handle,
-            IB,
-            (const T*)(A + ((uplo == rocblas_fill_lower) ? IB * 2 * lda + IB * 3
-                                                         : IB * 3 * lda + IB * 2)),
+            IB * 2,
+            (const T*)(A + ((uplo == rocblas_fill_lower) ? IB * 4 * lda + IB * 6
+                                                         : IB * 6 * lda + IB * 4)),
             lda,
             stride_A,
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 2 * NB + IB * 2
-                                                            : IB * 3 * NB + IB * 3)),
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 3 * NB + IB * 3
-                                                            : IB * 2 * NB + IB * 2)),
+            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 4 * NB + IB * 4
+                                                            : IB * 6 * NB + IB * 6)),
+            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 6 * NB + IB * 6
+                                                            : IB * 4 * NB + IB * 4)),
             (T*)(invA +
-                 ((uplo == rocblas_fill_lower) ? IB * 2 * NB + IB * 3 : IB * 3 * NB + IB * 2)),
+                 ((uplo == rocblas_fill_lower) ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4)),
             NB,
             stride_invA,
             (T*)C_tmp,
@@ -308,7 +329,6 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
             JB,
             stride_C,
             blocks);
-
     } // end if
 
     // the last digaonal block is handled seperately if n is not divisible by NB, or if there is
