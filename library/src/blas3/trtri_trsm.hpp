@@ -208,8 +208,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
     {
         constexpr rocblas_int IBD = 4;
         constexpr rocblas_int IB  = NB / IBD;
-        dim3 grid(blocks * IBD, 1, 1);
-        dim3 threads(IB, 1, 1);
+        dim3 grid(blocks * IBD);
+        dim3 threads(IB);
 
         /*
            Algorithm:
@@ -242,8 +242,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
         // invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in invA
 
         hipLaunchKernelGGL((trtri_trsm_kernel<T, NB, IB, IBD>),
-                           dim3(grid),
-                           dim3(threads),
+                           grid,
+                           threads,
                            0,
                            rocblas_stream,
                            uplo,

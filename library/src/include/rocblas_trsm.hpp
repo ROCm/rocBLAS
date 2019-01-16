@@ -82,7 +82,7 @@
 
     ********************************************************************/
 
-template <typename T, rocblas_int BLOCK>
+template <rocblas_int BLOCK, typename T>
 rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                      rocblas_side side,
                                      rocblas_fill uplo,

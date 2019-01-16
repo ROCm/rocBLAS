@@ -17,7 +17,7 @@ void device_matrix_copy(const void* src,
         {
             // src and dst matrices are contiguous, use single copy
             size_t matrix_size = n1 * n2 * elem_size;
-            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice))
+            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice));
         }
         else
         {
@@ -32,7 +32,7 @@ void device_matrix_copy(const void* src,
                                                     + (i2 * ld_src * elem_size));
                 dst_void = static_cast<      void*>(static_cast<uint8_t*>(dst)
                                                     + (i2 * ld_dst * elem_size));
-                PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice))
+                PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice));
             }
         }
     }
@@ -58,7 +58,7 @@ void device_strided_batched_matrix_copy(const void* src,
         {
             // src and dst batch matrices are contiguous, use single copy
             size_t matrix_size = n1 * n2 * batch_count * elem_size;
-            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice))
+            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice));
         }
         else if((n1 == ld_src) && (n1 == ld_dst))
         {
@@ -72,7 +72,7 @@ void device_strided_batched_matrix_copy(const void* src,
                 dst_void = static_cast<      void*>(static_cast<      uint8_t*>(dst)
                                                     + (i3 * stride_dst * elem_size));
 
-                PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, matrix_size, hipMemcpyDeviceToDevice))
+                PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, matrix_size, hipMemcpyDeviceToDevice));
             }
 
         }
@@ -94,7 +94,7 @@ void device_strided_batched_matrix_copy(const void* src,
                                                         + (i2 * ld_dst * elem_size)
                                                         + (i3 * stride_dst * elem_size));
 
-                    PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice))
+                    PRINT_IF_HIP_ERROR(hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice));
                 }
             }
         }
@@ -304,10 +304,10 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m), 
-                                                      static_cast<unsigned int>(n), 
-                                                      static_cast<unsigned int>(batch_count), 
-                                                      static_cast<unsigned int>(k), 
+                                                      static_cast<unsigned int>(m),
+                                                      static_cast<unsigned int>(n),
+                                                      static_cast<unsigned int>(batch_count),
+                                                      static_cast<unsigned int>(k),
                                                       handle->rocblas_stream);
     }
     else if((trans_a == rocblas_operation_none) &&
@@ -321,10 +321,10 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m), 
-                                                      static_cast<unsigned int>(n), 
-                                                      static_cast<unsigned int>(batch_count), 
-                                                      static_cast<unsigned int>(k), 
+                                                      static_cast<unsigned int>(m),
+                                                      static_cast<unsigned int>(n),
+                                                      static_cast<unsigned int>(batch_count),
+                                                      static_cast<unsigned int>(k),
                                                       handle->rocblas_stream);
     }
     else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
@@ -338,9 +338,9 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m), 
+                                                      static_cast<unsigned int>(m),
                                                       static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count), 
+                                                      static_cast<unsigned int>(batch_count),
                                                       static_cast<unsigned int>(k),
                                                       handle->rocblas_stream);
     }
@@ -355,9 +355,9 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                                       static_cast<unsigned int>(ldd), stride_d, 
                                                       static_cast<unsigned int>(lda), stride_a, 
                                                       static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m), 
+                                                      static_cast<unsigned int>(m),
                                                       static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count), 
+                                                      static_cast<unsigned int>(batch_count),
                                                       static_cast<unsigned int>(k),
                                                       handle->rocblas_stream);
     }
