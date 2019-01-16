@@ -54,7 +54,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
             // left, lower no-transpose
             jb = min(BLOCK, m);
             rocblas_gemm_template<T>(
-                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
+                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, m);
             if(BLOCK < m)
             {
                 rocblas_gemm_template<T>(handle,
@@ -67,7 +67,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                          A(BLOCK, 0),
                                          lda,
                                          X,
-                                         ldb,
+                                         m,
                                          alpha,
                                          B(BLOCK, 0),
                                          ldb);
@@ -89,7 +89,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              ldb,
                                              &zero,
                                              X(i, 0),
-                                             ldb);
+                                             m);
                     if(i + BLOCK >= m) // this condition is not necessary at all and can be changed
                                        // as if (i+BLOCK<m)
                         break;
@@ -104,7 +104,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              A(i + BLOCK, i),
                                              lda,
                                              X(i, 0),
-                                             ldb,
+                                             m,
                                              &one,
                                              B(i + BLOCK, 0),
                                              ldb);
@@ -143,7 +143,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                      ldb,
                                      &zero,
                                      X(i, 0),
-                                     ldb);
+                                     m);
             if(i - BLOCK >= 0)
             {
 
@@ -157,7 +157,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                          A(0, i),
                                          lda,
                                          X(i, 0),
-                                         ldb,
+                                         m,
                                          alpha,
                                          B,
                                          ldb);
@@ -179,7 +179,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              ldb,
                                              &zero,
                                              X(i, 0),
-                                             ldb);
+                                             m);
                     if(i - BLOCK < 0)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -192,7 +192,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              A(0, i),
                                              lda,
                                              X(i, 0),
-                                             ldb,
+                                             m,
                                              &one,
                                              B,
                                              ldb);
@@ -220,7 +220,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                      ldb,
                                      &zero,
                                      X(i, 0),
-                                     ldb);
+                                     m);
             if(i - BLOCK >= 0)
             {
                 rocblas_gemm_template<T>(handle,
@@ -233,7 +233,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                          A(i, 0),
                                          lda,
                                          X(i, 0),
-                                         ldb,
+                                         m,
                                          alpha,
                                          B,
                                          ldb);
@@ -254,7 +254,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              ldb,
                                              &zero,
                                              X(i, 0),
-                                             ldb);
+                                             m);
                     if(i - BLOCK < 0)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -267,7 +267,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              A(i, 0),
                                              lda,
                                              X(i, 0),
-                                             ldb,
+                                             m,
                                              &one,
                                              B,
                                              ldb);
@@ -279,7 +279,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
             // left, upper transpose
             jb = min(BLOCK, m);
             rocblas_gemm_template<T>(
-                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, ldb);
+                handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, m);
             if(BLOCK < m)
             {
                 rocblas_gemm_template<T>(handle,
@@ -292,7 +292,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                          A(0, BLOCK),
                                          lda,
                                          X,
-                                         ldb,
+                                         m,
                                          alpha,
                                          B(BLOCK, 0),
                                          ldb);
@@ -314,7 +314,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              ldb,
                                              &zero,
                                              X(i, 0),
-                                             ldb);
+                                             m);
                     if(i + BLOCK >= m)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -327,7 +327,7 @@ rocblas_status rocblas_trsm_left(rocblas_handle handle,
                                              A(i, i + BLOCK),
                                              lda,
                                              X(i, 0),
-                                             ldb,
+                                             m,
                                              &one,
                                              B(i + BLOCK, 0),
                                              ldb);
@@ -384,7 +384,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                      BLOCK,
                                      &zero,
                                      X(0, i),
-                                     ldb);
+                                     m);
             if(i - BLOCK >= 0)
             {
                 rocblas_gemm_template<T>(handle,
@@ -395,7 +395,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                          jb,
                                          &negative_one,
                                          X(0, i),
-                                         ldb,
+                                         m,
                                          A(i, 0),
                                          lda,
                                          alpha,
@@ -418,7 +418,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &zero,
                                              X(0, i),
-                                             ldb);
+                                             m);
                     if(i - BLOCK < 0)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -429,7 +429,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &negative_one,
                                              X(0, i),
-                                             ldb,
+                                             m,
                                              A(i, 0),
                                              lda,
                                              &one,
@@ -443,7 +443,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
             // right, upper no-transpose
             jb = min(BLOCK, n);
             rocblas_gemm_template<T>(
-                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
+                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, m);
             if(BLOCK < n)
             {
                 rocblas_gemm_template<T>(handle,
@@ -454,7 +454,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                          BLOCK,
                                          &negative_one,
                                          X,
-                                         ldb,
+                                         m,
                                          A(0, BLOCK),
                                          lda,
                                          alpha,
@@ -478,7 +478,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &zero,
                                              X(0, i),
-                                             ldb);
+                                             m);
                     if(i + BLOCK >= n)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -489,7 +489,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &negative_one,
                                              X(0, i),
-                                             ldb,
+                                             m,
                                              A(i, i + BLOCK),
                                              lda,
                                              &one,
@@ -506,7 +506,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
             // right, lower transpose
             jb = min(BLOCK, n);
             rocblas_gemm_template<T>(
-                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, ldb);
+                handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero, X, m);
             if(BLOCK < n)
             {
                 rocblas_gemm_template<T>(handle,
@@ -517,7 +517,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                          BLOCK,
                                          &negative_one,
                                          X,
-                                         ldb,
+                                         m,
                                          A(BLOCK, 0),
                                          lda,
                                          alpha,
@@ -541,7 +541,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &zero,
                                              X(0, i),
-                                             ldb);
+                                             m);
                     if(i + BLOCK >= n)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -552,7 +552,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &negative_one,
                                              X(0, i),
-                                             ldb,
+                                             m,
                                              A(BLOCK + i, i),
                                              lda,
                                              &one,
@@ -579,7 +579,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                      BLOCK,
                                      &zero,
                                      X(0, i),
-                                     ldb);
+                                     m);
             if(i - BLOCK >= 0)
             {
                 rocblas_gemm_template<T>(handle,
@@ -590,7 +590,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                          jb,
                                          &negative_one,
                                          X(0, i),
-                                         ldb,
+                                         m,
                                          A(0, i),
                                          lda,
                                          alpha,
@@ -613,7 +613,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &zero,
                                              X(0, i),
-                                             ldb);
+                                             m);
                     if(i - BLOCK < 0)
                         break;
                     rocblas_gemm_template<T>(handle,
@@ -624,7 +624,7 @@ rocblas_status rocblas_trsm_right(rocblas_handle handle,
                                              BLOCK,
                                              &negative_one,
                                              X(0, i),
-                                             ldb,
+                                             m,
                                              A(0, i),
                                              lda,
                                              &one,
@@ -1125,13 +1125,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if(!C_tmp && k >= BLOCK)
         return rocblas_status_memory_error;
 
-    // copy B to packed storage
-    auto packedB =
-        rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
-    if(!packedB)
-        return rocblas_status_memory_error;
-
-    // X is also packed size of B
+    // X is size of packed B
     auto X = rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
     if(!X)
         return rocblas_status_memory_error;
@@ -1139,30 +1133,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    // copy B to packedB
-    {
-        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-        rocblas_int blocksY = (n - 1) / 8 + 1;
-        dim3 grid(blocksX, blocksY);
-        dim3 threads(128, 8);
-
-        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           sizeof(T),
-                           B,
-                           ldb,
-                           packedB.get(),
-                           m);
-    }
-
-    // intialize invA and X to be &zero
+    // intialize invA to &zero
     PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)invA.get(), 0, BLOCK * k * sizeof(T), rocblas_stream));
-    PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)X.get(), 0, m * n * sizeof(T), rocblas_stream));
 
     // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
@@ -1170,33 +1142,13 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     if(side == rocblas_side_left)
     {
-        status = rocblas_trsm_left<BLOCK>(handle,
-                                          uplo,
-                                          transA,
-                                          m,
-                                          n,
-                                          alpha,
-                                          A,
-                                          lda,
-                                          (T*)packedB.get(),
-                                          m,
-                                          (T*)invA.get(),
-                                          (T*)X.get());
+        status = rocblas_trsm_left<BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
     else
     { // side == rocblas_side_right
-        status = rocblas_trsm_right<BLOCK>(handle,
-                                           uplo,
-                                           transA,
-                                           m,
-                                           n,
-                                           alpha,
-                                           A,
-                                           lda,
-                                           (T*)packedB.get(),
-                                           m,
-                                           (T*)invA.get(),
-                                           (T*)X.get());
+        status = rocblas_trsm_right<BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
     }
 
 #ifndef NDEBUG
