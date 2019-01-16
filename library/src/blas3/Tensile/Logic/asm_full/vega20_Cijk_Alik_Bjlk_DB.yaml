@@ -1,4 +1,4 @@
-- {MinimumRequiredVersion: 4.6.0}
+- {MinimumRequiredVersion: 4.7.1}
 - vega20
 - gfx906
 - [Device 66a0, Device 66a1, Device 66a7]
