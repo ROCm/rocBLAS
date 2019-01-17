@@ -430,11 +430,11 @@ int main(int argc, char* argv[])
 
     std::string function;
     char precision;
-    char a_type;
-    char b_type;
-    char c_type;
-    char d_type;
-    char compute_type;
+    std::string a_type;
+    std::string b_type;
+    std::string c_type;
+    std::string d_type;
+    std::string compute_type;
 
     rocblas_int device_id;
     std::string datafile;
@@ -515,24 +515,24 @@ int main(int argc, char* argv[])
          value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
 
         ("a_type",
-         value<char>(&a_type)->default_value('s'), "Options: h,s,d,c,z"
-         "Precision of matrix A, only applicable to BLAS_EX")
+         value<std::string>(&a_type)->default_value("f32_r"), "Precision of matrix A, only applicable to BLAS_EX. "
+         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
 
         ("b_type",
-         value<char>(&b_type)->default_value('s'), "Options: h,s,d,c,z"
-         "Precision of matrix B, only applicable to BLAS_EX")
+         value<std::string>(&b_type)->default_value("f32_r"), "Precision of matrix B, only applicable to BLAS_EX. "
+         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
 
         ("c_type",
-         value<char>(&c_type)->default_value('s'), "Options: h,s,d,c,z"
-         "Precision of matrix C, only applicable to BLAS_EX")
+         value<std::string>(&c_type)->default_value("f32_r"), "Precision of matrix C, only applicable to BLAS_EX. "
+         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
 
         ("d_type",
-         value<char>(&d_type)->default_value('s'), "Options: h,s,d,c,z"
-         "Precision of matrix D, only applicable to BLAS_EX")
+         value<std::string>(&d_type)->default_value("f32_r"), "Precision of matrix D, only applicable to BLAS_EX. "
+         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
 
         ("compute_type",
-         value<char>(&compute_type)->default_value('s'), "Options: h,s,d,c,z"
-         "Precision of computation, only applicable to BLAS_EX")
+         value<std::string>(&compute_type)->default_value("f32_r"), "Precision of computation, only applicable to BLAS_EX. "
+         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),
@@ -637,35 +637,35 @@ int main(int argc, char* argv[])
         return -1;
     }
 
-    arg.a_type = char2rocblas_datatype(a_type);
+    arg.a_type = string2rocblas_datatype(a_type);
     if(arg.a_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --a_type" << std::endl;
         return -1;
     }
 
-    arg.b_type = char2rocblas_datatype(b_type);
+    arg.b_type = string2rocblas_datatype(b_type);
     if(arg.b_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --b_type" << std::endl;
         return -1;
     }
 
-    arg.c_type = char2rocblas_datatype(c_type);
+    arg.c_type = string2rocblas_datatype(c_type);
     if(arg.c_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --c_type" << std::endl;
         return -1;
     }
 
-    arg.d_type = char2rocblas_datatype(d_type);
+    arg.d_type = string2rocblas_datatype(d_type);
     if(arg.d_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --d_type" << std::endl;
         return -1;
     }
 
-    arg.compute_type = char2rocblas_datatype(compute_type);
+    arg.compute_type = string2rocblas_datatype(compute_type);
     if(arg.compute_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --compute_type" << std::endl;

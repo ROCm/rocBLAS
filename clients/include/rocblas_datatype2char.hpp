@@ -140,4 +140,6 @@ constexpr rocblas_datatype char2rocblas_datatype(char value)
     }
 }
 
+rocblas_datatype string2rocblas_datatype(std::string value);
+
 #endif
