@@ -65,7 +65,6 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/norm.cpp
-      ../common/rocblas_datatype2char.cpp
     )
 
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
