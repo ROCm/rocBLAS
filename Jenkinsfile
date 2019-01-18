@@ -581,6 +581,7 @@ rocm20_ubuntu_gfx906:
           }
 
         build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+        }
     }
     catch( err )
     {
