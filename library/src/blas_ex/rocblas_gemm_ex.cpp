@@ -152,139 +152,151 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                      rocblas_layer_mode_log_profile))
     {
-        auto trans_a_letter = rocblas_transpose_letter(trans_a);
-        auto trans_b_letter = rocblas_transpose_letter(trans_b);
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        char trans_a_letter, trans_b_letter;
+        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
-            double alpha_double;
-            double beta_double;
-            if(compute_type == rocblas_datatype_f16_r)
-            {
-                alpha_double = *static_cast<const _Float16*>(alpha);
-                beta_double  = *static_cast<const _Float16*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_f32_r)
-            {
-                alpha_double = *static_cast<const float*>(alpha);
-                beta_double  = *static_cast<const float*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_f64_r)
-            {
-                alpha_double = *static_cast<const double*>(alpha);
-                beta_double  = *static_cast<const double*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_i32_r)
-            {
-                alpha_double = *static_cast<const int32_t*>(alpha);
-                beta_double  = *static_cast<const int32_t*>(beta);
-            }
-
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          "rocblas_gemm_ex",
-                          trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          alpha_double,
-                          a,
-                          a_type,
-                          lda,
-                          b,
-                          b_type,
-                          ldb,
-                          beta_double,
-                          c,
-                          c_type,
-                          ldc,
-                          d,
-                          d_type,
-                          ldd,
-                          compute_type,
-                          algo,
-                          solution_index,
-                          flags,
-                          workspace_size,
-                          workspace);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench -f gemm_ex",
-                          "--transposeA",
-                          trans_a_letter,
-                          "--transposeB",
-                          trans_b_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "-k",
-                          k,
-                          "--alpha",
-                          alpha_double,
-                          "--a_type",
-                          rocblas_datatype_letter(a_type),
-                          "--lda",
-                          lda,
-                          "--b_type",
-                          rocblas_datatype_letter(b_type),
-                          "--ldb",
-                          ldb,
-                          "--beta",
-                          beta_double,
-                          "--c_type",
-                          rocblas_datatype_letter(c_type),
-                          "--ldc",
-                          ldc,
-                          "--d_type",
-                          rocblas_datatype_letter(d_type),
-                          "--ldd",
-                          ldd,
-                          "--compute_type",
-                          rocblas_datatype_letter(compute_type),
-                          "--algo",
-                          algo,
-                          "--solution_index",
-                          solution_index,
-                          "--flags",
-                          flags,
-                          "--workspace_size",
-                          workspace_size);
-            }
+            trans_a_letter = rocblas_transpose_letter(trans_a);
+            trans_b_letter = rocblas_transpose_letter(trans_b);
         }
-        else
+        auto a_type_string       = rocblas_datatype_string(a_type);
+        auto b_type_string       = rocblas_datatype_string(b_type);
+        auto c_type_string       = rocblas_datatype_string(c_type);
+        auto d_type_string       = rocblas_datatype_string(d_type);
+        auto compute_type_string = rocblas_datatype_string(compute_type);
+
+        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_trace))
         {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          "rocblas_gemm_ex",
-                          trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          alpha,
-                          a,
-                          a_type,
-                          lda,
-                          b,
-                          b_type,
-                          ldb,
-                          beta,
-                          c,
-                          c_type,
-                          ldc,
-                          d,
-                          d_type,
-                          ldd,
-                          compute_type,
-                          algo,
-                          solution_index,
-                          flags,
-                          "--workspace_size",
-                          workspace_size);
+            if(handle->pointer_mode == rocblas_pointer_mode_host)
+            {
+                double alpha_double;
+                double beta_double;
+                if(compute_type == rocblas_datatype_f16_r)
+                {
+                    alpha_double = *static_cast<const _Float16*>(alpha);
+                    beta_double  = *static_cast<const _Float16*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_f32_r)
+                {
+                    alpha_double = *static_cast<const float*>(alpha);
+                    beta_double  = *static_cast<const float*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_f64_r)
+                {
+                    alpha_double = *static_cast<const double*>(alpha);
+                    beta_double  = *static_cast<const double*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_i32_r)
+                {
+                    alpha_double = *static_cast<const int32_t*>(alpha);
+                    beta_double  = *static_cast<const int32_t*>(beta);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              "rocblas_gemm_ex",
+                              trans_a,
+                              trans_b,
+                              m,
+                              n,
+                              k,
+                              alpha_double,
+                              a,
+                              a_type_string,
+                              lda,
+                              b,
+                              b_type_string,
+                              ldb,
+                              beta_double,
+                              c,
+                              c_type_string,
+                              ldc,
+                              d,
+                              d_type_string,
+                              ldd,
+                              compute_type_string,
+                              algo,
+                              solution_index,
+                              flags,
+                              workspace_size ? *workspace_size : 0,
+                              workspace);
+
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f gemm_ex",
+                              "--transposeA",
+                              trans_a_letter,
+                              "--transposeB",
+                              trans_b_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              "-k",
+                              k,
+                              "--alpha",
+                              alpha_double,
+                              "--a_type",
+                              a_type_string,
+                              "--lda",
+                              lda,
+                              "--b_type",
+                              b_type_string,
+                              "--ldb",
+                              ldb,
+                              "--beta",
+                              beta_double,
+                              "--c_type",
+                              c_type_string,
+                              "--ldc",
+                              ldc,
+                              "--d_type",
+                              d_type_string,
+                              "--ldd",
+                              ldd,
+                              "--compute_type",
+                              compute_type_string,
+                              "--algo",
+                              algo,
+                              "--solution_index",
+                              solution_index,
+                              "--flags",
+                              flags,
+                              "--workspace_size",
+                              workspace_size ? *workspace_size : 0);
+                }
+            }
+            else
+            {
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              "rocblas_gemm_ex",
+                              trans_a,
+                              trans_b,
+                              m,
+                              n,
+                              k,
+                              alpha,
+                              a,
+                              a_type_string,
+                              lda,
+                              b,
+                              b_type_string,
+                              ldb,
+                              beta,
+                              c,
+                              c_type_string,
+                              ldc,
+                              d,
+                              d_type_string,
+                              ldd,
+                              compute_type_string,
+                              algo,
+                              solution_index,
+                              flags,
+                              "--workspace_size",
+                              workspace_size ? *workspace_size : 0);
+            }
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
@@ -292,15 +304,15 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
             log_profile(handle,
                         "rocblas_gemm_ex",
                         "a_type",
-                        rocblas_datatype_precision_yaml(a_type),
+                        a_type_string,
                         "b_type",
-                        rocblas_datatype_precision_yaml(b_type),
+                        b_type_string,
                         "c_type",
-                        rocblas_datatype_precision_yaml(c_type),
+                        c_type_string,
                         "d_type",
-                        rocblas_datatype_precision_yaml(d_type),
+                        d_type_string,
                         "compute_type",
-                        rocblas_datatype_precision_yaml(compute_type),
+                        compute_type_string,
                         "transA",
                         trans_a_letter,
                         "transB",
@@ -326,7 +338,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                         "flags",
                         flags,
                         "workspace_size",
-                        workspace_size);
+                        workspace_size ? *workspace_size : 0);
         }
     }
 
@@ -677,161 +689,172 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                      rocblas_layer_mode_log_profile))
     {
-        auto trans_a_letter = rocblas_transpose_letter(trans_a);
-        auto trans_b_letter = rocblas_transpose_letter(trans_b);
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        char trans_a_letter, trans_b_letter;
+        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
-            double alpha_double;
-            double beta_double;
-            if(compute_type == rocblas_datatype_f16_r)
-            {
-                alpha_double = *static_cast<const _Float16*>(alpha);
-                beta_double  = *static_cast<const _Float16*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_f32_r)
-            {
-                alpha_double = *static_cast<const float*>(alpha);
-                beta_double  = *static_cast<const float*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_f64_r)
-            {
-                alpha_double = *static_cast<const double*>(alpha);
-                beta_double  = *static_cast<const double*>(beta);
-            }
-            else if(compute_type == rocblas_datatype_i32_r)
-            {
-                alpha_double = *static_cast<const int32_t*>(alpha);
-                beta_double  = *static_cast<const int32_t*>(beta);
-            }
-            if(layer_mode & rocblas_layer_mode_log_trace)
-            {
-
-                log_trace(handle,
-                          "rocblas_gemm_strided_batched_ex",
-                          trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          alpha_double,
-                          a,
-                          a_type,
-                          lda,
-                          stride_a,
-                          b,
-                          b_type,
-                          ldb,
-                          stride_b,
-                          beta_double,
-                          c,
-                          c_type,
-                          ldc,
-                          stride_c,
-                          d,
-                          d_type,
-                          ldd,
-                          stride_d,
-                          batch_count,
-                          compute_type,
-                          algo,
-                          solution_index,
-                          flags,
-                          workspace_size,
-                          workspace);
-            }
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench -f gemm_strided_batched_ex",
-                          "--transposeA",
-                          trans_a_letter,
-                          "--transposeB",
-                          trans_b_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          "-k",
-                          k,
-                          "--alpha",
-                          alpha_double,
-                          "--a_type",
-                          rocblas_datatype_letter(a_type),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_a,
-                          "--b_type",
-                          rocblas_datatype_letter(b_type),
-                          "--ldb",
-                          ldb,
-                          "--stride_b",
-                          stride_b,
-                          "--beta",
-                          beta_double,
-                          "--c_type",
-                          rocblas_datatype_letter(c_type),
-                          "--ldc",
-                          ldc,
-                          "--stride_c",
-                          stride_c,
-                          "--d_type",
-                          rocblas_datatype_letter(d_type),
-                          "--ldd",
-                          ldd,
-                          "--stride_d",
-                          stride_d,
-                          "--batch",
-                          batch_count,
-                          "--compute_type",
-                          rocblas_datatype_letter(compute_type),
-                          "--algo",
-                          algo,
-                          "--solution_index",
-                          solution_index,
-                          "--flags",
-                          flags,
-                          "--workspace_size",
-                          workspace_size);
-            }
+            trans_a_letter = rocblas_transpose_letter(trans_a);
+            trans_b_letter = rocblas_transpose_letter(trans_b);
         }
-        else
+        auto a_type_string       = rocblas_datatype_string(a_type);
+        auto b_type_string       = rocblas_datatype_string(b_type);
+        auto c_type_string       = rocblas_datatype_string(c_type);
+        auto d_type_string       = rocblas_datatype_string(d_type);
+        auto compute_type_string = rocblas_datatype_string(compute_type);
+
+        if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench))
         {
-            if(layer_mode & rocblas_layer_mode_log_trace)
+            if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
-                log_trace(handle,
-                          "rocblas_gemm_strided_batched_ex",
-                          trans_a,
-                          trans_b,
-                          m,
-                          n,
-                          k,
-                          alpha,
-                          a,
-                          a_type,
-                          lda,
-                          stride_a,
-                          b,
-                          b_type,
-                          ldb,
-                          stride_b,
-                          beta,
-                          c,
-                          c_type,
-                          ldc,
-                          stride_c,
-                          d,
-                          d_type,
-                          ldd,
-                          stride_d,
-                          batch_count,
-                          compute_type,
-                          algo,
-                          solution_index,
-                          flags,
-                          "--workspace_size",
-                          workspace_size);
+                double alpha_double;
+                double beta_double;
+                if(compute_type == rocblas_datatype_f16_r)
+                {
+                    alpha_double = *static_cast<const _Float16*>(alpha);
+                    beta_double  = *static_cast<const _Float16*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_f32_r)
+                {
+                    alpha_double = *static_cast<const float*>(alpha);
+                    beta_double  = *static_cast<const float*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_f64_r)
+                {
+                    alpha_double = *static_cast<const double*>(alpha);
+                    beta_double  = *static_cast<const double*>(beta);
+                }
+                else if(compute_type == rocblas_datatype_i32_r)
+                {
+                    alpha_double = *static_cast<const int32_t*>(alpha);
+                    beta_double  = *static_cast<const int32_t*>(beta);
+                }
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                {
+                    log_trace(handle,
+                              "rocblas_gemm_strided_batched_ex",
+                              trans_a,
+                              trans_b,
+                              m,
+                              n,
+                              k,
+                              alpha_double,
+                              a,
+                              a_type_string,
+                              lda,
+                              stride_a,
+                              b,
+                              b_type_string,
+                              ldb,
+                              stride_b,
+                              beta_double,
+                              c,
+                              c_type_string,
+                              ldc,
+                              stride_c,
+                              d,
+                              d_type_string,
+                              ldd,
+                              stride_d,
+                              batch_count,
+                              compute_type_string,
+                              algo,
+                              solution_index,
+                              flags,
+                              workspace_size,
+                              workspace);
+                }
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f gemm_strided_batched_ex",
+                              "--transposeA",
+                              trans_a_letter,
+                              "--transposeB",
+                              trans_b_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              "-k",
+                              k,
+                              "--alpha",
+                              alpha_double,
+                              "--a_type",
+                              a_type_string,
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              stride_a,
+                              "--b_type",
+                              b_type_string,
+                              "--ldb",
+                              ldb,
+                              "--stride_b",
+                              stride_b,
+                              "--beta",
+                              beta_double,
+                              "--c_type",
+                              c_type_string,
+                              "--ldc",
+                              ldc,
+                              "--stride_c",
+                              stride_c,
+                              "--d_type",
+                              d_type_string,
+                              "--ldd",
+                              ldd,
+                              "--stride_d",
+                              stride_d,
+                              "--batch",
+                              batch_count,
+                              "--compute_type",
+                              compute_type_string,
+                              "--algo",
+                              algo,
+                              "--solution_index",
+                              solution_index,
+                              "--flags",
+                              flags,
+                              "--workspace_size",
+                              workspace_size ? *workspace_size : 0);
+                }
+            }
+            else
+            {
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                {
+                    log_trace(handle,
+                              "rocblas_gemm_strided_batched_ex",
+                              trans_a,
+                              trans_b,
+                              m,
+                              n,
+                              k,
+                              alpha,
+                              a,
+                              a_type,
+                              lda,
+                              stride_a,
+                              b,
+                              b_type,
+                              ldb,
+                              stride_b,
+                              beta,
+                              c,
+                              c_type,
+                              ldc,
+                              stride_c,
+                              d,
+                              d_type,
+                              ldd,
+                              stride_d,
+                              batch_count,
+                              compute_type,
+                              algo,
+                              solution_index,
+                              flags,
+                              "--workspace_size",
+                              workspace_size ? *workspace_size : 0);
+                }
             }
         }
 
@@ -840,15 +863,15 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
             log_profile(handle,
                         "rocblas_gemm_strided_batched_ex",
                         "a_type",
-                        rocblas_datatype_precision_yaml(a_type),
+                        a_type_string,
                         "b_type",
-                        rocblas_datatype_precision_yaml(b_type),
+                        b_type_string,
                         "c_type",
-                        rocblas_datatype_precision_yaml(c_type),
+                        c_type_string,
                         "d_type",
-                        rocblas_datatype_precision_yaml(d_type),
+                        d_type_string,
                         "compute_type",
-                        rocblas_datatype_precision_yaml(compute_type),
+                        compute_type_string,
                         "transA",
                         trans_a_letter,
                         "transB",
@@ -884,7 +907,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                         "flags",
                         flags,
                         "workspace_size",
-                        workspace_size);
+                        workspace_size ? *workspace_size : 0);
         }
     }
 

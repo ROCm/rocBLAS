@@ -267,7 +267,7 @@ rocblas_status rocblas_geam_template(rocblas_handle handle,
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
                           "./rocblas-bench -f geam -r",
-                          rocblas_precision_letter<T>,
+                          rocblas_precision_string<T>,
                           "--transposeA",
                           transA_letter,
                           "--transposeB",

@@ -10,7 +10,7 @@
 #include "rocblas_data.hpp"
 #include "testing_trsv.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 namespace {
 
@@ -56,7 +56,7 @@ struct trsv : RocBLAS_Test<trsv, trsv_testing>
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<trsv>()
-               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+               << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
                << '_' << arg.lda << '_' << arg.incx;
     }

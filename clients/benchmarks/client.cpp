@@ -12,7 +12,7 @@
 #include "utility.hpp"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
