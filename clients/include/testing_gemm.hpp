@@ -294,10 +294,19 @@ rocblas_status testing_gemm(Arguments const& argus)
     host_vector<T> hC_gold(size_C);
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, A_row, A_col, lda);
-    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-    rocblas_init<T>(hC_1, M, N, ldc);
+    if(argus.initialization == rocblas_initialization_random_int)
+    {
+        rocblas_seedrand();
+        rocblas_init<T>(hA, A_row, A_col, lda);
+        rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
+        rocblas_init<T>(hC_1, M, N, ldc);
+    }
+    else if(argus.initialization == rocblas_initialization_trig_float)
+    {
+        rocblas_init_sin<T>(hA, A_row, A_col, lda);
+        rocblas_init_cos<T>(hB, B_row, B_col, ldb);
+        rocblas_init_sin<T>(hC_1, M, N, ldc);
+    }
 
     //  rocblas_init<T>(hA, A_row, A_col, lda, 1.0);
     //  rocblas_init<T>(hB, B_row, B_col, ldb, 1.0);

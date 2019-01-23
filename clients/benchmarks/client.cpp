@@ -468,6 +468,7 @@ int main(int argc, char* argv[])
     char c_type;
     char d_type;
     char compute_type;
+    std::string initialization;
 
     rocblas_int device_id;
     std::string datafile;
@@ -623,6 +624,10 @@ int main(int argc, char* argv[])
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
+        ("initialization",
+         value<std::string>(&initialization)->default_value("rand_int"), "Intialize with random integers or trig functions sin and cos. "
+         "Options: rand_int, trig_float")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -708,6 +713,20 @@ int main(int argc, char* argv[])
     if(argus.M < 0 || argus.N < 0 || argus.K < 0)
     {
         printf("Invalid matrix dimension\n");
+    }
+
+    if(initialization == "rand_int")
+    {
+        argus.initialization = rocblas_initialization_random_int;
+    }
+    else if(initialization == "trig_float")
+    {
+        argus.initialization = rocblas_initialization_trig_float;
+    }
+    else
+    {
+        std::cerr << "Invalid value for --initialization" << std::endl;
+        return -1;
     }
 
     return run_bench_test(function.c_str(), precision, argus);
