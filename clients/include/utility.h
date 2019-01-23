@@ -35,6 +35,11 @@
 
 using namespace std;
 
+typedef enum rocblas_initialization_ {
+    rocblas_initialization_random_int = 111,
+    rocblas_initialization_trig_float = 222
+} rocblas_initialization;
+
 typedef rocblas_half half;
 
 /*!\file
@@ -430,6 +435,29 @@ void rocblas_init(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
     }
 };
 
+template <typename T>
+void rocblas_init_sin(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+{
+    for(rocblas_int i = 0; i < M; ++i)
+    {
+        for(rocblas_int j = 0; j < N; ++j)
+        {
+            A[i + j * lda] = sin(i + j * lda);
+        }
+    }
+};
+template <typename T>
+void rocblas_init_cos(vector<T>& A, rocblas_int M, rocblas_int N, rocblas_int lda)
+{
+    for(rocblas_int i = 0; i < M; ++i)
+    {
+        for(rocblas_int j = 0; j < N; ++j)
+        {
+            A[i + j * lda] = cos(i + j * lda);
+        }
+    }
+};
+
 // initialize strided_batched matrix
 template <typename T>
 void rocblas_init(vector<T>& A,
@@ -446,6 +474,45 @@ void rocblas_init(vector<T>& A,
             for(rocblas_int j = 0; j < N; ++j)
             {
                 A[i + j * lda + i_batch * stride] = random_generator<T>();
+            }
+        }
+    }
+};
+
+template <typename T>
+void rocblas_init_sin(vector<T>& A,
+                      rocblas_int M,
+                      rocblas_int N,
+                      rocblas_int lda,
+                      rocblas_int stride,
+                      rocblas_int batch_count)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda + i_batch * stride] = sin(i + j * lda + i_batch * stride);
+            }
+        }
+    }
+};
+template <typename T>
+void rocblas_init_cos(vector<T>& A,
+                      rocblas_int M,
+                      rocblas_int N,
+                      rocblas_int lda,
+                      rocblas_int stride,
+                      rocblas_int batch_count)
+{
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < M; ++i)
+        {
+            for(rocblas_int j = 0; j < N; ++j)
+            {
+                A[i + j * lda + i_batch * stride] = cos(i + j * lda + i_batch * stride);
             }
         }
     }
@@ -853,6 +920,8 @@ struct Arguments
     char function[32] = "";
     char namex[32]    = "";
     char category[32] = "";
+
+    rocblas_initialization initialization = rocblas_initialization_random_int;
 
     // Function to read Structures data from stream
     friend istream& operator>>(istream& s, Arguments& arg)
