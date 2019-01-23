@@ -28,6 +28,16 @@ inline void rocblas_init(
                 A[i + j * lda + i_batch * stride] = random_generator<T>();
 }
 
+template <typename T>
+inline void rocblas_init_sin(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j                          = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = sin(i + j * lda + i_batch * stride);
+}
+
 // Initialize matrix so adjacent entries have alternating sign.
 // In gemm if either A or B are initialized with alernating
 // sign the reduction sum will be summing positive
@@ -45,6 +55,18 @@ inline void rocblas_init_alternating_sign(
             {
                 auto value                        = random_generator<T>();
                 A[i + j * lda + i_batch * stride] = (i ^ j) & 1 ? value : negate(value);
+            }
+}
+
+template <typename T>
+inline void rocblas_init_cos(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+            {
+                A[i + j * lda + i_batch * stride] = cos(i + j * lda + i_batch * stride);
             }
 }
 

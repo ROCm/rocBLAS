@@ -435,6 +435,7 @@ int main(int argc, char* argv[])
     std::string c_type;
     std::string d_type;
     std::string compute_type;
+    std::string initialization;
 
     rocblas_int device_id;
     std::string datafile;
@@ -533,6 +534,10 @@ int main(int argc, char* argv[])
         ("compute_type",
          value<std::string>(&compute_type)->default_value("f32_r"), "Precision of computation, only applicable to BLAS_EX. "
          "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+
+        ("initialization",
+         value<std::string>(&initialization)->default_value("rand_int"), "Intialize with random integers or trig functions sin and cos. "
+         "Options: rand_int, trig_float")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),
@@ -669,6 +674,20 @@ int main(int argc, char* argv[])
     if(arg.compute_type == static_cast<rocblas_datatype>(-1))
     {
         std::cerr << "Invalid value for --compute_type" << std::endl;
+        return -1;
+    }
+
+    if(initialization == "rand_int")
+    {
+        arg.initialization = rocblas_initialization_random_int;
+    }
+    else if(initialization == "trig_float")
+    {
+        arg.initialization = rocblas_initialization_trig_float;
+    }
+    else
+    {
+        std::cerr << "Invalid value for --initialization" << std::endl;
         return -1;
     }
 

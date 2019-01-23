@@ -15,6 +15,11 @@
 #include "rocblas.h"
 #include "rocblas_datatype2char.hpp"
 
+typedef enum rocblas_initialization_ {
+    rocblas_initialization_random_int = 111,
+    rocblas_initialization_trig_float = 222
+} rocblas_initialization;
+
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
 struct Arguments
@@ -68,6 +73,8 @@ struct Arguments
     char function[64];
     char name[64];
     char category[32];
+
+    rocblas_initialization initialization;
 
     private:
     /* =============================================================================================
@@ -176,6 +183,7 @@ struct Arguments
         print("unit_check", arg.unit_check);
         print("timing", arg.timing);
         print("iters", arg.iters);
+        print("initialization", arg.initialization);
 
         return str << " }\n";
     }
