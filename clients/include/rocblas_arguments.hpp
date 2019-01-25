@@ -17,11 +17,13 @@
 
 typedef enum rocblas_initialization_ {
     rocblas_initialization_random_int = 111,
-    rocblas_initialization_trig_float = 222
+    rocblas_initialization_trig_float = 222,
 } rocblas_initialization;
 
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
+/* WARNING: If this data is changed, then rocblas_common.yaml must also be changed. */
+
 struct Arguments
 {
     rocblas_int M;
@@ -75,6 +77,78 @@ struct Arguments
     char category[32];
 
     rocblas_initialization initialization;
+
+    // Validate input format.
+    // rocblas_gentest.py is expected to conform to this format.
+    static void validate(std::istream& ifs)
+    {
+        auto error = []() {
+            std::cerr << "Fatal error: Binary test data does match input format.\n"
+                         "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
+                         "define exactly the same Arguments, that rocblas_gentest.py\n"
+                         "generates the data correctly, and that endianness is the same.\n";
+            exit(1);
+        };
+
+        char header[8]{}, trailer[8]{};
+        Arguments arg{};
+        ifs.read(header, sizeof(header));
+        ifs >> arg;
+        ifs.read(trailer, sizeof(trailer));
+
+        if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
+            error();
+
+        auto check = [&, sig = (unsigned char)0 ](const auto& elem) mutable
+        {
+            for(unsigned char i = 0; i < sizeof(elem); ++i)
+                if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
+                    error();
+            sig += 89;
+        };
+
+        // Order is important
+        check(arg.M);
+        check(arg.N);
+        check(arg.K);
+        check(arg.lda);
+        check(arg.ldb);
+        check(arg.ldc);
+        check(arg.ldd);
+        check(arg.a_type);
+        check(arg.b_type);
+        check(arg.c_type);
+        check(arg.d_type);
+        check(arg.compute_type);
+        check(arg.incx);
+        check(arg.incy);
+        check(arg.incd);
+        check(arg.incb);
+        check(arg.alpha);
+        check(arg.beta);
+        check(arg.transA);
+        check(arg.transB);
+        check(arg.side);
+        check(arg.uplo);
+        check(arg.diag);
+        check(arg.batch_count);
+        check(arg.stride_a);
+        check(arg.stride_b);
+        check(arg.stride_c);
+        check(arg.stride_d);
+        check(arg.norm_check);
+        check(arg.unit_check);
+        check(arg.timing);
+        check(arg.iters);
+        check(arg.algo);
+        check(arg.solution_index);
+        check(arg.flags);
+        check(arg.workspace_size);
+        check(arg.function);
+        check(arg.name);
+        check(arg.category);
+        check(arg.initialization);
+    }
 
     private:
     /* =============================================================================================
