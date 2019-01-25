@@ -133,6 +133,25 @@ void checkout_and_version( project_paths paths )
 }
 
 ////////////////////////////////////////////////////////////////////////
+// Run clang format check on checked out code for sanity
+void check_clang_format( project_paths paths )
+{
+  print("Checking clang formatting")
+  sh """#!/usr/bin/env bash
+      set -x
+      cd ${paths.project_build_prefix}
+      find . -iname '*.h' \
+          -o -iname '*.hpp' \
+          -o -iname '*.cpp' \
+          -o -iname '*.h.in' \
+          -o -iname '*.hpp.in' \
+          -o -iname '*.cpp.in' \
+      | grep -v 'build/' \
+      | xargs -n 1 -P 1 -I{} -t sh -c 'clang-format-3.8 -style=file {} | diff - {}'
+  """
+}
+
+////////////////////////////////////////////////////////////////////////
 // This creates the docker image that we use to build the project in
 // The docker images contains all dependencies, including OS platform, to build
 def docker_build_image( docker_data docker_args, project_paths paths )
@@ -176,34 +195,29 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
 
   build_image.inside( docker_args.docker_run_args )
   {
-    withEnv(["CXX=${compiler_args.compiler_path}", 'CLICOLOR_FORCE=1'])
+    stage( "Clang Format ${compiler_args.device_id}" )
     {
-      // Build library & clients
-      sh  """#!/usr/bin/env bash
-          set -x
-          cd ${paths.project_build_prefix}
-          ${paths.build_command}
-        """
-    }
-
-    if( paths.project_name.equalsIgnoreCase( 'rocblas-ubuntu' ) )
-    {
-      stage('Clang Format')
+      if( paths.project_name.equalsIgnoreCase( 'rocblas-ubuntu' ) )
       {
-        sh '''
-            find . -iname \'*.h\' \
-                -o -iname \'*.hpp\' \
-                -o -iname \'*.cpp\' \
-                -o -iname \'*.h.in\' \
-                -o -iname \'*.hpp.in\' \
-                -o -iname \'*.cpp.in\' \
-            | grep -v 'build/' \
-            | xargs -n 1 -P 1 -I{} -t sh -c \'clang-format-3.8 -style=file {} | diff - {}\'
-        '''
+        // Check Clang Formatting
+        check_clang_format( paths )
       }
     }
 
-    stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+    stage( "Build ${compiler_args.compiler_name} ${compiler_args.build_config} ${compiler_args.device_id}" )
+    {
+      withEnv(["CXX=${compiler_args.compiler_path}", 'CLICOLOR_FORCE=1'])
+      {
+        // Build library & clients
+        sh  """#!/usr/bin/env bash
+            set -x
+            cd ${paths.project_build_prefix}
+            ${paths.build_command}
+          """
+      }
+    }
+
+    stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config} ${compiler_args.device_id}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
       timeout(time: 4, unit: 'HOURS')
@@ -418,12 +432,13 @@ class docker_data implements Serializable
   String docker_build_args
 }
 
-// Docker related variables gathered together to reduce parameter bloat on function calls
+// Compiler related variables gathered together to reduce parameter bloat on function calls
 class compiler_data implements Serializable
 {
   String compiler_name
   String build_config
   String compiler_path
+  String device_id
 }
 
 // Paths variables bundled together to reduce parameter bloat on function calls
@@ -446,13 +461,13 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 {
   ansiColor( 'vga' )
   {
-    stage( "Build ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+    stage( "Checkout ${compiler_args.device_id}" )
     {
       // Checkout source code, dependencies and version files
       checkout_and_version( rocblas_paths )
 
       // Conctruct a binary directory path based on build config
-      build_directory_rel( rocblas_paths, compiler_args );
+      build_directory_rel( rocblas_paths, compiler_args )
 
       // Create/reuse a docker image that represents the rocblas build environment
       def rocblas_build_image = docker_build_image( docker_args, rocblas_paths )
@@ -464,7 +479,7 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
       docker_build_inside_image( rocblas_build_image, compiler_args, docker_args, rocblas_paths )
     }
 
-    if( !rocblas_paths.project_name.equalsIgnoreCase( 'rocblas-hcc-ctu' ) )
+    if ( !docker_args.install_docker_file.equalsIgnoreCase( '' ) )
     {
       // After a successful build, upload a docker image of the results
       String job_name = env.JOB_NAME.toLowerCase( )
@@ -518,7 +533,7 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 
 parallel rocm20_ubuntu:
 {
-  node( 'docker && rocm20 && gfx900')
+  node( 'docker && rocm20 && gfx900' )
   {
     def hcc_docker_args = new docker_data(
         from_image:'rocm/dev-ubuntu-16.04:2.0',
@@ -528,9 +543,10 @@ parallel rocm20_ubuntu:
         docker_build_args:' --pull' )
 
     def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm19-ubuntu',
+        compiler_name:'hcc-rocm20-ubuntu',
         build_config:'Release',
-        compiler_path:'/opt/rocm/bin/hcc' )
+        compiler_path:'/opt/rocm/bin/hcc',
+        device_id:'gfx900' )
 
     def rocblas_paths = new project_paths(
         project_name:'rocblas-ubuntu',
@@ -551,42 +567,36 @@ parallel rocm20_ubuntu:
 
 rocm20_ubuntu_gfx906:
 {
-    try
-    {
-        node( 'docker && rocm20 && gfx906')
-        {
-        def hcc_docker_args = new docker_data(
-            from_image:'rocm/dev-ubuntu-16.04:2.0',
-            build_docker_file:'dockerfile-build-ubuntu-rock',
-            install_docker_file:'dockerfile-install-ubuntu',
-            docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
-            docker_build_args:' --pull' )
+  node( 'docker && rocm20 && gfx906' )
+  {
+    def hcc_docker_args = new docker_data(
+        from_image:'rocm/dev-ubuntu-16.04:2.0',
+        build_docker_file:'dockerfile-build-ubuntu-rock',
+        install_docker_file:'', //'dockerfile-install-ubuntu', Don't build installer
+        docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
+        docker_build_args:' --pull' )
 
-        def hcc_compiler_args = new compiler_data(
-            compiler_name:'hcc-rocm19-ubuntu',
-            build_config:'Release',
-            compiler_path:'/opt/rocm/bin/hcc' )
+    def hcc_compiler_args = new compiler_data(
+        compiler_name:'hcc-rocm20-ubuntu',
+        build_config:'Release',
+        compiler_path:'/opt/rocm/bin/hcc',
+        device_id:'gfx906' )
 
-        def rocblas_paths = new project_paths(
-            project_name:'rocblas-ubuntu',
-            src_prefix:'src',
-            build_prefix:'src',
-            build_command: './install.sh -c' )
+    def rocblas_paths = new project_paths(
+        project_name:'rocblas-ubuntu',
+        src_prefix:'src',
+        build_prefix:'src',
+        build_command: './install.sh -c' )
 
-        def print_version_closure = {
-          sh  """
-              set -x
-              /opt/rocm/bin/hcc --version
-            """
-          }
-
-        build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
-        }
+    def print_version_closure = {
+      sh  """
+          set -x
+          /opt/rocm/bin/hcc --version
+        """
     }
-    catch( err )
-    {
-      currentBuild.result = 'UNSTABLE'
-    }
+
+    build_pipeline( hcc_compiler_args, hcc_docker_args, rocblas_paths, print_version_closure )
+  }
 }
 
 
