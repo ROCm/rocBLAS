@@ -102,7 +102,7 @@ rocblas_status rocblas_syr(rocblas_handle handle,
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
                           "./rocblas-bench -f syr -r",
-                          rocblas_precision_letter<T>,
+                          rocblas_precision_string<T>,
                           "--uplo",
                           uplo_letter,
                           "-n",

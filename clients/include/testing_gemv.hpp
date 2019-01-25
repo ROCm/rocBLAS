@@ -8,7 +8,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_vector.hpp"
 #include "rocblas_init.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "utility.hpp"
 #include "rocblas.hpp"
 #include "cblas_interface.hpp"

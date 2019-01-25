@@ -74,7 +74,7 @@ rocblas_status rocblas_copy_template(
     if(layer_mode & rocblas_layer_mode_log_bench)
         log_bench(handle,
                   "./rocblas-bench -f copy -r",
-                  rocblas_precision_letter<T>,
+                  rocblas_precision_string<T>,
                   "-n",
                   n,
                   "--incx",

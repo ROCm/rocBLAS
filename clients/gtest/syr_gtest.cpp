@@ -10,7 +10,7 @@
 #include "rocblas_data.hpp"
 #include "testing_syr.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 namespace {
 
@@ -55,7 +55,7 @@ struct syr : RocBLAS_Test<syr, syr_testing>
     // Goggle Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<syr>() << rocblas_datatype2char(arg.a_type) << '_'
+        return RocBLAS_TestName<syr>() << rocblas_datatype2string(arg.a_type) << '_'
                                        << (char)std::toupper(arg.uplo) << '_' << arg.N << '_'
                                        << arg.alpha << '_' << arg.incx << '_' << arg.lda;
     }

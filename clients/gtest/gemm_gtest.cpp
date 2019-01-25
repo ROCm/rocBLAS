@@ -6,7 +6,7 @@
 #include <cctype>
 #include "rocblas_test.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "testing_gemm.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
@@ -77,11 +77,12 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<gemm_test_template> name;
-        name << rocblas_datatype2char(arg.a_type);
+        name << rocblas_datatype2string(arg.a_type);
 
         if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
-            name << rocblas_datatype2char(arg.b_type) << rocblas_datatype2char(arg.c_type)
-                 << rocblas_datatype2char(arg.d_type) << rocblas_datatype2char(arg.compute_type);
+            name << rocblas_datatype2string(arg.b_type) << rocblas_datatype2string(arg.c_type)
+                 << rocblas_datatype2string(arg.d_type)
+                 << rocblas_datatype2string(arg.compute_type);
 
         name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB) << '_'
              << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda << '_'

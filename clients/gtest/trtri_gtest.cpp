@@ -11,7 +11,7 @@
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 namespace {
 
@@ -67,7 +67,7 @@ struct trtri_template : RocBLAS_Test<trtri_template<K>, trtri_testing>
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<trtri_template> name;
-        name << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+        name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
              << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.lda;
         if(K == trtri_batched_k)
             name << '_' << arg.batch_count;

@@ -1019,7 +1019,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
             {
                 log_bench(handle,
                           "./rocblas-bench -f trsm -r",
-                          rocblas_precision_letter<T>,
+                          rocblas_precision_string<T>,
                           "--side",
                           side_letter,
                           "--uplo",

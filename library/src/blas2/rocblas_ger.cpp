@@ -108,7 +108,7 @@ rocblas_status rocblas_ger(rocblas_handle handle,
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
                       "./rocblas-bench -f ger -r",
-                      rocblas_precision_letter<T>,
+                      rocblas_precision_string<T>,
                       "-m",
                       m,
                       "-n",

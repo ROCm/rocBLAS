@@ -133,7 +133,7 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
             if(pointer_mode == rocblas_pointer_mode_host)
                 log_bench(handle,
                           "./rocblas-bench -f trsv -r",
-                          rocblas_precision_letter<T>,
+                          rocblas_precision_string<T>,
                           "--uplo",
                           uplo_letter,
                           "--transposeA",

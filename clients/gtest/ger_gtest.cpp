@@ -5,7 +5,7 @@
 
 #include <type_traits>
 #include <cstring>
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_data.hpp"
 #include "testing_ger.hpp"
@@ -56,7 +56,7 @@ struct ger : RocBLAS_Test<ger, ger_testing>
     // Goggle Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<ger>() << rocblas_datatype2char(arg.a_type) << '_' << arg.M << '_'
+        return RocBLAS_TestName<ger>() << rocblas_datatype2string(arg.a_type) << '_' << arg.M << '_'
                                        << arg.N << '_' << arg.alpha << '_' << arg.incx << '_'
                                        << arg.incy << '_' << arg.lda;
     }

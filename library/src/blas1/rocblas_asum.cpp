@@ -76,7 +76,7 @@ rocblas_asum(rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx
     if(layer_mode & rocblas_layer_mode_log_bench)
         log_bench(handle,
                   "./rocblas-bench -f asum -r",
-                  rocblas_precision_letter<Ti>,
+                  rocblas_precision_string<Ti>,
                   "-n",
                   n,
                   "--incx",

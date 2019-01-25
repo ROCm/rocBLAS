@@ -307,7 +307,7 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
                           "./rocblas-bench -f gemv -r",
-                          rocblas_precision_letter<T>,
+                          rocblas_precision_string<T>,
                           "--transposeA",
                           transA_letter,
                           "-m",

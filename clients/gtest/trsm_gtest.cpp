@@ -10,7 +10,7 @@
 #include "rocblas_data.hpp"
 #include "testing_trsm.hpp"
 #include "type_dispatch.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 namespace {
 
@@ -56,7 +56,7 @@ struct trsm : RocBLAS_Test<trsm, trsm_testing>
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<trsm>()
-               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.side)
+               << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
                << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
                << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
                << '_' << arg.lda << '_' << arg.ldb;

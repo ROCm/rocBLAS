@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #include "utility.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
@@ -48,10 +48,10 @@ struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLA
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<blas1_test_template> name;
-        name << rocblas_datatype2char(arg.a_type);
+        name << rocblas_datatype2string(arg.a_type);
 
         if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
-            name << rocblas_datatype2char(arg.d_type);
+            name << rocblas_datatype2string(arg.d_type);
 
         name << '_' << arg.N;
 

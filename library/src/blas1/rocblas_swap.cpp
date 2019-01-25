@@ -76,7 +76,7 @@ rocblas_swap(rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y,
     if(layer_mode & rocblas_layer_mode_log_bench)
         log_bench(handle,
                   "./rocblas-bench -f swap -r",
-                  rocblas_precision_letter<T>,
+                  rocblas_precision_string<T>,
                   "-n",
                   n,
                   "--incx",
