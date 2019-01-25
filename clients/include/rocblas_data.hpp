@@ -57,13 +57,16 @@ class RocBLAS_TestData
         ifs->clear();
         ifs->seekg(0);
 
+        // Validate the data file format
+        Arguments::validate(*ifs);
+
         // We create a filter iterator which will choose only the test cases we want right now.
         // This is to preserve Gtest structure while not creating no-op tests which "always pass".
         return iterator(filter, std::istream_iterator<Arguments>(*ifs));
     }
 
     // end() iterator
-    static iterator end() { return iterator(); }
+    static iterator end() { return {}; }
 };
 
 #endif
