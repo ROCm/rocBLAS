@@ -7,7 +7,7 @@
 #include <cctype>
 #include "rocblas_test.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "testing_gemv.hpp"
 #include "type_dispatch.hpp"
 
@@ -57,10 +57,10 @@ struct gemv : RocBLAS_Test<gemv, gemv_testing>
     // Goggle Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<gemv>()
-               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.transA) << '_'
-               << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx
-               << '_' << arg.beta << '_' << arg.incy;
+        return RocBLAS_TestName<gemv>() << rocblas_datatype2string(arg.a_type) << '_'
+                                        << (char)std::toupper(arg.transA) << '_' << arg.M << '_'
+                                        << arg.N << '_' << arg.alpha << '_' << arg.lda << '_'
+                                        << arg.incx << '_' << arg.beta << '_' << arg.incy;
     }
 };
 

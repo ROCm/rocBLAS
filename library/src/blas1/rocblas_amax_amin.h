@@ -138,7 +138,7 @@ static rocblas_status rocblas_iamaxmin(
     if(layer_mode & rocblas_layer_mode_log_bench)
         log_bench(handle,
                   "./rocblas-bench -f ia" QUOTE(MAX_MIN) " -r",
-                  rocblas_precision_letter<Ti>,
+                  rocblas_precision_string<Ti>,
                   "-n",
                   n,
                   "--incx",

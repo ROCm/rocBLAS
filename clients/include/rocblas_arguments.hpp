@@ -13,7 +13,7 @@
 #include <cstring>
 #include <type_traits>
 #include "rocblas.h"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 typedef enum rocblas_initialization_ {
     rocblas_initialization_random_int = 111,
@@ -220,11 +220,11 @@ struct Arguments
         };
 
         print("function", arg.function);
-        print("a_type", rocblas_datatype2char(arg.a_type));
-        print("b_type", rocblas_datatype2char(arg.b_type));
-        print("c_type", rocblas_datatype2char(arg.c_type));
-        print("d_type", rocblas_datatype2char(arg.d_type));
-        print("compute_type", rocblas_datatype2char(arg.compute_type));
+        print("a_type", rocblas_datatype2string(arg.a_type));
+        print("b_type", rocblas_datatype2string(arg.b_type));
+        print("c_type", rocblas_datatype2string(arg.c_type));
+        print("d_type", rocblas_datatype2string(arg.d_type));
+        print("compute_type", rocblas_datatype2string(arg.compute_type));
         print("transA", arg.transA);
         print("transB", arg.transB);
         print("M", arg.M);
@@ -263,7 +263,10 @@ struct Arguments
     }
 };
 
-static_assert(std::is_standard_layout<Arguments>(),
+static_assert(std::is_standard_layout<Arguments>{},
               "Arguments is not a standard layout type, and thus is incompatible with C.");
+
+static_assert(std::is_trivially_copyable<Arguments>{},
+              "Arguments is not a trivially copyable type, and thus is incompatible with C.");
 
 #endif
