@@ -1,12 +1,13 @@
-- {MinimumRequiredVersion: 4.4.0}
+- {MinimumRequiredVersion: 4.6.0}
 - hip
-- gfx000
-- [fallback]
+- fallback
+- [Device 0000]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
   ComplexConjugateB: false
   DataType: 0
+  DestDataType: 0
   HighPrecisionAccumulate: false
   Index0: 0
   Index01A: 0
@@ -25,6 +26,7 @@
   NumIndicesFree: 2
   NumIndicesSummation: 1
   OperationType: GEMM
+  SilentHighPrecisionAccumulate: false
   TLUA: false
   TLUB: true
   Tensor0: 0
@@ -36,11 +38,25 @@
   TransposeB: true
   UseBeta: true
   UseInitialStrides: false
-- - AssignedDerivedParameters: true
+- - AggressivePerfMode: 1
+    AssertFree0ElementMultiple: 1
+    AssertFree1ElementMultiple: 1
+    AssertMinApproxSize: 0
+    AssertSummationElementMultiple: 1
+    AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
-    BenchmarkFork: 0
-    DepthU: 4
+    BufferLoad: false
+    BufferStore: true
+    CheckDimOverflow: 0
+    CheckTensorDimAsserts: false
+    DepthU: 8
+    DirectToLds: false
+    DirectToLdsA: false
+    DirectToLdsB: false
+    DisableKernelPieces: 0
     EdgeType: ShiftPtr
+    ExpandPointerSwap: false
+    FractionalLoad: false
     GlobalLoadVectorWidthA: 1
     GlobalLoadVectorWidthB: 1
     GlobalRead2A: true
@@ -49,64 +65,72 @@
     GlobalReadCoalesceGroupB: true
     GlobalReadCoalesceVectorA: true
     GlobalReadCoalesceVectorB: true
+    GlobalReadVectorWidth: 1
     GlobalSplitU: 1
     GlobalSplitUSummationAssignmentRoundRobin: true
     GlobalSplitUWorkGroupMappingRoundRobin: false
     GlobalWriteVectorWidth: 1
+    GuaranteeNoPartialA: true
+    GuaranteeNoPartialB: true
+    InnerUnroll: 1
     KernelLanguage: Source
-    LSCA: 4
+    LSCA: 8
     LSCB: 128
-    LSPA: 64
+    LSPA: 32
     LSPB: 2
-    LVCA: 4
+    LVCA: 8
     LVCB: 128
-    LVPA: 64
+    LVPA: 32
     LVPB: 2
-    LdsNumElements: 2048
-    LdsNumElementsAlignedA: 512
-    LdsNumElementsAlignedB: 512
+    LdsNumElements: 1536
     LdsOffsetA: 0
-    LdsOffsetA_Blk: 1024
     LdsOffsetB: 512
-    LdsOffsetB_Blk: 1536
-    LdsPad: 0
+    LdsPadA: 0
+    LdsPadB: 0
+    LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
     LocalSplitU: 1
     LocalWrite2A: true
     LocalWrite2B: true
+    LocalWriteUseSgprA: false
+    LocalWriteUseSgprB: false
     LoopDoWhile: false
     LoopTail: true
-    LoopUnroll: 4
-    MacroTile0: 128
+    LoopUnroll: 8
+    MacroTile0: 64
     MacroTile1: 128
-    MacroTileA: 128
+    MacroTileA: 64
     MacroTileB: 128
     MacroTileShapeMax: 64
     MacroTileShapeMin: 1
     MaxOccupancy: 40
-    NumElementsPerThread: 64
-    NumGlobalWriteVectorsPerThread: 64
+    MinGlobalWriteVectorWidth: 1
+    NonTemporalA: 0
+    NonTemporalB: 0
+    NonTemporalC: 0
+    NumElementsPerThread: 32
+    NumGlobalWriteVectorsPerThread: 32
     NumLoadsA: 2
-    NumLoadsB: 2
+    NumLoadsB: 4
     NumLoadsCoalescedA: 1
     NumLoadsCoalescedB: 1
     NumLoadsPerpendicularA: 2
-    NumLoadsPerpendicularB: 2
+    NumLoadsPerpendicularB: 4
     NumThreads: 256
-    PVA: 1
-    PVB: 1
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
-    PrefetchGlobalRead: true
-    PrefetchLocalRead: true
+    PersistentKernel: 0
+    PrefetchGlobalRead: false
+    PrefetchLocalRead: false
     ProblemType:
       AssignedDerivedParameters: true
       Batched: true
       ComplexConjugateA: false
       ComplexConjugateB: false
       DataType: 0
+      DestDataType: 0
       HighPrecisionAccumulate: false
       Index0: 0
       Index01A: 0
@@ -125,6 +149,7 @@
       NumIndicesFree: 2
       NumIndicesSummation: 1
       OperationType: GEMM
+      SilentHighPrecisionAccumulate: false
       TLUA: false
       TLUB: true
       Tensor0: 0
@@ -136,24 +161,28 @@
       TransposeB: true
       UseBeta: true
       UseInitialStrides: false
+    SolutionIndex: 0
+    SolutionNameMin: Cijk_Alik_Bjlk_SB_MT064x128x08_PGR0_PLR0_TT04_08
     SubGroup0: 16
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [8, 8]
-    ThreadTile0: 8
+    SuppresssNoLoadLoop: false
+    ThreadTile: [4, 8]
+    ThreadTile0: 4
     ThreadTile1: 8
-    ThreadTileA: 8
+    ThreadTileA: 4
     ThreadTileB: 8
     UnrollMemFence: false
+    UseSgprForGRO: 0
     Valid: true
+    VectorAtomicWidth: 1
+    VectorStore: true
     VectorWidth: 1
     WorkGroup: [16, 16, 1]
     WorkGroupMapping: -4
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
-- []
-- - - -1
-    - - - -1
-        - - - -1
-            - - [-1, 0]
+- - - [5504, 5504, 1, 5504]
+    - [0, 6971.91]
+- null
