@@ -139,6 +139,13 @@ struct rocblas_finalize_identity
     }
 };
 
+// Emulates value initialization T{}. Allows specialization for certain types.
+template <typename T>
+struct default_value
+{
+    __forceinline__ __host__ __device__ constexpr T operator()() const { return {}; }
+};
+
 // kennel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
 template <rocblas_int NB,
@@ -157,7 +164,7 @@ rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To*
     if(tid < n)
         tmp[tx] = FETCH{}(x[tid * incx], tid);
     else
-        tmp[tx] = To{}; // pad with default value
+        tmp[tx] = default_value<To>{}(); // pad with default value
 
     rocblas_reduction<NB, REDUCE>(tx, tmp);
 
@@ -187,7 +194,7 @@ __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspac
     }
     else
     { // pad with default value
-        tmp[tx] = To{};
+        tmp[tx] = default_value<To>{}();
     }
 
     if(nblocks < 32)

@@ -27,9 +27,21 @@ struct index_value_t
     // important: index must come first, so that index_value_t* can be cast to rocblas_int*
     rocblas_int index;
     T value;
-    __forceinline__ __host__ __device__ index_value_t() : index(-1) {}
 };
 
+// Specialization of default_value for index_value_t<T>
+template <typename T>
+struct default_value<index_value_t<T>>
+{
+    __forceinline__ __host__ __device__ constexpr auto operator()() const
+    {
+        index_value_t<T> x;
+        x.index = -1;
+        return x;
+    }
+};
+
+// Fetch absolute value
 template <typename To>
 struct rocblas_fetch_amax_amin
 {
