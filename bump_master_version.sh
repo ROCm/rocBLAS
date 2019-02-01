@@ -6,14 +6,14 @@
 # - after running this script and merging develop into master, run bump_develop_version.sh in master and
 #   merge master into develop
 
-OLD_ROCBLAS_VERSION="2.1.0"
-NEW_ROCBLAS_VERSION="2.0.2"
+OLD_ROCBLAS_VERSION="2.1.2"
+NEW_ROCBLAS_VERSION="2.2.0"
 
 OLD_TENSILE_VERSION="tensile_tag \"develop\""
-NEW_TENSILE_VERSION="tensile_tag ad79c035bf59d236982f024c1494cd82234c085b"
+NEW_TENSILE_VERSION="tensile_tag v4.8.0"
 
 OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
-NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
+NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"
 
 sed -i "s/${OLD_ROCBLAS_VERSION}/${NEW_ROCBLAS_VERSION}/g" CMakeLists.txt
 sed -i "s/${OLD_TENSILE_VERSION}/${NEW_TENSILE_VERSION}/g" CMakeLists.txt
