@@ -179,10 +179,14 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
     // Calling TRSM for now
     rocblas_status status;
 
-    // alpha is a constant value of 1.0 either on host or device depending on pointer mode
     static constexpr T alpha_h{1};
-    static const __device__ T alpha_d{1};
-    const T* alpha = pointer_mode == rocblas_pointer_mode_device ? &alpha_d : &alpha_h;
+    const T* alpha = &alpha_h;
+    if(pointer_mode == rocblas_pointer_mode_device)
+    {
+        T* alpha_d = (T*)handle->get_trsv_alpha();
+        RETURN_IF_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+        alpha = alpha_d;
+    }
 
     if(incx == 1)
     {
