@@ -152,15 +152,11 @@ rocblas_<type>gemv()
 
 .. doxygenfunction:: rocblas_sgemv
 
-.. rocblas_<type>symv()
-.. ^^^^^^^^^^^^^^^^^
-.. .. doxygenfunction:: rocblas_zsymv
+rocblas_<type>trsv()
+^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_dtrsv
 
-.. .. doxygenfunction:: rocblas_csymv
-
-.. .. doxygenfunction:: rocblas_dsymv
-
-.. .. doxygenfunction:: rocblas_ssymv
+.. doxygenfunction:: rocblas_strsv
 
 rocblas_<type>ger()
 ^^^^^^^^^^^^^^^^^
@@ -226,7 +222,7 @@ rocblas_gemm_ex()
 
 rocblas_gemm_strided_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-.. doxygenfunction:: rocblas_strsm
+.. doxygenfunction:: rocblas_gemm_strided_batched_ex
 
 Build Information
 -----------------
