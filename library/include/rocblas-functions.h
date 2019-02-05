@@ -947,7 +947,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    bsa       rocblas_int
+    stride_a       rocblas_int
              "batch stride a": stride from the start of one "A" matrix to the next
     @param[output]
     invA      pointer storing the inverse matrix A on the GPU.
@@ -968,7 +968,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                                      rocblas_int n,
                                                      const float* A,
                                                      rocblas_int lda,
-                                                     rocblas_int bsa,
+                                                     rocblas_int stride_a,
                                                      float* invA,
                                                      rocblas_int ldinvA,
                                                      rocblas_int bsinvA,
@@ -980,7 +980,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                                      rocblas_int n,
                                                      const double* A,
                                                      rocblas_int lda,
-                                                     rocblas_int bsa,
+                                                     rocblas_int stride_a,
                                                      double* invA,
                                                      rocblas_int ldinvA,
                                                      rocblas_int bsinvA,
@@ -1105,38 +1105,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle handle,
     op( A ) an m by k matrix, op( B ) a k by n matrix and C an m by n matrix.
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle,
               handle to the rocblas library context queue.
     @param[in]
-    transA    rocblas_operation
+    transA    rocblas_operation,
               specifies the form of op( A )
     @param[in]
-    transB    rocblas_operation
+    transB    rocblas_operation,
               specifies the form of op( B )
     @param[in]
-    m         rocblas_int.
+    m         rocblas_int,
+              number or rows of matrices op( A ) and C
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int,
+              number of columns of matrices op( B ) and C
     @param[in]
-    k         rocblas_int.
+    k         rocblas_int,
+              number of columns of matrix op( A ) and number of rows of matrix op( B )
     @param[in]
     alpha     specifies the scalar alpha.
     @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
-    lda       rocblas_int
+    lda       rocblas_int,
               specifies the leading dimension of A.
     @param[in]
     B         pointer storing matrix B on the GPU.
     @param[in]
-    ldb       rocblas_int
+    ldb       rocblas_int,
               specifies the leading dimension of B.
     @param[in]
     beta      specifies the scalar beta.
     @param[in, out]
     C         pointer storing matrix C on the GPU.
     @param[in]
-    ldc       rocblas_int
+    ldc       rocblas_int,
               specifies the leading dimension of C.
 
     ********************************************************************/
@@ -1225,11 +1228,84 @@ rocblas_zgemm(
 
 /***************************************************************************
  * batched
- * bsa - "batch stride a": stride from the start of one "A" matrix to the next
- * bsb
- * bsc
+ * stride_a - "batch stride a": stride from the start of one "A" matrix to the next
+ * stride_b
+ * stride_c
  * batch_count - numbers of gemm's in the batch
  **************************************************************************/
+
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    xGEMM_STRIDED_BATCHED performs one of the strided batched matrix-matrix operations
+
+        C[i*stride_c] = alpha*op( A[i*stride_a] )*op( B[i*stride_b] ) + beta*C[i*stride_c], for i in [0,batch_count-1]
+
+    where op( X ) is one of
+
+        op( X ) = X      or
+        op( X ) = X**T   or
+        op( X ) = X**H,
+
+    alpha and beta are scalars, and A, B and C are strided batched matrices, with
+    op( A ) an m by k by batch_count strided_batched matrix, 
+    op( B ) an k by n by batch_count strided_batched matrix and 
+    C an m by n by batch_count strided_batched matrix.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    rocblas_operation
+              specifies the form of op( A )
+    @param[in]
+    transB    rocblas_operation
+              specifies the form of op( B )
+    @param[in]
+    m         rocblas_int.
+              matrix dimention m.
+    @param[in]
+    n         rocblas_int.
+              matrix dimention n.
+    @param[in]
+    k         rocblas_int.
+              matrix dimention k.
+    @param[in]
+    alpha     specifies the scalar alpha.
+    @param[in]
+    A         pointer storing strided batched matrix A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of "A".
+    @param[in]
+    stride_a       rocblas_int
+              stride from the start of one "A" matrix to the next
+    @param[in]
+    B         pointer storing strided batched matrix B on the GPU.
+    @param[in]
+    ldb       rocblas_int
+              specifies the leading dimension of "B".
+    @param[in]
+    stride_b       rocblas_int
+              stride from the start of one "B" matrix to the next
+    @param[in]
+    beta      specifies the scalar beta.
+    @param[in, out]
+    C         pointer storing strided batched matrix C on the GPU.
+    @param[in]
+    ldc       rocblas_int
+              specifies the leading dimension of "C".
+    @param[in]
+    stride_c       rocblas_int
+              stride from the start of one "C" matrix to the next
+    @param[in]
+    batch_count
+              rocblas_int
+              number of gemm operatons in the batch
+
+    ********************************************************************/
+
 
 ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
                                                             rocblas_operation transa,
@@ -1240,14 +1316,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handl
                                                             const rocblas_half* alpha,
                                                             const rocblas_half* A,
                                                             rocblas_int lda,
-                                                            rocblas_int bsa,
+                                                            rocblas_int stride_a,
                                                             const rocblas_half* B,
                                                             rocblas_int ldb,
-                                                            rocblas_int bsb,
+                                                            rocblas_int stride_b,
                                                             const rocblas_half* beta,
                                                             rocblas_half* C,
                                                             rocblas_int ldc,
-                                                            rocblas_int bsc,
+                                                            rocblas_int stride_c,
                                                             rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
@@ -1259,14 +1335,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handl
                                                             const float* alpha,
                                                             const float* A,
                                                             rocblas_int lda,
-                                                            rocblas_int bsa,
+                                                            rocblas_int stride_a,
                                                             const float* B,
                                                             rocblas_int ldb,
-                                                            rocblas_int bsb,
+                                                            rocblas_int stride_b,
                                                             const float* beta,
                                                             float* C,
                                                             rocblas_int ldc,
-                                                            rocblas_int bsc,
+                                                            rocblas_int stride_c,
                                                             rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
@@ -1278,14 +1354,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handl
                                                             const double* alpha,
                                                             const double* A,
                                                             rocblas_int lda,
-                                                            rocblas_int bsa,
+                                                            rocblas_int stride_a,
                                                             const double* B,
                                                             rocblas_int ldb,
-                                                            rocblas_int bsb,
+                                                            rocblas_int stride_b,
                                                             const double* beta,
                                                             double* C,
                                                             rocblas_int ldc,
-                                                            rocblas_int bsc,
+                                                            rocblas_int stride_c,
                                                             rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_hgemm_kernel_name(rocblas_handle handle,
@@ -1297,14 +1373,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_kernel_name(rocblas_handle handle,
                                                         const rocblas_half* alpha,
                                                         const rocblas_half* A,
                                                         rocblas_int lda,
-                                                        rocblas_int bsa,
+                                                        rocblas_int stride_a,
                                                         const rocblas_half* B,
                                                         rocblas_int ldb,
-                                                        rocblas_int bsb,
+                                                        rocblas_int stride_b,
                                                         const rocblas_half* beta,
                                                         rocblas_half* C,
                                                         rocblas_int ldc,
-                                                        rocblas_int bsc,
+                                                        rocblas_int stride_c,
                                                         rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_kernel_name(rocblas_handle handle,
@@ -1316,14 +1392,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_sgemm_kernel_name(rocblas_handle handle,
                                                         const float* alpha,
                                                         const float* A,
                                                         rocblas_int lda,
-                                                        rocblas_int bsa,
+                                                        rocblas_int stride_a,
                                                         const float* B,
                                                         rocblas_int ldb,
-                                                        rocblas_int bsb,
+                                                        rocblas_int stride_b,
                                                         const float* beta,
                                                         float* C,
                                                         rocblas_int ldc,
-                                                        rocblas_int bsc,
+                                                        rocblas_int stride_c,
                                                         rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
@@ -1335,14 +1411,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
                                                         const double* alpha,
                                                         const double* A,
                                                         rocblas_int lda,
-                                                        rocblas_int bsa,
+                                                        rocblas_int stride_a,
                                                         const double* B,
                                                         rocblas_int ldb,
-                                                        rocblas_int bsb,
+                                                        rocblas_int stride_b,
                                                         const double* beta,
                                                         double* C,
                                                         rocblas_int ldc,
-                                                        rocblas_int bsc,
+                                                        rocblas_int stride_c,
                                                         rocblas_int batch_count);
 
 /* not implemented
@@ -1352,10 +1428,10 @@ rocblas_qgemm_strided_batched(
     rocblas_operation transa, rocblas_operation transb,
     rocblas_int m, rocblas_int n, rocblas_int k,
     const rocblas_half_complex *alpha,
-    const rocblas_half_complex *A, rocblas_int lda, rocblas_int bsa,
-    const rocblas_half_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_half_complex *A, rocblas_int lda, rocblas_int stride_a,
+    const rocblas_half_complex *B, rocblas_int ldb, rocblas_int stride_b,
     const rocblas_half_complex *beta,
-          rocblas_half_complex *C, rocblas_int ldc, rocblas_int bsc,
+          rocblas_half_complex *C, rocblas_int ldc, rocblas_int stride_c,
     rocblas_int batch_count );
 */
 
@@ -1366,10 +1442,10 @@ rocblas_cgemm_strided_batched(
     rocblas_operation transa, rocblas_operation transb,
     rocblas_int m, rocblas_int n, rocblas_int k,
     const rocblas_float_complex *alpha,
-    const rocblas_float_complex *A, rocblas_int lda, rocblas_int bsa,
-    const rocblas_float_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_float_complex *A, rocblas_int lda, rocblas_int stride_a,
+    const rocblas_float_complex *B, rocblas_int ldb, rocblas_int stride_b,
     const rocblas_float_complex *beta,
-          rocblas_float_complex *C, rocblas_int ldc, rocblas_int bsc,
+          rocblas_float_complex *C, rocblas_int ldc, rocblas_int stride_c,
     rocblas_int batch_count );
 
 ROCBLAS_EXPORT rocblas_status
@@ -1378,10 +1454,10 @@ rocblas_zgemm_strided_batched(
     rocblas_operation transa, rocblas_operation transb,
     rocblas_int m, rocblas_int n, rocblas_int k,
     const rocblas_double_complex *alpha,
-    const rocblas_double_complex *A, rocblas_int lda, rocblas_int bsa,
-    const rocblas_double_complex *B, rocblas_int ldb, rocblas_int bsb,
+    const rocblas_double_complex *A, rocblas_int lda, rocblas_int stride_a,
+    const rocblas_double_complex *B, rocblas_int ldb, rocblas_int stride_b,
     const rocblas_double_complex *beta,
-          rocblas_double_complex *C, rocblas_int ldc, rocblas_int bsc,
+          rocblas_double_complex *C, rocblas_int ldc, rocblas_int stride_c,
     rocblas_int batch_count );
 */
 
@@ -1496,6 +1572,107 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               size_t* workspace_size,
                                               void* workspace);
 
+/*! \brief BLAS EX API
+
+    \details
+    GEMM_EX performs one of the matrix-matrix operations
+
+        D = alpha*op( A )*op( B ) + beta*C,
+
+    where op( X ) is one of
+
+        op( X ) = X      or
+        op( X ) = X**T   or
+        op( X ) = X**H,
+
+    alpha and beta are scalars, and A, B, C, and D are matrices, with
+    op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    rocblas_operation
+              specifies the form of op( A )
+    @param[in]
+    transB    rocblas_operation
+              specifies the form of op( B )
+    @param[in]
+    m         rocblas_int.
+              matrix dimension m
+    @param[in]
+    n         rocblas_int.
+              matrix dimension n
+    @param[in]
+    k         rocblas_int.
+              matrix dimension k
+    @param[in]
+    alpha     const void *
+              specifies the scalar alpha. Same datatype as compute_type.
+    @param[in]
+    a         void *
+              pointer storing matrix A on the GPU.
+    @param[in]
+    a_type    rocblas_datatype
+              specifies the datatype of matrix A
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+    @param[in]
+    b         void *
+              pointer storing matrix B on the GPU.
+    @param[in]
+    b_type    rocblas_datatype
+              specifies the datatype of matrix B
+    @param[in]
+    ldb       rocblas_int
+              specifies the leading dimension of B.
+    @param[in]
+    beta      const void *
+              specifies the scalar beta. Same datatype as compute_type.
+    @param[in]
+    c         void *
+              pointer storing matrix C on the GPU.
+    @param[in]
+    c_type    rocblas_datatype
+              specifies the datatype of matrix C
+    @param[in]
+    ldc       rocblas_int
+              specifies the leading dimension of C.
+    @param[out]
+    d         void *
+              pointer storing matrix D on the GPU.
+    @param[in]
+    d_type    rocblas_datatype
+              specifies the datatype of matrix D
+    @param[in]
+    ldd       rocblas_int
+              specifies the leading dimension of D.
+    @param[in]
+    compute_type
+              rocblas_datatype
+              specifies the datatype of computation
+    @param[in]
+    algo      rocblas_gemm_algo
+              enumerant specifying the algorithm type.
+    @param[in]
+    solution_index
+              int32_t
+              reserved for future use
+    @param[in]
+    flags     uint32_t
+              reserved for future use
+    @param[in/out]
+    workspace_size
+              size_t*
+              size of workspace
+    @parm[in]
+    workspace void*
+              workspace
+
+    ********************************************************************/
+
+
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                               rocblas_operation trans_a,
                                                               rocblas_operation trans_b,
@@ -1528,6 +1705,127 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               size_t* workspace_size,
                                                               void* workspace);
 
+/*! \brief BLAS EX API
+
+    \details
+    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
+
+        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
+   [0,batch_count-1]
+
+    where op( X ) is one of
+
+        op( X ) = X      or
+        op( X ) = X**T   or
+        op( X ) = X**H,
+
+    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
+    op( A ) an m by k by batch_count strided_batched matrix,
+    op( B ) a k by n by batch_count strided_batched matrix and
+    C and D are m by n by batch_count strided_batched matrices.
+
+    The strided_batched matrices are multiple matrices separated by a constant stride.
+    The number of matrices is batch_count.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    rocblas_operation
+              specifies the form of op( A )
+    @param[in]
+    transB    rocblas_operation
+              specifies the form of op( B )
+    @param[in]
+    m         rocblas_int.
+              matrix dimension m
+    @param[in]
+    n         rocblas_int.
+              matrix dimension n
+    @param[in]
+    k         rocblas_int.
+              matrix dimension k
+    @param[in]
+    alpha     const void *
+              specifies the scalar alpha. Same datatype as compute_type.
+    @param[in]
+    a         void *
+              pointer storing matrix A on the GPU.
+    @param[in]
+    a_type    rocblas_datatype
+              specifies the datatype of matrix A
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+    @param[in]
+    stride_a  rocblas_long
+              specifies stride from start of one "A" matrix to the next
+    @param[in]
+    b         void *
+              pointer storing matrix B on the GPU.
+    @param[in]
+    b_type    rocblas_datatype
+              specifies the datatype of matrix B
+    @param[in]
+    ldb       rocblas_int
+              specifies the leading dimension of B.
+    @param[in]
+    stride_b  rocblas_long
+              specifies stride from start of one "B" matrix to the next
+    @param[in]
+    beta      const void *
+              specifies the scalar beta. Same datatype as compute_type.
+    @param[in]
+    c         void *
+              pointer storing matrix C on the GPU.
+    @param[in]
+    c_type    rocblas_datatype
+              specifies the datatype of matrix C
+    @param[in]
+    ldc       rocblas_int
+              specifies the leading dimension of C.
+    @param[in]
+    stride_c  rocblas_long
+              specifies stride from start of one "C" matrix to the next
+    @param[out]
+    d         void *
+              pointer storing matrix D on the GPU.
+    @param[in]
+    d_type    rocblas_datatype
+              specifies the datatype of matrix D
+    @param[in]
+    ldd       rocblas_int
+              specifies the leading dimension of D.
+    @param[in]
+    stride_d  rocblas_long
+              specifies stride from start of one "D" matrix to the next
+    @param[in]
+    batch_count
+              rocblas_int
+              number of gemm operations in the batch
+    @param[in]
+    compute_type
+              rocblas_datatype
+              specifies the datatype of computation
+    @param[in]
+    algo      rocblas_gemm_algo
+              enumerant specifying the algorithm type.
+    @param[in]
+    solution_index
+              int32_t
+              reserved for future use
+    @param[in]
+    flags     uint32_t
+              reserved for future use
+    @param[in/out]
+    workspace_size
+              size_t*
+              size of workspace
+    @parm[in]
+    workspace void*
+              workspace
+
+    ********************************************************************/
 /*
  * ===========================================================================
  *    build information
