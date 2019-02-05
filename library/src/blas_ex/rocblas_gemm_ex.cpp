@@ -621,7 +621,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     @param[in]
     batch_count
               rocblas_int
-              specifies stride from start of one "D" matrix to the next
+              number of gemm operations in the batch
     @param[in]
     compute_type
               rocblas_datatype
