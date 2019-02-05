@@ -1234,13 +1234,13 @@ rocblas_zgemm(
  * batch_count - numbers of gemm's in the batch
  **************************************************************************/
 
-
 /*! \brief BLAS Level 3 API
 
     \details
     xGEMM_STRIDED_BATCHED performs one of the strided batched matrix-matrix operations
 
-        C[i*stride_c] = alpha*op( A[i*stride_a] )*op( B[i*stride_b] ) + beta*C[i*stride_c], for i in [0,batch_count-1]
+        C[i*stride_c] = alpha*op( A[i*stride_a] )*op( B[i*stride_b] ) + beta*C[i*stride_c], for i in
+   [0,batch_count-1]
 
     where op( X ) is one of
 
@@ -1249,8 +1249,8 @@ rocblas_zgemm(
         op( X ) = X**H,
 
     alpha and beta are scalars, and A, B and C are strided batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix, 
-    op( B ) an k by n by batch_count strided_batched matrix and 
+    op( A ) an m by k by batch_count strided_batched matrix,
+    op( B ) an k by n by batch_count strided_batched matrix and
     C an m by n by batch_count strided_batched matrix.
 
     @param[in]
@@ -1305,7 +1305,6 @@ rocblas_zgemm(
               number of gemm operatons in the batch
 
     ********************************************************************/
-
 
 ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
                                                             rocblas_operation transa,
@@ -1671,7 +1670,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
               workspace
 
     ********************************************************************/
-
 
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                               rocblas_operation trans_a,
