@@ -69,11 +69,11 @@ inline T random_generator()
 }
 
 // for rocblas_half, generate float, and convert to rocblas_half
-/*! \brief  generate a random number in range [1,2,3] */
+/*! \brief  generate a random number in range [-2,-1,0,1,2] */
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
-    return float_to_half(std::uniform_int_distribution<int>(1, 2)(rocblas_rng));
+    return float_to_half(std::uniform_int_distribution<int>(-2, 2)(rocblas_rng));
 };
 
 /*! \brief  generate a random number in range [1,2,3] */
