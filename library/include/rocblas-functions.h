@@ -1544,6 +1544,166 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
  *    BLAS extensions
  * ===========================================================================
  */
+
+/*! \brief BLAS EX API
+
+    \details
+    GEMM_EX performs one of the matrix-matrix operations
+
+        D = alpha*op( A )*op( B ) + beta*C,
+
+    where op( X ) is one of
+
+        op( X ) = X      or
+        op( X ) = X**T   or
+        op( X ) = X**H,
+
+    alpha and beta are scalars, and A, B, C, and D are matrices, with
+    op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
+
+    <table>
+    <caption id="gemm_ex_supported_types">gemm_ex supported types</caption>
+    <tr><th>a_type/b_type<th>c_type/d_type<th>compute_type<th>restrictions
+    <tr><td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f32_r<td>no
+   restrictions
+    <tr><td valign="top">rocblas_datatype_i8_r<td valign="top">rocblas_datatype_i8_r<td
+   valign="top">rocblas_datatype_i32_r<td>
+    <ul>
+        <li>k must be a multiple of 4
+        <li>lda must be a multiple of 4 if transA == rocblas_operation_transpose
+        <li>ldb must be a multiple of 4 if transB == rocblas_operation_none
+        <li>for transA == rocblas_operation_transpose or transB == rocblas_operation_none the
+   matrices
+        A and B must have each 4 consecutive values
+        in the k dimension packed. This packing can be achieved with the following pseudo-code. The
+   code
+        assumes the original matrices are in A and B, and the packed matrices are A_packed and
+   B_packed.
+        The size of the A_packed matrix is the same as the size of the A matrix, and the size of the
+        B_packed matrix is the same as the size of the B matrix.
+    </ul>
+    <pre>
+    if(trans_a == rocblas_operation_none)
+    {
+        int nb = 4;
+        for(int i_m = 0; i_m < m; i_m++)
+        {
+            for(int i_k = 0; i_k < k; i_k++)
+            {
+                A_packed[i_k % nb + (i_m + (i_k / nb) * lda) * nb] = A[i_m + i_k * lda];
+            }
+        }
+    }
+    else
+    {
+        A_packed = A;
+    }
+    if(trans_b == rocblas_operation_transpose)
+    {
+        int nb = 4;
+        for(int i_n = 0; i_n < m; i_n++)
+        {
+            for(int i_k = 0; i_k < k; i_k++)
+            {
+                B_packed[i_k % nb + (i_n + (i_k / nb) * lda) * nb] = B[i_n + i_k * lda];
+            }
+        }
+    }
+    else
+    {
+        B_packed = B;
+    }
+    </pre>
+    </table>
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    rocblas_operation.
+              specifies the form of op( A ).
+    @param[in]
+    transB    rocblas_operation
+              specifies the form of op( B ).
+    @param[in]
+    m         rocblas_int.
+              matrix dimension m.
+    @param[in]
+    n         rocblas_int.
+              matrix dimension n.
+    @param[in]
+    k         rocblas_int.
+              matrix dimension k.
+    @param[in]
+    alpha     const void *.
+              specifies the scalar alpha. Same datatype as compute_type.
+    @param[in]
+    a         void *.
+              pointer storing matrix A on the GPU.
+    @param[in]
+    a_type    rocblas_datatype.
+              specifies the datatype of matrix A.
+    @param[in]
+    lda       rocblas_int.
+              specifies the leading dimension of A.
+    @param[in]
+    b         void *.
+              pointer storing matrix B on the GPU.
+    @param[in]
+    b_type    rocblas_datatype.
+              specifies the datatype of matrix B.
+    @param[in]
+    ldb       rocblas_int.
+              specifies the leading dimension of B.
+    @param[in]
+    beta      const void *.
+              specifies the scalar beta. Same datatype as compute_type.
+    @param[in]
+    c         void *.
+              pointer storing matrix C on the GPU.
+    @param[in]
+    c_type    rocblas_datatype.
+              specifies the datatype of matrix C.
+    @param[in]
+    ldc       rocblas_int.
+              specifies the leading dimension of C.
+    @param[out]
+    d         void *.
+              pointer storing matrix D on the GPU.
+    @param[in]
+    d_type    rocblas_datatype.
+              specifies the datatype of matrix D.
+    @param[in]
+    ldd       rocblas_int.
+              specifies the leading dimension of D.
+    @param[in]
+    compute_type
+              rocblas_datatype.
+              specifies the datatype of computation.
+    @param[in]
+    algo      rocblas_gemm_algo.
+              enumerant specifying the algorithm type.
+    @param[in]
+    solution_index
+              int32_t.
+              reserved for future use.
+    @param[in]
+    flags     uint32_t.
+              reserved for future use.
+    @param[in/out]
+    workspace_size
+              size_t *.
+              size of workspace.
+    @parm[in]
+    workspace void *.
+              workspace.
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               rocblas_operation trans_a,
                                               rocblas_operation trans_b,
@@ -1574,9 +1734,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
 /*! \brief BLAS EX API
 
     \details
-    GEMM_EX performs one of the matrix-matrix operations
+    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
 
-        D = alpha*op( A )*op( B ) + beta*C,
+        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
+   [0,batch_count-1]
 
     where op( X ) is one of
 
@@ -1584,93 +1745,175 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
         op( X ) = X**T   or
         op( X ) = X**H,
 
-    alpha and beta are scalars, and A, B, C, and D are matrices, with
-    op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
+    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
+    op( A ) an m by k by batch_count strided_batched matrix,
+    op( B ) a k by n by batch_count strided_batched matrix and
+    C and D are m by n by batch_count strided_batched matrices.
+
+    The strided_batched matrices are multiple matrices separated by a constant stride.
+    The number of matrices is batch_count.
+
+    <table>
+    <caption id="gemm_strided_batched_ex supported_types">gemm_strided_batched_ex supported
+   types</caption>
+    <tr><th>a_type/b_type<th>c_type/d_type<th>compute_type<th>restrictions
+    <tr><td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>no
+   restrictions
+    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f32_r<td>no
+   restrictions
+    <tr><td valign="top">rocblas_datatype_i8_r<td valign="top">rocblas_datatype_i8_r<td
+   valign="top">rocblas_datatype_i32_r<td>
+    <ul>
+        <li>k must be a multiple of 4
+        <li>lda must be a multiple of 4 if transA == rocblas_operation_transpose
+        <li>ldb must be a multiple of 4 if transB == rocblas_operation_none
+        <li>for transA == rocblas_operation_transpose or transB == rocblas_operation_none the
+   matrices
+        A and B must have each 4 consecutive values
+        in the k dimension packed. This packing can be achieved with the following pseudo-code. The
+   code
+        assumes the original matrices are in A and B, and the packed matrices are A_packed and
+   B_packed.
+        The size of the A_packed matrix is the same as the size of the A matrix, and the size of the
+        B_packed matrix is the same as the size of the B matrix.
+    </ul>
+    <pre>
+    if(trans_a == rocblas_operation_none)
+    {
+        int nb = 4;
+        for(int i_m = 0; i_m < m; i_m++)
+        {
+            for(int i_k = 0; i_k < k; i_k++)
+            {
+                A_packed[i_k % nb + (i_m + (i_k / nb) * lda) * nb] = A[i_m + i_k * lda];
+            }
+        }
+    }
+    else
+    {
+        A_packed = A;
+    }
+    if(trans_b == rocblas_operation_transpose)
+    {
+        int nb = 4;
+        for(int i_n = 0; i_n < m; i_n++)
+        {
+            for(int i_k = 0; i_k < k; i_k++)
+            {
+                B_packed[i_k % nb + (i_n + (i_k / nb) * lda) * nb] = B[i_n + i_k * lda];
+            }
+        }
+    }
+    else
+    {
+        B_packed = B;
+    }
+    </pre>
+    </table>
 
     @param[in]
     handle    rocblas_handle.
               handle to the rocblas library context queue.
     @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
+    transA    rocblas_operation.
+              specifies the form of op( A ).
     @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
+    transB    rocblas_operation.
+              specifies the form of op( B ).
     @param[in]
     m         rocblas_int.
-              matrix dimension m
+              matrix dimension m.
     @param[in]
     n         rocblas_int.
-              matrix dimension n
+              matrix dimension n.
     @param[in]
     k         rocblas_int.
-              matrix dimension k
+              matrix dimension k.
     @param[in]
-    alpha     const void *
+    alpha     const void *.
               specifies the scalar alpha. Same datatype as compute_type.
     @param[in]
-    a         void *
+    a         void *.
               pointer storing matrix A on the GPU.
     @param[in]
-    a_type    rocblas_datatype
-              specifies the datatype of matrix A
+    a_type    rocblas_datatype.
+              specifies the datatype of matrix A.
     @param[in]
-    lda       rocblas_int
+    lda       rocblas_int.
               specifies the leading dimension of A.
     @param[in]
-    b         void *
+    stride_a  rocblas_long.
+              specifies stride from start of one "A" matrix to the next.
+    @param[in]
+    b         void *.
               pointer storing matrix B on the GPU.
     @param[in]
-    b_type    rocblas_datatype
-              specifies the datatype of matrix B
+    b_type    rocblas_datatype.
+              specifies the datatype of matrix B.
     @param[in]
-    ldb       rocblas_int
+    ldb       rocblas_int.
               specifies the leading dimension of B.
     @param[in]
-    beta      const void *
+    stride_b  rocblas_long.
+              specifies stride from start of one "B" matrix to the next.
+    @param[in]
+    beta      const void *.
               specifies the scalar beta. Same datatype as compute_type.
     @param[in]
-    c         void *
+    c         void *.
               pointer storing matrix C on the GPU.
     @param[in]
-    c_type    rocblas_datatype
-              specifies the datatype of matrix C
+    c_type    rocblas_datatype.
+              specifies the datatype of matrix C.
     @param[in]
-    ldc       rocblas_int
+    ldc       rocblas_int.
               specifies the leading dimension of C.
+    @param[in]
+    stride_c  rocblas_long.
+              specifies stride from start of one "C" matrix to the next.
     @param[out]
-    d         void *
+    d         void *.
               pointer storing matrix D on the GPU.
     @param[in]
-    d_type    rocblas_datatype
-              specifies the datatype of matrix D
+    d_type    rocblas_datatype.
+              specifies the datatype of matrix D.
     @param[in]
-    ldd       rocblas_int
+    ldd       rocblas_int.
               specifies the leading dimension of D.
     @param[in]
-    compute_type
-              rocblas_datatype
-              specifies the datatype of computation
+    stride_d  rocblas_long.
+              specifies stride from start of one "D" matrix to the next.
     @param[in]
-    algo      rocblas_gemm_algo
+    batch_count
+              rocblas_int.
+              number of gemm operations in the batch.
+    @param[in]
+    compute_type
+              rocblas_datatype.
+              specifies the datatype of computation.
+    @param[in]
+    algo      rocblas_gemm_algo.
               enumerant specifying the algorithm type.
     @param[in]
     solution_index
-              int32_t
-              reserved for future use
+              int32_t.
+              reserved for future use.
     @param[in]
-    flags     uint32_t
-              reserved for future use
+    flags     uint32_t.
+              reserved for future use.
     @param[in/out]
     workspace_size
-              size_t*
-              size of workspace
+              size_t *.
+              size of workspace.
     @parm[in]
-    workspace void*
-              workspace
+    workspace void *.
+              workspace.
 
     ********************************************************************/
-
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                               rocblas_operation trans_a,
                                                               rocblas_operation trans_b,
@@ -1703,127 +1946,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               size_t* workspace_size,
                                                               void* workspace);
 
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
-
-        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
-   [0,batch_count-1]
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix,
-    op( B ) a k by n by batch_count strided_batched matrix and
-    C and D are m by n by batch_count strided_batched matrices.
-
-    The strided_batched matrices are multiple matrices separated by a constant stride.
-    The number of matrices is batch_count.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
-    @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k
-    @param[in]
-    alpha     const void *
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *
-              pointer storing matrix A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype
-              specifies the datatype of matrix A
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    stride_a  rocblas_long
-              specifies stride from start of one "A" matrix to the next
-    @param[in]
-    b         void *
-              pointer storing matrix B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype
-              specifies the datatype of matrix B
-    @param[in]
-    ldb       rocblas_int
-              specifies the leading dimension of B.
-    @param[in]
-    stride_b  rocblas_long
-              specifies stride from start of one "B" matrix to the next
-    @param[in]
-    beta      const void *
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *
-              pointer storing matrix C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype
-              specifies the datatype of matrix C
-    @param[in]
-    ldc       rocblas_int
-              specifies the leading dimension of C.
-    @param[in]
-    stride_c  rocblas_long
-              specifies stride from start of one "C" matrix to the next
-    @param[out]
-    d         void *
-              pointer storing matrix D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype
-              specifies the datatype of matrix D
-    @param[in]
-    ldd       rocblas_int
-              specifies the leading dimension of D.
-    @param[in]
-    stride_d  rocblas_long
-              specifies stride from start of one "D" matrix to the next
-    @param[in]
-    batch_count
-              rocblas_int
-              number of gemm operations in the batch
-    @param[in]
-    compute_type
-              rocblas_datatype
-              specifies the datatype of computation
-    @param[in]
-    algo      rocblas_gemm_algo
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t
-              reserved for future use
-    @param[in]
-    flags     uint32_t
-              reserved for future use
-    @param[in/out]
-    workspace_size
-              size_t*
-              size of workspace
-    @parm[in]
-    workspace void*
-              workspace
-
-    ********************************************************************/
 /*
  * ===========================================================================
  *    build information
