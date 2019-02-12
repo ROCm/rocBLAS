@@ -46,15 +46,15 @@ rocblas_status rocblas_trtri_small(rocblas_handle handle,
         return rocblas_status_not_implemented;
     }
 
-    dim3 grid(1, 1, 1);
-    dim3 threads(IB, 1, 1);
+    dim3 grid(1);
+    dim3 threads(IB);
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
     hipLaunchKernelGGL((trtri_small_kernel<T, IB>),
-                       dim3(grid),
-                       dim3(threads),
+                       grid,
+                       threads,
                        0,
                        rocblas_stream,
                        uplo,
@@ -246,14 +246,14 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    dim3 grid_trtri(2, 1, 1);
-    dim3 threads(IB, 1, 1);
+    dim3 grid_trtri(2);
+    dim3 threads(IB);
 
     // first stage: invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA
     hipLaunchKernelGGL((trtri_diagonal_kernel<T, IB>),
-                       dim3(grid_trtri),
-                       dim3(threads),
+                       grid_trtri,
+                       threads,
                        0,
                        rocblas_stream,
                        uplo,
@@ -271,7 +271,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     }
 
     // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
-    dim3 grid_gemm(1, 1, 1);
+    dim3 grid_gemm(1);
 
     rocblas_int m_gemm;
     rocblas_int n_gemm;
@@ -302,8 +302,8 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
     }
 
     hipLaunchKernelGGL((gemm_trsm_kernel<T, IB>),
-                       dim3(grid_gemm),
-                       dim3(threads),
+                       grid_gemm,
+                       threads,
                        0,
                        rocblas_stream,
                        m_gemm,

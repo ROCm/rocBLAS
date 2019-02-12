@@ -7,201 +7,92 @@
 
 #include "status.h"
 #include "definitions.h"
-#include "device_template.h"
+#include "reduction.h"
 #include "rocblas_unique_ptr.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
 
-template <typename T, rocblas_int NB>
+namespace {
+// HIP support up to 1024 threads/work itemes per thread block/work group
+// setting to 512 for gfx803.
+constexpr int NB = 512;
+
+template <typename T>
 __global__ void dot_kernel_part1(
     rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* workspace)
 {
-    rocblas_int tx  = hipThreadIdx_x;
-    rocblas_int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ssize_t tx  = hipThreadIdx_x;
+    ssize_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
 
-    __shared__ T shared_tep[NB];
+    __shared__ T tmp[NB];
+
     // bound
-    if(incx >= 0 && incy >= 0)
-    {
-        if(tid < n)
-        {
-            shared_tep[tx] = y[tid * incy] * x[tid * incx];
-        }
-        else
-        { // pad with zero
-            shared_tep[tx] = 0.0;
-        }
-    }
-    else if(incx < 0 && incy < 0)
-    {
-        if(tid < n)
-        {
-            shared_tep[tx] = y[(1 - n + tid) * incy] * x[(1 - n + tid) * incx];
-        }
-        else
-        { // pad with zero
-            shared_tep[tx] = 0.0;
-        }
-    }
-    else if(incx >= 0)
-    {
-        if(tid < n)
-        {
-            shared_tep[tx] = y[(1 - n + tid) * incy] * x[tid * incx];
-        }
-        else
-        { // pad with zero
-            shared_tep[tx] = 0.0;
-        }
-    }
+    if(tid < n)
+        tmp[tx] = y[tid * incy] * x[tid * incx];
     else
-    {
-        if(tid < n)
-        {
-            shared_tep[tx] = y[tid * incy] * x[(1 - n + tid) * incx];
-        }
-        else
-        { // pad with zero
-            shared_tep[tx] = 0.0;
-        }
-    }
+        tmp[tx] = 0; // pad with zero
 
-    rocblas_sum_reduce<NB, T>(tx, shared_tep);
+    rocblas_sum_reduce<NB>(tx, tmp);
 
     if(tx == 0)
-        workspace[hipBlockIdx_x] = shared_tep[0];
+        workspace[hipBlockIdx_x] = tmp[0];
 }
-
-template <typename T, rocblas_int NB, rocblas_int flag>
-__global__ void dot_kernel_part2(rocblas_int n, T* workspace, T* result)
-{
-
-    rocblas_int tx = hipThreadIdx_x;
-
-    __shared__ T shared_tep[NB];
-
-    shared_tep[tx] = 0.0;
-
-    // bound, loop
-    for(rocblas_int i = tx; i < n; i += NB)
-    {
-        shared_tep[tx] += workspace[i];
-    }
-    __syncthreads();
-
-    if(n < 32)
-    {
-        // no need parallel reduction
-        if(tx == 0)
-        {
-            for(rocblas_int i = 1; i < n; i++)
-            {
-                shared_tep[0] += shared_tep[i];
-            }
-        }
-    }
-    else
-    {
-        // parallel reduction,
-        rocblas_sum_reduce<NB, T>(tx, shared_tep);
-    }
-
-    if(tx == 0)
-    {
-        if(flag)
-        {
-            // flag == 1, write to result of device memory
-            *result = shared_tep[0]; // result[0] works, too
-        }
-        else
-        {
-            workspace[0] = shared_tep[0];
-        }
-    }
-}
-
-// HIP support up to 1024 threads/work itemes per thread block/work group
-// setting to 512 for gfx803.
-#define NB_X 512
 
 // assume workspace has already been allocated, recommened for repeated calling of dot product
 // routine
 template <typename T>
-rocblas_status rocblas_dot_template_workspace(rocblas_handle handle,
-                                              rocblas_int n,
-                                              const T* x,
-                                              rocblas_int incx,
-                                              const T* y,
-                                              rocblas_int incy,
-                                              T* result,
-                                              T* workspace,
-                                              rocblas_int lworkspace)
+rocblas_status rocblas_dot_workspace(rocblas_handle __restrict__ handle,
+                                     rocblas_int n,
+                                     const T* x,
+                                     rocblas_int incx,
+                                     const T* y,
+                                     rocblas_int incy,
+                                     T* result,
+                                     T* workspace,
+                                     rocblas_int blocks)
 {
-    rocblas_int blocks = (n - 1) / NB_X + 1;
-
     // At least two kernels are needed to finish the reduction
     // kennel 1 write partial result per thread block in workspace, number of partial result is
     // blocks
     // kernel 2 gather all the partial result in workspace and finish the final reduction. number of
-    // threads (NB_X) loop blocks
+    // threads (NB) loop blocks
 
-    if(lworkspace < blocks)
-    {
-        printf("size workspace = %d is too small, allocate at least %d", lworkspace, blocks);
-        return rocblas_status_not_implemented;
-    }
+    dim3 grid(blocks);
+    dim3 threads(NB);
 
-    dim3 grid(blocks, 1, 1);
-    dim3 threads(NB_X, 1, 1);
+    if(incx < 0)
+        x -= ssize_t(incx) * (n - 1);
+    if(incy < 0)
+        y -= ssize_t(incy) * (n - 1);
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipLaunchKernelGGL(
+        dot_kernel_part1, grid, threads, 0, handle->rocblas_stream, n, x, incx, y, incy, workspace);
 
-    hipLaunchKernelGGL((dot_kernel_part1<T, NB_X>),
-                       dim3(grid),
-                       dim3(threads),
+    hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB>),
+                       1,
+                       threads,
                        0,
-                       rocblas_stream,
-                       n,
-                       x,
-                       incx,
-                       y,
-                       incy,
-                       workspace);
-
-    if(rocblas_pointer_mode_device == handle->pointer_mode)
-    {
-        // the last argument 1 indicate the result is on device, not memcpy is required
-        hipLaunchKernelGGL((dot_kernel_part2<T, NB_X, 1>),
-                           dim3(1, 1, 1),
-                           dim3(threads),
-                           0,
-                           rocblas_stream,
-                           blocks,
-                           workspace,
-                           result);
-    }
-    else
-    {
-        // the last argument 0 indicate the result is on host
-        // workspace[0] has a copy of the final result, if the result pointer is on host, a memory
-        // copy is required
-        // printf("it is a host pointer\n");
-        // only for blocks > 1, otherwise the final result is already reduced in workspace[0]
-        if(blocks > 1)
-            hipLaunchKernelGGL((dot_kernel_part2<T, NB_X, 0>),
-                               dim3(1, 1, 1),
-                               dim3(threads),
-                               0,
-                               rocblas_stream,
-                               blocks,
-                               workspace,
-                               result);
-        RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(T), hipMemcpyDeviceToHost));
-    }
+                       handle->rocblas_stream,
+                       blocks,
+                       workspace,
+                       handle->pointer_mode != rocblas_pointer_mode_device ? workspace : result);
+    if(handle->pointer_mode != rocblas_pointer_mode_device)
+        RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(*result), hipMemcpyDeviceToHost));
 
     return rocblas_status_success;
 }
+
+template <typename>
+constexpr char rocblas_dot_name[] = "unknown";
+template <>
+constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
+template <>
+constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
+template <>
+constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
+template <>
+constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
 
 /* ============================================================================================ */
 
@@ -229,40 +120,43 @@ rocblas_status rocblas_dot_template_workspace(rocblas_handle handle,
     @param[inout]
     result
               store the dot product. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              return is 0 if n <= 0.
 
     ********************************************************************/
 
 // allocate workspace inside this API
 template <typename T>
-rocblas_status rocblas_dot_template(rocblas_handle handle,
-                                    rocblas_int n,
-                                    const T* x,
-                                    rocblas_int incx,
-                                    const T* y,
-                                    rocblas_int incy,
-                                    T* result)
+rocblas_status rocblas_dot(rocblas_handle handle,
+                           rocblas_int n,
+                           const T* x,
+                           rocblas_int incx,
+                           const T* y,
+                           rocblas_int incy,
+                           T* result)
 {
-    if(nullptr == handle)
+    if(!handle)
         return rocblas_status_invalid_handle;
 
-    log_trace(handle, replaceX<T>("rocblas_Xdot"), n, (const void*&)x, incx, (const void*&)y, incy);
+    auto layer_mode = handle->layer_mode;
 
-    log_bench(handle,
-              "./rocblas-bench -f dot -r",
-              replaceX<T>("X"),
-              "-n",
-              n,
-              "--incx",
-              incx,
-              "--incy",
-              incy);
+    if(layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, rocblas_dot_name<T>, n, x, incx, y, incy);
 
-    if(nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == y)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == result)
+    if(layer_mode & rocblas_layer_mode_log_bench)
+        log_bench(handle,
+                  "./rocblas-bench -f dot -r",
+                  rocblas_precision_string<T>,
+                  "-n",
+                  n,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incy);
+
+    if(layer_mode & rocblas_layer_mode_log_profile)
+        log_profile(handle, rocblas_dot_name<T>, "N", n, "incx", incx, "incy", incy);
+
+    if(!x || !y || !result)
         return rocblas_status_invalid_pointer;
 
     /*
@@ -271,32 +165,26 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
     if(n <= 0)
     {
         if(rocblas_pointer_mode_device == handle->pointer_mode)
-        {
-            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(T)));
-        }
+            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
         else
-        {
-            *result = 0.0;
-        }
+            *result = 0;
         return rocblas_status_success;
     }
 
-    rocblas_int blocks = (n - 1) / NB_X + 1;
-
-    rocblas_status status;
+    rocblas_int blocks = (n - 1) / NB + 1;
 
     auto workspace =
         rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks), rocblas::device_free};
     if(!workspace)
-    {
         return rocblas_status_memory_error;
-    }
 
-    status = rocblas_dot_template_workspace<T>(
-        handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
+    auto status =
+        rocblas_dot_workspace<T>(handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
 
     return status;
 }
+
+} // namespace
 
 /*
  * ===========================================================================
@@ -304,48 +192,54 @@ rocblas_status rocblas_dot_template(rocblas_handle handle,
  * ===========================================================================
  */
 
-extern "C" rocblas_status rocblas_sdot(rocblas_handle handle,
-                                       rocblas_int n,
-                                       const float* x,
-                                       rocblas_int incx,
-                                       const float* y,
-                                       rocblas_int incy,
-                                       float* result)
+extern "C" {
+
+rocblas_status rocblas_sdot(rocblas_handle handle,
+                            rocblas_int n,
+                            const float* x,
+                            rocblas_int incx,
+                            const float* y,
+                            rocblas_int incy,
+                            float* result)
 {
-    return rocblas_dot_template<float>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot(handle, n, x, incx, y, incy, result);
 }
 
-extern "C" rocblas_status rocblas_ddot(rocblas_handle handle,
-                                       rocblas_int n,
-                                       const double* x,
-                                       rocblas_int incx,
-                                       const double* y,
-                                       rocblas_int incy,
-                                       double* result)
+rocblas_status rocblas_ddot(rocblas_handle handle,
+                            rocblas_int n,
+                            const double* x,
+                            rocblas_int incx,
+                            const double* y,
+                            rocblas_int incy,
+                            double* result)
 {
-    return rocblas_dot_template<double>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot(handle, n, x, incx, y, incy, result);
 }
 
-/* complex not supported
-extern "C" rocblas_status rocblas_cdotu(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_float_complex* x,
-                                        rocblas_int incx,
-                                        const rocblas_float_complex* y,
-                                        rocblas_int incy,
-                                        rocblas_float_complex* result)
+#if 0 //  complex not supported
+
+rocblas_status rocblas_cdotu(rocblas_handle handle,
+                             rocblas_int n,
+                             const rocblas_float_complex* x,
+                             rocblas_int incx,
+                             const rocblas_float_complex* y,
+                             rocblas_int incy,
+                             rocblas_float_complex* result)
 {
-    return rocblas_dot_template<rocblas_float_complex>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot(handle, n, x, incx, y, incy, result);
 }
 
-extern "C" rocblas_status rocblas_zdotu(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_double_complex* x,
-                                        rocblas_int incx,
-                                        const rocblas_double_complex* y,
-                                        rocblas_int incy,
-                                        rocblas_double_complex* result)
+rocblas_status rocblas_zdotu(rocblas_handle handle,
+                             rocblas_int n,
+                             const rocblas_double_complex* x,
+                             rocblas_int incx,
+                             const rocblas_double_complex* y,
+                             rocblas_int incy,
+                             rocblas_double_complex* result)
 {
-    return rocblas_dot_template<rocblas_double_complex>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot(handle, n, x, incx, y, incy, result);
 }
-*/
+
+#endif
+
+} // extern "C"

@@ -1,5 +1,5 @@
 # Data types are defined as either aliases to Python-recognized ctypes,
-# or classes defined with base clases and attributes.
+# or enums defined with c_int base clases and attributes.
 Datatypes:
   - rocblas_int: c_int
   - rocblas_datatype:
@@ -21,6 +21,11 @@ Datatypes:
         u32_c: 167
   - { half: f16_r, single: f32_r, double: f64_r }
   - { half complex: f16_c, single complex: f32_c, double complex: f64_c }
+  - rocblas_initialization:
+      bases: [ c_int ]
+      attr:
+        rocblas_initialization_random_int: 111
+        rocblas_initialization_trig_float: 222
 
 Real precisions: &real_precisions
   - &half_precision
@@ -63,9 +68,10 @@ Simple precisions: &half_single_double_precisions
   - *single_precision
   - *double_precision
 
-# The Arguments struct passed directly to C++. See rocblas_arguments.h.
+# The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
-# The types on the RHS are eval'd for Python-recognized types including ctypes.
+# The types on the RHS are eval'd for Python-recognized types including ctypes
+# and datatypes defined in Datatypes above. T*n represents array of length n.
 Arguments:
   - M: rocblas_int
   - N: rocblas_int
@@ -106,6 +112,7 @@ Arguments:
   - function: c_char*64
   - name: c_char*64
   - category: c_char*32
+  - initialization: rocblas_initialization
 
 # These named dictionary lists [ {dict1}, {dict2}, etc. ] supply subsets of
 # test arguments in a structured way. The dictionaries are applied to the test
@@ -165,3 +172,4 @@ Defaults:
   solution_index: 0
   flags: 0
   workspace_size: 0
+  initialization: rocblas_initialization_random_int

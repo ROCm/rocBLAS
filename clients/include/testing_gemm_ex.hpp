@@ -7,7 +7,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_vector.hpp"
 #include "rocblas_init.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "utility.hpp"
 #include "rocblas.hpp"
 #include "cblas_interface.hpp"
@@ -581,13 +581,13 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1     = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
-            auto err2     = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
-            auto errD     = err1 > err2 ? err1 : err2;
+            auto err1 = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
+            auto err2 = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
+            auto errD = err1 > err2 ? err1 : err2;
 
-            auto err3     = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
-            auto err4     = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
-            auto errC     = err3 > err4 ? err3 : err4;
+            auto err3 = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
+            auto err4 = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
+            auto errC = err3 > err4 ? err3 : err4;
 
             rocblas_error = errD > errC ? errD : errC;
         }

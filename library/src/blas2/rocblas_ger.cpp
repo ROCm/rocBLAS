@@ -6,38 +6,37 @@
 #include "rocblas.h"
 #include "status.h"
 #include "definitions.h"
-#include "ger_device.h"
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
 
-template <typename T>
-__global__ void ger_kernel_host_pointer(rocblas_int m,
-                                        rocblas_int n,
-                                        const T alpha,
-                                        const T* __restrict__ x,
-                                        rocblas_int incx,
-                                        const T* __restrict__ y,
-                                        rocblas_int incy,
-                                        T* A,
-                                        rocblas_int lda)
+namespace {
+
+template <typename T, typename U>
+__global__ void ger_kernel(rocblas_int m,
+                           rocblas_int n,
+                           U alpha_device_host,
+                           const T* __restrict__ x,
+                           rocblas_int incx,
+                           const T* __restrict__ y,
+                           rocblas_int incy,
+                           T* A,
+                           rocblas_int lda)
 {
-    ger_device<T>(m, n, alpha, x, incx, y, incy, A, lda);
+    auto alpha = load_scalar(alpha_device_host);
+    ssize_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ssize_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+    if(tx < m && ty < n)
+        A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
 }
 
-template <typename T>
-__global__ void ger_kernel_device_pointer(rocblas_int m,
-                                          rocblas_int n,
-                                          const T* alpha,
-                                          const T* __restrict__ x,
-                                          rocblas_int incx,
-                                          const T* __restrict__ y,
-                                          rocblas_int incy,
-                                          T* A,
-                                          rocblas_int lda)
-{
-    ger_device<T>(m, n, *alpha, x, incx, y, incy, A, lda);
-}
+template <typename>
+constexpr char rocblas_ger_name[] = "unknown";
+template <>
+constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
+template <>
+constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
 
 /*! \brief BLAS Level 2 API
 
@@ -83,108 +82,87 @@ __global__ void ger_kernel_device_pointer(rocblas_int m,
     ********************************************************************/
 
 template <typename T>
-rocblas_status rocblas_ger_template(rocblas_handle handle,
-                                    rocblas_int m,
-                                    rocblas_int n,
-                                    const T* alpha,
-                                    const T* x,
-                                    rocblas_int incx,
-                                    const T* y,
-                                    rocblas_int incy,
-                                    T* A,
-                                    rocblas_int lda)
+rocblas_status rocblas_ger(rocblas_handle handle,
+                           rocblas_int m,
+                           rocblas_int n,
+                           const T* alpha,
+                           const T* x,
+                           rocblas_int incx,
+                           const T* y,
+                           rocblas_int incy,
+                           T* A,
+                           rocblas_int lda)
 {
-    if(nullptr == handle)
+    if(!handle)
         return rocblas_status_invalid_handle;
 
+    if(!alpha)
+        return rocblas_status_invalid_pointer;
+
+    auto layer_mode = handle->layer_mode;
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xger"),
-                  m,
-                  n,
-                  *alpha,
-                  (const void*&)x,
-                  incx,
-                  (const void*&)y,
-                  incy,
-                  (const void*&)A,
-                  lda);
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_ger_name<T>, m, n, *alpha, x, incx, y, incy, A, lda);
 
-        log_bench(handle,
-                  "./rocblas-bench -f ger -r",
-                  replaceX<T>("X"),
-                  "-m",
-                  m,
-                  "-n",
-                  n,
-                  "--alpha",
-                  *alpha,
-                  "--incx",
-                  incx,
-                  "--incy",
-                  incy,
-                  "--lda",
-                  lda);
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f ger -r",
+                      rocblas_precision_string<T>,
+                      "-m",
+                      m,
+                      "-n",
+                      n,
+                      "--alpha",
+                      *alpha,
+                      "--incx",
+                      incx,
+                      "--incy",
+                      incy,
+                      "--lda",
+                      lda);
     }
     else
     {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xger"),
-                  m,
-                  n,
-                  (const void*&)alpha,
-                  (const void*&)x,
-                  incx,
-                  (const void*&)y,
-                  incy,
-                  (const void*&)A,
-                  lda);
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_ger_name<T>, m, n, alpha, x, incx, y, incy, A, lda);
     }
 
-    if(nullptr == alpha)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == x)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == y)
-        return rocblas_status_invalid_pointer;
-    else if(nullptr == A)
+    if(layer_mode & rocblas_layer_mode_log_profile)
+        log_profile(
+            handle, rocblas_ger_name<T>, "M", m, "N", n, "incx", incx, "incy", incy, "lda", lda);
+
+    if(!x || !y || !A)
         return rocblas_status_invalid_pointer;
 
-    if(m < 0)
-        return rocblas_status_invalid_size;
-    else if(n < 0)
-        return rocblas_status_invalid_size;
-    else if(0 == incx)
-        return rocblas_status_invalid_size;
-    else if(0 == incy)
-        return rocblas_status_invalid_size;
-    else if(lda < m || lda < 1)
+    if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1)
         return rocblas_status_invalid_size;
 
     /*
      * Quick return if possible. Not Argument error
      */
-    if(m == 0 || n == 0 || alpha == 0)
-    {
+    if(!m || !n)
         return rocblas_status_success;
-    }
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-#define GEMV_DIM_X 128
-#define GEMV_DIM_Y 8
-    rocblas_int blocksX = ((m - 1) / GEMV_DIM_X) + 1;
-    rocblas_int blocksY = ((n - 1) / GEMV_DIM_Y) + 1;
+    static constexpr int GEMV_DIM_X = 128;
+    static constexpr int GEMV_DIM_Y = 8;
+    rocblas_int blocksX             = (m - 1) / GEMV_DIM_X + 1;
+    rocblas_int blocksY             = (n - 1) / GEMV_DIM_Y + 1;
 
-    dim3 ger_grid(blocksX, blocksY, 1);
-    dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y, 1);
+    dim3 ger_grid(blocksX, blocksY);
+    dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y);
 
-    if(rocblas_pointer_mode_device == handle->pointer_mode)
-    {
-        hipLaunchKernelGGL((ger_kernel_device_pointer<T>),
-                           dim3(ger_grid),
-                           dim3(ger_threads),
+    if(incx < 0)
+        x += size_t(-incx) * (m - 1);
+    if(incy < 0)
+        y += size_t(-incy) * (n - 1);
+
+    if(handle->pointer_mode == rocblas_pointer_mode_device)
+        hipLaunchKernelGGL(ger_kernel,
+                           ger_grid,
+                           ger_threads,
                            0,
                            rocblas_stream,
                            m,
@@ -196,30 +174,25 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                            incy,
                            A,
                            lda);
-    }
     else
-    {
-        T h_alpha_scalar = *alpha;
-        hipLaunchKernelGGL((ger_kernel_host_pointer<T>),
-                           dim3(ger_grid),
-                           dim3(ger_threads),
+        hipLaunchKernelGGL(ger_kernel,
+                           ger_grid,
+                           ger_threads,
                            0,
                            rocblas_stream,
                            m,
                            n,
-                           h_alpha_scalar,
+                           *alpha,
                            x,
                            incx,
                            y,
                            incy,
                            A,
                            lda);
-    }
-#undef GEMV_DIM_X
-#undef GEMV_DIM_Y
-
     return rocblas_status_success;
 }
+
+} // namespace
 
 /*
  * ===========================================================================
@@ -227,30 +200,34 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
  * ===========================================================================
  */
 
-extern "C" rocblas_status rocblas_sger(rocblas_handle handle,
-                                       rocblas_int m,
-                                       rocblas_int n,
-                                       const float* alpha,
-                                       const float* x,
-                                       rocblas_int incx,
-                                       const float* y,
-                                       rocblas_int incy,
-                                       float* A,
-                                       rocblas_int lda)
+extern "C" {
+
+rocblas_status rocblas_sger(rocblas_handle handle,
+                            rocblas_int m,
+                            rocblas_int n,
+                            const float* alpha,
+                            const float* x,
+                            rocblas_int incx,
+                            const float* y,
+                            rocblas_int incy,
+                            float* A,
+                            rocblas_int lda)
 {
-    return rocblas_ger_template<float>(handle, m, n, alpha, x, incx, y, incy, A, lda);
+    return rocblas_ger(handle, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
-extern "C" rocblas_status rocblas_dger(rocblas_handle handle,
-                                       rocblas_int m,
-                                       rocblas_int n,
-                                       const double* alpha,
-                                       const double* x,
-                                       rocblas_int incx,
-                                       const double* y,
-                                       rocblas_int incy,
-                                       double* A,
-                                       rocblas_int lda)
+rocblas_status rocblas_dger(rocblas_handle handle,
+                            rocblas_int m,
+                            rocblas_int n,
+                            const double* alpha,
+                            const double* x,
+                            rocblas_int incx,
+                            const double* y,
+                            rocblas_int incy,
+                            double* A,
+                            rocblas_int lda)
 {
-    return rocblas_ger_template<double>(handle, m, n, alpha, x, incx, y, incy, A, lda);
+    return rocblas_ger(handle, m, n, alpha, x, incx, y, incy, A, lda);
 }
+
+} // extern "C"

@@ -10,7 +10,7 @@
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
 
-constexpr char rocblas2char_operation(rocblas_operation value)
+constexpr auto rocblas2char_operation(rocblas_operation value)
 {
     switch(value)
     {
@@ -21,7 +21,7 @@ constexpr char rocblas2char_operation(rocblas_operation value)
     return '\0';
 }
 
-constexpr char rocblas2char_fill(rocblas_fill value)
+constexpr auto rocblas2char_fill(rocblas_fill value)
 {
     switch(value)
     {
@@ -32,7 +32,7 @@ constexpr char rocblas2char_fill(rocblas_fill value)
     return '\0';
 }
 
-constexpr char rocblas2char_diagonal(rocblas_diagonal value)
+constexpr auto rocblas2char_diagonal(rocblas_diagonal value)
 {
     switch(value)
     {
@@ -42,7 +42,7 @@ constexpr char rocblas2char_diagonal(rocblas_diagonal value)
     return '\0';
 }
 
-constexpr char rocblas2char_side(rocblas_side value)
+constexpr auto rocblas2char_side(rocblas_side value)
 {
     switch(value)
     {
@@ -53,20 +53,27 @@ constexpr char rocblas2char_side(rocblas_side value)
     return '\0';
 }
 
-constexpr char rocblas_datatype2char(rocblas_datatype value)
+// return precision string for rocblas_datatype
+constexpr auto rocblas_datatype2string(rocblas_datatype type)
 {
-    switch(value)
+    switch(type)
     {
-    case rocblas_datatype_f16_r: return 'h';
-    case rocblas_datatype_f32_r: return 's';
-    case rocblas_datatype_f64_r: return 'd';
-    case rocblas_datatype_f16_c: return 'k';
-    case rocblas_datatype_f32_c: return 'c';
-    case rocblas_datatype_f64_c: return 'z';
-    default:
-        return 'e'; // todo, handle integer types
+    case rocblas_datatype_f16_r: return "f16_r";
+    case rocblas_datatype_f32_r: return "f32_r";
+    case rocblas_datatype_f64_r: return "f64_r";
+    case rocblas_datatype_f16_c: return "f16_k";
+    case rocblas_datatype_f32_c: return "f32_c";
+    case rocblas_datatype_f64_c: return "f64_c";
+    case rocblas_datatype_i8_r: return "i8_r";
+    case rocblas_datatype_u8_r: return "u8_r";
+    case rocblas_datatype_i32_r: return "i32_r";
+    case rocblas_datatype_u32_r: return "u32_r";
+    case rocblas_datatype_i8_c: return "i8_c";
+    case rocblas_datatype_u8_c: return "u8_c";
+    case rocblas_datatype_i32_c: return "i32_c";
+    case rocblas_datatype_u32_c: return "u32_c";
+    default: return "invalid";
     }
-    return '\0';
 }
 
 /* ============================================================================================ */
@@ -138,6 +145,28 @@ constexpr rocblas_datatype char2rocblas_datatype(char value)
     case 'z': return rocblas_datatype_f64_c;
     default: return static_cast<rocblas_datatype>(-1);
     }
+}
+
+inline rocblas_datatype string2rocblas_datatype(const std::string& value)
+{
+    // clang-format off
+    return
+        value == "f16_r" ? rocblas_datatype_f16_r :
+        value == "f32_r" ? rocblas_datatype_f32_r :
+        value == "f64_r" ? rocblas_datatype_f64_r :
+        value == "f16_c" ? rocblas_datatype_f32_c :
+        value == "f32_c" ? rocblas_datatype_f32_c :
+        value == "f64_c" ? rocblas_datatype_f64_c :
+        value == "i8_r"  ? rocblas_datatype_i8_r  :
+        value == "i32_r" ? rocblas_datatype_i32_r :
+        value == "i8_c"  ? rocblas_datatype_i8_c  :
+        value == "i32_c" ? rocblas_datatype_i32_c :
+        value == "u8_r"  ? rocblas_datatype_u8_r  :
+        value == "u32_r" ? rocblas_datatype_u32_r :
+        value == "u8_c"  ? rocblas_datatype_u8_c  :
+        value == "u32_c" ? rocblas_datatype_u32_c :
+        static_cast<rocblas_datatype>(-1);
+    // clang-format on
 }
 
 #endif

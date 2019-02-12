@@ -204,6 +204,15 @@ hipError_t callTensile(const T* alpha,
     return status;
 }
 
+template <typename>
+constexpr char rocblas_gemm_name[] = "unknown";
+template <>
+constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
+template <>
+constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
+template <>
+constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
+
 /*******************************************************************************
  * GEMM implementation
  ******************************************************************************/
@@ -225,44 +234,101 @@ rocblas_status rocblas_gemm_impl(rocblas_handle handle,
 {
     // clang-format off
     // Perform logging
-    if(nullptr != handle)
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    auto layer_mode = handle->layer_mode;
+    if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
+                     rocblas_layer_mode_log_profile))
     {
+        auto trans_a_letter = rocblas_transpose_letter(trans_a);
+        auto trans_b_letter = rocblas_transpose_letter(trans_b);
+
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
-            log_trace(handle, replaceX<T>("rocblas_Xgemm"),
-                      trans_a, trans_b, m, n, k,
-                      *alpha,
-                      (const void*&)A, ld_a,
-                      (const void*&)B, ld_b,
-                      *beta,
-                      (const void*&)C, ld_c);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          *alpha,
+                          A,
+                          ld_a,
+                          B,
+                          ld_b,
+                          *beta,
+                          C,
+                          ld_c);
 
-            std::string trans_a_letter = rocblas_transpose_letter(trans_a);
-            std::string trans_b_letter = rocblas_transpose_letter(trans_b);
-
-            log_bench(handle,
-                      "./rocblas-bench -f gemm -r", replaceX<T>("X"),
-                      "--transposeA", trans_a_letter,
-                      "--transposeB", trans_b_letter,
-                      "-m", m,
-                      "-n", n,
-                      "-k", k,
-                      "--alpha", *alpha,
-                      "--lda", ld_a,
-                      "--ldb", ld_b,
-                      "--beta", *beta,
-                      "--ldc", ld_c);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f gemm -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          trans_a_letter,
+                          "--transposeB",
+                          trans_b_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          "--alpha",
+                          *alpha,
+                          "--lda",
+                          ld_a,
+                          "--ldb",
+                          ld_b,
+                          "--beta",
+                          *beta,
+                          "--ldc",
+                          ld_c);
         }
         else
         {
-            log_trace(handle, replaceX<T>("rocblas_Xgemm"),
-                      trans_a, trans_b, m, n,k,
-                      (const void*&)alpha,
-                      (const void*&)A, ld_a,
-                      (const void*&)B, ld_b,
-                      (const void*&)beta,
-                      (const void*&)C, ld_c);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          alpha,
+                          A,
+                          ld_a,
+                          B,
+                          ld_b,
+                          beta,
+                          C,
+                          ld_c);
         }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_gemm_name<T>,
+                        "transA",
+                        trans_a_letter,
+                        "transB",
+                        trans_b_letter,
+                        "M",
+                        m,
+                        "N",
+                        n,
+                        "K",
+                        k,
+                        "lda",
+                        ld_a,
+                        "ldb",
+                        ld_b,
+                        "ldc",
+                        ld_c);
     }
 
     rocblas_int b_c = 1;
@@ -309,6 +375,15 @@ rocblas_status rocblas_gemm_impl(rocblas_handle handle,
     return get_rocblas_status_for_hip_status(status);
 }
 
+template <typename>
+constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
+template <>
+constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[] = "rocblas_hgemm_strided_batched";
+template <>
+constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
+template <>
+constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
+
 /*******************************************************************************
  * Strided / Batched GEMM implementation
  ******************************************************************************/
@@ -334,64 +409,142 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle handle,
 
 {
     // clang-format off
-    rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
-                                            m, n, k, alpha,
-                                            A, ld_a, stride_a,
-                                            B, ld_b, stride_b, beta,
-                                            C, ld_c, stride_c, b_c);
+    if(!handle)
+        return rocblas_status_invalid_handle;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    auto layer_mode = handle->layer_mode;
+
+    if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
+                     rocblas_layer_mode_log_profile))
     {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xgemm_strided_batched"),
-                  trans_a, trans_b,
-                  m, n, k,
-                  *alpha,
-                  (const void*&)A, ld_a, stride_a,
-                  (const void*&)B, ld_b, stride_b,
-                  *beta,
-                  (const void*&)C, ld_c, stride_c,
-                  b_c);
+        auto trans_a_letter = rocblas_transpose_letter(trans_a);
+        auto trans_b_letter = rocblas_transpose_letter(trans_b);
 
-        std::string trans_a_letter = rocblas_transpose_letter(trans_a);
-        std::string trans_b_letter = rocblas_transpose_letter(trans_b);
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_strided_batched_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          *alpha,
+                          A,
+                          ld_a,
+                          stride_a,
+                          B,
+                          ld_b,
+                          stride_b,
+                          *beta,
+                          C,
+                          ld_c,
+                          stride_c,
+                          b_c);
 
-        log_bench(handle,
-                  "./rocblas-bench -f gemm_strided_batched -r",
-                  replaceX<T>("X"),
-                  "--transposeA", trans_a_letter,
-                  "--transposeB", trans_b_letter,
-                  "-m", m,
-                  "-n", n,
-                  "-k", k,
-                  "--alpha", *alpha,
-                  "--lda", ld_a,
-                  "--stride_a", stride_a,
-                  "--ldb", ld_b,
-                  "--stride_b", stride_b,
-                  "--beta", *beta,
-                  "--ldc", ld_c,
-                  "--stride_c", stride_c,
-                  "--batch", b_c);
-    }
-    else
-    {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xgemm_strided_batched"),
-                  trans_a, trans_b,
-                  m, n, k,
-                  (const void*&)alpha,
-                  (const void*&)A, ld_a, stride_a,
-                  (const void*&)B, ld_b, stride_b,
-                  (const void*&)beta,
-                  (const void*&)C, ld_c, stride_c,
-                  b_c);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                log_bench(handle,
+                          "./rocblas-bench -f gemm_strided_batched -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          trans_a_letter,
+                          "--transposeB",
+                          trans_b_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          "--alpha",
+                          *alpha,
+                          "--lda",
+                          ld_a,
+                          "--stride_a",
+                          stride_a,
+                          "--ldb",
+                          ld_b,
+                          "--stride_b",
+                          stride_b,
+                          "--beta",
+                          *beta,
+                          "--ldc",
+                          ld_c,
+                          "--stride_c",
+                          stride_c,
+                          "--batch",
+                          b_c);
+            }
+        }
+        else
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+            {
+                log_trace(handle,
+                          rocblas_gemm_strided_batched_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          alpha,
+                          A,
+                          ld_a,
+                          stride_a,
+                          B,
+                          ld_b,
+                          stride_b,
+                          beta,
+                          C,
+                          ld_c,
+                          stride_c,
+                          b_c);
+            }
+        }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+        {
+            log_profile(handle,
+                        rocblas_gemm_strided_batched_name<T>,
+                        "transA",
+                        trans_a_letter,
+                        "transB",
+                        trans_b_letter,
+                        "M",
+                        m,
+                        "N",
+                        n,
+                        "K",
+                        k,
+                        "lda",
+                        ld_a,
+                        "stride_a",
+                        stride_a,
+                        "ldb",
+                        ld_b,
+                        "stride_b",
+                        stride_b,
+                        "ldc",
+                        ld_c,
+                        "stride_c",
+                        stride_c,
+                        "batch_count",
+                        b_c);
+        }
     }
 
     if(m == 0 || n == 0 || k == 0 || b_c == 0)
     {
         return rocblas_status_success;
     }
+
+    rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
+                                            m, n, k, alpha,
+                                            A, ld_a, stride_a,
+                                            B, ld_b, stride_b, beta,
+                                            C, ld_c, stride_c, b_c);
 
     if(validArgs != rocblas_status_success)
         return validArgs;
@@ -443,59 +596,131 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle handle,
                                              rocblas_int b_c)
 {
     // clang-format off
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    auto layer_mode = handle->layer_mode;
+
+    if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
+                     rocblas_layer_mode_log_profile))
+    {
+        auto trans_a_letter = rocblas_transpose_letter(trans_a);
+        auto trans_b_letter = rocblas_transpose_letter(trans_b);
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_strided_batched_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          *alpha,
+                          A,
+                          ld_a,
+                          stride_a,
+                          B,
+                          ld_b,
+                          stride_b,
+                          *beta,
+                          C,
+                          ld_c,
+                          stride_c,
+                          b_c);
+
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f gemm_strided_batched -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          trans_a_letter,
+                          "--transposeB",
+                          trans_b_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          "--alpha",
+                          *alpha,
+                          "--lda",
+                          ld_a,
+                          "--bsa",
+                          stride_a,
+                          "--ldb",
+                          ld_b,
+                          "--bsb",
+                          stride_b,
+                          "--beta",
+                          *beta,
+                          "--ldc",
+                          ld_c,
+                          "--bsc",
+                          stride_c,
+                          "--batch",
+                          b_c);
+        }
+        else
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_strided_batched_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          alpha,
+                          A,
+                          ld_a,
+                          stride_a,
+                          B,
+                          ld_b,
+                          stride_b,
+                          beta,
+                          C,
+                          ld_c,
+                          stride_c,
+                          b_c);
+        }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_gemm_strided_batched_name<T>,
+                        "transA",
+                        trans_a_letter,
+                        "transB",
+                        trans_b_letter,
+                        "M",
+                        m,
+                        "N",
+                        n,
+                        "K",
+                        k,
+                        "lda",
+                        ld_a,
+                        "stride_a",
+                        stride_a,
+                        "ldb",
+                        ld_b,
+                        "stride_b",
+                        stride_b,
+                        "ldc",
+                        ld_c,
+                        "stride_c",
+                        stride_c,
+                        "batch_count",
+                        b_c);
+    }
+
     rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                             m, n, k, alpha,
                                             A, ld_a, stride_a,
                                             B, ld_b, stride_b, beta,
                                             C, ld_c, stride_c, b_c);
-
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
-    {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xgemm_strided_batched"),
-                  trans_a, trans_b,
-                  m, n, k,
-                  *alpha,
-                  (const void*&)A, ld_a, stride_a,
-                  (const void*&)B, ld_b, stride_b,
-                  *beta,
-                  (const void*&)C, ld_c, stride_c,
-                  b_c);
-
-        std::string trans_a_letter = rocblas_transpose_letter(trans_a);
-        std::string trans_b_letter = rocblas_transpose_letter(trans_b);
-
-        log_bench(handle,
-                  "./rocblas-bench -f gemm_strided_batched -r",
-                  replaceX<T>("X"),
-                  "--transposeA", trans_a_letter,
-                  "--transposeB", trans_b_letter,
-                  "-m", m,
-                  "-n", n,
-                  "-k", k,
-                  "--alpha", *alpha,
-                  "--lda", ld_a,
-                  "--bsa", stride_a,
-                  "--ldb", ld_b,
-                  "--bsb", stride_b,
-                  "--beta", *beta,
-                  "--ldc", ld_c,
-                  "--bsc", stride_c,
-                  "--batch", b_c);
-    }
-    else
-    {
-        log_trace(handle,
-                  replaceX<T>("rocblas_Xgemm_strided_batched"),
-                  trans_a, trans_b,
-                  m, n, k,
-                  (const void*&)alpha,
-                  (const void*&)A, ld_a, stride_a,
-                  (const void*&)B, ld_b, stride_b,
-                  (const void*&)beta,
-                  (const void*&)C, ld_c, stride_c,
-                  b_c);
-    }
 
     if(validArgs != rocblas_status_success)
         return validArgs;
@@ -523,10 +748,8 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle handle,
     std::cout << solution_name << std::endl;
 
     return validArgs;
-    // clang-format off
 }
 
-// clang-format off
 /*******************************************************************************
  * GEMM APIs
  ******************************************************************************/

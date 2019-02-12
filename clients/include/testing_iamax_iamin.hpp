@@ -180,24 +180,24 @@ void testing_iamax_iamin(const Arguments& arg)
 namespace rocblas_cblas {
 
 template <typename T>
-inline T aabs(T x)
+T aabs(T x)
 {
     return std::abs(x);
 }
 
-inline rocblas_half aabs(rocblas_half x) { return x & 0x7fff; }
+rocblas_half aabs(rocblas_half x) { return x & 0x7fff; }
 
-inline double aabs(rocblas_double_complex x) { return aabs(x.x) + aabs(x.y); }
+double aabs(rocblas_double_complex x) { return aabs(x.x) + aabs(x.y); }
 
-inline float aabs(rocblas_float_complex x) { return aabs(x.x) + aabs(x.y); }
+float aabs(rocblas_float_complex x) { return aabs(x.x) + aabs(x.y); }
 
 template <typename T>
-inline bool lessthan(T x, T y)
+bool lessthan(T x, T y)
 {
     return x < y;
 }
 
-inline bool lessthan(rocblas_half x, rocblas_half y) { return half_to_float(x) < half_to_float(y); }
+bool lessthan(rocblas_half x, rocblas_half y) { return half_to_float(x) < half_to_float(y); }
 
 template <typename T>
 void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
@@ -207,7 +207,7 @@ void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* resul
     {
         auto min = aabs(X[0]);
         minpos   = 0;
-        for(rocblas_int i = 1; i < N; ++i)
+        for(size_t i = 1; i < N; ++i)
         {
             auto a = aabs(X[i * incx]);
             if(lessthan(a, min))

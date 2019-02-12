@@ -2777,4 +2777,19 @@ Tests:
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_384
+  category: nightly
+  function: testing_gemm
+  precision: *double_precision
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha: -1
+  beta: 1
+  K: 384
+  matrix_size:
+    - { M:  384, N:  384 }
+    - { M:  768, N:  768 }
+    - { M: 1536, N: 1536 }
+    - { M: 3072, N: 3072 }
+    - { M: 6144, N: 6144 }
 ...

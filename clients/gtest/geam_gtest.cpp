@@ -7,7 +7,7 @@
 #include <cctype>
 #include "rocblas_test.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 #include "testing_geam.hpp"
 #include "type_dispatch.hpp"
 
@@ -58,7 +58,7 @@ struct geam : RocBLAS_Test<geam, geam_testing>
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<geam>()
-               << rocblas_datatype2char(arg.a_type) << '_' << (char)std::toupper(arg.transA)
+               << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
                << (char)std::toupper(arg.transB) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
                << '_' << arg.lda << '_' << arg.beta << '_' << arg.ldb << '_' << arg.ldc;
     }

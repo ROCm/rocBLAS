@@ -2,90 +2,133 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#pragma once
 #ifndef UTILITY_H
 #define UTILITY_H
-#include <fstream>
-#include <string>
+#include "rocblas.h"
 
-// if trace logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_log_trace) == true
-// then
-// log_function will call log_arguments to log function
-// arguments with a comma separator
-template <typename H, typename... Ts>
-// void log_function(rocblas_handle handle, H head, Ts&... xs)
-void log_trace(rocblas_handle handle, H head, Ts&... xs)
-{
-    if(nullptr != handle)
-    {
-        if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        {
-            std::string comma_separator = ",";
+#ifndef GOOGLE_TEST
 
-            std::ostream* os = handle->log_trace_os;
-            log_arguments(*os, comma_separator, head, xs...);
-        }
-    }
-}
+// Load a scalar. If the argument is a pointer, dereference it; otherwise copy
+// it. Allows the same kernels to be used for host and device scalars.
 
-// if bench logging is turned on with
-// (handle->layer_mode & rocblas_layer_mode_log_bench) == true
-// then
-// log_bench will call log_arguments to log a string that
-// can be input to the executable rocblas-bench.
-template <typename H, typename... Ts>
-void log_bench(rocblas_handle handle, H head, std::string precision, Ts&... xs)
-{
-    if(nullptr != handle)
-    {
-        if(handle->layer_mode & rocblas_layer_mode_log_bench)
-        {
-            std::string space_separator = " ";
-
-            std::ostream* os = handle->log_bench_os;
-            log_arguments(*os, space_separator, head, precision, xs...);
-        }
-    }
-}
-
-// return letters in place of rocblas enums
-std::string rocblas_transpose_letter(rocblas_operation trans);
-std::string rocblas_side_letter(rocblas_side side);
-std::string rocblas_fill_letter(rocblas_fill fill);
-std::string rocblas_diag_letter(rocblas_diagonal diag);
-std::string rocblas_datatype_letter(rocblas_datatype type);
-
-// replaces X in string with s, d, c, z or h depending on typename T
+// For host scalars
 template <typename T>
-std::string replaceX(std::string input_string)
+__forceinline__ __device__ __host__ T load_scalar(T x)
 {
-    if(std::is_same<T, float>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 's');
-    }
-    else if(std::is_same<T, double>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'd');
-    }
-    else if(std::is_same<T, rocblas_float_complex>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'c');
-    }
-    else if(std::is_same<T, rocblas_double_complex>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'z');
-    }
-    else if(std::is_same<T, rocblas_half>::value)
-    {
-        std::replace(input_string.begin(), input_string.end(), 'X', 'h');
-    }
-    return input_string;
+    return x;
 }
 
-static inline bool isAligned(const void* pointer, size_t byte_count)
+// For device scalars
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(const T* xp)
 {
-    return (uintptr_t)pointer % byte_count == 0;
+    return *xp;
 }
 
+// For rocblas_half2, we broadcast a fp16 across two halves
+template <>
+__forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half2* xp)
+{
+    auto x = *reinterpret_cast<const _Float16*>(xp);
+    return {x, x};
+}
+
+#endif // GOOGLE_TEST
+
+inline bool isAligned(const void* pointer, size_t byte_count)
+{
+    return reinterpret_cast<uintptr_t>(pointer) % byte_count == 0;
+}
+
+// clang-format off
+// return letter N,T,C in place of rocblas_operation enum
+constexpr auto rocblas_transpose_letter(rocblas_operation trans)
+{
+    switch(trans)
+    {
+    case rocblas_operation_none:                return 'N';
+    case rocblas_operation_transpose:           return 'T';
+    case rocblas_operation_conjugate_transpose: return 'C';
+    default:                                    return ' ';
+    }
+}
+
+// return letter L, R, B in place of rocblas_side enum
+constexpr auto rocblas_side_letter(rocblas_side side)
+{
+    switch(side)
+    {
+    case rocblas_side_left:  return 'L';
+    case rocblas_side_right: return 'R';
+    case rocblas_side_both:  return 'B';
+    default:                 return ' ';
+    }
+}
+
+// return letter U, L, B in place of rocblas_fill enum
+constexpr auto rocblas_fill_letter(rocblas_fill fill)
+{
+    switch(fill)
+    {
+    case rocblas_fill_upper: return 'U';
+    case rocblas_fill_lower: return 'L';
+    case rocblas_fill_full:  return 'F';
+    default:                 return ' ';
+    }
+}
+
+// return letter N, U in place of rocblas_diagonal enum
+constexpr auto rocblas_diag_letter(rocblas_diagonal diag)
+{
+    switch(diag)
+    {
+    case rocblas_diagonal_non_unit: return 'N';
+    case rocblas_diagonal_unit:     return 'U';
+    default:                        return ' ';
+    }
+}
+
+// return precision string for rocblas_datatype
+constexpr auto rocblas_datatype_string(rocblas_datatype type)
+{
+    switch(type)
+    {
+    case rocblas_datatype_f16_r: return "f16_r";
+    case rocblas_datatype_f32_r: return "f32_r";
+    case rocblas_datatype_f64_r: return "f64_r";
+    case rocblas_datatype_f16_c: return "f16_k";
+    case rocblas_datatype_f32_c: return "f32_c";
+    case rocblas_datatype_f64_c: return "f64_c";
+    case rocblas_datatype_i8_r:  return "i8_r";
+    case rocblas_datatype_u8_r:  return "u8_r";
+    case rocblas_datatype_i32_r: return "i32_r";
+    case rocblas_datatype_u32_r: return "u32_r";
+    case rocblas_datatype_i8_c:  return "i8_c";
+    case rocblas_datatype_u8_c:  return "u8_c";
+    case rocblas_datatype_i32_c: return "i32_c";
+    case rocblas_datatype_u32_c: return "u32_c";
+    default:                     return "invalid";
+    }
+}
+
+// return precision string for data type
+template <typename> constexpr char rocblas_precision_string                [] = "invalid";
+template <> constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
+template <> constexpr char rocblas_precision_string<float                 >[] = "f32_r";
+template <> constexpr char rocblas_precision_string<double                >[] = "f64_r";
+template <> constexpr char rocblas_precision_string<int8_t                >[] = "i8_r";
+template <> constexpr char rocblas_precision_string<uint8_t               >[] = "u8_r";
+template <> constexpr char rocblas_precision_string<int32_t               >[] = "i32_r";
+template <> constexpr char rocblas_precision_string<uint32_t              >[] = "u32_r";
+template <> constexpr char rocblas_precision_string<rocblas_float_complex >[] = "f32_c";
+template <> constexpr char rocblas_precision_string<rocblas_double_complex>[] = "f64_c";
+#if 0 // Not implemented
+template <> constexpr char rocblas_precision_string<rocblas_half_complex  >[] = "f16_c";
+template <> constexpr char rocblas_precision_string<rocblas_i8_complex    >[] = "i8_c";
+template <> constexpr char rocblas_precision_string<rocblas_u8_complex    >[] = "u8_c";
+template <> constexpr char rocblas_precision_string<rocblas_i32_complex   >[] = "i32_c";
+template <> constexpr char rocblas_precision_string<rocblas_u32_complex   >[] = "u32_c";
+#endif
+
+// clang-format on
 #endif

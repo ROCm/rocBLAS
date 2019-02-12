@@ -14,7 +14,7 @@ except ImportError:
 import yaml
 
 # Regex for type names in the YAML file. Optional *nnn indicates array.
-TYPE_RE = re.compile(r'\w+(:?\s*\*\s*\d+)?$')
+TYPE_RE = re.compile(r'[a-z_A-Z]\w*(:?\s*\*\s*\d+)?$')
 
 # Regex for integer ranges A..B[..C]
 INT_RANGE_RE = re.compile(r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
@@ -211,6 +211,29 @@ def setdefaults(test):
     test.setdefault('stride_d', 0)
 
 
+def write_signature(out):
+    """Write the signature used to verify binary file compatibility"""
+    if 'signature_written' not in args:
+        sig = 0
+        byt = bytearray("rocBLAS")
+        byt.append(0)
+        last_ofs = 0
+        for (name, ctype) in param['Arguments']._fields_:
+            member = getattr(param['Arguments'], name)
+            for i in range(0, member.offset - last_ofs):
+                byt.append(0)
+            for i in range(0, member.size):
+                byt.append(sig ^ i)
+            sig = (sig + 89) % 256
+            last_ofs = member.offset + member.size
+        for i in range(0, ctypes.sizeof(param['Arguments']) - last_ofs):
+            byt.append(0)
+        byt.extend(bytearray("ROCblas"))
+        byt.append(0)
+        out.write(byt)
+        args['signature_written'] = True
+
+
 def write_test(test):
     """Write the test case out to the binary file if not seen already"""
 
@@ -232,6 +255,7 @@ def write_test(test):
     sig = tuple(byt)
     if sig not in testcases:
         testcases.add(sig)
+        write_signature(args['outfile'])
         args['outfile'].write(byt)
 
 
@@ -239,13 +263,13 @@ def instantiate(test):
     """Instantiate a given test case"""
     test = test.copy()
 
-    # Any Arguments fields declared as rocblas_datatype denote types
-    type_args = [decl[0] for decl in param['Arguments']._fields_
-                 if decl[1] == datatypes.get('rocblas_datatype')]
+    # Any Arguments fields declared as enums
+    enum_args = [decl[0] for decl in param['Arguments']._fields_
+                 if decl[1].__module__ == '__main__']
     try:
         setdefaults(test)
-        # For type arguments, replace type name with type
-        for typename in type_args:
+        # For enum arguments, replace name with value
+        for typename in enum_args:
             test[typename] = datatypes[test[typename]]
 
         # Match known bugs
@@ -257,8 +281,8 @@ def instantiate(test):
                     if key == 'function':
                         if not fnmatchcase(test[key], value):
                             break
-                    # For keys declared as datatypes, compare resulting types
-                    elif test[key] != (datatypes.get(value) if key in type_args
+                    # For keys declared as enums, compare resulting values
+                    elif test[key] != (datatypes.get(value) if key in enum_args
                                        else value):
                         break
                 else:  # All values specified in known bug match test case

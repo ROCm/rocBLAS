@@ -7,7 +7,7 @@
 #include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
 #include "rocblas_data.hpp"
-#include "rocblas_datatype2char.hpp"
+#include "rocblas_datatype2string.hpp"
 
 namespace {
 
@@ -52,7 +52,7 @@ struct set_get_matrix : RocBLAS_Test<set_get_matrix, set_get_matrix_testing>
     // Goggle Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<set_get_matrix>() << rocblas_datatype2char(arg.a_type) << '_'
+        return RocBLAS_TestName<set_get_matrix>() << rocblas_datatype2string(arg.a_type) << '_'
                                                   << arg.M << '_' << arg.N << '_' << arg.lda << '_'
                                                   << arg.ldb;
     }

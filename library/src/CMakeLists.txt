@@ -85,7 +85,6 @@ set( rocblas_auxiliary_source
   include/status.h
   include/rocblas_unique_ptr.hpp
   handle.cpp
-  utility.cpp
   rocblas_auxiliary.cpp
   status.cpp
   buildinfo.cpp
@@ -141,8 +140,7 @@ else()
 target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
 endif()
 
-# Test for specific compiler features if cmake version is recent enough
-target_compile_features( rocblas PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
+set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1

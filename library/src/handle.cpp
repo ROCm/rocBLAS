@@ -1,12 +1,8 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "handle.h"
-#include <hip/hip_runtime_api.h>
-#include <unistd.h>
-#include <sys/param.h>
-#include "logging.h"
+#include <cstdlib>
 
 /*******************************************************************************
  * constructor
@@ -19,17 +15,6 @@ _rocblas_handle::_rocblas_handle()
 
     // rocblas by default take the system default stream 0 users cannot create
 
-    // set layer_mode from vaule of environment variable ROCBLAS_LAYER
-    char* str_layer_mode;
-    if((str_layer_mode = getenv("ROCBLAS_LAYER")) == NULL)
-    {
-        layer_mode = rocblas_layer_mode_none;
-    }
-    else
-    {
-        layer_mode = (rocblas_layer_mode)(atoi(str_layer_mode));
-    }
-
     // allocate trsm temp buffers
     THROW_IF_HIP_ERROR(hipMalloc(&trsm_Y, WORKBUF_TRSM_Y_SZ));
     THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA, WORKBUF_TRSM_INVA_SZ));
@@ -38,20 +23,6 @@ _rocblas_handle::_rocblas_handle()
     // allocate trsv temp buffers
     THROW_IF_HIP_ERROR(hipMalloc(&trsv_x, WORKBUF_TRSV_X_SZ));
     THROW_IF_HIP_ERROR(hipMalloc(&trsv_alpha, WORKBUF_TRSV_ALPHA_SZ));
-
-    // open log file
-    if(layer_mode & rocblas_layer_mode_log_trace)
-    {
-        open_log_stream(&log_trace_os, &log_trace_ofs, "ROCBLAS_LOG_TRACE_PATH");
-
-        *log_trace_os << "rocblas_create_handle\n";
-    }
-
-    // open log_bench file
-    if(layer_mode & rocblas_layer_mode_log_bench)
-    {
-        open_log_stream(&log_bench_os, &log_bench_ofs, "ROCBLAS_LOG_BENCH_PATH");
-    }
 }
 
 /*******************************************************************************
@@ -59,68 +30,113 @@ _rocblas_handle::_rocblas_handle()
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
-    // rocblas by default take the system default stream which user cannot destroy
-
     if(trsm_Y)
         hipFree(trsm_Y);
-
     if(trsm_invA)
         hipFree(trsm_invA);
-
     if(trsm_invA_C)
         hipFree(trsm_invA_C);
-
     if(trsv_x)
         hipFree(trsv_x);
-
     if(trsv_alpha)
         hipFree(trsv_alpha);
-
-    // Close log files
-    if(log_trace_ofs.is_open())
-    {
-        log_trace_ofs.close();
-    }
-    if(log_bench_ofs.is_open())
-    {
-        log_bench_ofs.close();
-    }
 }
 
 /*******************************************************************************
- * Exactly like CUBLAS, ROCBLAS only uses one stream for one API routine
+ * Static handle data
  ******************************************************************************/
+rocblas_layer_mode _rocblas_handle::layer_mode = rocblas_layer_mode_none;
+std::ofstream _rocblas_handle::log_trace_ofs;
+std::ostream* _rocblas_handle::log_trace_os;
+std::ofstream _rocblas_handle::log_bench_ofs;
+std::ostream* _rocblas_handle::log_bench_os;
+std::ofstream _rocblas_handle::log_profile_ofs;
+std::ostream* _rocblas_handle::log_profile_os;
+_rocblas_handle::init _rocblas_handle::handle_init;
 
-/*******************************************************************************
- * set stream:
-   This API assumes user has already created a valid stream
-   Associate the following rocblas API call with this user provided stream
- ******************************************************************************/
-rocblas_status _rocblas_handle::set_stream(hipStream_t user_stream)
+/**
+ *  @brief Logging function
+ *
+ *  @details
+ *  open_log_stream Open stream log_os for logging.
+ *                  If the environment variable with name environment_variable_name
+ *                  is not set, then stream log_os to std::cerr.
+ *                  Else open a file at the full logfile path contained in
+ *                  the environment variable.
+ *                  If opening the file suceeds, stream to the file
+ *                  else stream to std::cerr.
+ *
+ *  @param[in]
+ *  environment_variable_name   const char*
+ *                              Name of environment variable that contains
+ *                              the full logfile path.
+ *
+ *  @parm[out]
+ *  log_os      std::ostream*&
+ *              Output stream. Stream to std:cerr if environment_variable_name
+ *              is not set, else set to stream to log_ofs
+ *
+ *  @parm[out]
+ *  log_ofs     std::ofstream&
+ *              Output file stream. If log_ofs->is_open()==true, then log_os
+ *              will stream to log_ofs. Else it will stream to std::cerr.
+ */
+
+static void open_log_stream(const char* environment_variable_name,
+                            std::ostream*& log_os,
+                            std::ofstream& log_ofs)
+
 {
+    // By default, output to cerr
+    log_os = &std::cerr;
 
-    // TODO: check the user_stream valid or not
-    rocblas_stream = user_stream;
-    return rocblas_status_success;
+    // if environment variable is set, open file at logfile_pathname contained in the
+    // environment variable
+    auto logfile_pathname = getenv(environment_variable_name);
+    if(logfile_pathname)
+    {
+        log_ofs.open(logfile_pathname, std::ios_base::trunc);
+
+        // if log_ofs is open, then stream to log_ofs, else log_os is already set to std::cerr
+        if(log_ofs.is_open())
+            log_os = &log_ofs;
+    }
 }
 
 /*******************************************************************************
- * get stream
+ * Static runtime initialization
  ******************************************************************************/
-rocblas_status _rocblas_handle::get_stream(hipStream_t* stream) const
+_rocblas_handle::init::init()
 {
-    *stream = rocblas_stream;
-    return rocblas_status_success;
+    // set layer_mode from value of environment variable ROCBLAS_LAYER
+    auto str_layer_mode = getenv("ROCBLAS_LAYER");
+    if(str_layer_mode)
+    {
+        layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
+
+        // open log_trace file
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            open_log_stream("ROCBLAS_LOG_TRACE_PATH", log_trace_os, log_trace_ofs);
+
+        // open log_bench file
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            open_log_stream("ROCBLAS_LOG_BENCH_PATH", log_bench_os, log_bench_ofs);
+
+        // open log_profile file
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            open_log_stream("ROCBLAS_LOG_PROFILE_PATH", log_profile_os, log_profile_ofs);
+    }
 }
 
-// trsm get pointers
-void* _rocblas_handle::get_trsm_Y() { return trsm_Y; }
-
-void* _rocblas_handle::get_trsm_invA() { return trsm_invA; }
-
-void* _rocblas_handle::get_trsm_invA_C() { return trsm_invA_C; }
-
-// trsv get pointers
-void* _rocblas_handle::get_trsv_x() { return trsv_x; }
-
-void* _rocblas_handle::get_trsv_alpha() { return trsv_alpha; }
+/*******************************************************************************
+ * Static reinitialization (for testing only)
+ ******************************************************************************/
+namespace rocblas {
+void reinit_logs()
+{
+    _rocblas_handle::log_trace_ofs.close();
+    _rocblas_handle::log_bench_ofs.close();
+    _rocblas_handle::log_profile_ofs.close();
+    new(&_rocblas_handle::handle_init) _rocblas_handle::init;
+}
+} // namespace rocblas
