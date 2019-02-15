@@ -203,7 +203,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
       }
     }
 
-    stage( "Test ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+    stage( "non_gemm ${compiler_args.compiler_name} ${compiler_args.build_config}" )
     {
       // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
       timeout(time: 4, unit: 'HOURS')
@@ -213,7 +213,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
           sh """#!/usr/bin/env bash
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug*:*gemm* #--gtest_filter=*nightly*-*gemm*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -223,7 +223,66 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
                 LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug*:*gemm* #--gtest_filter=*checkin*
+            """
+          junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        }
+      }
+
+      String docker_context = "${compiler_args.build_config}/${compiler_args.compiler_name}"
+      if( compiler_args.compiler_name.toLowerCase( ).startsWith( 'hcc-' ) )
+      {
+        sh  """#!/usr/bin/env bash
+            set -x
+            cd ${paths.project_build_prefix}/build/release
+            make package
+          """
+
+        if( paths.project_name.equalsIgnoreCase( 'rocblas-ubuntu' ) )
+        {
+          sh  """#!/usr/bin/env bash
+              set -x
+              rm -rf ${docker_context} && mkdir -p ${docker_context}
+              mv ${paths.project_build_prefix}/build/release/*.deb ${docker_context}
+              dpkg -c ${docker_context}/*.deb
+          """
+          archiveArtifacts artifacts: "${docker_context}/*.deb", fingerprint: true
+        }
+        else if( paths.project_name.equalsIgnoreCase( 'rocblas-fedora' ) )
+        {
+          sh  """#!/usr/bin/env bash
+              set -x
+              rm -rf ${docker_context} && mkdir -p ${docker_context}
+              mv ${paths.project_build_prefix}/build/release/*.rpm ${docker_context}
+              rpm -qlp ${docker_context}/*.rpm
+          """
+          archiveArtifacts artifacts: "${docker_context}/*.rpm", fingerprint: true
+        }
+      }
+
+    }
+
+    stage( "gemm ${compiler_args.compiler_name} ${compiler_args.build_config}" )
+    {
+      // Cap the maximum amount of testing to be a few hours; assume failure if the time limit is hit
+      timeout(time: 4, unit: 'HOURS')
+      {
+        if(isJobStartedByTimer())
+        {
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/build/release/clients/staging
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*gemm*-*known_bug* #--gtest_filter=*nightly*-*gemm*
+            """
+          junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        }
+        else
+        {
+          sh """#!/usr/bin/env bash
+                set -x
+                cd ${paths.project_build_prefix}/build/release/clients/staging
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*gemm*:*pre_checkin*gemm*-*known_bug*:*gemm* #--gtest_filter=*checkin*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
