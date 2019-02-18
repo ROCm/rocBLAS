@@ -1561,34 +1561,31 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
     alpha and beta are scalars, and A, B, C, and D are matrices, with
     op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
 
-    <table>
-    <caption id="gemm_ex_supported_types">gemm_ex supported types</caption>
-    <tr><th>a_type/b_type<th>c_type/d_type<th>compute_type<th>restrictions
-    <tr><td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f32_r<td>no
-   restrictions
-    <tr><td valign="top">rocblas_datatype_i8_r<td valign="top">rocblas_datatype_i8_r<td
-   valign="top">rocblas_datatype_i32_r<td>
-    <ul>
-        <li>k must be a multiple of 4
-        <li>lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        <li>ldb must be a multiple of 4 if transB == rocblas_operation_none
-        <li>for transA == rocblas_operation_transpose or transB == rocblas_operation_none the
-   matrices
-        A and B must have each 4 consecutive values
-        in the k dimension packed. This packing can be achieved with the following pseudo-code. The
-   code
-        assumes the original matrices are in A and B, and the packed matrices are A_packed and
-   B_packed.
-        The size of the A_packed matrix is the same as the size of the A matrix, and the size of the
-        B_packed matrix is the same as the size of the B matrix.
-    </ul>
-    <pre>
+    Supported types are as follows:
+        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
+   compute_type
+        - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
+   compute_type
+
+    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
+   c_type = d_type = compute_type:
+        - k must be a multiple of 4
+        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
+        - ldb must be a multiple of 4 if transB == rocblas_operation_none
+        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
+   A and B must
+          have each 4 consecutive values in the k dimension packed. This packing can be achieved
+   with the following
+          pseudo-code. The code assumes the original matrices are in A and B, and the packed
+   matrices are A_packed
+          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
+   the size of
+          the B_packed matrix is the same as the size of the B matrix.
+
+    @code
     if(trans_a == rocblas_operation_none)
     {
         int nb = 4;
@@ -1619,8 +1616,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
     {
         B_packed = B;
     }
-    </pre>
-    </table>
+    @endcode
 
     @param[in]
     handle    rocblas_handle.
@@ -1753,35 +1749,31 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     The strided_batched matrices are multiple matrices separated by a constant stride.
     The number of matrices is batch_count.
 
-    <table>
-    <caption id="gemm_strided_batched_ex supported_types">gemm_strided_batched_ex supported
-   types</caption>
-    <tr><th>a_type/b_type<th>c_type/d_type<th>compute_type<th>restrictions
-    <tr><td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>rocblas_datatype_f64_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>rocblas_datatype_f32_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>no
-   restrictions
-    <tr><td>rocblas_datatype_f16_r<td>rocblas_datatype_f16_r<td>rocblas_datatype_f32_r<td>no
-   restrictions
-    <tr><td valign="top">rocblas_datatype_i8_r<td valign="top">rocblas_datatype_i8_r<td
-   valign="top">rocblas_datatype_i32_r<td>
-    <ul>
-        <li>k must be a multiple of 4
-        <li>lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        <li>ldb must be a multiple of 4 if transB == rocblas_operation_none
-        <li>for transA == rocblas_operation_transpose or transB == rocblas_operation_none the
-   matrices
-        A and B must have each 4 consecutive values
-        in the k dimension packed. This packing can be achieved with the following pseudo-code. The
-   code
-        assumes the original matrices are in A and B, and the packed matrices are A_packed and
-   B_packed.
-        The size of the A_packed matrix is the same as the size of the A matrix, and the size of the
-        B_packed matrix is the same as the size of the B matrix.
-    </ul>
-    <pre>
+    Supported types are as follows:
+        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
+        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
+   compute_type
+        - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
+   compute_type
+
+    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
+   c_type = d_type = compute_type:
+        - k must be a multiple of 4
+        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
+        - ldb must be a multiple of 4 if transB == rocblas_operation_none
+        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
+   A and B must
+          have each 4 consecutive values in the k dimension packed. This packing can be achieved
+   with the following
+          pseudo-code. The code assumes the original matrices are in A and B, and the packed
+   matrices are A_packed
+          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
+   the size of
+          the B_packed matrix is the same as the size of the B matrix.
+
+    @code
     if(trans_a == rocblas_operation_none)
     {
         int nb = 4;
@@ -1812,8 +1804,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     {
         B_packed = B;
     }
-    </pre>
-    </table>
+    @endcode
 
     @param[in]
     handle    rocblas_handle.
