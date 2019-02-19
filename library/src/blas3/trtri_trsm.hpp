@@ -308,6 +308,31 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
             JB,
             stride_C,
             blocks);
+
+        // for(int i = 0; i<blocks; i++)
+        // {
+        //     dim3 grid_gemm(1);
+        //     dim3 threads(JB);
+        //     hipLaunchKernelGGL((gemm_trsm_kernel<T, JB>),
+        //             grid_gemm,
+        //             threads,
+        //             0,
+        //             rocblas_stream,
+        //             JB,
+        //             JB,
+        //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? JB * NB + JB + i *
+        //             stride_invA : 0 + i * stride_invA)),
+        //             NB,
+        //             (const T*)(A + ((uplo == rocblas_fill_lower) ? JB + i * stride_A : JB * lda +
+        //             i * stride_A)),
+        //             lda,
+        //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * stride_invA : JB *
+        //             NB + JB + i * stride_invA)),
+        //             NB,
+        //             (T*)(invA + ((uplo == rocblas_fill_lower) ? JB + i * stride_invA : JB * NB +
+        //             i * stride_invA)),
+        //             NB);
+        // }
     } // end if
 
     // the last digaonal block is handled seperately if n is not divisible by NB, or if there is

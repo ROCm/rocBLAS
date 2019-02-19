@@ -425,6 +425,31 @@ constexpr auto rocblas_trsm<float> = rocblas_strsm;
 template <>
 constexpr auto rocblas_trsm<double> = rocblas_dtrsm;
 
+// // trsm_ex
+// template <typename T>
+// rocblas_status (*rocblas_trsm_ex)(rocblas_handle handle,
+//                                 rocblas_side side,
+//                                 rocblas_fill uplo,
+//                                 rocblas_operation trans_a,
+//                                 rocblas_diagonal diag,
+//                                 rocblas_int m,
+//                                 rocblas_int n,
+//                                 const void* alpha,
+//                                 const void* a,
+//                                 rocblas_int lda,
+//                                 const void* b,
+//                                 rocblas_int ldb,
+//                                 const void* invA,
+//                                 rocblas_int ld_invA,
+//                                 const void* x_temp,
+//                                 rocblas_datatype compute_type);
+
+// template <>
+// constexpr auto rocblas_trsm_ex<float> = rocblas_strsm_ex;
+
+// template <>
+// constexpr auto rocblas_trsm_ex<double> = rocblas_dtrsm_ex;
+
 // trtri
 template <typename T>
 rocblas_status (*rocblas_trtri)(rocblas_handle handle,
@@ -462,13 +487,18 @@ constexpr auto rocblas_trtri_batched<float> = rocblas_strtri_batched;
 template <>
 constexpr auto rocblas_trtri_batched<double> = rocblas_dtrtri_batched;
 
-template <typename T, rocblas_int NB>
-rocblas_status (*rocblas_trtri_trsm)(rocblas_handle handle,
-                                     rocblas_fill uplo,
-                                     rocblas_diagonal diag,
-                                     rocblas_int n,
-                                     T* A,
-                                     rocblas_int lda,
-                                     T* invA);
+// template <typename T>
+// rocblas_status (*rocblas_trtri_trsm)(rocblas_handle handle,
+//                                      T* C_tmp,
+//                                      rocblas_fill uplo,
+//                                      rocblas_diagonal diag,
+//                                      rocblas_int n,
+//                                      T* A,
+//                                      rocblas_int lda,
+//                                      T* invA);
+// template <>
+// constexpr auto rocblas_trtri_trsm<float> = rocblas_strtri_trsm;
 
+// template <>
+// constexpr auto rocblas_trtri_trsm<double> = rocblas_dtrtri_trsm;
 #endif // _ROCBLAS_HPP_

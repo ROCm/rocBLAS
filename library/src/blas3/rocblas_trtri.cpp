@@ -7,6 +7,7 @@
 #include "rocblas.h"
 namespace trtri { // must use namespace to avoid multply definiton
 #include "trtri.hpp"
+#include "trtri_trsm.hpp"
 }
 
 /* ============================================================================================ */
@@ -47,3 +48,31 @@ extern "C" rocblas_status rocblas_dtrtri(rocblas_handle handle,
 
     return trtri::rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
+
+// extern "C" rocblas_status rocblas_strtri_trsm(rocblas_handle handle,
+//                                               float* C_tmp,
+//                                               rocblas_fill uplo,
+//                                               rocblas_diagonal diag,
+//                                               rocblas_int n,
+//                                               const float* A,
+//                                               rocblas_int lda,
+//                                               float* invA)
+// {
+
+//     return trtri::rocblas_trtri_trsm_template<float, 128>(
+//         handle, C_tmp, uplo, diag, n, A, lda, invA);
+// }
+
+// extern "C" rocblas_status rocblas_dtrtri_trsm(rocblas_handle handle,
+//                                               double* C_tmp,
+//                                               rocblas_fill uplo,
+//                                               rocblas_diagonal diag,
+//                                               rocblas_int n,
+//                                               const double* A,
+//                                               rocblas_int lda,
+//                                               double* invA)
+// {
+
+//     return trtri::rocblas_trtri_trsm_template<double, 128>(
+//         handle, C_tmp, uplo, diag, n, A, lda, invA);
+// }

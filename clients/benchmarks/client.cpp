@@ -41,6 +41,7 @@ using namespace std::literals;
 #include "testing_gemm.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_trsm.hpp"
+#include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
@@ -100,6 +101,8 @@ struct perf_blas<
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "trsm"))
+            testing_trsm<T>(arg);
+        else if(!strcmp(arg.function, "trsm_ex"))
             testing_trsm<T>(arg);
         else if(!strcmp(arg.function, "trsv"))
             testing_trsv<T>(arg);
@@ -463,15 +466,15 @@ int main(int argc, char* argv[]) try
 
         ("uplo",
          value<char>(&arg.uplo)->default_value('U'),
-         "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
+         "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm xtrsm_ex
                                                                      // xtrmm xtrsv
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
 
         ("batch",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines") // xtrsm xtrmm xgemm
+         "Number of matrices. Only applicable to batched routines") // xtrsm xtrsm_ex xtrmm xgemm
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
