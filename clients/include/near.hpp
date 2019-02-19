@@ -36,7 +36,6 @@ constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT) \
     do                                                            \
     {                                                             \
-        _Pragma("unroll")                                         \
         for(size_t k = 0; k < batch_count; k++)                   \
             for(size_t j = 0; j < N; j++)                         \
                 for(size_t i = 0; i < M; i++)                     \

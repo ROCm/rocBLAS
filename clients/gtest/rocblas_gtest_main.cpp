@@ -6,12 +6,7 @@
 #include "utility.hpp"
 #include "rocblas_data.hpp"
 #include "test_cleanup.hpp"
-
-#define GTEST_DATA "rocblas_gtest.data"
-
-/* =====================================================================
-      Main function:
-=================================================================== */
+#include "rocblas_parse_data.hpp"
 
 using namespace testing;
 
@@ -150,11 +145,12 @@ class ConfigurableEventListener : public TestEventListener
     }
 };
 
+/* =====================================================================
+      Main function:
+=================================================================== */
+
 int main(int argc, char** argv)
 {
-    // Set data file path
-    RocBLAS_TestData::set_filename(rocblas_exepath() + GTEST_DATA);
-
     // Print Version
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
@@ -175,6 +171,10 @@ int main(int argc, char** argv)
     {
         set_device(device_id);
     }
+
+    // Set data file path
+    static constexpr char GTEST_DATA[] = "rocblas_gtest.data";
+    rocblas_parse_data(argc, argv, rocblas_exepath() + GTEST_DATA);
 
     testing::InitGoogleTest(&argc, argv);
 

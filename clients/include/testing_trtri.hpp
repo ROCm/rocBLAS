@@ -134,10 +134,6 @@ void testing_trtri(const Arguments& arg)
             cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
-#ifndef NDEBUG
-        rocblas_print_matrix(hB, hA, N, N, lda);
-#endif
-
         if(arg.unit_check)
         {
             T rel_error = std::numeric_limits<T>::epsilon() * 1000;
