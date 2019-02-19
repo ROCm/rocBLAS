@@ -25,7 +25,7 @@ class RocBLAS_TestData
     static std::string& filename()
     {
         static std::string filename =
-            "(Uninitialized data. RocBLAS_TestData<...>::init needs to be called first.)";
+            "(Uninitialized data. RocBLAS_TestData::set_filename needs to be called first.)";
         return filename;
     }
 

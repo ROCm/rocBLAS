@@ -22,7 +22,6 @@
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ) \
     do                                                                          \
     {                                                                           \
-        _Pragma("unroll")                                                       \
         for(size_t k = 0; k < batch_count; k++)                                 \
             for(size_t j = 0; j < N; j++)                                       \
                 for(size_t i = 0; i < M; i++)                                   \

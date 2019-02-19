@@ -30,6 +30,7 @@
 #include "testing_set_get_vector.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
+#include "rocblas_parse_data.hpp"
 
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
@@ -44,7 +45,7 @@
 template <typename Ti,
           typename To = Ti,
           typename Tc = To,
-          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
+          typename    = typename std::conditional<!std::is_same<Ti, void>{} && !is_complex<Ti>,
                                                std::true_type,
                                                std::false_type>::type>
 struct perf_gemm_ex
@@ -63,7 +64,7 @@ struct perf_gemm_ex<Ti, To, Tc, std::false_type> : rocblas_test_invalid
 template <typename Ti,
           typename To = Ti,
           typename Tc = To,
-          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
+          typename    = typename std::conditional<!std::is_same<Ti, void>{} && !is_complex<Ti>,
                                                std::true_type,
                                                std::false_type>::type>
 struct perf_gemm_strided_batched_ex
@@ -387,10 +388,8 @@ int run_bench_test(const char* function, char precision, Arguments arg)
     return 0;
 }
 
-int rocblas_bench_datafile(const std::string& datafile)
+int rocblas_bench_datafile()
 {
-    RocBLAS_TestData::set_filename(datafile);
-
     for(auto i = RocBLAS_TestData::begin(); i != RocBLAS_TestData::end(); ++i)
     {
         Arguments arg = *i;
@@ -438,9 +437,9 @@ int main(int argc, char* argv[])
     std::string initialization;
 
     rocblas_int device_id;
-    std::string datafile;
+    bool datafile = rocblas_parse_data(argc, argv);
 
-    options_description desc("rocblas client command line options");
+    options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
         ("sizem,m",
@@ -587,10 +586,6 @@ int main(int argc, char* argv[])
          value<size_t>(&arg.workspace_size)->default_value(10),
          "extended precision gemm workspace size")
 
-        ("data",
-         value<std::string>(&datafile),
-         "Data file to use for test arguments (overrides all of the above)")
-
         ("device",
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
@@ -631,9 +626,9 @@ int main(int argc, char* argv[])
         set_device(device_id);
     }
 
-    if(datafile != "")
+    if(datafile)
     {
-        return rocblas_bench_datafile(datafile);
+        return rocblas_bench_datafile();
     }
 
     if(!strchr("hsdcz", tolower(precision)))
