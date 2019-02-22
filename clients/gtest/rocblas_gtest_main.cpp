@@ -197,7 +197,7 @@ int main(int argc, char** argv)
     // [  PASSED  ] 149 tests.
     //
     ConfigurableEventListener* listener = new ConfigurableEventListener(default_printer);
-    char* gtest_listener(std::getenv("GTEST_LISTNER"));
+    char* gtest_listener(std::getenv("GTEST_LISTENER"));
     if(gtest_listener == NULL || strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG") != 0)
     {
         listener->showEnvironment    = true;
