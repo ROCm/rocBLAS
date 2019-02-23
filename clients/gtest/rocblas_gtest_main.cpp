@@ -197,11 +197,23 @@ int main(int argc, char** argv)
     // [  PASSED  ] 149 tests.
     //
     ConfigurableEventListener* listener = new ConfigurableEventListener(default_printer);
-    listener->showEnvironment           = false;
-    listener->showTestCases             = false;
-    listener->showTestNames             = false;
-    listener->showSuccesses             = false;
-    listener->showInlineFailures        = false;
+    char* gtest_listener(std::getenv("GTEST_LISTENER"));
+    if(gtest_listener == NULL || strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG") != 0)
+    {
+        listener->showEnvironment    = true;
+        listener->showTestCases      = true;
+        listener->showTestNames      = true;
+        listener->showSuccesses      = true;
+        listener->showInlineFailures = true;
+    }
+    else
+    {
+        listener->showEnvironment    = true;
+        listener->showTestCases      = true;
+        listener->showTestNames      = false;
+        listener->showSuccesses      = false;
+        listener->showInlineFailures = false;
+    }
     listeners.Append(listener);
 
     return RUN_ALL_TESTS();
