@@ -32,7 +32,7 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_fill uplo     = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    std::cout<<" DIAG "<<(diag == rocblas_diagonal_unit)<<" char "<<char_diag<<std::endl;
+    // std::cout<<" DIAG "<<(diag == rocblas_diagonal_unit)<<" char "<<char_diag<<std::endl;
 
     rocblas_local_handle handle;
 
@@ -77,6 +77,10 @@ void testing_trtri_batched(const Arguments& arg)
 
                 if(j % 2)
                     hA_sub[i + j * lda] *= -1;
+                if(uplo == rocblas_fill_lower && j>i) //need to explicitly set unsused side to 0 if using it for temp storage
+                    hA_sub[i + j * lda] = 0.0f; 
+                else if(uplo == rocblas_fill_upper && j<i)
+                    hA_sub[i + j * lda] = 0.0f;
                 if(i == j)
                 {
                     if(diag == rocblas_diagonal_unit)
@@ -154,9 +158,9 @@ void testing_trtri_batched(const Arguments& arg)
             cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
-        std::cout<<" N "<<N<<std::endl;
+        // std::cout<<" N "<<N<<std::endl;
 
-#if 0
+#if 1
         rocblas_print_matrix_b(hB, hA, N, N, lda, 1);
 #endif
 

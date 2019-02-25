@@ -110,4 +110,5 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
                                         rocblas_int ldb,
                                         const T* invA,
                                         rocblas_int ldInvA,
+                                        const size_t* x_temp_size,
                                         T* x_temp);

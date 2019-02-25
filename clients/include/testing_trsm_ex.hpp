@@ -70,7 +70,7 @@ void testing_trsm_ex(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-
+        //TODO change this to trsm_ex
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
@@ -321,7 +321,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dinvA,
                                             128,
                                             arg.compute_type,
-                                            rocblas_trsm_highest_performance,
+                                            rocblas_trsm_high_performance,
                                             &x_temp_size,
                                             dX_tmp));
 
@@ -347,7 +347,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dinvA,
                                             128,
                                             arg.compute_type,
-                                            rocblas_trsm_highest_performance,
+                                            rocblas_trsm_high_performance,
                                             &x_temp_size,
                                             dX_tmp));
 

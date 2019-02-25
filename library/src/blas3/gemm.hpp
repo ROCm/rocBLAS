@@ -110,7 +110,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
     ********************************************************************/
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -129,7 +129,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -148,7 +148,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -169,7 +169,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 #if COMPLEX
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -188,7 +188,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -207,7 +207,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
                                      rocblas_operation transB,
                                      rocblas_int M,
@@ -299,7 +299,7 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
     ********************************************************************/
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,
@@ -339,7 +339,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,
@@ -379,7 +379,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,
@@ -421,7 +421,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
 #if COMPLEX
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,
@@ -461,7 +461,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,
@@ -501,7 +501,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
 }
 
 template <>
-rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
                                                      rocblas_operation transA,
                                                      rocblas_operation transB,
                                                      rocblas_int M,

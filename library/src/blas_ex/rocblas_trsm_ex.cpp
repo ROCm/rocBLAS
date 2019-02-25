@@ -148,9 +148,9 @@
 {
     if(!x_temp_workspace)
     {
-        if(option == rocblas_trsm_highest_performance)
+        if(option == rocblas_trsm_high_performance)
             *x_temp_size = m*n;
-        else if(option == rocblas_trsm_smallest_memory)
+        else if(option == rocblas_trsm_low_memory)
             *x_temp_size = m;
 
         return rocblas_status_success;
@@ -162,6 +162,9 @@
 
     if(!alpha)
         return rocblas_status_invalid_pointer;
+
+    if(k % BLOCK != 0 && (*x_temp_size/m) < n) //Chunking not supported 
+        return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
@@ -329,6 +332,7 @@
                                                     ldb,
                                                     static_cast<const double*>(invA),
                                                     ld_invA,
+                                                    static_cast<const size_t*>(x_temp_size),
                                                     static_cast<double*>(x_temp_workspace));
     }
     else if(compute_type == rocblas_datatype_f32_r)
@@ -348,6 +352,7 @@
                                                     ldb,
                                                     static_cast<const float*>(invA),
                                                     ld_invA,
+                                                    static_cast<const size_t*>(x_temp_size),
                                                     static_cast<float*>(x_temp_workspace));
     }
 

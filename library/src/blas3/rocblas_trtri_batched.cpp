@@ -6,7 +6,8 @@
 #include "rocblas.h"
 #include "definitions.h"
 #include "trtri_device.h"
-// #include "trtri.hpp"
+#include "trtri_trsm.hpp"
+// #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
@@ -34,6 +35,25 @@ __global__ void trtri_small_kernel_batched(rocblas_fill uplo,
     T* individual_invA    = invA + hipBlockIdx_x * bsinvA;
 
     trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+}
+
+template <typename T>
+__global__ void trtri_remainder_kernel_batched(rocblas_fill uplo,
+                                           rocblas_diagonal diag,
+                                           rocblas_int n,
+                                           const T* A,
+                                           rocblas_int lda,
+                                           rocblas_int bsa,
+                                           T* invA,
+                                           rocblas_int ldinvA,
+                                           rocblas_int bsinvA)
+{
+    // get the individual matrix which is processed by device function
+    // device function only see one matrix
+    const T* individual_A = A + hipBlockIdx_x * bsa;
+    T* individual_invA    = invA + hipBlockIdx_x * bsinvA;
+
+    trtri_device<T, 2*NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
 
 template <typename T>
@@ -95,14 +115,14 @@ __global__ void trtri_diagonal_kernel_batched(rocblas_fill uplo,
     // each hip thread Block compute a inverse of a NB * NB diagonal block of A
     // notice the last digaonal block may be smaller than NB*NB
 
-    rocblas_int tiles = (n+NB-1)/NB;
+    rocblas_int tiles = n/NB/2;///(n+NB-1)/NB/2;
     const T* individual_A =
-        A + NB * lda * (hipBlockIdx_x % tiles) + NB * (hipBlockIdx_x % tiles) + bsa * (hipBlockIdx_x / tiles);
-    T* individual_invA = invA + NB * ldinvA * (hipBlockIdx_x % tiles) + NB * (hipBlockIdx_x % tiles) +
+        A + NB*2 * lda * (hipBlockIdx_x % tiles) + NB*2 * (hipBlockIdx_x % tiles) + bsa * (hipBlockIdx_x / tiles);
+    T* individual_invA = invA + NB*2 * ldinvA * (hipBlockIdx_x % tiles) + NB*2 * (hipBlockIdx_x % tiles) +
                          bsinvA * (hipBlockIdx_x / tiles);
 
-    trtri_device<T, NB>(
-        uplo, diag, min(NB, n - (hipBlockIdx_x % tiles)  * NB), individual_A, lda, individual_invA, ldinvA);
+    custom_trtri_device<T, NB>(
+        uplo, diag, min(NB, n - (hipBlockIdx_x % tiles)  * NB), individual_A, lda, individual_invA, ldinvA); //TODO check min stuff
 }
 
 template <typename T>
@@ -242,6 +262,80 @@ __global__ void gemm_trsm_batched(rocblas_fill uplo,
 }
 
 template <typename T>
+rocblas_status trtri_strided_gemm_block_t(rocblas_handle handle,
+                                        rocblas_int M,
+                                        const T* A,
+                                        rocblas_int ld_A,
+                                        rocblas_int stride_A,
+                                        const T* invAg1,
+                                        const T* invAg2a,
+                                        T* invAg2c,
+                                        rocblas_int ld_invA,
+                                        rocblas_int stride_invA,
+                                        T* C,
+                                        rocblas_int ld_C,
+                                        rocblas_int stride_C,
+                                        rocblas_int batch)
+{
+    rocblas_status status;
+
+    T one          = 1;
+    T zero         = 0;
+    T negative_one = -1;
+
+#ifndef NDEBUG
+    printf("first batched gemm\n");
+#endif
+    // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
+    // distance between each invA11 or invA22 is stride_invA,  stride_A for each A21 or A12, C
+    // of size IB * IB
+    status = rocblas_gemm_strided_batched_template<T>(handle,
+                                                      rocblas_operation_none,
+                                                      rocblas_operation_none,
+                                                      M,
+                                                      M,
+                                                      M,
+                                                      &one,
+                                                      (const T*)A,
+                                                      ld_A,
+                                                      stride_A,
+                                                      (const T*)invAg1,
+                                                      ld_invA,
+                                                      stride_invA,
+                                                      &zero,
+                                                      (T*)C,
+                                                      ld_C,
+                                                      stride_C,
+                                                      batch);
+
+#ifndef NDEBUG
+    printf("second batched gemm\n");
+#endif
+    // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
+    // distance between each invA21 or invA12 is stride_invA,
+    status = rocblas_gemm_strided_batched_template<T>(handle,
+                                                      rocblas_operation_none,
+                                                      rocblas_operation_none,
+                                                      M,
+                                                      M,
+                                                      M,
+                                                      &negative_one,
+                                                      (const T*)invAg2a,
+                                                      ld_invA,
+                                                      stride_invA,
+                                                      (const T*)C,
+                                                      ld_C,
+                                                      stride_C,
+                                                      &zero,
+                                                      (T*)invAg2c,
+                                                      ld_invA,
+                                                      stride_invA,
+                                                      batch);
+
+    return status;
+}
+
+template <typename T>
 rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                                            rocblas_fill uplo,
                                            rocblas_diagonal diag,
@@ -264,11 +358,13 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    dim3 grid_trtri((n+NB-1)/NB * batch_count);
-    dim3 threads(NB);
+    dim3 grid_trtri(n/NB/2 * batch_count);
+    dim3 threads(NB*NB);
+
+    std::cout<<"grid "<<n/NB/2 * batch_count<<" threads "<<NB*NB<<std::endl;
 
     // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
-    // invA
+    // invA - Only deals with maximum even and complete NBxNB diagonals
     hipLaunchKernelGGL((trtri_diagonal_kernel_batched<T>),
                        grid_trtri,
                        threads,
@@ -284,64 +380,214 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        ldinvA,
                        bsinvA);
 
+    rocblas_int tiles = n/NB/2;
+
+
+    for(int i =0; i<(n/NB/2 * batch_count); i++)
+        std::cout<<" A index "<<(NB*2 * lda * (i % tiles) + NB*2 * (i % tiles) + bsa * (i / tiles))<<" invA index "<<
+        (NB*2 * ldinvA * (i % tiles) + NB*2 * (i % tiles) +
+                         bsinvA * (i / tiles))<<" tiles "<<tiles<<" min n "<<min(NB, n - (i % tiles)  * NB)<<std::endl;
+        
+    rocblas_int r = n-(n/NB/2)*2*NB; // first divide should round down
+    if(r>0)
+    {
+        std::cout<<"diag r "<<r<<std::endl;
+        std::cout<<"A index  "<<(n/NB/2)*NB*2+(n/NB/2)*NB*2*lda<<" invA index "<<(n/NB/2)*NB*2+(n/NB/2)*NB*2*ldinvA<<std::endl;
+        dim3 grid_remainder(batch_count);
+        dim3 threads_remainder(r);
+
+        hipLaunchKernelGGL(trtri_remainder_kernel_batched,
+                        grid_remainder,
+                        threads_remainder,
+                        0,
+                        rocblas_stream,
+                        uplo,
+                        diag,
+                        r,
+                        (const T*) A+(n/NB/2)*NB*2+(n/NB/2)*NB*2*lda,
+                        lda,
+                        bsa,
+                        (T*) invA + (n/NB/2)*NB*2+(n/NB/2)*NB*2*ldinvA,
+                        ldinvA,
+                        bsinvA);
+    }
+
     if(n <= NB)
     {
         // if n is too small, no invA21 or invA12 exist, gemm is not required
         return rocblas_status_success;
     }
 
-    // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
-    dim3 grid_gemm((n+NB*2-1)/(NB*2) * batch_count);
-    rocblas_int blocks = n / NB; // complete blocks - need to do all these together and then deal with partial blocks
+    // // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
+    // dim3 grid_gemm((n+NB*2-1)/(NB*2) * batch_count);
+    constexpr rocblas_int IB = NB*2;
+    rocblas_int blocks = n / IB; // complete blocks - need to do all these together and then deal with partial blocks
 
-    rocblas_int m_gemm;
-    rocblas_int n_gemm;
-    T* A_gemm;
-    const T* B_gemm;
-    T* C_gemm;
-    T* D_gemm;
+    int iter;
+    // if(blocks > 0)
+    // {
+        for(iter = IB; iter*2<=n; iter*=2)
+        {
+            rocblas_int g = iter/IB;
+            rocblas_int b = n / iter / 2;
+            for(int i = 0; i < batch_count; i++)
+            {
+                // std::cout<<i<<" th batched gemm iter "<<iter;
+                trtri_strided_gemm_block<T>(
+                    handle,
+                    iter,
+                    iter,
+                    iter,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? iter + i * bsa
+                                                                : iter * lda + i * bsa)),
+                    lda,
+                    2*g*iter * lda + 2*g*iter,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * bsinvA
+                                                                    : iter * ldinvA + iter + i * bsinvA)),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter + i * bsinvA
+                                                                    : 0 + i * bsinvA)),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter + i * bsinvA
+                                                            : iter * ldinvA + i * bsinvA)),
+                    ldinvA,
+                    2*g*iter * ldinvA + 2*g*iter,
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter*ldinvA + i * bsinvA
+                                                                    : iter + i * bsinvA)),
+                    ldinvA,
+                    2*g*iter * ldinvA + 2*g*iter,
+                    b);
+                // std::cout<<" and clear "<<std::endl;
+                for(int j = 0; j<b; j++) // this will be replaced with one triangular fill at the end
+                    for(int k = 0; k<iter; k++)
+                        hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((iter+k)*ldinvA):(iter+k*ldinvA)) + (2*g*iter * ldinvA + 2*g*iter)*j + bsinvA*i, 0, iter * sizeof(T), rocblas_stream);
 
-    if(uplo == rocblas_fill_lower)
-    {
-        // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
-        m_gemm = (n - NB);
-        n_gemm = NB;
-        A_gemm = invA + NB + NB * ldinvA; // invA22
-        B_gemm = A + NB;                  // A21
-        C_gemm = invA;                    // invA11
-        D_gemm = invA + NB;               // invA21
-    }
-    else
-    {
-        // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
-        m_gemm = NB;
-        n_gemm = (n - NB);
-        A_gemm = invA;                    // invA11
-        B_gemm = A + lda * NB;            // A12
-        C_gemm = invA + NB + NB * ldinvA; // invA22
-        D_gemm = invA + NB * ldinvA;      // invA12
-    }
+                std::cout<<" A index "<<iter + i * bsa<<" stride_A "<< 2*iter * lda + 2*iter<<" invA11 index "<<0 + i * bsinvA<<
+                " invA22 index "<<iter * ldinvA + iter + i * bsinvA<<" invA21 index "<<iter + i * bsinvA<< 
+                " invA stride "<<2*iter * ldinvA + 2*iter<<" C index "<<iter*ldinvA + i * bsinvA<<" C stride "<<2*iter * ldinvA + 2*iter<<
+                " b "<<b<< " 2*g "<<2*g<<" iter "<<iter<<std::endl<<
+                std::endl;
 
-    hipLaunchKernelGGL((gemm_trsm_batched<T>),
-                       grid_gemm,
-                       threads,
-                       0,
-                       rocblas_stream,
-                       uplo,
-                       m_gemm,
-                       n_gemm,
-                       A_gemm,
-                       ldinvA,
-                       B_gemm,
-                       lda,
-                       C_gemm,
-                       ldinvA,
-                       D_gemm,
-                       ldinvA,
-                       bsa,
-                       bsinvA);
+            }
+        }
 
-    return rocblas_status_success;
+        r = n - iter - ((n/NB)%2==0? 0:NB) - (n-(n/NB)*NB); //should subtract uneven block and remainder
+        std::cout<<"test "<<r<<" test "<<((n/NB)%2==0? 0:NB)<<" n "<<n<<" iter "<<iter<<std::endl<<std::endl;
+        if(r>0)
+        {
+            trtri_strided_gemm_block<T>(
+                    handle,
+                    (uplo == rocblas_fill_lower) ? r:iter,
+                    (uplo == rocblas_fill_lower) ? iter:r,
+                    (uplo == rocblas_fill_lower) ? r:iter,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? iter 
+                                                                : iter * lda )),
+                    lda,
+                    bsa,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
+                                                                    : iter * ldinvA + iter )),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter 
+                                                                    : 0 )),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter 
+                                                            : iter * ldinvA )), 
+                    ldinvA,
+                    bsinvA,
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-iter)*ldinvA  //TODO
+                                                                    : n-iter )),
+                    ldinvA,
+                    bsinvA,
+                    batch_count);
+
+            std::cout<<" remaining even: "<<" r "<<r<<" iter "<<iter<<std::endl<<
+            " A index "<<iter<<" invA11 index "<<0<<" inva22 index "<<iter * ldinvA + iter<<" inva21 index "<<iter<<
+            " C index "<<(n-iter)*ldinvA<<" bsa "<<bsa<<" bsinvA "<<
+            bsinvA<<" batch_count "<<batch_count<<std::endl;
+
+            for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
+                for(int k = 0; k<((uplo == rocblas_fill_lower) ? iter:r); k++)
+                    hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-iter+k)*ldinvA):(n-iter+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:iter) * sizeof(T), rocblas_stream);
+        }
+    // }
+
+    r=n-iter-r;
+    std::cout<<"Last r "<<r<<std::endl;
+    // if(r>0) // solve small remainder 
+    // {
+    //     iter = n- r;
+    //     trtri_strided_gemm_block<T>(
+    //             handle,
+    //             (uplo == rocblas_fill_lower) ? r:iter,
+    //             (uplo == rocblas_fill_lower) ? iter:r,
+    //             (uplo == rocblas_fill_lower) ? r:iter,
+    //             (const T*)(A + ((uplo == rocblas_fill_lower) ? iter 
+    //                                                         : iter * lda )),
+    //             lda,
+    //             bsa,
+    //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
+    //                                                             : iter * ldinvA + iter )),
+    //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter 
+    //                                                             : 0 )),
+    //             (T*)(invA + ((uplo == rocblas_fill_lower) ? iter 
+    //                                                     : iter * ldinvA )),
+    //             ldinvA,
+    //             bsinvA,
+    //             (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-iter)*ldinvA  //TODO
+    //                                                             : n-iter )),
+    //             ldinvA,
+    //             bsinvA,
+    //             batch_count);
+
+    //     for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
+    //         for(int k = 0; k<((uplo == rocblas_fill_lower) ? iter:r); k++)
+    //             hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-iter+k)*ldinvA):(n-iter+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:iter) * sizeof(T), rocblas_stream);
+    // }
+
+    // rocblas_int m_gemm;
+    // rocblas_int n_gemm;
+    // T* A_gemm;
+    // const T* B_gemm;
+    // T* C_gemm;
+    // T* D_gemm;
+
+    // if(uplo == rocblas_fill_lower)
+    // {
+    //     // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
+    //     m_gemm = (n - NB);
+    //     n_gemm = NB;
+    //     A_gemm = invA + NB + NB * ldinvA; // invA22
+    //     B_gemm = A + NB;                  // A21
+    //     C_gemm = invA;                    // invA11
+    //     D_gemm = invA + NB;               // invA21
+    // }
+    // else
+    // {
+    //     // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
+    //     m_gemm = NB;
+    //     n_gemm = (n - NB);
+    //     A_gemm = invA;                    // invA11
+    //     B_gemm = A + lda * NB;            // A12
+    //     C_gemm = invA + NB + NB * ldinvA; // invA22
+    //     D_gemm = invA + NB * ldinvA;      // invA12
+    // }
+
+    // hipLaunchKernelGGL((gemm_trsm_batched<T>),
+    //                    grid_gemm,
+    //                    threads,
+    //                    0,
+    //                    rocblas_stream,
+    //                    uplo,
+    //                    m_gemm,
+    //                    n_gemm,
+    //                    A_gemm,
+    //                    ldinvA,
+    //                    B_gemm,
+    //                    lda,
+    //                    C_gemm,
+    //                    ldinvA,
+    //                    D_gemm,
+    //                    ldinvA,
+    //                    bsa,
+    //                    bsinvA);
+
+    // return rocblas_status_success;
 }
 
 template <typename>
@@ -470,16 +716,16 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
         return rocblas_trtri_small_batched<T>(
             handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
     }
-    else if(n <= 2 * NB)
+    else// if(n <= 2 * NB)
     {
         return rocblas_trtri_large_batched<T>(
             handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
     }
-    else
-    {
-        printf("n is %d, n must be less than %d, will return\n", n, 2 * NB);
-        return rocblas_status_not_implemented;
-    }
+    // else
+    // {
+    //     printf("n is %d, n must be less than %d, will return\n", n, 2 * NB);
+    //     return rocblas_status_not_implemented;
+    // }
 }
 
 } // namespace
