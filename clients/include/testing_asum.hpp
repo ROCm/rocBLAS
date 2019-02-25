@@ -13,7 +13,7 @@
 #include "unit.hpp"
 #include <complex.h>
 
-template <typename T1, typename T2>
+template <typename T1, typename T2 = T1>
 void testing_asum_bad_arg(const Arguments& arg)
 {
     rocblas_int N                 = 100;
@@ -38,7 +38,7 @@ void testing_asum_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-template <typename T1, typename T2>
+template <typename T1, typename T2 = T1>
 void testing_asum(const Arguments& arg)
 {
     rocblas_int N    = arg.N;

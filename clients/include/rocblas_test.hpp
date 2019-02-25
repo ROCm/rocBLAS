@@ -113,11 +113,6 @@ class RocBLAS_TestName
     {
         // Placed inside function to avoid dependency on initialization order
         static table_t* table = test_cleanup::allocate<table_t>(&table);
-        if(!table)
-        {
-            fputs("Internal error: nullptr\n", stderr);
-            exit(EXIT_FAILURE);
-        }
         return *table;
     }
 
