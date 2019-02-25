@@ -18,9 +18,6 @@ class test_cleanup
     }
 
     public:
-    // Push a cleanup handler on the stack
-    static void push(std::function<void()> handler) { stack().push(handler); }
-
     // Run all cleanup handlers pushed so far, in LIFO order
     static void cleanup()
     {
@@ -35,7 +32,7 @@ class test_cleanup
     template <typename T, typename... Args>
     static T* allocate(T** ptr, Args&&... args)
     {
-        push([=]() {
+        stack().push([=] {
             delete *ptr;
             *ptr = nullptr;
         });
