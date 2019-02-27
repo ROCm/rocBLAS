@@ -56,59 +56,6 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,
  * ===========================================================================
  */
 
-/*! \brief BLAS Level 3 API
-
-    \details
-    xGEMM performs one of the matrix-matrix operations
-
-        C = alpha*op( A )*op( B ) + beta*C,
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B and C are matrices, with
-    op( A ) an m by k matrix, op( B ) a k by n matrix and C an m by n matrix.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
-    @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
-    @param[in]
-    m         rocblas_int.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    k         rocblas_int.
-    @param[in]
-    alpha     specifies the scalar alpha.
-    @param[in]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    B         pointer storing matrix B on the GPU.
-    @param[in]
-    ldb       rocblas_int
-              specifies the leading dimension of B.
-    @param[in]
-    beta      specifies the scalar beta.
-    @param[in, out]
-    C         pointer storing matrix C on the GPU.
-    @param[in]
-    ldc       rocblas_int
-              specifies the leading dimension of C.
-
-    ********************************************************************/
-
 template <>
 rocblas_status rocblas_gemm_template(rocblas_handle handle,
                                      rocblas_operation transA,
@@ -227,76 +174,6 @@ rocblas_status rocblas_gemm_template(rocblas_handle handle,
 
 #endif
 /* ============================================================================================ */
-
-/*! \brief BLAS Level 3 API
-
-    \details
-
-    This is the batched verion of xGEMM, each matrix perform a xGEMM operation.
-    There are number of batch_count matrices in each pointer.
-
-    each xGEMM performs one of the matrix-matrix operations
-
-        C = alpha*op( A )*op( B ) + beta*C,
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B and C are matrices, with
-    op( A ) an m by k matrix, op( B ) a k by n matrix and C an m by n matrix.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
-    @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
-    @param[in]
-    m         rocblas_int.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    k         rocblas_int.
-    @param[in]
-    alpha     specifies the scalar alpha.
-    @param[in]
-    A         pointer storing matrices of "A" on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of "A".
-    @param[in]
-    stride_a       rocblas_int
-              stride from the start of one "A" matrix to the next
-    @param[in]
-    B         pointer storing matrices of "B" on the GPU.
-    @param[in]
-    ldb       rocblas_int
-              specifies the leading dimension of "B".
-    @param[in]
-    stride_b       rocblas_int
-              stride from the start of one "B" matrix to the next
-    @param[in]
-    beta      specifies the scalar beta.
-    @param[in, out]
-    C         pointer storing matrices of "C" on the GPU.
-    @param[in]
-    ldc       rocblas_int
-              specifies the leading dimension of "C".
-    @param[in]
-    stride_c       rocblas_int
-              stride from the start of one "C" matrix to the next
-    @param[in]
-    batch_count
-              rocblas_int
-              number of gemm's in the batch
-
-    ********************************************************************/
 
 template <>
 rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle handle,

@@ -36,29 +36,6 @@ constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
 template <>
 constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    scal  scal the vector x[i] with scalar alpha, for  i = 1 , … , n
-
-        x := alpha * x ,
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-              quick return if n <= 0.
-    @param[in]
-    alpha     specifies the scalar alpha.
-    @param[inout]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      specifies the increment for the elements of x.
-              quick return if incx <= 0.
-
-    ********************************************************************/
-
 template <class T>
 rocblas_status
 rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
