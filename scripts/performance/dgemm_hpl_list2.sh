@@ -12,7 +12,7 @@ else
 fi
 for i in {384..44928..384}; do
 	${bench} -f gemm -r d --transposeA N --transposeB T \
-	-m ${i} -n ${i} -k 384 --lda ${i} --ldb ${i} --ldc ${i} \
+	-m ${i} -n ${i} -k 384 --lda ${i} --ldb ${i} --ldc 44928 \
 	--alpha -1 --beta 1 -i ${iters} \
 	--initialization trig_float 2>&1 | egrep '^[NT],[NT],|fault'
 done
