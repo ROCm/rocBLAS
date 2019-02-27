@@ -220,49 +220,6 @@ constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
 template <>
 constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
 
-/*! \brief BLAS Level 2 API
-
-    \details
-    xGEMV performs one of the matrix-vector operations
-
-        y := alpha*A*x    + beta*y,   or
-        y := alpha*A**T*x + beta*y,   or
-        y := alpha*A**H*x + beta*y,
-
-    where alpha and beta are scalars, x and y are vectors and A is an
-    m by n matrix.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    trans     rocblas_operation
-    @param[in]
-    m         rocblas_int
-    @param[in]
-    n         rocblas_int
-    @param[in]
-    alpha
-              specifies the scalar alpha.
-    @param[in]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      specifies the increment for the elements of x.
-    @param[in]
-    beta      specifies the scalar beta.
-    @param[out]
-    y         pointer storing vector y on the GPU.
-    @param[in]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
-
 template <typename T>
 rocblas_status rocblas_gemv(rocblas_handle handle,
                             rocblas_operation transA,
