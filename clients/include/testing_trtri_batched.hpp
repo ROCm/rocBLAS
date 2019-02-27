@@ -32,8 +32,6 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_fill uplo     = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    // std::cout<<" DIAG "<<(diag == rocblas_diagonal_unit)<<" char "<<char_diag<<std::endl;
-
     rocblas_local_handle handle;
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
@@ -158,10 +156,8 @@ void testing_trtri_batched(const Arguments& arg)
             cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
-        // std::cout<<" N "<<N<<std::endl;
-
 #if 0
-        rocblas_print_matrix_b(hB, hA, N, N, lda, 1);
+        rocblas_print_matrix(hB, hA, N, N, lda, 1);
 #endif
 
         if(arg.unit_check)
@@ -171,24 +167,24 @@ void testing_trtri_batched(const Arguments& arg)
             near_check_general<T>(N, N * batch_count, lda, hB, hA_2, rel_error);
         }
 
-        // if(arg.norm_check)
-        // {
-        //     for(size_t i = 0; i < batch_count; i++)
-        //     {
-        //         rocblas_error = fmax(
-        //             rocblas_error,
-        //             norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
-        //         // printf("error=%f, %lu\n", rocblas_error, i);
-        //     }
-        //     rocblas_error = 0.0;
-        //     for(size_t i = 0; i < batch_count; i++)
-        //     {
-        //         rocblas_error = fmax(
-        //             rocblas_error,
-        //             norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA_2 + i * bsa));
-        //         // printf("error=%f, %lu\n", rocblas_error, i);
-        //     }
-        // }
+        if(arg.norm_check)
+        {
+            for(size_t i = 0; i < batch_count; i++)
+            {
+                rocblas_error = fmax(
+                    rocblas_error,
+                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
+                // printf("error=%f, %lu\n", rocblas_error, i);
+            }
+            rocblas_error = 0.0;
+            for(size_t i = 0; i < batch_count; i++)
+            {
+                rocblas_error = fmax(
+                    rocblas_error,
+                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA_2 + i * bsa));
+                // printf("error=%f, %lu\n", rocblas_error, i);
+            }
+        }
     } // end of norm_check
 
     if(arg.timing)

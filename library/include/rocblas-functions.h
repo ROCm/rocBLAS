@@ -922,24 +922,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
                                              double* invA,
                                              rocblas_int ldinvA);
 
-// ROCBLAS_EXPORT rocblas_status rocblas_strtri_trsm(rocblas_handle handle,
-//                                                   float* C_tmp,
-//                                                   rocblas_fill uplo,
-//                                                   rocblas_diagonal diag,
-//                                                   rocblas_int n,
-//                                                   const float* A,
-//                                                   rocblas_int lda,
-//                                                   float* invA);
-
-// ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_trsm(rocblas_handle handle,
-//                                                   double* C_tmp,
-//                                                   rocblas_fill uplo,
-//                                                   rocblas_diagonal diag,
-//                                                   rocblas_int n,
-//                                                   const double* A,
-//                                                   rocblas_int lda,
-//                                                   double* invA);
-
 /*! \brief BLAS Level 3 API
 
     \details

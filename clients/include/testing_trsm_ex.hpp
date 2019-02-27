@@ -14,10 +14,10 @@
 #include "norm.hpp"
 #include "unit.hpp"
 #include "flops.hpp"
-// #include "../../library/src/blas3/trtri_trsm.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 20
+#define TRSM_BLOCK 128
 
 template <typename T>
 void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
@@ -86,9 +86,9 @@ void testing_trsm_ex(const Arguments& arg)
     host_vector<T> hXorB_1(size_B);
     host_vector<T> hXorB_2(size_B);
     host_vector<T> cpuXorB(size_B);
-    host_vector<T> invATemp1(128 * K );
-    host_vector<T> invATemp2(128 * K );
-    host_vector<T> hinvAI(128 * K );
+    host_vector<T> invATemp1(TRSM_BLOCK * K );
+    host_vector<T> invATemp2(TRSM_BLOCK * K );
+    host_vector<T> hinvAI(TRSM_BLOCK * K );
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -100,10 +100,10 @@ void testing_trsm_ex(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
-    device_vector<T> dinvA(128 * K );
-    device_vector<T> dinvAI(128 * K );
-    device_vector<T> dinvAtest(128 * K );
-    device_vector<T> dC_tmp(128 / 2 * 128 / 2 * K / 128 );
+    device_vector<T> dinvA(TRSM_BLOCK * K );
+    device_vector<T> dinvAI(TRSM_BLOCK * K );
+    device_vector<T> dinvAtest(TRSM_BLOCK * K );
+    device_vector<T> dC_tmp(TRSM_BLOCK / 2 * TRSM_BLOCK / 2 * K / TRSM_BLOCK );
     device_vector<T> dX_tmp(M * N );
 
     if(!dA || !dXorB || !alpha_d)
@@ -201,33 +201,10 @@ void testing_trsm_ex(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
-    rocblas_int stride_A    = 128 * lda + 128;
-    rocblas_int stride_invA = 128 * 128;
+    rocblas_int stride_A    = TRSM_BLOCK * lda + TRSM_BLOCK;
+    rocblas_int stride_invA = TRSM_BLOCK * TRSM_BLOCK;
 
-    int blocks = K / 128;
-    // for(int i = 0; i < blocks; i++)
-    //     CHECK_HIP_ERROR(hipMemcpy(dinvAI + stride_invA * i,
-    //                               hA + stride_A * i,
-    //                               sizeof(T) * 128 * 128,
-    //                               hipMemcpyHostToDevice));
-
-    // if(K % 128 != 0 || blocks == 0)
-    //     CHECK_HIP_ERROR(hipMemcpy(dinvAI + stride_invA * blocks,
-    //                               hA + stride_A * blocks,
-    //                               sizeof(T) * (K - blocks * 128) * (K - blocks * 128),
-    //                               hipMemcpyHostToDevice));
-    // CHECK_HIP_ERROR(hipMemcpy(hinvAI, dinvAI, sizeof(T) * 128 * K, hipMemcpyDeviceToHost));
-
-
-    // //check if diagonals were copied properly - looks good
-    // for(int block = 0; block<blocks; block++)
-    // for(int i =0 ; i<128; i++)
-    // for(int j=0;j<128;j++)
-    //     if(hA[j+i*lda+block*stride_A] != hinvAI[j+i*128+block*stride_invA])
-    //     {
-    //         std::cout<<"mismatch row "<<j<<" col "<<i<<" block "<<block<<std::endl;
-    //         return;
-    //     }
+    int blocks = K / TRSM_BLOCK;
 
     T max_err_1 = 0.0;
     T max_err_2 = 0.0;
@@ -241,69 +218,33 @@ void testing_trsm_ex(const Arguments& arg)
 
         hipStream_t rocblas_stream;
         rocblas_get_stream(handle, &rocblas_stream);
-        hipMemsetAsync(dinvA, 0, 128 * K * sizeof(T), rocblas_stream);
-        // hipMemsetAsync(dinvAtest, 0, 128 * K * sizeof(T), rocblas_stream);
-
-        // CHECK_ROCBLAS_ERROR(
-        //     rocblas_trtri_trsm<T>(handle, dC_tmp, uplo, diag, K, dA, lda, dinvAtest));
+        hipMemsetAsync(dinvA, 0, TRSM_BLOCK * K * sizeof(T), rocblas_stream);
 
         if(blocks > 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
                                                          uplo,
                                                          diag,
-                                                         128,
+                                                         TRSM_BLOCK,
                                                          dA,
                                                          lda,
                                                          stride_A,
                                                          dinvA,
-                                                         128,
+                                                         TRSM_BLOCK,
                                                          stride_invA,
                                                          blocks));
 
-        if(K % 128 != 0 || blocks == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trtri<T>(handle,
+        if(K % TRSM_BLOCK != 0 || blocks == 0)
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
                                                  uplo,
                                                  diag,
-                                                 K-128*blocks,
+                                                 K-TRSM_BLOCK*blocks,
                                                  dA + stride_A * blocks,
                                                  lda,
+                                                 0,
                                                  dinvA + stride_invA * blocks,
-                                                 128));
-
-        // for(int i = 0; i<blocks; i++)
-        //     CHECK_ROCBLAS_ERROR(rocblas_trtri<T>(handle,
-        //                                          uplo,
-        //                                          diag,
-        //                                          i!=blocks-1?128:K-128*blocks,
-        //                                          dA + stride_A * i,
-        //                                          lda,
-        //                                          dinvA + stride_invA * i,
-        //                                          128));
-
-        // CHECK_HIP_ERROR(hipMemcpy(invATemp1, dinvA, sizeof(T) * 128 * K, hipMemcpyDeviceToHost));
-        // CHECK_HIP_ERROR(
-        //     hipMemcpy(invATemp2, dinvAtest, sizeof(T) * 128 * K, hipMemcpyDeviceToHost));
-
-        // for(int i = 0; i < K; i++)
-        // {
-        //     T err_1 = 0.0;
-        //     T err_2 = 0.0;
-        //     for(int j = 0; j < 128; j++)
-        //     {
-        //         if(invATemp2[j + i * 128] != 0)
-        //         {
-        //             err_1 += std::abs((invATemp2[j + i * 128] - invATemp1[j + i * 128]) /
-        //             invATemp2[j + i * 128]);
-        //         }
-        //         else
-        //         {
-        //             err_1 += std::abs(invATemp1[j + i * 128]);
-        //         }
-        //     }
-        //     max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
-        // }
-        // trsm_err_res_check<T>(max_err_1, 128, error_eps_multiplier, eps);
-        // printMatrix("invA", (T*)invATemp.data(), 128, 192, 128 );
+                                                 TRSM_BLOCK,
+                                                 0,
+                                                 1));
 
         size_t x_temp_size = M*N;
         CHECK_ROCBLAS_ERROR(rocblas_trsm_ex(handle,
@@ -319,7 +260,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            128,
+                                            TRSM_BLOCK,
                                             arg.compute_type,
                                             rocblas_trsm_high_performance,
                                             &x_temp_size,
@@ -345,7 +286,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            128,
+                                            TRSM_BLOCK,
                                             arg.compute_type,
                                             rocblas_trsm_high_performance,
                                             &x_temp_size,

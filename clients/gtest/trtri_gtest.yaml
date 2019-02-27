@@ -10,10 +10,10 @@ Definitions:
     - { N:    21, lda:    14 }
     - { N:    32, lda:    32 }
     - { N:    64, lda:    64 }
-    # - { N:    96, lda:    96 }
-    # - { N:    111, lda:    111 }
     - { N:    128, lda:    128 }
     - { N:    256, lda:    256 }
+    # - { N:    96, lda:    96 } Not supported yet
+    # - { N:    111, lda:    111 }
     # - { N:    160, lda:    160 }
     # - { N:    165, lda:    165 }
     # - { N:    181, lda:    181 }
@@ -26,7 +26,7 @@ Tests:
 - name: trtri
   category: pre_checkin
   function: testing_trtri
-  precision: *double_precision
+  precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *matrix_size_range
@@ -34,7 +34,7 @@ Tests:
 - name: trtri_batched
   category: pre_checkin               
   function: testing_trtri_batched
-  precision: *double_precision
+  precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *matrix_size_range

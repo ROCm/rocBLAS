@@ -91,23 +91,4 @@ inline void rocblas_print_matrix(
         }
 }
 
-template <typename T>
-inline void rocblas_print_matrix_b(
-    std::vector<T> CPU_result, std::vector<T> GPU_result, size_t m, size_t n, size_t lda, size_t batch)
-{
-    for(int k = 0; k<batch; k++)
-    {
-        for(size_t i = 0; i < m; i++)
-            for(size_t j = 0; j < n; j++)
-            {
-                printf("matrix  col %d, row %d, CPU result=%f, GPU result=%f\n",
-                    i,
-                    j,
-                    CPU_result[j + i * lda + k*lda*m],
-                    GPU_result[j + i * lda + k*lda*m]);
-            }
-            std::cout<<"\n\n\n\n\n\n\n\n\n\n"<<std::endl;
-    }
-}
-
 #endif

@@ -110,19 +110,28 @@
 
     @param[in]
     option  rocblas_trsm_option
-            enumerant specifying the selected trsm memory option.
-
+            enumerant specifying the selected trsm memory option. 
+            -	rocblas_trsm_high_performance
+            -	rocblas_trsm_low_memory
+            Trsm can choose algorithms that either use large work memory size in order 
+            to get high performance, or small work memory with reduced performance. 
+            User can inspect returned work memory size to fit their application needs. 
     @param[in/out]
     x_temp_size size_t*
             During setup the suggested size of x_temp is returned with respect
-            to the rocblas_trsm_option specified.
-            During run size specifies the size allocated for x_temp_workspace
+            to the selected rocblas_trsm_option.
+            During run x_temp_size specifies the size allocated for
+            x_temp_workspace
+            Note: Must use rocblas_trsm_high_performance suggest size
+            If rocblas_side_left and m is not a multiple of 128
+            If rocblas_side_right and n is not a multiple of 128
     @parm[in]
     x_temp_workspace void*
-            During setup x_temp_workspace must hold a null pointer
+            During setup x_temp_workspace must hold a null pointer to signal 
+      the resquest for x_temp_size
             During run x_temp_workspace is a pointer to store temporary matrix X
             on the GPU.
-            x_temp_workspace is of dimension ( x_temp_size/m, x_temp_size/n )
+            x_temp_workspace is of dimension ( m, x_temp_size/m )
 
     ********************************************************************/
 

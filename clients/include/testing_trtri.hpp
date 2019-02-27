@@ -70,8 +70,6 @@ void testing_trtri(const Arguments& arg)
     rocblas_seedrand();
     rocblas_init_symmetric<T>(hA, N, lda);
 
-    std::cout<<" DIAG "<<(diag == rocblas_diagonal_unit)<<" char "<<char_diag<<std::endl;
-
     // proprocess the matrix to avoid ill-conditioned matrix
     for(size_t i = 0; i < N; i++)
     {
@@ -84,30 +82,13 @@ void testing_trtri(const Arguments& arg)
             if(i == j)
             {
                 if(diag == rocblas_diagonal_unit)
-                    hA[i + j * lda] = 1.0; //std::cout<<" host diag "<<hA[i + j * lda];
+                    hA[i + j * lda] = 1.0;
                 else
                     hA[i + j * lda] *= 100.0;
             }
         }
     }
     hB = hA;
-
-    // for(size_t i = 0; i < N; i++)
-    // {
-    //     for(size_t j = 0; j < N; j++)
-    //     {
-    //         // hA[i + j * lda] *= 0.01;
-
-    //         // if(j % 2)
-    //         //     hA[i + j * lda] *= -1;
-    //         if(i == j)
-    //         {
-    //             if(diag == rocblas_diagonal_unit)
-    //                  hB[i + j * lda] = 1.0; //std::cout<<" host diag "<<hA[i + j * lda];
-    //         }
-    //     }
-    // }
-    // std::cout<<std::endl;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));

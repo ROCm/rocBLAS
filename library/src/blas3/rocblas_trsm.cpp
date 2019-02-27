@@ -700,212 +700,6 @@ void copy_block_unit(hipStream_t rocblas_stream,
 
 template <rocblas_int BLOCK, typename T>
 rocblas_status special_trsm_template(rocblas_handle handle,
-                                     rocblas_side side,
-                                     rocblas_fill uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal diag,
-                                     rocblas_int m,
-                                     rocblas_int n,
-                                     const T* alpha,
-                                     const T* A,
-                                     rocblas_int lda,
-                                     T* B,
-                                     rocblas_int ldb)
-{
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
-    void* Y      = handle->get_trsm_Y();
-    void* invA   = handle->get_trsm_invA();
-    void* invA_C = handle->get_trsm_invA_C();
-
-    PRINT_IF_HIP_ERROR(
-        hipMemsetAsync(invA, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T), rocblas_stream));
-
-    rocblas_int k = (side == rocblas_side_left ? m : n);
-    rocblas_trtri_trsm_template<T, BLOCK>(handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA);
-
-    // std::vector<T> invAT (BLOCK * k);
-    // hipMemcpy((T*)invAT.data(), (T*)invA, sizeof(T) * BLOCK * k, hipMemcpyDeviceToHost);
-    // printMatrix("invA", (T*)invAT.data(), BLOCK, k, BLOCK );
-
-    int R                    = k / BLOCK;
-    constexpr T zero         = 0;
-    constexpr T one          = 1;
-    constexpr T negative_one = -1;
-
-    rocblas_int bsize = (side == rocblas_side_left ? n : m);
-    int W             = 1 + ((bsize - 1) / WORKBUF_TRSM_B_CHNK);
-
-    for(int w = 0; w < W; w++)
-    {
-        if(side == rocblas_side_left)
-        {
-            T* Bw = B + ((size_t)w) * WORKBUF_TRSM_B_CHNK * ((size_t)ldb);
-            int width =
-                ((bsize > (w + 1) * WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK
-                                                         : (bsize - w * WORKBUF_TRSM_B_CHNK));
-
-            for(int r = 0; r < R; r++)
-            {
-                int q = R - 1 - r;
-
-                int j = (((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none)) ||
-                         ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose)))
-                            ? r
-                            : q;
-
-                // copy a BLOCK*n piece we are solving at a time
-                copy_block_unit<T>(rocblas_stream, BLOCK, width, Bw + j * BLOCK, ldb, Y, BLOCK);
-
-                if(r > 0)
-                {
-                    const T* A_current = nullptr;
-                    T* B_current       = nullptr;
-
-                    if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
-                    {
-                        A_current = A + r * BLOCK * lda;
-                        B_current = Bw;
-                    }
-                    else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
-                    {
-                        A_current = A + r * BLOCK;
-                        B_current = Bw;
-                    }
-                    else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
-                    {
-                        A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
-                        B_current = Bw + (q + 1) * BLOCK;
-                    }
-                    else // ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
-                    {
-                        A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
-                        B_current = Bw + (q + 1) * BLOCK;
-                    }
-
-                    rocblas_gemm_template<T>(handle,
-                                             transA,
-                                             rocblas_operation_none,
-                                             BLOCK,
-                                             width,
-                                             r * BLOCK,
-                                             &negative_one,
-                                             A_current,
-                                             lda,
-                                             B_current,
-                                             ldb,
-                                             alpha,
-                                             (T*)Y,
-                                             BLOCK);
-                }
-
-                const T* theta = (r == 0 ? alpha : &one);
-
-                rocblas_gemm_template<T>(handle,
-                                         transA,
-                                         rocblas_operation_none,
-                                         BLOCK,
-                                         width,
-                                         BLOCK,
-                                         theta,
-                                         ((T*)invA) + j * BLOCK * BLOCK,
-                                         BLOCK,
-                                         (T*)Y,
-                                         BLOCK,
-                                         &zero,
-                                         Bw + j * BLOCK,
-                                         ldb);
-            }
-        }
-        else
-        {
-            T* Bw = B + ((size_t)w) * WORKBUF_TRSM_B_CHNK;
-            int width =
-                ((bsize > (w + 1) * WORKBUF_TRSM_B_CHNK) ? WORKBUF_TRSM_B_CHNK
-                                                         : (bsize - w * WORKBUF_TRSM_B_CHNK));
-
-            for(int r = 0; r < R; r++)
-            {
-                int q = R - 1 - r;
-
-                int j =
-                    (((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose)) ||
-                     ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none)))
-                        ? r
-                        : q;
-
-                // copy a m*BLOCK piece we are solving at a time
-                copy_block_unit<T>(
-                    rocblas_stream, width, BLOCK, Bw + j * BLOCK * ldb, ldb, Y, width);
-
-                if(r > 0)
-                {
-                    const T* A_current = nullptr;
-                    T* B_current       = nullptr;
-
-                    if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
-                    {
-                        A_current = A + r * BLOCK;
-                        B_current = Bw;
-                    }
-                    else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
-                    {
-                        A_current = A + r * BLOCK * lda;
-                        B_current = Bw;
-                    }
-                    else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
-                    {
-                        A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
-                        B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
-                    }
-                    else // ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
-                    {
-                        A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
-                        B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
-                    }
-
-                    rocblas_gemm_template<T>(handle,
-                                             rocblas_operation_none,
-                                             transA,
-                                             width,
-                                             BLOCK,
-                                             r * BLOCK,
-                                             &negative_one,
-                                             B_current,
-                                             ldb,
-                                             A_current,
-                                             lda,
-                                             alpha,
-                                             (T*)Y,
-                                             width);
-                }
-
-                const T* theta = (r == 0 ? alpha : &one);
-
-                rocblas_gemm_template<T>(handle,
-                                         rocblas_operation_none,
-                                         transA,
-                                         width,
-                                         BLOCK,
-                                         BLOCK,
-                                         theta,
-                                         (T*)Y,
-                                         width,
-                                         ((T*)invA) + j * BLOCK * BLOCK,
-                                         BLOCK,
-                                         &zero,
-                                         Bw + j * BLOCK * ldb,
-                                         ldb);
-            }
-        }
-    }
-
-    return rocblas_status_success;
-}
-
-template <rocblas_int BLOCK, typename T>
-rocblas_status special_trsm_ex_template(rocblas_handle handle,
                                         rocblas_side side,
                                         rocblas_fill uplo,
                                         rocblas_operation transA,
@@ -925,44 +719,19 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    std::cout<<"GOT HERE A"<<std::endl;
-
-    void* x_temp      = x ? x:handle->get_trsm_Y();
-    if(x)
-        std::cout<<"supplied"<<std::endl;
-    else
-        std::cout<<"handle"<<std::endl;
-    
-    if(x_temp==nullptr)
-        std::cout<<"nullptr"<<std::endl;
-    else
-        std::cout<<"not nullptr"<<std::endl;
-
-    std::cout<<"GOT HERE B"<<std::endl;
-
-    // PRINT_IF_HIP_ERROR(
-    //     hipMemsetAsync(invA, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T),
-    //     rocblas_stream));
-
     rocblas_int k = (side == rocblas_side_left ? m : n);
     if(!x)
     {
-        std::cout<<"GOT HERE B1"<<std::endl;
         void* invA_temp   = handle->get_trsm_invA();
         void* invA_C = handle->get_trsm_invA_C();
         PRINT_IF_HIP_ERROR(
             hipMemsetAsync(invA_temp, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T),
             rocblas_stream));
         rocblas_trtri_trsm_template<T, BLOCK>(handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
-        std::cout<<"GOT HERE B2"<<std::endl;
     }
 
-    std::cout<<"GOT HERE C"<<std::endl;
-
+    void* x_temp      = x ? x:handle->get_trsm_Y();
     const void* invA   = x ? supplied_invA:static_cast<const void*>(handle->get_trsm_invA());
-    
-    std::cout<<"GOT HERE D"<<std::endl;
-
 
     int R                    = k / BLOCK;
     constexpr T zero         = 0;
@@ -991,10 +760,8 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                             : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                std::cout<<"GOT HERE D1"<<std::endl;
                 copy_block_unit<T>(
                     rocblas_stream, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
-                std::cout<<"GOT HERE D2"<<std::endl;
 
                 if(r > 0)
                 {
@@ -1022,7 +789,6 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                         B_current = Bw + (q + 1) * BLOCK;
                     }
 
-                    std::cout<<"GOT HERE E"<<std::endl;
                     rocblas_gemm_template<T>(handle,
                                              transA,
                                              rocblas_operation_none,
@@ -1037,12 +803,10 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                                              alpha,
                                              (T*)x_temp,
                                              BLOCK);
-                    std::cout<<"GOT HERE F"<<std::endl;
                 }
 
                 const T* theta = (r == 0 ? alpha : &one);
 
-                std::cout<<"GOT HERE G"<<std::endl;
                 rocblas_gemm_template<T>(handle,
                                          transA,
                                          rocblas_operation_none,
@@ -1057,7 +821,6 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                                          &zero,
                                          Bw + j * BLOCK,
                                          ldb);
-                std::cout<<"GOT HERE H"<<std::endl;
             }
         }
         else
@@ -1078,10 +841,8 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                         : q;
 
                 // copy a m*BLOCK piece we are solving at a time
-                std::cout<<"GOT HERE D1"<<std::endl;
                 copy_block_unit<T>(
                     rocblas_stream, width, BLOCK, Bw + j * BLOCK * ldb, ldb, x_temp, width);
-                std::cout<<"GOT HERE D2"<<std::endl;
 
                 if(r > 0)
                 {
@@ -1109,7 +870,6 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                         B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
                     }
 
-                    std::cout<<"GOT HERE E"<<std::endl;
                     rocblas_gemm_template<T>(handle,
                                              rocblas_operation_none,
                                              transA,
@@ -1125,12 +885,10 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                                              (T*)x_temp,
                                              width);
 
-                    std::cout<<"GOT HERE F"<<std::endl;
                 }
 
                 const T* theta = (r == 0 ? alpha : &one);
 
-                std::cout<<"GOT HERE G"<<std::endl;
                 rocblas_gemm_template<T>(handle,
                                          rocblas_operation_none,
                                          transA,
@@ -1145,7 +903,6 @@ rocblas_status special_trsm_ex_template(rocblas_handle handle,
                                          &zero,
                                          Bw + j * BLOCK * ldb,
                                          ldb);
-                std::cout<<"GOT HERE H"<<std::endl;
             }
         }
     }
@@ -1183,13 +940,6 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
     // A is of size lda*k
     rocblas_int k = side == rocblas_side_left ? m : n;
 
-    // if(lda < k)
-    //     return rocblas_status_invalid_size;
-    // if(!B)
-    //     return rocblas_status_invalid_pointer;
-    // if(ldb < m)
-    //     return rocblas_status_invalid_size;
-
     // quick return if possible.
     if(!m || !n)
         return rocblas_status_success;
@@ -1200,39 +950,16 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
         if(trA == rocblas_operation_conjugate_transpose)
             trA = rocblas_operation_transpose;
 
-        // std::cout<<"GOTHERE"<<std::endl;
-
-        return special_trsm_ex_template<BLOCK>(
+        return special_trsm_template<BLOCK>(
             handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, ldInvA, x_temp_size, x_temp);
     }
 
-    // invA is of size BLOCK*k, BLOCK is the blocking size
-    // used unique_ptr to avoid memory leak
-    // auto invA =
-    //     rocblas_unique_ptr{rocblas::device_malloc(BLOCK * k * sizeof(T)), rocblas::device_free};
     if(!invA)
         return rocblas_status_memory_error;
-
-    // auto C_tmp = rocblas_unique_ptr{
-    //     rocblas::device_malloc(sizeof(T) * (BLOCK / 2) * (BLOCK / 2) * (k / BLOCK)),
-    //     rocblas::device_free};
-    // if(!C_tmp && k >= BLOCK)
-    //     return rocblas_status_memory_error;
-
-    // X is size of packed B
-    // auto X = rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
-    // if(!X)
-    //     return rocblas_status_memory_error;
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    // // intialize invA to &zero
-    // PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)invA.get(), 0, BLOCK * k * sizeof(T), rocblas_stream));
-
-    // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-    // rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
-    //     handle, (T*)C_tmp.get(), uplo, diag, k, A, lda, (T*)invA.get());
     rocblas_status status;
 
     if(side == rocblas_side_left)
@@ -1527,45 +1254,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
         handle, (T*)C_tmp.get(), uplo, diag, k, A, lda, (T*)invA.get());
 
-    // std::vector<T> invAT (BLOCK * k);
-    // hipMemcpy((T*)invAT.data(), (T*)invA.get(), sizeof(T) * BLOCK * k, hipMemcpyDeviceToHost);
-    // printMatrix("invA", (T*)invAT.data(), BLOCK, k, BLOCK );
-
-    //     if(side == rocblas_side_left)
-    //     {
-    //         status = rocblas_trsm_left<BLOCK>(
-    //             handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
-    //     }
-    //     else
-    //     { // side == rocblas_side_right
-    //         status = rocblas_trsm_right<BLOCK>(
-    //             handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA.get(), (T*)X.get());
-    //     }
-
-    // #ifndef NDEBUG
-    //     printf("copy x to b\n");
-    // #endif
-
-    //     // copy solution X into B
-    //     {
-    //         rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-    //         rocblas_int blocksY = (n - 1) / 8 + 1;
-    //         dim3 grid(blocksX, blocksY);
-    //         dim3 threads(128, 8);
-
-    //         hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-    //                            grid,
-    //                            threads,
-    //                            0,
-    //                            rocblas_stream,
-    //                            m,
-    //                            n,
-    //                            sizeof(T),
-    //                            X.get(),
-    //                            m,
-    //                            B,
-    //                            ldb);
-    //     }
     status = rocblas_trsm_ex_template<BLOCK>(handle,
                                              side,
                                              uplo,

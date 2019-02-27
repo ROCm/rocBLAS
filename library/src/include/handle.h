@@ -98,8 +98,8 @@ void reinit_logs(); // Reinitialize static data (for testing only)
 
 // work buffer size constants
 constexpr size_t WORKBUF_TRSM_A_BLKS    = 10;
-constexpr size_t WORKBUF_TRSM_B_CHNK    = 44928;
-constexpr size_t WORKBUF_TRSM_Y_SZ      = 44928 * 128 * sizeof(double);
+constexpr size_t WORKBUF_TRSM_B_CHNK    = 32000;
+constexpr size_t WORKBUF_TRSM_Y_SZ      = 32000 * 128 * sizeof(double);
 constexpr size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
 constexpr size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
 constexpr size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
