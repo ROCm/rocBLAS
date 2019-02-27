@@ -4,18 +4,19 @@ include: known_bugs.yaml
 
 Definitions:
   - &matrix_size_range
-    # - { N:    -1, lda:    -1 }
-    # - { N:    10, lda:    10 }
-    # - { N:    20, lda:   160 }
-    # - { N:    21, lda:    14 }
-    # - { N:    32, lda:    32 }
-    # - { N:    64, lda:    64 }
+    - { N:    -1, lda:    -1 }
+    - { N:    10, lda:    10 }
+    - { N:    20, lda:   160 }
+    - { N:    21, lda:    14 }
+    - { N:    32, lda:    32 }
+    - { N:    64, lda:    64 }
     # - { N:    96, lda:    96 }
     # - { N:    111, lda:    111 }
-    # - { N:    128, lda:    128 }
+    - { N:    128, lda:    128 }
+    - { N:    256, lda:    256 }
     # - { N:    160, lda:    160 }
     # - { N:    165, lda:    165 }
-    - { N:    181, lda:    181 }
+    # - { N:    181, lda:    181 }
     # - { N:    176, lda:    176 }
     # - { N:    192, lda:    192 }
     # - { N:    197, lda:    197 }
@@ -31,12 +32,11 @@ Tests:
   matrix_size: *matrix_size_range
 
 - name: trtri_batched
-  category: pre_checkin              
+  category: pre_checkin               
   function: testing_trtri_batched
   precision: *double_precision
-  uplo: [ U ]
-  diag: [ U ]
+  uplo: [ U, L ]
+  diag: [ N, U ]
   matrix_size: *matrix_size_range
-  batch_count: [ 1 ]
-  # batch_count: [ -1, 1, 100, 1000 ]
+  batch_count: [ -1, 1, 100, 1000 ]
 ...

@@ -163,7 +163,9 @@
     if(!alpha)
         return rocblas_status_invalid_pointer;
 
-    if(k % BLOCK != 0 && (*x_temp_size/m) < n) //Chunking not supported 
+    static constexpr rocblas_int TRSM_BLOCK = 128;
+
+    if((side == rocblas_side_left ? m : n) % TRSM_BLOCK != 0 && (*x_temp_size/m) < n) //Chunking not supported 
         return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
@@ -317,8 +319,7 @@
 
     if(compute_type == rocblas_datatype_f64_r)
     {
-        static constexpr rocblas_int DTRSM_BLOCK = 128;
-        rb_status = rocblas_trsm_ex_template<DTRSM_BLOCK>(handle,
+        rb_status = rocblas_trsm_ex_template<TRSM_BLOCK>(handle,
                                                     side,
                                                     uplo,
                                                     trans_a,
@@ -337,8 +338,7 @@
     }
     else if(compute_type == rocblas_datatype_f32_r)
     {
-        static constexpr rocblas_int STRSM_BLOCK = 128;
-        rb_status = rocblas_trsm_ex_template<STRSM_BLOCK>(handle,
+        rb_status = rocblas_trsm_ex_template<TRSM_BLOCK>(handle,
                                                     side,
                                                     uplo,
                                                     trans_a,

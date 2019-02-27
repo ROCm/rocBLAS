@@ -105,7 +105,7 @@ rocblas_status trtri_strided_gemm_block(rocblas_handle handle,
                                                       rocblas_operation_none,
                                                       M,
                                                       N,
-                                                      K, // K=M
+                                                      M, // K=M
                                                       &negative_one,
                                                       (const T*)invAg2a,
                                                       ld_invA,

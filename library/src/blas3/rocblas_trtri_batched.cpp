@@ -11,11 +11,99 @@
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
+#include "rocblas_unique_ptr.hpp" // temp
 
 namespace {
 
 // because of shared memory size, the NB must be <= 64
 constexpr int NB = 16;
+
+// /*
+// example of how to call:
+// size_t blockSize = 128;
+// size_t tri_elements_to_zero = num_non_tri_elements(n) * batches;
+// size_t numBlocks = (tri_elements_to_zero + blockSize - 1) / blockSize;
+// cout << "Executing kernel with n=" << n << ". numBlocks="  << numBlocks << ".";
+// hipLaunchKernelGGL(rocblas_tritri_batched_fill<float>, dim3(numBlocks,1,1), dim3(blockSize,1,1), 0, 0,rocblas_fill_upper, i, num_non_tri_elements(i), lda, n*lda, mD, batches);
+// */
+
+template <typename T>
+__device__ void rocblas_tritri_batched_fill_upper(size_t offset,
+                                                            size_t idx,
+                                                            rocblas_int n,
+                                                            rocblas_int lda,
+                                                            rocblas_int bsa,
+                                                            T value,
+                                                            T* A)
+{
+    rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
+    rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
+
+    size_t final_offset = offset * bsa + (row * lda) + col;
+
+    A[final_offset] = value;
+
+}
+
+template <typename T>
+__device__ void rocblas_tritri_batched_fill_lower(size_t offset,
+                                                            size_t idx,
+                                                            rocblas_int lda,
+                                                            rocblas_int bsa,
+                                                            T value,
+                                                            T* A)
+{
+    rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
+    rocblas_int col = idx - row * (row + 1) / 2;
+
+    size_t final_offset = offset * bsa + ((row + 1) * lda) + col;
+
+    A[final_offset] = value;
+
+}
+
+// return the number of elements in a NxN matrix that do not belong to the triangular region
+inline size_t num_non_tri_elements(rocblas_int n)
+{
+    return (n * (n - 1) / 2);
+}
+
+template <typename T>
+__global__ void rocblas_tritri_batched_fill(rocblas_handle handle,
+                                                      rocblas_fill uplo,
+                                                      rocblas_int n,
+                                                      rocblas_long num_zero_elem,
+                                                      rocblas_int lda,
+                                                      rocblas_int bsa,
+                                                      T* A,
+                                                      rocblas_int batch_count)
+{
+    // if(!handle)
+    //     return rocblas_status_invalid_handle;
+
+    // number of elements in a given matrix that will be zeroed
+    size_t num_elements_total_to_zero = num_zero_elem * batch_count;
+    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+
+    while (tx < num_elements_total_to_zero)
+    {
+        // determine which matrix in batch we're working on
+        size_t offset = tx / num_zero_elem;
+        // determine local matrix index
+        size_t idx = tx % num_zero_elem;
+
+        if (uplo == rocblas_fill_upper)
+        {
+            rocblas_tritri_batched_fill_lower<T>(offset, idx, lda, bsa, 0, A);
+        }
+        else if (uplo == rocblas_fill_lower)
+        {
+            rocblas_tritri_batched_fill_upper<T>(offset, idx, n, lda, bsa, 0, A);
+        }
+        tx += hipBlockDim_x * hipGridDim_x; 
+    }
+
+}
 
 // flag indicate whether write into A or invA
 template <typename T>
@@ -412,7 +500,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                         bsinvA);
     }
 
-    if(n <= NB)
+    if(n <= 2*NB)
     {
         // if n is too small, no invA21 or invA12 exist, gemm is not required
         return rocblas_status_success;
@@ -423,171 +511,197 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
     constexpr rocblas_int IB = NB*2;
     rocblas_int blocks = n / IB; // complete blocks - need to do all these together and then deal with partial blocks
 
-    int iter;
+    rocblas_int current_n;
     // if(blocks > 0)
     // {
-        for(iter = IB; iter*2<=n; iter*=2)
+    for(current_n = IB; current_n*2<=n; current_n*=2)
+    {
+        rocblas_int g = current_n/IB;
+        rocblas_int tiles_per_batch = n / current_n / 2;
+        // if(tiles_per_batch>1)
+        // {
+        for(int i = 0; i < batch_count; i++)
         {
-            rocblas_int g = iter/IB;
-            rocblas_int b = n / iter / 2;
-            for(int i = 0; i < batch_count; i++)
-            {
-                // std::cout<<i<<" th batched gemm iter "<<iter;
-                trtri_strided_gemm_block<T>(
-                    handle,
-                    iter,
-                    iter,
-                    iter,
-                    (const T*)(A + ((uplo == rocblas_fill_lower) ? iter + i * bsa
-                                                                : iter * lda + i * bsa)),
-                    lda,
-                    2*g*iter * lda + 2*g*iter,
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * bsinvA
-                                                                    : iter * ldinvA + iter + i * bsinvA)),
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter + i * bsinvA
-                                                                    : 0 + i * bsinvA)),
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter + i * bsinvA
-                                                            : iter * ldinvA + i * bsinvA)),
-                    ldinvA,
-                    2*g*iter * ldinvA + 2*g*iter,
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter*ldinvA + i * bsinvA
-                                                                    : iter + i * bsinvA)),
-                    ldinvA,
-                    2*g*iter * ldinvA + 2*g*iter,
-                    b);
-                // std::cout<<" and clear "<<std::endl;
-                for(int j = 0; j<b; j++) // this will be replaced with one triangular fill at the end
-                    for(int k = 0; k<iter; k++)
-                        hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((iter+k)*ldinvA):(iter+k*ldinvA)) + (2*g*iter * ldinvA + 2*g*iter)*j + bsinvA*i, 0, iter * sizeof(T), rocblas_stream);
-
-                std::cout<<" A index "<<iter + i * bsa<<" stride_A "<< 2*iter * lda + 2*iter<<" invA11 index "<<0 + i * bsinvA<<
-                " invA22 index "<<iter * ldinvA + iter + i * bsinvA<<" invA21 index "<<iter + i * bsinvA<< 
-                " invA stride "<<2*iter * ldinvA + 2*iter<<" C index "<<iter*ldinvA + i * bsinvA<<" C stride "<<2*iter * ldinvA + 2*iter<<
-                " b "<<b<< " 2*g "<<2*g<<" iter "<<iter<<std::endl<<
-                std::endl;
-
-            }
-        }
-
-        r = n - iter - ((n/NB)%2==0? 0:NB) - (n-(n/NB)*NB); //should subtract uneven block and remainder
-        std::cout<<"test "<<r<<" test "<<((n/NB)%2==0? 0:NB)<<" n "<<n<<" iter "<<iter<<std::endl<<std::endl;
-        if(r>0)
-        {
+            // std::cout<<i<<" th batched gemm current_n "<<current_n;
             trtri_strided_gemm_block<T>(
-                    handle,
-                    (uplo == rocblas_fill_lower) ? r:iter,
-                    (uplo == rocblas_fill_lower) ? iter:r,
-                    (uplo == rocblas_fill_lower) ? r:iter,
-                    (const T*)(A + ((uplo == rocblas_fill_lower) ? iter 
-                                                                : iter * lda )),
-                    lda,
-                    bsa,
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
-                                                                    : iter * ldinvA + iter )),
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter 
-                                                                    : 0 )),
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? iter 
-                                                            : iter * ldinvA )), 
-                    ldinvA,
-                    bsinvA,
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-iter)*ldinvA  //TODO
-                                                                    : n-iter )),
-                    ldinvA,
-                    bsinvA,
-                    batch_count);
+                handle,
+                current_n,
+                current_n,
+                current_n,
+                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n + i * bsa
+                                                            : current_n * lda + i * bsa)),
+                lda,
+                2*current_n * lda + 2*current_n,
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * bsinvA
+                                                                : current_n * ldinvA + current_n + i * bsinvA)),
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n + i * bsinvA
+                                                                : 0 + i * bsinvA)),
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n + i * bsinvA
+                                                        : current_n * ldinvA + i * bsinvA)),
+                ldinvA,
+                2*current_n * ldinvA + 2*current_n,
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA + i * bsinvA
+                                                                : (n-current_n*tiles_per_batch) + i * bsinvA)),
+                ldinvA,
+                // 2*g*current_n * ldinvA + 2*g*current_n,
+                current_n,
+                tiles_per_batch);
+            // std::cout<<" and clear "<<std::endl;
+            // if(tiles_per_batch!=1)
+            // {
+            // for(int j = 0; j<tiles_per_batch; j++) // this will be replaced with one triangular fill at the end
+            //     for(int k = 0; k<current_n; k++)
+            //         hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?(((n-current_n)+k)*ldinvA):((n-current_n*tiles_per_batch)+k*ldinvA)) + current_n*j + bsinvA*i, 0, current_n * sizeof(T), rocblas_stream); //(2*current_n * ldinvA + 2*current_n)
+            // }
+            std::cout<<" A index "<<((uplo == rocblas_fill_lower) ? current_n + i * bsa: current_n * lda + i * bsa)<<
+            " stride_A "<< 2*current_n * lda + 2*current_n<<" invA11 index "<<
+            ((uplo == rocblas_fill_lower) ? 0 + i * bsinvA: current_n * ldinvA + current_n + i * bsinvA)<<
+            " invA22 index "<<((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n + i * bsinvA: 0 + i * bsinvA)<<
+            " invA21 index "<<((uplo == rocblas_fill_lower) ? current_n + i * bsinvA: current_n * ldinvA + i * bsinvA)<< 
+            " invA stride "<<2*g*current_n * ldinvA + 2*g*current_n<<" C index "<<
+            ((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA + i * bsinvA: (n-current_n*tiles_per_batch) + i * bsinvA)
+            <<" C stride "<<current_n<<
+            " tiles_per_batch "<<tiles_per_batch<< " 2*g "<<2*g<<" current_n "<<current_n<<std::endl<<
+            std::endl;
 
-            std::cout<<" remaining even: "<<" r "<<r<<" iter "<<iter<<std::endl<<
-            " A index "<<iter<<" invA11 index "<<0<<" inva22 index "<<iter * ldinvA + iter<<" inva21 index "<<iter<<
-            " C index "<<(n-iter)*ldinvA<<" bsa "<<bsa<<" bsinvA "<<
-            bsinvA<<" batch_count "<<batch_count<<std::endl;
-
-            for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
-                for(int k = 0; k<((uplo == rocblas_fill_lower) ? iter:r); k++)
-                    hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-iter+k)*ldinvA):(n-iter+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:iter) * sizeof(T), rocblas_stream);
         }
+        // }
+    }
+
+    r = n - current_n - ((n/NB)%2==0? 0:NB) - (n-(n/NB)*NB); //should subtract uneven block and remainder
+    std::cout<<"test "<<r<<" test "<<((n/NB)%2==0? 0:NB)<<" n "<<n<<" current_n "<<current_n<<std::endl<<std::endl;
+
+    if(r>0)
+    {
+        auto C_tmp = rocblas_unique_ptr{
+        rocblas::device_malloc(sizeof(T) * r*current_n*batch_count),
+        rocblas::device_free};
+        trtri_strided_gemm_block<T>(
+                handle,
+                (uplo == rocblas_fill_lower) ? r:current_n,
+                (uplo == rocblas_fill_lower) ? current_n:r,
+                (uplo == rocblas_fill_lower) ? r:current_n,
+                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
+                                                            : current_n * lda )),
+                lda,
+                bsa,
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
+                                                                : current_n * ldinvA + current_n )),
+                (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
+                                                                : 0 )),
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
+                                                        : current_n * ldinvA )), 
+                ldinvA,
+                bsinvA,
+                // (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA  //TODO
+                //                                                 : n-current_n )),
+                (T*)(C_tmp.get()),
+                current_n,
+                // ldinvA,
+                r*current_n,
+                batch_count);
+        
+
+
+        std::cout<<"\n\n remaining even: "<<" r "<<r<<" current_n "<<current_n<<std::endl<<
+        " A index "<<((uplo == rocblas_fill_lower) ? current_n: current_n * lda )<<" invA11 index "<<
+        ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n )<<" inva22 index "<<((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n: 0 )
+        <<" inva21 index "<<((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA )<<
+        " C index "<<((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA : n-current_n )<<" bsa "<<bsa<<" bsinvA "<<
+        bsinvA<<" batch_count "<<batch_count<<" lda "<<lda<<" ldinvA "<<ldinvA<<std::endl<<std::endl;
+
+        // for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
+        //     for(int k = 0; k<((uplo == rocblas_fill_lower) ? current_n:r); k++)
+        //         hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-current_n+k)*ldinvA):(n-current_n+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:current_n) * sizeof(T), rocblas_stream);
+    }
     // }
 
-    r=n-iter-r;
+    r=n-current_n-r;
     std::cout<<"Last r "<<r<<std::endl;
     // if(r>0) // solve small remainder 
     // {
-    //     iter = n- r;
+    //     current_n = n- r;
+    //     // auto C_tmp = rocblas_unique_ptr{
+    //     // rocblas::device_malloc(sizeof(T) * r*current_n),
+    //     // rocblas::device_free};
+        
+    //         std::cout<<"\n\n last remaining even: "<<" r "<<r<<" current_n "<<current_n<<std::endl<<
+    //         " A index "<<((uplo == rocblas_fill_lower) ? current_n: current_n * lda )<<" invA11 index "<<
+    //         ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n )<<" inva22 index "<<((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n: 0 )
+    //         <<" inva21 index "<<((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA )<<
+    //         " C index "<<((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA : n-current_n )<<" bsa "<<bsa<<" bsinvA "<<
+    //         bsinvA<<" batch_count "<<batch_count<<std::endl<<std::endl;
     //     trtri_strided_gemm_block<T>(
     //             handle,
-    //             (uplo == rocblas_fill_lower) ? r:iter,
-    //             (uplo == rocblas_fill_lower) ? iter:r,
-    //             (uplo == rocblas_fill_lower) ? r:iter,
-    //             (const T*)(A + ((uplo == rocblas_fill_lower) ? iter 
-    //                                                         : iter * lda )),
+    //             (uplo == rocblas_fill_lower) ? r:current_n,
+    //             (uplo == rocblas_fill_lower) ? current_n:r,
+    //             (uplo == rocblas_fill_lower) ? r:current_n,
+    //             (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
+    //                                                         : current_n * lda )),
     //             lda,
     //             bsa,
     //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
-    //                                                             : iter * ldinvA + iter )),
-    //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? iter * ldinvA + iter 
+    //                                                             : current_n * ldinvA + current_n )),
+    //             (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
     //                                                             : 0 )),
-    //             (T*)(invA + ((uplo == rocblas_fill_lower) ? iter 
-    //                                                     : iter * ldinvA )),
+    //             (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
+    //                                                     : current_n * ldinvA )),
     //             ldinvA,
     //             bsinvA,
-    //             (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-iter)*ldinvA  //TODO
-    //                                                             : n-iter )),
-    //             ldinvA,
-    //             bsinvA,
+    //             // (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA  //TODO
+    //             //                                                 : n-current_n )),
+    //             (T*)(C_tmp.get()),
+    //             current_n,//ldinvA,
+    //             r*current_n,
     //             batch_count);
 
-    //     for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
-    //         for(int k = 0; k<((uplo == rocblas_fill_lower) ? iter:r); k++)
-    //             hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-iter+k)*ldinvA):(n-iter+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:iter) * sizeof(T), rocblas_stream);
+    //     // for(int j = 0; j<batch_count; j++) // this will be replaced with one triangular fill at the end
+    //     //     for(int k = 0; k<((uplo == rocblas_fill_lower) ? current_n:r); k++)
+    //     //         hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?((n-current_n+k)*ldinvA):(n-current_n+k*ldinvA)) + bsinvA*j, 0, ((uplo == rocblas_fill_lower) ? r:current_n) * sizeof(T), rocblas_stream);
     // }
 
-    // rocblas_int m_gemm;
-    // rocblas_int n_gemm;
-    // T* A_gemm;
-    // const T* B_gemm;
-    // T* C_gemm;
-    // T* D_gemm;
-
-    // if(uplo == rocblas_fill_lower)
+    // for(int i = 0; i<batch_count; i++)
     // {
-    //     // perform D = -A*B*C  ==>  invA21 = -invA22*A21*invA11,
-    //     m_gemm = (n - NB);
-    //     n_gemm = NB;
-    //     A_gemm = invA + NB + NB * ldinvA; // invA22
-    //     B_gemm = A + NB;                  // A21
-    //     C_gemm = invA;                    // invA11
-    //     D_gemm = invA + NB;               // invA21
+    //     for(int j = 0; j<n; j++)
+    //         hipMemsetAsync((T*)invA + ((uplo == rocblas_fill_lower)?(j*ldinvA):(j+1+j*ldinvA)) + bsinvA*i, 0, ((uplo == rocblas_fill_lower) ? j:n-j-1) * sizeof(T), rocblas_stream);
     // }
-    // else
+    size_t blockSize = 128;
+    size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
+    size_t numBlocks = (tri_elements_to_zero + blockSize - 1) / blockSize;
+    // cout << "Executing kernel with n=" << n << ". numBlocks="  << numBlocks << ".";
+    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>, dim3(numBlocks,1,1), dim3(blockSize,1,1), 0, 0, handle, (uplo == rocblas_fill_lower)?rocblas_fill_upper:rocblas_fill_lower, n, num_non_tri_elements(n), ldinvA, n*ldinvA, invA, batch_count);
+
+    // float* mH = (float*)malloc(n*n*sizeof(T));
+    // hipMemcpy(mH, invA, n*n*sizeof(T), hipMemcpyDeviceToHost);
+    // bool pass = true;
+
+    // for (int b = 0; b < batch_count; b++)
     // {
-    //     // perform D = -A*B*C  ==>  invA12 = -invA11*A12*invA22,
-    //     m_gemm = NB;
-    //     n_gemm = (n - NB);
-    //     A_gemm = invA;                    // invA11
-    //     B_gemm = A + lda * NB;            // A12
-    //     C_gemm = invA + NB + NB * ldinvA; // invA22
-    //     D_gemm = invA + NB * ldinvA;      // invA12
+    //     float* mHOffset = &mH[b * (n*ldinvA)];
+    //     for (int x = 0; x < n; x++)
+    //     {
+    //         for (int y = 0; y < n; y++)
+    //         {
+    //             if (mHOffset[(x * ldinvA) + y] != 0.f) std::cout << "1";
+    //                 else std::cout << "0";
+    //             if (x > y)
+    //             {
+    //                 if (mHOffset[(x * ldinvA) + y] != 0.f)
+    //                 {
+    //                     // std::cout << std::endl << "error at: " << x << " " << y << " with offset " << b << ", value is " << mHOffset[(x * ldinvA) + y] << std::endl;
+    //                     pass = false;
+    //                     // break;
+    //                 }
+    //             }
+    //         }
+    //         std::cout<<std::endl;
+    //     }
     // }
+    // if (pass) std::cout << " passed." << std::endl;
+    // if (!pass) std::cout << " failed." << std::endl;
+    // free(mH);
 
-    // hipLaunchKernelGGL((gemm_trsm_batched<T>),
-    //                    grid_gemm,
-    //                    threads,
-    //                    0,
-    //                    rocblas_stream,
-    //                    uplo,
-    //                    m_gemm,
-    //                    n_gemm,
-    //                    A_gemm,
-    //                    ldinvA,
-    //                    B_gemm,
-    //                    lda,
-    //                    C_gemm,
-    //                    ldinvA,
-    //                    D_gemm,
-    //                    ldinvA,
-    //                    bsa,
-    //                    bsinvA);
-
-    // return rocblas_status_success;
+    return rocblas_status_success;
 }
 
 template <typename>

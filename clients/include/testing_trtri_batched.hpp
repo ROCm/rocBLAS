@@ -160,7 +160,7 @@ void testing_trtri_batched(const Arguments& arg)
 
         // std::cout<<" N "<<N<<std::endl;
 
-#if 1
+#if 0
         rocblas_print_matrix_b(hB, hA, N, N, lda, 1);
 #endif
 
@@ -171,24 +171,24 @@ void testing_trtri_batched(const Arguments& arg)
             near_check_general<T>(N, N * batch_count, lda, hB, hA_2, rel_error);
         }
 
-        if(arg.norm_check)
-        {
-            for(size_t i = 0; i < batch_count; i++)
-            {
-                rocblas_error = fmax(
-                    rocblas_error,
-                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
-                // printf("error=%f, %lu\n", rocblas_error, i);
-            }
-            rocblas_error = 0.0;
-            for(size_t i = 0; i < batch_count; i++)
-            {
-                rocblas_error = fmax(
-                    rocblas_error,
-                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA_2 + i * bsa));
-                // printf("error=%f, %lu\n", rocblas_error, i);
-            }
-        }
+        // if(arg.norm_check)
+        // {
+        //     for(size_t i = 0; i < batch_count; i++)
+        //     {
+        //         rocblas_error = fmax(
+        //             rocblas_error,
+        //             norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
+        //         // printf("error=%f, %lu\n", rocblas_error, i);
+        //     }
+        //     rocblas_error = 0.0;
+        //     for(size_t i = 0; i < batch_count; i++)
+        //     {
+        //         rocblas_error = fmax(
+        //             rocblas_error,
+        //             norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA_2 + i * bsa));
+        //         // printf("error=%f, %lu\n", rocblas_error, i);
+        //     }
+        // }
     } // end of norm_check
 
     if(arg.timing)

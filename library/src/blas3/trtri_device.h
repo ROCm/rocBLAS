@@ -15,6 +15,39 @@
 
 /* ============================================================================================ */
 
+// template <typename T>
+// __device__ rocblas_status rocblas_tritri_batched_fill_upper(size_t offset,
+//                                                             size_t idx,
+//                                                             rocblas_int n,
+//                                                             rocblas_int lda,
+//                                                             rocblas_int bsa,
+//                                                             T value,
+//                                                             T* A)
+// {
+//     rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
+//     rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
+
+//     size_t final_offset = offset * bsa + (row * lda) + col;
+
+//     A[final_offset] = value;
+// }
+
+// template <typename T>
+// __device__ rocblas_status rocblas_tritri_batched_fill_lower(size_t offset,
+//                                                             size_t idx,
+//                                                             rocblas_int lda,
+//                                                             rocblas_int bsa,
+//                                                             T value,
+//                                                             T* A)
+// {
+//     rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
+//     rocblas_int col = idx - row * (row + 1) / 2;
+
+//     size_t final_offset = offset * bsa + ((row + 1) * lda) + col;
+
+//     A[final_offset] = value;
+// }
+
 /*! \brief BLAS Level 3 API
 
     \details
