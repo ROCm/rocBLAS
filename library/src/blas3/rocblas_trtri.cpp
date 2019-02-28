@@ -48,4 +48,3 @@ extern "C" rocblas_status rocblas_dtrtri(rocblas_handle handle,
 
     return trtri::rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
-

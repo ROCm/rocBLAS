@@ -110,12 +110,12 @@
 
     @param[in]
     option  rocblas_trsm_option
-            enumerant specifying the selected trsm memory option. 
+            enumerant specifying the selected trsm memory option.
             -	rocblas_trsm_high_performance
             -	rocblas_trsm_low_memory
-            Trsm can choose algorithms that either use large work memory size in order 
-            to get high performance, or small work memory with reduced performance. 
-            User can inspect returned work memory size to fit their application needs. 
+            Trsm can choose algorithms that either use large work memory size in order
+            to get high performance, or small work memory with reduced performance.
+            User can inspect returned work memory size to fit their application needs.
     @param[in/out]
     x_temp_size size_t*
             During setup the suggested size of x_temp is returned with respect
@@ -127,7 +127,7 @@
             If rocblas_side_right and n is not a multiple of 128
     @parm[in]
     x_temp_workspace void*
-            During setup x_temp_workspace must hold a null pointer to signal 
+            During setup x_temp_workspace must hold a null pointer to signal
       the resquest for x_temp_size
             During run x_temp_workspace is a pointer to store temporary matrix X
             on the GPU.
@@ -135,30 +135,30 @@
 
     ********************************************************************/
 
-     rocblas_status rocblas_trsm_ex(rocblas_handle handle,
-                                          rocblas_side side,
-                                          rocblas_fill uplo,
-                                          rocblas_operation trans_a,
-                                          rocblas_diagonal diag,
-                                          rocblas_int m,
-                                          rocblas_int n,
-                                          const void* alpha,
-                                          const void* a,
-                                          rocblas_int lda,
-                                          void* b,
-                                          rocblas_int ldb,
-                                          const void* invA,
-                                          rocblas_int ld_invA,
-                                          rocblas_datatype compute_type,
-                                          rocblas_trsm_option option,
-                                          size_t* x_temp_size,
-                                          void* x_temp_workspace)
+rocblas_status rocblas_trsm_ex(rocblas_handle handle,
+                               rocblas_side side,
+                               rocblas_fill uplo,
+                               rocblas_operation trans_a,
+                               rocblas_diagonal diag,
+                               rocblas_int m,
+                               rocblas_int n,
+                               const void* alpha,
+                               const void* a,
+                               rocblas_int lda,
+                               void* b,
+                               rocblas_int ldb,
+                               const void* invA,
+                               rocblas_int ld_invA,
+                               rocblas_datatype compute_type,
+                               rocblas_trsm_option option,
+                               size_t* x_temp_size,
+                               void* x_temp_workspace)
 
 {
     if(!x_temp_workspace)
     {
         if(option == rocblas_trsm_high_performance)
-            *x_temp_size = m*n;
+            *x_temp_size = m * n;
         else if(option == rocblas_trsm_low_memory)
             *x_temp_size = m;
 
@@ -174,14 +174,15 @@
 
     static constexpr rocblas_int TRSM_BLOCK = 128;
 
-    if((side == rocblas_side_left ? m : n) % TRSM_BLOCK != 0 && (*x_temp_size/m) < n) //Chunking not supported 
+    if((side == rocblas_side_left ? m : n) % TRSM_BLOCK != 0 &&
+       (*x_temp_size / m) < n) // Chunking not supported
         return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                      rocblas_layer_mode_log_profile))
     {
-        auto trans_a_letter = rocblas_transpose_letter(trans_a);
+        auto trans_a_letter      = rocblas_transpose_letter(trans_a);
         auto compute_type_string = rocblas_datatype_string(compute_type);
 
         if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -305,15 +306,15 @@
     }
 
     // quick return m,n,k equal to 0 is valid in BLAS
-    if(!m || !n )
+    if(!m || !n)
         return rocblas_status_success;
 
     // sizes must not be negative
-    if(m < 0 || n < 0 )
+    if(m < 0 || n < 0)
         return rocblas_status_invalid_size;
 
     // pointers must be valid
-    if(!a || !b )
+    if(!a || !b)
         return rocblas_status_invalid_pointer;
 
     rocblas_int num_rows_a = side == rocblas_side_left ? m : n;
@@ -325,44 +326,43 @@
 
     rocblas_status rb_status = rocblas_status_internal_error;
 
-
     if(compute_type == rocblas_datatype_f64_r)
     {
         rb_status = rocblas_trsm_ex_template<TRSM_BLOCK>(handle,
-                                                    side,
-                                                    uplo,
-                                                    trans_a,
-                                                    diag,
-                                                    m,
-                                                    n,
-                                                    static_cast<const double*>(alpha),
-                                                    static_cast<const double*>(a),
-                                                    lda,
-                                                    static_cast<double*>(b),
-                                                    ldb,
-                                                    static_cast<const double*>(invA),
-                                                    ld_invA,
-                                                    static_cast<const size_t*>(x_temp_size),
-                                                    static_cast<double*>(x_temp_workspace));
+                                                         side,
+                                                         uplo,
+                                                         trans_a,
+                                                         diag,
+                                                         m,
+                                                         n,
+                                                         static_cast<const double*>(alpha),
+                                                         static_cast<const double*>(a),
+                                                         lda,
+                                                         static_cast<double*>(b),
+                                                         ldb,
+                                                         static_cast<const double*>(invA),
+                                                         ld_invA,
+                                                         static_cast<const size_t*>(x_temp_size),
+                                                         static_cast<double*>(x_temp_workspace));
     }
     else if(compute_type == rocblas_datatype_f32_r)
     {
         rb_status = rocblas_trsm_ex_template<TRSM_BLOCK>(handle,
-                                                    side,
-                                                    uplo,
-                                                    trans_a,
-                                                    diag,
-                                                    m,
-                                                    n,
-                                                    static_cast<const float*>(alpha),
-                                                    static_cast<const float*>(a),
-                                                    lda,
-                                                    static_cast<float*>(b),
-                                                    ldb,
-                                                    static_cast<const float*>(invA),
-                                                    ld_invA,
-                                                    static_cast<const size_t*>(x_temp_size),
-                                                    static_cast<float*>(x_temp_workspace));
+                                                         side,
+                                                         uplo,
+                                                         trans_a,
+                                                         diag,
+                                                         m,
+                                                         n,
+                                                         static_cast<const float*>(alpha),
+                                                         static_cast<const float*>(a),
+                                                         lda,
+                                                         static_cast<float*>(b),
+                                                         ldb,
+                                                         static_cast<const float*>(invA),
+                                                         ld_invA,
+                                                         static_cast<const size_t*>(x_temp_size),
+                                                         static_cast<float*>(x_temp_workspace));
     }
 
     else

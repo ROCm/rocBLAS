@@ -16,13 +16,8 @@ namespace {
 constexpr int NB = 16;
 
 template <typename T>
-__device__ void rocblas_tritri_batched_fill_upper(size_t offset,
-                                                            size_t idx,
-                                                            rocblas_int n,
-                                                            rocblas_int lda,
-                                                            rocblas_int bsa,
-                                                            T value,
-                                                            T* A)
+__device__ void rocblas_tritri_batched_fill_upper(
+    size_t offset, size_t idx, rocblas_int n, rocblas_int lda, rocblas_int bsa, T value, T* A)
 {
     rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
     rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
@@ -33,12 +28,8 @@ __device__ void rocblas_tritri_batched_fill_upper(size_t offset,
 }
 
 template <typename T>
-__device__ void rocblas_tritri_batched_fill_lower(size_t offset,
-                                                            size_t idx,
-                                                            rocblas_int lda,
-                                                            rocblas_int bsa,
-                                                            T value,
-                                                            T* A)
+__device__ void rocblas_tritri_batched_fill_lower(
+    size_t offset, size_t idx, rocblas_int lda, rocblas_int bsa, T value, T* A)
 {
     rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
     rocblas_int col = idx - row * (row + 1) / 2;
@@ -46,50 +37,45 @@ __device__ void rocblas_tritri_batched_fill_lower(size_t offset,
     size_t final_offset = offset * bsa + ((row + 1) * lda) + col;
 
     A[final_offset] = value;
-
 }
 
 // return the number of elements in a NxN matrix that do not belong to the triangular region
-inline size_t num_non_tri_elements(rocblas_int n)
-{
-    return (n * (n - 1) / 2);
-}
+inline size_t num_non_tri_elements(rocblas_int n) { return (n * (n - 1) / 2); }
 
 template <typename T>
 __global__ void rocblas_tritri_batched_fill(rocblas_handle handle,
-                                                      rocblas_fill uplo,
-                                                      rocblas_int n,
-                                                      rocblas_long num_zero_elem,
-                                                      rocblas_int lda,
-                                                      rocblas_int bsa,
-                                                      T* A,
-                                                      rocblas_int batch_count)
+                                            rocblas_fill uplo,
+                                            rocblas_int n,
+                                            rocblas_long num_zero_elem,
+                                            rocblas_int lda,
+                                            rocblas_int bsa,
+                                            T* A,
+                                            rocblas_int batch_count)
 {
     // if(!handle)
     //     return rocblas_status_invalid_handle;
 
     // number of elements in a given matrix that will be zeroed
     size_t num_elements_total_to_zero = num_zero_elem * batch_count;
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx                         = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
-    while (tx < num_elements_total_to_zero)
+    while(tx < num_elements_total_to_zero)
     {
         // determine which matrix in batch we're working on
         size_t offset = tx / num_zero_elem;
         // determine local matrix index
         size_t idx = tx % num_zero_elem;
 
-        if (uplo == rocblas_fill_upper)
+        if(uplo == rocblas_fill_upper)
         {
             rocblas_tritri_batched_fill_lower<T>(offset, idx, lda, bsa, 0, A);
         }
-        else if (uplo == rocblas_fill_lower)
+        else if(uplo == rocblas_fill_lower)
         {
             rocblas_tritri_batched_fill_upper<T>(offset, idx, n, lda, bsa, 0, A);
         }
-        tx += hipBlockDim_x * hipGridDim_x; 
+        tx += hipBlockDim_x * hipGridDim_x;
     }
-
 }
 
 // flag indicate whether write into A or invA
@@ -114,21 +100,21 @@ __global__ void trtri_small_kernel_batched(rocblas_fill uplo,
 
 template <typename T>
 __global__ void trtri_remainder_kernel_batched(rocblas_fill uplo,
-                                           rocblas_diagonal diag,
-                                           rocblas_int n,
-                                           const T* A,
-                                           rocblas_int lda,
-                                           rocblas_int bsa,
-                                           T* invA,
-                                           rocblas_int ldinvA,
-                                           rocblas_int bsinvA)
+                                               rocblas_diagonal diag,
+                                               rocblas_int n,
+                                               const T* A,
+                                               rocblas_int lda,
+                                               rocblas_int bsa,
+                                               T* invA,
+                                               rocblas_int ldinvA,
+                                               rocblas_int bsinvA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
     const T* individual_A = A + hipBlockIdx_x * bsa;
     T* individual_invA    = invA + hipBlockIdx_x * bsinvA;
 
-    trtri_device<T, 2*NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+    trtri_device<T, 2 * NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
 }
 
 template <typename T>
@@ -189,14 +175,19 @@ __global__ void trtri_diagonal_kernel_batched(rocblas_fill uplo,
 
     // each hip thread Block compute a inverse of a NB * NB diagonal block of A
 
-    rocblas_int tiles = n/NB/2;
-    const T* individual_A =
-        A + NB*2 * lda * (hipBlockIdx_x % tiles) + NB*2 * (hipBlockIdx_x % tiles) + bsa * (hipBlockIdx_x / tiles);
-    T* individual_invA = invA + NB*2 * ldinvA * (hipBlockIdx_x % tiles) + NB*2 * (hipBlockIdx_x % tiles) +
-                         bsinvA * (hipBlockIdx_x / tiles);
+    rocblas_int tiles     = n / NB / 2;
+    const T* individual_A = A + NB * 2 * lda * (hipBlockIdx_x % tiles) +
+                            NB * 2 * (hipBlockIdx_x % tiles) + bsa * (hipBlockIdx_x / tiles);
+    T* individual_invA = invA + NB * 2 * ldinvA * (hipBlockIdx_x % tiles) +
+                         NB * 2 * (hipBlockIdx_x % tiles) + bsinvA * (hipBlockIdx_x / tiles);
 
-    custom_trtri_device<T, NB>(
-        uplo, diag, min(NB, n - (hipBlockIdx_x % tiles)  * NB), individual_A, lda, individual_invA, ldinvA); 
+    custom_trtri_device<T, NB>(uplo,
+                               diag,
+                               min(NB, n - (hipBlockIdx_x % tiles) * NB),
+                               individual_A,
+                               lda,
+                               individual_invA,
+                               ldinvA);
 }
 
 template <typename T>
@@ -349,7 +340,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                                            rocblas_int batch_count)
 {
 
-    if(n>2*NB && (n & (n - 1)) != 0) 
+    if(n > 2 * NB && (n & (n - 1)) != 0)
     {
         printf("n is %d, sizes bigger than %d must be a power of 2, will return\n", n, 2 * NB);
         return rocblas_status_not_implemented;
@@ -358,8 +349,8 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    dim3 grid_trtri(n/NB/2 * batch_count);
-    dim3 threads(NB*NB);
+    dim3 grid_trtri(n / NB / 2 * batch_count);
+    dim3 threads(NB * NB);
 
     // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA - Only deals with maximum even and complete NBxNB diagonals
@@ -377,30 +368,30 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        invA,
                        ldinvA,
                        bsinvA);
-        
-    rocblas_int remainder = n-(n/NB/2)*2*NB; 
-    if(remainder>0)
+
+    rocblas_int remainder = n - (n / NB / 2) * 2 * NB;
+    if(remainder > 0)
     {
         dim3 grid_remainder(batch_count);
         dim3 threads_remainder(remainder);
 
         hipLaunchKernelGGL(trtri_remainder_kernel_batched,
-                        grid_remainder,
-                        threads_remainder,
-                        0,
-                        rocblas_stream,
-                        uplo,
-                        diag,
-                        remainder,
-                        (const T*) A+(n-remainder)+(n-remainder)*lda,
-                        lda,
-                        bsa,
-                        (T*) invA + (n-remainder)+(n-remainder)*ldinvA,
-                        ldinvA,
-                        bsinvA);
+                           grid_remainder,
+                           threads_remainder,
+                           0,
+                           rocblas_stream,
+                           uplo,
+                           diag,
+                           remainder,
+                           (const T*)A + (n - remainder) + (n - remainder) * lda,
+                           lda,
+                           bsa,
+                           (T*)invA + (n - remainder) + (n - remainder) * ldinvA,
+                           ldinvA,
+                           bsinvA);
     }
 
-    if(n <= 2*NB)
+    if(n <= 2 * NB)
     {
         // if n is too small, no invA21 or invA12 exist, gemm is not required
         return rocblas_status_success;
@@ -408,13 +399,14 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
 
     // // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
     // dim3 grid_gemm((n+NB*2-1)/(NB*2) * batch_count);
-    constexpr rocblas_int IB = NB*2;
-    rocblas_int blocks = n / IB; // complete blocks - need to do all these together and then deal with partial blocks
+    constexpr rocblas_int IB = NB * 2;
+    rocblas_int blocks =
+        n / IB; // complete blocks - need to do all these together and then deal with partial blocks
     rocblas_int current_n;
 
-    for(rocblas_int current_n = IB; current_n*2<=n; current_n*=2)
+    for(rocblas_int current_n = IB; current_n * 2 <= n; current_n *= 2)
     {
-        rocblas_int g = current_n/IB;
+        rocblas_int g               = current_n / IB;
         rocblas_int tiles_per_batch = n / current_n / 2;
 
         for(int i = 0; i < batch_count; i++)
@@ -424,30 +416,44 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                 current_n,
                 current_n,
                 (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n + i * bsa
-                                                            : current_n * lda + i * bsa)),
+                                                             : current_n * lda + i * bsa)),
                 lda,
-                2*current_n * lda + 2*current_n,
-                (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 + i * bsinvA
-                                                                : current_n * ldinvA + current_n + i * bsinvA)),
-                (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n + i * bsinvA
-                                                                : 0 + i * bsinvA)),
+                2 * current_n * lda + 2 * current_n,
+                (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                       ? 0 + i * bsinvA
+                                       : current_n * ldinvA + current_n + i * bsinvA)),
+                (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                       ? current_n * ldinvA + current_n + i * bsinvA
+                                       : 0 + i * bsinvA)),
                 (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n + i * bsinvA
-                                                        : current_n * ldinvA + i * bsinvA)),
+                                                          : current_n * ldinvA + i * bsinvA)),
                 ldinvA,
-                2*current_n * ldinvA + 2*current_n,
-                (T*)(invA + ((uplo == rocblas_fill_lower) ? (n-current_n)*ldinvA + i * bsinvA
-                                                                : (n-current_n*tiles_per_batch) + i * bsinvA)),
+                2 * current_n * ldinvA + 2 * current_n,
+                (T*)(invA + ((uplo == rocblas_fill_lower)
+                                 ? (n - current_n) * ldinvA + i * bsinvA
+                                 : (n - current_n * tiles_per_batch) + i * bsinvA)),
                 ldinvA,
                 current_n,
                 tiles_per_batch);
         }
-
     }
 
-    size_t blockSize = 128;
+    size_t blockSize            = 128;
     size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
-    size_t numBlocks = (tri_elements_to_zero + blockSize - 1) / blockSize;
-    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>, dim3(numBlocks,1,1), dim3(blockSize,1,1), 0, 0, handle, (uplo == rocblas_fill_lower)?rocblas_fill_upper:rocblas_fill_lower, n, num_non_tri_elements(n), ldinvA, n*ldinvA, invA, batch_count);
+    size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+                       dim3(numBlocks, 1, 1),
+                       dim3(blockSize, 1, 1),
+                       0,
+                       0,
+                       handle,
+                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                       n,
+                       num_non_tri_elements(n),
+                       ldinvA,
+                       n * ldinvA,
+                       invA,
+                       batch_count);
 
     return rocblas_status_success;
 }
@@ -590,7 +596,6 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
         return rocblas_trtri_large_batched<T>(
             handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
     }
-
 }
 
 } // namespace

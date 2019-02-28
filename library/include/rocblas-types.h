@@ -131,7 +131,7 @@ typedef enum rocblas_gemm_algo_ {
 /*! \brief Indicates selected option to run trsm*/
 typedef enum rocblas_trsm_option_ {
     rocblas_trsm_high_performance = 0,
-    rocblas_trsm_low_memory     = 1
+    rocblas_trsm_low_memory       = 1
 } rocblas_trsm_option;
 
 #ifdef __cplusplus

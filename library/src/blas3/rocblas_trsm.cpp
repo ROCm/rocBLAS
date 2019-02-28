@@ -700,21 +700,21 @@ void copy_block_unit(hipStream_t rocblas_stream,
 
 template <rocblas_int BLOCK, typename T>
 rocblas_status special_trsm_template(rocblas_handle handle,
-                                        rocblas_side side,
-                                        rocblas_fill uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal diag,
-                                        rocblas_int m,
-                                        rocblas_int n,
-                                        const T* alpha,
-                                        const T* A,
-                                        rocblas_int lda,
-                                        T* B,
-                                        rocblas_int ldb,
-                                        const T* supplied_invA,
-                                        rocblas_int ldinvA,
-                                        const size_t* B_chunk,
-                                        T* x)
+                                     rocblas_side side,
+                                     rocblas_fill uplo,
+                                     rocblas_operation transA,
+                                     rocblas_diagonal diag,
+                                     rocblas_int m,
+                                     rocblas_int n,
+                                     const T* alpha,
+                                     const T* A,
+                                     rocblas_int lda,
+                                     T* B,
+                                     rocblas_int ldb,
+                                     const T* supplied_invA,
+                                     rocblas_int ldinvA,
+                                     const size_t* B_chunk,
+                                     T* x)
 {
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
@@ -722,16 +722,16 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     rocblas_int k = (side == rocblas_side_left ? m : n);
     if(!x)
     {
-        void* invA_temp   = handle->get_trsm_invA();
-        void* invA_C = handle->get_trsm_invA_C();
-        PRINT_IF_HIP_ERROR(
-            hipMemsetAsync(invA_temp, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T),
-            rocblas_stream));
-        rocblas_trtri_trsm_template<T, BLOCK>(handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
+        void* invA_temp = handle->get_trsm_invA();
+        void* invA_C    = handle->get_trsm_invA_C();
+        PRINT_IF_HIP_ERROR(hipMemsetAsync(
+            invA_temp, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T), rocblas_stream));
+        rocblas_trtri_trsm_template<T, BLOCK>(
+            handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
     }
 
-    void* x_temp      = x ? x:handle->get_trsm_Y();
-    const void* invA   = x ? supplied_invA:static_cast<const void*>(handle->get_trsm_invA());
+    void* x_temp     = x ? x : handle->get_trsm_Y();
+    const void* invA = x ? supplied_invA : static_cast<const void*>(handle->get_trsm_invA());
 
     int R                    = k / BLOCK;
     constexpr T zero         = 0;
@@ -745,10 +745,8 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     {
         if(side == rocblas_side_left)
         {
-            T* Bw = B + ((size_t)w) * (*B_chunk) * ((size_t)ldb);
-            int width =
-                ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk)
-                                                         : (bsize - w * (*B_chunk)));
+            T* Bw     = B + ((size_t)w) * (*B_chunk) * ((size_t)ldb);
+            int width = ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk) : (bsize - w * (*B_chunk)));
 
             for(int r = 0; r < R; r++)
             {
@@ -825,10 +823,8 @@ rocblas_status special_trsm_template(rocblas_handle handle,
         }
         else
         {
-            T* Bw = B + ((size_t)w) * (*B_chunk);
-            int width =
-                ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk)
-                                                         : (bsize - w * (*B_chunk)));
+            T* Bw     = B + ((size_t)w) * (*B_chunk);
+            int width = ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk) : (bsize - w * (*B_chunk)));
 
             for(int r = 0; r < R; r++)
             {
@@ -884,7 +880,6 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                                              alpha,
                                              (T*)x_temp,
                                              width);
-
                 }
 
                 const T* theta = (r == 0 ? alpha : &one);
@@ -950,8 +945,22 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
         if(trA == rocblas_operation_conjugate_transpose)
             trA = rocblas_operation_transpose;
 
-        return special_trsm_template<BLOCK>(
-            handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, ldInvA, x_temp_size, x_temp);
+        return special_trsm_template<BLOCK>(handle,
+                                            side,
+                                            uplo,
+                                            trA,
+                                            diag,
+                                            m,
+                                            n,
+                                            alpha,
+                                            A,
+                                            lda,
+                                            B,
+                                            ldb,
+                                            invA,
+                                            ldInvA,
+                                            x_temp_size,
+                                            x_temp);
     }
 
     if(!invA)
@@ -1220,7 +1229,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     //     const size_t* x_temp_size = nullptr;
 
     //     return special_trsm_ex_template<BLOCK>(
-    //         handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, 0, &WORKBUF_TRSM_B_CHNK, x_temp);
+    //         handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, 0,
+    //         &WORKBUF_TRSM_B_CHNK, x_temp);
 
     //     // return special_trsm_template<BLOCK>(
     //     //     handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb);
@@ -1305,8 +1315,22 @@ rocblas_status rocblas_strsm_ex(rocblas_handle handle,
     // shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
     static constexpr rocblas_int STRSM_BLOCK = 128;
-    return rocblas_trsm_ex_template<STRSM_BLOCK>(
-        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, invA, ldInvA, x_temp_size, x_temp);
+    return rocblas_trsm_ex_template<STRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 alpha,
+                                                 A,
+                                                 lda,
+                                                 B,
+                                                 ldb,
+                                                 invA,
+                                                 ldInvA,
+                                                 x_temp_size,
+                                                 x_temp);
 }
 
 rocblas_status rocblas_dtrsm_ex(rocblas_handle handle,
@@ -1330,8 +1354,22 @@ rocblas_status rocblas_dtrsm_ex(rocblas_handle handle,
     // shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
     static constexpr rocblas_int DTRSM_BLOCK = 128;
-    return rocblas_trsm_ex_template<DTRSM_BLOCK>(
-        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, invA, ldInvA, x_temp_size, x_temp);
+    return rocblas_trsm_ex_template<DTRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 alpha,
+                                                 A,
+                                                 lda,
+                                                 B,
+                                                 ldb,
+                                                 invA,
+                                                 ldInvA,
+                                                 x_temp_size,
+                                                 x_temp);
 }
 
 rocblas_status rocblas_strsm(rocblas_handle handle,

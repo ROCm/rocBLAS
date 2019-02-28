@@ -1109,9 +1109,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                               const void* invA,
                                               rocblas_int ld_invA,
                                               rocblas_datatype compute_type,
-                                            rocblas_trsm_option option,
-                                            size_t* x_temp_size,
-                                            void* x_temp_workspace);
+                                              rocblas_trsm_option option,
+                                              size_t* x_temp_size,
+                                              void* x_temp_workspace);
 
 /*! \brief BLAS Level 3 API
 

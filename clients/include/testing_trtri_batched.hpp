@@ -75,14 +75,15 @@ void testing_trtri_batched(const Arguments& arg)
 
                 if(j % 2)
                     hA_sub[i + j * lda] *= -1;
-                if(uplo == rocblas_fill_lower && j>i) //need to explicitly set unsused side to 0 if using it for temp storage
-                    hA_sub[i + j * lda] = 0.0f; 
-                else if(uplo == rocblas_fill_upper && j<i)
+                if(uplo == rocblas_fill_lower &&
+                   j > i) // need to explicitly set unsused side to 0 if using it for temp storage
+                    hA_sub[i + j * lda] = 0.0f;
+                else if(uplo == rocblas_fill_upper && j < i)
                     hA_sub[i + j * lda] = 0.0f;
                 if(i == j)
                 {
                     if(diag == rocblas_diagonal_unit)
-                        hA_sub[i + j * lda] = 1.0; //need to preprocess matrix for clbas_trtri
+                        hA_sub[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
                     else
                         hA_sub[i + j * lda] *= 100.0;
                 }
@@ -119,10 +120,10 @@ void testing_trtri_batched(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(
         handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count));
-    
-    //Test in place
-    CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(
-        handle, uplo, diag, N, dA, lda, bsa, dA, lda, bsa, batch_count));
+
+    // Test in place
+    CHECK_ROCBLAS_ERROR(
+        rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, bsa, dA, lda, bsa, batch_count));
 
     if(arg.timing)
     {

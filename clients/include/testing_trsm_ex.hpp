@@ -70,7 +70,7 @@ void testing_trsm_ex(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        //TODO change this to trsm_ex
+        // TODO change this to trsm_ex
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
@@ -86,9 +86,9 @@ void testing_trsm_ex(const Arguments& arg)
     host_vector<T> hXorB_1(size_B);
     host_vector<T> hXorB_2(size_B);
     host_vector<T> cpuXorB(size_B);
-    host_vector<T> invATemp1(TRSM_BLOCK * K );
-    host_vector<T> invATemp2(TRSM_BLOCK * K );
-    host_vector<T> hinvAI(TRSM_BLOCK * K );
+    host_vector<T> invATemp1(TRSM_BLOCK * K);
+    host_vector<T> invATemp2(TRSM_BLOCK * K);
+    host_vector<T> hinvAI(TRSM_BLOCK * K);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -100,11 +100,11 @@ void testing_trsm_ex(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
-    device_vector<T> dinvA(TRSM_BLOCK * K );
-    device_vector<T> dinvAI(TRSM_BLOCK * K );
-    device_vector<T> dinvAtest(TRSM_BLOCK * K );
-    device_vector<T> dC_tmp(TRSM_BLOCK / 2 * TRSM_BLOCK / 2 * K / TRSM_BLOCK );
-    device_vector<T> dX_tmp(M * N );
+    device_vector<T> dinvA(TRSM_BLOCK * K);
+    device_vector<T> dinvAI(TRSM_BLOCK * K);
+    device_vector<T> dinvAtest(TRSM_BLOCK * K);
+    device_vector<T> dC_tmp(TRSM_BLOCK / 2 * TRSM_BLOCK / 2 * K / TRSM_BLOCK);
+    device_vector<T> dX_tmp(M * N);
 
     if(!dA || !dXorB || !alpha_d)
     {
@@ -235,18 +235,18 @@ void testing_trsm_ex(const Arguments& arg)
 
         if(K % TRSM_BLOCK != 0 || blocks == 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
-                                                 uplo,
-                                                 diag,
-                                                 K-TRSM_BLOCK*blocks,
-                                                 dA + stride_A * blocks,
-                                                 lda,
-                                                 0,
-                                                 dinvA + stride_invA * blocks,
-                                                 TRSM_BLOCK,
-                                                 0,
-                                                 1));
+                                                         uplo,
+                                                         diag,
+                                                         K - TRSM_BLOCK * blocks,
+                                                         dA + stride_A * blocks,
+                                                         lda,
+                                                         0,
+                                                         dinvA + stride_invA * blocks,
+                                                         TRSM_BLOCK,
+                                                         0,
+                                                         1));
 
-        size_t x_temp_size = M*N;
+        size_t x_temp_size = M * N;
         CHECK_ROCBLAS_ERROR(rocblas_trsm_ex(handle,
                                             side,
                                             uplo,

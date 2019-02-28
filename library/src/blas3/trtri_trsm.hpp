@@ -104,7 +104,7 @@ rocblas_status trtri_strided_gemm_block(rocblas_handle handle,
                                                       rocblas_operation_none,
                                                       M,
                                                       N,
-                                                      M, 
+                                                      M,
                                                       &negative_one,
                                                       (const T*)invAg2a,
                                                       ld_invA,
@@ -312,7 +312,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
             JB,
             stride_C,
             blocks);
-            
+
     } // end if
 
     // the last digaonal block is handled seperately if n is not divisible by NB, or if there is
