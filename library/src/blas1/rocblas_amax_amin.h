@@ -108,32 +108,6 @@ constexpr char rocblas_iamaxmin_name<rocblas_float_complex>[] = "rocblas_ica" QU
 template <>
 constexpr char rocblas_iamaxmin_name<rocblas_double_complex>[] = "rocblas_iza" QUOTE(MAX_MIN);
 
-/* ============================================================================================ */
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    iamaxmin finds the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
-   vector
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of y.
-    @param[inout]
-    result
-              index of max element. either on the host CPU or device GPU.
-              return is 0 if n <= 0 or incx <= 0. Note that 1 based indexing
-              (Fortran) is used, not 0 based indexing (C).
-    ********************************************************************/
-
 // allocate workspace inside this API
 template <typename To, typename Ti>
 static rocblas_status rocblas_iamaxmin(

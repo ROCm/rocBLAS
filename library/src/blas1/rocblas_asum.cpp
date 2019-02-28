@@ -36,31 +36,6 @@ constexpr char rocblas_asum_name<rocblas_float_complex>[] = "rocblas_scasum";
 template <>
 constexpr char rocblas_asum_name<rocblas_double_complex>[] = "rocblas_dzasum";
 
-/* ============================================================================================ */
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    asum computes the sum of the absolute values of elements of a real vector x,
-         or the sum of absolute values of the real and imaginary parts of elements if x is a complex
-   vector
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of y.
-    @param[inout]
-    result
-              store the asum product. either on the host CPU or device GPU.
-              result is 0 if n <= 0 or incx <= 0.
-    ********************************************************************/
-
 // allocate workspace inside this API
 template <typename Ti, typename To>
 rocblas_status
