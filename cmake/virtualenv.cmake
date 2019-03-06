@@ -1,8 +1,10 @@
 # find_package(PythonInterp)
 # # TODO: Check PYTHON_VERSION_MAJOR
 
-find_program(VIRTUALENV_PYTHON_EXE python)
-
+find_program(VIRTUALENV_PYTHON_EXE python2)
+if(NOT VIRTUALENV_PYTHON_EXE)
+    find_program(VIRTUALENV_PYTHON_EXE python)
+endif()
 
 set(VIRTUALENV_SOURCE_DIR ${CMAKE_BINARY_DIR}/virtualenv-source CACHE PATH "Path to virtualenv source")
 set(VIRTUALENV_HOME_DIR ${CMAKE_BINARY_DIR}/virtualenv CACHE PATH "Path to virtual environment")
