@@ -35,31 +35,6 @@ constexpr char rocblas_copy_name<rocblas_float_complex>[] = "rocblas_ccopy";
 template <>
 constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    copy  copies the vector x[i] into the vector y[i], for  i = 1 , … , n
-
-        y := x,
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-              if n <= 0 quick return with rocblas_status_success
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      specifies the increment for the elements of x.
-    @param[out]
-    y         pointer storing vector y on the GPU.
-    @param[in]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
-
 template <class T>
 rocblas_status rocblas_copy_template(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)

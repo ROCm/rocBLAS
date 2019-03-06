@@ -154,6 +154,10 @@ struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::ty
     {
         if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function +
                                         " --a_type "s + rocblas_datatype2string(arg.a_type));

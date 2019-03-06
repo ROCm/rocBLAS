@@ -354,40 +354,6 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
 
 /* ============================================================================================ */
 
-/*! \brief BLAS Level 3 API
-
-    \details
-    trtri  compute the inverse of a matrix  A, namely, invA
-
-        and write the result into invA;
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      rocblas_fill.
-              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
-              if rocblas_fill_upper, the lower part of A is not referenced
-              if rocblas_fill_lower, the upper part of A is not referenced
-    @param[in]
-    diag      rocblas_diagonal.
-              = 'rocblas_diagonal_non_unit', A is non-unit triangular;
-              = 'rocblas_diagonal_unit', A is unit triangular;
-    @param[in]
-    n         rocblas_int.
-              size of matrix A and invA
-    @param[in]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[output]
-    invA      pointer storing matrix invA on the GPU.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
-
-********************************************************************/
 /* IB must be <= 64 in order to fit shared (local) memory */
 template <typename T, rocblas_int IB>
 rocblas_status rocblas_trtri_template(rocblas_handle handle,

@@ -38,49 +38,6 @@ constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
 template <>
 constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
 
-/*! \brief BLAS Level 2 API
-
-    \details
-    xGER performs the matrix-vector operations
-
-        A := A + alpha*x*y**T
-
-    where alpha is a scalars, x and y are vectors, and A is an
-    m by n matrix.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    m         rocblas_int
-              m > 0
-    @param[in]
-    n         rocblas_int
-              n > 0
-    @param[in]
-    alpha
-              specifies the scalar alpha.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of x.
-              incx != 0
-    @param[in]
-    y         pointer storing vector y on the GPU.
-    @param[in]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-              incy != 0
-    @param[inout]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-              lda >= m && lda > 0
-
-    ********************************************************************/
-
 template <typename T>
 rocblas_status rocblas_ger(rocblas_handle handle,
                            rocblas_int m,
