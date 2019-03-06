@@ -465,56 +465,6 @@ constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
 template <>
 constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
 
-/* ============================================================================================ */
-
-/*! \brief BLAS Level 3 API
-
-    \details
-    trtri  compute the inverse of a matrix  A
-
-        inv(A);
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas lNBrary context queue.
-    @param[in]
-    uplo      rocblas_fill.
-              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
-    @param[in]
-    diag      rocblas_diagonal.
-              = 'rocblas_diagonal_non_unit', A is non-unit triangular;
-              = 'rocblas_diagonal_unit', A is unit triangular;
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    bsa       rocblas_int
-             "batch stride a": stride from the start of one "A" matrix to the next
-    @param[output]
-    invA      pointer storing the inverse matrix A on the GPU.
-              Partial inplace operation is supported, see below.
-              If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
-              the inverse of the upper triangular matrix, and the strictly lower
-              triangular part of invA is cleared.
-              If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
-              the inverse of the lower triangular matrix, and the strictly upper
-              triangular part of invA is cleared.
-    @param[in]
-    ldinvA    rocblas_int
-              specifies the leading dimension of invA.
-    @param[in]
-    bsinvA    rocblas_int
-             "batch stride invA": stride from the start of one "invA" matrix to the next
-    @param[in]
-    batch_count       rocblas_int
-              numbers of matrices in the batch
-    ********************************************************************/
-
-// assume invA has already been allocated, recommened for repeated calling of trtri product routine
 template <typename T>
 rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
                                               rocblas_fill uplo,
