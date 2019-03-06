@@ -1209,13 +1209,26 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
         if(trA == rocblas_operation_conjugate_transpose)
             trA = rocblas_operation_transpose;
 
-        T* x_temp = nullptr;
-        const T* invA = nullptr;
+        T* x_temp                 = nullptr;
+        const T* invA             = nullptr;
         const size_t* x_temp_size = nullptr;
 
-        return special_trsm_template<BLOCK>(
-            handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, 0,
-            &WORKBUF_TRSM_B_CHNK, x_temp);
+        return special_trsm_template<BLOCK>(handle,
+                                            side,
+                                            uplo,
+                                            trA,
+                                            diag,
+                                            m,
+                                            n,
+                                            alpha,
+                                            A,
+                                            lda,
+                                            B,
+                                            ldb,
+                                            invA,
+                                            0,
+                                            &WORKBUF_TRSM_B_CHNK,
+                                            x_temp);
     }
 
     // invA is of size BLOCK*k, BLOCK is the blocking size
