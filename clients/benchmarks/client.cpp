@@ -103,7 +103,7 @@ struct perf_blas<
         else if(!strcmp(arg.function, "trsm"))
             testing_trsm<T>(arg);
         else if(!strcmp(arg.function, "trsm_ex"))
-            testing_trsm<T>(arg);
+            testing_trsm_ex<T>(arg);
         else if(!strcmp(arg.function, "trsv"))
             testing_trsv<T>(arg);
         else if(!strcmp(arg.function, "asum"))

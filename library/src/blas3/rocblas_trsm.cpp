@@ -14,21 +14,6 @@
 #include "logging.h"
 #include "utility.h"
 
-template <typename T>
-void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
-{
-    printf("---------- %s ----------\n", name);
-    int max_size = 3;
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-        {
-            printf("%0.2f ", A[i + j * lda]);
-        }
-        printf("\n");
-    }
-}
-
 namespace {
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
@@ -1218,23 +1203,20 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if(!m || !n)
         return rocblas_status_success;
 
-    // if(k % BLOCK == 0 && k <= BLOCK * WORKBUF_TRSM_A_BLKS)
-    // {
-    //     rocblas_operation trA = transA;
-    //     if(trA == rocblas_operation_conjugate_transpose)
-    //         trA = rocblas_operation_transpose;
+    if(k % BLOCK == 0 && k <= BLOCK * WORKBUF_TRSM_A_BLKS)
+    {
+        rocblas_operation trA = transA;
+        if(trA == rocblas_operation_conjugate_transpose)
+            trA = rocblas_operation_transpose;
 
-    //     T* x_temp = nullptr;
-    //     const T* invA = nullptr;
-    //     const size_t* x_temp_size = nullptr;
+        T* x_temp = nullptr;
+        const T* invA = nullptr;
+        const size_t* x_temp_size = nullptr;
 
-    //     return special_trsm_ex_template<BLOCK>(
-    //         handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, 0,
-    //         &WORKBUF_TRSM_B_CHNK, x_temp);
-
-    //     // return special_trsm_template<BLOCK>(
-    //     //     handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb);
-    // }
+        return special_trsm_template<BLOCK>(
+            handle, side, uplo, trA, diag, m, n, alpha, A, lda, B, ldb, invA, 0,
+            &WORKBUF_TRSM_B_CHNK, x_temp);
+    }
 
     // invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
