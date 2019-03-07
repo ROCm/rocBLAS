@@ -36,44 +36,6 @@ constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
 template <>
 constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
 
-/*! \brief BLAS Level 2 API
-
-    \details
-    xSYR performs the matrix-vector operations
-
-        A := A + alpha*x*x**T
-
-    where alpha is a scalars, x and y are vectors, and A is a
-    symmetric n by n matrix.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo    rocblas_fill.
-            rocblas_fill_upper:  A is an upper triangular matrix.
-            rocblas_fill_lower:  A is a  lower triangular matrix.
-    @param[in]
-    n         rocblas_int
-              n >= 0
-    @param[in]
-    alpha
-              specifies the scalar alpha.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of x.
-              incx != 0
-    @param[inout]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-              lda >= n && lda >= 1
-
-    ********************************************************************/
-
 template <typename T>
 rocblas_status rocblas_syr(rocblas_handle handle,
                            rocblas_fill uplo,

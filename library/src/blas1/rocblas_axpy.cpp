@@ -70,32 +70,6 @@ __global__ void axpy_kernel(
         y[tid * incy] += alpha * x[tid * incx];
 }
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    axpy   compute y := alpha * x + y
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-              if n <= 0 quick return with rocblas_status_success
-    @param[in]
-    alpha     specifies the scalar alpha.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of x.
-    @param[out]
-    y         pointer storing vector y on the GPU.
-    @param[inout]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
-
 template <class T>
 rocblas_status rocblas_axpy(rocblas_handle handle,
                             rocblas_int n,

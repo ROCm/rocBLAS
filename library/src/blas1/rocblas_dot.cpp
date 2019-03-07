@@ -94,36 +94,6 @@ constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
 template <>
 constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
 
-/* ============================================================================================ */
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    dot(u)  perform dot product of vector x and y
-
-        result = x * y;
-
-    dotc  perform dot product of complex vector x and complex y
-
-        result = conjugate (x) * y;
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of y.
-    @param[inout]
-    result
-              store the dot product. either on the host CPU or device GPU.
-              return is 0 if n <= 0.
-
-    ********************************************************************/
-
 // allocate workspace inside this API
 template <typename T>
 rocblas_status rocblas_dot(rocblas_handle handle,
