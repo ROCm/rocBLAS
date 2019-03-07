@@ -159,7 +159,7 @@ rocblas_status rocblas_trtri_small_batched(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-template <typename T>
+template <typename T, rocblas_int IB>
 __global__ void trtri_diagonal_kernel_batched(rocblas_fill uplo,
                                               rocblas_diagonal diag,
                                               rocblas_int n,
@@ -173,17 +173,17 @@ __global__ void trtri_diagonal_kernel_batched(rocblas_fill uplo,
     // get the individual matrix which is processed by device function
     // device function only see one matrix
 
-    // each hip thread Block compute a inverse of a NB * NB diagonal block of A
+    // each hip thread Block compute a inverse of a IB * IB diagonal block of A
 
-    rocblas_int tiles     = n / NB / 2;
-    const T* individual_A = A + NB * 2 * lda * (hipBlockIdx_x % tiles) +
-                            NB * 2 * (hipBlockIdx_x % tiles) + bsa * (hipBlockIdx_x / tiles);
-    T* individual_invA = invA + NB * 2 * ldinvA * (hipBlockIdx_x % tiles) +
-                         NB * 2 * (hipBlockIdx_x % tiles) + bsinvA * (hipBlockIdx_x / tiles);
+    rocblas_int tiles     = n / IB / 2;
+    const T* individual_A = A + (IB * 2 * lda + IB * 2) * (hipBlockIdx_x % tiles)
+                             + bsa * (hipBlockIdx_x / tiles);
+    T* individual_invA = invA + (IB * 2 * ldinvA + IB * 2) * (hipBlockIdx_x % tiles)
+                          + bsinvA * (hipBlockIdx_x / tiles);
 
-    custom_trtri_device<T, NB>(uplo,
+    custom_trtri_device<T, IB>(uplo,
                                diag,
-                               min(NB, n - (hipBlockIdx_x % tiles) * NB),
+                               min(IB, n - (hipBlockIdx_x % tiles) * IB),
                                individual_A,
                                lda,
                                individual_invA,
@@ -354,7 +354,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
 
     // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA - Only deals with maximum even and complete NBxNB diagonals
-    hipLaunchKernelGGL((trtri_diagonal_kernel_batched<T>),
+    hipLaunchKernelGGL((trtri_diagonal_kernel_batched<T, NB>),
                        grid_trtri,
                        threads,
                        0,
@@ -406,35 +406,70 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
 
     for(rocblas_int current_n = IB; current_n * 2 <= n; current_n *= 2)
     {
-        rocblas_int g               = current_n / IB;
         rocblas_int tiles_per_batch = n / current_n / 2;
 
-        for(int i = 0; i < batch_count; i++)
+        if(tiles_per_batch>batch_count)
         {
-            trtri_strided_gemm_block<T>(
-                handle,
-                current_n,
-                current_n,
-                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n + i * bsa
-                                                             : current_n * lda + i * bsa)),
-                lda,
-                2 * current_n * lda + 2 * current_n,
-                (const T*)(invA + ((uplo == rocblas_fill_lower)
-                                       ? 0 + i * bsinvA
-                                       : current_n * ldinvA + current_n + i * bsinvA)),
-                (const T*)(invA + ((uplo == rocblas_fill_lower)
-                                       ? current_n * ldinvA + current_n + i * bsinvA
-                                       : 0 + i * bsinvA)),
-                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n + i * bsinvA
-                                                          : current_n * ldinvA + i * bsinvA)),
-                ldinvA,
-                2 * current_n * ldinvA + 2 * current_n,
-                (T*)(invA + ((uplo == rocblas_fill_lower)
-                                 ? (n - current_n) * ldinvA + i * bsinvA
-                                 : (n - current_n * tiles_per_batch) + i * bsinvA)),
-                ldinvA,
-                current_n,
-                tiles_per_batch);
+            for(int i = 0; i < batch_count; i++)
+            {
+                trtri_strided_gemm_block<T>(
+                    handle,
+                    current_n,
+                    current_n,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n + i * bsa
+                                                                : current_n * lda + i * bsa)),
+                    lda,
+                    2 * current_n * lda + 2 * current_n,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                        ? 0 + i * bsinvA
+                                        : current_n * ldinvA + current_n + i * bsinvA)),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                        ? current_n * ldinvA + current_n + i * bsinvA
+                                        : 0 + i * bsinvA)),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n + i * bsinvA
+                                                            : current_n * ldinvA + i * bsinvA)),
+                    ldinvA,
+                    2 * current_n * ldinvA + 2 * current_n,
+                    (T*)(invA + ((uplo == rocblas_fill_lower)
+                                    ? (n - current_n) * ldinvA + i * bsinvA
+                                    : (n - current_n * tiles_per_batch) + i * bsinvA)),
+                    ldinvA,
+                    current_n,
+                    tiles_per_batch);
+            }
+        }
+        else
+        {
+            for(int i = 0; i < tiles_per_batch; i++)
+            {
+                rocblas_int stride_A, stride_invA;
+                stride_A = (2 * current_n * lda + 2 * current_n);
+                stride_invA = (2 * current_n * ldinvA + 2 * current_n);
+                trtri_strided_gemm_block<T>(
+                    handle,
+                    current_n,
+                    current_n,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n + i * stride_A
+                                                                : current_n * lda + i * stride_A)),
+                    lda,
+                    bsa,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                        ? 0 + i * stride_invA
+                                        : current_n * ldinvA + current_n + i * stride_invA)),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower)
+                                        ? current_n * ldinvA + current_n + i * stride_invA
+                                        : 0 + i * stride_invA)),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n + i * stride_invA
+                                                            : current_n * ldinvA + i * stride_invA)),
+                    ldinvA,
+                    bsinvA,
+                    (T*)(invA + ((uplo == rocblas_fill_lower)
+                                    ? (n - current_n) * ldinvA + i * current_n
+                                    : (n - current_n * tiles_per_batch) + i * current_n)),
+                    ldinvA,
+                    bsinvA,
+                    batch_count);
+            }
         }
     }
 
@@ -445,7 +480,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        dim3(numBlocks, 1, 1),
                        dim3(blockSize, 1, 1),
                        0,
-                       0,
+                       rocblas_stream,
                        handle,
                        (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
                        n,

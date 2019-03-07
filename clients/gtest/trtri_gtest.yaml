@@ -3,7 +3,16 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
-  - &matrix_size_range
+  - &matrix_size_range1
+    - { N:    -1, lda:    -1 }
+    - { N:    10, lda:    10 }
+    - { N:    20, lda:   160 }
+    - { N:    21, lda:    14 }
+    - { N:    32, lda:    32 }
+    - { N:    64, lda:    64 }
+    - { N:    128, lda:    128 }
+
+  - &matrix_size_range2
     - { N:    -1, lda:    -1 }
     - { N:    10, lda:    10 }
     - { N:    20, lda:   160 }
@@ -29,7 +38,7 @@ Tests:
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
-  matrix_size: *matrix_size_range
+  matrix_size: *matrix_size_range1
 
 - name: trtri_batched
   category: pre_checkin               
@@ -37,6 +46,6 @@ Tests:
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
-  matrix_size: *matrix_size_range
+  matrix_size: *matrix_size_range2
   batch_count: [ -1, 1, 100, 1000 ]
 ...
