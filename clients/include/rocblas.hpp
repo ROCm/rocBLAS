@@ -462,13 +462,4 @@ constexpr auto rocblas_trtri_batched<float> = rocblas_strtri_batched;
 template <>
 constexpr auto rocblas_trtri_batched<double> = rocblas_dtrtri_batched;
 
-template <typename T, rocblas_int NB>
-rocblas_status (*rocblas_trtri_trsm)(rocblas_handle handle,
-                                     rocblas_fill uplo,
-                                     rocblas_diagonal diag,
-                                     rocblas_int n,
-                                     T* A,
-                                     rocblas_int lda,
-                                     T* invA);
-
 #endif // _ROCBLAS_HPP_

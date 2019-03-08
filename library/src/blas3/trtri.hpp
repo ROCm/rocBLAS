@@ -122,7 +122,8 @@ __global__ void trtri_diagonal_kernel(rocblas_fill uplo,
 */
 
 template <typename T, rocblas_int IB>
-__global__ void gemm_trsm_kernel(rocblas_int m,
+__global__ void gemm_trsm_kernel(rocblas_fill uplo,
+                                 rocblas_int m,
                                  rocblas_int n,
                                  const T* A,
                                  rocblas_int lda,
@@ -159,9 +160,19 @@ __global__ void gemm_trsm_kernel(rocblas_int m,
 
         T reg_tep = 0;
         // perform reduction
-        for(int i = 0; i < n; i++)
+        if(uplo == rocblas_fill_lower)
         {
-            reg_tep += reg[i] * vec[i];
+            for(int i = col; i < n; i++)
+            {
+                reg_tep += reg[i] * vec[i];
+            }
+        }
+        else
+        {
+            for(int i = 0; i < col + 1; i++)
+            {
+                reg_tep += reg[i] * vec[i];
+            }
         }
 
         if(tx < m)
@@ -175,9 +186,19 @@ __global__ void gemm_trsm_kernel(rocblas_int m,
     // read A into registers A is of m * m
     if(tx < m)
     {
-        for(int col = 0; col < m; col++)
+        if(uplo == rocblas_fill_lower)
         {
-            reg[col] = A[tx + col * lda];
+            for(int col = 0; col < tx + 1; col++)
+            {
+                reg[col] = A[tx + col * lda];
+            }
+        }
+        else
+        {
+            for(int col = tx; col < m; col++)
+            {
+                reg[col] = A[tx + col * lda];
+            }
         }
     }
 
@@ -186,9 +207,19 @@ __global__ void gemm_trsm_kernel(rocblas_int m,
     {
 
         T reg_tep = 0;
-        for(int i = 0; i < m; i++)
+        if(uplo == rocblas_fill_lower)
         {
-            reg_tep += reg[i] * shared_tep[i + col * IB];
+            for(int i = 0; i < tx + 1; i++)
+            {
+                reg_tep += reg[i] * shared_tep[i + col * IB];
+            }
+        }
+        else
+        {
+            for(int i = tx; i < m; i++)
+            {
+                reg_tep += reg[i] * shared_tep[i + col * IB];
+            }
         }
 
         if(tx < m)
@@ -306,6 +337,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle handle,
                        threads,
                        0,
                        rocblas_stream,
+                       uplo,
                        m_gemm,
                        n_gemm,
                        A_gemm,
