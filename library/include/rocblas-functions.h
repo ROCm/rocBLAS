@@ -947,20 +947,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    stride_a       rocblas_int
+    stride_a  rocblas_int
              "batch stride a": stride from the start of one "A" matrix to the next
     @param[output]
     invA      pointer storing the inverse matrix A on the GPU.
+              Partial inplace operation is supported, see below.
+              If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
+              the inverse of the upper triangular matrix, and the strictly lower
+              triangular part of invA is cleared.
+              If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
+              the inverse of the lower triangular matrix, and the strictly upper
+              triangular part of invA is cleared.
     @param[in]
     ldinvA    rocblas_int
               specifies the leading dimension of invA.
     @param[in]
-    bsinvA    rocblas_int
+    stride_invA rocblas_int
              "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
     batch_count       rocblas_int
               numbers of matrices in the batch
     ********************************************************************/
+// assume invA has already been allocated, recommended for repeated calling of trtri product routine
 
 ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                                      rocblas_fill uplo,
@@ -971,7 +979,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                                      rocblas_int stride_a,
                                                      float* invA,
                                                      rocblas_int ldinvA,
-                                                     rocblas_int bsinvA,
+                                                     rocblas_int stride_invA,
                                                      rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
@@ -983,7 +991,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                                      rocblas_int stride_a,
                                                      double* invA,
                                                      rocblas_int ldinvA,
-                                                     rocblas_int bsinvA,
+                                                     rocblas_int stride_invA,
                                                      rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
@@ -1087,6 +1095,152 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle handle,
                                             rocblas_int lda,
                                             double* B,
                                             rocblas_int ldb);
+
+/*
+ * ===========================================================================
+ *    BLAS extensions
+ * ===========================================================================
+ */
+
+/*! BLAS EX API
+
+    \details
+    TRSM_EX solves
+
+        op(A)*X = alpha*B or X*op(A) = alpha*B,
+
+    where alpha is a scalar, X and B are m by n matrices,
+    A is triangular matrix and op(A) is one of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    The matrix X is overwritten on B.
+
+    @param[in]
+    handle  rocblas_handle.
+            handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side.
+            rocblas_side_left:       op(A)*X = alpha*B.
+            rocblas_side_right:      X*op(A) = alpha*B.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation.
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int.
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int.
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            &zero then A is not referenced, and B need not be set before
+            entry.
+
+    @param[in]
+    A       void *
+            pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int.
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in,output]
+    B       void *
+            pointer storing matrix B on the GPU.
+            B is of dimension ( ldb, n ).
+            Before entry, the leading m by n part of the array B must
+            contain the right-hand side matrix B, and on exit is
+            overwritten by the solution matrix X.
+
+    @param[in]
+    ldb    rocblas_int.
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    @param[in]
+    invA    void *
+            pointer storing the inverse diagonal blocks of A on the GPU.
+            invA is of dimension ( ld_invA, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right.
+
+    @param[in]
+    ld_invA rocblas_int.
+            ldb specifies the first dimension of invA. ld_invA >= max( 1, BLOCK ).
+
+    @param[in]
+    compute_type rocblas_datatype
+            specifies the datatype of computation
+
+    @param[in]
+    option  rocblas_trsm_option
+            enumerant specifying the selected trsm memory option.
+            -	rocblas_trsm_high_performance
+            -	rocblas_trsm_low_memory
+            Trsm can choose algorithms that either use large work memory size in order
+            to get high performance, or small work memory with reduced performance.
+            User can inspect returned work memory size to fit their application needs.
+    @param[in/out]
+    x_temp_size size_t*
+            During setup the suggested size of x_temp is returned with respect
+            to the selected rocblas_trsm_option.
+            During run x_temp_size specifies the size allocated for
+            x_temp_workspace
+            Note: Must use rocblas_trsm_high_performance suggest size
+            If rocblas_side_left and m is not a multiple of 128
+            If rocblas_side_right and n is not a multiple of 128
+    @parm[in]
+    x_temp_workspace void*
+            During setup x_temp_workspace must hold a null pointer to signal
+      the resquest for x_temp_size
+            During run x_temp_workspace is a pointer to store temporary matrix X
+            on the GPU.
+            x_temp_workspace is of dimension ( m, x_temp_size/m )
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
+                                              rocblas_side side,
+                                              rocblas_fill uplo,
+                                              rocblas_operation trans_a,
+                                              rocblas_diagonal diag,
+                                              rocblas_int m,
+                                              rocblas_int n,
+                                              const void* alpha,
+                                              const void* a,
+                                              rocblas_int lda,
+                                              void* b,
+                                              rocblas_int ldb,
+                                              const void* invA,
+                                              rocblas_int ld_invA,
+                                              rocblas_datatype compute_type,
+                                              rocblas_trsm_option option,
+                                              size_t* x_temp_size,
+                                              void* x_temp_workspace);
 
 /*! \brief BLAS Level 3 API
 

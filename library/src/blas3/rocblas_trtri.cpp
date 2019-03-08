@@ -7,6 +7,7 @@
 #include "rocblas.h"
 namespace trtri { // must use namespace to avoid multply definiton
 #include "trtri.hpp"
+#include "trtri_trsm.hpp"
 }
 
 /* ============================================================================================ */
