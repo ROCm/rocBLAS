@@ -4,8 +4,6 @@
  * ************************************************************************ */
 
 #include <stdio.h>
-//#include <thread>
-//#include <mutex>
 #include <hip/hip_runtime.h>
 #include "definitions.h"
 #include "rocblas-types.h"
@@ -74,9 +72,6 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
     try
     {
         *handle = new _rocblas_handle();
-
-        //static std::once_flag tensileIntiFlag; 
-        //std::call_once(tensileIntiFlag, tensileInitialize);
 
         static int dummy = (tensileInitialize(), 0);
 
