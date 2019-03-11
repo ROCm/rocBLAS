@@ -113,6 +113,35 @@ inline void rocblas_init_nan(T* A, size_t N)
 }
 
 /* ============================================================================================ */
+/*! \brief  Packs strided_batched matricies into groups of 4 in N */
+
+template <typename T>
+inline void rocblas_packInt8(
+    std::vector<T>& A, size_t M, size_t N, size_t batch_count, size_t lda, size_t stride_a)
+{
+    if(N % 4 != 0)
+    {
+        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
+    }
+
+    std::vector<T> temp(A);
+    for(size_t count = 0; count < batch_count; count++)
+    {
+        for(size_t colBase = 0; colBase < N; colBase += 4)
+        {
+            for(size_t row = 0; row < lda; row++)
+            {
+                for(size_t colOffset = 0; colOffset < 4; colOffset++)
+                {
+                    A[(colBase * lda + 4 * row) + colOffset + (stride_a * count)] =
+                        temp[(colBase + colOffset) * lda + row + (stride_a * count)];
+                }
+            }
+        }
+    }
+}
+
+/* ============================================================================================ */
 /*! \brief  Packs matricies into groups of 4 in N */
 template <typename T>
 inline void rocblas_packInt8(std::vector<T>& A, size_t M, size_t N, size_t lda)
@@ -133,22 +162,7 @@ inline void rocblas_packInt8(std::vector<T>& A, size_t M, size_t N, size_t lda)
 
    */
 
-    if(N % 4 != 0)
-    {
-        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
-    }
-
-    std::vector<T> temp(A);
-    for(size_t colBase = 0; colBase < N; colBase += 4)
-    {
-        for(size_t row = 0; row < lda; row++)
-        {
-            for(size_t colOffset = 0; colOffset < 4; colOffset++)
-            {
-                A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
-            }
-        }
-    }
+    //  call general code with batch_count = 1 and stride_a = 0
+    rocblas_packInt8(A, M, N, 1, lda, 0);
 }
-
 #endif
