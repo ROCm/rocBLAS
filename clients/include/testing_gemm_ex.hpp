@@ -268,13 +268,12 @@ void testing_gemm_ex(const Arguments& arg)
     void* workspace        = nullptr;
 
     To h_alpha_To, h_beta_To;
-    if(std::is_same<To, rocblas_half>::value)
+    if(std::is_same<To, rocblas_half>{})
     {
         h_alpha_To = float_to_half(arg.alpha);
         h_beta_To  = float_to_half(arg.beta);
     }
-    else if(std::is_same<To, float>::value || std::is_same<To, double>::value ||
-            std::is_same<To, int32_t>::value)
+    else if(std::is_same<To, float>{} || std::is_same<To, double>{} || std::is_same<To, int32_t>{})
     {
         h_alpha_To = static_cast<To>(arg.alpha);
         h_beta_To  = static_cast<To>(arg.beta);
@@ -290,13 +289,12 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     Tc h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half>::value)
+    if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
         h_beta_Tc  = float_to_half(arg.beta);
     }
-    else if(std::is_same<Tc, float>::value || std::is_same<Tc, double>::value ||
-            std::is_same<Tc, int32_t>::value)
+    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
         h_alpha_Tc = static_cast<Tc>(arg.alpha);
         h_beta_Tc  = static_cast<Tc>(arg.beta);
@@ -327,7 +325,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
-       (std::is_same<Ti, int8_t>::value &&
+       (std::is_same<Ti, int8_t>{} &&
         (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
          (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
@@ -408,7 +406,7 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_init<To>(hC, M, N, ldc);
     rocblas_init<To>(hD_1, M, N, ldd);
 
-    if(std::is_same<To, rocblas_half>::value && std::is_same<Tc, float>::value)
+    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -443,7 +441,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // copy data from CPU to device
     // if int8 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t>::value && transA == rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
     {
         host_vector<Ti> hA_packed(hA);
 
@@ -456,7 +454,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>::value && transB != rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
     {
         host_vector<Ti> hB_packed(hB);
 
@@ -560,7 +558,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tc, rocblas_half>::value && K > 10000)
+            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
@@ -672,10 +670,9 @@ void testing_gemm_ex(const Arguments& arg)
 
         std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
                   << M << "," << N << "," << K << ","
-                  << (std::is_same<To, rocblas_half>::value ? half_to_float(h_alpha_To)
-                                                            : h_alpha_To)
+                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_alpha_To) : h_alpha_To)
                   << "," << lda << "," << ldb << ","
-                  << (std::is_same<To, rocblas_half>::value ? half_to_float(h_beta_To) : h_beta_To)
+                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_beta_To) : h_beta_To)
                   << "," << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)

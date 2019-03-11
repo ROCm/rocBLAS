@@ -27,7 +27,7 @@ struct trtri_testing : rocblas_test_invalid
 template <typename T>
 struct trtri_testing<
     T,
-    typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value>::type>
+    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
@@ -63,7 +63,7 @@ struct trtri_template : RocBLAS_Test<trtri_template<K>, trtri_testing>
                             : !strcmp(arg.function, "testing_trtri_batched");
     }
 
-    // Goggle Test name suffix based on parameters
+    // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<trtri_template> name;
