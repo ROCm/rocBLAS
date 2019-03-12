@@ -59,7 +59,7 @@ struct perf_gemm_ex<Ti,
                     Tc,
                     typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
-    explicit operator bool() const { return true; }
+    explicit operator bool() { return true; }
     void operator()(const Arguments& arg) { testing_gemm_ex<Ti, To, Tc>(arg); }
 };
 
@@ -77,7 +77,7 @@ struct perf_gemm_strided_batched_ex<
     Tc,
     typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
-    explicit operator bool() const { return true; }
+    explicit operator bool() { return true; }
     void operator()(const Arguments& arg) { testing_gemm_strided_batched_ex<Ti, To, Tc>(arg); }
 };
 
@@ -93,7 +93,7 @@ struct perf_blas<
     T,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
-    explicit operator bool() const { return true; }
+    explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
         if(!strcmp(arg.function, "gemm"))
@@ -149,7 +149,7 @@ struct perf_blas<
 template <typename T>
 struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
-    explicit operator bool() const { return true; }
+    explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
         if(!strcmp(arg.function, "axpy"))

@@ -97,6 +97,8 @@ struct Arguments
 
         auto check = [&, sig = (unsigned char)0 ](const auto& elem) mutable
         {
+            static_assert(sizeof(elem) <= 255,
+                          "One of the fields of Arguments is too large (> 255 bytes)");
             for(unsigned char i = 0; i < sizeof(elem); ++i)
                 if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
                     error();
