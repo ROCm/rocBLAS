@@ -14,6 +14,14 @@
 #include <stdint.h>
 #include <hip/hip_vector_types.h>
 
+/*! \brief rocblas_handle is a structure holding the rocblas library context.
+ * It must be initialized using rocblas_create_handle()
+ * and the returned handle must be passed
+ * to all subsequent library function calls.
+ * It should be destroyed at the end using rocblas_destroy_handle().
+ */
+typedef struct _rocblas_handle* rocblas_handle;
+
 // integer types
 /*! \brief To specify whether int32 or int64 is used
  */
@@ -30,8 +38,6 @@ typedef double2 rocblas_double_complex;
 // half types
 typedef uint16_t rocblas_half;
 typedef float2 rocblas_half_complex;
-
-typedef struct _rocblas_handle* rocblas_handle;
 
 /* ============================================================================================ */
 
@@ -93,20 +99,20 @@ typedef enum rocblas_status_ {
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_ {
-    rocblas_datatype_f16_r = 150,
-    rocblas_datatype_f32_r = 151,
-    rocblas_datatype_f64_r = 152,
-    rocblas_datatype_f16_c = 153,
-    rocblas_datatype_f32_c = 154,
-    rocblas_datatype_f64_c = 155,
-    rocblas_datatype_i8_r  = 160,
-    rocblas_datatype_u8_r  = 161,
-    rocblas_datatype_i32_r = 162,
-    rocblas_datatype_u32_r = 163,
-    rocblas_datatype_i8_c  = 164,
-    rocblas_datatype_u8_c  = 165,
-    rocblas_datatype_i32_c = 166,
-    rocblas_datatype_u32_c = 167,
+    rocblas_datatype_f16_r = 150, /**< 16 bit floating point, real */
+    rocblas_datatype_f32_r = 151, /**< 32 bit floating point, real */
+    rocblas_datatype_f64_r = 152, /**< 64 bit floating point, real */
+    rocblas_datatype_f16_c = 153, /**< 16 bit floating point, complex */
+    rocblas_datatype_f32_c = 154, /**< 32 bit floating point, complex */
+    rocblas_datatype_f64_c = 155, /**< 64 bit floating point, complex */
+    rocblas_datatype_i8_r  = 160, /**<  8 bit signed integer, real */
+    rocblas_datatype_u8_r  = 161, /**<  8 bit unsigned integer, real */
+    rocblas_datatype_i32_r = 162, /**< 32 bit signed integer, real */
+    rocblas_datatype_u32_r = 163, /**< 32 bit unsigned integer, real */
+    rocblas_datatype_i8_c  = 164, /**<  8 bit signed integer, complex */
+    rocblas_datatype_u8_c  = 165, /**<  8 bit unsigned integer, complex */
+    rocblas_datatype_i32_c = 166, /**< 32 bit signed integer, complex */
+    rocblas_datatype_u32_c = 167, /**< 32 bit unsigned integer, complex */
 } rocblas_datatype;
 
 /*! \brief Indicates the pointer is device pointer or host pointer */
@@ -127,6 +133,12 @@ typedef enum rocblas_layer_mode_ {
 typedef enum rocblas_gemm_algo_ {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
+
+/*! \brief Indicates selected option to run trsm*/
+typedef enum rocblas_trsm_option_ {
+    rocblas_trsm_high_performance = 0,
+    rocblas_trsm_low_memory       = 1
+} rocblas_trsm_option;
 
 #ifdef __cplusplus
 }

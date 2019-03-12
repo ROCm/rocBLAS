@@ -25,7 +25,7 @@ struct gemv_testing : rocblas_test_invalid
 template <typename T>
 struct gemv_testing<
     T,
-    typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value>::type>
+    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
@@ -54,7 +54,7 @@ struct gemv : RocBLAS_Test<gemv, gemv_testing>
                !strcmp(arg.function, "testing_gemv_bad_arg");
     }
 
-    // Goggle Test name suffix based on parameters
+    // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<gemv>() << rocblas_datatype2string(arg.a_type) << '_'

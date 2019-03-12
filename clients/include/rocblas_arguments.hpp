@@ -15,11 +15,6 @@
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
 
-typedef enum rocblas_initialization_ {
-    rocblas_initialization_random_int = 111,
-    rocblas_initialization_trig_float = 222,
-} rocblas_initialization;
-
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
 /* WARNING: If this data is changed, then rocblas_common.yaml must also be changed. */
@@ -80,9 +75,10 @@ struct Arguments
 
     // Validate input format.
     // rocblas_gentest.py is expected to conform to this format.
+    // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
     static void validate(std::istream& ifs)
     {
-        auto error = []() {
+        auto error = [] {
             std::cerr << "Fatal error: Binary test data does match input format.\n"
                          "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                          "define exactly the same Arguments, that rocblas_gentest.py\n"
@@ -101,6 +97,8 @@ struct Arguments
 
         auto check = [&, sig = (unsigned char)0 ](const auto& elem) mutable
         {
+            static_assert(sizeof(elem) <= 255,
+                          "One of the fields of Arguments is too large (> 255 bytes)");
             for(unsigned char i = 0; i < sizeof(elem); ++i)
                 if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
                     error();
@@ -151,13 +149,6 @@ struct Arguments
     }
 
     private:
-    /* =============================================================================================
-     */
-    /* All Arguments data members are above. Below are support functions for reading and formatting
-     */
-    /* =============================================================================================
-     */
-
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg)
     {

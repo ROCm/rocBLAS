@@ -40,6 +40,7 @@ if( BUILD_WITH_TENSILE )
       gemm_gtest.cpp
       gemm_parallel_gtest.cpp
       trsm_gtest.cpp
+      trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
 endif( )
@@ -65,6 +66,7 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/norm.cpp
+      ../common/rocblas_parse_data.cpp
     )
 
 add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )

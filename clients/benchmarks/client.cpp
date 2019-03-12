@@ -5,9 +5,12 @@
 #include <iostream>
 #include <cstdio>
 #include <cstring>
+#include <string>
 #include <cctype>
 #include <boost/program_options.hpp>
-
+#include <algorithm>
+#include <stdexcept>
+#include <type_traits>
 #include "rocblas.h"
 #include "utility.hpp"
 #include "rocblas.hpp"
@@ -30,186 +33,153 @@
 #include "testing_set_get_vector.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
+#include "rocblas_parse_data.hpp"
+
+using namespace std::literals;
 
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_trsm.hpp"
+#include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or complex, the test is marked invalid
-template <typename Ti,
-          typename To = Ti,
-          typename Tc = To,
-          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
-                                               std::true_type,
-                                               std::false_type>::type>
-struct perf_gemm_ex
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct perf_gemm_ex : rocblas_test_invalid
 {
-    explicit operator bool() const { return true; }
-    void operator()(const Arguments& arg) { testing_gemm_ex<Ti, To, Tc>(arg); }
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_ex<Ti, To, Tc, std::false_type> : rocblas_test_invalid
+struct perf_gemm_ex<Ti,
+                    To,
+                    Tc,
+                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg) { testing_gemm_ex<Ti, To, Tc>(arg); }
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
 // When Ti == void or complex, the test is marked invalid
-template <typename Ti,
-          typename To = Ti,
-          typename Tc = To,
-          typename    = typename std::conditional<!std::is_same<Ti, void>::value && !is_complex<Ti>,
-                                               std::true_type,
-                                               std::false_type>::type>
-struct perf_gemm_strided_batched_ex
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 {
-    explicit operator bool() const { return true; }
-    void operator()(const Arguments& arg) { testing_gemm_strided_batched_ex<Ti, To, Tc>(arg); }
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<Ti, To, Tc, std::false_type> : rocblas_test_invalid
+struct perf_gemm_strided_batched_ex<
+    Ti,
+    To,
+    Tc,
+    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg) { testing_gemm_strided_batched_ex<Ti, To, Tc>(arg); }
 };
 
 #endif
 
-int run_bench_test(const char* function, char precision, Arguments arg)
+template <typename T, typename = void>
+struct perf_blas : rocblas_test_invalid
 {
+};
+
+template <typename T>
+struct perf_blas<
+    T,
+    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+{
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else if(!strcmp(arg.function, "trsm"))
+            testing_trsm<T>(arg);
+        else if(!strcmp(arg.function, "trsm_ex"))
+            testing_trsm_ex<T>(arg);
+        else if(!strcmp(arg.function, "trsv"))
+            testing_trsv<T>(arg);
+        else if(!strcmp(arg.function, "asum"))
+            testing_asum<T>(arg);
+        else if(!strcmp(arg.function, "axpy"))
+            testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "copy"))
+            testing_copy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
+        else if(!strcmp(arg.function, "swap"))
+            testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "iamax"))
+            testing_iamax<T>(arg);
+        else if(!strcmp(arg.function, "iamin"))
+            testing_iamin<T>(arg);
+        else if(!strcmp(arg.function, "nrm2"))
+            testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "scal"))
+            testing_scal<T>(arg);
+        else if(!strcmp(arg.function, "gemv"))
+            testing_gemv<T>(arg);
+        else if(!strcmp(arg.function, "ger"))
+            testing_ger<T>(arg);
+        else if(!strcmp(arg.function, "syr"))
+            testing_syr<T>(arg);
+        else if(!strcmp(arg.function, "trtri"))
+            testing_trtri<T>(arg);
+        else if(!strcmp(arg.function, "trtri_batched"))
+            testing_trtri_batched<T>(arg);
+        else if(!strcmp(arg.function, "geam"))
+            testing_geam<T>(arg);
+        else if(!strcmp(arg.function, "set_get_vector"))
+            testing_set_get_vector<T>(arg);
+        else if(!strcmp(arg.function, "set_get_matrix"))
+            testing_set_get_matrix<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function +
+                                        " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename T>
+struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+{
+    explicit operator bool() { return true; }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "axpy"))
+            testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function +
+                                        " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+int run_bench_test(Arguments& arg)
+{
+    // disable unit_check in client benchmark, it is only used in gtest unit test
+    arg.unit_check = 0;
+
+    // enable timing check,otherwise no performance data collected
+    arg.timing = 1;
+
+    // Skip past any testing_ prefix in function
     static constexpr char prefix[] = "testing_";
+    const char* function           = arg.function;
     if(!strncmp(function, prefix, sizeof(prefix) - 1))
-    {
         function += sizeof(prefix) - 1;
-    }
 
-    if(!strcmp(function, "asum"))
-    {
-        if(precision == 's')
-            testing_asum<float, float>(arg);
-        else if(precision == 'd')
-            testing_asum<double, double>(arg);
-    }
-    else if(!strcmp(function, "axpy"))
-    {
-        if(precision == 'h')
-            testing_axpy<rocblas_half>(arg);
-        else if(precision == 's')
-            testing_axpy<float>(arg);
-        else if(precision == 'd')
-            testing_axpy<double>(arg);
-    }
-    else if(!strcmp(function, "copy"))
-    {
-        if(precision == 's')
-            testing_copy<float>(arg);
-        else if(precision == 'd')
-            testing_copy<double>(arg);
-    }
-    else if(!strcmp(function, "dot"))
-    {
-        if(precision == 's')
-            testing_dot<float>(arg);
-        else if(precision == 'd')
-            testing_dot<double>(arg);
-    }
-    else if(!strcmp(function, "swap"))
-    {
-        if(precision == 's')
-            testing_swap<float>(arg);
-        else if(precision == 'd')
-            testing_swap<double>(arg);
-    }
-    else if(!strcmp(function, "iamax"))
-    {
-        if(precision == 's')
-            testing_iamax<float>(arg);
-        else if(precision == 'd')
-            testing_iamax<double>(arg);
-    }
-    else if(!strcmp(function, "iamin"))
-    {
-        if(precision == 's')
-            testing_iamin<float>(arg);
-        else if(precision == 'd')
-            testing_iamin<double>(arg);
-    }
-    else if(!strcmp(function, "nrm2"))
-    {
-        if(precision == 's')
-            testing_nrm2<float, float>(arg);
-        else if(precision == 'd')
-            testing_nrm2<double, double>(arg);
-    }
-    else if(!strcmp(function, "scal"))
-    {
-        if(precision == 's')
-            testing_scal<float>(arg);
-        else if(precision == 'd')
-            testing_scal<double>(arg);
-    }
-    else if(!strcmp(function, "gemv"))
-    {
-        if(precision == 's')
-            testing_gemv<float>(arg);
-        else if(precision == 'd')
-            testing_gemv<double>(arg);
-    }
-    else if(!strcmp(function, "ger"))
-    {
-        if(precision == 's')
-            testing_ger<float>(arg);
-        else if(precision == 'd')
-            testing_ger<double>(arg);
-    }
-    else if(!strcmp(function, "syr"))
-    {
-        if(precision == 's')
-            testing_syr<float>(arg);
-        else if(precision == 'd')
-            testing_syr<double>(arg);
-    }
-    else if(!strcmp(function, "trtri"))
-    {
-        if(precision == 's')
-            testing_trtri<float>(arg);
-        else if(precision == 'd')
-            testing_trtri<double>(arg);
-    }
-    else if(!strcmp(function, "trtri_batched"))
-    {
-        if(precision == 's')
-            testing_trtri_batched<float>(arg);
-        else if(precision == 'd')
-            testing_trtri_batched<double>(arg);
-    }
-    else if(!strcmp(function, "geam"))
-    {
-        if(precision == 's')
-            testing_geam<float>(arg);
-        else if(precision == 'd')
-            testing_geam<double>(arg);
-    }
-    else if(!strcmp(function, "set_get_vector"))
-    {
-        if(precision == 's')
-            testing_set_get_vector<float>(arg);
-        else if(precision == 'd')
-            testing_set_get_vector<double>(arg);
-    }
-    else if(!strcmp(function, "set_get_matrix"))
-    {
-        if(precision == 's')
-            testing_set_get_matrix<float>(arg);
-        else if(precision == 'd')
-            testing_set_get_matrix<double>(arg);
-    }
 #if BUILD_WITH_TENSILE
-    else if(!strcmp(function, "gemm"))
+    if(!strcmp(function, "gemm"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -231,43 +201,6 @@ int run_bench_test(const char* function, char precision, Arguments arg)
             std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
-
-        if(precision == 'h')
-            testing_gemm<rocblas_half>(arg);
-        else if(precision == 's')
-            testing_gemm<float>(arg);
-        else if(precision == 'd')
-            testing_gemm<double>(arg);
-    }
-    else if(!strcmp(function, "gemm_ex"))
-    {
-        // adjust dimension for GEMM routines
-        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
-        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
-        rocblas_int min_ldc = arg.M;
-        rocblas_int min_ldd = arg.M;
-
-        if(arg.lda < min_lda)
-        {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
-            arg.lda = min_lda;
-        }
-        if(arg.ldb < min_ldb)
-        {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
-            arg.ldb = min_ldb;
-        }
-        if(arg.ldc < min_ldc)
-        {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
-            arg.ldc = min_ldc;
-        }
-        if(arg.ldd < min_ldd)
-        {
-            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
-            arg.ldd = min_ldd;
-        }
-        rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
     else if(!strcmp(function, "gemm_strided_batched"))
     {
@@ -318,13 +251,37 @@ int run_bench_test(const char* function, char precision, Arguments arg)
                       << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
+    }
 
-        if(precision == 'h')
-            testing_gemm_strided_batched<rocblas_half>(arg);
-        else if(precision == 's')
-            testing_gemm_strided_batched<float>(arg);
-        else if(precision == 'd')
-            testing_gemm_strided_batched<double>(arg);
+    if(!strcmp(function, "gemm_ex"))
+    {
+        // adjust dimension for GEMM routines
+        rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
+        rocblas_int min_ldb = arg.transB == 'N' ? arg.K : arg.N;
+        rocblas_int min_ldc = arg.M;
+        rocblas_int min_ldd = arg.M;
+
+        if(arg.lda < min_lda)
+        {
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            arg.lda = min_lda;
+        }
+        if(arg.ldb < min_ldb)
+        {
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            arg.ldb = min_ldb;
+        }
+        if(arg.ldc < min_ldc)
+        {
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            arg.ldc = min_ldc;
+        }
+        if(arg.ldd < min_ldd)
+        {
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            arg.ldd = min_ldd;
+        }
+        rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
     else if(!strcmp(function, "gemm_strided_batched_ex"))
     {
@@ -363,73 +320,31 @@ int run_bench_test(const char* function, char precision, Arguments arg)
 
         rocblas_gemm_dispatch<perf_gemm_strided_batched_ex>(arg);
     }
-    else if(!strcmp(function, "trsm"))
-    {
-        if(precision == 's')
-            testing_trsm<float>(arg);
-        else if(precision == 'd')
-            testing_trsm<double>(arg);
-    }
-    else if(!strcmp(function, "trsv"))
-    {
-        if(precision == 's')
-            testing_trsv<float>(arg);
-        else if(precision == 'd')
-            testing_trsv<double>(arg);
-    }
-#endif
     else
+#endif
     {
-        printf("Invalid value for --function \n");
-        return -1;
+        rocblas_simple_dispatch<perf_blas>(arg);
     }
-
     return 0;
 }
 
-int rocblas_bench_datafile(const std::string& datafile)
+int rocblas_bench_datafile()
 {
-    RocBLAS_TestData::set_filename(datafile);
-
-    for(auto i = RocBLAS_TestData::begin(); i != RocBLAS_TestData::end(); ++i)
-    {
-        Arguments arg = *i;
-        char precision;
-
-        // disable unit_check in client benchmark, it is only used in gtest unit test
-        arg.unit_check = 0;
-
-        // enable timing check,otherwise no performance data collected
-        arg.timing = 1;
-
-        switch(arg.a_type)
-        {
-        case rocblas_datatype_f64_r: precision = 'd'; break;
-        case rocblas_datatype_f32_r: precision = 's'; break;
-        case rocblas_datatype_f16_r: precision = 'h'; break;
-        case rocblas_datatype_f64_c: precision = 'z'; break;
-        case rocblas_datatype_f32_c: precision = 'c'; break;
-        case rocblas_datatype_f16_c: precision = 'k'; break;
-        default: precision                     = 's'; break;
-        }
-        run_bench_test(arg.function, precision, arg);
-    }
-
+    int ret = 0;
+    for(Arguments arg : RocBLAS_TestData())
+        ret |= run_bench_test(arg);
     test_cleanup::cleanup();
-    return 0;
+    return ret;
 }
 
 using namespace boost::program_options;
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) try
 {
     Arguments arg;
-    arg.unit_check =
-        0;          // disable unit_check in client benchmark, it is only used in gtest unit test
-    arg.timing = 1; // enable timing check,otherwise no performance data collected
 
     std::string function;
-    char precision;
+    std::string precision;
     std::string a_type;
     std::string b_type;
     std::string c_type;
@@ -438,9 +353,9 @@ int main(int argc, char* argv[])
     std::string initialization;
 
     rocblas_int device_id;
-    std::string datafile;
+    bool datafile = rocblas_parse_data(argc, argv);
 
-    options_description desc("rocblas client command line options");
+    options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
         ("sizem,m",
@@ -509,34 +424,36 @@ int main(int argc, char* argv[])
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
 
         ("function,f",
-         value<std::string>(&function)->default_value("gemv"),
-         "BLAS function to test. Options: gemv, ger, syr, trsm, trsv, trmm, symv, syrk, syr2k")
+         value<std::string>(&function),
+         "BLAS function to test.")
 
         ("precision,r",
-         value<char>(&precision)->default_value('s'), "Options: h,s,d,c,z")
+         value<std::string>(&precision)->default_value("f32_r"), "Precision. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("a_type",
-         value<std::string>(&a_type)->default_value("f32_r"), "Precision of matrix A, only applicable to BLAS_EX. "
-         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+         value<std::string>(&a_type), "Precision of matrix A. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("b_type",
-         value<std::string>(&b_type)->default_value("f32_r"), "Precision of matrix B, only applicable to BLAS_EX. "
-         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+         value<std::string>(&b_type), "Precision of matrix B. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("c_type",
-         value<std::string>(&c_type)->default_value("f32_r"), "Precision of matrix C, only applicable to BLAS_EX. "
-         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+         value<std::string>(&c_type), "Precision of matrix C. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("d_type",
-         value<std::string>(&d_type)->default_value("f32_r"), "Precision of matrix D, only applicable to BLAS_EX. "
-         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+         value<std::string>(&d_type), "Precision of matrix D. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("compute_type",
-         value<std::string>(&compute_type)->default_value("f32_r"), "Precision of computation, only applicable to BLAS_EX. "
-         "Options: f16_r,f32_r,f64_r,i8_r,i32_r")
+         value<std::string>(&compute_type), "Precision of computation. "
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
 
         ("initialization",
-         value<std::string>(&initialization)->default_value("rand_int"), "Intialize with random integers or trig functions sin and cos. "
+         value<std::string>(&initialization)->default_value("rand_int"),
+         "Intialize with random integers or trig functions sin and cos. "
          "Options: rand_int, trig_float")
 
         ("transposeA",
@@ -553,15 +470,15 @@ int main(int argc, char* argv[])
 
         ("uplo",
          value<char>(&arg.uplo)->default_value('U'),
-         "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm
+         "U = upper, L = lower. Only applicable to certain routines") // xsymv xsyrk xsyr2k xtrsm xtrsm_ex
                                                                      // xtrmm xtrsv
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsv
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
 
         ("batch",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines") // xtrsm xtrmm xgemm
+         "Number of matrices. Only applicable to batched routines") // xtrsm xtrsm_ex xtrmm xgemm
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
@@ -586,10 +503,6 @@ int main(int argc, char* argv[])
         ("workspace_size",
          value<size_t>(&arg.workspace_size)->default_value(10),
          "extended precision gemm workspace size")
-
-        ("data",
-         value<std::string>(&datafile),
-         "Data file to use for test arguments (overrides all of the above)")
 
         ("device",
          value<rocblas_int>(&device_id)->default_value(0),
@@ -622,79 +535,56 @@ int main(int argc, char* argv[])
 
     std::cout << std::endl;
     if(device_count <= device_id)
-    {
-        printf("Error: Invalid device ID. There may not be such device ID. Will exit \n");
-        return -1;
-    }
-    else
-    {
-        set_device(device_id);
-    }
+        throw std::invalid_argument("Invalid Device ID");
+    set_device(device_id);
 
-    if(datafile != "")
-    {
-        return rocblas_bench_datafile(datafile);
-    }
+    if(datafile)
+        return rocblas_bench_datafile();
 
-    if(!strchr("hsdcz", tolower(precision)))
-    {
-        std::cerr << "Invalid value for --precision" << std::endl;
-        return -1;
-    }
+    std::transform(precision.begin(), precision.end(), precision.begin(), ::tolower);
+    auto prec = string2rocblas_datatype(precision);
+    if(prec == static_cast<rocblas_datatype>(-1))
+        throw std::invalid_argument("Invalid value for --precision " + precision);
 
-    arg.a_type = string2rocblas_datatype(a_type);
+    arg.a_type = a_type == "" ? prec : string2rocblas_datatype(a_type);
     if(arg.a_type == static_cast<rocblas_datatype>(-1))
-    {
-        std::cerr << "Invalid value for --a_type" << std::endl;
-        return -1;
-    }
+        throw std::invalid_argument("Invalid value for --a_type " + a_type);
 
-    arg.b_type = string2rocblas_datatype(b_type);
+    arg.b_type = b_type == "" ? prec : string2rocblas_datatype(b_type);
     if(arg.b_type == static_cast<rocblas_datatype>(-1))
-    {
-        std::cerr << "Invalid value for --b_type" << std::endl;
-        return -1;
-    }
+        throw std::invalid_argument("Invalid value for --b_type " + b_type);
 
-    arg.c_type = string2rocblas_datatype(c_type);
+    arg.c_type = c_type == "" ? prec : string2rocblas_datatype(c_type);
     if(arg.c_type == static_cast<rocblas_datatype>(-1))
-    {
-        std::cerr << "Invalid value for --c_type" << std::endl;
-        return -1;
-    }
+        throw std::invalid_argument("Invalid value for --c_type " + c_type);
 
-    arg.d_type = string2rocblas_datatype(d_type);
+    arg.d_type = d_type == "" ? prec : string2rocblas_datatype(d_type);
     if(arg.d_type == static_cast<rocblas_datatype>(-1))
-    {
-        std::cerr << "Invalid value for --d_type" << std::endl;
-        return -1;
-    }
+        throw std::invalid_argument("Invalid value for --d_type " + d_type);
 
-    arg.compute_type = string2rocblas_datatype(compute_type);
+    arg.compute_type = compute_type == "" ? prec : string2rocblas_datatype(compute_type);
     if(arg.compute_type == static_cast<rocblas_datatype>(-1))
-    {
-        std::cerr << "Invalid value for --compute_type" << std::endl;
-        return -1;
-    }
+        throw std::invalid_argument("Invalid value for --compute_type " + compute_type);
 
-    if(initialization == "rand_int")
-    {
-        arg.initialization = rocblas_initialization_random_int;
-    }
-    else if(initialization == "trig_float")
-    {
-        arg.initialization = rocblas_initialization_trig_float;
-    }
-    else
-    {
-        std::cerr << "Invalid value for --initialization" << std::endl;
-        return -1;
-    }
+    arg.initialization = string2rocblas_initialization(initialization);
+    if(arg.initialization == static_cast<rocblas_initialization>(-1))
+        throw std::invalid_argument("Invalid value for --initialization " + initialization);
 
-    if(arg.M < 0 || arg.N < 0 || arg.K < 0)
-    {
-        printf("Invalid matrix dimension\n");
-    }
+    if(arg.M < 0)
+        throw std::invalid_argument("Invalid value for -m " + std::to_string(arg.M));
+    if(arg.N < 0)
+        throw std::invalid_argument("Invalid value for -n " + std::to_string(arg.N));
+    if(arg.K < 0)
+        throw std::invalid_argument("Invalid value for -k " + std::to_string(arg.K));
 
-    return run_bench_test(function.c_str(), precision, arg);
+    int copied = snprintf(arg.function, sizeof(arg.function), "%s", function.c_str());
+    if(copied <= 0 || copied >= sizeof(arg.function))
+        throw std::invalid_argument("Invalid value for --function");
+
+    return run_bench_test(arg);
+}
+catch(const std::invalid_argument& exp)
+{
+    std::cerr << exp.what() << std::endl;
+    return -1;
 }

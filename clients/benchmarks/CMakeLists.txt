@@ -31,6 +31,7 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/norm.cpp
+      ../common/rocblas_parse_data.cpp
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )

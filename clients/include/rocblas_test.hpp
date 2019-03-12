@@ -113,11 +113,6 @@ class RocBLAS_TestName
     {
         // Placed inside function to avoid dependency on initialization order
         static table_t* table = test_cleanup::allocate<table_t>(&table);
-        if(!table)
-        {
-            fputs("Internal error: nullptr\n", stderr);
-            exit(EXIT_FAILURE);
-        }
         return *table;
     }
 
@@ -180,7 +175,7 @@ class RocBLAS_TestName
 
 // ----------------------------------------------------------------------------
 // RocBLAS_Test base class. All non-legacy rocBLAS Google tests derive from it.
-// It defines a type_filter() function and a PrintToStringParamName class
+// It defines a type_filter() functor and a PrintToStringParamName class
 // which calls name_suffix() in the derived class to form the test name suffix.
 // ----------------------------------------------------------------------------
 template <typename TEST, template <typename...> class FILTER>

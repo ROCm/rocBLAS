@@ -7,6 +7,11 @@
 
 #include "rocblas.h"
 
+typedef enum rocblas_initialization_ {
+    rocblas_initialization_random_int = 111,
+    rocblas_initialization_trig_float = 222,
+} rocblas_initialization;
+
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
 
@@ -76,6 +81,16 @@ constexpr auto rocblas_datatype2string(rocblas_datatype type)
     }
 }
 
+constexpr auto rocblas_initialization2string(rocblas_initialization init)
+{
+    switch(init)
+    {
+    case rocblas_initialization_random_int: return "rand_int";
+    case rocblas_initialization_trig_float: return "trig_float";
+    default: return "invalid";
+    }
+}
+
 /* ============================================================================================ */
 /*  Convert lapack char constants to rocblas type. */
 
@@ -129,42 +144,34 @@ constexpr rocblas_side char2rocblas_side(char value)
     }
 }
 
-constexpr rocblas_datatype char2rocblas_datatype(char value)
+inline rocblas_initialization string2rocblas_initialization(const std::string& value)
 {
-    switch(value)
-    {
-    case 'H':
-    case 'h': return rocblas_datatype_f16_r;
-    case 'S':
-    case 's': return rocblas_datatype_f32_r;
-    case 'D':
-    case 'd': return rocblas_datatype_f64_r;
-    case 'C':
-    case 'c': return rocblas_datatype_f32_c;
-    case 'Z':
-    case 'z': return rocblas_datatype_f64_c;
-    default: return static_cast<rocblas_datatype>(-1);
-    }
+    // clang-format off
+    return
+        value == "rand_int"   ? rocblas_initialization_random_int :
+        value == "trig_float" ? rocblas_initialization_trig_float :
+        static_cast<rocblas_initialization>(-1);
+    // clang-format on
 }
 
 inline rocblas_datatype string2rocblas_datatype(const std::string& value)
 {
     // clang-format off
     return
-        value == "f16_r" ? rocblas_datatype_f16_r :
-        value == "f32_r" ? rocblas_datatype_f32_r :
-        value == "f64_r" ? rocblas_datatype_f64_r :
-        value == "f16_c" ? rocblas_datatype_f32_c :
-        value == "f32_c" ? rocblas_datatype_f32_c :
-        value == "f64_c" ? rocblas_datatype_f64_c :
-        value == "i8_r"  ? rocblas_datatype_i8_r  :
-        value == "i32_r" ? rocblas_datatype_i32_r :
-        value == "i8_c"  ? rocblas_datatype_i8_c  :
-        value == "i32_c" ? rocblas_datatype_i32_c :
-        value == "u8_r"  ? rocblas_datatype_u8_r  :
-        value == "u32_r" ? rocblas_datatype_u32_r :
-        value == "u8_c"  ? rocblas_datatype_u8_c  :
-        value == "u32_c" ? rocblas_datatype_u32_c :
+        value == "f16_r" || value == "h" ? rocblas_datatype_f16_r :
+        value == "f32_r" || value == "s" ? rocblas_datatype_f32_r :
+        value == "f64_r" || value == "d" ? rocblas_datatype_f64_r :
+        value == "f16_c"                 ? rocblas_datatype_f16_c :
+        value == "f32_c" || value == "c" ? rocblas_datatype_f32_c :
+        value == "f64_c" || value == "z" ? rocblas_datatype_f64_c :
+        value == "i8_r"                  ? rocblas_datatype_i8_r  :
+        value == "i32_r"                 ? rocblas_datatype_i32_r :
+        value == "i8_c"                  ? rocblas_datatype_i8_c  :
+        value == "i32_c"                 ? rocblas_datatype_i32_c :
+        value == "u8_r"                  ? rocblas_datatype_u8_r  :
+        value == "u32_r"                 ? rocblas_datatype_u32_r :
+        value == "u8_c"                  ? rocblas_datatype_u8_c  :
+        value == "u32_c"                 ? rocblas_datatype_u32_c :
         static_cast<rocblas_datatype>(-1);
     // clang-format on
 }

@@ -38,31 +38,6 @@ constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
 template <>
 constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    swap  interchange vector x[i] and y[i], for  i = 1 , … , n
-
-        y := x; x := y
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-              if n <= 0 quick return with rocblas_status_success
-    @param[inout]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      specifies the increment for the elements of x.
-    @param[inout]
-    y         pointer storing vector y on the GPU.
-    @param[in]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
-
 template <class T>
 rocblas_status
 rocblas_swap(rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
