@@ -237,7 +237,7 @@ Tests:
   category: quick
   function:
     testing_gemm_strided_batched: *half_single_double_precisions
-    testing_gemm_strided_batched_ex: *hpa_half_single_double_precisions # *real_precisions
+    testing_gemm_strided_batched_ex: *real_precisions
   matrix_size: *small_matrix_size_range
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
@@ -247,7 +247,7 @@ Tests:
   category: quick
   function:
     testing_gemm_strided_batched: *half_single_double_precisions
-    testing_gemm_strided_batched_ex: *hpa_half_single_double_precisions # *real_precisions
+    testing_gemm_strided_batched_ex: *real_precisions
   matrix_size: *small_matrix_size_stride_a_range
   alpha: 2.0
   beta: 3.0
@@ -281,7 +281,7 @@ Tests:
   category: pre_checkin
   function:
     testing_gemm_strided_batched: *half_single_double_precisions
-    testing_gemm_strided_batched_ex: *hpa_half_single_double_precisions # *real_precisions
+    testing_gemm_strided_batched_ex: *real_precisions
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -291,7 +291,7 @@ Tests:
   category: pre_checkin
   function:
     testing_gemm_strided_batched: *half_single_double_precisions
-    testing_gemm_strided_batched_ex: *hpa_half_single_double_precisions # *real_precisions
+    testing_gemm_strided_batched_ex: *real_precisions
   matrix_size: *large_matrix_size_stride_a_range
   alpha: 2.0
   beta: 3.0
@@ -315,7 +315,7 @@ Tests:
   category: nightly
   function:
     testing_gemm_strided_batched: *half_single_precisions
-    testing_gemm_strided_batched_ex: *hpa_half_single_precisions
+    testing_gemm_strided_batched_ex: *real_precisions
   matrix_size: *conv_resnet50_fwd
   alpha: 1.0
   beta: 0.0
