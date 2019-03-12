@@ -261,7 +261,7 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
         // If in host pointer mode, workspace is converted to Tr* and the result is
         // placed there, and then copied from device to host. If To is a class type,
         // it must be a standard layout type and its first member must be of type Tr.
-        static_assert(std::is_standard_layout<To>(), "To must be a standard layout type");
+        static_assert(std::is_standard_layout<To>{}, "To must be a standard layout type");
 
         if(blocks > 1)
         {
@@ -275,7 +275,7 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
                                (Tr*)workspace);
         }
 
-        if(std::is_same<FINALIZE, rocblas_finalize_identity>() || blocks > 1)
+        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || blocks > 1)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0], and can be copied directly.

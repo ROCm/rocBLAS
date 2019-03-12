@@ -63,7 +63,7 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
 
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
 
-    if(std::is_same<T, rocblas_half>::value)
+    if(std::is_same<T, rocblas_half>{})
     {
         switch(transposeMode)
         {
@@ -73,7 +73,7 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
         case TT: return tensileGetSolutionName_Cijk_Alik_Bjlk_HB(TENSILE_ARG_NAMES);
         }
     }
-    else if(std::is_same<T, float>::value)
+    else if(std::is_same<T, float>{})
     {
         switch(transposeMode)
         {
@@ -83,7 +83,7 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
         case TT: return tensileGetSolutionName_Cijk_Alik_Bjlk_SB(TENSILE_ARG_NAMES);
         }
     }
-    else if(std::is_same<T, double>::value)
+    else if(std::is_same<T, double>{})
     {
         switch(transposeMode)
         {
@@ -160,7 +160,7 @@ hipError_t callTensile(const T* alpha,
 
     hipError_t status;
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
-    if(std::is_same<T, rocblas_half>::value)
+    if(std::is_same<T, rocblas_half>{})
     {
         switch(transposeMode)
         {
@@ -170,7 +170,7 @@ hipError_t callTensile(const T* alpha,
         case TT: status = tensile_Cijk_Alik_Bjlk_HB(TENSILE_ARGS(_Float16)); break;
         }
     }
-    else if(std::is_same<T, float>::value)
+    else if(std::is_same<T, float>{})
     {
         switch(transposeMode)
         {
@@ -180,7 +180,7 @@ hipError_t callTensile(const T* alpha,
         case TT: status = tensile_Cijk_Alik_Bjlk_SB(TENSILE_ARGS(float)); break;
         }
     }
-    else if(std::is_same<T, double>::value)
+    else if(std::is_same<T, double>{})
     {
         switch(transposeMode)
         {

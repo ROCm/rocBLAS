@@ -175,7 +175,7 @@ class RocBLAS_TestName
 
 // ----------------------------------------------------------------------------
 // RocBLAS_Test base class. All non-legacy rocBLAS Google tests derive from it.
-// It defines a type_filter() function and a PrintToStringParamName class
+// It defines a type_filter() functor and a PrintToStringParamName class
 // which calls name_suffix() in the derived class to form the test name suffix.
 // ----------------------------------------------------------------------------
 template <typename TEST, template <typename...> class FILTER>

@@ -44,7 +44,7 @@ struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLA
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg);
 
-    // Goggle Test name suffix based on parameters
+    // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<blas1_test_template> name;
@@ -72,9 +72,9 @@ struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLA
 template <blas1 BLAS1, typename Ti, typename To, typename Tc>
 using blas1_enabled =
     std::integral_constant<bool,
-                           std::is_same<Ti, To>::value && std::is_same<To, Tc>::value &&
-                               (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value ||
-                                (std::is_same<Ti, rocblas_half>::value && BLAS1 == blas1::axpy))>;
+                           std::is_same<Ti, To>{} && std::is_same<To, Tc>{} &&
+                               (std::is_same<Ti, float>{} || std::is_same<Ti, double>{} ||
+                                (std::is_same<Ti, rocblas_half>{} && BLAS1 == blas1::axpy))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -90,7 +90,7 @@ struct blas1_##NAME                                                            \
                    To,                                                         \
                    Tc,                                                         \
                    typename std::enable_if<                                    \
-                       blas1_enabled<blas1::NAME, Ti, To, Tc>::value>::type>   \
+                       blas1_enabled<blas1::NAME, Ti, To, Tc>{}>::type>        \
     {                                                                          \
         explicit operator bool() { return true; }                              \
         void operator()(const Arguments& arg)                                  \

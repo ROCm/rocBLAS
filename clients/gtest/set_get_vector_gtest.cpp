@@ -23,7 +23,7 @@ struct set_get_vector_testing : rocblas_test_invalid
 template <typename T>
 struct set_get_vector_testing<
     T,
-    typename std::enable_if<std::is_same<T, float>::value || std::is_same<T, double>::value>::type>
+    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
@@ -49,7 +49,7 @@ struct set_get_vector : RocBLAS_Test<set_get_vector, set_get_vector_testing>
         return !strcmp(arg.function, "testing_set_get_vector");
     }
 
-    // Goggle Test name suffix based on parameters
+    // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
         return RocBLAS_TestName<set_get_vector>() << rocblas_datatype2string(arg.a_type) << '_'

@@ -73,7 +73,7 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
         return false;
     }
 
-    // Goggle Test name suffix based on parameters
+    // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
         RocBLAS_TestName<gemm_test_template> name;
@@ -119,7 +119,7 @@ template <typename T>
 struct gemm_testing<T,
                     T,
                     T,
-                    typename std::enable_if<!std::is_same<T, void>::value && !is_complex<T>>::type>
+                    typename std::enable_if<!std::is_same<T, void>{} && !is_complex<T>>::type>
 {
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
@@ -162,11 +162,10 @@ struct gemm_ex_testing : rocblas_test_invalid
 // When converted to bool, this functor returns true.
 // Complex is not supported yet.
 template <typename Ti, typename To, typename Tc>
-struct gemm_ex_testing<
-    Ti,
-    To,
-    Tc,
-    typename std::enable_if<!std::is_same<Ti, void>::value && !is_complex<Ti>>::type>
+struct gemm_ex_testing<Ti,
+                       To,
+                       Tc,
+                       typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
     explicit operator bool() { return true; }
 

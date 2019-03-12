@@ -72,7 +72,7 @@ class tuple_helper
     /************************************************************************************
      * Print tuples
      ************************************************************************************/
-    template <typename T, size_t idx = std::tuple_size<T>()>
+    template <typename T, size_t idx = std::tuple_size<T>{}>
     struct print_tuple_recurse
     {
         template <typename F>
@@ -96,7 +96,7 @@ class tuple_helper
     template <typename TUP>
     static void print_tuple(std::ostream& os, const TUP& tuple)
     {
-        static_assert(std::tuple_size<TUP>() % 2 == 0, "Tuple size must be even");
+        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
         // delim starts as '{' opening brace and becomes ',' afterwards
         auto print_argument = [&, delim = '{' ](auto name, auto value) mutable
@@ -160,7 +160,7 @@ class tuple_helper
     template <typename TUP>
     struct hash_t
     {
-        static_assert(std::tuple_size<TUP>() % 2 == 0, "Tuple size must be even");
+        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
         size_t operator()(const TUP& x) const { return tuple_hash_recurse<TUP>{}(x); }
     };
 
@@ -178,7 +178,7 @@ class tuple_helper
     static bool equal(const char* s1, const std::string& s2) { return !strcmp(s1, s2.c_str()); }
 
     // Recursively compare tuple values, short-circuiting
-    template <typename TUP, size_t idx = std::tuple_size<TUP>()>
+    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
     struct tuple_equal_recurse
     {
         bool operator()(const TUP& t1, const TUP& t2)
@@ -199,7 +199,7 @@ class tuple_helper
     template <typename TUP>
     struct equal_t
     {
-        static_assert(std::tuple_size<TUP>() % 2 == 0, "Tuple size must be even");
+        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
         __attribute__((flatten)) bool operator()(const TUP& x, const TUP& y) const
         {
             return tuple_equal_recurse<TUP>{}(x, y);
