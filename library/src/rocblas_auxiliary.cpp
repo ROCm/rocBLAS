@@ -71,9 +71,8 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
     // allocate on heap
     try
     {
-        *handle = new _rocblas_handle();
-
         static int dummy = (tensileInitialize(), 0);
+        *handle = new _rocblas_handle();
 
         if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
             log_trace(*handle, "rocblas_create_handle");
