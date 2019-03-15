@@ -213,7 +213,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
           sh """#!/usr/bin/env bash
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -223,7 +223,7 @@ def docker_build_inside_image( def build_image, compiler_data compiler_args, doc
                 set -x
                 cd ${paths.project_build_prefix}/build/release/clients/staging
                 LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal${build_type_postfix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test${build_type_postfix} --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
             """
           junit "${paths.project_build_prefix}/build/release/clients/staging/*.xml"
         }
@@ -516,19 +516,19 @@ def build_pipeline( compiler_data compiler_args, docker_data docker_args, projec
 //  }
 //},
 
-parallel rocm20_ubuntu:
+parallel rocm22_ubuntu:
 {
-  node( 'docker && rocm20 && gfx900')
+  node( 'docker && rocm22 && gfx900')
   {
     def hcc_docker_args = new docker_data(
-        from_image:'rocm/dev-ubuntu-16.04:2.0',
+        from_image:'rocm/dev-ubuntu-16.04:2.2',
         build_docker_file:'dockerfile-build-ubuntu-rock',
         install_docker_file:'dockerfile-install-ubuntu',
         docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
         docker_build_args:' --pull' )
 
     def hcc_compiler_args = new compiler_data(
-        compiler_name:'hcc-rocm19-ubuntu',
+        compiler_name:'hcc-rocm22-ubuntu',
         build_config:'Release',
         compiler_path:'/opt/rocm/bin/hcc' )
 
@@ -549,21 +549,21 @@ parallel rocm20_ubuntu:
   }
 },
 
-rocm20_ubuntu_gfx906:
+rocm22_ubuntu_gfx906:
 {
     try
     {
-        node( 'docker && rocm20 && gfx906')
+        node( 'docker && rocm22 && gfx906')
         {
         def hcc_docker_args = new docker_data(
-            from_image:'rocm/dev-ubuntu-16.04:2.0',
+            from_image:'rocm/dev-ubuntu-16.04:2.2',
             build_docker_file:'dockerfile-build-ubuntu-rock',
             install_docker_file:'dockerfile-install-ubuntu',
             docker_run_args:'--device=/dev/kfd --device=/dev/dri --group-add=video',
             docker_build_args:' --pull' )
 
         def hcc_compiler_args = new compiler_data(
-            compiler_name:'hcc-rocm19-ubuntu',
+            compiler_name:'hcc-rocm22-ubuntu',
             build_config:'Release',
             compiler_path:'/opt/rocm/bin/hcc' )
 
