@@ -1959,31 +1959,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
 
     The matrix X is overwritten on B.
 
-    TRSM_EX gives the user the ability to manage device memory and exposes the invA matrix to be reused between runs.
+    TRSM_EX gives the user the ability to manage device memory and exposes the invA matrix to be
+   reused between runs.
     Before trsm_ex can be used the user must setup the invA matrix and x_temp_workspace.
 
     Setting up invA:
-    The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of matrix A, followed by any smaller diagonal block that remains. 
+    The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
+   matrix A, followed by any smaller diagonal block that remains.
     To set up invA it is recommended that rocblas_trtri_batched be used with matrix A as the input.
 
-    Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when rocblas_side_left and is n when rocblas_side_right.
+    Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when
+   rocblas_side_left and is n when rocblas_side_right.
 
-    To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of matrix A. Below are the restricted parameters:
+    To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of
+   matrix A. Below are the restricted parameters:
       - n = 128
       - ldinvA = 128
       - stride_invA = 128x128
-      - batch_count = k / 128, 
+      - batch_count = k / 128,
 
     Then any remaining block may be added:
-      - n = k % 128 
+      - n = k % 128
       - invA = invA + stride_invA * previous_batch_count
       - ldinvA = 128
       - batch_count = 1
 
     Setting up x_temp_workspace:
-    When x_temp_workspace is a nullptr the API enters a setup mode to recommend the size needed for temporary memory to be stored. The suggested size
-    depends on the rocblas_trsm_option specified and is stored in x_temp_size. Once x_temp_workspace has been assigned
-    to sufficient device memory, the API may be called again. This time x_temp_size must specify the size of temporary device memory allocated.
+    When x_temp_workspace is a nullptr the API enters a setup mode to recommend the size needed for
+   temporary memory to be stored. The suggested size
+    depends on the rocblas_trsm_option specified and is stored in x_temp_size. Once x_temp_workspace
+   has been assigned
+    to sufficient device memory, the API may be called again. This time x_temp_size must specify the
+   size of temporary device memory allocated.
 
     @param[in]
     handle  rocblas_handle.
