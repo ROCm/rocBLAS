@@ -202,7 +202,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
     rocblas_int num_rows_b = m;
 
     // leading dimensions must be valid
-    if(num_rows_a > lda || num_rows_b > ldb)
+    if(num_rows_a > lda || num_rows_b > ldb || ld_invA != TRSM_BLOCK)
         return rocblas_status_invalid_size;
 
     rocblas_status rb_status = rocblas_status_internal_error;
