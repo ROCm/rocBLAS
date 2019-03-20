@@ -101,9 +101,6 @@ void testing_trsm_ex(const Arguments& arg)
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
     device_vector<T> dinvA(TRSM_BLOCK * K);
-    device_vector<T> dinvAI(TRSM_BLOCK * K);
-    device_vector<T> dinvAtest(TRSM_BLOCK * K);
-    device_vector<T> dC_tmp(TRSM_BLOCK / 2 * TRSM_BLOCK / 2 * K / TRSM_BLOCK);
     device_vector<T> dX_tmp(M * N);
 
     if(!dA || !dXorB || !alpha_d)

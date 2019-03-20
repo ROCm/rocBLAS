@@ -124,6 +124,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas-test PRIVATE -Wno-unused-command-line-argument -mf16c )
+  target_include_directories( rocblas-test PRIVATE /opt/rocm/hsa/include)
 
 elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
   # GCC or hip-clang needs specific flag to turn on f16c intrinsics
