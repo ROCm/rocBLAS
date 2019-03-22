@@ -1009,6 +1009,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
 
     The matrix X is overwritten on B.
 
+    Note about memory allocation: 
+    When trsm is launched with a k evenly divisible by the internal block size of 128,
+    and is no larger than 10 of these blocks, the API takes advantage of utilizing pre-allocated memory
+    found in the handle to increase overall performance. This memory can be managed by using the environment 
+    variable WORKBUF_TRSM_B_CHNK. When this variable is not set the device memory used for temporary storage will 
+    default to 1 MB and may result in chuncking, which in turn may reduce performance. Under these circumstances it
+    is recommended that WORKBUF_TRSM_B_CHNK be set to the desired chunk of right hand sides to be used at a time.
+    
+    (where k is m when rocblas_side_left and is n when rocblas_side_right)
+
     @param[in]
     handle    rocblas_handle.
               handle to the rocblas library context queue.

@@ -51,10 +51,13 @@ struct _rocblas_handle
     void* get_trsm_Y() const { return trsm_Y; }
     void* get_trsm_invA() const { return trsm_invA; }
     void* get_trsm_invA_C() const { return trsm_invA_C; }
+    const size_t* get_trsm_A_blks() { return &WORKBUF_TRSM_A_BLKS; }
+    const size_t* get_trsm_B_chnk() { return &WORKBUF_TRSM_B_CHNK; }
 
     // trsv get pointers
     void* get_trsv_x() const { return trsv_x; }
     void* get_trsv_alpha() const { return trsv_alpha; }
+    const size_t* get_trsv_X_size() { return &WORKBUF_TRSV_X_SZ; }
 
     rocblas_int device;
     hipDeviceProp_t device_properties;
@@ -90,18 +93,22 @@ struct _rocblas_handle
     {
         init();
     } handle_init;
+
+    // work buffer size constants
+    private:
+    size_t WORKBUF_TRSM_B_CHNK;
+    size_t WORKBUF_TRSM_Y_SZ;
+    const size_t WORKBUF_TRSM_A_BLKS    = 10;
+    const size_t WORKBUF_TRSM_B_MIN_CHNK    = 1024;
+    const size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
+    const size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
+    const size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
+    const size_t WORKBUF_TRSV_ALPHA_SZ  = sizeof(double);
 };
 
 namespace rocblas {
 void reinit_logs(); // Reinitialize static data (for testing only)
 }
 
-// work buffer size constants
-constexpr size_t WORKBUF_TRSM_A_BLKS    = 10;
-constexpr size_t WORKBUF_TRSM_B_CHNK    = 32000;
-constexpr size_t WORKBUF_TRSM_Y_SZ      = 32000 * 128 * sizeof(double);
-constexpr size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
-constexpr size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
-constexpr size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
-constexpr size_t WORKBUF_TRSV_ALPHA_SZ  = sizeof(double);
+
 #endif

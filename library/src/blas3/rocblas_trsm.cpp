@@ -664,10 +664,10 @@ void copy_block_unit(hipStream_t rocblas_stream,
                      void* dst,
                      rocblas_int dst_ld)
 {
-    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+    rocblas_int blocksX = ((m - 1) / 32) + 1; // parameters for device kernel
     rocblas_int blocksY = ((n - 1) / 8) + 1;
     dim3 grid(blocksX, blocksY);
-    dim3 threads(128, 8);
+    dim3 threads(32, 8);
 
     hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
                        grid,
@@ -710,7 +710,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
         void* invA_temp = handle->get_trsm_invA();
         void* invA_C    = handle->get_trsm_invA_C();
         PRINT_IF_HIP_ERROR(hipMemsetAsync(
-            invA_temp, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T), rocblas_stream));
+            invA_temp, 0, BLOCK * BLOCK * *(handle->get_trsm_A_blks()) * sizeof(T), rocblas_stream));
         rocblas_trtri_trsm_template<T, BLOCK>(
             handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
     }
@@ -924,7 +924,7 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
     if(!m || !n)
         return rocblas_status_success;
 
-    if(k % BLOCK == 0 && k <= BLOCK * (*x_temp_size))
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
     {
         rocblas_operation trA = transA;
         if(trA == rocblas_operation_conjugate_transpose)
@@ -973,10 +973,10 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
 
     // copy solution X into B
     {
-        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
+        rocblas_int blocksX = (m - 1) / 32 + 1; // parameters for device kernel
         rocblas_int blocksY = (n - 1) / 8 + 1;
         dim3 grid(blocksX, blocksY);
-        dim3 threads(128, 8);
+        dim3 threads(32, 8);
 
         hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
                            grid,
@@ -1127,7 +1127,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if(!m || !n)
         return rocblas_status_success;
 
-    if(k % BLOCK == 0 && k <= BLOCK * WORKBUF_TRSM_A_BLKS)
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
     {
         rocblas_operation trA = transA;
         if(trA == rocblas_operation_conjugate_transpose)
@@ -1151,7 +1151,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                             ldb,
                                             invA,
                                             0,
-                                            &WORKBUF_TRSM_B_CHNK,
+                                            (handle->get_trsm_B_chnk()),
                                             x_temp);
     }
 
@@ -1197,7 +1197,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                              ldb,
                                              (T*)invA.get(),
                                              BLOCK,
-                                             &WORKBUF_TRSM_B_CHNK,
+                                             (handle->get_trsm_B_chnk()),
                                              (T*)X.get());
 
     return status;
