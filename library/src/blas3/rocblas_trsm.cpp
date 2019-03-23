@@ -709,8 +709,7 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     {
         void* invA_temp = handle->get_trsm_invA();
         void* invA_C    = handle->get_trsm_invA_C();
-        PRINT_IF_HIP_ERROR(hipMemsetAsync(
-            invA_temp, 0, BLOCK * BLOCK * *(handle->get_trsm_A_blks()) * sizeof(T), rocblas_stream));
+
         rocblas_trtri_trsm_template<T, BLOCK>(
             handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
     }
@@ -1175,9 +1174,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
-    // intialize invA to &zero
-    PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)invA.get(), 0, BLOCK * k * sizeof(T), rocblas_stream));
 
     // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(

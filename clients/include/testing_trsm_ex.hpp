@@ -218,7 +218,6 @@ void testing_trsm_ex(const Arguments& arg)
 
         hipStream_t rocblas_stream;
         rocblas_get_stream(handle, &rocblas_stream);
-        hipMemsetAsync(dinvA, 0, TRSM_BLOCK * K * sizeof(T), rocblas_stream);
 
         if(blocks > 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
