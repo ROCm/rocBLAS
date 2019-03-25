@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #include "handle.h"
 #include <cstdlib>
-#include <stdlib.h>
 
 /*******************************************************************************
  * constructor
@@ -18,9 +17,12 @@ _rocblas_handle::_rocblas_handle()
     char* env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
     if(env_p)
     {
-        try {
+        try
+        {
             WORKBUF_TRSM_B_CHNK = std::stoi(std::string(env_p));
-        } catch (...) {
+        }
+        catch(...)
+        {
             WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
         }
     }
@@ -28,7 +30,7 @@ _rocblas_handle::_rocblas_handle()
     {
         WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
     }
-    
+
     WORKBUF_TRSM_Y_SZ = WORKBUF_TRSM_B_CHNK * 128 * sizeof(double);
 
     // allocate trsm temp buffers

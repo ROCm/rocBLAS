@@ -98,17 +98,16 @@ struct _rocblas_handle
     private:
     size_t WORKBUF_TRSM_B_CHNK;
     size_t WORKBUF_TRSM_Y_SZ;
-    const size_t WORKBUF_TRSM_A_BLKS    = 10;
-    const size_t WORKBUF_TRSM_B_MIN_CHNK    = 1024;
-    const size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
-    const size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
-    const size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
-    const size_t WORKBUF_TRSV_ALPHA_SZ  = sizeof(double);
+    const size_t WORKBUF_TRSM_A_BLKS     = 10;
+    const size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
+    const size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10 * sizeof(double);
+    const size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
+    const size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
+    const size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
 };
 
 namespace rocblas {
 void reinit_logs(); // Reinitialize static data (for testing only)
 }
-
 
 #endif
