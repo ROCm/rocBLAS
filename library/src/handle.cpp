@@ -15,9 +15,20 @@ _rocblas_handle::_rocblas_handle()
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
-
-    char *env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
-    WORKBUF_TRSM_B_CHNK = env_p ? std::stoi (env_p):WORKBUF_TRSM_B_MIN_CHNK;
+    char* env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
+    if(env_p)
+    {
+        try {
+            WORKBUF_TRSM_B_CHNK = std::stoi(std::string(env_p));
+        } catch (...) {
+            WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
+        }
+    }
+    else
+    {
+        WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
+    }
+    
     WORKBUF_TRSM_Y_SZ = WORKBUF_TRSM_B_CHNK * 128 * sizeof(double);
 
     // allocate trsm temp buffers

@@ -664,10 +664,10 @@ void copy_block_unit(hipStream_t rocblas_stream,
                      void* dst,
                      rocblas_int dst_ld)
 {
-    rocblas_int blocksX = ((m - 1) / 32) + 1; // parameters for device kernel
+    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
     rocblas_int blocksY = ((n - 1) / 8) + 1;
     dim3 grid(blocksX, blocksY);
-    dim3 threads(32, 8);
+    dim3 threads(128, 8);
 
     hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
                        grid,
@@ -703,6 +703,9 @@ rocblas_status special_trsm_template(rocblas_handle handle,
 {
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    if(*B_chunk == 0)
+        return rocblas_status_invalid_size;
 
     rocblas_int k = (side == rocblas_side_left ? m : n);
     if(!x)
@@ -972,10 +975,10 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
 
     // copy solution X into B
     {
-        rocblas_int blocksX = (m - 1) / 32 + 1; // parameters for device kernel
+        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
         rocblas_int blocksY = (n - 1) / 8 + 1;
         dim3 grid(blocksX, blocksY);
-        dim3 threads(32, 8);
+        dim3 threads(128, 8);
 
         hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
                            grid,
