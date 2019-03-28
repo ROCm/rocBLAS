@@ -60,7 +60,7 @@ if( BUILD_WITH_TENSILE )
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-    target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument)
+    target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc)
   endif( )
 
   if( ROCBLAS_SHARED_LIBS )
@@ -146,7 +146,7 @@ set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-  target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument )
+  target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc )
 
   foreach( target ${AMDGPU_TARGETS} )
     target_link_libraries( rocblas PRIVATE --amdgpu-target=${target} )
