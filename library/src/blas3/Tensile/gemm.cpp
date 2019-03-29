@@ -58,8 +58,9 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
 {
 // This macro condenses all the identical arguments to the various
 // tensileGetSolutionName function calls for consistency / brevity
-#define TENSILE_ARG_NAMES \
-    strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL
+#define TENSILE_ARG_NAMES                                                                         \
+    strideC1, strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, \
+        sizeK, sizeL
 
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
 
@@ -152,11 +153,12 @@ hipError_t callTensile(const T* alpha,
     }
 
 // Helper macros for function call brevity
-#define TENSILE_ARGS(T)                                                                    \
-    reinterpret_cast<T*>(C), reinterpret_cast<const T*>(C), reinterpret_cast<const T*>(A), \
-        reinterpret_cast<const T*>(B), *reinterpret_cast<T*>(&alpha_h),                    \
-        *reinterpret_cast<T*>(&beta_h), strideC1, strideC2, strideA1, strideA2, strideB1,  \
-        strideB2, sizeI, sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, nullptr, nullptr
+#define TENSILE_ARGS(T)                                                                      \
+    reinterpret_cast<T*>(C), reinterpret_cast<const T*>(C), reinterpret_cast<const T*>(A),   \
+        reinterpret_cast<const T*>(B), *reinterpret_cast<T*>(&alpha_h),                      \
+        *reinterpret_cast<T*>(&beta_h), strideC1, strideC2, strideC1, strideC2, strideA1,    \
+        strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, \
+        nullptr, nullptr
 
     hipError_t status;
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
