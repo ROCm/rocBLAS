@@ -743,8 +743,9 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                             : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                copy_block_unit<T>(
-                    rocblas_stream, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
+                if(r==0)
+                    copy_block_unit<T>(
+                        rocblas_stream, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
 
                 if(r > 0)
                 {
@@ -772,24 +773,48 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                         B_current = Bw + (q + 1) * BLOCK;
                     }
 
-                    rocblas_gemm_template<T>(handle,
-                                             transA,
-                                             rocblas_operation_none,
-                                             BLOCK,
-                                             width,
-                                             r * BLOCK,
-                                             &negative_one,
-                                             A_current,
-                                             lda,
-                                             B_current,
-                                             ldb,
-                                             alpha,
-                                             (T*)x_temp,
-                                             BLOCK);
+                    rocblas_datatype compute_type;
+                    rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+                    int32_t solution_index  = 0;
+                    uint32_t flags          = 0;
+                    size_t* workspace_size  = 0;
+                    void* workspace         = 0;
+
+
+                    if(std::is_same<T, float>::value)
+                        compute_type       = rocblas_datatype_f32_r;
+                    else if(std::is_same<T, double>::value)
+                        compute_type       = rocblas_datatype_f64_r;
+
+                    rocblas_gemm_ex(handle,
+                            transA,
+                            rocblas_operation_none,
+                            BLOCK,
+                            width,
+                            r * BLOCK,
+                            &negative_one,
+                            A_current,
+                            compute_type,
+                            lda,
+                            B_current,
+                            compute_type,
+                            ldb,
+                            alpha,
+                            Bw + j * BLOCK,
+                            compute_type,
+                            ldb,
+                            (T*)x_temp,
+                            compute_type,
+                            BLOCK,
+                            compute_type,
+                            algo,
+                            solution_index,
+                            flags,
+                            workspace_size,
+                            workspace);
                 }
 
                 const T* theta = (r == 0 ? alpha : &one);
-
                 rocblas_gemm_template<T>(handle,
                                          transA,
                                          rocblas_operation_none,
@@ -822,8 +847,9 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                         : q;
 
                 // copy a m*BLOCK piece we are solving at a time
-                copy_block_unit<T>(
-                    rocblas_stream, width, BLOCK, Bw + j * BLOCK * ldb, ldb, x_temp, width);
+                if(r==0)
+                    copy_block_unit<T>(
+                        rocblas_stream, width, BLOCK, Bw + j * BLOCK * ldb, ldb, x_temp, width);
 
                 if(r > 0)
                 {
@@ -851,20 +877,44 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                         B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
                     }
 
-                    rocblas_gemm_template<T>(handle,
-                                             rocblas_operation_none,
-                                             transA,
-                                             width,
-                                             BLOCK,
-                                             r * BLOCK,
-                                             &negative_one,
-                                             B_current,
-                                             ldb,
-                                             A_current,
-                                             lda,
-                                             alpha,
-                                             (T*)x_temp,
-                                             width);
+                    rocblas_datatype compute_type;
+                    rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
+                    int32_t solution_index  = 0;
+                    uint32_t flags          = 0;
+                    size_t* workspace_size  = 0;
+                    void* workspace         = 0;
+
+                    if(std::is_same<T, float>::value)
+                        compute_type       = rocblas_datatype_f32_r;
+                    else if(std::is_same<T, double>::value)
+                        compute_type       = rocblas_datatype_f64_r;
+
+                    rocblas_gemm_ex(handle,
+                            rocblas_operation_none,
+                            transA,
+                            width,
+                            BLOCK,
+                            r * BLOCK,
+                            &negative_one,
+                            B_current,
+                            compute_type,
+                            ldb,
+                            A_current,
+                            compute_type,
+                            lda,
+                            alpha,
+                            Bw + j * BLOCK * ldb,
+                            compute_type,
+                            ldb,
+                            (T*)x_temp,
+                            compute_type,
+                            width,
+                            compute_type,
+                            algo,
+                            solution_index,
+                            flags,
+                            workspace_size,
+                            workspace);
                 }
 
                 const T* theta = (r == 0 ? alpha : &one);
