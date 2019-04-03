@@ -1012,15 +1012,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
     Note about memory allocation:
     When trsm is launched with a k evenly divisible by the internal block size of 128,
     and is no larger than 10 of these blocks, the API takes advantage of utilizing pre-allocated
-   memory
-    found in the handle to increase overall performance. This memory can be managed by using the
-   environment
-    variable WORKBUF_TRSM_B_CHNK. When this variable is not set the device memory used for temporary
-   storage will
-    default to 1 MB and may result in chuncking, which in turn may reduce performance. Under these
-   circumstances it
-    is recommended that WORKBUF_TRSM_B_CHNK be set to the desired chunk of right hand sides to be
-   used at a time.
+    memory found in the handle to increase overall performance. This memory can be managed by using
+    the environment variable WORKBUF_TRSM_B_CHNK. When this variable is not set the device memory
+    used for temporary storage will default to 1 MB and may result in chunking, which in turn may
+    reduce performance. Under these circumstances it is recommended that WORKBUF_TRSM_B_CHNK be set
+    to the desired chunk of right hand sides to be used at a time.
 
     (where k is m when rocblas_side_left and is n when rocblas_side_right)
 
@@ -1975,19 +1971,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
     The matrix X is overwritten on B.
 
     TRSM_EX gives the user the ability to manage device memory and exposes the invA matrix to be
-   reused between runs.
+    reused between runs.
     Before trsm_ex can be used the user must setup the invA matrix and x_temp_workspace.
 
     Setting up invA:
     The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
-   matrix A, followed by any smaller diagonal block that remains.
+    matrix A, followed by any smaller diagonal block that remains.
     To set up invA it is recommended that rocblas_trtri_batched be used with matrix A as the input.
 
     Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when
-   rocblas_side_left and is n when rocblas_side_right.
+    rocblas_side_left and is n when rocblas_side_right.
 
     To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of
-   matrix A. Below are the restricted parameters:
+    matrix A. Below are the restricted parameters:
       - n = 128
       - ldinvA = 128
       - stride_invA = 128x128
@@ -2001,11 +1997,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
 
     Setting up x_temp_workspace:
     When x_temp_workspace is a nullptr the API enters a setup mode to recommend the size needed for
-   temporary memory to be stored. The suggested size
-    depends on the rocblas_trsm_option specified and is stored in x_temp_size. Once x_temp_workspace
-   has been assigned
-    to sufficient device memory, the API may be called again. This time x_temp_size must specify the
-   size of temporary device memory allocated.
+    temporary memory to be stored. The suggested size depends on the rocblas_trsm_option specified
+    and is stored in x_temp_size. Once x_temp_workspace has been assigned to sufficient device
+   memory,
+    the API may be called again. This time x_temp_size must specify thesize of temporary device
+   memory allocated.
 
     @param[in]
     handle  rocblas_handle.

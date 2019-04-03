@@ -18,7 +18,7 @@ namespace {
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
-#define X(ii, jj) (X + (ii) + (jj)*ldb)
+#define X(ii, jj) (X + (ii) + (jj)*m)
 #define invA(ii) (invA + (ii)*BLOCK)
 
 /* ===============left==================================================== */
