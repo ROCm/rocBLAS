@@ -34,9 +34,19 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                           void* x_temp_workspace)
 
 {
+    // handle, alpha must not be null pointers for logging
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    static constexpr rocblas_int TRSM_BLOCK = 128;
+    rocblas_int k                           = (side == rocblas_side_left ? m : n);
+    bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * *(handle->get_trsm_A_blks()));
+
     if(!x_temp_workspace)
     {
-        if(option == rocblas_trsm_high_performance)
+        rocblas_int k = (side == rocblas_side_left ? m : n);
+
+        if(option == rocblas_trsm_high_performance || !allowChunking)
             *x_temp_size = m * n;
         else if(option == rocblas_trsm_low_memory)
             *x_temp_size = m;
@@ -46,17 +56,10 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    // handle, alpha must not be null pointers for logging
-    if(!handle)
-        return rocblas_status_invalid_handle;
-
     if(!alpha)
         return rocblas_status_invalid_pointer;
 
-    static constexpr rocblas_int TRSM_BLOCK = 128;
-
-    if((side == rocblas_side_left ? m : n) % TRSM_BLOCK != 0 &&
-       (*x_temp_size / m) < n) // Chunking not supported
+    if(!allowChunking && (*x_temp_size / m) < n) // Chunking not supported
         return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
