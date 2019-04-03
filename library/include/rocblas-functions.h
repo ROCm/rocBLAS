@@ -1999,9 +1999,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
     When x_temp_workspace is a nullptr the API enters a setup mode to recommend the size needed for
     temporary memory to be stored. The suggested size depends on the rocblas_trsm_option specified
     and is stored in x_temp_size. Once x_temp_workspace has been assigned to sufficient device
-   memory,
-    the API may be called again. This time x_temp_size must specify thesize of temporary device
-   memory allocated.
+    memory, the API may be called again. This time x_temp_size must specify the size of temporary
+    device memory allocated.
 
     @param[in]
     handle  rocblas_handle.
