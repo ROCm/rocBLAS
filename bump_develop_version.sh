@@ -5,8 +5,8 @@
 # - run this script in master branch 
 # - after running this script merge master into develop 
 
-OLD_ROCBLAS_VERSION="2.2.3"
-NEW_ROCBLAS_VERSION="2.3.3"
+OLD_ROCBLAS_VERSION="2.2.4"
+NEW_ROCBLAS_VERSION="2.3.4"
 
 OLD_TENSILE_VERSION="tensile_tag f490cf61c4e8e8c230c640fd8f7a8d873ee4db98"
 NEW_TENSILE_VERSION="tensile_tag \"develop\""
