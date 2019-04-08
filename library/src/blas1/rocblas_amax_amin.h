@@ -91,7 +91,7 @@ struct rocblas_reduce_amin
 struct rocblas_finalize_amax_amin
 {
     template <typename To>
-    __forceinline__ __host__ __device__ rocblas_int operator()(index_value_t<To> x)
+    __forceinline__ __host__ __device__ auto operator()(const index_value_t<To>& x)
     {
         return x.index + 1;
     }

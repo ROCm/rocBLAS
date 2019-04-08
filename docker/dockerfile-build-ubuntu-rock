@@ -23,7 +23,9 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     clang-format-3.8 \
     pkg-config \
     python2.7 \
+    python3 \
     python-yaml \
+    python3-yaml \
     gfortran \
     libboost-program-options-dev \
     libnuma1 \

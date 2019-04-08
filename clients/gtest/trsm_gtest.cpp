@@ -16,7 +16,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct trsm_testing : rocblas_test_invalid
 {
 };
@@ -31,7 +31,7 @@ struct trsm_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_trsm"))
+        if(!strcmp(arg.function, "trsm"))
             testing_trsm<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -47,15 +47,12 @@ struct trsm : RocBLAS_Test<trsm, trsm_testing>
     }
 
     // Filter for which functions apply to this suite
-    static bool function_filter(const Arguments& arg)
-    {
-        return !strcmp(arg.function, "testing_trsm");
-    }
+    static bool function_filter(const Arguments& arg) { return !strcmp(arg.function, "trsm"); }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<trsm>()
+        return RocBLAS_TestName<trsm>{}
                << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
                << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
                << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha

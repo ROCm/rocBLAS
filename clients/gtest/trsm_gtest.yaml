@@ -21,41 +21,41 @@ Definitions:
   - &alpha_range [ 1.0, -5.0 ]
 
   - &testset1_small_matrix_size_range
-    - {	M:	256,  N:	256,	lda:	256,	ldb:	256  	}
-    - {	M:	512,  N:	256,	lda:	256,	ldb:	512  	}
-    - {	M:	768,  N:	256,	lda:	256,	ldb:	768  	}
-    - {	M:	1024,	N:	256,	lda:	256,	ldb:	1024	}
-    - {	M:	1280,	N:	256,	lda:	256,	ldb:	1280	}
-    - {	M:	1536,	N:	256,	lda:	256,	ldb:	1536	}
-    - {	M:	1792,	N:	256,	lda:	256,	ldb:	1792	}
-    - {	M:	2048,	N:	256,	lda:	256,	ldb:	2048	}
-    - {	M:	384,	N:	384,	lda:	384,	ldb:	384	  }
-    - {	M:	768,	N:	384,	lda:	384,	ldb:	768	  }
-    - {	M:	1152,	N:	384,	lda:	384,	ldb:	1152	}
-    - {	M:	1536,	N:	384,	lda:	384,	ldb:	1536	}
-    - {	M:	1920,	N:	384,	lda:	384,	ldb:	1920	}
-    - {	M:	2304,	N:	384,	lda:	384,	ldb:	2304	}
-    - {	M:	2688,	N:	384,	lda:	384,	ldb:	2688	}
-    - {	M:	3072,	N:	384,	lda:	384,	ldb:	3072	}
+    - { M:      256,  N:        256,    lda:    256,    ldb:    256     }
+    - { M:      512,  N:        256,    lda:    256,    ldb:    512     }
+    - { M:      768,  N:        256,    lda:    256,    ldb:    768     }
+    - { M:      1024,   N:      256,    lda:    256,    ldb:    1024    }
+    - { M:      1280,   N:      256,    lda:    256,    ldb:    1280    }
+    - { M:      1536,   N:      256,    lda:    256,    ldb:    1536    }
+    - { M:      1792,   N:      256,    lda:    256,    ldb:    1792    }
+    - { M:      2048,   N:      256,    lda:    256,    ldb:    2048    }
+    - { M:      384,    N:      384,    lda:    384,    ldb:    384     }
+    - { M:      768,    N:      384,    lda:    384,    ldb:    768     }
+    - { M:      1152,   N:      384,    lda:    384,    ldb:    1152    }
+    - { M:      1536,   N:      384,    lda:    384,    ldb:    1536    }
+    - { M:      1920,   N:      384,    lda:    384,    ldb:    1920    }
+    - { M:      2304,   N:      384,    lda:    384,    ldb:    2304    }
+    - { M:      2688,   N:      384,    lda:    384,    ldb:    2688    }
+    - { M:      3072,   N:      384,    lda:    384,    ldb:    3072    }
 
 
   - &testset2_small_matrix_size_range
-    - {	M:	256,	N:	256,	lda:	256,  ldb:	256	}
-    - {	M:	256,	N:	512, 	lda:	512,  ldb:	256	}
-    - {	M:	256,	N:	768,  lda:	768,	ldb:	256	}
-    - {	M:	256,	N:	1024,	lda:	1024,	ldb:	256	}
-    - {	M:	256,	N:	1280,	lda:	1280,	ldb:	256	}
-    - {	M:	256,	N:	1536,	lda:	1536,	ldb:	256	}
-    - {	M:	256,	N:	1792,	lda:	1792,	ldb:	256	}
-    - {	M:	256,	N:	2048,	lda:	2048,	ldb:	256	}
-    - {	M:	384,	N:	384,	lda:	384,	ldb:	384	}
-    - {	M:	384,	N:	768,  lda:	768,  ldb:	384	}
-    - {	M:	384,	N:	1152,	lda:	1152,	ldb:	384	}
-    - {	M:	384,	N:	1536,	lda:	1536,	ldb:	384	}
-    - {	M:	384,	N:	1920,	lda:	1920,	ldb:	384	}
-    - {	M:	384,	N:	2304,	lda:	2304,	ldb:	384	}
-    - {	M:	384,	N:	2688,	lda:	2688,	ldb:	384	}
-    - {	M:	384,	N:	3072,	lda:	3072,	ldb:	384	}
+    - { M:      256,    N:      256,    lda:    256,  ldb:      256     }
+    - { M:      256,    N:      512,    lda:    512,  ldb:      256     }
+    - { M:      256,    N:      768,  lda:      768,    ldb:    256     }
+    - { M:      256,    N:      1024,   lda:    1024,   ldb:    256     }
+    - { M:      256,    N:      1280,   lda:    1280,   ldb:    256     }
+    - { M:      256,    N:      1536,   lda:    1536,   ldb:    256     }
+    - { M:      256,    N:      1792,   lda:    1792,   ldb:    256     }
+    - { M:      256,    N:      2048,   lda:    2048,   ldb:    256     }
+    - { M:      384,    N:      384,    lda:    384,    ldb:    384     }
+    - { M:      384,    N:      768,  lda:      768,  ldb:      384     }
+    - { M:      384,    N:      1152,   lda:    1152,   ldb:    384     }
+    - { M:      384,    N:      1536,   lda:    1536,   ldb:    384     }
+    - { M:      384,    N:      1920,   lda:    1920,   ldb:    384     }
+    - { M:      384,    N:      2304,   lda:    2304,   ldb:    384     }
+    - { M:      384,    N:      2688,   lda:    2688,   ldb:    384     }
+    - { M:      384,    N:      3072,   lda:    3072,   ldb:    384     }
 
 
   - &testset1_matrix_size_range
@@ -96,7 +96,7 @@ Definitions:
 Tests:
 - name: trsm_small
   category: quick
-  function: testing_trsm
+  function: trsm
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -107,7 +107,7 @@ Tests:
 
 - name: trsm_medium
   category: pre_checkin
-  function: testing_trsm
+  function: trsm
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -118,7 +118,7 @@ Tests:
 
 - name: trsm_testset1
   category: nightly
-  function: testing_trsm
+  function: trsm
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -129,7 +129,7 @@ Tests:
 
 - name: trsm_testset2
   category: nightly
-  function: testing_trsm
+  function: trsm
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -140,7 +140,7 @@ Tests:
 
 - name: trsm_large
   category: nightly
-  function: testing_trsm
+  function: trsm
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -151,7 +151,7 @@ Tests:
 
 - name: trsm_testset1_small
   category: pre_checkin
-  function: testing_trsm_ex
+  function: trsm_ex
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -162,7 +162,7 @@ Tests:
 
 - name: trsm_testset2_small
   category: pre_checkin
-  function: testing_trsm_ex
+  function: trsm_ex
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -173,7 +173,7 @@ Tests:
 
 - name: trsm_testset1
   category: nightly
-  function: testing_trsm_ex
+  function: trsm_ex
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -184,7 +184,7 @@ Tests:
 
 - name: trsm_testset2
   category: nightly
-  function: testing_trsm_ex
+  function: trsm_ex
   precision: *single_double_precisions
   side: [R]
   uplo: [L]

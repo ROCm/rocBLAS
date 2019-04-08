@@ -20,7 +20,7 @@ Definitions:
     - { M:  2000, lda:  2000 }
 
   - &common_args
-    function: testing_trsv
+    function: trsv
     precision: *single_double_precisions
     uplo: [L, U]
     transA: [N, C]

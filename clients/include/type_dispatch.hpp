@@ -1,7 +1,6 @@
 #ifndef _ROCBLAS_TYPE_DISPATCH_
 #define _ROCBLAS_TYPE_DISPATCH_
 
-#include <type_traits>
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
@@ -9,7 +8,7 @@
 // Calls TEST template based on the argument types. TEST<> is expected to
 // return a functor which takes a const Arguments& argument. If the types do
 // not match a recognized type combination, then TEST<void> is called.  This
-// function returns the same type as TEST<...>()(arg), usually bool or void.
+// function returns the same type as TEST<...>{}(arg), usually bool or void.
 // ----------------------------------------------------------------------------
 
 // Simple functions which take only one datatype
@@ -22,13 +21,13 @@ auto rocblas_simple_dispatch(const Arguments& arg)
 {
     switch(arg.a_type)
     {
-    case rocblas_datatype_f16_r: return TEST<rocblas_half>()(arg);
-    case rocblas_datatype_f32_r: return TEST<float>()(arg);
-    case rocblas_datatype_f64_r: return TEST<double>()(arg);
-    case rocblas_datatype_f16_c: return TEST<rocblas_half_complex>()(arg);
-    case rocblas_datatype_f32_c: return TEST<rocblas_float_complex>()(arg);
-    case rocblas_datatype_f64_c: return TEST<rocblas_double_complex>()(arg);
-    default: return TEST<void>()(arg);
+    case rocblas_datatype_f16_r: return TEST<rocblas_half>{}(arg);
+    case rocblas_datatype_f32_r: return TEST<float>{}(arg);
+    case rocblas_datatype_f64_r: return TEST<double>{}(arg);
+    case rocblas_datatype_f16_c: return TEST<rocblas_half_complex>{}(arg);
+    case rocblas_datatype_f32_c: return TEST<rocblas_float_complex>{}(arg);
+    case rocblas_datatype_f64_c: return TEST<rocblas_double_complex>{}(arg);
+    default: return TEST<void>{}(arg);
     }
 }
 
@@ -41,13 +40,13 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
     if(Ti == To)
         return rocblas_simple_dispatch<TEST>(arg);
     else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
-        return TEST<rocblas_half_complex, rocblas_half>()(arg);
+        return TEST<rocblas_half_complex, rocblas_half>{}(arg);
     else if(Ti == rocblas_datatype_f32_c && To == rocblas_datatype_f32_r)
-        return TEST<rocblas_float_complex, float>()(arg);
+        return TEST<rocblas_float_complex, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_c && To == rocblas_datatype_f64_r)
-        return TEST<rocblas_double_complex, double>()(arg);
+        return TEST<rocblas_double_complex, double>{}(arg);
 
-    return TEST<void>()(arg);
+    return TEST<void>{}(arg);
 }
 
 // gemm functions
@@ -61,19 +60,19 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
         if(Ti != To)
         {
             if(Ti == rocblas_datatype_i8_r && To == rocblas_datatype_i32_r && Tc == To)
-                return TEST<int8_t, int32_t, int32_t>()(arg);
+                return TEST<int8_t, int32_t, int32_t>{}(arg);
         }
         else if(Tc != To)
         {
             if(To == rocblas_datatype_f16_r && Tc == rocblas_datatype_f32_r)
-                return TEST<rocblas_half, rocblas_half, float>()(arg);
+                return TEST<rocblas_half, rocblas_half, float>{}(arg);
         }
         else
         {
             return rocblas_simple_dispatch<TEST>(arg); // Ti = To = Tc
         }
     }
-    return TEST<void>()(arg);
+    return TEST<void>{}(arg);
 }
 
 #endif
