@@ -52,7 +52,7 @@ __global__ void rocblas_tritri_batched_fill(rocblas_handle handle,
                                             T* A,
                                             rocblas_int batch_count)
 {
-    asm volatile ("s_setprio 2");
+    asm volatile("s_setprio 2");
     // if(!handle)
     //     return rocblas_status_invalid_handle;
 

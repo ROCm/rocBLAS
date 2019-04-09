@@ -646,7 +646,7 @@ __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
                                           void* b,
                                           rocblas_int ldb)
 {
-    asm volatile ("s_setprio 2");
+    asm volatile("s_setprio 2");
 
     size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
