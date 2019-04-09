@@ -290,8 +290,9 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
 
     const To* c_in;
     unsigned int ldi, stride_i;
-    if((ldc >= ldd && stride_c >= stride_d && m == ldd) ||
-       (ldc == ldd && stride_c == stride_d))
+    if((std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) && 
+       ((ldc >= ldd && stride_c >= stride_d && m == ldd) ||
+       (ldc == ldd && stride_c == stride_d)))
     {
         c_in = c;
         ldi = ldc;
