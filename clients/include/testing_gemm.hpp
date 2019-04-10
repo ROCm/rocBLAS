@@ -263,7 +263,7 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init_hpl<T>(hA, A_row, A_col, lda);
         rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        rocblas_init_hpl<T>(hC_1, M, N, ldc);        
+        rocblas_init_hpl<T>(hC_1, M, N, ldc);
     }
 
     hC_2    = hC_1;
