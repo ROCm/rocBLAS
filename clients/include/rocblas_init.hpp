@@ -109,10 +109,9 @@ inline void rocblas_init_hpl(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
+            for(size_t j                          = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
 }
-
 
 /* ============================================================================================ */
 /*! \brief  Initialize an array with random data, with NaN where apppropriate */

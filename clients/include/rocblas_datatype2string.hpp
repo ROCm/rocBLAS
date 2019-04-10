@@ -10,7 +10,7 @@
 typedef enum rocblas_initialization_ {
     rocblas_initialization_random_int = 111,
     rocblas_initialization_trig_float = 222,
-    rocblas_initialization_hpl = 333,
+    rocblas_initialization_hpl        = 333,
 } rocblas_initialization;
 
 /* ============================================================================================ */
