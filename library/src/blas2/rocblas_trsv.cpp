@@ -149,7 +149,7 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
         if(incx < 0)
             x -= ssize_t(incx) * (m - 1);
 
-        T* dx_mod = sizeof(T) * m <= WORKBUF_TRSV_X_SZ
+        T* dx_mod = sizeof(T) * m <= *(handle->get_trsv_X_size())
                         ? (T*)handle->get_trsv_x()
                         : (T*)rocblas_unique_ptr(rocblas::device_malloc(sizeof(T) * m),
                                                  rocblas::device_free)

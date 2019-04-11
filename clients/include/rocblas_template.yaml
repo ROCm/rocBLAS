@@ -1,0 +1,46 @@
+# Template used to process YAML from log files
+---
+include: rocblas_common.yaml
+
+Functions:
+  rocblas_sscal: { function: scal, <<: *single_precision }
+  rocblas_dscal: { function: scal, <<: *double_precision }
+  rocblas_scopy: { function: copy, <<: *single_precision }
+  rocblas_dcopy: { function: copy, <<: *double_precision }
+  rocblas_sswap: { function: swap, <<: *single_precision }
+  rocblas_dswap: { function: swap, <<: *double_precision }
+  rocblas_sdot:  { function: dot, <<: *single_precision  }
+  rocblas_ddot:  { function: dot, <<: *double_precision  }
+  rocblas_sasum: { function: asum, <<: *single_precision }
+  rocblas_dasum: { function: asum, <<: *double_precision }
+  rocblas_snrm2: { function: nrm2, <<: *single_precision }
+  rocblas_dnrm2: { function: nrm2, <<: *double_precision }
+  rocblas_haxpy: { function: axpy, <<: *half_precision   }
+  rocblas_saxpy: { function: axpy, <<: *single_precision }
+  rocblas_daxpy: { function: axpy, <<: *double_precision }
+  rocblas_sger:  { function: ger, <<: *single_precision  }
+  rocblas_dger:  { function: ger, <<: *double_precision  }
+  rocblas_ssyr:  { function: syr, <<: *single_precision  }
+  rocblas_dsyr:  { function: syr, <<: *double_precision  }
+  rocblas_sgemv: { function: gemv, <<: *single_precision }
+  rocblas_dgemv: { function: gemv, <<: *double_precision }
+  rocblas_strsv: { function: trsv, <<: *single_precision }
+  rocblas_dtrsv: { function: trsv, <<: *double_precision }
+  rocblas_ssymv: { function: symv, <<: *single_precision }
+  rocblas_dsymv: { function: symv, <<: *double_precision }
+  rocblas_sgeam: { function: geam, <<: *single_precision }
+  rocblas_dgeam: { function: geam, <<: *double_precision }
+  rocblas_hgemm: { function: gemm, <<: *half_precision   }
+  rocblas_sgemm: { function: gemm, <<: *single_precision }
+  rocblas_dgemm: { function: gemm, <<: *double_precision }
+  rocblas_hgemm_strided_batched: { function: gemm_strided_batched, <<: *half_precision }
+  rocblas_sgemm_strided_batched: { function: gemm_strided_batched, <<: *single_precision }
+  rocblas_dgemm_strided_batched: { function: gemm_strided_batched, <<: *double_precision }
+  rocblas_strsm: { function: trsm, <<: *single_precision }
+  rocblas_dtrsm: { function: trsm, <<: *double_precision }
+  rocblas_strtri: { function: trtri, <<: *single_precision }
+  rocblas_dtrtri: { function: trtri, <<: *double_precision }
+  rocblas_strtri_batched: { function: trtri_batched, <<: *single_precision }
+  rocblas_dtrtri_batched: { function: trtri_batched, <<: *double_precision }
+
+Tests:

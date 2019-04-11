@@ -13,7 +13,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct set_get_matrix_testing : rocblas_test_invalid
 {
 };
@@ -28,7 +28,7 @@ struct set_get_matrix_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_set_get_matrix"))
+        if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -46,13 +46,13 @@ struct set_get_matrix : RocBLAS_Test<set_get_matrix, set_get_matrix_testing>
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg)
     {
-        return !strcmp(arg.function, "testing_set_get_matrix");
+        return !strcmp(arg.function, "set_get_matrix");
     }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<set_get_matrix>() << rocblas_datatype2string(arg.a_type) << '_'
+        return RocBLAS_TestName<set_get_matrix>{} << rocblas_datatype2string(arg.a_type) << '_'
                                                   << arg.M << '_' << arg.N << '_' << arg.lda << '_'
                                                   << arg.ldb;
     }

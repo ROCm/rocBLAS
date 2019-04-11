@@ -64,10 +64,8 @@ inline void rocblas_init_cos(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j = 0; j < N; ++j)
-            {
+            for(size_t j                          = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = cos(i + j * lda + i_batch * stride);
-            }
 }
 
 /*! \brief  symmetric matrix initialization: */
@@ -80,7 +78,7 @@ inline void rocblas_init_symmetric(std::vector<T>& A, size_t N, size_t lda)
         {
             auto value = random_generator<T>();
             // Warning: It's undefined behavior to assign to the
-            // same array element twice in same statement (i==j)
+            // same array element twice in same sequence point (i==j)
             A[j + i * lda] = value;
             A[i + j * lda] = value;
         }
@@ -102,6 +100,17 @@ inline void rocblas_init_hermitian(std::vector<T>& A, size_t N, size_t lda)
         }
 }
 
+// Initialize vector with HPL-like random values
+template <typename T>
+inline void rocblas_init_hpl(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j                          = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
+}
+
 /* ============================================================================================ */
 /*! \brief  Initialize an array with random data, with NaN where apppropriate */
 
@@ -120,25 +129,15 @@ inline void rocblas_packInt8(
     std::vector<T>& A, size_t M, size_t N, size_t batch_count, size_t lda, size_t stride_a)
 {
     if(N % 4 != 0)
-    {
         std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
-    }
 
     std::vector<T> temp(A);
     for(size_t count = 0; count < batch_count; count++)
-    {
         for(size_t colBase = 0; colBase < N; colBase += 4)
-        {
             for(size_t row = 0; row < lda; row++)
-            {
                 for(size_t colOffset = 0; colOffset < 4; colOffset++)
-                {
                     A[(colBase * lda + 4 * row) + colOffset + (stride_a * count)] =
                         temp[(colBase + colOffset) * lda + row + (stride_a * count)];
-                }
-            }
-        }
-    }
 }
 
 /* ============================================================================================ */

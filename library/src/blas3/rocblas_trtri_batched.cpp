@@ -15,69 +15,6 @@ namespace {
 
 constexpr int NB = 16;
 
-template <typename T>
-__device__ void rocblas_tritri_batched_fill_upper(
-    size_t offset, size_t idx, rocblas_int n, rocblas_int lda, rocblas_int bsa, T value, T* A)
-{
-    rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
-    rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
-
-    size_t final_offset = offset * bsa + (row * lda) + col;
-
-    A[final_offset] = value;
-}
-
-template <typename T>
-__device__ void rocblas_tritri_batched_fill_lower(
-    size_t offset, size_t idx, rocblas_int lda, rocblas_int bsa, T value, T* A)
-{
-    rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);
-    rocblas_int col = idx - row * (row + 1) / 2;
-
-    size_t final_offset = offset * bsa + ((row + 1) * lda) + col;
-
-    A[final_offset] = value;
-}
-
-// return the number of elements in a NxN matrix that do not belong to the triangular region
-inline size_t num_non_tri_elements(rocblas_int n) { return (n * (n - 1) / 2); }
-
-template <typename T>
-__global__ void rocblas_tritri_batched_fill(rocblas_handle handle,
-                                            rocblas_fill uplo,
-                                            rocblas_int n,
-                                            rocblas_long num_zero_elem,
-                                            rocblas_int lda,
-                                            rocblas_int bsa,
-                                            T* A,
-                                            rocblas_int batch_count)
-{
-    // if(!handle)
-    //     return rocblas_status_invalid_handle;
-
-    // number of elements in a given matrix that will be zeroed
-    size_t num_elements_total_to_zero = num_zero_elem * batch_count;
-    size_t tx                         = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-
-    while(tx < num_elements_total_to_zero)
-    {
-        // determine which matrix in batch we're working on
-        size_t offset = tx / num_zero_elem;
-        // determine local matrix index
-        size_t idx = tx % num_zero_elem;
-
-        if(uplo == rocblas_fill_upper)
-        {
-            rocblas_tritri_batched_fill_lower<T>(offset, idx, lda, bsa, 0, A);
-        }
-        else if(uplo == rocblas_fill_lower)
-        {
-            rocblas_tritri_batched_fill_upper<T>(offset, idx, n, lda, bsa, 0, A);
-        }
-        tx += hipBlockDim_x * hipGridDim_x;
-    }
-}
-
 // flag indicate whether write into A or invA
 template <typename T>
 __global__ void trtri_small_kernel_batched(rocblas_fill uplo,
@@ -397,6 +334,23 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
         return rocblas_status_success;
     }
 
+    size_t blockSize            = 128;
+    size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
+    size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+                       dim3(numBlocks, 1, 1),
+                       dim3(blockSize, 1, 1),
+                       0,
+                       rocblas_stream,
+                       handle,
+                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                       n,
+                       num_non_tri_elements(n),
+                       ldinvA,
+                       n * ldinvA,
+                       invA,
+                       batch_count);
+
     // // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
     // dim3 grid_gemm((n+NB*2-1)/(NB*2) * batch_count);
     constexpr rocblas_int IB = NB * 2;
@@ -474,9 +428,6 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
         }
     }
 
-    size_t blockSize            = 128;
-    size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
-    size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
     hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
                        dim3(numBlocks, 1, 1),
                        dim3(blockSize, 1, 1),

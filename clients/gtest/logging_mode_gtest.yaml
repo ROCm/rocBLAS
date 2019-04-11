@@ -1,0 +1,10 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Tests:
+- name: logging_mode
+  category: quick
+  function: logging
+  precision: *single_double_precisions
+...

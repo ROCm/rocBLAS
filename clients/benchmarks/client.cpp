@@ -453,8 +453,8 @@ int main(int argc, char* argv[]) try
 
         ("initialization",
          value<std::string>(&initialization)->default_value("rand_int"),
-         "Intialize with random integers or trig functions sin and cos. "
-         "Options: rand_int, trig_float")
+         "Intialize with random integers, trig functions sin and cos, or hpl-like input. "
+         "Options: rand_int, trig_float, hpl")
 
         ("transposeA",
          value<char>(&arg.transA)->default_value('N'),

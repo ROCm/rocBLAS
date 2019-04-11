@@ -14,23 +14,21 @@
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)
 {
-    char temp[] = "/tmp/rocblas-XXXXXX";
-    int fd      = mkostemp(temp, O_CLOEXEC);
+    char tmp[] = "/tmp/rocblas-XXXXXX";
+    int fd     = mkostemp(tmp, O_CLOEXEC);
     if(fd == -1)
     {
         perror("Cannot open temporary file");
-        exit(1);
+        exit(EXIT_FAILURE);
     }
-    int saved_stdout = fcntl(1, F_DUPFD_CLOEXEC, 0);
-    dup2(fd, 1);
-    std::string cmd = rocblas_exepath() + "rocblas_gentest.py " + yaml;
+    auto exepath = rocblas_exepath();
+    auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o " +
+               tmp + " " + yaml;
     std::cerr << cmd << std::endl;
     int status = system(cmd.c_str());
-    dup2(saved_stdout, 1);
-    close(saved_stdout);
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
-        exit(1);
-    return temp;
+        exit(EXIT_FAILURE);
+    return tmp;
 }
 
 // Parse --data and --yaml command-line arguments
@@ -49,13 +47,13 @@ bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
             {
                 std::cerr << "Only one of the --yaml and --data options may be specified"
                           << std::endl;
-                exit(1);
+                exit(EXIT_FAILURE);
             }
 
             if(!argv[i + 1] || !argv[i + 1][0])
             {
                 std::cerr << "The " << argv[i] << " option requires an argument" << std::endl;
-                exit(1);
+                exit(EXIT_FAILURE);
             }
             filename = argv[++i];
         }
@@ -86,7 +84,7 @@ bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
 
     if(filename != "")
     {
-        RocBLAS_TestData::set_filename(filename);
+        RocBLAS_TestData::set_filename(filename, yaml);
         return true;
     }
 

@@ -50,7 +50,7 @@ class tuple_helper
             // If no decimal point or exponent, append .0
             char* end = s + strcspn(s, ".eE");
             if(!*end)
-                strcat(end, ".0");
+                strcpy(end, ".0");
             os << s;
         }
     }
@@ -72,22 +72,22 @@ class tuple_helper
     /************************************************************************************
      * Print tuples
      ************************************************************************************/
-    template <typename T, size_t idx = std::tuple_size<T>{}>
+    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
     struct print_tuple_recurse
     {
         template <typename F>
-        __attribute__((always_inline)) void operator()(F& print_argument, const T& tuple)
+        __attribute__((always_inline)) void operator()(F& print_argument, const TUP& tuple)
         {
-            print_tuple_recurse<T, idx - 2>{}(print_argument, tuple);
+            print_tuple_recurse<TUP, idx - 2>{}(print_argument, tuple);
             print_argument(std::get<idx - 2>(tuple), std::get<idx - 1>(tuple));
         }
     };
 
-    template <typename T>
-    struct print_tuple_recurse<T, 0>
+    template <typename TUP>
+    struct print_tuple_recurse<TUP, 0>
     {
         template <typename F>
-        __attribute__((always_inline)) void operator()(F& print_argument, const T& tuple)
+        __attribute__((always_inline)) void operator()(F&, const TUP&)
         {
         }
     };
@@ -98,12 +98,12 @@ class tuple_helper
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
-        // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print_argument = [&, delim = '{' ](auto name, auto value) mutable
+        // delim starts as "- {" and becomes "," afterwards
+        auto print_argument = [&, delim = "- {" ](auto&& name, auto&& value) mutable
         {
             os << delim << " " << name << ": ";
             print_value(os, value);
-            delim = ',';
+            delim = ",";
         };
         print_tuple_recurse<TUP>{}(print_argument, tuple);
         os << " }" << std::endl;
@@ -127,11 +127,11 @@ class tuple_helper
     }
 
     // C-style string hash since std::hash does not hash them
-    static constexpr size_t hash(const char* s)
+    static size_t hash(const char* s)
     {
         size_t seed = 0xcbf29ce484222325;
-        for(const char* p = s; *p; ++p)
-            seed = (seed ^ *p) * 0x100000001b3;
+        for(auto p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
+            seed = (seed ^ *p) * 0x100000001b3; // FNV-1a
         return seed;
     }
 
@@ -170,7 +170,7 @@ class tuple_helper
     template <typename T>
     static bool equal(const T& x1, const T& x2)
     {
-        return std::equal_to<T>{}(x1, x2);
+        return x1 == x2;
     }
 
     static bool equal(const char* s1, const char* s2) { return !strcmp(s1, s2); }
@@ -205,18 +205,6 @@ class tuple_helper
             return tuple_equal_recurse<TUP>{}(x, y);
         }
     };
-
-    /************************************************************************************
-     * Log values (for log_trace and log_bench)
-     ************************************************************************************/
-    public:
-    template <typename H, typename... Ts>
-    static void log_arguments(std::ostream& os, const char* sep, H head, Ts&&... xs)
-    {
-        os << head;
-        int x[] = {(os << sep << std::forward<Ts>(xs), 0)...};
-        os << "\n";
-    }
 };
 
 /************************************************************************************
@@ -275,7 +263,7 @@ class argument_profile : tuple_helper
     explicit argument_profile(std::ostream& os) : os(os) {}
 
     // Cleanup handler which dumps profile at destruction
-    ~argument_profile()
+    ~argument_profile() try
     {
         // Print all of the tuples in the map
         for(auto& p : map)
@@ -284,6 +272,10 @@ class argument_profile : tuple_helper
                         std::tuple_cat(p.first, std::make_tuple("call_count", p.second->load())));
             delete p.second;
         }
+        os.flush();
+    }
+    catch(...)
+    {
     }
 };
 
@@ -295,8 +287,20 @@ template <typename... Ts>
 inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
     auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
-    static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
+    static argument_profile<decltype(tup)> profile{*handle->log_profile_os};
+    static int aqe = at_quick_exit([] { profile.~argument_profile(); });
     profile(std::move(tup));
+}
+
+/************************************************************************************
+ * Log values (for log_trace and log_bench)
+ ************************************************************************************/
+template <typename H, typename... Ts>
+static inline void log_arguments(std::ostream& os, const char* sep, H head, Ts&&... xs)
+{
+    os << head;
+    int x[] = {(os << sep << std::forward<Ts>(xs), 0)...};
+    os << std::endl;
 }
 
 // if trace logging is turned on with
@@ -305,7 +309,7 @@ inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 template <typename... Ts>
 inline void log_trace(rocblas_handle handle, Ts&&... xs)
 {
-    tuple_helper::log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)...);
+    log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)...);
 }
 
 // if bench logging is turned on with
@@ -315,7 +319,7 @@ inline void log_trace(rocblas_handle handle, Ts&&... xs)
 template <typename... Ts>
 inline void log_bench(rocblas_handle handle, Ts&&... xs)
 {
-    tuple_helper::log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+    log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
 }
 
 #endif

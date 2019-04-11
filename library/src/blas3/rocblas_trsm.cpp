@@ -18,7 +18,7 @@ namespace {
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
-#define X(ii, jj) (X + (ii) + (jj)*ldb)
+#define X(ii, jj) (X + (ii) + (jj)*m)
 #define invA(ii) (invA + (ii)*BLOCK)
 
 /* ===============left==================================================== */
@@ -704,13 +704,15 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
+    if(*B_chunk == 0)
+        return rocblas_status_invalid_size;
+
     rocblas_int k = (side == rocblas_side_left ? m : n);
     if(!x)
     {
         void* invA_temp = handle->get_trsm_invA();
         void* invA_C    = handle->get_trsm_invA_C();
-        PRINT_IF_HIP_ERROR(hipMemsetAsync(
-            invA_temp, 0, BLOCK * BLOCK * WORKBUF_TRSM_A_BLKS * sizeof(T), rocblas_stream));
+
         rocblas_trtri_trsm_template<T, BLOCK>(
             handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
     }
@@ -973,7 +975,7 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
     if(!m || !n)
         return rocblas_status_success;
 
-    if(k % BLOCK == 0 && k <= BLOCK * (*x_temp_size))
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
     {
         rocblas_operation trA = transA;
         if(trA == rocblas_operation_conjugate_transpose)
@@ -1176,7 +1178,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     if(!m || !n)
         return rocblas_status_success;
 
-    if(k % BLOCK == 0 && k <= BLOCK * WORKBUF_TRSM_A_BLKS)
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
     {
         rocblas_operation trA = transA;
         if(trA == rocblas_operation_conjugate_transpose)
@@ -1200,7 +1202,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                             ldb,
                                             invA,
                                             0,
-                                            &WORKBUF_TRSM_B_CHNK,
+                                            (handle->get_trsm_B_chnk()),
                                             x_temp);
     }
 
@@ -1225,9 +1227,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-    // intialize invA to &zero
-    PRINT_IF_HIP_ERROR(hipMemsetAsync((T*)invA.get(), 0, BLOCK * k * sizeof(T), rocblas_stream));
-
     // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
     rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
         handle, (T*)C_tmp.get(), uplo, diag, k, A, lda, (T*)invA.get());
@@ -1246,7 +1245,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle handle,
                                              ldb,
                                              (T*)invA.get(),
                                              BLOCK,
-                                             &WORKBUF_TRSM_B_CHNK,
+                                             (handle->get_trsm_B_chnk()),
                                              (T*)X.get());
 
     return status;

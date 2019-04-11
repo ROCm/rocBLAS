@@ -75,7 +75,7 @@ int main()
         }
     }
 
-    printf("%d    %8.2f        \n", (int)N, gpu_time_used);
+    printf("%d    %8.2f\n", (int)N, gpu_time_used);
 
     if(error_in_element)
     {
