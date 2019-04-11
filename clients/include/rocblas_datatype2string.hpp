@@ -10,6 +10,7 @@
 typedef enum rocblas_initialization_ {
     rocblas_initialization_random_int = 111,
     rocblas_initialization_trig_float = 222,
+    rocblas_initialization_hpl        = 333,
 } rocblas_initialization;
 
 /* ============================================================================================ */
@@ -87,6 +88,7 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
     {
     case rocblas_initialization_random_int: return "rand_int";
     case rocblas_initialization_trig_float: return "trig_float";
+    case rocblas_initialization_hpl: return "hpl";
     default: return "invalid";
     }
 }
@@ -150,6 +152,7 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
     return
         value == "rand_int"   ? rocblas_initialization_random_int :
         value == "trig_float" ? rocblas_initialization_trig_float :
+        value == "hpl" ? rocblas_initialization_hpl :
         static_cast<rocblas_initialization>(-1);
     // clang-format on
 }
