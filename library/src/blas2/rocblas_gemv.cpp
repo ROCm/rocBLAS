@@ -149,7 +149,16 @@ __global__ void gemvn_kernel(rocblas_int m,
             sdata[thread_id] += sdata[thread_id + DIM_X * 4 * i];
 
         if(ind < m)
-            y[ind * incy] = alpha * sdata[thread_id] + beta * y[ind * incy];
+        {
+            if(beta != 0)
+            {
+                y[ind * incy] = alpha * sdata[thread_id] + beta * y[ind * incy];
+            }
+            else
+            {
+                y[ind * incy] = alpha * sdata[thread_id];
+            }
+        }
     }
 }
 
@@ -210,7 +219,16 @@ __global__ void gemvc_kernel(rocblas_int m,
     }
 
     if(tx == 0)
-        y[col * incy] = alpha * sdata[0] + beta * y[col * incy];
+    {
+        if(beta != 0)
+        {
+            y[col * incy] = alpha * sdata[0] + beta * y[col * incy];
+        }
+        else
+        {
+            y[col * incy] = alpha * sdata[0];
+        }
+    }
 }
 
 template <typename>
