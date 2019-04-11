@@ -94,6 +94,12 @@ struct _rocblas_handle
         init();
     } handle_init;
 
+    static int device_arch_id()
+    {
+        static int id = get_device_arch_id();
+        return id;
+    }
+
     // work buffer size constants
     private:
     size_t WORKBUF_TRSM_B_CHNK;
@@ -104,6 +110,14 @@ struct _rocblas_handle
     const size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
     const size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
     const size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
+    static int get_device_arch_id()
+    {
+        int deviceId;
+        hipGetDevice(&deviceId);
+        hipDeviceProp_t deviceProperties;
+        hipGetDeviceProperties(&deviceProperties, deviceId);
+        return deviceProperties.gcnArch;
+    }
 };
 
 namespace rocblas {
