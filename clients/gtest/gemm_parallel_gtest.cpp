@@ -26,7 +26,7 @@ struct parallel_gemm : testing::TestWithParam<std::vector<Arguments>>
     // Filter for which tests get into gemm right now
     static bool filter(const Arguments& arg)
     {
-        return !strcmp(arg.function, "testing_gemm") && (arg.unit_check || arg.norm_check) &&
+        return !strcmp(arg.function, "gemm") && (arg.unit_check || arg.norm_check) &&
             !arg.timing;
     }
 };

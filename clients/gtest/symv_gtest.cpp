@@ -16,7 +16,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct symv_testing : rocblas_test_invalid
 {
 };
@@ -33,7 +33,7 @@ struct symv_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_symv"))
+        if(!strcmp(arg.function, "symv"))
             testing_symv<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -51,15 +51,12 @@ struct symv : RocBLAS_Test<symv, symv_testing>
     }
 
     // Filter for which functions apply to this suite
-    static bool function_filter(const Arguments& arg)
-    {
-        return !strcmp(arg.function, "testing_symv");
-    }
+    static bool function_filter(const Arguments& arg) { return !strcmp(arg.function, "symv"); }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<symv>()
+        return RocBLAS_TestName<symv>{}
                << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo) << '_'
                << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx << '_' << arg.beta
                << '_' << arg.incy;

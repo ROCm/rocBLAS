@@ -46,14 +46,14 @@ Definitions:
 Tests:
 - name: geam_bad_arg
   category: pre_checkin
-  function: testing_geam_bad_arg
+  function: geam_bad_arg
   precision: *single_double_precisions
   transA: N
   transB: N
 
 - name: geam_small
   category: quick
-  function: testing_geam
+  function: geam
   precision: *single_double_precisions
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
@@ -61,7 +61,7 @@ Tests:
 
 - name: geam_large
   category: pre_checkin
-  function: testing_geam
+  function: geam
   precision: *single_double_precisions
   transA_transB: *transA_transB_range
   matrix_size: *large_matrix_size_range
@@ -69,7 +69,7 @@ Tests:
 
 - name: geam_huge
   category: nightly
-  function: testing_geam
+  function: geam
   precision: *single_double_precisions
   transA_transB: *transA_transB_range
   matrix_size: *huge_matrix_size_range

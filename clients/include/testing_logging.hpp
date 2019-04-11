@@ -19,15 +19,15 @@
 template <typename T>
 char precision_letter;
 template <>
-constexpr char precision_letter<rocblas_half>[] = "h";
+constexpr auto precision_letter<rocblas_half> = "h";
 template <>
-constexpr char precision_letter<float>[] = "s";
+constexpr auto precision_letter<float> = "s";
 template <>
-constexpr char precision_letter<double>[] = "d";
+constexpr auto precision_letter<double> = "d";
 template <>
-constexpr char precision_letter<rocblas_float_complex>[] = "c";
+constexpr auto precision_letter<rocblas_float_complex> = "c";
 template <>
-constexpr char precision_letter<rocblas_double_complex>[] = "z";
+constexpr auto precision_letter<rocblas_double_complex> = "z";
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>

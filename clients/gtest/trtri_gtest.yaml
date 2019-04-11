@@ -34,7 +34,7 @@ Definitions:
 Tests:
 - name: trtri
   category: pre_checkin
-  function: testing_trtri
+  function: trtri
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
@@ -42,7 +42,7 @@ Tests:
 
 - name: trtri_batched
   category: pre_checkin               
-  function: testing_trtri_batched
+  function: trtri_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]

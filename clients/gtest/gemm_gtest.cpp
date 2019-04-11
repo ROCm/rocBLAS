@@ -55,19 +55,17 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
         switch(GEMM_TYPE)
         {
         case GEMM:
-            return !strcmp(arg.function, "testing_gemm") ||
-                   !strcmp(arg.function, "testing_gemm_NaN") ||
-                   !strcmp(arg.function, "testing_gemm_bad_arg");
+            return !strcmp(arg.function, "gemm") || !strcmp(arg.function, "gemm_NaN") ||
+                   !strcmp(arg.function, "gemm_bad_arg");
 
         case GEMM_EX:
-            return !strcmp(arg.function, "testing_gemm_ex") ||
-                   !strcmp(arg.function, "testing_gemm_ex_bad_arg");
+            return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
 
-        case GEMM_STRIDED_BATCHED: return !strcmp(arg.function, "testing_gemm_strided_batched");
+        case GEMM_STRIDED_BATCHED: return !strcmp(arg.function, "gemm_strided_batched");
 
         case GEMM_STRIDED_BATCHED_EX:
-            return !strcmp(arg.function, "testing_gemm_strided_batched_ex") ||
-                   !strcmp(arg.function, "testing_gemm_strided_batched_ex_bad_arg");
+            return !strcmp(arg.function, "gemm_strided_batched_ex") ||
+                   !strcmp(arg.function, "gemm_strided_batched_ex_bad_arg");
         }
 
         return false;
@@ -124,13 +122,13 @@ struct gemm_testing<T,
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_gemm"))
+        if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_NaN"))
+        else if(!strcmp(arg.function, "gemm_NaN"))
             testing_gemm_NaN<T>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_bad_arg"))
+        else if(!strcmp(arg.function, "gemm_bad_arg"))
             testing_gemm_bad_arg<T>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_strided_batched"))
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -171,13 +169,13 @@ struct gemm_ex_testing<Ti,
 
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_gemm_ex"))
+        if(!strcmp(arg.function, "gemm_ex"))
             testing_gemm_ex<Ti, To, Tc>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_ex_bad_arg"))
+        else if(!strcmp(arg.function, "gemm_ex_bad_arg"))
             testing_gemm_ex_bad_arg<Ti, To, Tc>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_strided_batched_ex"))
+        else if(!strcmp(arg.function, "gemm_strided_batched_ex"))
             testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
-        else if(!strcmp(arg.function, "testing_gemm_strided_batched_ex_bad_arg"))
+        else if(!strcmp(arg.function, "gemm_strided_batched_ex_bad_arg"))
             testing_gemm_strided_batched_ex_bad_arg<Ti, To, Tc>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;

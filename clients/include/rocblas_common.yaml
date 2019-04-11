@@ -173,3 +173,5 @@ Defaults:
   flags: 0
   workspace_size: 0
   initialization: rocblas_initialization_random_int
+  category: nightly
+  name: '*'

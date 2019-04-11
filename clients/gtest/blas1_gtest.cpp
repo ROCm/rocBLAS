@@ -95,9 +95,9 @@ struct blas1_##NAME                                                            \
         explicit operator bool() { return true; }                              \
         void operator()(const Arguments& arg)                                  \
         {                                                                      \
-            if(!strcmp(arg.function, "testing_" #NAME))                        \
+            if(!strcmp(arg.function, #NAME))                                   \
                 testing_##NAME<ARG(Ti, To, Tc)>(arg);                          \
-            else if(!strcmp(arg.function, "testing_" #NAME "_bad_arg"))        \
+            else if(!strcmp(arg.function, #NAME "_bad_arg"))                   \
                 testing_##NAME##_bad_arg<ARG(Ti, To, Tc)>(arg);                \
             else                                                               \
                 FAIL() << "Internal error: Test called with unknown function: "\
@@ -111,8 +111,8 @@ using NAME = blas1_test_template<blas1_##NAME::template testing, blas1::NAME>; \
 template<>                                                                     \
 inline bool NAME::function_filter(const Arguments& arg)                        \
 {                                                                              \
-    return !strcmp(arg.function, "testing_" #NAME) ||                          \
-        !strcmp(arg.function, "testing_" #NAME "_bad_arg");                    \
+    return !strcmp(arg.function, #NAME) ||                                     \
+        !strcmp(arg.function, #NAME "_bad_arg");                               \
 }                                                                              \
                                                                                \
 TEST_P(NAME, blas1)                                                            \

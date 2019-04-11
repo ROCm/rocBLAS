@@ -127,7 +127,7 @@ In the partial specialization(s), create a functional `operator()` which takes a
 
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_syr"))
+        if(!strcmp(arg.function, "syr"))
             testing_syr<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: "
@@ -145,7 +145,7 @@ The combinations of types handled by this "runtime type to template type instant
 
 The return type of this function needs to be `auto`, picking up the return type of the functor.
 
-If the runtime type combinations do not apply, then this function should return `TEST<void>()(arg)`, where `TEST` is the template parameter. However, this is less important than step D above in excluding invalid type
+If the runtime type combinations do not apply, then this function should return `TEST<void>{}(arg)`, where `TEST` is the template parameter. However, this is less important than step D above in excluding invalid type
 combinations with `enable_if`, since this only excludes them at run-time, and they need to be excluded by step D at compile-time in order to avoid unresolved references or invalid instantiations. For example:
 ```c++
 template <template <typename...> class TEST>
@@ -153,13 +153,13 @@ auto rocblas_simple_dispatch(const Arguments& arg)
 {
     switch(arg.a_type)
     {
-      case rocblas_datatype_f16_r: return TEST<rocblas_half>()(arg);
-      case rocblas_datatype_f32_r: return TEST<float>()(arg);
-      case rocblas_datatype_f64_r: return TEST<double>()(arg);
-      case rocblas_datatype_f16_c: return TEST<rocblas_half_complex>()(arg);
-      case rocblas_datatype_f32_c: return TEST<rocblas_float_complex>()(arg);
-      case rocblas_datatype_f64_c: return TEST<rocblas_double_complex>()(arg);
-      default: return TEST<void>()(arg);
+      case rocblas_datatype_f16_r: return TEST<rocblas_half>{}(arg);
+      case rocblas_datatype_f32_r: return TEST<float>{}(arg);
+      case rocblas_datatype_f64_r: return TEST<double>{}(arg);
+      case rocblas_datatype_f16_c: return TEST<rocblas_half_complex>{}(arg);
+      case rocblas_datatype_f32_c: return TEST<rocblas_float_complex>{}(arg);
+      case rocblas_datatype_f64_c: return TEST<rocblas_double_complex>{}(arg);
+      default: return TEST<void>{}(arg);
     }
 }
 ```
@@ -189,8 +189,7 @@ static bool type_filter(const Arguments& arg)
 // Filter for which functions apply to this suite
 static bool function_filter(const Arguments& arg)
 {
-  return !strcmp(arg.function, "testing_ger") ||
-         !strcmp(arg.function, "testing_ger_bad_arg");
+  return !strcmp(arg.function, "ger") || !strcmp(arg.function, "ger_bad_arg");
 }
 ```
  `static std::string name_suffix(const Arguments& arg)` returns a string which will be used as the Google Test name's suffix. It will provide an alphanumeric representation of the test's arguments.

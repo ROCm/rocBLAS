@@ -29,7 +29,7 @@ Definitions:
 Tests:
 - name: syr_small
   category: quick
-  function: testing_syr
+  function: syr
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
@@ -38,7 +38,7 @@ Tests:
 
 - name: syr_medium
   category: pre_checkin
-  function: testing_syr
+  function: syr
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
@@ -47,7 +47,7 @@ Tests:
 
 - name: sry_large
   category: nightly
-  function: testing_syr
+  function: syr
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range

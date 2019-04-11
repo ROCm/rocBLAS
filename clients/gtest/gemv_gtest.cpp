@@ -15,7 +15,7 @@ namespace {
 
 // By default, arbitrary type combinations are invalid.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct gemv_testing : rocblas_test_invalid
 {
 };
@@ -30,9 +30,9 @@ struct gemv_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_gemv"))
+        if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
-        else if(!strcmp(arg.function, "testing_gemv_bad_arg"))
+        else if(!strcmp(arg.function, "gemv_bad_arg"))
             testing_gemv_bad_arg<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -50,14 +50,13 @@ struct gemv : RocBLAS_Test<gemv, gemv_testing>
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg)
     {
-        return !strcmp(arg.function, "testing_gemv") ||
-               !strcmp(arg.function, "testing_gemv_bad_arg");
+        return !strcmp(arg.function, "gemv") || !strcmp(arg.function, "gemv_bad_arg");
     }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<gemv>() << rocblas_datatype2string(arg.a_type) << '_'
+        return RocBLAS_TestName<gemv>{} << rocblas_datatype2string(arg.a_type) << '_'
                                         << (char)std::toupper(arg.transA) << '_' << arg.M << '_'
                                         << arg.N << '_' << arg.alpha << '_' << arg.lda << '_'
                                         << arg.incx << '_' << arg.beta << '_' << arg.incy;

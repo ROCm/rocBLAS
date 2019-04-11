@@ -44,13 +44,13 @@ Definitions:
 Tests:
 - name: gemv_bad_arg
   category: pre_checkin
-  function: testing_gemv_bad_arg
+  function: gemv_bad_arg
   precision: *single_double_precisions
   transA: N
 
 - name: gemv_small
   category: quick
-  function: testing_gemv
+  function: gemv
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
@@ -59,7 +59,7 @@ Tests:
 
 - name: gemv_medium
   category: pre_checkin
-  function: testing_gemv
+  function: gemv
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
@@ -68,7 +68,7 @@ Tests:
 
 - name: gemv_large
   category: nightly
-  function: testing_gemv
+  function: gemv
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range

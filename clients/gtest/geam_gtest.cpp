@@ -15,7 +15,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct geam_testing : rocblas_test_invalid
 {
 };
@@ -30,9 +30,9 @@ struct geam_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_geam"))
+        if(!strcmp(arg.function, "geam"))
             testing_geam<T>(arg);
-        else if(!strcmp(arg.function, "testing_geam_bad_arg"))
+        else if(!strcmp(arg.function, "geam_bad_arg"))
             testing_geam_bad_arg<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -50,14 +50,13 @@ struct geam : RocBLAS_Test<geam, geam_testing>
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg)
     {
-        return !strcmp(arg.function, "testing_geam") ||
-               !strcmp(arg.function, "testing_geam_bad_arg");
+        return !strcmp(arg.function, "geam") || !strcmp(arg.function, "geam_bad_arg");
     }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<geam>()
+        return RocBLAS_TestName<geam>{}
                << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
                << (char)std::toupper(arg.transB) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
                << '_' << arg.lda << '_' << arg.beta << '_' << arg.ldb << '_' << arg.ldc;

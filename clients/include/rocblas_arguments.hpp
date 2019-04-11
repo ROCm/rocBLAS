@@ -83,7 +83,7 @@ struct Arguments
                          "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                          "define exactly the same Arguments, that rocblas_gentest.py\n"
                          "generates the data correctly, and that endianness is the same.\n";
-            exit(1);
+            exit(EXIT_FAILURE);
         };
 
         char header[8]{}, trailer[8]{};

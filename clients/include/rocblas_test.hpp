@@ -112,7 +112,7 @@ class RocBLAS_TestName
     table_t& get_table()
     {
         // Placed inside function to avoid dependency on initialization order
-        static table_t* table = test_cleanup::allocate<table_t>(&table);
+        static table_t* table = test_cleanup::allocate<table_t>(table);
         return *table;
     }
 
@@ -125,6 +125,9 @@ class RocBLAS_TestName
         // This table is private to each instantation of RocBLAS_TestName
         table_t& table = get_table();
         std::string name(str.str());
+
+        if(name == "")
+            name = "1";
 
         // Warn about unset letter parameters
         if(name.find('*') != name.npos)
@@ -171,11 +174,15 @@ class RocBLAS_TestName
         name.str << std::forward<U>(obj);
         return std::move(name);
     }
+
+    RocBLAS_TestName()                        = default;
+    RocBLAS_TestName(const RocBLAS_TestName&) = delete;
+    RocBLAS_TestName& operator=(const RocBLAS_TestName&) = delete;
 };
 
 // ----------------------------------------------------------------------------
 // RocBLAS_Test base class. All non-legacy rocBLAS Google tests derive from it.
-// It defines a type_filter() functor and a PrintToStringParamName class
+// It defines a type_filter_functor() and a PrintToStringParamName class
 // which calls name_suffix() in the derived class to form the test name suffix.
 // ----------------------------------------------------------------------------
 template <typename TEST, template <typename...> class FILTER>
@@ -187,7 +194,7 @@ class RocBLAS_Test : public testing::TestWithParam<Arguments>
     template <typename... T>
     struct type_filter_functor
     {
-        bool operator()(const Arguments&) { return static_cast<bool>(FILTER<T...>()); }
+        bool operator()(const Arguments&) { return static_cast<bool>(FILTER<T...>{}); }
     };
 
     public:

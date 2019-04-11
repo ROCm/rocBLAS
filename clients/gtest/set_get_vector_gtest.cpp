@@ -13,7 +13,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct set_get_vector_testing : rocblas_test_invalid
 {
 };
@@ -28,7 +28,7 @@ struct set_get_vector_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_set_get_vector"))
+        if(!strcmp(arg.function, "set_get_vector"))
             testing_set_get_vector<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -46,13 +46,13 @@ struct set_get_vector : RocBLAS_Test<set_get_vector, set_get_vector_testing>
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg)
     {
-        return !strcmp(arg.function, "testing_set_get_vector");
+        return !strcmp(arg.function, "set_get_vector");
     }
 
     // Google Test name suffix based on parameters
     static std::string name_suffix(const Arguments& arg)
     {
-        return RocBLAS_TestName<set_get_vector>() << rocblas_datatype2string(arg.a_type) << '_'
+        return RocBLAS_TestName<set_get_vector>{} << rocblas_datatype2string(arg.a_type) << '_'
                                                   << arg.M << '_' << arg.incx << '_' << arg.incy
                                                   << '_' << arg.incb;
     }
