@@ -83,4 +83,11 @@ inline int8_t random_generator<int8_t>()
     return std::uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
 };
 
+/*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
+template <typename T>
+inline T random_hpl_generator()
+{
+    return std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng);
+}
+
 #endif

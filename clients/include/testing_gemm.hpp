@@ -258,6 +258,13 @@ void testing_gemm(const Arguments& arg)
         rocblas_init_cos<T>(hB, B_row, B_col, ldb);
         rocblas_init_sin<T>(hC_1, M, N, ldc);
     }
+    else if(arg.initialization == rocblas_initialization_hpl)
+    {
+        rocblas_seedrand();
+        rocblas_init_hpl<T>(hA, A_row, A_col, lda);
+        rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
+        rocblas_init_hpl<T>(hC_1, M, N, ldc);
+    }
 
     hC_2    = hC_1;
     hC_gold = hC_1;
