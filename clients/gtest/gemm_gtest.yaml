@@ -2769,13 +2769,13 @@ Tests:
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
 
-#- name: gemm_ldd
-#  category: quick
-#  function:
-#    gemm_ex: *real_precisions
-#  matrix_size: *ldd_size_range
-#  transA_transB: *ldd_transA_transB_range
-#  alpha_beta: *alpha_beta_range
+- name: gemm_ldd
+  category: quick
+  function:
+    gemm_ex: *real_precisions
+  matrix_size: *ldd_size_range
+  transA_transB: *ldd_transA_transB_range
+  alpha_beta: *alpha_beta_range
 
 - name: gemm_384
   category: nightly
