@@ -2342,9 +2342,9 @@ Tests:
 - name: gemm_bad_arg
   category: pre_checkin
   function:
-    - testing_gemm_bad_arg
-    - testing_gemm_ex_bad_arg
-    - testing_gemm_strided_batched_ex_bad_arg
+    - gemm_bad_arg
+    - gemm_ex_bad_arg
+    - gemm_strided_batched_ex_bad_arg
   precision: *half_single_double_precisions
   transA: N
   transB: N
@@ -2352,7 +2352,7 @@ Tests:
 - name: gemm_NaN
   category: pre_checkin
   function:
-    testing_gemm_NaN: *single_double_precisions   # Half precision NaN doesn't work now
+    gemm_NaN: *single_double_precisions   # Half precision NaN doesn't work now
   matrix_size: *NaN_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ 0.0, 1.0, -1.0, 2.0 ]
@@ -2360,8 +2360,8 @@ Tests:
 - name: gemm_small
   category: quick
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -2369,8 +2369,8 @@ Tests:
 - name: gemm_medium
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -2378,8 +2378,8 @@ Tests:
 - name: gemm_large
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -2387,8 +2387,8 @@ Tests:
 - name: gemm_chunk
   category: pre_checkin
   function:
-    testing_gemm: *half_single_precisions
-    testing_gemm_ex: *half_single_precisions
+    gemm: *half_single_precisions
+    gemm_ex: *half_single_precisions
   matrix_size: *chunk_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: 2
@@ -2397,8 +2397,8 @@ Tests:
 - name: gemm_deepbench
   category: nightly
   function:
-    testing_gemm: *half_single_precisions
-    testing_gemm_ex: *int8_half_single_precisions
+    gemm: *half_single_precisions
+    gemm_ex: *int8_half_single_precisions
   matrix_size: *deepbench_sizes
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
@@ -2406,7 +2406,7 @@ Tests:
 - name: gemm_deepbench_large
   category: nightly
   function:
-    testing_gemm_ex: *int8_precision
+    gemm_ex: *int8_precision
   matrix_size: *deepbench_large_sizes
   alpha_beta: *deepbench_alpha_beta_range
   transA: T
@@ -2415,8 +2415,8 @@ Tests:
 - name: resnet50_fwd
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *int8_half_single_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *int8_half_single_precisions
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
@@ -2426,8 +2426,8 @@ Tests:
 - name: resnet50_bwdwrw
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *int8_half_single_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *int8_half_single_precisions
   transA: T
   transB: N
   matrix_size: *resnet50_bwdwrw_sizes
@@ -2437,8 +2437,8 @@ Tests:
 - name: resnet50_bwddata
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *int8_half_single_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *int8_half_single_precisions
   transA: N
   transB: T
   matrix_size: *resnet50_bwddata_sizes
@@ -2448,7 +2448,7 @@ Tests:
 - name: inception4_fwd
   category: nightly
   function:
-    testing_gemmn: *half_single_double_precisions
+    gemmn: *half_single_double_precisions
   transA: N
   transB: N
   matrix_size: *inception4_fwd_sizes
@@ -2458,7 +2458,7 @@ Tests:
 - name: inception4_bwdwrw
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
+    gemm: *half_single_double_precisions
   transA: T
   transB: N
   matrix_size: *inception4_bwdwrw_sizes
@@ -2468,7 +2468,7 @@ Tests:
 - name: inception4_bwddata
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
+    gemm: *half_single_double_precisions
   transA: N
   transB: T
   matrix_size: *inception4_bwddata_sizes
@@ -2478,7 +2478,7 @@ Tests:
 - name: ctest_bwddata
   category: nightly
   function:
-    testing_gemm: *half_single_precisions
+    gemm: *half_single_precisions
   transA: N
   transB: T
   matrix_size: *ctest_bwddata_sizes
@@ -2488,7 +2488,7 @@ Tests:
 - name: ctest_bwdwrw
   category: nightly
   function:
-    testing_gemm: *half_single_precisions
+    gemm: *half_single_precisions
   transA: T
   transB: N
   alpha: 1
@@ -2498,7 +2498,7 @@ Tests:
 - name: ctest_fwd
   category: nightly
   function:
-    testing_gemm: *half_single_precisions
+    gemm: *half_single_precisions
   transA: N
   transB: N
   alpha: 1
@@ -2508,8 +2508,8 @@ Tests:
 - name: gemm_1_8
   category: quick
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 1..8
   N: 1..8
   K: 1..8
@@ -2519,8 +2519,8 @@ Tests:
 - name: gemm_9_12
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 9..12
   N: 9..12
   K: 9..12
@@ -2530,8 +2530,8 @@ Tests:
 - name: gemm_13_16
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 13..16
   N: 13..16
   K: 13..16
@@ -2541,8 +2541,8 @@ Tests:
 - name: gemm_17_20
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 17..20
   N: 17..20
   K: 17..20
@@ -2552,8 +2552,8 @@ Tests:
 - name: gemm_20_23
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 20..23
   N: 20..23
   K: 20..23
@@ -2563,8 +2563,8 @@ Tests:
 - name: gemm_24_27
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 24..27
   N: 24..27
   K: 24..27
@@ -2574,8 +2574,8 @@ Tests:
 - name: gemm_28_31
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 28..31
   N: 28..31
   K: 28..31
@@ -2585,8 +2585,8 @@ Tests:
 - name: gemm_32
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 31..33
   N: 31..33
   K: 31..33
@@ -2596,8 +2596,8 @@ Tests:
 - name: gemm_32_9_129
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 9..129
   N: 31..33
   K: 31..33
@@ -2607,8 +2607,8 @@ Tests:
 - name: gemm_48
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 47..49
   N: 47..49
   K: 47..49
@@ -2618,8 +2618,8 @@ Tests:
 - name: gemm_48_9_129
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 47..49
   N: 9..129
   K: 47..49
@@ -2629,8 +2629,8 @@ Tests:
 - name: gemm_64
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 63..65
   N: 63..65
   K: 63..65
@@ -2640,8 +2640,8 @@ Tests:
 - name: gemm_64_9_129
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 63..65
   N: 63..65
   K: 9..129
@@ -2651,8 +2651,8 @@ Tests:
 - name: gemm_64_1_4_5_8
   category: quick
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 63..65
   N: 1..4
   K: 5..8
@@ -2662,8 +2662,8 @@ Tests:
 - name: gemm_5_8_64_1_4
   category: quick
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 5..8
   N: 63..65
   K: 1..4
@@ -2673,8 +2673,8 @@ Tests:
 - name: gemm_1_4_5_8_64
   category: quick
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 1..4
   N: 5..8
   K: 63..65
@@ -2684,8 +2684,8 @@ Tests:
 - name: gemm_96
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 95..97
   N: 95..97
   K: 95..97
@@ -2695,8 +2695,8 @@ Tests:
 - name: gemm_128
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 127..129
   N: 127..129
   K: 127..129
@@ -2706,8 +2706,8 @@ Tests:
 - name: gemm_256
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 255..257
   N: 255..257
   K: 255..257
@@ -2717,8 +2717,8 @@ Tests:
 - name: gemm_256_9_12_13_16
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 255..257
   N: 9..12
   K: 13..16
@@ -2728,8 +2728,8 @@ Tests:
 - name: gemm_13_16_256_9_12
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 13..16
   N: 255..257
   K: 9..12
@@ -2739,8 +2739,8 @@ Tests:
 - name: gemm_9_12_13_16_256
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 9..12
   N: 13..16
   K: 255..257
@@ -2750,8 +2750,8 @@ Tests:
 - name: gemm_512
   category: pre_checkin
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 511..513
   N: 511..513
   K: 511..513
@@ -2761,8 +2761,8 @@ Tests:
 - name: gemm_1024
   category: nightly
   function:
-    testing_gemm: *half_single_double_precisions
-    testing_gemm_ex: *real_precisions
+    gemm: *half_single_double_precisions
+    gemm_ex: *real_precisions
   M: 1023..1025
   N: 1023..1025
   K: 1023..1025
@@ -2772,14 +2772,14 @@ Tests:
 - name: gemm_ldd
   category: quick
   function:
-    testing_gemm_ex: *real_precisions
+    gemm_ex: *real_precisions
   matrix_size: *ldd_size_range
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
 
 - name: gemm_384
   category: nightly
-  function: testing_gemm
+  function: gemm
   precision: *double_precision
   transA: [ N, T ]
   transB: [ N, T ]

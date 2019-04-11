@@ -288,11 +288,11 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     TensileStatus t_status;
     rocblas_status rb_status;
 
+    static const bool arch_lt906 = handle->device_arch_id() < 906;
     const To* c_in;
     unsigned int ldi, stride_i;
-    if((std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) && 
-       ((ldc >= ldd && stride_c >= stride_d && m == ldd) ||
-       (ldc == ldd && stride_c == stride_d)))
+    if(!arch_lt906 && (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) && 
+       ((ldc >= ldd && stride_c >= stride_d && m == ldd) || (ldc == ldd && stride_c == stride_d)))
     {
         c_in = c;
         ldi = ldc;

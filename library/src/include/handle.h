@@ -90,6 +90,22 @@ struct _rocblas_handle
     {
         init();
     } handle_init;
+
+    static int device_arch_id()
+    {
+        static int id = get_device_arch_id();
+        return id;
+    }
+
+    private:
+    static int get_device_arch_id()
+    {
+        int deviceId;
+        hipGetDevice(&deviceId);
+        hipDeviceProp_t deviceProperties;
+        hipGetDeviceProperties(&deviceProperties, deviceId);
+        return deviceProperties.gcnArch;
+    }
 };
 
 namespace rocblas {
@@ -104,4 +120,14 @@ constexpr size_t WORKBUF_TRSM_INVA_SZ   = 128 * 128 * 10 * sizeof(double);
 constexpr size_t WORKBUF_TRSM_INVA_C_SZ = 128 * 128 * 10 * sizeof(double) / 2;
 constexpr size_t WORKBUF_TRSV_X_SZ      = 131072 * sizeof(double);
 constexpr size_t WORKBUF_TRSV_ALPHA_SZ  = sizeof(double);
+static bool device_lt906()
+{
+    int deviceId;
+    hipGetDevice(&deviceId);
+    hipDeviceProp_t deviceProperties;
+    hipGetDeviceProperties(&deviceProperties, deviceId);
+    int arch = deviceProperties.gcnArch;
+    return arch < 906;
+}
+
 #endif
