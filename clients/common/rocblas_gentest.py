@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """Expand rocBLAS YAML test data file into binary Arguments records"""
 
 import re
@@ -29,8 +29,8 @@ param = {}
 
 
 def main():
-    (infile, args['outfile'], args['includes']) = parse_args()
-    for doc in get_yaml_docs(infile):
+    args.update(parse_args().__dict__)
+    for doc in get_yaml_docs():
         process_doc(doc)
 
 
@@ -64,6 +64,9 @@ def process_doc(doc):
     # Known Bugs
     param['known_bugs'] = doc.get('Known bugs') or []
 
+    # Functions
+    param['Functions'] = doc.get('Functions') or {}
+
     # Instantiate all of the tests, starting with defaults
     for test in doc['Tests']:
         case = defaults.copy()
@@ -89,8 +92,9 @@ Expand rocBLAS YAML test data file into binary Arguments records
                         action='append',
                         dest='includes',
                         default=[])
-    parsed = parser.parse_args()
-    return (parsed.infile, parsed.outfile, parsed.includes)
+    parser.add_argument('-t', '--template',
+                        type=argparse.FileType('r'))
+    return parser.parse_args()
 
 
 def read_yaml_file(file):
@@ -120,9 +124,13 @@ def read_yaml_file(file):
     return source
 
 
-def get_yaml_docs(infile):
+def get_yaml_docs():
     """Parse the YAML file"""
-    source = read_yaml_file(infile)
+    source = read_yaml_file(args['infile'])
+
+    if args.get('template'):
+        source = read_yaml_file(args['template']) + source
+
     source_str = ''.join([line[0] for line in source])
 
     def mark_str(mark):
@@ -215,7 +223,7 @@ def write_signature(out):
     """Write the signature used to verify binary file compatibility"""
     if 'signature_written' not in args:
         sig = 0
-        byt = bytearray("rocBLAS")
+        byt = bytearray("rocBLAS", 'utf_8')
         byt.append(0)
         last_ofs = 0
         for (name, ctype) in param['Arguments']._fields_:
@@ -228,7 +236,7 @@ def write_signature(out):
             last_ofs = member.offset + member.size
         for i in range(0, ctypes.sizeof(param['Arguments']) - last_ofs):
             byt.append(0)
-        byt.extend(bytearray("ROCblas"))
+        byt.extend(bytes("ROCblas", 'utf_8'))
         byt.append(0)
         out.write(byt)
         args['signature_written'] = True
@@ -242,19 +250,21 @@ def write_test(test):
     # value of the string directly. For arrays, we unpack their contents
     # into the ctype array constructor and pass the ctype array. For
     # scalars, we coerce the string/numeric value into ctype.
-    # This only works on Python 2.7+. It is incompatible with Python 3+.
-    arg = param['Arguments'](*(
-        test[name] if ctype._type_ == ctypes.c_char    # Strings
-        else ctype(*test[name])                        # Arrays
-        if issubclass(ctype, ctypes.Array)
-        else ctype(test[name])                         # Scalars
-        for (name, ctype) in param['Arguments']._fields_
-    ))
+    arg = []
+    for name, ctype in param['Arguments']._fields_:
+        if issubclass(ctype, ctypes.Array):
+            if issubclass(ctype._type_, ctypes.c_char):
+                arg.append(bytes(test[name], 'utf_8'))
+            else:
+                arg.append(ctype(*test[name]))
+        elif issubclass(ctype, ctypes.c_char):
+            arg.append(bytes(test[name], 'utf_8'))
+        else:
+            arg.append(ctype(test[name]))
 
-    byt = bytearray(arg)
-    sig = tuple(byt)
-    if sig not in testcases:
-        testcases.add(sig)
+    byt = bytes(param['Arguments'](*arg))
+    if byt not in testcases:
+        testcases.add(byt)
         write_signature(args['outfile'])
         args['outfile'].write(byt)
 
@@ -308,9 +318,9 @@ def generate(test, function):
     for argname in param['dict_lists_to_expand']:
         if type(argname) == dict:
             if len(argname) == 1:
-                arg, target = argname.items()[0]
+                arg, target = list(argname.items())[0]
                 if arg in test and type(test[arg]) == dict:
-                    pairs = sorted(test[arg].items(), key=lambda x: x[0])
+                    pairs = sorted(list(test[arg].items()), key=lambda x: x[0])
                     for test[arg], test[target] in pairs:
                         generate(test, function)
                     return
@@ -325,7 +335,7 @@ def generate(test, function):
                 generate(case, function)  # original test merged with each item
             return
 
-    for key in sorted(test.keys()):
+    for key in sorted(list(test)):
         # Integer arguments which are ranges (A..B[..C]) are expanded
         if type(test[key]) == str:
             match = INT_RANGE_RE.match(str(test[key]))
@@ -342,6 +352,16 @@ def generate(test, function):
             for test[key] in test[key]:
                 generate(test, function)
             return
+
+    # Replace typed function names with generic functions and types
+    if 'rocblas_function' in test:
+        func = test.pop('rocblas_function')
+        if func in param['Functions']:
+            test.update(param['Functions'][func])
+        else:
+            test['function'] = func
+        generate(test, function)
+        return
 
     function(test)
 

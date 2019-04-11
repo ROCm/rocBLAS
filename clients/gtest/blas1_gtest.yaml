@@ -22,15 +22,15 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   function:
-    - testing_nrm2:  *single_double_precisions
-    - testing_asum:  *single_double_precisions
-    - testing_iamax: *single_double_precisions
-#   - testing_iamin: *single_double_precisions
-    - testing_axpy:  *half_single_double_precisions
-    - testing_copy:  *single_double_precisions
-    - testing_dot:   *single_double_precisions
-    - testing_scal:  *single_double_precisions
-    - testing_swap:  *single_double_precisions
+    - nrm2:  *single_double_precisions
+    - asum:  *single_double_precisions
+    - iamax: *single_double_precisions
+#   - iamin: *single_double_precisions
+    - axpy:  *half_single_double_precisions
+    - copy:  *single_double_precisions
+    - dot:   *single_double_precisions
+    - scal:  *single_double_precisions
+    - swap:  *single_double_precisions
 
 - name: blas1
   category: pre_checkin
@@ -38,26 +38,26 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   function:
-    - testing_nrm2:  *double_precision
-    - testing_asum:  *double_precision
-    - testing_iamax: *single_double_precisions
-#   - testing_iamin: *single_double_precisions
-    - testing_axpy:  *half_single_double_precisions
-    - testing_copy:  *single_double_precisions
-    - testing_dot:   *double_precision
-    - testing_scal:  *single_double_precisions
-    - testing_swap:  *single_double_precisions
+    - nrm2:  *double_precision
+    - asum:  *double_precision
+    - iamax: *single_double_precisions
+#   - iamin: *single_double_precisions
+    - axpy:  *half_single_double_precisions
+    - copy:  *single_double_precisions
+    - dot:   *double_precision
+    - scal:  *single_double_precisions
+    - swap:  *single_double_precisions
 
 - name: blas1_bad_arg
   category: pre_checkin
   function:
-    - testing_nrm2_bad_arg:  *single_double_precisions
-    - testing_asum_bad_arg:  *single_double_precisions
-    - testing_iamax_bad_arg: *single_double_precisions
-    - testing_iamin_bad_arg: *single_double_precisions
-    - testing_axpy_bad_arg:  *half_single_double_precisions
-    - testing_copy_bad_arg:  *single_double_precisions
-    - testing_dot_bad_arg:   *single_double_precisions
-    - testing_scal_bad_arg:  *single_double_precisions
-    - testing_swap_bad_arg:  *single_double_precisions
+    - nrm2_bad_arg:  *single_double_precisions
+    - asum_bad_arg:  *single_double_precisions
+    - iamax_bad_arg: *single_double_precisions
+    - iamin_bad_arg: *single_double_precisions
+    - axpy_bad_arg:  *half_single_double_precisions
+    - copy_bad_arg:  *single_double_precisions
+    - dot_bad_arg:   *single_double_precisions
+    - scal_bad_arg:  *single_double_precisions
+    - swap_bad_arg:  *single_double_precisions
 ...

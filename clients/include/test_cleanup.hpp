@@ -30,11 +30,12 @@ class test_cleanup
 
     // Create an object and register a cleanup handler
     template <typename T, typename... Args>
-    static T* allocate(T** ptr, Args&&... args)
+    static T* allocate(T*& ptr, Args&&... args)
     {
-        stack().push([=] {
-            delete *ptr;
-            *ptr = nullptr;
+        ptr = nullptr;
+        stack().push([&ptr] {
+            delete ptr;
+            ptr = nullptr;
         });
         return new T(std::forward<Args>(args)...);
     }

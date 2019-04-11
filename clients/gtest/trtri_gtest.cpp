@@ -17,7 +17,7 @@ namespace {
 
 // By default, this test does not apply to any types.
 // The unnamed second parameter is used for enable_if below.
-template <typename T, typename = void>
+template <typename, typename = void>
 struct trtri_testing : rocblas_test_invalid
 {
 };
@@ -32,9 +32,9 @@ struct trtri_testing<
     explicit operator bool() { return true; }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "testing_trtri"))
+        if(!strcmp(arg.function, "trtri"))
             testing_trtri<T>(arg);
-        else if(!strcmp(arg.function, "testing_trtri_batched"))
+        else if(!strcmp(arg.function, "trtri_batched"))
             testing_trtri_batched<T>(arg);
         else
             FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -59,8 +59,8 @@ struct trtri_template : RocBLAS_Test<trtri_template<K>, trtri_testing>
     // Filter for which functions apply to this suite
     static bool function_filter(const Arguments& arg)
     {
-        return K == trtri_k ? !strcmp(arg.function, "testing_trtri")
-                            : !strcmp(arg.function, "testing_trtri_batched");
+        return K == trtri_k ? !strcmp(arg.function, "trtri")
+                            : !strcmp(arg.function, "trtri_batched");
     }
 
     // Google Test name suffix based on parameters

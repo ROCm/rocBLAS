@@ -29,7 +29,7 @@ Definitions:
 Tests:
 - name: symv_medium
   category: pre_checkin
-  function: testing_symv
+  function: symv
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
@@ -38,7 +38,7 @@ Tests:
 
 - name: symv_large
   category: nightly
-  function: testing_symv
+  function: symv
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
