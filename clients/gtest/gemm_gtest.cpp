@@ -54,9 +54,7 @@ struct gemm_test_template : RocBLAS_Test<gemm_test_template<FILTER, GEMM_TYPE>, 
     {
         switch(GEMM_TYPE)
         {
-        case GEMM:
-            return !strcmp(arg.function, "gemm") || !strcmp(arg.function, "gemm_NaN") ||
-                   !strcmp(arg.function, "gemm_bad_arg");
+        case GEMM: return !strcmp(arg.function, "gemm") || !strcmp(arg.function, "gemm_bad_arg");
 
         case GEMM_EX:
             return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
@@ -124,8 +122,6 @@ struct gemm_testing<T,
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "gemm_NaN"))
-            testing_gemm_NaN<T>(arg);
         else if(!strcmp(arg.function, "gemm_bad_arg"))
             testing_gemm_bad_arg<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))

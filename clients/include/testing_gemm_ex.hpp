@@ -268,15 +268,19 @@ void testing_gemm_ex(const Arguments& arg)
     void* workspace        = nullptr;
 
     To h_alpha_To, h_beta_To;
+    bool nantest = rocblas_isnan(arg.beta);
+    if(!std::is_same<To, float>{} && !std::is_same<To, double>{} &&
+       !std::is_same<To, rocblas_half>{} && nantest)
+        return;
     if(std::is_same<To, rocblas_half>{})
     {
         h_alpha_To = float_to_half(arg.alpha);
-        h_beta_To  = float_to_half(arg.beta);
+        h_beta_To  = nantest ? 0 : float_to_half(arg.beta);
     }
     else if(std::is_same<To, float>{} || std::is_same<To, double>{} || std::is_same<To, int32_t>{})
     {
         h_alpha_To = static_cast<To>(arg.alpha);
-        h_beta_To  = static_cast<To>(arg.beta);
+        h_beta_To  = nantest ? 0 : static_cast<To>(arg.beta);
     }
     else
     {
@@ -292,12 +296,12 @@ void testing_gemm_ex(const Arguments& arg)
     if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = float_to_half(arg.beta);
+        h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
     }
     else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
         h_alpha_Tc = static_cast<Tc>(arg.alpha);
-        h_beta_Tc  = static_cast<Tc>(arg.beta);
+        h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
     }
     else
     {
@@ -403,7 +407,10 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_seedrand();
     rocblas_init<Ti>(hA, A_row, A_col, lda);
     rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
-    rocblas_init<To>(hC, M, N, ldc);
+    if(nantest)
+        rocblas_init_nan<To>(hC, M, N, ldc);
+    else
+        rocblas_init<To>(hC, M, N, ldc);
     rocblas_init<To>(hD_1, M, N, ldd);
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})

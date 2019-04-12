@@ -149,10 +149,6 @@ Definitions:
     - { M:   256, N: 24001, K:   256, lda:   256, ldb: 24030, ldc: 24000, ldd: 24000 }
     - { M:   256, N: 24001, K:   256, lda:   256, ldb: 24000, ldc: 24040, ldd: 24040 }
 
-  - &NaN_matrix_size_range
-    - { M:     5, N:     6, K:     7, lda:     8, ldb:     9, ldc:    10, ldd:    10 }
-    - { M:  4011, N:  4012, K:   111, lda:  4013, ldb:  4014, ldc:  4015, ldd:  4015 }
-
   - &alpha_beta_range
     - { alpha:  5, beta:  0 }
     - { alpha:  0, beta:  3 }
@@ -2352,10 +2348,12 @@ Tests:
 - name: gemm_NaN
   category: pre_checkin
   function:
-    gemm_NaN: *single_double_precisions   # Half precision NaN doesn't work now
-  matrix_size: *NaN_matrix_size_range
+    gemm: *single_double_precisions   # Half precision NaN doesn't work now
+    gemm_ex: *single_double_precisions
+  matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ 0.0, 1.0, -1.0, 2.0 ]
+  beta: .NaN  # converted to 0.0 in test code
 
 - name: gemm_small
   category: quick

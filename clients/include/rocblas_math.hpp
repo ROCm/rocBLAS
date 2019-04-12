@@ -20,16 +20,13 @@ inline float half_to_float(rocblas_half val) { return _cvtsh_ss(val); }
 /*! \brief  returns true if value is NaN */
 
 template <typename T>
-inline bool rocblas_isnan(T arg)
+inline bool rocblas_isnan(T)
 {
-    return std::isnan(arg);
+    return false;
 }
-
-template <>
-inline bool rocblas_isnan(rocblas_half arg)
-{
-    return (~arg & 0x7c00) == 0 && (arg & 0x3ff) != 0;
-}
+inline bool rocblas_isnan(double arg) { return std::isnan(arg); }
+inline bool rocblas_isnan(float arg) { return std::isnan(arg); }
+inline bool rocblas_isnan(rocblas_half arg) { return (~arg & 0x7c00) == 0 && (arg & 0x3ff) != 0; }
 
 /* ============================================================================================ */
 /*! \brief is_complex<T> returns true iff T is complex */
