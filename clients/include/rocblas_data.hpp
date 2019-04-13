@@ -41,7 +41,7 @@ class RocBLAS_TestData
         filename() = std::move(name);
         if(remove_atexit)
         {
-            void (*cleanup)() = [] { remove(filename().c_str()); };
+            auto cleanup = [] { remove(filename().c_str()); };
             atexit(cleanup);
             at_quick_exit(cleanup);
         }

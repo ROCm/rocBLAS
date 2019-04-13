@@ -267,11 +267,12 @@ void testing_gemm_ex(const Arguments& arg)
     size_t workspace_size  = arg.workspace_size;
     void* workspace        = nullptr;
 
-    To h_alpha_To, h_beta_To;
     bool nantest = rocblas_isnan(arg.beta);
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{} &&
        !std::is_same<To, rocblas_half>{} && nantest)
-        return;
+        return; // Exclude integers or other types which don't support NaN
+
+    To h_alpha_To, h_beta_To;
     if(std::is_same<To, rocblas_half>{})
     {
         h_alpha_To = float_to_half(arg.alpha);
