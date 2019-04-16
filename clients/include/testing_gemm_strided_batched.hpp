@@ -27,16 +27,13 @@ void testing_gemm_strided_batched(const Arguments& arg)
     T h_beta;
     if(std::is_same<T, rocblas_half>{})
     {
-        float alpha_float = arg.alpha;
-        float beta_float  = arg.beta;
-
-        h_alpha = float_to_half(alpha_float);
-        h_beta  = float_to_half(beta_float);
+        h_alpha = float_to_half(arg.alpha);
+        h_beta  = rocblas_isnan(arg.beta) ? 0 : float_to_half(arg.beta);
     }
     else
     {
         h_alpha = arg.alpha;
-        h_beta  = arg.beta;
+        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
     }
 
     rocblas_int lda = arg.lda;
@@ -141,7 +138,10 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
+    if(rocblas_isnan(arg.beta))
+        rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
+    else
+        rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
 
     hC_2    = hC_1;
     hC_gold = hC_1;

@@ -152,7 +152,7 @@ inline rocblas_initialization string2rocblas_initialization(const std::string& v
     return
         value == "rand_int"   ? rocblas_initialization_random_int :
         value == "trig_float" ? rocblas_initialization_trig_float :
-        value == "hpl" ? rocblas_initialization_hpl :
+        value == "hpl"        ? rocblas_initialization_hpl        :
         static_cast<rocblas_initialization>(-1);
     // clang-format on
 }

@@ -135,7 +135,7 @@ class RocBLAS_TestName
                   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
                   "Warning: Character * found in name."
                   " This means a required letter parameter\n"
-                  "(e.g., transA, diag, etc.) not been set in the YAML file."
+                  "(e.g., transA, diag, etc.) has not been set in the YAML file."
                   " Check the YAML file.\n"
                   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
                   "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",

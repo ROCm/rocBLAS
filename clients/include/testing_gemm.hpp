@@ -16,92 +16,6 @@
 #include "near.hpp"
 #include "flops.hpp"
 
-/* ============================================================================================ */
-template <typename T>
-void testing_gemm_NaN(Arguments const& arg)
-{
-    rocblas_int M = arg.M;
-    rocblas_int N = arg.N;
-    rocblas_int K = arg.K;
-
-    rocblas_int lda = arg.lda;
-    rocblas_int ldb = arg.ldb;
-    rocblas_int ldc = arg.ldc;
-
-    rocblas_operation transA = char2rocblas_operation(arg.transA);
-    rocblas_operation transB = char2rocblas_operation(arg.transB);
-
-    rocblas_int A_row, A_col, B_row, B_col;
-    T alpha = arg.alpha;
-    T beta  = arg.beta;
-
-    rocblas_local_handle handle;
-
-    A_row = transA == rocblas_operation_none ? M : K;
-    A_col = transA == rocblas_operation_none ? K : M;
-    B_row = transB == rocblas_operation_none ? K : N;
-    B_col = transB == rocblas_operation_none ? N : K;
-
-    const size_t size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
-    const size_t size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
-    const size_t size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
-
-    // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
-    {
-        // bad arguments are tested in other tests
-        return;
-    }
-
-    // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory.
-    host_vector<T> hA(size_A);
-    host_vector<T> hB(size_B);
-    host_vector<T> hC(size_C);
-
-    // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    if(!dA || !dB || !dC)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
-
-    // Initial Data on CPU
-    for(size_t i = 0; i < size_A; i++)
-        hA[i]    = 1.0;
-    for(size_t i = 0; i < size_B; i++)
-        hB[i]    = 1.0;
-
-    rocblas_seedrand();
-    for(rocblas_int i = 0; i < N; i++)
-        for(rocblas_int j   = 0; j < M; j++)
-            hC[j + i * ldc] = static_cast<T>(rocblas_nan_rng());
-
-    // copy data from CPU to device, does not work for lda != A_row
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(T) * size_C, hipMemcpyHostToDevice));
-    CHECK_ROCBLAS_ERROR(
-        rocblas_gemm<T>(handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc));
-
-    // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hC, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
-
-    for(rocblas_int i = 0; i < N; i++)
-        for(rocblas_int j = 0; j < M; j++)
-            if(rocblas_isnan(hC[j + i * ldc]))
-            {
-#ifdef GOOGLE_TEST
-                ADD_FAILURE() << "Value is NaN";
-#else
-                std::cerr << "Error: Value is NaN" << std::endl;
-#endif
-                return;
-            }
-}
-
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
 {
@@ -181,12 +95,12 @@ void testing_gemm(const Arguments& arg)
     if(std::is_same<T, rocblas_half>{})
     {
         h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(arg.beta);
+        h_beta  = rocblas_isnan(arg.beta) ? 0 : float_to_half(arg.beta);
     }
     else
     {
         h_alpha = arg.alpha;
-        h_beta  = arg.beta;
+        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
     }
 
     double gpu_time_used, cpu_time_used;
@@ -250,20 +164,29 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init<T>(hA, A_row, A_col, lda);
         rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-        rocblas_init<T>(hC_1, M, N, ldc);
+        if(rocblas_isnan(arg.beta))
+            rocblas_init_nan<T>(hC_1, M, N, ldc);
+        else
+            rocblas_init<T>(hC_1, M, N, ldc);
     }
     else if(arg.initialization == rocblas_initialization_trig_float)
     {
         rocblas_init_sin<T>(hA, A_row, A_col, lda);
         rocblas_init_cos<T>(hB, B_row, B_col, ldb);
-        rocblas_init_sin<T>(hC_1, M, N, ldc);
+        if(rocblas_isnan(arg.beta))
+            rocblas_init_nan<T>(hC_1, M, N, ldc);
+        else
+            rocblas_init_sin<T>(hC_1, M, N, ldc);
     }
     else if(arg.initialization == rocblas_initialization_hpl)
     {
         rocblas_seedrand();
         rocblas_init_hpl<T>(hA, A_row, A_col, lda);
         rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        rocblas_init_hpl<T>(hC_1, M, N, ldc);
+        if(rocblas_isnan(arg.beta))
+            rocblas_init_nan<T>(hC_1, M, N, ldc);
+        else
+            rocblas_init_hpl<T>(hC_1, M, N, ldc);
     }
 
     hC_2    = hC_1;
