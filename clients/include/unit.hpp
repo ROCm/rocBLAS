@@ -19,14 +19,18 @@
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)
 #else
 // clang-format off
-#define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ) \
-    do                                                                          \
-    {                                                                           \
-        for(size_t k = 0; k < batch_count; k++)                                 \
-            for(size_t j = 0; j < N; j++)                                       \
-                for(size_t i = 0; i < M; i++)                                   \
-                    UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],             \
-                                   hGPU[i + j * lda + k * strideA]);            \
+#define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)      \
+    do                                                                               \
+    {                                                                                \
+        for(size_t k = 0; k < batch_count; k++)                                      \
+            for(size_t j = 0; j < N; j++)                                            \
+                for(size_t i = 0; i < M; i++)                                        \
+                    if (rocblas_isnan(hCPU[i + j * lda + k * strideA])) {            \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[i + j * lda + k * strideA])); \
+                    } else {                                                         \
+                        UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],              \
+                                       hGPU[i + j * lda + k * strideA]);             \
+                    }                                                                \
     } while(0)
 // clang-format on
 #endif

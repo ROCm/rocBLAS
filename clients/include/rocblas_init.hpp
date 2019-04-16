@@ -112,13 +112,23 @@ inline void rocblas_init_hpl(
 }
 
 /* ============================================================================================ */
-/*! \brief  Initialize an array with random data, with NaN where apppropriate */
+/*! \brief  Initialize an array with random data, with NaN where appropriate */
 
 template <typename T>
 inline void rocblas_init_nan(T* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
         A[i]     = static_cast<T>(rocblas_nan_rng());
+}
+
+template <typename T>
+inline void rocblas_init_nan(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j                          = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = static_cast<T>(rocblas_nan_rng());
 }
 
 /* ============================================================================================ */
