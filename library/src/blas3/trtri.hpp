@@ -10,6 +10,7 @@
 #include <hip/hip_runtime.h>
 #include "trtri_device.h"
 #include "definitions.h"
+#include "rocblas_trtri_batched.hpp"
 
 /* ============================================================================================ */
 
@@ -379,20 +380,9 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     else if(ldinvA < n)
         return rocblas_status_invalid_size;
-
-    if(n <= IB)
-    {
-        return rocblas_trtri_small<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
-    }
-    else if(n <= 2 * IB)
-    {
-        return rocblas_trtri_large<T, IB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
-    }
-    else
-    {
-        printf("n is %d, n must be less than %d, will return\n", n, 2 * IB);
-        return rocblas_status_not_implemented;
-    }
+    
+    return rocblas_trtri_batched_template<T>(
+        handle, uplo, diag, n, A, lda, lda*n, invA, ldinvA, ldinvA*n, 1);
 }
 
 #endif // _TRTRI_HPP_

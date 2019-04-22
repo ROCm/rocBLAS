@@ -70,7 +70,6 @@ void testing_trtri(const Arguments& arg)
     rocblas_seedrand();
     rocblas_init_symmetric<T>(hA, N, lda);
 
-    // proprocess the matrix to avoid ill-conditioned matrix
     for(size_t i = 0; i < N; i++)
     {
         for(size_t j = 0; j < N; j++)
@@ -79,15 +78,22 @@ void testing_trtri(const Arguments& arg)
 
             if(j % 2)
                 hA[i + j * lda] *= -1;
+            if(uplo == rocblas_fill_lower &&
+                j > i) // need to explicitly set unsused side to 0 if using it for temp storage
+                hA[i + j * lda] = 0.0f;
+            else if(uplo == rocblas_fill_upper && j < i)
+                hA[i + j * lda] = 0.0f;
             if(i == j)
             {
                 if(diag == rocblas_diagonal_unit)
-                    hA[i + j * lda] = 1.0;
+                    hA[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
                 else
                     hA[i + j * lda] *= 100.0;
             }
         }
     }
+
+
     hB = hA;
 
     // copy data from CPU to device

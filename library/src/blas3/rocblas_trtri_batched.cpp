@@ -7,11 +7,12 @@
 #include "definitions.h"
 #include "trtri_device.h"
 #include "trtri_trsm.hpp"
+#include "rocblas_trtri_batched.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
 
-namespace {
+// namespace {
 
 constexpr int NB = 16;
 
@@ -276,13 +277,6 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                                            rocblas_int bsinvA,
                                            rocblas_int batch_count)
 {
-
-    if(n > 2 * NB && (n & (n - 1)) != 0)
-    {
-        printf("n is %d, sizes bigger than %d must be a power of 2, will return\n", n, 2 * NB);
-        return rocblas_status_not_implemented;
-    }
-
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
@@ -351,14 +345,12 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        invA,
                        batch_count);
 
-    // // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
-    // dim3 grid_gemm((n+NB*2-1)/(NB*2) * batch_count);
+    // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
+
     constexpr rocblas_int IB = NB * 2;
-    rocblas_int blocks =
-        n / IB; // complete blocks - need to do all these together and then deal with partial blocks
     rocblas_int current_n;
 
-    for(rocblas_int current_n = IB; current_n * 2 <= n; current_n *= 2)
+    for(current_n = IB; current_n * 2 <= n; current_n *= 2)
     {
         rocblas_int tiles_per_batch = n / current_n / 2;
 
@@ -441,6 +433,66 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        n * ldinvA,
                        invA,
                        batch_count);
+    
+    remainder = n - current_n - ((n/NB)%2==0? 0:NB) - (n-(n/NB)*NB);
+    rocblas_int oddRemainder = n-current_n-remainder; // should always be NB - 16 
+
+    if(remainder || oddRemainder)
+    {
+        auto C_tmp = rocblas_unique_ptr{
+            rocblas::device_malloc(sizeof(T) * batch_count * (remainder?(remainder*current_n):(oddRemainder*(n-remainder)))),
+            rocblas::device_free};
+
+        if(remainder>0)
+        {
+            trtri_strided_gemm_block<T>(
+                    handle,
+                    (uplo == rocblas_fill_lower) ? remainder:current_n,
+                    (uplo == rocblas_fill_lower) ? current_n:remainder,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
+                                                                : current_n * lda )),
+                    lda,
+                    bsa,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
+                                                                    : current_n * ldinvA + current_n )),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
+                                                                    : 0 )),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
+                                                            : current_n * ldinvA )), 
+                    ldinvA,
+                    bsinvA,
+                    (T*)(C_tmp.get()),
+                    (uplo == rocblas_fill_lower) ? remainder:current_n,
+                    remainder*current_n,
+                    batch_count);
+        }
+
+        if(oddRemainder>0) // solve small oddRemainder 
+        {
+            current_n = n- oddRemainder;
+
+            trtri_strided_gemm_block<T>(
+                    handle,
+                    (uplo == rocblas_fill_lower) ? oddRemainder:current_n,
+                    (uplo == rocblas_fill_lower) ? current_n:oddRemainder,
+                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
+                                                                : current_n * lda )),
+                    lda,
+                    bsa,
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
+                                                                    : current_n * ldinvA + current_n )),
+                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
+                                                                    : 0 )),
+                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
+                                                            : current_n * ldinvA )),
+                    ldinvA,
+                    bsinvA,
+                    (T*)(C_tmp.get()),
+                    (uplo == rocblas_fill_lower) ? oddRemainder:current_n,
+                    oddRemainder*current_n,
+                    batch_count);
+        }
+    }
 
     return rocblas_status_success;
 }
@@ -516,6 +568,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     if(ldinvA < n || bsinvA < ldinvA * n || batch_count < 0)
         return rocblas_status_invalid_size;
 
+
     /*
      * Quick return if possNBle.
      */
@@ -535,7 +588,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     }
 }
 
-} // namespace
+// } // namespace
 
 /* ============================================================================================ */
 

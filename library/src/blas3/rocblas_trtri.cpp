@@ -5,10 +5,10 @@
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
-namespace trtri { // must use namespace to avoid multply definiton
+// namespace trtri { // must use namespace to avoid multply definiton
 #include "trtri.hpp"
 #include "trtri_trsm.hpp"
-}
+// }
 
 /* ============================================================================================ */
 
@@ -33,7 +33,7 @@ extern "C" rocblas_status rocblas_strtri(rocblas_handle handle,
                                          rocblas_int ldinvA)
 {
 
-    return trtri::rocblas_trtri_template<float, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_template<float, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
 
 extern "C" rocblas_status rocblas_dtrtri(rocblas_handle handle,
@@ -46,5 +46,5 @@ extern "C" rocblas_status rocblas_dtrtri(rocblas_handle handle,
                                          rocblas_int ldinvA)
 {
 
-    return trtri::rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+    return rocblas_trtri_template<double, 64>(handle, uplo, diag, n, A, lda, invA, ldinvA);
 }
