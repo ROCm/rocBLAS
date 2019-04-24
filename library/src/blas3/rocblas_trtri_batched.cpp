@@ -75,9 +75,26 @@ rocblas_status rocblas_trtri_small_batched(rocblas_handle handle,
         return rocblas_status_not_implemented;
     }
 
+    hipStream_t rocblas_stream = handle->rocblas_stream;
+    size_t blockSize            = 128;
+    size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
+    size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+    hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
+                       dim3(numBlocks, 1, 1),
+                       dim3(blockSize, 1, 1),
+                       0,
+                       rocblas_stream,
+                       handle,
+                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                       n,
+                       num_non_tri_elements(n),
+                       ldinvA,
+                       n * ldinvA,
+                       invA,
+                       batch_count);
+
     dim3 grid(batch_count);
     dim3 threads(NB);
-    hipStream_t rocblas_stream = handle->rocblas_stream;
 
     hipLaunchKernelGGL(trtri_small_kernel_batched,
                        grid,
