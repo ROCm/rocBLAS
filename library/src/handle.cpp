@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #include "handle.h"
 #include <cstdlib>
+#include <numeric>
 
 /*******************************************************************************
  * constructor
@@ -14,33 +15,23 @@ _rocblas_handle::_rocblas_handle()
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
-    char* env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
-    if(env_p)
-    {
-        try
-        {
-            WORKBUF_TRSM_B_CHNK = std::stoi(std::string(env_p));
-        }
-        catch(...)
-        {
-            WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
-        }
-    }
-    else
-    {
-        WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
-    }
 
-    WORKBUF_TRSM_Y_SZ = WORKBUF_TRSM_B_CHNK * 128 * sizeof(double);
+    // Device memory size
+    //
+    // If ROCBLAS_DEVICE_MEMORY_SIZE is set to > 0, then rocBLAS will allocate
+    // the size specified, and will not manage device memory itself.
+    //
+    // If ROCBLAS_DEVICE_MEMORY_SIZE is unset, invalid or 0, then rocBLAS will
+    // allocate a default initial size and manage device memory itself,
+    // growing it as necessary.
+    auto env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
+    device_memory_rocblas_managed =
+        !env || sscanf(env, "%zu", &device_memory_size) != 1 || !device_memory_size;
+    if(device_memory_rocblas_managed)
+        device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
-    // allocate trsm temp buffers
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_Y, WORKBUF_TRSM_Y_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA, WORKBUF_TRSM_INVA_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA_C, WORKBUF_TRSM_INVA_C_SZ));
-
-    // allocate trsv temp buffers
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_x, WORKBUF_TRSV_X_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_alpha, WORKBUF_TRSV_ALPHA_SZ));
+    // Allocate device memory
+    THROW_IF_HIP_ERROR(hipMalloc(&device_memory, device_memory_size));
 }
 
 /*******************************************************************************
@@ -48,16 +39,112 @@ _rocblas_handle::_rocblas_handle()
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
-    if(trsm_Y)
-        hipFree(trsm_Y);
-    if(trsm_invA)
-        hipFree(trsm_invA);
-    if(trsm_invA_C)
-        hipFree(trsm_invA_C);
-    if(trsv_x)
-        hipFree(trsv_x);
-    if(trsv_alpha)
-        hipFree(trsv_alpha);
+    // Deallocate device memory
+    if(device_memory)
+        hipFree(device_memory);
+}
+
+/*******************************************************************************
+ * device memory allocator helper
+ ******************************************************************************/
+void* _rocblas_handle::device_memory_allocator(size_t size)
+{
+    if(device_memory_inuse)
+    {
+        std::cerr << "Device memory allocated twice without freeing" << std::endl;
+        abort();
+    }
+
+    if(size > device_memory_size)
+    {
+        if(!device_memory_rocblas_managed)
+            return nullptr;
+
+        if(device_memory)
+        {
+            hipFree(device_memory);
+            device_memory = nullptr;
+        }
+        device_memory_size = 0;
+
+        if(hipMalloc(&device_memory, size) == hipSuccess)
+            device_memory_size = size;
+        else
+            return nullptr;
+    }
+
+    device_memory_inuse = true;
+    return device_memory;
+}
+
+/*******************************************************************************
+ * allocation RAII object to return device memory for a rocblas kernel
+ ******************************************************************************/
+template <size_t N>
+_rocblas_handle::_device_memory_alloc<N>::_device_memory_alloc(rocblas_handle handle,
+                                                               std::initializer_list<size_t> sizes)
+    : handle(handle)
+{
+    auto size    = sizes.begin();
+    size_t total = 0;
+
+#pragma unroll
+    for(size_t i = 0; i < N; ++i)
+        total += size[i];
+
+    ptr[0] = handle->device_memory_allocator(total);
+
+    if(ptr[0])
+// If there are additional sizes, compute their offsets
+#pragma unroll
+        for(size_t i = 1; i < N; ++i)
+            ptr[i]   = (char*)ptr[i - 1] + size0[i - 1];
+}
+
+// Modify a handle to query device memory size on the next rocblas call
+extern "C" rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle, size_t* size_p)
+{
+    handle->device_memory_size_query = size_p;
+    return handle;
+}
+
+// Get the device memory size
+extern "C" size_t rocblas_get_device_memory_size(rocblas_handle handle)
+{
+    return handle->device_memory_size;
+}
+
+// Set the device memory size
+extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
+{
+    // Cannot change memory allocation when a device_memory_alloc
+    // object is alive and using device memory.
+    if(handle->device_memory_inuse)
+        return rocblas_status_memory_error;
+
+    // Free existing device memory, if any
+    if(handle->device_memory)
+    {
+        hipFree(handle->device_memory);
+        handle->device_memory = nullptr;
+    }
+    handle->device_memory_size = 0;
+
+    // A zero size requests rocBLAS to take over management of device memory.
+    // A nonzero size forces rocBLAS to use that as a fixed size, and not change it.
+    if(!size)
+    {
+        handle->device_memory_rocblas_managed = true;
+    }
+    else
+    {
+        handle->device_memory_rocblas_managed = false;
+        auto hipStatus                        = hipMalloc(&handle->device_memory, size);
+        if(hipStatus != hipSuccess)
+            return get_rocblas_status_for_hip_status(hipStatus);
+        handle->device_memory_size = size;
+    }
+    return rocblas_status_success;
 }
 
 /*******************************************************************************

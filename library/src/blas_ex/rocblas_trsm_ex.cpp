@@ -14,6 +14,13 @@
 #include <type_traits>
 #include "rocblas_trsm.hpp"
 
+constexpr size_t WORKBUF_TRSM_A_BLKS     = 10;
+constexpr size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
+constexpr size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10 * sizeof(double);
+constexpr size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
+constexpr size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
+constexpr size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
+
 extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                           rocblas_side side,
                                           rocblas_fill uplo,
@@ -28,39 +35,51 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                           rocblas_int ldb,
                                           const void* invA,
                                           rocblas_int ld_invA,
-                                          rocblas_datatype compute_type,
-                                          rocblas_trsm_option option,
-                                          size_t* x_temp_size,
-                                          void* x_temp_workspace)
-
+                                          rocblas_datatype compute_type)
 {
-    // handle, alpha must not be null pointers for logging
     if(!handle)
         return rocblas_status_invalid_handle;
 
+    // Compute the optimum size in bytes for maximum speed
+    size_t x_temp_size = rocblas_sizeof_datatype(compute_type) * m * n;
+
+    // If this call is a device memory size query,
+    if(handle->is_device_memory_size_query())
+    {
+        // return the size in bytes recommended for maximum speed
+        return handle->set_queried_device_memory_size(x_temp_size);
+    }
+
     static constexpr rocblas_int TRSM_BLOCK = 128;
     rocblas_int k                           = (side == rocblas_side_left ? m : n);
-    bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * *(handle->get_trsm_A_blks()));
 
+    void* a1;
+    void* a2;
+    void* a3;
+    void* a4;
+    auto test = handle->device_memory_alloc(std::tie(a1,a2,a3,a4),1,2,3,4);
+
+    // Attempt to allocate the optimal size
+    void* x_temp_workspace; // = handle->device_memory_alloc(x_temp_size);
+
+    // If optimal size is not available, try the smaller size
     if(!x_temp_workspace)
     {
-        rocblas_int k = (side == rocblas_side_left ? m : n);
+        bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * WORKBUF_TRSM_A_BLKS);
 
-        if(option == rocblas_trsm_high_performance || !allowChunking)
-            *x_temp_size = m * n;
-        else if(option == rocblas_trsm_low_memory)
-            *x_temp_size = m;
-        else
-            return rocblas_status_not_implemented;
+        if(!allowChunking)   // Chunking not supported
+            return rocblas_status_memory_error;
 
-        return rocblas_status_success;
+        x_temp_size = rocblas_sizeof_datatype(compute_type) * m;
+//        x_temp_workspace = handle->device_memory_alloc(x_temp_size);
+
+        // If the smaller size cannot be allocated, return error
+        if(!x_temp_workspace)
+            return rocblas_status_memory_error;
     }
 
     if(!alpha)
         return rocblas_status_invalid_pointer;
-
-    if(!allowChunking && (*x_temp_size / m) < n) // Chunking not supported
-        return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
@@ -104,10 +123,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                           ldb,
                           invA,
                           ld_invA,
-                          compute_type,
-                          option,
-                          x_temp_workspace ? *x_temp_size : 0,
-                          x_temp_workspace);
+                          compute_type);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
@@ -128,11 +144,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                           "--ld_invA",
                           ld_invA,
                           "--compute_type",
-                          compute_type_string,
-                          "--option",
-                          option,
-                          "--x_temp_size",
-                          x_temp_workspace ? *x_temp_size : 0);
+                          compute_type_string);
             }
         }
         else
@@ -152,12 +164,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                           ldb,
                           invA,
                           ld_invA,
-                          x_temp_workspace,
-                          compute_type_string,
-                          option,
-                          "--workspace_size",
-                          x_temp_workspace ? *x_temp_size : 0,
-                          x_temp_workspace);
+                          compute_type_string);
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
@@ -181,11 +188,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                         "ldb",
                         ldb,
                         "ld_invA",
-                        ld_invA,
-                        "--option",
-                        option,
-                        "--x_temp_size",
-                        x_temp_workspace ? *x_temp_size : 0);
+                        ld_invA);
         }
     }
 
@@ -226,7 +229,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                                          ldb,
                                                          static_cast<const double*>(invA),
                                                          ld_invA,
-                                                         static_cast<const size_t*>(x_temp_size),
+                                                         &x_temp_size,
                                                          static_cast<double*>(x_temp_workspace));
     }
     else if(compute_type == rocblas_datatype_f32_r)
@@ -245,7 +248,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                                          ldb,
                                                          static_cast<const float*>(invA),
                                                          ld_invA,
-                                                         static_cast<const size_t*>(x_temp_size),
+                                                         &x_temp_size,
                                                          static_cast<float*>(x_temp_workspace));
     }
     else

@@ -111,6 +111,29 @@ constexpr auto rocblas_datatype_string(rocblas_datatype type)
     }
 }
 
+// return sizeof rocblas_datatype
+constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
+{
+    switch(type)
+    {
+    case rocblas_datatype_f16_r: return 2;
+    case rocblas_datatype_f32_r: return 4;
+    case rocblas_datatype_f64_r: return 8;
+    case rocblas_datatype_f16_c: return 4;
+    case rocblas_datatype_f32_c: return 8;
+    case rocblas_datatype_f64_c: return 16;
+    case rocblas_datatype_i8_r:  return 1;
+    case rocblas_datatype_u8_r:  return 1;
+    case rocblas_datatype_i32_r: return 4;
+    case rocblas_datatype_u32_r: return 4;
+    case rocblas_datatype_i8_c:  return 2;
+    case rocblas_datatype_u8_c:  return 2;
+    case rocblas_datatype_i32_c: return 8;
+    case rocblas_datatype_u32_c: return 8;
+    default:                     return 0;
+    }
+}
+
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
 template <> static constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";

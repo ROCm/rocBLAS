@@ -1711,13 +1711,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
     @param[in]
     flags     uint32_t.
               reserved for future use.
-    @param[in, out]
-    workspace_size
-              size_t *.
-              size of workspace.
-    @parm[in]
-    workspace void *.
-              workspace.
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               rocblas_operation trans_a,
@@ -1742,9 +1736,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               rocblas_datatype compute_type,
                                               rocblas_gemm_algo algo,
                                               int32_t solution_index,
-                                              uint32_t flags,
-                                              size_t* workspace_size,
-                                              void* workspace);
+                                              uint32_t flags);
 
 /*! \brief BLAS EX API
 
@@ -1915,13 +1907,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     @param[in]
     flags     uint32_t.
               reserved for future use.
-    @param[in, out]
-    workspace_size
-              size_t *.
-              size of workspace.
-    @parm[in]
-    workspace void *.
-              workspace.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
@@ -1952,10 +1937,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               rocblas_datatype compute_type,
                                                               rocblas_gemm_algo algo,
                                                               int32_t solution_index,
-                                                              uint32_t flags,
-                                                              size_t* workspace_size,
-                                                              void* workspace);
-
+                                                              uint32_t flags);
 /*! BLAS EX API
 
     \details
@@ -1969,10 +1951,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
 
     The matrix X is overwritten on B.
-
-    TRSM_EX gives the user the ability to manage device memory and exposes the invA matrix to be
-    reused between runs.
-    Before trsm_ex can be used the user must setup the invA matrix and x_temp_workspace.
 
     Setting up invA:
     The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
@@ -1994,13 +1972,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
       - invA = invA + stride_invA * previous_batch_count
       - ldinvA = 128
       - batch_count = 1
-
-    Setting up x_temp_workspace:
-    When x_temp_workspace is a nullptr the API enters a setup mode to recommend the size needed for
-    temporary memory to be stored. The suggested size depends on the rocblas_trsm_option specified
-    and is stored in x_temp_size. Once x_temp_workspace has been assigned to sufficient device
-    memory, the API may be called again. This time x_temp_size must specify the size of temporary
-    device memory allocated.
 
     @param[in]
     handle  rocblas_handle.
@@ -2083,31 +2054,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
     compute_type rocblas_datatype
             specifies the datatype of computation
 
-    @param[in]
-    option  rocblas_trsm_option
-            enumerant specifying the selected trsm memory option.
-            -	rocblas_trsm_high_performance
-            -	rocblas_trsm_low_memory
-            Trsm can choose algorithms that either use large work memory size in order
-            to get high performance, or small work memory with reduced performance.
-            User can inspect returned work memory size to fit their application needs.
-    @param[in, out]
-    x_temp_size size_t*
-            During setup the suggested size of x_temp is returned with respect
-            to the selected rocblas_trsm_option.
-            During run x_temp_size specifies the size allocated for
-            x_temp_workspace
-            Note: Must use rocblas_trsm_high_performance suggest size
-            If rocblas_side_left and m is not a multiple of 128
-            If rocblas_side_right and n is not a multiple of 128
-    @parm[in]
-    x_temp_workspace void*
-            During setup x_temp_workspace must hold a null pointer to signal
-            the request for x_temp_size
-            During run x_temp_workspace is a pointer to store temporary matrix X
-            on the GPU.
-            x_temp_workspace is of dimension ( m, x_temp_size/m )
-
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
@@ -2124,10 +2070,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                               rocblas_int ldb,
                                               const void* invA,
                                               rocblas_int ld_invA,
-                                              rocblas_datatype compute_type,
-                                              rocblas_trsm_option option,
-                                              size_t* x_temp_size,
-                                              void* x_temp_workspace);
+                                              rocblas_datatype compute_type);
 
 /*
  * ===========================================================================
@@ -2147,6 +2090,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
 
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
+ROCBLAS_EXPORT rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle,
+                                                               size_t* size_p);
+ROCBLAS_EXPORT size_t rocblas_get_device_memory_size(rocblas_handle handle);
+ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
 
 #ifdef __cplusplus
 }

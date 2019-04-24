@@ -7,6 +7,10 @@
 
 #include <fstream>
 #include <iostream>
+#include <utility>
+#include <tuple>
+#include <initializer_list>
+#include <array>
 #include "rocblas.h"
 #include "definitions.h"
 #include <hip/hip_runtime_api.h>
@@ -47,18 +51,6 @@ struct _rocblas_handle
         return rocblas_status_success;
     }
 
-    // trsm get pointers
-    void* get_trsm_Y() const { return trsm_Y; }
-    void* get_trsm_invA() const { return trsm_invA; }
-    void* get_trsm_invA_C() const { return trsm_invA_C; }
-    const size_t* get_trsm_A_blks() { return &WORKBUF_TRSM_A_BLKS; }
-    const size_t* get_trsm_B_chnk() { return &WORKBUF_TRSM_B_CHNK; }
-
-    // trsv get pointers
-    void* get_trsv_x() const { return trsv_x; }
-    void* get_trsv_alpha() const { return trsv_alpha; }
-    const size_t* get_trsv_X_size() { return &WORKBUF_TRSV_X_SZ; }
-
     rocblas_int device;
     hipDeviceProp_t device_properties;
 
@@ -67,15 +59,6 @@ struct _rocblas_handle
 
     // default pointer_mode is on host
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
-
-    // space allocated for trsm
-    void* trsm_Y      = nullptr;
-    void* trsm_invA   = nullptr;
-    void* trsm_invA_C = nullptr;
-
-    // space allocated for trsv
-    void* trsv_x     = nullptr;
-    void* trsv_alpha = nullptr;
 
     // default logging_mode is no logging
     static rocblas_layer_mode layer_mode;
@@ -100,16 +83,94 @@ struct _rocblas_handle
         return id;
     }
 
-    // work buffer size constants
+    // C interfaces for manipulating device memory
+    friend _rocblas_handle*(::rocblas_query_device_memory_size)(_rocblas_handle*, size_t*);
+    friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*);
+    friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
+
+    // C++ interfaces to the above (i.e. handle->method() instead of method(handle))
+    auto set_device_memory_size(size_t size) { return rocblas_set_device_memory_size(this, size); }
+    auto get_device_memory_size() const { return device_memory_size; }
+    auto query_device_memory_size(size_t* size)
+    {
+        return rocblas_query_device_memory_size(this, size);
+    }
+
+    // Returns whether the current kernel call is a device memory size query
+    bool is_device_memory_size_query() const { return device_memory_size_query != nullptr; }
+
+    // Sets the optimum size of device memory for a kernel call
+    rocblas_status set_queried_device_memory_size(size_t size)
+    {
+        if(!is_device_memory_size_query())
+            return rocblas_status_internal_error;
+        *device_memory_size_query = size;
+        device_memory_size_query  = nullptr;
+        return rocblas_status_success;
+    }
+
+    // Allocate one or more sizes
+    template <typename... Ss>
+    auto device_memory_alloc(Ss... sizes)
+    {
+        static constexpr size_t MIN_CHUNK_SIZE = 64;
+        static_assert(sizeof...(sizes) > 0, "There must be at least one argument");
+        static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
+                      "MIN_CHUNK_SIZE must be a power of two");
+        size_t total     = 0, oldtotal;
+        size_t offsets[] = {(oldtotal = total,
+                             total += ((static_cast<size_t>(sizes) - 1) | (MIN_CHUNK_SIZE - 1)) + 1,
+                             oldtotal)...};
+        void* ptr = device_memory_allocator(total);
+        total     = 0;
+        auto pointers[] = {((void)sizes, ptr ? (void*)((char*)ptr + offsets[total++]) : nullptr)...};
+        total = 0;
+        return _device_memory_alloc(this, ((void)sizes, pointers[total++])...);
+    }
+
+#if 0
+    // Allocate one or more sizes
+    auto device_memory_alloc(std::initializer_list<void*&> ptr, std::initializer_list<size_t> size)
+    {
+        static constexpr size_t MIN_CHUNK_SIZE = 64;
+        static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
+                      "MIN_CHUNK_SIZE must be a power of two");
+        static_assert(ptr.size() > 0, "Lists must contain at least one element");
+        static_assert(ptr.size() == size.size(), "Sizes of both lists must be the same");
+
+        return _device_memory_alloc<sizeof...(sizes)>(
+            this, {(((static_cast<size_t>(sizes) - 1) | (MIN_CHUNK_SIZE - 1)) + 1)...});
+    }
+#endif
+
     private:
-    size_t WORKBUF_TRSM_B_CHNK;
-    size_t WORKBUF_TRSM_Y_SZ;
-    const size_t WORKBUF_TRSM_A_BLKS     = 10;
-    const size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
-    const size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10 * sizeof(double);
-    const size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
-    const size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
-    const size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
+    // device memory work buffer
+    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 1048576;
+    size_t device_memory_size                          = 0;
+    bool device_memory_rocblas_managed                 = true;
+    bool device_memory_inuse                           = false;
+    void* device_memory                                = nullptr;
+    size_t* device_memory_size_query                   = nullptr;
+
+    // Helper for device memory allocator
+    void* device_memory_allocator(size_t);
+
+    // Opaque smart allocator class to perform device memory allocations
+    class _device_memory_alloc
+    {
+        friend class _rocblas_handle;
+        rocblas_handle handle;
+        bool nonnull;
+
+        _device_memory_alloc(rocblas_handle handle, bool nonnull) : handle(handle), nonnull(nonnull)
+        {
+        }
+
+        public:
+        ~_device_memory_alloc() { handle->device_memory_inuse = false; }
+        explicit operator bool() const { return nonnull; }
+    };
+
     static int get_device_arch_id()
     {
         int deviceId;
@@ -119,6 +180,25 @@ struct _rocblas_handle
         return deviceProperties.gcnArch;
     }
 };
+
+// For functions which don't use temporary device memory, and won't be likely
+// to use them in the future, the RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle)
+// macro can be used to return from a rocblas function with a requested size of 0.
+//
+// rocblas_status func(rocblas_handle handle, ...)
+// {
+//     RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+//     ...
+// }
+#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)               \
+    do                                                        \
+    {                                                         \
+        rocblas_handle handle = (h);                          \
+        if(!handle)                                           \
+            return rocblas_status_invalid_handle;             \
+        if(handle->is_device_memory_size_query())             \
+            return handle->set_queried_device_memory_size(0); \
+    } while(0)
 
 namespace rocblas {
 void reinit_logs(); // Reinitialize static data (for testing only)
