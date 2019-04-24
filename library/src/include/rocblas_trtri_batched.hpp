@@ -1,8 +1,15 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
+#ifndef _ROCBLAS_TRTRI_BATCHED_HPP_
+#define _ROCBLAS_TRTRI_BATCHED_HPP_
+
 #include "rocblas.h"
 #include "status.h"
+
+namespace trtri
+{
 
 template <typename T>
 rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
@@ -40,3 +47,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                       rocblas_int ldinvA,
                                       rocblas_int bsinvA,
                                       rocblas_int batch_count);
+
+}
+
+#endif // _ROCBLAS_TRTRI_BATCHED_HPP_

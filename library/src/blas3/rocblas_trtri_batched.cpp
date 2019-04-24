@@ -12,7 +12,7 @@
 #include "logging.h"
 #include "utility.h"
 
-// namespace {
+namespace trtri{
 
 constexpr int NB = 16;
 
@@ -331,7 +331,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
     size_t blockSize            = 128;
     size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
     size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
-    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+    hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
                        dim3(numBlocks, 1, 1),
                        dim3(blockSize, 1, 1),
                        0,
@@ -420,7 +420,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
         }
     }
 
-    hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+    hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
                        dim3(numBlocks, 1, 1),
                        dim3(blockSize, 1, 1),
                        0,
@@ -588,7 +588,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     }
 }
 
-// } // namespace
+} // namespace
 
 /* ============================================================================================ */
 
@@ -613,7 +613,7 @@ rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                       rocblas_int bsinvA,
                                       rocblas_int batch_count)
 {
-    return rocblas_trtri_batched_template(
+    return trtri::rocblas_trtri_batched_template(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
@@ -629,8 +629,9 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                       rocblas_int bsinvA,
                                       rocblas_int batch_count)
 {
-    return rocblas_trtri_batched_template(
+    return trtri::rocblas_trtri_batched_template(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
 } // extern "C"
+

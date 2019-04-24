@@ -43,7 +43,7 @@ __device__ void rocblas_tritri_batched_fill_lower(
 inline size_t num_non_tri_elements(rocblas_int n) { return (n * (n - 1) / 2); }
 
 template <typename T>
-__global__ void rocblas_tritri_batched_fill(rocblas_handle handle,
+__global__ void rocblas_trtri_batched_fill(rocblas_handle handle,
                                             rocblas_fill uplo,
                                             rocblas_int n,
                                             rocblas_long num_zero_elem,
@@ -319,7 +319,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
         size_t blockSize            = 128;
         size_t tri_elements_to_zero = num_non_tri_elements(NB) * blocks;
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
-        hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+        hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
                            dim3(numBlocks, 1, 1),
                            dim3(blockSize, 1, 1),
                            0,
@@ -402,7 +402,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
         size_t blockSize            = 128;
         size_t tri_elements_to_zero = num_non_tri_elements(n - blocks * NB);
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
-        hipLaunchKernelGGL(rocblas_tritri_batched_fill<T>,
+        hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
                            dim3(numBlocks, 1, 1),
                            dim3(blockSize, 1, 1),
                            0,
@@ -416,7 +416,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
                            invA + blocks * NB * NB,
                            1);
 
-        status = rocblas_trtri_template<T, NB / 2>(handle,
+        status = trtri::rocblas_trtri_template<T>(handle,
                                                    uplo,
                                                    diag,
                                                    n - blocks * NB,
