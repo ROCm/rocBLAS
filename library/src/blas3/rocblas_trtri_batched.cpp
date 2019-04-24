@@ -12,7 +12,7 @@
 #include "logging.h"
 #include "utility.h"
 
-namespace trtri{
+namespace trtri {
 
 constexpr int NB = 16;
 
@@ -75,7 +75,7 @@ rocblas_status rocblas_trtri_small_batched(rocblas_handle handle,
         return rocblas_status_not_implemented;
     }
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream  = handle->rocblas_stream;
     size_t blockSize            = 128;
     size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
     size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
@@ -450,64 +450,62 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
                        n * ldinvA,
                        invA,
                        batch_count);
-    
-    remainder = n - current_n - ((n/NB)%2==0? 0:NB) - (n-(n/NB)*NB);
-    rocblas_int oddRemainder = n-current_n-remainder; // should always be NB - 16 
+
+    remainder                = n - current_n - ((n / NB) % 2 == 0 ? 0 : NB) - (n - (n / NB) * NB);
+    rocblas_int oddRemainder = n - current_n - remainder; // should always be NB - 16
 
     if(remainder || oddRemainder)
     {
         auto C_tmp = rocblas_unique_ptr{
-            rocblas::device_malloc(sizeof(T) * batch_count * (remainder?(remainder*current_n):(oddRemainder*(n-remainder)))),
+            rocblas::device_malloc(
+                sizeof(T) * batch_count *
+                (remainder ? (remainder * current_n) : (oddRemainder * (n - remainder)))),
             rocblas::device_free};
 
-        if(remainder>0)
+        if(remainder > 0)
         {
             trtri_strided_gemm_block<T>(
-                    handle,
-                    (uplo == rocblas_fill_lower) ? remainder:current_n,
-                    (uplo == rocblas_fill_lower) ? current_n:remainder,
-                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
-                                                                : current_n * lda )),
-                    lda,
-                    bsa,
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
-                                                                    : current_n * ldinvA + current_n )),
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
-                                                                    : 0 )),
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
-                                                            : current_n * ldinvA )), 
-                    ldinvA,
-                    bsinvA,
-                    (T*)(C_tmp.get()),
-                    (uplo == rocblas_fill_lower) ? remainder:current_n,
-                    remainder*current_n,
-                    batch_count);
+                handle,
+                (uplo == rocblas_fill_lower) ? remainder : current_n,
+                (uplo == rocblas_fill_lower) ? current_n : remainder,
+                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n : current_n * lda)),
+                lda,
+                bsa,
+                (const T*)(invA +
+                           ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n)),
+                (const T*)(invA +
+                           ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n : 0)),
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
+                ldinvA,
+                bsinvA,
+                (T*)(C_tmp.get()),
+                (uplo == rocblas_fill_lower) ? remainder : current_n,
+                remainder * current_n,
+                batch_count);
         }
 
-        if(oddRemainder>0) // solve small oddRemainder 
+        if(oddRemainder > 0) // solve small oddRemainder
         {
-            current_n = n- oddRemainder;
+            current_n = n - oddRemainder;
 
             trtri_strided_gemm_block<T>(
-                    handle,
-                    (uplo == rocblas_fill_lower) ? oddRemainder:current_n,
-                    (uplo == rocblas_fill_lower) ? current_n:oddRemainder,
-                    (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n 
-                                                                : current_n * lda )),
-                    lda,
-                    bsa,
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 
-                                                                    : current_n * ldinvA + current_n )),
-                    (const T*)(invA + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n 
-                                                                    : 0 )),
-                    (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n 
-                                                            : current_n * ldinvA )),
-                    ldinvA,
-                    bsinvA,
-                    (T*)(C_tmp.get()),
-                    (uplo == rocblas_fill_lower) ? oddRemainder:current_n,
-                    oddRemainder*current_n,
-                    batch_count);
+                handle,
+                (uplo == rocblas_fill_lower) ? oddRemainder : current_n,
+                (uplo == rocblas_fill_lower) ? current_n : oddRemainder,
+                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n : current_n * lda)),
+                lda,
+                bsa,
+                (const T*)(invA +
+                           ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n)),
+                (const T*)(invA +
+                           ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n : 0)),
+                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
+                ldinvA,
+                bsinvA,
+                (T*)(C_tmp.get()),
+                (uplo == rocblas_fill_lower) ? oddRemainder : current_n,
+                oddRemainder * current_n,
+                batch_count);
         }
     }
 
@@ -585,7 +583,6 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     if(ldinvA < n || bsinvA < ldinvA * n || batch_count < 0)
         return rocblas_status_invalid_size;
 
-
     /*
      * Quick return if possNBle.
      */
@@ -651,4 +648,3 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
 }
 
 } // extern "C"
-

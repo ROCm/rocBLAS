@@ -44,13 +44,13 @@ inline size_t num_non_tri_elements(rocblas_int n) { return (n * (n - 1) / 2); }
 
 template <typename T>
 __global__ void rocblas_trtri_batched_fill(rocblas_handle handle,
-                                            rocblas_fill uplo,
-                                            rocblas_int n,
-                                            rocblas_long num_zero_elem,
-                                            rocblas_int lda,
-                                            rocblas_int bsa,
-                                            T* A,
-                                            rocblas_int batch_count)
+                                           rocblas_fill uplo,
+                                           rocblas_int n,
+                                           rocblas_long num_zero_elem,
+                                           rocblas_int lda,
+                                           rocblas_int bsa,
+                                           T* A,
+                                           rocblas_int batch_count)
 {
     // if(!handle)
     //     return rocblas_status_invalid_handle;
@@ -417,13 +417,13 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle handle,
                            1);
 
         status = trtri::rocblas_trtri_template<T>(handle,
-                                                   uplo,
-                                                   diag,
-                                                   n - blocks * NB,
-                                                   A + blocks * NB * lda + blocks * NB,
-                                                   lda,
-                                                   invA + blocks * NB * NB,
-                                                   NB);
+                                                  uplo,
+                                                  diag,
+                                                  n - blocks * NB,
+                                                  A + blocks * NB * lda + blocks * NB,
+                                                  lda,
+                                                  invA + blocks * NB * NB,
+                                                  NB);
     }
 
     return rocblas_status_success;

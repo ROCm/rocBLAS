@@ -79,7 +79,7 @@ void testing_trtri(const Arguments& arg)
             if(j % 2)
                 hA[i + j * lda] *= -1;
             if(uplo == rocblas_fill_lower &&
-                j > i) // need to explicitly set unsused side to 0 if using it for temp storage
+               j > i) // need to explicitly set unsused side to 0 if using it for temp storage
                 hA[i + j * lda] = 0.0f;
             else if(uplo == rocblas_fill_upper && j < i)
                 hA[i + j * lda] = 0.0f;
@@ -92,7 +92,6 @@ void testing_trtri(const Arguments& arg)
             }
         }
     }
-
 
     hB = hA;
 
