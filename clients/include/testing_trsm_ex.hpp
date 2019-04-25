@@ -236,10 +236,10 @@ void testing_trsm_ex(const Arguments& arg)
                                                          K - TRSM_BLOCK * blocks,
                                                          dA + stride_A * blocks,
                                                          lda,
-                                                         0,
+                                                         stride_A,
                                                          dinvA + stride_invA * blocks,
                                                          TRSM_BLOCK,
-                                                         0,
+                                                         stride_invA,
                                                          1));
 
         size_t x_temp_size = M * N;
