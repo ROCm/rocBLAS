@@ -24,7 +24,7 @@ RUN dnf -y update && dnf install -y \
     gcc-gfortran \
     python34 \
     PyYAML \
-    python34-PyYAML \
+    python3*-PyYAML \
     libcxx-devel \
     rpm-build \
     boost-devel \

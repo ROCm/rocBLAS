@@ -83,7 +83,7 @@ install_yum_packages( )
 {
   package_dependencies=("$@")
   for package in "${package_dependencies[@]}"; do
-    if [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+    if [[ $package == *-PyYAML ]] || [[ $(yum list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
       elevate_if_not_root yum -y --nogpgcheck install ${package}
     fi
@@ -95,7 +95,7 @@ install_dnf_packages( )
 {
   package_dependencies=("$@")
   for package in "${package_dependencies[@]}"; do
-    if [[ $(dnf list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+    if [[ $package == *-PyYAML ]] || [[ $(dnf list installed ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
       elevate_if_not_root dnf install -y ${package}
     fi
@@ -119,8 +119,8 @@ install_packages( )
 
   # dependencies needed for rocblas and clients to build
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python3" "python-yaml" "python3-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python34-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
-  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python34-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
+  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
+  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
