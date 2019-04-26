@@ -39,6 +39,11 @@ _rocblas_handle::_rocblas_handle()
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
+    if(device_memory_in_use)
+    {
+        std::cerr << "Handle object destroyed while device memory still in use" << std::endl;
+        abort();
+    }
     // Deallocate device memory
     if(device_memory)
         hipFree(device_memory);
