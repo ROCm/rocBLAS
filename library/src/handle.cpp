@@ -54,7 +54,7 @@ _rocblas_handle::~_rocblas_handle()
  ******************************************************************************/
 void* _rocblas_handle::device_memory_allocator(size_t size)
 {
-    if(device_memory_inuse)
+    if(device_memory_in_use)
     {
         std::cerr << "Device memory allocated twice without freeing" << std::endl;
         abort();
@@ -78,32 +78,8 @@ void* _rocblas_handle::device_memory_allocator(size_t size)
             return nullptr;
     }
 
-    device_memory_inuse = true;
+    device_memory_in_use = true;
     return device_memory;
-}
-
-/*******************************************************************************
- * allocation RAII object to return device memory for a rocblas kernel
- ******************************************************************************/
-template <size_t N>
-_rocblas_handle::_device_memory_alloc<N>::_device_memory_alloc(rocblas_handle handle,
-                                                               std::initializer_list<size_t> sizes)
-    : handle(handle)
-{
-    auto size    = sizes.begin();
-    size_t total = 0;
-
-#pragma unroll
-    for(size_t i = 0; i < N; ++i)
-        total += size[i];
-
-    ptr[0] = handle->device_memory_allocator(total);
-
-    if(ptr[0])
-// If there are additional sizes, compute their offsets
-#pragma unroll
-        for(size_t i = 1; i < N; ++i)
-            ptr[i]   = (char*)ptr[i - 1] + size0[i - 1];
 }
 
 // Modify a handle to query device memory size on the next rocblas call
@@ -124,7 +100,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
 {
     // Cannot change memory allocation when a device_memory_alloc
     // object is alive and using device memory.
-    if(handle->device_memory_inuse)
+    if(handle->device_memory_in_use)
         return rocblas_status_memory_error;
 
     // Free existing device memory, if any

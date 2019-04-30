@@ -29,12 +29,12 @@ struct _rocblas_handle
     struct conjunction : std::true_type
     {
     };
-    template <typename B>
-    struct conjunction<B> : B
+    template <typename T>
+    struct conjunction<T> : T
     {
     };
-    template <typename B, typename... Bn>
-    struct conjunction<B, Bn...> : std::conditional<B{}, conjunction<Bn...>, B>::type
+    template <typename T, typename... Ts>
+    struct conjunction<T, Ts...> : std::conditional<T{}, conjunction<Ts...>, T>::type
     {
     };
 
@@ -137,7 +137,7 @@ struct _rocblas_handle
 
     size_t device_memory_size          = 0;
     bool device_memory_rocblas_managed = true;
-    bool device_memory_inuse           = false;
+    bool device_memory_in_use           = false;
     void* device_memory                = nullptr;
     size_t* device_memory_size_query   = nullptr;
 
@@ -175,7 +175,6 @@ struct _rocblas_handle
 
             // An array of pointers to all of the allocated arrays is formed.
             // sizes is only used to expand the parameter pack.
-            // Note: Compilers are able to scalarize these arrays, and do everything in registers.
             total = 0;
             return {{((void)sizes, (void*)((char*)ptr + offsets[total++]))...}};
         }
@@ -188,15 +187,15 @@ struct _rocblas_handle
         }
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
-        template <size_t... I>
-        auto make_pointer_tuple(std::index_sequence<I...>)
+        template <size_t... Is>
+        auto make_pointer_tuple(std::index_sequence<Is...>)
         {
-            return std::tie(pointers[I]...);
+            return std::tie(pointers[Is]...);
         }
 
         public:
         // The destructor marks the device memory as no longer in use
-        ~_device_memory_alloc() { handle->device_memory_inuse = false; }
+        ~_device_memory_alloc() { handle->device_memory_in_use = false; }
 
         // Conversion to any pointer type, but only if N==1
         // (is_void is only used to make the enable_if a dependent expression)
