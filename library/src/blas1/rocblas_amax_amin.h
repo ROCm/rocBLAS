@@ -98,15 +98,16 @@ struct rocblas_finalize_amax_amin
 };
 
 template <typename>
-constexpr char rocblas_iamaxmin_name[] = "unknown";
+static constexpr char rocblas_iamaxmin_name[] = "unknown";
 template <>
-constexpr char rocblas_iamaxmin_name<float>[] = "rocblas_isa" QUOTE(MAX_MIN);
+static constexpr char rocblas_iamaxmin_name<float>[] = "rocblas_isa" QUOTE(MAX_MIN);
 template <>
-constexpr char rocblas_iamaxmin_name<double>[] = "rocblas_ida" QUOTE(MAX_MIN);
+static constexpr char rocblas_iamaxmin_name<double>[] = "rocblas_ida" QUOTE(MAX_MIN);
 template <>
-constexpr char rocblas_iamaxmin_name<rocblas_float_complex>[] = "rocblas_ica" QUOTE(MAX_MIN);
+static constexpr char rocblas_iamaxmin_name<rocblas_float_complex>[] = "rocblas_ica" QUOTE(MAX_MIN);
 template <>
-constexpr char rocblas_iamaxmin_name<rocblas_double_complex>[] = "rocblas_iza" QUOTE(MAX_MIN);
+static constexpr char
+    rocblas_iamaxmin_name<rocblas_double_complex>[] = "rocblas_iza" QUOTE(MAX_MIN);
 
 // allocate workspace inside this API
 template <typename To, typename Ti>

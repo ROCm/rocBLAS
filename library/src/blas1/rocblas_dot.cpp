@@ -84,15 +84,15 @@ rocblas_status rocblas_dot_workspace(rocblas_handle __restrict__ handle,
 }
 
 template <typename>
-constexpr char rocblas_dot_name[] = "unknown";
+static constexpr char rocblas_dot_name[] = "unknown";
 template <>
-constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
+static constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
 template <>
-constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
+static constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
 template <>
-constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
+static constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
 template <>
-constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
+static constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
 
 // allocate workspace inside this API
 template <typename T>

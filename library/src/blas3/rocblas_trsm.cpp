@@ -944,11 +944,11 @@ rocblas_status special_trsm_template(rocblas_handle handle,
 } // namespace
 
 template <typename>
-constexpr char rocblas_trsm_name[] = "unknown";
+static constexpr char rocblas_trsm_name[] = "unknown";
 template <>
-constexpr char rocblas_trsm_name<float>[] = "rocblas_strsm";
+static constexpr char rocblas_trsm_name<float>[] = "rocblas_strsm";
 template <>
-constexpr char rocblas_trsm_name<double>[] = "rocblas_dtrsm";
+static constexpr char rocblas_trsm_name<double>[] = "rocblas_dtrsm";
 
 template <rocblas_int BLOCK, typename T>
 rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,

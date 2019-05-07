@@ -12,17 +12,17 @@ namespace {
 constexpr int NB = 256;
 
 template <typename>
-constexpr char rocblas_axpy_name[] = "unknown";
+static constexpr char rocblas_axpy_name[] = "unknown";
 template <>
-constexpr char rocblas_axpy_name<float>[] = "rocblas_saxpy";
+static constexpr char rocblas_axpy_name<float>[] = "rocblas_saxpy";
 template <>
-constexpr char rocblas_axpy_name<double>[] = "rocblas_daxpy";
+static constexpr char rocblas_axpy_name<double>[] = "rocblas_daxpy";
 template <>
-constexpr char rocblas_axpy_name<rocblas_half>[] = "rocblas_haxpy";
+static constexpr char rocblas_axpy_name<rocblas_half>[] = "rocblas_haxpy";
 template <>
-constexpr char rocblas_axpy_name<rocblas_float_complex>[] = "rocblas_caxpy";
+static constexpr char rocblas_axpy_name<rocblas_float_complex>[] = "rocblas_caxpy";
 template <>
-constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
+static constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
 template <typename T>
 void rocblas_axpy_log(rocblas_handle handle,
