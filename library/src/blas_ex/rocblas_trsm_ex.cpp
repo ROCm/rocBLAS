@@ -57,10 +57,11 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
     void* a2;
     void* a3;
     void* a4;
-    auto test = handle->device_memory_alloc(std::tie(a1,a2,a3,a4),1,2,3,4);
+    auto test = handle->device_memory_alloc(1,2,3,4);
+    std::tie(a1,a2,a3,a4) = test;
 
     // Attempt to allocate the optimal size
-    void* x_temp_workspace; // = handle->device_memory_alloc(x_temp_size);
+    void* x_temp_workspace = handle->device_memory_alloc(x_temp_size);
 
     // If optimal size is not available, try the smaller size
     if(!x_temp_workspace)

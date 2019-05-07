@@ -200,7 +200,7 @@ struct _rocblas_handle
         // Conversion to any pointer type, but only if N==1
         // (is_void is only used to make the enable_if a dependent expression)
         template <typename T, typename = typename std::enable_if<(std::is_void<T>{}, N==1)>::type>
-        explicit operator T*() const
+        operator T*() const
         {
             return static_cast<T*>(pointers[0]);
         }
