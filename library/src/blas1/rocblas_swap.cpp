@@ -26,17 +26,17 @@ __global__ void swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas
 }
 
 template <typename>
-constexpr char rocblas_swap_name[] = "unknown";
+static constexpr char rocblas_swap_name[] = "unknown";
 template <>
-constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
+static constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
 template <>
-constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
+static constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
 template <>
-constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
+static constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
 template <>
-constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
+static constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
 template <>
-constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
+static constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
 
 template <class T>
 rocblas_status

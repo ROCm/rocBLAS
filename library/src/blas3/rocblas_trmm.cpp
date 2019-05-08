@@ -177,11 +177,11 @@ __global__ void trmm_left_lower_nontrans_MX096_NX096_KX16(rocblas_fill uplo,
 }
 
 template <typename>
-constexpr char rocblas_trmm_name[] = "unknown";
+static constexpr char rocblas_trmm_name[] = "unknown";
 template <>
-constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
+static constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
 template <>
-constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
+static constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
 
 /*! \brief BLAS Level 3 API
 

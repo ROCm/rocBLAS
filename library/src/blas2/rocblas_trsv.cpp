@@ -48,11 +48,11 @@ void strided_vector_copy(
 }
 
 template <typename>
-constexpr char rocblas_trsv_name[] = "unknown";
+static constexpr char rocblas_trsv_name[] = "unknown";
 template <>
-constexpr char rocblas_trsv_name<float>[] = "rocblas_strsv";
+static constexpr char rocblas_trsv_name<float>[] = "rocblas_strsv";
 template <>
-constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
+static constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
 
 template <rocblas_int BLOCK, typename T>
 rocblas_status rocblas_trsv(rocblas_handle handle,
