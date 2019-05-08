@@ -232,11 +232,11 @@ __global__ void gemvc_kernel(rocblas_int m,
 }
 
 template <typename>
-constexpr char rocblas_gemv_name[] = "unknown";
+static constexpr char rocblas_gemv_name[] = "unknown";
 template <>
-constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
+static constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
 template <>
-constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
+static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
 
 template <typename T>
 rocblas_status rocblas_gemv(rocblas_handle handle,

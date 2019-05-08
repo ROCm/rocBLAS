@@ -26,15 +26,15 @@ struct rocblas_fetch_asum
 };
 
 template <typename>
-constexpr char rocblas_asum_name[] = "unknown";
+static constexpr char rocblas_asum_name[] = "unknown";
 template <>
-constexpr char rocblas_asum_name<float>[] = "rocblas_sasum";
+static constexpr char rocblas_asum_name<float>[] = "rocblas_sasum";
 template <>
-constexpr char rocblas_asum_name<double>[] = "rocblas_dasum";
+static constexpr char rocblas_asum_name<double>[] = "rocblas_dasum";
 template <>
-constexpr char rocblas_asum_name<rocblas_float_complex>[] = "rocblas_scasum";
+static constexpr char rocblas_asum_name<rocblas_float_complex>[] = "rocblas_scasum";
 template <>
-constexpr char rocblas_asum_name<rocblas_double_complex>[] = "rocblas_dzasum";
+static constexpr char rocblas_asum_name<rocblas_double_complex>[] = "rocblas_dzasum";
 
 // allocate workspace inside this API
 template <typename Ti, typename To>
