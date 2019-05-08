@@ -377,11 +377,11 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle handle,
 }
 
 template <typename>
-constexpr char rocblas_trtri_name[] = "unknown";
+static constexpr char rocblas_trtri_name[] = "unknown";
 template <>
-constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
+static constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
 template <>
-constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
+static constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
 
 template <typename T>
 rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,

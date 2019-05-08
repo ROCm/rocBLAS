@@ -205,13 +205,13 @@ hipError_t callTensile(const T* alpha,
 }
 
 template <typename>
-constexpr char rocblas_gemm_name[] = "unknown";
+static constexpr char rocblas_gemm_name[] = "unknown";
 template <>
-constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
+static constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
 template <>
-constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
+static constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
 template <>
-constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
+static constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
 
 /*******************************************************************************
  * GEMM implementation
@@ -376,13 +376,14 @@ rocblas_status rocblas_gemm_impl(rocblas_handle handle,
 }
 
 template <typename>
-constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
+static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
 template <>
-constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[] = "rocblas_hgemm_strided_batched";
+static constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[] =
+    "rocblas_hgemm_strided_batched";
 template <>
-constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
+static constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
 template <>
-constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
+static constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
 
 /*******************************************************************************
  * Strided / Batched GEMM implementation

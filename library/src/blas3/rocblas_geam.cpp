@@ -154,11 +154,11 @@ __global__ void geam_inplace_kernel_device_pointer(rocblas_operation transB,
 /* ============================================================================================ */
 
 template <typename>
-constexpr char rocblas_geam_name[] = "unknown";
+static constexpr char rocblas_geam_name[] = "unknown";
 template <>
-constexpr char rocblas_geam_name<float>[] = "rocblas_sgeam";
+static constexpr char rocblas_geam_name<float>[] = "rocblas_sgeam";
 template <>
-constexpr char rocblas_geam_name<double>[] = "rocblas_dgeam";
+static constexpr char rocblas_geam_name<double>[] = "rocblas_dgeam";
 
 /*
  * ===========================================================================
