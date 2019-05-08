@@ -35,13 +35,13 @@ inline bool rocblas_isnan(rocblas_half arg)
 /*! \brief is_complex<T> returns true iff T is complex */
 
 template <typename>
-constexpr bool is_complex = false;
+static constexpr bool is_complex = false;
 
 template <>
-constexpr bool is_complex<rocblas_double_complex> = true;
+static constexpr bool is_complex<rocblas_double_complex> = true;
 
 template <>
-constexpr bool is_complex<rocblas_float_complex> = true;
+static constexpr bool is_complex<rocblas_float_complex> = true;
 
 /* ============================================================================================ */
 /*! \brief negate a value */

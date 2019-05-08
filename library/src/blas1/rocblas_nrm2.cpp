@@ -35,17 +35,17 @@ struct rocblas_finalize_nrm2
 };
 
 template <typename>
-constexpr char rocblas_nrm2_name[] = "unknown";
+static constexpr char rocblas_nrm2_name[] = "unknown";
 template <>
-constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
+static constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
 template <>
-constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
+static constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
 template <>
-constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
+static constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
 template <>
-constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
+static constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
 template <>
-constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
+static constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
 
 // allocate workspace inside this API
 template <typename Ti, typename To>

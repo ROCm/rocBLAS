@@ -32,11 +32,11 @@ __global__ void ger_kernel(rocblas_int m,
 }
 
 template <typename>
-constexpr char rocblas_ger_name[] = "unknown";
+static constexpr char rocblas_ger_name[] = "unknown";
 template <>
-constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
+static constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
 template <>
-constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
+static constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
 
 template <typename T>
 rocblas_status rocblas_ger(rocblas_handle handle,

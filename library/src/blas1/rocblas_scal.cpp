@@ -26,15 +26,15 @@ __global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_in
 }
 
 template <typename>
-constexpr char rocblas_scal_name[] = "unknown";
+static constexpr char rocblas_scal_name[] = "unknown";
 template <>
-constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
+static constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
 template <>
-constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
+static constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
 template <>
-constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
+static constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
 template <>
-constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
+static constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
 
 template <class T>
 rocblas_status

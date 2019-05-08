@@ -30,11 +30,11 @@ __global__ void syr_kernel(rocblas_fill uplo,
 }
 
 template <typename>
-constexpr char rocblas_syr_name[] = "unknown";
+static constexpr char rocblas_syr_name[] = "unknown";
 template <>
-constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
+static constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
 template <>
-constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
+static constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
 
 template <typename T>
 rocblas_status rocblas_syr(rocblas_handle handle,

@@ -23,17 +23,17 @@ __global__ void copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, r
 }
 
 template <typename>
-constexpr char rocblas_copy_name[] = "unknown";
+static constexpr char rocblas_copy_name[] = "unknown";
 template <>
-constexpr char rocblas_copy_name<float>[] = "rocblas_scopy";
+static constexpr char rocblas_copy_name<float>[] = "rocblas_scopy";
 template <>
-constexpr char rocblas_copy_name<double>[] = "rocblas_dcopy";
+static constexpr char rocblas_copy_name<double>[] = "rocblas_dcopy";
 template <>
-constexpr char rocblas_copy_name<rocblas_half>[] = "rocblas_hcopy";
+static constexpr char rocblas_copy_name<rocblas_half>[] = "rocblas_hcopy";
 template <>
-constexpr char rocblas_copy_name<rocblas_float_complex>[] = "rocblas_ccopy";
+static constexpr char rocblas_copy_name<rocblas_float_complex>[] = "rocblas_ccopy";
 template <>
-constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
+static constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
 
 template <class T>
 rocblas_status rocblas_copy_template(
