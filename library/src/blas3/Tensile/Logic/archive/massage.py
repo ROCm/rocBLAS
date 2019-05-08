@@ -27,8 +27,10 @@ for f in files:
                 elif ("&id" in line) and ("[" in line):
                      fo.write((line.split('[')[0]+'\n').replace('&','*'))
                 elif "ReplacementKernel" in line:
-                     print("CHANGING")
+                     # print("CHANGING")
                      fo.write(line.split(':')[0]+': false\n')
+                elif "LdcEqualsLdd" in line:
+                     pass
                 else:
                      fo.write(line)
                 line = fi.readline()
