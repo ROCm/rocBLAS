@@ -11,7 +11,24 @@ set(VIRTUALENV_HOME_DIR ${CMAKE_BINARY_DIR}/virtualenv CACHE PATH "Path to virtu
 
 set(VIRTUALENV_VERSION 15.1.0)
 function(virtualenv_create)
-    if(NOT EXISTS ${VIRTUALENV_HOME_DIR}/bin/python)
+    if (DETECT_LOCAL_VIRTUALENV)
+        find_program(VIRTUALENV_EXE virtualenv)
+	if (VIRTUALENV_EXE)
+            execute_process( COMMAND ${VIRTUALENV_EXE} "--version" OUTPUT_VARIABLE VER )
+
+            if (${VER} VERSION_GREATER_EQUAL ${VIRTUALENV_VERSION})
+                set(LOCAL_VIRTUALENV_OK TRUE)
+            endif()
+        endif()
+    endif()
+
+    if (LOCAL_VIRTUALENV_OK)
+	if(NOT EXISTS ${VIRTUALENV_HOME_DIR}/bin/python)
+        	execute_process(
+	            COMMAND ${VIRTUALENV_PYTHON_EXE} ${VIRTUALENV_EXE} --system-site-packages  ${VIRTUALENV_HOME_DIR}
+        	)
+	endif()
+    elseif(NOT EXISTS ${VIRTUALENV_HOME_DIR}/bin/python)
         file(DOWNLOAD https://pypi.python.org/packages/d4/0c/9840c08189e030873387a73b90ada981885010dd9aea134d6de30cd24cb8/virtualenv-${VIRTUALENV_VERSION}.tar.gz
             ${VIRTUALENV_SOURCE_DIR}/virtualenv-${VIRTUALENV_VERSION}.tar.gz
             STATUS status LOG log
