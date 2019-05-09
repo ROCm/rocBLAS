@@ -47,7 +47,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
     if(handle->is_device_memory_size_query())
     {
         // TODO: Compute an optimum size of device memory which can be used as workspace
-        handle->set_device_memory_size(0);
+        handle->set_queried_device_memory_size(0);
         return rocblas_status_success;
     }
 
@@ -486,7 +486,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
     if(handle->is_device_memory_size_query())
     {
         // TODO: Compute an optimum size of device memory which can be used as workspace
-        handle->set_device_memory_size(0);
+        handle->set_queried_device_memory_size(0);
         return rocblas_status_success;
     }
 

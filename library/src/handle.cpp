@@ -25,9 +25,9 @@ _rocblas_handle::_rocblas_handle()
     // allocate a default initial size and manage device memory itself,
     // growing it as necessary.
     auto env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
-    device_memory_rocblas_managed =
+    device_memory_is_rocblas_managed =
         !env || sscanf(env, "%zu", &device_memory_size) != 1 || !device_memory_size;
-    if(device_memory_rocblas_managed)
+    if(device_memory_is_rocblas_managed)
         device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
     // Allocate device memory
@@ -49,39 +49,6 @@ _rocblas_handle::~_rocblas_handle()
         hipFree(device_memory);
 }
 
-/*******************************************************************************
- * device memory allocator helper
- ******************************************************************************/
-void* _rocblas_handle::device_memory_allocator(size_t size)
-{
-    if(device_memory_in_use)
-    {
-        std::cerr << "Device memory allocated twice without freeing" << std::endl;
-        abort();
-    }
-
-    if(size > device_memory_size)
-    {
-        if(!device_memory_rocblas_managed)
-            return nullptr;
-
-        if(device_memory)
-        {
-            hipFree(device_memory);
-            device_memory = nullptr;
-        }
-        device_memory_size = 0;
-
-        if(hipMalloc(&device_memory, size) == hipSuccess)
-            device_memory_size = size;
-        else
-            return nullptr;
-    }
-
-    device_memory_in_use = true;
-    return device_memory;
-}
-
 // Modify a handle to query device memory size on the next rocblas call
 extern "C" rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle, size_t* size_p)
 {
@@ -101,7 +68,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
     // Cannot change memory allocation when a device_memory_alloc
     // object is alive and using device memory.
     if(handle->device_memory_in_use)
-        return rocblas_status_memory_error;
+        return rocblas_status_internal_error;
 
     // Free existing device memory, if any
     if(handle->device_memory)
@@ -113,14 +80,11 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
 
     // A zero size requests rocBLAS to take over management of device memory.
     // A nonzero size forces rocBLAS to use that as a fixed size, and not change it.
-    if(!size)
+    handle->device_memory_is_rocblas_managed = !size;
+    if(size)
     {
-        handle->device_memory_rocblas_managed = true;
-    }
-    else
-    {
-        handle->device_memory_rocblas_managed = false;
-        auto hipStatus                        = hipMalloc(&handle->device_memory, size);
+        size           = handle->roundup_memory_size(size);
+        auto hipStatus = hipMalloc(&handle->device_memory, size);
         if(hipStatus != hipSuccess)
             return get_rocblas_status_for_hip_status(hipStatus);
         handle->device_memory_size = size;

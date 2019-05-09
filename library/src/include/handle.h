@@ -130,19 +130,57 @@ struct _rocblas_handle
     static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
                   "MIN_CHUNK_SIZE must be a power of two");
 
-    static constexpr roundup_memory_size(size_t size)
+    // Round up size to the nearest MIN_CHUNK_SIZE
+    static constexpr size_t roundup_memory_size(size_t size)
     {
         return ((size - 1) | (MIN_CHUNK_SIZE - 1)) + 1;
     }
 
-    size_t device_memory_size          = 0;
-    bool device_memory_rocblas_managed = true;
-    bool device_memory_in_use          = false;
-    void* device_memory                = nullptr;
-    size_t* device_memory_size_query   = nullptr;
+    // Compute the total size from a list of sizes
+    template <
+        typename... Ss,
+        typename = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+    friend constexpr size_t rocblas_total_device_memory_size(Ss... sizes)
+    {
+        size_t total     = 0;
+        size_t offsets[] = {total += roundup_memory_size(sizes)...};
+        return total;
+    }
+
+    // Variables holding state of device memory allocation
+    size_t device_memory_size             = 0;
+    bool device_memory_is_rocblas_managed = true;
+    bool device_memory_in_use             = false;
+    void* device_memory                   = nullptr;
+    size_t* device_memory_size_query      = nullptr;
 
     // Helper for device memory allocator
-    void* device_memory_allocator(size_t);
+    void* device_memory_allocator(size_t size)
+    {
+        if(device_memory_in_use)
+            return nullptr;
+
+        if(size > device_memory_size)
+        {
+            if(!device_memory_is_rocblas_managed)
+                return nullptr;
+
+            if(device_memory)
+            {
+                hipFree(device_memory);
+                device_memory = nullptr;
+            }
+            device_memory_size = 0;
+
+            if(hipMalloc(&device_memory, size) == hipSuccess)
+                device_memory_size = size;
+            else
+                return nullptr;
+        }
+
+        device_memory_in_use = true;
+        return device_memory;
+    }
 
     // Opaque smart allocator class to perform device memory allocations
     template <size_t N>
@@ -163,7 +201,8 @@ struct _rocblas_handle
             // sizes at the end of the calculation of offsets.
             size_t oldtotal;
             size_t total     = 0;
-            size_t offsets[] = {(oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
+            size_t offsets[] = {
+                (oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
 
             // We allocate the total amount needed. This is a constant-time operation if the space
             // is already available.
@@ -194,7 +233,8 @@ struct _rocblas_handle
         ~_device_memory_alloc() { handle->device_memory_in_use = false; }
 
         // Conversion to any pointer type, but only if N==1
-        template <typename T, typename = typename std::enable_if<std::is_pointer<T>{} && N==1>::type>
+        template <typename T,
+                  typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
         operator T() const
         {
             return static_cast<T>(pointers[0]);
