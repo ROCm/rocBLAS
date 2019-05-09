@@ -100,21 +100,13 @@ struct _rocblas_handle
     friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
 
-    // C++ interfaces to the above (i.e. handle->method(...) instead of method(handle, ...))
-    auto set_device_memory_size(size_t size) { return rocblas_set_device_memory_size(this, size); }
-    auto get_device_memory_size() const { return device_memory_size; }
-    auto query_device_memory_size(size_t* size)
-    {
-        return rocblas_query_device_memory_size(this, size);
-    }
-
     // Returns whether the current kernel call is a device memory size query
     bool is_device_memory_size_query() const { return device_memory_size_query != nullptr; }
 
     // Sets the optimum size of device memory for a kernel call
     rocblas_status set_queried_device_memory_size(size_t size)
     {
-        if(!is_device_memory_size_query())
+        if(!device_memory_size_query)
             return rocblas_status_internal_error;
         *device_memory_size_query = size;
         device_memory_size_query  = nullptr;
@@ -124,7 +116,7 @@ struct _rocblas_handle
     // Allocate one or more sizes
     template <typename... Ss,
               typename = typename std::enable_if<
-                  sizeof...(Ss) != 0 && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
     auto device_memory_alloc(Ss... sizes)
     {
         return _device_memory_alloc<sizeof...(Ss)>(this, static_cast<size_t>(sizes)...);
@@ -135,9 +127,17 @@ struct _rocblas_handle
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 1048576;
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
 
+    static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
+                  "MIN_CHUNK_SIZE must be a power of two");
+
+    static constexpr roundup_memory_size(size_t size)
+    {
+        return ((size - 1) | (MIN_CHUNK_SIZE - 1)) + 1;
+    }
+
     size_t device_memory_size          = 0;
     bool device_memory_rocblas_managed = true;
-    bool device_memory_in_use           = false;
+    bool device_memory_in_use          = false;
     void* device_memory                = nullptr;
     size_t* device_memory_size_query   = nullptr;
 
@@ -154,11 +154,8 @@ struct _rocblas_handle
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
-        auto allocate_pointers(Ss... sizes) -> std::array<void*, sizeof...(Ss)>
+        std::array<void*, sizeof...(Ss)> allocate_pointers(Ss... sizes)
         {
-            static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
-                          "MIN_CHUNK_SIZE must be a power of two");
-
             // This creates a sequential list of partial sums which are the offsets of each of the
             // allocated arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // The entire expression to the left of ... is evaluated once for each value in sizes.
@@ -166,8 +163,7 @@ struct _rocblas_handle
             // sizes at the end of the calculation of offsets.
             size_t oldtotal;
             size_t total     = 0;
-            size_t offsets[] = {
-                (oldtotal = total, total += ((sizes - 1) | (MIN_CHUNK_SIZE - 1)) + 1, oldtotal)...};
+            size_t offsets[] = {(oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
 
             // We allocate the total amount needed. This is a constant-time operation if the space
             // is already available.
@@ -188,7 +184,7 @@ struct _rocblas_handle
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
         template <size_t... Is>
-        auto make_pointer_tuple(std::index_sequence<Is...>)
+        auto make_pointer_tie(std::index_sequence<Is...>)
         {
             return std::tie(pointers[Is]...);
         }
@@ -198,18 +194,17 @@ struct _rocblas_handle
         ~_device_memory_alloc() { handle->device_memory_in_use = false; }
 
         // Conversion to any pointer type, but only if N==1
-        // (is_void is only used to make the enable_if a dependent expression)
-        template <typename T, typename = typename std::enable_if<(std::is_void<T>{}, N==1)>::type>
-        operator T*() const
+        template <typename T, typename = typename std::enable_if<std::is_pointer<T>{} && N==1>::type>
+        operator T() const
         {
-            return static_cast<T*>(pointers[0]);
+            return static_cast<T>(pointers[0]);
         }
 
         // Conversion to bool to tell if the allocation succeeded
         explicit operator bool() const { return pointers[0] != nullptr; }
 
         // Conversion to std::tuple<void*&...> to be assigned to std::tie()
-        operator auto() { return make_pointer_tuple(std::make_index_sequence<N>{}); }
+        operator auto() { return make_pointer_tie(std::make_index_sequence<N>{}); }
     };
 
     static int get_device_arch_id()
