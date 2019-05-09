@@ -27,15 +27,11 @@
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_version_string(char* buf, size_t len)
 {
-    std::string v(VERSION_STRING);
-    strcpy(buf, v.c_str());
-
-    if(buf == NULL)
-        return rocblas_status_internal_error;
-
-    size_t count = std::min(len - 1, v.length());
-    memcpy(buf, v.c_str(), count);
-    *(buf + count) = '\0';
-
+    static constexpr char v[] = VERSION_STRING;
+    if(!buf)
+        return rocblas_status_invalid_pointer;
+    if(len < sizeof(v))
+        return rocblas_status_invalid_size;
+    memcpy(buf, v, sizeof(v));
     return rocblas_status_success;
 }
