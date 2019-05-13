@@ -29,12 +29,8 @@ struct _rocblas_handle
     struct conjunction : std::true_type
     {
     };
-    template <typename T>
-    struct conjunction<T> : T
-    {
-    };
     template <typename T, typename... Ts>
-    struct conjunction<T, Ts...> : std::conditional<T{}, conjunction<Ts...>, T>::type
+    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
     {
     };
 
@@ -103,12 +99,23 @@ struct _rocblas_handle
     // Returns whether the current kernel call is a device memory size query
     bool is_device_memory_size_query() const { return device_memory_size_query != nullptr; }
 
-    // Sets the optimum size of device memory for a kernel call
-    rocblas_status set_queried_device_memory_size(size_t size)
+    // Sets the optimum size(s) of device memory for a kernel call
+    template <
+        typename... Ss,
+        typename = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+    rocblas_status set_queried_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
             return rocblas_status_internal_error;
-        *device_memory_size_query = size;
+
+        // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
+        size_t total = 0;
+        (void)std::initializer_list<size_t>{total += roundup_memory_size(sizes)...};
+
+        // Store the total size into the pointer passed by the user earlier
+        *device_memory_size_query = total;
+
+        // Indicate that the next call is a regular call and not a device memory size query
         device_memory_size_query  = nullptr;
         return rocblas_status_success;
     }
@@ -134,17 +141,6 @@ struct _rocblas_handle
     static constexpr size_t roundup_memory_size(size_t size)
     {
         return ((size - 1) | (MIN_CHUNK_SIZE - 1)) + 1;
-    }
-
-    // Compute the total size from a list of sizes
-    template <
-        typename... Ss,
-        typename = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
-    friend constexpr size_t rocblas_total_device_memory_size(Ss... sizes)
-    {
-        size_t total     = 0;
-        size_t offsets[] = {total += roundup_memory_size(sizes)...};
-        return total;
     }
 
     // Variables holding state of device memory allocation
@@ -192,13 +188,11 @@ struct _rocblas_handle
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
-        std::array<void*, sizeof...(Ss)> allocate_pointers(Ss... sizes)
+        decltype(pointers) allocate_pointers(Ss... sizes)
         {
             // This creates a sequential list of partial sums which are the offsets of each of the
             // allocated arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
-            // The entire expression to the left of ... is evaluated once for each value in sizes.
-            // The comma expression in ( ) returns its last value. total contains the total of all
-            // sizes at the end of the calculation of offsets.
+            // total contains the total of all sizes at the end of the calculation of offsets.
             size_t oldtotal;
             size_t total     = 0;
             size_t offsets[] = {
@@ -208,14 +202,15 @@ struct _rocblas_handle
             // is already available.
             void* ptr = handle->device_memory_allocator(total);
 
-            // An array of pointers to all of the allocated arrays is formed.
-            // sizes is only used to expand the parameter pack.
+            // An array of pointers to all of the allocated arrays is formed. sizes is only used
+            // to expand the parameter pack. Note: If the first element of this list is nullptr,
+            // then the allocation failed, and the rest of the values are garbage.
             total = 0;
             return {{((void)sizes, (void*)((char*)ptr + offsets[total++]))...}};
         }
 
         // Constructor
-        template <typename... Ss, typename = typename std::enable_if<sizeof...(Ss) == N>::type>
+        template <typename... Ss>
         _device_memory_alloc(rocblas_handle handle, Ss... sizes)
             : handle(handle), pointers(allocate_pointers(sizes...))
         {
@@ -223,7 +218,7 @@ struct _rocblas_handle
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
         template <size_t... Is>
-        auto make_pointer_tie(std::index_sequence<Is...>)
+        auto tie_pointers(std::index_sequence<Is...>)
         {
             return std::tie(pointers[Is]...);
         }
@@ -232,6 +227,12 @@ struct _rocblas_handle
         // The destructor marks the device memory as no longer in use
         ~_device_memory_alloc() { handle->device_memory_in_use = false; }
 
+        // Conversion to bool to tell if the allocation succeeded
+        explicit operator bool() const { return pointers[0] != nullptr; }
+
+        // Conversion to std::tuple<void*&...> to be assigned to std::tie()
+        operator auto() { return tie_pointers(std::make_index_sequence<N>{}); }
+
         // Conversion to any pointer type, but only if N==1
         template <typename T,
                   typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
@@ -239,12 +240,6 @@ struct _rocblas_handle
         {
             return static_cast<T>(pointers[0]);
         }
-
-        // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool() const { return pointers[0] != nullptr; }
-
-        // Conversion to std::tuple<void*&...> to be assigned to std::tie()
-        operator auto() { return make_pointer_tie(std::make_index_sequence<N>{}); }
     };
 
     static int get_device_arch_id()
@@ -273,7 +268,7 @@ struct _rocblas_handle
         if(!handle)                                           \
             return rocblas_status_invalid_handle;             \
         if(handle->is_device_memory_size_query())             \
-            return handle->set_queried_device_memory_size(0); \
+            return handle->set_queried_device_memory_size();  \
     } while(0)
 
 namespace rocblas {
