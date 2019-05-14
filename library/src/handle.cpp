@@ -53,7 +53,7 @@ _rocblas_handle::~_rocblas_handle()
 extern "C" rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle, size_t* size_p)
 {
     // Mark size as all 1s to detect if next rocBLAS call does not set the size
-    *size_p = ~(size_t) 0;
+    *size_p                          = ~size_t(0);
     handle->device_memory_size_query = size_p;
     return handle;
 }

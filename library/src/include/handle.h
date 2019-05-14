@@ -9,8 +9,8 @@
 #include <iostream>
 #include <utility>
 #include <tuple>
-#include <initializer_list>
 #include <array>
+#include <type_traits>
 #include "rocblas.h"
 #include "definitions.h"
 #include <hip/hip_runtime_api.h>
@@ -110,13 +110,13 @@ struct _rocblas_handle
 
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
         size_t total = 0;
-        (void)std::initializer_list<size_t>{total += roundup_memory_size(sizes)...};
+        auto dummy   = {total += roundup_memory_size(static_cast<size_t>(sizes))...};
 
         // Store the total size into the pointer passed by the user earlier
         *device_memory_size_query = total;
 
         // Indicate that the next call is a regular call and not a device memory size query
-        device_memory_size_query  = nullptr;
+        device_memory_size_query = nullptr;
         return rocblas_status_success;
     }
 
@@ -155,25 +155,21 @@ struct _rocblas_handle
     {
         if(device_memory_in_use)
             return nullptr;
-
         if(size > device_memory_size)
         {
             if(!device_memory_is_rocblas_managed)
                 return nullptr;
-
             if(device_memory)
             {
                 hipFree(device_memory);
                 device_memory = nullptr;
             }
             device_memory_size = 0;
-
             if(hipMalloc(&device_memory, size) == hipSuccess)
                 device_memory_size = size;
             else
                 return nullptr;
         }
-
         device_memory_in_use = true;
         return device_memory;
     }
@@ -190,11 +186,10 @@ struct _rocblas_handle
         template <typename... Ss>
         decltype(pointers) allocate_pointers(Ss... sizes)
         {
-            // This creates a sequential list of partial sums which are the offsets of each of the
-            // allocated arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
+            // This creates a list of partial sums which are the offsets of each of the allocated
+            // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // total contains the total of all sizes at the end of the calculation of offsets.
-            size_t oldtotal;
-            size_t total     = 0;
+            size_t oldtotal, total = 0;
             size_t offsets[] = {
                 (oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
 
@@ -206,7 +201,7 @@ struct _rocblas_handle
             // to expand the parameter pack. Note: If the first element of this list is nullptr,
             // then the allocation failed, and the rest of the values are garbage.
             total = 0;
-            return {{((void)sizes, (void*)((char*)ptr + offsets[total++]))...}};
+            return {((void)sizes, (void*)((char*)ptr + offsets[total++]))...};
         }
 
         // Constructor
@@ -238,7 +233,7 @@ struct _rocblas_handle
                   typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
         operator T() const
         {
-            return static_cast<T>(pointers[0]);
+            return T{pointers[0]};
         }
     };
 
@@ -261,14 +256,14 @@ struct _rocblas_handle
 //     RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
 //     ...
 // }
-#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)               \
-    do                                                        \
-    {                                                         \
-        rocblas_handle handle = (h);                          \
-        if(!handle)                                           \
-            return rocblas_status_invalid_handle;             \
-        if(handle->is_device_memory_size_query())             \
-            return handle->set_queried_device_memory_size();  \
+#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)                  \
+    do                                                           \
+    {                                                            \
+        rocblas_handle tmp_handle = (h);                         \
+        if(!tmp_handle)                                          \
+            return rocblas_status_invalid_handle;                \
+        if(tmp_handle->is_device_memory_size_query())            \
+            return tmp_handle->set_queried_device_memory_size(); \
     } while(0)
 
 namespace rocblas {
