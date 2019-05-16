@@ -725,8 +725,8 @@ rocblas_status special_trsm_template(rocblas_handle handle,
     constexpr T one          = 1;
     constexpr T negative_one = -1;
 
-    rocblas_int bsize = (side == rocblas_side_left ? n : m);
-    int W             = 1 + ((bsize - 1) / (*B_chunk));
+    rocblas_int bsize            = (side == rocblas_side_left ? n : m);
+    int W                        = 1 + ((bsize - 1) / (*B_chunk));
     static const bool arch_lt906 = handle->device_arch_id() < 906;
 
     for(int w = 0; w < W; w++)
@@ -779,19 +779,19 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                     if(arch_lt906)
                     {
                         rocblas_gemm_template<T>(handle,
-                                                transA,
-                                                rocblas_operation_none,
-                                                BLOCK,
-                                                width,
-                                                r * BLOCK,
-                                                &negative_one,
-                                                A_current,
-                                                lda,
-                                                B_current,
-                                                ldb,
-                                                alpha,
-                                                (T*)x_temp,
-                                                BLOCK);
+                                                 transA,
+                                                 rocblas_operation_none,
+                                                 BLOCK,
+                                                 width,
+                                                 r * BLOCK,
+                                                 &negative_one,
+                                                 A_current,
+                                                 lda,
+                                                 B_current,
+                                                 ldb,
+                                                 alpha,
+                                                 (T*)x_temp,
+                                                 BLOCK);
                     }
                     else
                     {
@@ -902,19 +902,19 @@ rocblas_status special_trsm_template(rocblas_handle handle,
                     if(arch_lt906)
                     {
                         rocblas_gemm_template<T>(handle,
-                            rocblas_operation_none,
-                            transA,
-                            width,
-                            BLOCK,
-                            r * BLOCK,
-                            &negative_one,
-                            B_current,
-                            ldb,
-                            A_current,
-                            lda,
-                            alpha,
-                            (T*)x_temp,
-                            width);
+                                                 rocblas_operation_none,
+                                                 transA,
+                                                 width,
+                                                 BLOCK,
+                                                 r * BLOCK,
+                                                 &negative_one,
+                                                 B_current,
+                                                 ldb,
+                                                 A_current,
+                                                 lda,
+                                                 alpha,
+                                                 (T*)x_temp,
+                                                 width);
                     }
                     else
                     {
