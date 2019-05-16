@@ -120,6 +120,38 @@ TensileStatus tensile_Cijk_Alik_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
 TensileStatus tensile_Cijk_Alik_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 
+#define TENSILE_OUT_ARGS_BFLOAT16                               \
+    dataD, dataC, dataA, dataB, alpha, beta,                    \
+        strideD1J, strideD2K, strideC1J, strideC2K,             \
+         strideA1L, strideA2K, strideB1J, strideB2K,            \
+        sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
+//---typename_data=tensile_bfloat16-----typename_compute=float---------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Ailk_Bljk_BBH(TENSILE_OUT_ARGS_BFLOAT16);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Ailk_Bjlk_BBH(TENSILE_OUT_ARGS_BFLOAT16);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Alik_Bljk_BBH(TENSILE_OUT_ARGS_BFLOAT16);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Alik_Bjlk_BBH(TENSILE_OUT_ARGS_BFLOAT16);
+}
+#undef TENSILE_OUT_ARGS_BFLOAT16
+
 #define TENSILE_OUT_ARGS_HALF                                   \
     dataD, dataC, dataA, dataB, alpha_half, beta_half,          \
         strideD1J, strideD2K, strideC1J, strideC2K,             \
