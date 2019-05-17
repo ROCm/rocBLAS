@@ -1,7 +1,7 @@
 # find_package(PythonInterp)
 # # TODO: Check PYTHON_VERSION_MAJOR
 
-find_program(VIRTUALENV_PYTHON_EXE python2)
+find_program(VIRTUALENV_PYTHON_EXE python3)
 if(NOT VIRTUALENV_PYTHON_EXE)
     find_program(VIRTUALENV_PYTHON_EXE python)
 endif()
@@ -63,6 +63,6 @@ function(virtualenv_install)
     # TODO: Check result
     message("${VIRTUALENV_HOME_DIR}/pip install ${ARGN}")
     execute_process(
-        COMMAND ${VIRTUALENV_HOME_DIR}/bin/python ${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN}
+        COMMAND ${VIRTUALENV_HOME_DIR}/bin/python3 ${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN}
     )
 endfunction()
