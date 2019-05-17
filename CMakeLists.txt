@@ -128,7 +128,7 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-set ( VERSION_STRING "2.2.6." )
+set ( VERSION_STRING "2.2.7." )
 # Check if BUILD_NUMBER is defined in a Jenkins envirnment
 if ($ENV{BUILD_NUMBER} )
   string(CONCAT BUILD_VERSION ${VERSION_STRING} $ENV{BUILD_NUMBER})
@@ -177,7 +177,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 06485a6dcd7d33ebb76a045c8edc8d341fcfea67 CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 752efca5958f4ce0582395dc778eb20a6467bf1c CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
