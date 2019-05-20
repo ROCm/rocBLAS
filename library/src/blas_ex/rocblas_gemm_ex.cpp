@@ -14,106 +14,6 @@
 #include <type_traits>
 #include "rocblas_gemm_ex.hpp"
 
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_EX performs one of the matrix-matrix operations
-
-        D = alpha*op( A )*op( B ) + beta*C,
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B, C, and D are matrices, with
-    op( A ) an m by k matrix, op( B ) a k by n matrix and C and D are m by n matrices.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
-    @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k
-    @param[in]
-    alpha     const void *
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *
-              pointer storing matrix A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype
-              specifies the datatype of matrix A
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    b         void *
-              pointer storing matrix B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype
-              specifies the datatype of matrix B
-    @param[in]
-    ldb       rocblas_int
-              specifies the leading dimension of B.
-    @param[in]
-    beta      const void *
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *
-              pointer storing matrix C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype
-              specifies the datatype of matrix C
-    @param[in]
-    ldc       rocblas_int
-              specifies the leading dimension of C.
-    @param[out]
-    d         void *
-              pointer storing matrix D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype
-              specifies the datatype of matrix D
-    @param[in]
-    ldd       rocblas_int
-              specifies the leading dimension of D.
-    @param[in]
-    compute_type
-              rocblas_datatype
-              specifies the datatype of computation
-    @param[in]
-    algo      rocblas_gemm_algo
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t
-              reserved for future use
-    @param[in]
-    flags     uint32_t
-              reserved for future use
-    @param[in/out]
-    workspace_size
-              size_t*
-              size of workspace
-    @parm[in]
-    workspace void*
-              workspace
-
-    ********************************************************************/
-
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                           rocblas_operation trans_a,
                                           rocblas_operation trans_b,
@@ -474,6 +374,32 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                                                    stride_d,
                                                                    batch_count);
     }
+    else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r &&
+            c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r &&
+            compute_type == rocblas_datatype_f32_r)
+    {
+        rb_status = gemm_ex_typecasting<tensile_bfloat16, tensile_bfloat16, float>(handle,
+                                                                                   trans_a,
+                                                                                   trans_b,
+                                                                                   m,
+                                                                                   n,
+                                                                                   k,
+                                                                                   alpha,
+                                                                                   a,
+                                                                                   lda,
+                                                                                   stride_a,
+                                                                                   b,
+                                                                                   ldb,
+                                                                                   stride_b,
+                                                                                   beta,
+                                                                                   c,
+                                                                                   ldc,
+                                                                                   stride_c,
+                                                                                   d,
+                                                                                   ldd,
+                                                                                   stride_d,
+                                                                                   batch_count);
+    }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r &&
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&
             compute_type == rocblas_datatype_i32_r)
@@ -523,128 +449,6 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle handle,
 
     return rb_status;
 }
-
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
-
-        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
-   [0,batch_count-1]
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix,
-    op( B ) a k by n by batch_count strided_batched matrix and
-    C and D are m by n by batch_count strided_batched matrices.
-
-    The strided_batched matrices are multiple matrices separated by a constant stride.
-    The number of matrices is batch_count.
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation
-              specifies the form of op( A )
-    @param[in]
-    transB    rocblas_operation
-              specifies the form of op( B )
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k
-    @param[in]
-    alpha     const void *
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *
-              pointer storing matrix A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype
-              specifies the datatype of matrix A
-    @param[in]
-    lda       rocblas_int
-              specifies the leading dimension of A.
-    @param[in]
-    stride_a  rocblas_long
-              specifies stride from start of one "A" matrix to the next
-    @param[in]
-    b         void *
-              pointer storing matrix B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype
-              specifies the datatype of matrix B
-    @param[in]
-    ldb       rocblas_int
-              specifies the leading dimension of B.
-    @param[in]
-    stride_b  rocblas_long
-              specifies stride from start of one "B" matrix to the next
-    @param[in]
-    beta      const void *
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *
-              pointer storing matrix C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype
-              specifies the datatype of matrix C
-    @param[in]
-    ldc       rocblas_int
-              specifies the leading dimension of C.
-    @param[in]
-    stride_c  rocblas_long
-              specifies stride from start of one "C" matrix to the next
-    @param[out]
-    d         void *
-              pointer storing matrix D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype
-              specifies the datatype of matrix D
-    @param[in]
-    ldd       rocblas_int
-              specifies the leading dimension of D.
-    @param[in]
-    stride_d  rocblas_long
-              specifies stride from start of one "D" matrix to the next
-    @param[in]
-    batch_count
-              rocblas_int
-              number of gemm operations in the batch
-    @param[in]
-    compute_type
-              rocblas_datatype
-              specifies the datatype of computation
-    @param[in]
-    algo      rocblas_gemm_algo
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t
-              reserved for future use
-    @param[in]
-    flags     uint32_t
-              reserved for future use
-    @param[in/out]
-    workspace_size
-              size_t*
-              size of workspace
-    @parm[in]
-    workspace void*
-              workspace
-
-    ********************************************************************/
 
 extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                           rocblas_operation trans_a,
@@ -1037,6 +841,32 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle handle,
                                                                    ldd,
                                                                    stride_d,
                                                                    batch_count);
+    }
+    else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r &&
+            c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r &&
+            compute_type == rocblas_datatype_f32_r)
+    {
+        rb_status = gemm_ex_typecasting<tensile_bfloat16, tensile_bfloat16, float>(handle,
+                                                                                   trans_a,
+                                                                                   trans_b,
+                                                                                   m,
+                                                                                   n,
+                                                                                   k,
+                                                                                   alpha,
+                                                                                   a,
+                                                                                   lda,
+                                                                                   stride_a,
+                                                                                   b,
+                                                                                   ldb,
+                                                                                   stride_b,
+                                                                                   beta,
+                                                                                   c,
+                                                                                   ldc,
+                                                                                   stride_c,
+                                                                                   d,
+                                                                                   ldd,
+                                                                                   stride_d,
+                                                                                   batch_count);
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r &&
             c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r &&

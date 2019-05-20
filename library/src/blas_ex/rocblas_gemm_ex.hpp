@@ -120,6 +120,37 @@ TensileStatus tensile_Cijk_Alik_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
 TensileStatus tensile_Cijk_Alik_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 
+#define TENSILE_OUT_ARGS                                        \
+    dataD, dataC, dataA, dataB, alpha, beta,                    \
+        strideD1J, strideD2K, strideC1J, strideC2K,             \
+        strideA1L, strideA2K, strideB1J, strideB2K,             \
+        sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
+//---typename_data=tensile_bfloat16-----typename_compute=float---------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Ailk_Bljk_BBH(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Ailk_Bjlk_BBH(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Alik_Bljk_BBH(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<tensile_bfloat16,tensile_bfloat16,float>(
+    TENSILE_IN_ARGS(tensile_bfloat16, tensile_bfloat16, float))
+{
+    return tensile_Cijk_Alik_Bjlk_BBH(TENSILE_OUT_ARGS);
+}
+
 #define TENSILE_OUT_ARGS_HALF                                   \
     dataD, dataC, dataA, dataB, alpha_half, beta_half,          \
         strideD1J, strideD2K, strideC1J, strideC2K,             \
@@ -163,11 +194,6 @@ TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf,TensileHalf,float>(
     return tensile_Cijk_Alik_Bjlk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 #undef TENSILE_OUT_ARGS_HALF
-#define TENSILE_OUT_ARGS                                        \
-    dataD, dataC, dataA, dataB, alpha, beta,                    \
-        strideD1J, strideD2K, strideC1J, strideC2K,             \
-        strideA1L, strideA2K, strideB1J, strideB2K,             \
-        sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 //---typename_data=TensileHalf-----typename_compute=TensileHalf---------------------
 template <>
 TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf,TensileHalf,TensileHalf>(
