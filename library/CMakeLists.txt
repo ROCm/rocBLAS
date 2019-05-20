@@ -93,6 +93,7 @@ set( rocblas_headers_public
   include/rocblas.h
   #  include/rocblas.hpp
   include/rocblas-types.h
+  include/rocblas_bfloat16.h
   include/rocblas-auxiliary.h
   include/rocblas-functions.h
   ${PROJECT_BINARY_DIR}/include/rocblas-version.h
