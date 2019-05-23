@@ -153,6 +153,14 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
 }
 
 /*******************************************************************************
+ * Returns whether device memory is rocblas-managed
+ ******************************************************************************/
+extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
+{
+    return handle && handle->device_memory_is_rocblas_managed;
+}
+
+/*******************************************************************************
  * Static handle data
  ******************************************************************************/
 rocblas_layer_mode _rocblas_handle::layer_mode = rocblas_layer_mode_none;

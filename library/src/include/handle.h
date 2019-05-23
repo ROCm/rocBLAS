@@ -95,7 +95,8 @@ struct _rocblas_handle
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
     friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
-    friend rocblas_status(::rocblas_set_device_memory_size)(rocblas_handle, size_t);
+    friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
+    friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
 
     // Returns whether the current kernel call is a device memory size query
     bool is_device_memory_size_query() const { return device_memory_size_query; }

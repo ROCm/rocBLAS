@@ -2095,6 +2095,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_hand
                                                                     size_t* size);
 ROCBLAS_EXPORT size_t rocblas_get_device_memory_size(rocblas_handle handle, size_t* size);
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
+ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
 
 #ifdef __cplusplus
 }
