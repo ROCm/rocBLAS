@@ -94,7 +94,7 @@ struct _rocblas_handle
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
-    friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*);
+    friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(rocblas_handle, size_t);
 
     // Returns whether the current kernel call is a device memory size query
