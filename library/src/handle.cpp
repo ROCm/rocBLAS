@@ -41,30 +41,76 @@ _rocblas_handle::~_rocblas_handle()
 {
     if(device_memory_in_use)
     {
-        std::cerr << "Handle object destroyed while device memory still in use" << std::endl;
+        fputs("Handle object destroyed while device memory still in use\n", stderr);
         abort();
     }
-    // Deallocate device memory
     if(device_memory)
         hipFree(device_memory);
 }
 
-// Modify a handle to query device memory size on the next rocblas call
-extern "C" rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle, size_t* size_p)
+/*******************************************************************************
+ * helper for allocating device memory
+ ******************************************************************************/
+void* _rocblas_handle::device_memory_allocator(size_t size)
 {
-    // Mark size as all 1s to detect if next rocBLAS call does not set the size
-    *size_p                          = ~size_t(0);
-    handle->device_memory_size_query = size_p;
-    return handle;
+    if(device_memory_in_use)
+        return nullptr;
+    if(size > device_memory_size)
+    {
+        if(!device_memory_is_rocblas_managed)
+            return nullptr;
+        if(device_memory)
+        {
+            hipFree(device_memory);
+            device_memory = nullptr;
+        }
+        device_memory_size = 0;
+        if(hipMalloc(&device_memory, size) == hipSuccess)
+            device_memory_size = size;
+        else
+            return nullptr;
+    }
+    device_memory_in_use = true;
+    return device_memory;
 }
 
-// Get the device memory size
+/*******************************************************************************
+ * start device memory size queries
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
+{
+    if(handle->device_memory_size_query)
+        return rocblas_status_unmatched_size_query;
+    handle->device_memory_size_query = true;
+    handle->device_memory_query_size = 0;
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * stop device memory size queries
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle, size_t* size)
+{
+    if(!handle->device_memory_size_query)
+        return rocblas_status_unmatched_size_query;
+    if(!size)
+        return rocblas_status_invalid_pointer;
+    *size                            = handle->device_memory_query_size;
+    handle->device_memory_size_query = false;
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * get the device memory size
+ ******************************************************************************/
 extern "C" size_t rocblas_get_device_memory_size(rocblas_handle handle)
 {
     return handle->device_memory_size;
 }
 
-// Set the device memory size
+/*******************************************************************************
+ * set the device memory size
+ ******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
 {
     // Cannot change memory allocation when a device_memory_alloc
@@ -137,7 +183,6 @@ _rocblas_handle::init _rocblas_handle::handle_init;
 static void open_log_stream(const char* environment_variable_name,
                             std::ostream*& log_os,
                             std::ofstream& log_ofs)
-
 {
     // By default, output to cerr
     log_os = &std::cerr;

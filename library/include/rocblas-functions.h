@@ -2090,8 +2090,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
 
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
-ROCBLAS_EXPORT rocblas_handle rocblas_query_device_memory_size(rocblas_handle handle,
-                                                               size_t* size_p);
+ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle);
+ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
+                                                                    size_t* size);
 ROCBLAS_EXPORT size_t rocblas_get_device_memory_size(rocblas_handle handle);
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
 

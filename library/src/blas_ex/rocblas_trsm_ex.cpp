@@ -47,18 +47,11 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
     if(handle->is_device_memory_size_query())
     {
         // return the size in bytes recommended for maximum speed
-        return handle->set_queried_device_memory_size(x_temp_size);
+        return handle->set_optimal_device_memory_size(x_temp_size);
     }
 
     static constexpr rocblas_int TRSM_BLOCK = 128;
     rocblas_int k                           = (side == rocblas_side_left ? m : n);
-
-    void* a1;
-    void* a2;
-    void* a3;
-    void* a4;
-    auto test = handle->device_memory_alloc(1,2,3,4);
-    std::tie(a1,a2,a3,a4) = test;
 
     // Attempt to allocate the optimal size
     void* x_temp_workspace = handle->device_memory_alloc(x_temp_size);
@@ -68,11 +61,11 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
     {
         bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * WORKBUF_TRSM_A_BLKS);
 
-        if(!allowChunking)   // Chunking not supported
+        if(!allowChunking) // Chunking not supported
             return rocblas_status_memory_error;
 
         x_temp_size = rocblas_sizeof_datatype(compute_type) * m;
-//        x_temp_workspace = handle->device_memory_alloc(x_temp_size);
+        //        x_temp_workspace = handle->device_memory_alloc(x_temp_size);
 
         // If the smaller size cannot be allocated, return error
         if(!x_temp_workspace)
