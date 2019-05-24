@@ -312,31 +312,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     size_t workspace_size  = arg.workspace_size;
     void* workspace        = nullptr;
 
-    To h_alpha_To, h_beta_To;
     bool nantest = rocblas_isnan(arg.beta);
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{} &&
-       !std::is_same<To, rocblas_half>{} && nantest)
-        return;
-    if(std::is_same<To, rocblas_half>{})
-    {
-        h_alpha_To = float_to_half(arg.alpha);
-        h_beta_To  = nantest ? 0 : float_to_half(arg.beta);
-    }
-    else if(std::is_same<To, float>{} || std::is_same<To, double>{} || std::is_same<To, int32_t>{})
-    {
-        h_alpha_To = static_cast<To>(arg.alpha);
-        h_beta_To  = nantest ? 0 : static_cast<To>(arg.beta);
-    }
-    else
-    {
-#ifdef GOOGLE_TEST
-        ADD_FAILURE() << "Unimplemented types";
-#else
-        fputs("Error: Unimplemented types\n", stderr);
-#endif
-        return;
-    }
-
     Tc h_alpha_Tc, h_beta_Tc;
     if(std::is_same<Tc, rocblas_half>{})
     {
@@ -717,12 +693,12 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                M,
                                N,
                                K,
-                               h_alpha_To,
+                               h_alpha_Tc,
                                hA + stride_a * i,
                                lda,
                                hB + stride_b * i,
                                ldb,
-                               h_beta_To,
+                               h_beta_Tc,
                                hD_gold + stride_d * i,
                                ldd);
         }
@@ -888,13 +864,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
-                  << M << "," << N << "," << K << ","
-                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_alpha_To) : h_alpha_To)
-                  << "," << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_beta_To) : h_beta_To)
-                  << "," << ldc << "," << stride_c << "," << ldd << "," << stride_d << ","
-                  << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used / number_hot_calls;
+                  << M << "," << N << "," << K << "," << arg.alpha << "," << lda << "," << stride_a
+                  << "," << ldb << "," << stride_b << "," << arg.beta << "," << ldc << ","
+                  << stride_c << "," << ldd << "," << stride_d << "," << batch_count << ","
+                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
         {

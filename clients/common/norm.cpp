@@ -54,6 +54,42 @@ void zaxpy_(int* n,
 
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
 template <>
+double norm_check_general<rocblas_bfloat16>(char norm_type,
+                                            rocblas_int M,
+                                            rocblas_int N,
+                                            rocblas_int lda,
+                                            rocblas_bfloat16* hCPU,
+                                            rocblas_bfloat16* hGPU)
+{
+    // norm type can be 'O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+
+    double error_double = std::numeric_limits<double>::quiet_NaN();
+
+    host_vector<float> hCPU_float(N * lda), hGPU_float(N * lda);
+    for(rocblas_int i = 0; i < N * lda; i++)
+    {
+        hCPU_float[i] = static_cast<float>(hCPU[i]);
+        hGPU_float[i] = static_cast<float>(hGPU[i]);
+    }
+
+    float work;
+    rocblas_int incx = 1;
+    float alpha      = -1.0f;
+    rocblas_int size = lda * N;
+
+    float cpu_norm = slange_(&norm_type, &M, &N, hCPU_float, &lda, &work);
+    saxpy_(&size, &alpha, hCPU_float, &incx, hGPU_float, &incx);
+
+    float error_float = slange_(&norm_type, &M, &N, hGPU_float, &lda, &work) / cpu_norm;
+    error_double      = static_cast<double>(error_float);
+
+    return error_double;
+}
+
+template <>
 double norm_check_general<rocblas_half>(char norm_type,
                                         rocblas_int M,
                                         rocblas_int N,
