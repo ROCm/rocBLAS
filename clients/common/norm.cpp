@@ -238,6 +238,65 @@ double norm_check_general<rocblas_double_complex>(char norm_type,
 
 //=====Norm Check for strided_batched matrix
 template <>
+double norm_check_general<rocblas_bfloat16>(char norm_type,
+                                            rocblas_int M,
+                                            rocblas_int N,
+                                            rocblas_int lda,
+                                            rocblas_int stride_a,
+                                            rocblas_int batch_count,
+                                            rocblas_bfloat16* hCPU,
+                                            rocblas_bfloat16* hGPU)
+{
+    // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+    //
+    // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
+    // of strided batched matrix
+
+    rocblas_int totalsize = N * lda + (batch_count - 1) * stride_a;
+    host_vector<float> hCPU_float(totalsize), hGPU_float(totalsize);
+    for(rocblas_int i_batch = 0; i_batch < batch_count; i_batch++)
+    {
+        for(rocblas_int i = 0; i < N * lda; i++)
+        {
+            auto index        = i + i_batch * stride_a;
+            hCPU_float[index] = static_cast<float>(hCPU[index]);
+            hGPU_float[index] = static_cast<float>(hGPU[index]);
+        }
+    }
+
+    float work;
+    rocblas_int incx = 1;
+    float alpha      = -1.0f;
+    rocblas_int size = lda * N;
+
+    double cumulative_error = 0.0;
+
+    for(rocblas_int i = 0; i < batch_count; i++)
+    {
+        float cpu_norm = slange_(&norm_type, &M, &N, &hCPU_float[i * stride_a], &lda, &work);
+
+        saxpy_(&size, &alpha, &hCPU_float[i * stride_a], &incx, &hGPU_float[i * stride_a], &incx);
+
+        float error =
+            slange_(&norm_type, &M, &N, &hGPU_float[i * stride_a], &lda, &work) / cpu_norm;
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
+template <>
 double norm_check_general<rocblas_half>(char norm_type,
                                         rocblas_int M,
                                         rocblas_int N,

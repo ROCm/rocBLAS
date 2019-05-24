@@ -128,6 +128,18 @@ inline void unit_check_general(rocblas_int M,
                                rocblas_int batch_count,
                                rocblas_int lda,
                                rocblas_int strideA,
+                               rocblas_bfloat16* hCPU,
+                               rocblas_bfloat16* hGPU)
+{
+    UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int M,
+                               rocblas_int N,
+                               rocblas_int batch_count,
+                               rocblas_int lda,
+                               rocblas_int strideA,
                                rocblas_half* hCPU,
                                rocblas_half* hGPU)
 {
