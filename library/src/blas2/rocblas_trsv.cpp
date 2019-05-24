@@ -69,51 +69,55 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
         return rocblas_status_invalid_handle;
 
     auto pointer_mode = handle->pointer_mode;
-    auto layer_mode   = handle->layer_mode;
-    if(layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
 
-    if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
+    if(!handle->is_device_memory_size_query())
     {
-        auto uplo_letter   = rocblas_fill_letter(uplo);
-        auto transA_letter = rocblas_transpose_letter(transA);
-        auto diag_letter   = rocblas_diag_letter(diag);
+        auto layer_mode = handle->layer_mode;
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
+        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
-            if(pointer_mode == rocblas_pointer_mode_host)
-                log_bench(handle,
-                          "./rocblas-bench -f trsv -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "--lda",
-                          lda,
-                          "--incx",
-                          incx);
-        }
+            auto uplo_letter   = rocblas_fill_letter(uplo);
+            auto transA_letter = rocblas_transpose_letter(transA);
+            auto diag_letter   = rocblas_diag_letter(diag);
 
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_trsv_name<T>,
-                        "uplo",
-                        uplo_letter,
-                        "transA",
-                        transA_letter,
-                        "diag",
-                        diag_letter,
-                        "M",
-                        m,
-                        "lda",
-                        lda,
-                        "incx",
-                        incx);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                if(pointer_mode == rocblas_pointer_mode_host)
+                    log_bench(handle,
+                              "./rocblas-bench -f trsv -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "--lda",
+                              lda,
+                              "--incx",
+                              incx);
+            }
+
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle,
+                            rocblas_trsv_name<T>,
+                            "uplo",
+                            uplo_letter,
+                            "transA",
+                            transA_letter,
+                            "diag",
+                            diag_letter,
+                            "M",
+                            m,
+                            "lda",
+                            lda,
+                            "incx",
+                            incx);
+        }
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
@@ -125,16 +129,30 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
 
     // quick return if possible.
     if(!m)
-        return rocblas_status_success;
+        return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                     : rocblas_status_success;
 
     // Calling TRSM for now
     rocblas_status status;
 
-    static constexpr T alpha_h{1};
-    const T* alpha = &alpha_h;
+    static constexpr T alpha_h = 1;
+    const void* alpha          = &alpha_h;
+
+    size_t X_size = incx == 1 ? 0 : sizeof(T) * m;
+
+    if(handle->is_device_memory_size_query())
+        return handle->set_optimal_device_memory_size(1, X_size);
+
+    auto mem = handle->device_memory_alloc(1, X_size);
+    if(!mem)
+        return rocblas_status_memory_error;
+
+    void* alpha_d;
+    void* dx_mod;
+    std::tie(alpha_d, dx_mod) = mem;
+
     if(pointer_mode == rocblas_pointer_mode_device)
     {
-        T* alpha_d = (T*)handle->get_trsv_alpha();
         RETURN_IF_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
         alpha = alpha_d;
     }
@@ -142,25 +160,16 @@ rocblas_status rocblas_trsv(rocblas_handle handle,
     if(incx == 1)
     {
         status = rocblas_trsm_template<BLOCK>(
-            handle, rocblas_side_left, uplo, transA, diag, m, 1, alpha, A, lda, x, m);
+            handle, rocblas_side_left, uplo, transA, diag, m, 1, (T*)alpha, A, lda, x, m);
     }
     else
     {
         if(incx < 0)
             x -= ssize_t(incx) * (m - 1);
-
-        T* dx_mod = sizeof(T) * m <= *(handle->get_trsv_X_size())
-                        ? (T*)handle->get_trsv_x()
-                        : (T*)rocblas_unique_ptr(rocblas::device_malloc(sizeof(T) * m),
-                                                 rocblas::device_free)
-                              .get();
-
-        strided_vector_copy<true>(handle->rocblas_stream, x, m, dx_mod, incx);
-
+        strided_vector_copy<true>(handle->rocblas_stream, x, m, (T*)dx_mod, incx);
         status = rocblas_trsm_template<BLOCK>(
-            handle, rocblas_side_left, uplo, transA, diag, m, 1, alpha, A, lda, dx_mod, m);
-
-        strided_vector_copy<false>(handle->rocblas_stream, x, m, dx_mod, incx);
+            handle, rocblas_side_left, uplo, transA, diag, m, 1, (T*)alpha, A, lda, (T*)dx_mod, m);
+        strided_vector_copy<false>(handle->rocblas_stream, x, m, (T*)dx_mod, incx);
     }
 
     return status;

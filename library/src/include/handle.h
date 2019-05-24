@@ -94,7 +94,7 @@ struct _rocblas_handle
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
-    friend size_t(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
+    friend rocblas_status(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
 
@@ -130,7 +130,7 @@ struct _rocblas_handle
                   sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
     auto device_memory_alloc(Ss... sizes)
     {
-        return _device_memory_alloc<sizeof...(Ss)>(this, size_t{sizes}...);
+        return _device_memory_alloc<sizeof...(Ss)>(this, static_cast<size_t>(sizes)...);
     }
 
     private:

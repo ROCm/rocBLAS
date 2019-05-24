@@ -114,7 +114,7 @@ extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, 
     if(!size)
         return rocblas_status_invalid_pointer;
     *size = handle->device_memory_size;
-    return rocblas_success;
+    return rocblas_status_success;
 }
 
 /*******************************************************************************

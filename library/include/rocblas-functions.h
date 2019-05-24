@@ -968,7 +968,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle handle,
     batch_count       rocblas_int
               numbers of matrices in the batch
     ********************************************************************/
-// assume invA has already been allocated, recommended for repeated calling of trtri product routine
 
 ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle handle,
                                                      rocblas_fill uplo,
@@ -1738,6 +1737,57 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               int32_t solution_index,
                                               uint32_t flags);
 
+/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+#define rocblas_gemm_ex(handle,         \
+                        trans_a,        \
+                        trans_b,        \
+                        m,              \
+                        n,              \
+                        k,              \
+                        alpha,          \
+                        a,              \
+                        a_type,         \
+                        lda,            \
+                        b,              \
+                        b_type,         \
+                        ldb,            \
+                        beta,           \
+                        c,              \
+                        c_type,         \
+                        ldc,            \
+                        d,              \
+                        d_type,         \
+                        ldd,            \
+                        compute_type,   \
+                        algo,           \
+                        solution_index, \
+                        flags,          \
+                        ...)            \
+    rocblas_gemm_ex(handle,             \
+                    trans_a,            \
+                    trans_b,            \
+                    m,                  \
+                    n,                  \
+                    k,                  \
+                    alpha,              \
+                    a,                  \
+                    a_type,             \
+                    lda,                \
+                    b,                  \
+                    b_type,             \
+                    ldb,                \
+                    beta,               \
+                    c,                  \
+                    c_type,             \
+                    ldc,                \
+                    d,                  \
+                    d_type,             \
+                    ldd,                \
+                    compute_type,       \
+                    algo,               \
+                    solution_index,     \
+                    flags)
+
 /*! \brief BLAS EX API
 
     \details
@@ -1919,6 +1969,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               const void* a,
                                                               rocblas_datatype a_type,
                                                               rocblas_int lda,
+
                                                               rocblas_long stride_a,
                                                               const void* b,
                                                               rocblas_datatype b_type,
@@ -1938,6 +1989,68 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               rocblas_gemm_algo algo,
                                                               int32_t solution_index,
                                                               uint32_t flags);
+
+/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+#define rocblas_gemm_strided_batched_ex(handle,         \
+                                        trans_a,        \
+                                        trans_b,        \
+                                        m,              \
+                                        n,              \
+                                        k,              \
+                                        alpha,          \
+                                        a,              \
+                                        a_type,         \
+                                        lda,            \
+                                        stride_a,       \
+                                        b,              \
+                                        b_type,         \
+                                        ldb,            \
+                                        stride_b,       \
+                                        beta,           \
+                                        c,              \
+                                        c_type,         \
+                                        ldc,            \
+                                        stride_c,       \
+                                        d,              \
+                                        d_type,         \
+                                        ldd,            \
+                                        stride_d,       \
+                                        batch_count,    \
+                                        compute_type,   \
+                                        algo,           \
+                                        solution_index, \
+                                        flags,          \
+                                        ...)            \
+    rocblas_gemm_strided_batched_ex(handle,             \
+                                    trans_a,            \
+                                    trans_b,            \
+                                    m,                  \
+                                    n,                  \
+                                    k,                  \
+                                    alpha,              \
+                                    a,                  \
+                                    a_type,             \
+                                    lda,                \
+                                    stride_a,           \
+                                    b,                  \
+                                    b_type,             \
+                                    ldb,                \
+                                    stride_b,           \
+                                    beta,               \
+                                    c,                  \
+                                    c_type,             \
+                                    ldc,                \
+                                    stride_c,           \
+                                    d,                  \
+                                    d_type,             \
+                                    ldd,                \
+                                    stride_d,           \
+                                    batch_count,        \
+                                    compute_type,       \
+                                    algo,               \
+                                    solution_index,     \
+                                    flags)
+
 /*! BLAS EX API
 
     \details
@@ -2072,6 +2185,40 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                               rocblas_int ld_invA,
                                               rocblas_datatype compute_type);
 
+/* For backward compatiblity, unused option, x_temp_size, and x_temp_workspace arguments are ignored
+ */
+#define rocblas_trsm_ex(handle,       \
+                        side,         \
+                        uplo,         \
+                        trans_a,      \
+                        diag,         \
+                        m,            \
+                        n,            \
+                        alpha,        \
+                        a,            \
+                        lda,          \
+                        b,            \
+                        ldb,          \
+                        invA,         \
+                        ld_invA,      \
+                        compute_type, \
+                        ...)          \
+    rocblas_trsm_ex(handle,           \
+                    side,             \
+                    uplo,             \
+                    trans_a,          \
+                    diag,             \
+                    m,                \
+                    n,                \
+                    alpha,            \
+                    a,                \
+                    lda,              \
+                    b,                \
+                    ldb,              \
+                    invA,             \
+                    ld_invA,          \
+                    compute_type)
+
 /*
  * ===========================================================================
  *    build information
@@ -2093,7 +2240,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
 ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle);
 ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
                                                                     size_t* size);
-ROCBLAS_EXPORT size_t rocblas_get_device_memory_size(rocblas_handle handle, size_t* size);
+ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size);
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
 ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
 
