@@ -65,7 +65,13 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
         else if(Tc != To)
         {
             if(To == rocblas_datatype_f16_r && Tc == rocblas_datatype_f32_r)
+            {
                 return TEST<rocblas_half, rocblas_half, float>{}(arg);
+            }
+            else if(To == rocblas_datatype_bf16_r && Tc == rocblas_datatype_f32_r)
+            {
+                return TEST<rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
+            }
         }
         else
         {

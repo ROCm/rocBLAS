@@ -411,14 +411,14 @@ void testing_gemm_ex(const Arguments& arg)
         const rocblas_half negative_two       = float_to_half(-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
-            hA[0]       = ieee_half_near_max;
-            hA[1]       = ieee_half_near_max;
-            hA[lda]     = ieee_half_near_max;
-            hA[lda + 1] = ieee_half_near_max;
-            hB[0]       = positive_two;
-            hB[1]       = negative_two;
-            hB[ldb]     = negative_two;
-            hB[ldb + 1] = positive_two;
+            hA[0]       = static_cast<Ti>(ieee_half_near_max);
+            hA[1]       = static_cast<Ti>(ieee_half_near_max);
+            hA[lda]     = static_cast<Ti>(ieee_half_near_max);
+            hA[lda + 1] = static_cast<Ti>(ieee_half_near_max);
+            hB[0]       = static_cast<Ti>(positive_two);
+            hB[1]       = static_cast<Ti>(negative_two);
+            hB[ldb]     = static_cast<Ti>(negative_two);
+            hB[ldb + 1] = static_cast<Ti>(positive_two);
         }
     }
 

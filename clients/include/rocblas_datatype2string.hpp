@@ -78,6 +78,8 @@ constexpr auto rocblas_datatype2string(rocblas_datatype type)
     case rocblas_datatype_u8_c: return "u8_c";
     case rocblas_datatype_i32_c: return "i32_c";
     case rocblas_datatype_u32_c: return "u32_c";
+    case rocblas_datatype_bf16_r: return "bf16_r";
+    case rocblas_datatype_bf16_c: return "bf16_c";
     default: return "invalid";
     }
 }

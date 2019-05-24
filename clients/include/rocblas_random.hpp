@@ -56,6 +56,15 @@ class rocblas_nan_rng
 
     // Random NaN half (non-template rocblas_half takes precedence over integer template above)
     explicit operator rocblas_half() { return random_nan_data<rocblas_half, uint16_t, 10, 5>(); }
+
+    // Random NaN bfloat16
+    explicit operator rocblas_bfloat16()
+    {
+        return rocblas_bfloat16::float_to_bfloat16(random_nan_data<float, uint32_t, 23, 8>());
+    }
+    // TODO: fix below
+    //  explicit operator rocblas_bfloat16() { return random_nan_data<rocblas_bfloat16, uint16_t, 7,
+    //  8>(); }
 };
 
 /* ============================================================================================ */
@@ -74,6 +83,14 @@ template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
     return float_to_half(std::uniform_int_distribution<int>(-2, 2)(rocblas_rng));
+};
+
+// for rocblas_bfloat16, generate float, and convert to rocblas_bfloat16
+/*! \brief  generate a random number in range [-2,-1,0,1,2] */
+template <>
+inline rocblas_bfloat16 random_generator<rocblas_bfloat16>()
+{
+    return static_cast<rocblas_bfloat16>((std::uniform_int_distribution<int>(-2, 2)(rocblas_rng)));
 };
 
 /*! \brief  generate a random number in range [1,2,3] */

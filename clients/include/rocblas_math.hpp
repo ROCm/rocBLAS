@@ -55,4 +55,10 @@ inline rocblas_half negate(rocblas_half x)
     return x ^ 0x8000;
 }
 
+template <>
+inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
+{
+    x.data = x.data ^ 0x8000;
+    return x;
+}
 #endif
