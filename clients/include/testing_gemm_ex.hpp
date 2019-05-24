@@ -272,27 +272,6 @@ void testing_gemm_ex(const Arguments& arg)
        !std::is_same<To, rocblas_half>{} && nantest)
         return; // Exclude integers or other types which don't support NaN
 
-    To h_alpha_To, h_beta_To;
-    if(std::is_same<To, rocblas_half>{})
-    {
-        h_alpha_To = float_to_half(arg.alpha);
-        h_beta_To  = nantest ? 0 : float_to_half(arg.beta);
-    }
-    else if(std::is_same<To, float>{} || std::is_same<To, double>{} || std::is_same<To, int32_t>{})
-    {
-        h_alpha_To = static_cast<To>(arg.alpha);
-        h_beta_To  = nantest ? 0 : static_cast<To>(arg.beta);
-    }
-    else
-    {
-#ifdef GOOGLE_TEST
-        ADD_FAILURE() << "Unimplemented types";
-#else
-        fputs("Error: Unimplmented types\n", stderr);
-#endif
-        return;
-    }
-
     Tc h_alpha_Tc, h_beta_Tc;
     if(std::is_same<Tc, rocblas_half>{})
     {
@@ -558,8 +537,8 @@ void testing_gemm_ex(const Arguments& arg)
         }
         cpu_time_used = get_time_us();
 
-        cblas_gemm<Ti, To>(
-            transA, transB, M, N, K, h_alpha_To, hA, lda, hB, ldb, h_beta_To, hD_gold, ldd);
+        cblas_gemm<Ti, To, Tc>(
+            transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<To>(M, N, K) / cpu_time_used * 1e6;
@@ -677,11 +656,9 @@ void testing_gemm_ex(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
-                  << M << "," << N << "," << K << ","
-                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_alpha_To) : h_alpha_To)
-                  << "," << lda << "," << ldb << ","
-                  << (std::is_same<To, rocblas_half>{} ? half_to_float(h_beta_To) : h_beta_To)
-                  << "," << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+                  << M << "," << N << "," << K << "," << arg.alpha << "," << lda << "," << ldb
+                  << "," << arg.beta << "," << ldc << "," << rocblas_gflops << ","
+                  << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
         {

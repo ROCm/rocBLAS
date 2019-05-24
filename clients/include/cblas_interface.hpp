@@ -718,18 +718,18 @@ inline void cblas_hemv(rocblas_fill uplo,
  */
 
 // gemm
-template <typename Ti, typename To>
+template <typename Ti, typename To, typename Tc>
 void cblas_gemm(rocblas_operation transA,
                 rocblas_operation transB,
                 rocblas_int m,
                 rocblas_int n,
                 rocblas_int k,
-                To alpha,
+                Tc alpha,
                 Ti* A,
                 rocblas_int lda,
                 Ti* B,
                 rocblas_int ldb,
-                To beta,
+                Tc beta,
                 To* C,
                 rocblas_int ldc);
 
@@ -762,6 +762,39 @@ inline void cblas_gemm(rocblas_operation transA,
                 B,
                 ldb,
                 beta,
+                C,
+                ldc);
+}
+
+template <>
+inline void cblas_gemm(rocblas_operation transA,
+                       rocblas_operation transB,
+                       rocblas_int m,
+                       rocblas_int n,
+                       rocblas_int k,
+                       double alpha,
+                       float* A,
+                       rocblas_int lda,
+                       float* B,
+                       rocblas_int ldb,
+                       double beta,
+                       float* C,
+                       rocblas_int ldc)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    cblas_sgemm(CblasColMajor,
+                static_cast<CBLAS_TRANSPOSE>(transA),
+                static_cast<CBLAS_TRANSPOSE>(transB),
+                m,
+                n,
+                k,
+                static_cast<float>(alpha),
+                A,
+                lda,
+                B,
+                ldb,
+                static_cast<float>(beta),
                 C,
                 ldc);
 }
