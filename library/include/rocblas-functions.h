@@ -6,8 +6,6 @@
 #ifndef _ROCBLAS_FUNCTIONS_H_
 #define _ROCBLAS_FUNCTIONS_H_
 
-#include "rocblas-types.h"
-
 /*!\file
  * \brief rocblas_functions.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
@@ -22,6 +20,27 @@
  *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
  * ===========================================================================
  */
+
+#include "rocblas-types.h"
+
+/*
+   ROCBLAS_VA_OPT_PRAGMA(pragma, ...) creates a _Pragma with stringized pragma
+   if the trailing argument list is non-empty. It simulates the C++20 macro:
+
+   #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
+
+   ... except that it only accepts an argument list of up to length 10.
+*/
+
+#define ROCBLAS_VA_OPT_COUNT_IMPL(X, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
+#define ROCBLAS_VA_OPT_COUNT(...) \
+    ROCBLAS_VA_OPT_COUNT_IMPL(, ##__VA_ARGS__, N, N, N, N, N, N, N, N, N, N, 0)
+#define ROCBLAS_VA_OPT_PRAGMA_SELECT0(...)
+#define ROCBLAS_VA_OPT_PRAGMA_SELECTN(pragma, ...) _Pragma(#pragma)
+#define ROCBLAS_VA_OPT_PRAGMA_IMPL2(pragma, count) ROCBLAS_VA_OPT_PRAGMA_SELECT##count(pragma)
+#define ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, count) ROCBLAS_VA_OPT_PRAGMA_IMPL2(pragma, count)
+#define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) \
+    ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, ROCBLAS_VA_OPT_COUNT(__VA_ARGS__))
 
 #ifdef __cplusplus
 extern "C" {
@@ -1738,6 +1757,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                                               uint32_t flags);
 
 /* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+// clang-format off
 #define rocblas_gemm_ex(handle,         \
                         trans_a,        \
                         trans_b,        \
@@ -1763,30 +1783,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
                         solution_index, \
                         flags,          \
                         ...)            \
-    rocblas_gemm_ex(handle,             \
-                    trans_a,            \
-                    trans_b,            \
-                    m,                  \
-                    n,                  \
-                    k,                  \
-                    alpha,              \
-                    a,                  \
-                    a_type,             \
-                    lda,                \
-                    b,                  \
-                    b_type,             \
-                    ldb,                \
-                    beta,               \
-                    c,                  \
-                    c_type,             \
-                    ldc,                \
-                    d,                  \
-                    d_type,             \
-                    ldd,                \
-                    compute_type,       \
-                    algo,               \
-                    solution_index,     \
-                    flags)
+                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_ex: workspace_size and workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+        rocblas_gemm_ex(handle,         \
+                        trans_a,        \
+                        trans_b,        \
+                        m,              \
+                        n,              \
+                        k,              \
+                        alpha,          \
+                        a,              \
+                        a_type,         \
+                        lda,            \
+                        b,              \
+                        b_type,         \
+                        ldb,            \
+                        beta,           \
+                        c,              \
+                        c_type,         \
+                        ldc,            \
+                        d,              \
+                        d_type,         \
+                        ldd,            \
+                        compute_type,   \
+                        algo,           \
+                        solution_index, \
+                        flags)
+// clang-format on
 
 /*! \brief BLAS EX API
 
@@ -1991,6 +2013,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                                               uint32_t flags);
 
 /* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
+// clang-format off
 #define rocblas_gemm_strided_batched_ex(handle,         \
                                         trans_a,        \
                                         trans_b,        \
@@ -2021,35 +2044,37 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle han
                                         solution_index, \
                                         flags,          \
                                         ...)            \
-    rocblas_gemm_strided_batched_ex(handle,             \
-                                    trans_a,            \
-                                    trans_b,            \
-                                    m,                  \
-                                    n,                  \
-                                    k,                  \
-                                    alpha,              \
-                                    a,                  \
-                                    a_type,             \
-                                    lda,                \
-                                    stride_a,           \
-                                    b,                  \
-                                    b_type,             \
-                                    ldb,                \
-                                    stride_b,           \
-                                    beta,               \
-                                    c,                  \
-                                    c_type,             \
-                                    ldc,                \
-                                    stride_c,           \
-                                    d,                  \
-                                    d_type,             \
-                                    ldd,                \
-                                    stride_d,           \
-                                    batch_count,        \
-                                    compute_type,       \
-                                    algo,               \
-                                    solution_index,     \
-                                    flags)
+                                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: workspace_size and workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+        rocblas_gemm_strided_batched_ex(handle,         \
+                                        trans_a,        \
+                                        trans_b,        \
+                                        m,              \
+                                        n,              \
+                                        k,              \
+                                        alpha,          \
+                                        a,              \
+                                        a_type,         \
+                                        lda,            \
+                                        stride_a,       \
+                                        b,              \
+                                        b_type,         \
+                                        ldb,            \
+                                        stride_b,       \
+                                        beta,           \
+                                        c,              \
+                                        c_type,         \
+                                        ldc,            \
+                                        stride_c,       \
+                                        d,              \
+                                        d_type,         \
+                                        ldd,            \
+                                        stride_d,       \
+                                        batch_count,    \
+                                        compute_type,   \
+                                        algo,           \
+                                        solution_index, \
+                                        flags)
+// clang-format on
 
 /*! BLAS EX API
 
@@ -2185,8 +2210,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                                               rocblas_int ld_invA,
                                               rocblas_datatype compute_type);
 
-/* For backward compatiblity, unused option, x_temp_size, and x_temp_workspace arguments are ignored
- */
+/* For backward compatiblity, option, x_temp_size and x_temp_workspace arguments are ignored */
+// clang-format off
 #define rocblas_trsm_ex(handle,       \
                         side,         \
                         uplo,         \
@@ -2203,21 +2228,23 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle handle,
                         ld_invA,      \
                         compute_type, \
                         ...)          \
-    rocblas_trsm_ex(handle,           \
-                    side,             \
-                    uplo,             \
-                    trans_a,          \
-                    diag,             \
-                    m,                \
-                    n,                \
-                    alpha,            \
-                    a,                \
-                    lda,              \
-                    b,                \
-                    ldb,              \
-                    invA,             \
-                    ld_invA,          \
-                    compute_type)
+                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_trsm_ex: option, x_temp_size and x_temp_workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+        rocblas_trsm_ex(handle,       \
+                        side,         \
+                        uplo,         \
+                        trans_a,      \
+                        diag,         \
+                        m,            \
+                        n,            \
+                        alpha,        \
+                        a,            \
+                        lda,          \
+                        b,            \
+                        ldb,          \
+                        invA,         \
+                        ld_invA,      \
+                        compute_type)
+// clang-format on
 
 /*
  * ===========================================================================
