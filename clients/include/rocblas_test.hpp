@@ -102,16 +102,17 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
-// Template parameter is only used to generate multiple instantiations with static data
+// Template parameter is used to generate multiple instantiations
 template <typename>
 class RocBLAS_TestName
 {
+    using table_t = std::unordered_map<std::string, size_t>;
     std::ostringstream str;
 
-    auto& get_table()
+    table_t& get_table()
     {
         // Placed inside function to avoid dependency on initialization order
-        static auto *table = test_cleanup::allocate<std::unordered_map<std::string, size_t>>(table);
+        static table_t* table = test_cleanup::allocate<table_t>(table);
         return *table;
     }
 
@@ -122,7 +123,7 @@ class RocBLAS_TestName
     operator std::string() &&
     {
         // This table is private to each instantation of RocBLAS_TestName
-        auto& table = get_table();
+        table_t& table = get_table();
         std::string name(str.str());
 
         if(name == "")
