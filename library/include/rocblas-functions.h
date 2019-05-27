@@ -28,8 +28,6 @@
    if the trailing argument list is non-empty. It simulates the C++20 macro:
 
    #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
-
-   ... except that it only accepts a variable argument list of up to length 10.
 */
 
 #define ROCBLAS_VA_OPT_COUNT_IMPL(X, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
