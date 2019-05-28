@@ -37,6 +37,8 @@
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(half_to_float(a), half_to_float(b))
 
+#define ASSERT_BFLOAT16_EQ(a, b) ASSERT_FLOAT_EQ(static_cast<float>(a), static_cast<float>(b))
+
 #define ASSERT_FLOAT_COMPLEX_EQ(a, b) \
     do                                \
     {                                 \
@@ -55,6 +57,13 @@
 
 template <typename T>
 void unit_check_general(rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU);
+
+template <>
+inline void unit_check_general(
+    rocblas_int M, rocblas_int N, rocblas_int lda, rocblas_bfloat16* hCPU, rocblas_bfloat16* hGPU)
+{
+    UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
 
 template <>
 inline void unit_check_general(
@@ -112,6 +121,18 @@ void unit_check_general(rocblas_int M,
                         rocblas_int strideA,
                         T* hCPU,
                         T* hGPU);
+
+template <>
+inline void unit_check_general(rocblas_int M,
+                               rocblas_int N,
+                               rocblas_int batch_count,
+                               rocblas_int lda,
+                               rocblas_int strideA,
+                               rocblas_bfloat16* hCPU,
+                               rocblas_bfloat16* hGPU)
+{
+    UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
 
 template <>
 inline void unit_check_general(rocblas_int M,
