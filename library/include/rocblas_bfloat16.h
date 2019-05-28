@@ -90,7 +90,13 @@ typedef struct rocblas_bfloat16
         data = float_to_bfloat16(static_cast<float>(v)).data;
     }
     explicit rocblas_bfloat16(const int v) { data = float_to_bfloat16(static_cast<float>(v)).data; }
+
     explicit rocblas_bfloat16(const uint32_t v)
+    {
+        data = float_to_bfloat16(static_cast<float>(v)).data;
+    }
+
+    explicit rocblas_bfloat16(const uint16_t v)
     {
         data = float_to_bfloat16(static_cast<float>(v)).data;
     }
@@ -102,6 +108,8 @@ typedef struct rocblas_bfloat16
     explicit operator int() const { return static_cast<int>(float(*this)); }
 
     explicit operator uint32_t() const { return static_cast<uint32_t>(float(*this)); }
+
+    explicit operator uint16_t() const { return static_cast<uint16_t>(float(*this)); }
 
     uint16_t data;
 
