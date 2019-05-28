@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef HANDLE_H
@@ -57,6 +57,9 @@ struct _rocblas_handle
     // trsv get pointers
     void* get_trsv_x() const { return trsv_x; }
     void* get_trsv_alpha() const { return trsv_alpha; }
+    void* get_trsv_one() const { return trsv_one; }
+    void* get_trsv_zero() const { return trsv_zero; }
+    void* get_trsv_negative_one() const { return trsv_negative_one; }
     const size_t* get_trsv_X_size() { return &WORKBUF_TRSV_X_SZ; }
 
     rocblas_int device;
@@ -74,8 +77,11 @@ struct _rocblas_handle
     void* trsm_invA_C = nullptr;
 
     // space allocated for trsv
-    void* trsv_x     = nullptr;
-    void* trsv_alpha = nullptr;
+    void* trsv_x            = nullptr;
+    void* trsv_alpha        = nullptr;
+    void* trsv_one          = nullptr;
+    void* trsv_zero         = nullptr;
+    void* trsv_negative_one = nullptr;
 
     // default logging_mode is no logging
     static rocblas_layer_mode layer_mode;
@@ -104,12 +110,13 @@ struct _rocblas_handle
     private:
     size_t WORKBUF_TRSM_B_CHNK;
     size_t WORKBUF_TRSM_Y_SZ;
-    const size_t WORKBUF_TRSM_A_BLKS     = 10;
-    const size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
-    const size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10 * sizeof(double);
-    const size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
-    const size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
-    const size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
+    const size_t WORKBUF_TRSM_A_BLKS      = 10;
+    const size_t WORKBUF_TRSM_B_MIN_CHNK  = 1024;
+    const size_t WORKBUF_TRSM_INVA_SZ     = 128 * 128 * 10 * sizeof(double);
+    const size_t WORKBUF_TRSM_INVA_C_SZ   = 128 * 128 * 10 * sizeof(double) / 2;
+    const size_t WORKBUF_TRSV_X_SZ        = 131072 * sizeof(double);
+    const size_t WORKBUF_TRSV_ALPHA_SZ    = sizeof(double);
+    const size_t WORKBUF_TRSV_CONSTANT_SZ = sizeof(double);
     static int get_device_arch_id()
     {
         int deviceId;
