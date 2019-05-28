@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
 #include <cstdlib>
@@ -41,6 +41,9 @@ _rocblas_handle::_rocblas_handle()
     // allocate trsv temp buffers
     THROW_IF_HIP_ERROR(hipMalloc(&trsv_x, WORKBUF_TRSV_X_SZ));
     THROW_IF_HIP_ERROR(hipMalloc(&trsv_alpha, WORKBUF_TRSV_ALPHA_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsv_one, WORKBUF_TRSV_CONSTANT_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsv_zero, WORKBUF_TRSV_CONSTANT_SZ));
+    THROW_IF_HIP_ERROR(hipMalloc(&trsv_negative_one, WORKBUF_TRSV_CONSTANT_SZ));
 }
 
 /*******************************************************************************
@@ -58,6 +61,12 @@ _rocblas_handle::~_rocblas_handle()
         hipFree(trsv_x);
     if(trsv_alpha)
         hipFree(trsv_alpha);
+    if(trsv_one)
+        hipFree(trsv_one);
+    if(trsv_zero)
+        hipFree(trsv_zero);
+    if(trsv_negative_one)
+        hipFree(trsv_negative_one);
 }
 
 /*******************************************************************************
