@@ -6,11 +6,11 @@
 # - after running this script and merging develop into master, run bump_develop_version.sh in master and
 #   merge master into develop
 
-OLD_ROCBLAS_VERSION="2.3.5"
-NEW_ROCBLAS_VERSION="2.2.6"
+OLD_ROCBLAS_VERSION="2.3.7"
+NEW_ROCBLAS_VERSION="2.2.8"
 
 OLD_TENSILE_VERSION="tensile_tag \"develop\""
-NEW_TENSILE_VERSION="tensile_tag 06485a6dcd7d33ebb76a045c8edc8d341fcfea67"
+NEW_TENSILE_VERSION="tensile_tag 3729a300cec64734feef88b01155da831094c245"
 
 OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
 NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"
