@@ -4,14 +4,14 @@
 
 #include <hip/hip_runtime.h>
 
-#include "rocblas.h"
-#include "status.h"
 #include "definitions.h"
 #include "fetch_template.h"
-#include "reduction.h"
-#include "rocblas_unique_ptr.hpp"
 #include "handle.h"
 #include "logging.h"
+#include "reduction.h"
+#include "rocblas.h"
+#include "rocblas_unique_ptr.hpp"
+#include "status.h"
 #include "utility.h"
 
 #define QUOTE2(S) #S
@@ -26,7 +26,7 @@ struct index_value_t
 {
     // important: index must come first, so that index_value_t* can be cast to rocblas_int*
     rocblas_int index;
-    T value;
+    T           value;
 };
 
 // Specialization of default_value for index_value_t<T>
@@ -106,8 +106,8 @@ static constexpr char rocblas_iamaxmin_name<double>[] = "rocblas_ida" QUOTE(MAX_
 template <>
 static constexpr char rocblas_iamaxmin_name<rocblas_float_complex>[] = "rocblas_ica" QUOTE(MAX_MIN);
 template <>
-static constexpr char
-    rocblas_iamaxmin_name<rocblas_double_complex>[] = "rocblas_iza" QUOTE(MAX_MIN);
+static constexpr char rocblas_iamaxmin_name<rocblas_double_complex>[]
+    = "rocblas_iza" QUOTE(MAX_MIN);
 
 // allocate workspace inside this API
 template <typename To, typename Ti>
@@ -149,11 +149,11 @@ static rocblas_status rocblas_iamaxmin(
     }
 
     // HIP support up to 1024 threads/work itmes per thread block/work group
-    static constexpr int NB = 1024;
-    rocblas_int blocks      = (n - 1) / NB + 1;
+    static constexpr int NB     = 1024;
+    rocblas_int          blocks = (n - 1) / NB + 1;
 
-    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
-                                        rocblas::device_free};
+    auto workspace = rocblas_unique_ptr {rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
+                                         rocblas::device_free};
     if(!workspace)
         return rocblas_status_memory_error;
 

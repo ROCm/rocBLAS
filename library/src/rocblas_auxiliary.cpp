@@ -3,16 +3,16 @@
  *
  * ************************************************************************ */
 
-#include <stdio.h>
-#include <hip/hip_runtime.h>
+#include "Tensile.h"
 #include "definitions.h"
-#include "rocblas-types.h"
 #include "handle.h"
 #include "logging.h"
-#include "utility.h"
-#include "rocblas_unique_ptr.hpp"
 #include "rocblas-auxiliary.h"
-#include "Tensile.h"
+#include "rocblas-types.h"
+#include "rocblas_unique_ptr.hpp"
+#include "utility.h"
+#include <hip/hip_runtime.h>
+#include <stdio.h>
 
 /* ============================================================================================ */
 
@@ -34,7 +34,7 @@ rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr)
 /*******************************************************************************
  * ! \brief get pointer mode, can be host or device
  ******************************************************************************/
-extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle handle,
+extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                    rocblas_pointer_mode* mode)
 {
     // if handle not valid
@@ -131,14 +131,14 @@ extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t*
      with element size elem_size
  ******************************************************************************/
 // arbitrarily assign max buffer size to 1Mb
-constexpr size_t VEC_BUFF_MAX_BYTES = 1048576;
-constexpr rocblas_int NB_X          = 256;
+constexpr size_t      VEC_BUFF_MAX_BYTES = 1048576;
+constexpr rocblas_int NB_X               = 256;
 
 __global__ void copy_void_ptr_vector_kernel(rocblas_int n,
                                             rocblas_int elem_size,
                                             const void* x,
                                             rocblas_int incx,
-                                            void* y,
+                                            void*       y,
                                             rocblas_int incy)
 {
     size_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -157,8 +157,9 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                                              rocblas_int elem_size,
                                              const void* x_h,
                                              rocblas_int incx,
-                                             void* y_d,
-                                             rocblas_int incy) try
+                                             void*       y_d,
+                                             rocblas_int incy)
+try
 {
     if(n == 0) // quick return
         return rocblas_status_success;
@@ -174,12 +175,12 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
     else // either non-contiguous host vector or non-contiguous device vector
     {
         size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
-        size_t temp_byte_size =
-            bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
+        size_t temp_byte_size
+            = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number of elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
+        int n_copy = ((n - 1) / n_elem) + 1; // number of times buffer is copied
 
-        int blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
+        int  blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
@@ -189,22 +190,22 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            int i_start           = i_copy * n_elem;
-            int n_elem_max        = n - i_start < n_elem ? n - i_start : n_elem;
-            int contig_size       = n_elem_max * elem_size;
-            void* y_d_start       = (char*)y_d + i_start * y_d_byte_stride;
-            const void* x_h_start = (const char*)x_h + i_start * x_h_byte_stride;
+            int         i_start     = i_copy * n_elem;
+            int         n_elem_max  = n - i_start < n_elem ? n - i_start : n_elem;
+            int         contig_size = n_elem_max * elem_size;
+            void*       y_d_start   = (char*)y_d + i_start * y_d_byte_stride;
+            const void* x_h_start   = (const char*)x_h + i_start * x_h_byte_stride;
 
             if((incx != 1) && (incy != 1))
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous host vector -> host buffer
@@ -232,9 +233,9 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
             else if(incx == 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // contiguous host vector -> device buffer
@@ -255,8 +256,8 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
             else if(incx != 1 && incy == 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
                 // non-contiguous host vector -> host buffer
@@ -286,8 +287,9 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                                              rocblas_int elem_size,
                                              const void* x_d,
                                              rocblas_int incx,
-                                             void* y_h,
-                                             rocblas_int incy) try
+                                             void*       y_h,
+                                             rocblas_int incy)
+try
 {
     if(n == 0) // quick return
         return rocblas_status_success;
@@ -303,12 +305,12 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
     else // either device or host vector is non-contiguous
     {
         size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(n);
-        size_t temp_byte_size =
-            bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
+        size_t temp_byte_size
+            = bytes_to_copy < VEC_BUFF_MAX_BYTES ? bytes_to_copy : VEC_BUFF_MAX_BYTES;
         int n_elem = temp_byte_size / elem_size; // number elements in buffer
-        int n_copy = ((n - 1) / n_elem) + 1;     // number of times buffer is copied
+        int n_copy = ((n - 1) / n_elem) + 1; // number of times buffer is copied
 
-        int blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
+        int  blocks = (n_elem - 1) / NB_X + 1; // parameters for device kernel
         dim3 grid(blocks);
         dim3 threads(NB_X);
 
@@ -322,18 +324,18 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
             int n_elem_max        = n - (n_elem * i_copy) < n_elem ? n - (n_elem * i_copy) : n_elem;
             int contig_size       = elem_size * n_elem_max;
             const void* x_d_start = (const char*)x_d + i_start * x_d_byte_stride;
-            void* y_h_start       = (char*)y_h + i_start * y_h_byte_stride;
+            void*       y_h_start = (char*)y_h + i_start * y_h_byte_stride;
 
             if(incx != 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
@@ -361,8 +363,8 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
             else if(incx == 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
                 // congiguous device vector -> host buffer
@@ -379,9 +381,9 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
             else if(incx != 1 && incy == 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
@@ -413,16 +415,16 @@ catch(...) // catch all exceptions
      size elem_size
  ******************************************************************************/
 
-constexpr size_t MAT_BUFF_MAX_BYTES = 1048576;
-constexpr rocblas_int MATRIX_DIM_X  = 128;
-constexpr rocblas_int MATRIX_DIM_Y  = 8;
+constexpr size_t      MAT_BUFF_MAX_BYTES = 1048576;
+constexpr rocblas_int MATRIX_DIM_X       = 128;
+constexpr rocblas_int MATRIX_DIM_Y       = 8;
 
 __global__ void copy_void_ptr_matrix_kernel(rocblas_int rows,
                                             rocblas_int cols,
-                                            size_t elem_size,
+                                            size_t      elem_size,
                                             const void* a,
                                             rocblas_int lda,
-                                            void* b,
+                                            void*       b,
                                             rocblas_int ldb)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -445,8 +447,9 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                                              rocblas_int elem_size,
                                              const void* a_h,
                                              rocblas_int lda,
-                                             void* b_d,
-                                             rocblas_int ldb) try
+                                             void*       b_d,
+                                             rocblas_int ldb)
+try
 {
     if(rows == 0 || cols == 0) // quick return
         return rocblas_status_success;
@@ -458,8 +461,8 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
     // contiguous host matrix -> contiguous device matrix
     if(lda == rows && ldb == rows)
     {
-        size_t bytes_to_copy =
-            static_cast<size_t>(elem_size) * static_cast<size_t>(rows) * static_cast<size_t>(cols);
+        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows)
+                               * static_cast<size_t>(cols);
         PRINT_IF_HIP_ERROR(hipMemcpy(b_d, a_h, bytes_to_copy, hipMemcpyHostToDevice));
     }
     // matrix colums too large to fit in temp buffer, copy matrix col by col
@@ -477,17 +480,17 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
     // columns
     else
     {
-        size_t bytes_to_copy =
-            static_cast<size_t>(elem_size) * static_cast<size_t>(rows) * static_cast<size_t>(cols);
-        size_t temp_byte_size =
-            bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
+        size_t bytes_to_copy = static_cast<size_t>(elem_size) * static_cast<size_t>(rows)
+                               * static_cast<size_t>(cols);
+        size_t temp_byte_size
+            = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
         int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1;           // number of times buffer is copied
+        int n_copy = ((cols - 1) / n_cols) + 1; // number of times buffer is copied
 
         rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
         rocblas_int blocksY = ((n_cols - 1) / MATRIX_DIM_Y) + 1;
-        dim3 grid(blocksX, blocksY);
-        dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y);
+        dim3        grid(blocksX, blocksY);
+        dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
 
         size_t lda_h_byte = (size_t)elem_size * lda;
         size_t ldb_d_byte = (size_t)elem_size * ldb;
@@ -495,22 +498,22 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            size_t i_start        = i_copy * n_cols;
-            int n_cols_max        = cols - i_start < n_cols ? cols - i_start : n_cols;
-            int contig_size       = elem_size * rows * n_cols_max;
-            void* b_d_start       = (char*)b_d + i_start * ldb_d_byte;
-            const void* a_h_start = (const char*)a_h + i_start * lda_h_byte;
+            size_t      i_start     = i_copy * n_cols;
+            int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
+            int         contig_size = elem_size * rows * n_cols_max;
+            void*       b_d_start   = (char*)b_d + i_start * ldb_d_byte;
+            const void* a_h_start   = (const char*)a_h + i_start * lda_h_byte;
 
             if((lda != rows) && (ldb != rows))
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous host matrix -> host buffer
@@ -539,9 +542,9 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
             else if(lda == rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // contiguous host matrix -> device buffer
@@ -563,8 +566,8 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
             else if(lda != rows && ldb == rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
                 // non-contiguous host matrix -> host buffer
@@ -597,8 +600,9 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                                              rocblas_int elem_size,
                                              const void* a_d,
                                              rocblas_int lda,
-                                             void* b_h,
-                                             rocblas_int ldb) try
+                                             void*       b_h,
+                                             rocblas_int ldb)
+try
 {
     if(rows == 0 || cols == 0) // quick return
         return rocblas_status_success;
@@ -629,15 +633,15 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
     else
     {
         size_t bytes_to_copy = elem_size * static_cast<size_t>(rows) * cols;
-        size_t temp_byte_size =
-            bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
+        size_t temp_byte_size
+            = bytes_to_copy < MAT_BUFF_MAX_BYTES ? bytes_to_copy : MAT_BUFF_MAX_BYTES;
         int n_cols = temp_byte_size / (elem_size * rows); // number of columns in buffer
-        int n_copy = ((cols - 1) / n_cols) + 1;           // number times buffer copied
+        int n_copy = ((cols - 1) / n_cols) + 1; // number times buffer copied
 
         rocblas_int blocksX = ((rows - 1) / MATRIX_DIM_X) + 1; // parameters for device kernel
         rocblas_int blocksY = ((n_cols - 1) / MATRIX_DIM_Y) + 1;
-        dim3 grid(blocksX, blocksY);
-        dim3 threads(MATRIX_DIM_X, MATRIX_DIM_Y);
+        dim3        grid(blocksX, blocksY);
+        dim3        threads(MATRIX_DIM_X, MATRIX_DIM_Y);
 
         size_t lda_d_byte = (size_t)elem_size * lda;
         size_t ldb_h_byte = (size_t)elem_size * ldb;
@@ -645,21 +649,21 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
 
         for(int i_copy = 0; i_copy < n_copy; i_copy++)
         {
-            int i_start           = i_copy * n_cols;
-            int n_cols_max        = cols - i_start < n_cols ? cols - i_start : n_cols;
-            size_t contig_size    = elem_size * (size_t)rows * n_cols_max;
-            const void* a_d_start = (const char*)a_d + i_start * lda_d_byte;
-            void* b_h_start       = (char*)b_h + i_start * ldb_h_byte;
+            int         i_start     = i_copy * n_cols;
+            int         n_cols_max  = cols - i_start < n_cols ? cols - i_start : n_cols;
+            size_t      contig_size = elem_size * (size_t)rows * n_cols_max;
+            const void* a_d_start   = (const char*)a_d + i_start * lda_d_byte;
+            void*       b_h_start   = (char*)b_h + i_start * ldb_h_byte;
             if(lda != rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer
@@ -688,8 +692,8 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
             else if(lda == rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
-                void* t_h        = t_h_managed.get();
+                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
                 // congiguous device matrix -> host buffer
@@ -705,9 +709,9 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
             else if(lda != rows && ldb == rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
-                                                      rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
+                                                       rocblas::device_free};
+                void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer

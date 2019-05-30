@@ -5,13 +5,13 @@
 #ifndef ROCBLAS_VECTOR_H_
 #define ROCBLAS_VECTOR_H_
 
+#include "rocblas.h"
+#include "rocblas_init.hpp"
+#include "rocblas_test.hpp"
 #include <cinttypes>
 #include <cstdio>
-#include <vector>
 #include <locale.h>
-#include "rocblas.h"
-#include "rocblas_test.hpp"
-#include "rocblas_init.hpp"
+#include <vector>
 
 /* ============================================================================================ */
 /*! \brief  pseudo-vector class which uses device memory */
@@ -73,21 +73,28 @@ class device_vector
         }
     }
 
-    public:
+public:
     // Must wrap constructor and destructor in functions to allow Google Test macros to work
-    explicit device_vector(size_t size) : size(size), bytes((size + PAD * 2) * sizeof(T))
+    explicit device_vector(size_t size)
+        : size(size)
+        , bytes((size + PAD * 2) * sizeof(T))
     {
         device_vector_setup();
     }
 
-    ~device_vector() { device_vector_teardown(); }
+    ~device_vector()
+    {
+        device_vector_teardown();
+    }
 
 #else // GOOGLE_TEST
 
     // Code without memory guards
 
-    public:
-    explicit device_vector(size_t size) : size(size), bytes(size ? size * sizeof(T) : sizeof(T))
+public:
+    explicit device_vector(size_t size)
+        : size(size)
+        , bytes(size ? size * sizeof(T) : sizeof(T))
     {
         if(hipMalloc(&data, bytes) != hipSuccess)
         {
@@ -105,20 +112,29 @@ class device_vector
 
 #endif // GOOGLE_TEST
 
-    public:
+public:
     // Decay into pointer wherever pointer is expected
-    operator T*() { return data; }
-    operator const T*() const { return data; }
+    operator T*()
+    {
+        return data;
+    }
+    operator const T*() const
+    {
+        return data;
+    }
 
     // Tell whether malloc failed
-    explicit operator bool() const { return data != nullptr; }
+    explicit operator bool() const
+    {
+        return data != nullptr;
+    }
 
     // Disallow copying or assigning
     device_vector(const device_vector&) = delete;
     device_vector& operator=(const device_vector&) = delete;
 
-    private:
-    T* data;
+private:
+    T*           data;
     const size_t size, bytes;
 };
 
@@ -131,8 +147,14 @@ struct host_vector : std::vector<T>
     using std::vector<T>::vector;
 
     // Decay into pointer wherever pointer is expected
-    operator T*() { return this->data(); }
-    operator const T*() const { return this->data(); }
+    operator T*()
+    {
+        return this->data();
+    }
+    operator const T*() const
+    {
+        return this->data();
+    }
 };
 
 #endif

@@ -3,35 +3,35 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
-#include "rocblas.h"
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "status.h"
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "rocblas_trsm.hpp"
+#include "status.h"
 #include "utility.h"
 #include <type_traits>
-#include "rocblas_trsm.hpp"
 
-extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
-                                          rocblas_side side,
-                                          rocblas_fill uplo,
-                                          rocblas_operation trans_a,
-                                          rocblas_diagonal diag,
-                                          rocblas_int m,
-                                          rocblas_int n,
-                                          const void* alpha,
-                                          const void* a,
-                                          rocblas_int lda,
-                                          void* b,
-                                          rocblas_int ldb,
-                                          const void* invA,
-                                          rocblas_int ld_invA,
-                                          rocblas_datatype compute_type,
+extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle      handle,
+                                          rocblas_side        side,
+                                          rocblas_fill        uplo,
+                                          rocblas_operation   trans_a,
+                                          rocblas_diagonal    diag,
+                                          rocblas_int         m,
+                                          rocblas_int         n,
+                                          const void*         alpha,
+                                          const void*         a,
+                                          rocblas_int         lda,
+                                          void*               b,
+                                          rocblas_int         ldb,
+                                          const void*         invA,
+                                          rocblas_int         ld_invA,
+                                          rocblas_datatype    compute_type,
                                           rocblas_trsm_option option,
-                                          size_t* x_temp_size,
-                                          void* x_temp_workspace)
+                                          size_t*             x_temp_size,
+                                          void*               x_temp_workspace)
 
 {
     // handle, alpha must not be null pointers for logging
@@ -39,7 +39,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
         return rocblas_status_invalid_handle;
 
     static constexpr rocblas_int TRSM_BLOCK = 128;
-    rocblas_int k                           = (side == rocblas_side_left ? m : n);
+    rocblas_int                  k          = (side == rocblas_side_left ? m : n);
     bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * *(handle->get_trsm_A_blks()));
 
     if(!x_temp_workspace)
@@ -63,8 +63,9 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
         return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
-    if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
-                     rocblas_layer_mode_log_profile))
+    if(layer_mode
+       & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+          | rocblas_layer_mode_log_profile))
     {
         auto trans_a_letter      = rocblas_transpose_letter(trans_a);
         auto compute_type_string = rocblas_datatype_string(compute_type);

@@ -21,9 +21,9 @@
  * CTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#include "rocblas.h"
 #include <iomanip>
 #include <random>
-#include "rocblas.h"
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \
@@ -66,7 +66,10 @@ using rocblas_rng_t = std::mt19937;
 extern rocblas_rng_t rocblas_rng, rocblas_seed;
 //
 // Reset the seed (mainly to ensure repeatability of failures in a given suite)
-inline void rocblas_seedrand() { rocblas_rng = rocblas_seed; }
+inline void rocblas_seedrand()
+{
+    rocblas_rng = rocblas_seed;
+}
 
 template <typename T>
 void print_matrix(
@@ -84,23 +87,23 @@ void print_matrix(
     }
 }
 
-void mat_mat_mult(float alpha,
-                  float beta,
-                  int M,
-                  int N,
-                  int K,
+void mat_mat_mult(float                          alpha,
+                  float                          beta,
+                  int                            M,
+                  int                            N,
+                  int                            K,
                   std::vector<rocblas_bfloat16>& A,
-                  int As1,
-                  int As2,
+                  int                            As1,
+                  int                            As2,
                   std::vector<rocblas_bfloat16>& B,
-                  int Bs1,
-                  int Bs2,
+                  int                            Bs1,
+                  int                            Bs2,
                   std::vector<rocblas_bfloat16>& C,
-                  int Cs1,
-                  int Cs2,
+                  int                            Cs1,
+                  int                            Cs2,
                   std::vector<rocblas_bfloat16>& D,
-                  int Ds1,
-                  int Ds2)
+                  int                            Ds1,
+                  int                            Ds2)
 {
     for(int i1 = 0; i1 < M; i1++)
     {
@@ -109,8 +112,8 @@ void mat_mat_mult(float alpha,
             float t = 0.0;
             for(int i3 = 0; i3 < K; i3++)
             {
-                t += static_cast<float>(A[i1 * As1 + i3 * As2]) *
-                     static_cast<float>(B[i3 * Bs1 + i2 * Bs2]);
+                t += static_cast<float>(A[i1 * As1 + i3 * As2])
+                     * static_cast<float>(B[i3 * Bs1 + i2 * Bs2]);
             }
             D[i1 * Ds1 + i2 * Ds2] = static_cast<rocblas_bfloat16>(
                 beta * static_cast<float>(C[i1 * Cs1 + i2 * Cs2]) + alpha * t);
@@ -138,21 +141,21 @@ static void show_usage(char* argv[])
               << std::endl;
 }
 
-static int parse_arguments(int argc,
-                           char* argv[],
-                           int& m,
-                           int& n,
-                           int& k,
-                           int& lda,
-                           int& ldb,
-                           int& ldc,
-                           int& ldd,
-                           float& alpha,
-                           float& beta,
+static int parse_arguments(int                argc,
+                           char*              argv[],
+                           int&               m,
+                           int&               n,
+                           int&               k,
+                           int&               lda,
+                           int&               ldb,
+                           int&               ldc,
+                           int&               ldd,
+                           float&             alpha,
+                           float&             beta,
                            rocblas_operation& trans_a,
                            rocblas_operation& trans_b,
-                           bool& header,
-                           bool& verbose)
+                           bool&              header,
+                           bool&              verbose)
 {
     if(argc >= 2)
     {
@@ -266,13 +269,13 @@ static int parse_arguments(int argc,
 
 bool bad_argument(rocblas_operation trans_a,
                   rocblas_operation trans_b,
-                  rocblas_int m,
-                  rocblas_int n,
-                  rocblas_int k,
-                  rocblas_int lda,
-                  rocblas_int ldb,
-                  rocblas_int ldc,
-                  rocblas_int ldd)
+                  rocblas_int       m,
+                  rocblas_int       n,
+                  rocblas_int       k,
+                  rocblas_int       lda,
+                  rocblas_int       ldb,
+                  rocblas_int       ldc,
+                  rocblas_int       ldd)
 {
     bool argument_error = false;
     if((trans_a == rocblas_operation_none) && (lda < m))
@@ -309,26 +312,26 @@ bool bad_argument(rocblas_operation trans_a,
 }
 
 void initialize_a_b_c(std::vector<rocblas_bfloat16>& ha,
-                      rocblas_int size_a,
+                      rocblas_int                    size_a,
                       std::vector<rocblas_bfloat16>& hb,
-                      rocblas_int size_b,
+                      rocblas_int                    size_b,
                       std::vector<rocblas_bfloat16>& hc,
-                      rocblas_int size_c)
+                      rocblas_int                    size_c)
 {
     for(int i = 0; i < size_a; ++i)
     {
-        ha[i] =
-            static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        ha[i]
+            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
     for(int i = 0; i < size_b; ++i)
     {
-        hb[i] =
-            static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        hb[i]
+            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
     for(int i = 0; i < size_c; ++i)
     {
-        hc[i] =
-            static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        hc[i]
+            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
 }
 
@@ -350,11 +353,11 @@ int main(int argc, char* argv[])
     constexpr rocblas_datatype d_type       = rocblas_datatype_bf16_r;
     constexpr rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index = 0;
-    uint32_t flags         = 0;
-    size_t* workspace_size = 0;
-    void* workspace        = 0;
+    rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+    int32_t           solution_index = 0;
+    uint32_t          flags          = 0;
+    size_t*           workspace_size = 0;
+    void*             workspace      = 0;
 
     bool verbose = false;
     bool header  = true;
@@ -531,8 +534,8 @@ int main(int argc, char* argv[])
     {
         for(int i_n = 0; i_n < n; i_n++)
         {
-            float error = static_cast<float>(hd_gold[i_m + i_n * ldd]) -
-                          static_cast<float>(hd[i_m + i_n * ldd]);
+            float error = static_cast<float>(hd_gold[i_m + i_n * ldd])
+                          - static_cast<float>(hd[i_m + i_n * ldd]);
 
             error = error >= 0 ? error : -error;
 

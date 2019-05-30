@@ -90,12 +90,12 @@ static constexpr auto rocblas_swap<rocblas_double_complex> = rocblas_zswap;
 // dot
 template <typename T>
 rocblas_status (*rocblas_dot)(rocblas_handle handle,
-                              rocblas_int n,
-                              const T* x,
-                              rocblas_int incx,
-                              const T* y,
-                              rocblas_int incy,
-                              T* result);
+                              rocblas_int    n,
+                              const T*       x,
+                              rocblas_int    incx,
+                              const T*       y,
+                              rocblas_int    incy,
+                              T*             result);
 
 template <>
 static constexpr auto rocblas_dot<float> = rocblas_sdot;
@@ -193,12 +193,12 @@ inline rocblas_status rocblas_iamin(
 // axpy
 template <typename T>
 rocblas_status (*rocblas_axpy)(rocblas_handle handle,
-                               rocblas_int n,
-                               const T* alpha,
-                               const T* x,
-                               rocblas_int incx,
-                               T* y,
-                               rocblas_int incy);
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       x,
+                               rocblas_int    incx,
+                               T*             y,
+                               rocblas_int    incy);
 
 template <>
 static constexpr auto rocblas_axpy<rocblas_half> = rocblas_haxpy;
@@ -226,15 +226,15 @@ static constexpr auto rocblas_axpy<rocblas_double_complex> = rocblas_zaxpy;
 // ger
 template <typename T>
 rocblas_status (*rocblas_ger)(rocblas_handle handle,
-                              rocblas_int m,
-                              rocblas_int n,
-                              const T* alpha,
-                              const T* x,
-                              rocblas_int incx,
-                              const T* y,
-                              rocblas_int incy,
-                              T* A,
-                              rocblas_int lda);
+                              rocblas_int    m,
+                              rocblas_int    n,
+                              const T*       alpha,
+                              const T*       x,
+                              rocblas_int    incx,
+                              const T*       y,
+                              rocblas_int    incy,
+                              T*             A,
+                              rocblas_int    lda);
 
 template <>
 static constexpr auto rocblas_ger<float> = rocblas_sger;
@@ -245,13 +245,13 @@ static constexpr auto rocblas_ger<double> = rocblas_dger;
 // syr
 template <typename T>
 rocblas_status (*rocblas_syr)(rocblas_handle handle,
-                              rocblas_fill uplo,
-                              rocblas_int n,
-                              const T* alpha,
-                              const T* x,
-                              rocblas_int incx,
-                              T* A,
-                              rocblas_int lda);
+                              rocblas_fill   uplo,
+                              rocblas_int    n,
+                              const T*       alpha,
+                              const T*       x,
+                              rocblas_int    incx,
+                              T*             A,
+                              rocblas_int    lda);
 
 template <>
 static constexpr auto rocblas_syr<float> = rocblas_ssyr;
@@ -261,18 +261,18 @@ static constexpr auto rocblas_syr<double> = rocblas_dsyr;
 
 // gemv
 template <typename T>
-rocblas_status (*rocblas_gemv)(rocblas_handle handle,
+rocblas_status (*rocblas_gemv)(rocblas_handle    handle,
                                rocblas_operation transA,
-                               rocblas_int m,
-                               rocblas_int n,
-                               const T* alpha,
-                               const T* A,
-                               rocblas_int lda,
-                               const T* x,
-                               rocblas_int incx,
-                               const T* beta,
-                               T* y,
-                               rocblas_int incy);
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               const T*          alpha,
+                               const T*          A,
+                               rocblas_int       lda,
+                               const T*          x,
+                               rocblas_int       incx,
+                               const T*          beta,
+                               T*                y,
+                               rocblas_int       incy);
 
 template <>
 static constexpr auto rocblas_gemv<float> = rocblas_sgemv;
@@ -282,15 +282,15 @@ static constexpr auto rocblas_gemv<double> = rocblas_dgemv;
 
 // trsv
 template <typename T>
-rocblas_status (*rocblas_trsv)(rocblas_handle handle,
-                               rocblas_fill uplo,
+rocblas_status (*rocblas_trsv)(rocblas_handle    handle,
+                               rocblas_fill      uplo,
                                rocblas_operation transA,
-                               rocblas_diagonal diag,
-                               rocblas_int m,
-                               const T* A,
-                               rocblas_int lda,
-                               T* x,
-                               rocblas_int incx);
+                               rocblas_diagonal  diag,
+                               rocblas_int       m,
+                               const T*          A,
+                               rocblas_int       lda,
+                               T*                x,
+                               rocblas_int       incx);
 
 template <>
 static constexpr auto rocblas_trsv<float> = rocblas_strsv;
@@ -301,16 +301,16 @@ static constexpr auto rocblas_trsv<double> = rocblas_dtrsv;
 // symv
 template <typename T>
 rocblas_status (*rocblas_symv)(rocblas_handle handle,
-                               rocblas_fill uplo,
-                               rocblas_int n,
-                               const T* alpha,
-                               const T* A,
-                               rocblas_int lda,
-                               const T* x,
-                               rocblas_int incx,
-                               const T* beta,
-                               T* y,
-                               rocblas_int incy);
+                               rocblas_fill   uplo,
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       A,
+                               rocblas_int    lda,
+                               const T*       x,
+                               rocblas_int    incx,
+                               const T*       beta,
+                               T*             y,
+                               rocblas_int    incy);
 
 /* not implemented
 template <>
@@ -328,19 +328,19 @@ static constexpr auto rocblas_symv<double> = rocblas_dsymv;
 
 // geam
 template <typename T>
-rocblas_status (*rocblas_geam)(rocblas_handle handle,
+rocblas_status (*rocblas_geam)(rocblas_handle    handle,
                                rocblas_operation transA,
                                rocblas_operation transB,
-                               rocblas_int m,
-                               rocblas_int n,
-                               const T* alpha,
-                               const T* A,
-                               rocblas_int lda,
-                               const T* beta,
-                               const T* B,
-                               rocblas_int ldb,
-                               T* C,
-                               rocblas_int ldc);
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               const T*          alpha,
+                               const T*          A,
+                               rocblas_int       lda,
+                               const T*          beta,
+                               const T*          B,
+                               rocblas_int       ldb,
+                               T*                C,
+                               rocblas_int       ldc);
 
 template <>
 static constexpr auto rocblas_geam<float> = rocblas_sgeam;
@@ -350,20 +350,20 @@ static constexpr auto rocblas_geam<double> = rocblas_dgeam;
 
 // gemm
 template <typename T>
-rocblas_status (*rocblas_gemm)(rocblas_handle handle,
+rocblas_status (*rocblas_gemm)(rocblas_handle    handle,
                                rocblas_operation transA,
                                rocblas_operation transB,
-                               rocblas_int m,
-                               rocblas_int n,
-                               rocblas_int k,
-                               const T* alpha,
-                               const T* A,
-                               rocblas_int lda,
-                               const T* B,
-                               rocblas_int ldb,
-                               const T* beta,
-                               T* C,
-                               rocblas_int ldc);
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               rocblas_int       k,
+                               const T*          alpha,
+                               const T*          A,
+                               rocblas_int       lda,
+                               const T*          B,
+                               rocblas_int       ldb,
+                               const T*          beta,
+                               T*                C,
+                               rocblas_int       ldc);
 
 template <>
 static constexpr auto rocblas_gemm<rocblas_half> = rocblas_hgemm;
@@ -376,24 +376,24 @@ static constexpr auto rocblas_gemm<double> = rocblas_dgemm;
 
 // gemm_strided_batched
 template <typename T>
-rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle handle,
+rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle    handle,
                                                rocblas_operation transA,
                                                rocblas_operation transB,
-                                               rocblas_int m,
-                                               rocblas_int n,
-                                               rocblas_int k,
-                                               const T* alpha,
-                                               const T* A,
-                                               rocblas_int lda,
-                                               rocblas_int bsa,
-                                               const T* B,
-                                               rocblas_int ldb,
-                                               rocblas_int bsb,
-                                               const T* beta,
-                                               T* C,
-                                               rocblas_int ldc,
-                                               rocblas_int bsc,
-                                               rocblas_int batch_count);
+                                               rocblas_int       m,
+                                               rocblas_int       n,
+                                               rocblas_int       k,
+                                               const T*          alpha,
+                                               const T*          A,
+                                               rocblas_int       lda,
+                                               rocblas_int       bsa,
+                                               const T*          B,
+                                               rocblas_int       ldb,
+                                               rocblas_int       bsb,
+                                               const T*          beta,
+                                               T*                C,
+                                               rocblas_int       ldc,
+                                               rocblas_int       bsc,
+                                               rocblas_int       batch_count);
 
 template <>
 static constexpr auto rocblas_gemm_strided_batched<rocblas_half> = rocblas_hgemm_strided_batched;
@@ -406,18 +406,18 @@ static constexpr auto rocblas_gemm_strided_batched<double> = rocblas_dgemm_strid
 
 // trsm
 template <typename T>
-rocblas_status (*rocblas_trsm)(rocblas_handle handle,
-                               rocblas_side side,
-                               rocblas_fill uplo,
+rocblas_status (*rocblas_trsm)(rocblas_handle    handle,
+                               rocblas_side      side,
+                               rocblas_fill      uplo,
                                rocblas_operation transA,
-                               rocblas_diagonal diag,
-                               rocblas_int m,
-                               rocblas_int n,
-                               const T* alpha,
-                               T* A,
-                               rocblas_int lda,
-                               T* B,
-                               rocblas_int ldb);
+                               rocblas_diagonal  diag,
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               const T*          alpha,
+                               T*                A,
+                               rocblas_int       lda,
+                               T*                B,
+                               rocblas_int       ldb);
 
 template <>
 static constexpr auto rocblas_trsm<float> = rocblas_strsm;
@@ -427,14 +427,14 @@ static constexpr auto rocblas_trsm<double> = rocblas_dtrsm;
 
 // trtri
 template <typename T>
-rocblas_status (*rocblas_trtri)(rocblas_handle handle,
-                                rocblas_fill uplo,
+rocblas_status (*rocblas_trtri)(rocblas_handle   handle,
+                                rocblas_fill     uplo,
                                 rocblas_diagonal diag,
-                                rocblas_int n,
-                                T* A,
-                                rocblas_int lda,
-                                T* invA,
-                                rocblas_int ldinvA);
+                                rocblas_int      n,
+                                T*               A,
+                                rocblas_int      lda,
+                                T*               invA,
+                                rocblas_int      ldinvA);
 
 template <>
 static constexpr auto rocblas_trtri<float> = rocblas_strtri;
@@ -444,17 +444,17 @@ static constexpr auto rocblas_trtri<double> = rocblas_dtrtri;
 
 // trtri_batched
 template <typename T>
-rocblas_status (*rocblas_trtri_batched)(rocblas_handle handle,
-                                        rocblas_fill uplo,
+rocblas_status (*rocblas_trtri_batched)(rocblas_handle   handle,
+                                        rocblas_fill     uplo,
                                         rocblas_diagonal diag,
-                                        rocblas_int n,
-                                        T* A,
-                                        rocblas_int lda,
-                                        rocblas_int bsa,
-                                        T* invA,
-                                        rocblas_int ldinvA,
-                                        rocblas_int bsinvA,
-                                        rocblas_int batch_count);
+                                        rocblas_int      n,
+                                        T*               A,
+                                        rocblas_int      lda,
+                                        rocblas_int      bsa,
+                                        T*               invA,
+                                        rocblas_int      ldinvA,
+                                        rocblas_int      bsinvA,
+                                        rocblas_int      batch_count);
 
 template <>
 static constexpr auto rocblas_trtri_batched<float> = rocblas_strtri_batched;

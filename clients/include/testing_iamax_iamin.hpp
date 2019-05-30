@@ -2,14 +2,14 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
 #include "cblas_interface.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -17,12 +17,12 @@ template <typename T,
           rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*)>
 void testing_iamax_iamin_bad_arg(const Arguments& arg)
 {
-    rocblas_int N                 = 100;
-    rocblas_int incx              = 1;
+    rocblas_int         N         = 100;
+    rocblas_int         incx      = 1;
     static const size_t safe_size = 100;
 
     rocblas_local_handle handle;
-    device_vector<T> dx(safe_size);
+    device_vector<T>     dx(safe_size);
     if(!dx)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -70,7 +70,7 @@ void testing_iamax_iamin(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; // arbritrarily set to 100
-        device_vector<T> dx(safe_size);
+        device_vector<T>    dx(safe_size);
         if(!dx)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -87,7 +87,7 @@ void testing_iamax_iamin(const Arguments& arg)
     size_t size_x = static_cast<size_t>(N) * incx;
 
     // allocate memory on device
-    device_vector<T> dx(size_x);
+    device_vector<T>           dx(size_x);
     device_vector<rocblas_int> d_rocblas_result(1);
     if(!dx || !d_rocblas_result)
     {
@@ -177,48 +177,61 @@ void testing_iamax_iamin(const Arguments& arg)
 }
 
 // CBLAS does not have a cblas_iamin function, so we write our own version of it
-namespace rocblas_cblas {
-
-template <typename T>
-T aabs(T x)
+namespace rocblas_cblas
 {
-    return std::abs(x);
-}
 
-rocblas_half aabs(rocblas_half x) { return x & 0x7fff; }
-
-double aabs(rocblas_double_complex x) { return aabs(x.x) + aabs(x.y); }
-
-float aabs(rocblas_float_complex x) { return aabs(x.x) + aabs(x.y); }
-
-template <typename T>
-bool lessthan(T x, T y)
-{
-    return x < y;
-}
-
-bool lessthan(rocblas_half x, rocblas_half y) { return half_to_float(x) < half_to_float(y); }
-
-template <typename T>
-void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
-{
-    rocblas_int minpos = -1;
-    if(N > 0 && incx > 0)
+    template <typename T>
+    T aabs(T x)
     {
-        auto min = aabs(X[0]);
-        minpos   = 0;
-        for(size_t i = 1; i < N; ++i)
+        return std::abs(x);
+    }
+
+    rocblas_half aabs(rocblas_half x)
+    {
+        return x & 0x7fff;
+    }
+
+    double aabs(rocblas_double_complex x)
+    {
+        return aabs(x.x) + aabs(x.y);
+    }
+
+    float aabs(rocblas_float_complex x)
+    {
+        return aabs(x.x) + aabs(x.y);
+    }
+
+    template <typename T>
+    bool lessthan(T x, T y)
+    {
+        return x < y;
+    }
+
+    bool lessthan(rocblas_half x, rocblas_half y)
+    {
+        return half_to_float(x) < half_to_float(y);
+    }
+
+    template <typename T>
+    void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    {
+        rocblas_int minpos = -1;
+        if(N > 0 && incx > 0)
         {
-            auto a = aabs(X[i * incx]);
-            if(lessthan(a, min))
+            auto min = aabs(X[0]);
+            minpos   = 0;
+            for(size_t i = 1; i < N; ++i)
             {
-                min    = a;
-                minpos = i;
+                auto a = aabs(X[i * incx]);
+                if(lessthan(a, min))
+                {
+                    min    = a;
+                    minpos = i;
+                }
             }
         }
+        *result = minpos;
     }
-    *result = minpos;
-}
 
 } // namespace rocblas_cblas
 

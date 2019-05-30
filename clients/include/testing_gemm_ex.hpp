@@ -2,19 +2,19 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "near.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "near.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
@@ -41,13 +41,13 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
     const float alpha_float = 1.0;
     const float beta_float  = 1.0;
 
-    const rocblas_gemm_algo algo  = rocblas_gemm_algo_standard;
-    static const size_t safe_size = 100;
+    const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
+    static const size_t     safe_size = 100;
 
-    int32_t solution_index = 0;
-    rocblas_int flags      = 0;
-    size_t workspace_size  = 0;
-    void* workspace        = nullptr;
+    int32_t              solution_index = 0;
+    rocblas_int          flags          = 0;
+    size_t               workspace_size = 0;
+    void*                workspace      = nullptr;
     rocblas_local_handle handle;
 
     // allocate memory on device
@@ -261,24 +261,25 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo = static_cast<rocblas_gemm_algo>(arg.algo);
-    int32_t solution_index = arg.solution_index;
-    uint32_t flags         = arg.flags;
-    size_t workspace_size  = arg.workspace_size;
-    void* workspace        = nullptr;
+    rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
+    int32_t           solution_index = arg.solution_index;
+    uint32_t          flags          = arg.flags;
+    size_t            workspace_size = arg.workspace_size;
+    void*             workspace      = nullptr;
 
     bool nantest = rocblas_isnan(arg.beta);
-    if(!std::is_same<To, float>{} && !std::is_same<To, double>{} &&
-       !std::is_same<To, rocblas_half>{} && nantest)
+    if(!std::is_same<To, float> {} && !std::is_same<To, double> {}
+       && !std::is_same<To, rocblas_half> {} && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half>{})
+    if(std::is_same<Tc, rocblas_half> {})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
         h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
     }
-    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
+    else if(std::is_same<Tc, float> {} || std::is_same<Tc, double> {}
+            || std::is_same<Tc, int32_t> {})
     {
         h_alpha_Tc = static_cast<Tc>(arg.alpha);
         h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
@@ -298,26 +299,26 @@ void testing_gemm_ex(const Arguments& arg)
     double rocblas_error = 0.0;
 
     rocblas_local_handle handle;
-    auto transA = char2rocblas_operation(arg.transA);
-    auto transB = char2rocblas_operation(arg.transB);
-    auto M = arg.M, N = arg.N, K = arg.K;
-    auto lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    auto A_row = transA == rocblas_operation_none ? M : K;
-    auto A_col = transA == rocblas_operation_none ? K : M;
-    auto B_row = transB == rocblas_operation_none ? K : N;
-    auto B_col = transB == rocblas_operation_none ? N : K;
+    auto                 transA = char2rocblas_operation(arg.transA);
+    auto                 transB = char2rocblas_operation(arg.transB);
+    auto                 M = arg.M, N = arg.N, K = arg.K;
+    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    auto                 A_row = transA == rocblas_operation_none ? M : K;
+    auto                 A_col = transA == rocblas_operation_none ? K : M;
+    auto                 B_row = transB == rocblas_operation_none ? K : N;
+    auto                 B_col = transB == rocblas_operation_none ? N : K;
 
     // check for invalid sizes
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
-       (std::is_same<Ti, int8_t>{} &&
-        (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
-         (transB == rocblas_operation_none && ldb % 4 != 0))))
+    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
+       || (std::is_same<Ti, int8_t> {}
+           && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
+               || (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
         static const size_t safe_size = 100;
-        device_vector<Ti> dA(safe_size);
-        device_vector<Ti> dB(safe_size);
-        device_vector<To> dC(safe_size);
-        device_vector<To> dD(safe_size);
+        device_vector<Ti>   dA(safe_size);
+        device_vector<Ti>   dB(safe_size);
+        device_vector<To>   dC(safe_size);
+        device_vector<To>   dD(safe_size);
         if(!dA || !dB || !dC || !dD)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -393,7 +394,7 @@ void testing_gemm_ex(const Arguments& arg)
         rocblas_init<To>(hC, M, N, ldc);
     rocblas_init<To>(hD_1, M, N, ldd);
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if(std::is_same<To, rocblas_half> {} && std::is_same<Tc, float> {})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -428,7 +429,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // copy data from CPU to device
     // if int8 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
+    if(std::is_same<Ti, int8_t> {} && transA == rocblas_operation_none)
     {
         host_vector<Ti> hA_packed(hA);
 
@@ -441,7 +442,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
+    if(std::is_same<Ti, int8_t> {} && transB != rocblas_operation_none)
     {
         host_vector<Ti> hB_packed(hB);
 
@@ -545,7 +546,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            if(std::is_same<Tc, rocblas_half> {} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
