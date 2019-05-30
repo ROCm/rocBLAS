@@ -449,7 +449,7 @@ int main(int argc, char* argv[])
     }
 
     // allocate memory on device
-    float *da, *db, *dc, *dd;
+    rocblas_bfloat16 *da, *db, *dc, *dd;
     CHECK_HIP_ERROR(hipMalloc(&da, size_a * sizeof(rocblas_bfloat16)));
     CHECK_HIP_ERROR(hipMalloc(&db, size_b * sizeof(rocblas_bfloat16)));
     CHECK_HIP_ERROR(hipMalloc(&dc, size_c * sizeof(rocblas_bfloat16)));
