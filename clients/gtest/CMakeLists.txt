@@ -87,6 +87,7 @@ target_include_directories( rocblas-test
 target_include_directories( rocblas-test
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
