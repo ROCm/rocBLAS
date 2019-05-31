@@ -21,6 +21,14 @@ rocblas_long
 ^^^^^^^^^^^^^^^^^^
 .. doxygentypedef:: rocblas_long
 
+rocblas_half
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_half
+
+rocblas_bfloat16
+^^^^^^^^^^^^^^^^^^
+.. doxygentypedef:: rocblas_bfloat16
+
 rocblas_float_complex
 ^^^^^^^^^^^^^^^^^^
 .. doxygentypedef:: rocblas_float_complex
@@ -28,10 +36,6 @@ rocblas_float_complex
 rocblas_double_complex
 ^^^^^^^^^^^^^^^^^^
 .. doxygentypedef:: rocblas_double_complex
-
-rocblas_half
-^^^^^^^^^^^^^^^^^^
-.. doxygentypedef:: rocblas_half
 
 rocblas_half_complex
 ^^^^^^^^^^^^^^^^^^
