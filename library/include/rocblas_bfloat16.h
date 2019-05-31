@@ -34,6 +34,11 @@
 
 #include <inttypes.h>
 
+/** @struct rocblas_bfloat16
+ * struct used for bfloat16
+ * @var rocblas_bfloat16::data
+ * struct member variable used to store bfloat16 data
+ */
 typedef struct
 {
     uint16_t data;
