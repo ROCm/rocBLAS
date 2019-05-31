@@ -2,19 +2,19 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "near.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "near.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
@@ -92,7 +92,7 @@ void testing_gemm(const Arguments& arg)
 
     T h_alpha;
     T h_beta;
-    if(std::is_same<T, rocblas_half>{})
+    if(std::is_same<T, rocblas_half> {})
     {
         h_alpha = float_to_half(arg.alpha);
         h_beta  = rocblas_isnan(arg.beta) ? 0 : float_to_half(arg.beta);
@@ -103,9 +103,9 @@ void testing_gemm(const Arguments& arg)
         h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
     }
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    double               gpu_time_used, cpu_time_used;
+    double               rocblas_gflops, cblas_gflops;
+    double               rocblas_error = 0.0;
     rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
@@ -230,7 +230,7 @@ void testing_gemm(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            if(std::is_same<T, rocblas_half> {} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
@@ -283,9 +283,9 @@ void testing_gemm(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
+                  << (std::is_same<T, rocblas_half> {} ? half_to_float(h_alpha) : h_alpha) << ","
                   << lda << "," << ldb << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
+                  << (std::is_same<T, rocblas_half> {} ? half_to_float(h_beta) : h_beta) << ","
                   << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)

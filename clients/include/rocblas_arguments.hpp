@@ -5,15 +5,15 @@
 #ifndef ROCBLAS_ARGUMENTS_H_
 #define ROCBLAS_ARGUMENTS_H_
 
-#include <cinttypes>
-#include <cstdio>
-#include <cmath>
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-#include <type_traits>
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <type_traits>
 
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
@@ -63,9 +63,9 @@ struct Arguments
     rocblas_int iters;
 
     uint32_t algo;
-    int32_t solution_index;
+    int32_t  solution_index;
     uint32_t flags;
-    size_t workspace_size;
+    size_t   workspace_size;
 
     char function[64];
     char name[64];
@@ -86,8 +86,8 @@ struct Arguments
             exit(EXIT_FAILURE);
         };
 
-        char header[8]{}, trailer[8]{};
-        Arguments arg{};
+        char      header[8] {}, trailer[8] {};
+        Arguments arg {};
         ifs.read(header, sizeof(header));
         ifs >> arg;
         ifs.read(trailer, sizeof(trailer));
@@ -95,8 +95,7 @@ struct Arguments
         if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
             error();
 
-        auto check = [&, sig = (unsigned char)0 ](const auto& elem) mutable
-        {
+        auto check = [&, sig = (unsigned char)0](const auto& elem) mutable {
             static_assert(sizeof(elem) <= 255,
                           "One of the fields of Arguments is too large (> 255 bytes)");
             for(unsigned char i = 0; i < sizeof(elem); ++i)
@@ -148,7 +147,7 @@ struct Arguments
         check(arg.initialization);
     }
 
-    private:
+private:
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg)
     {
@@ -188,23 +187,28 @@ struct Arguments
     // Character output
     static void print_value(std::ostream& str, char c)
     {
-        char s[]{c, 0};
+        char s[] {c, 0};
         str << std::quoted(s, '\'');
     }
 
     // bool output
-    static void print_value(std::ostream& str, bool b) { str << (b ? "true" : "false"); }
+    static void print_value(std::ostream& str, bool b)
+    {
+        str << (b ? "true" : "false");
+    }
 
     // string output
-    static void print_value(std::ostream& str, const char* s) { str << std::quoted(s); }
+    static void print_value(std::ostream& str, const char* s)
+    {
+        str << std::quoted(s);
+    }
 
     // Function to print Arguments out to stream in YAML format
     // Google Tests uses this automatically to dump parameters
     friend std::ostream& operator<<(std::ostream& str, const Arguments& arg)
     {
         // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print = [&, delim = '{' ](const char* name, auto x) mutable
-        {
+        auto print = [&, delim = '{'](const char* name, auto x) mutable {
             str << delim << " " << name << ": ";
             print_value(str, x);
             delim = ',';
@@ -254,10 +258,10 @@ struct Arguments
     }
 };
 
-static_assert(std::is_standard_layout<Arguments>{},
+static_assert(std::is_standard_layout<Arguments> {},
               "Arguments is not a standard layout type, and thus is incompatible with C.");
 
-static_assert(std::is_trivially_copyable<Arguments>{},
+static_assert(std::is_trivially_copyable<Arguments> {},
               "Arguments is not a trivially copyable type, and thus is incompatible with C.");
 
 #endif

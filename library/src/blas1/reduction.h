@@ -2,11 +2,12 @@
 #define REDUCTION_H_
 
 #include <cstddef>
-#include <type_traits>
-#include "definitions.h"
-#include "rocblas.h"
-#include "handle.h"
 #include <hip/hip_runtime.h>
+#include <type_traits>
+
+#include "definitions.h"
+#include "handle.h"
+#include "rocblas.h"
 
 /*
  * ===========================================================================
@@ -60,11 +61,11 @@ struct rocblas_reduction_s
     {
         // Reduce the lower half with the upper half
         if(tx < k)
-            REDUCE{}(x[tx], x[tx + k]);
+            REDUCE {}(x[tx], x[tx + k]);
         __syncthreads();
 
         // Recurse down with k / 2
-        rocblas_reduction_s<k / 2, REDUCE, T>{}(tx, x);
+        rocblas_reduction_s<k / 2, REDUCE, T> {}(tx, x);
     }
 };
 
@@ -97,7 +98,7 @@ __attribute__((flatten)) __device__ void rocblas_reduction(rocblas_int tx, T* x)
 {
     static_assert(NB > 1 && !(NB & (NB - 1)), "NB must be a power of 2");
     __syncthreads();
-    rocblas_reduction_s<NB / 2, REDUCE, T>{}(tx, x);
+    rocblas_reduction_s<NB / 2, REDUCE, T> {}(tx, x);
 }
 
 /*! \brief parallel reduction: sum
@@ -143,7 +144,10 @@ struct rocblas_finalize_identity
 template <typename T>
 struct default_value
 {
-    __forceinline__ __host__ __device__ constexpr T operator()() const { return {}; }
+    __forceinline__ __host__ __device__ constexpr T operator()() const
+    {
+        return {};
+    }
 };
 
 // kennel 1 writes partial results per thread block in workspace; number of partial results is
@@ -154,17 +158,17 @@ template <rocblas_int NB,
           typename Ti,
           typename To>
 __global__ void
-rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
+    rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
-    ssize_t tx  = hipThreadIdx_x;
-    ssize_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
+    ssize_t    tx  = hipThreadIdx_x;
+    ssize_t    tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
     // bound
     if(tid < n)
-        tmp[tx] = FETCH{}(x[tid * incx], tid);
+        tmp[tx] = FETCH {}(x[tid * incx], tid);
     else
-        tmp[tx] = default_value<To>{}(); // pad with default value
+        tmp[tx] = default_value<To> {}(); // pad with default value
 
     rocblas_reduction<NB, REDUCE>(tx, tmp);
 
@@ -190,11 +194,11 @@ __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspac
 
         // bound, loop
         for(rocblas_int i = tx + NB; i < nblocks; i += NB)
-            REDUCE{}(tmp[tx], workspace[i]);
+            REDUCE {}(tmp[tx], workspace[i]);
     }
     else
     { // pad with default value
-        tmp[tx] = default_value<To>{}();
+        tmp[tx] = default_value<To> {}();
     }
 
     if(nblocks < 32)
@@ -204,7 +208,7 @@ __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspac
 
         if(tx == 0)
             for(rocblas_int i = 1; i < nblocks; i++)
-                REDUCE{}(tmp[0], tmp[i]);
+                REDUCE {}(tmp[0], tmp[i]);
     }
     else
     {
@@ -214,7 +218,7 @@ __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspac
 
     // Store result on device or in workspace
     if(tx == 0)
-        *result = FINALIZE{}(tmp[0]);
+        *result = FINALIZE {}(tmp[0]);
 }
 
 // At least two kernels are needed to finish the reduction
@@ -229,10 +233,10 @@ template <rocblas_int NB,
           typename Tr>
 rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
                                         rocblas_int n,
-                                        const Ti* x,
+                                        const Ti*   x,
                                         rocblas_int incx,
-                                        Tr* result,
-                                        To* workspace,
+                                        Tr*         result,
+                                        To*         workspace,
                                         rocblas_int blocks)
 {
     hipLaunchKernelGGL((rocblas_reduction_kernel_part1<NB, FETCH, REDUCE>),
@@ -261,7 +265,7 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
         // If in host pointer mode, workspace is converted to Tr* and the result is
         // placed there, and then copied from device to host. If To is a class type,
         // it must be a standard layout type and its first member must be of type Tr.
-        static_assert(std::is_standard_layout<To>{}, "To must be a standard layout type");
+        static_assert(std::is_standard_layout<To> {}, "To must be a standard layout type");
 
         if(blocks > 1)
         {
@@ -275,7 +279,7 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
                                (Tr*)workspace);
         }
 
-        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || blocks > 1)
+        if(std::is_same<FINALIZE, rocblas_finalize_identity> {} || blocks > 1)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0], and can be copied directly.
@@ -287,7 +291,7 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
             // workspace[0] needs to be finalized on host.
             To res;
             RETURN_IF_HIP_ERROR(hipMemcpy(&res, workspace, sizeof(To), hipMemcpyDeviceToHost));
-            *result = FINALIZE{}(res);
+            *result = FINALIZE {}(res);
         }
     }
 

@@ -5,13 +5,13 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
-#include <type_traits>
-#include <string>
-#include <iostream>
-#include <cstdio>
-#include <vector>
 #include "rocblas.h"
 #include "rocblas_test.hpp"
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 /*!\file
  * \brief provide common utilities
@@ -23,13 +23,25 @@ class rocblas_local_handle
 {
     rocblas_handle handle;
 
-    public:
-    rocblas_local_handle() { rocblas_create_handle(&handle); }
-    ~rocblas_local_handle() { rocblas_destroy_handle(handle); }
+public:
+    rocblas_local_handle()
+    {
+        rocblas_create_handle(&handle);
+    }
+    ~rocblas_local_handle()
+    {
+        rocblas_destroy_handle(handle);
+    }
 
     // Allow rocblas_local_handle to be used anywhere rocblas_handle is expected
-    operator rocblas_handle&() { return handle; }
-    operator const rocblas_handle&() const { return handle; }
+    operator rocblas_handle&()
+    {
+        return handle;
+    }
+    operator const rocblas_handle&() const
+    {
+        return handle;
+    }
 };
 
 /* ============================================================================================ */
@@ -58,17 +70,17 @@ std::string rocblas_exepath();
 template <typename T>
 inline void rocblas_print_vector(std::vector<T>& A, size_t M, size_t N, size_t lda)
 {
-    if(std::is_same<T, float>{})
+    if(std::is_same<T, float> {})
         std::cout << "vec[float]: ";
-    else if(std::is_same<T, double>{})
+    else if(std::is_same<T, double> {})
         std::cout << "vec[double]: ";
-    else if(std::is_same<T, rocblas_half>{})
+    else if(std::is_same<T, rocblas_half> {})
         std::cout << "vec[rocblas_half]: ";
 
     for(size_t i = 0; i < M; ++i)
         for(size_t j = 0; j < N; ++j)
-            std::cout << (std::is_same<T, rocblas_half>{} ? half_to_float(A[i + j * lda])
-                                                          : A[i + j * lda])
+            std::cout << (std::is_same<T, rocblas_half> {} ? half_to_float(A[i + j * lda])
+                                                           : A[i + j * lda])
                       << ", ";
 
     std::cout << std::endl;
