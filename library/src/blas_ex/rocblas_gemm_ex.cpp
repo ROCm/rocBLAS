@@ -7,6 +7,7 @@
 #include "rocblas_gemm_ex.hpp"
 
 #include "rocblas.h"
+
 #include "Tensile.h"
 #include "TensileTypes.h"
 
