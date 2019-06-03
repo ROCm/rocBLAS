@@ -10,10 +10,12 @@
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
-#include "rocblas_bfloat16.h"
-#include <hip/hip_vector_types.h>
 #include <stddef.h>
 #include <stdint.h>
+
+#include <hip/hip_vector_types.h>
+
+#include "rocblas_bfloat16.h"
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()

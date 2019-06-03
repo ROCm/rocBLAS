@@ -3,12 +3,13 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
+#include "rocblas.h"
+#include "status.h"
+
 #include "definitions.h"
 #include "geam_device.h"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "status.h"
 #include "utility.h"
 
 namespace

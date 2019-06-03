@@ -6,15 +6,17 @@
 
 #include <hip/hip_runtime.h>
 
+#include "rocblas_trsm.hpp"
+
+#include "rocblas.h"
+#include "status.h"
+
 #include "definitions.h"
 #include "gemm.hpp"
+#include "trtri_trsm.hpp"
+
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "rocblas_trsm.hpp"
-#include "rocblas_unique_ptr.hpp"
-#include "status.h"
-#include "trtri_trsm.hpp"
 #include "utility.h"
 
 namespace

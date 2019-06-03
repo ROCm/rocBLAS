@@ -3,16 +3,18 @@
  *   *
  *    * ************************************************************************ */
 
-#include "rocblas_trtri_batched.hpp"
-
 #include <hip/hip_runtime.h>
 
-#include "definitions.h"
-#include "handle.h"
-#include "logging.h"
 #include "rocblas.h"
+
+#include "definitions.h"
 #include "trtri_device.h"
 #include "trtri_trsm.hpp"
+
+#include "rocblas_trtri_batched.hpp"
+
+#include "handle.h"
+#include "logging.h"
 #include "utility.h"
 
 namespace trtri

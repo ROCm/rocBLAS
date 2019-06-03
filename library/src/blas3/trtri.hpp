@@ -9,8 +9,9 @@
 
 #include <hip/hip_runtime.h>
 
-#include "rocblas_trtri_batched.hpp"
 #include "trtri_device.h"
+
+#include "rocblas_trtri_batched.hpp"
 
 /* ============================================================================================ */
 
