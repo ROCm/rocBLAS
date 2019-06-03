@@ -135,7 +135,7 @@ inline std::ostream& operator<<(std::ostream& os, const rocblas_bfloat16& bf16)
 {
     return os << float(bf16);
 }
-inline __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a)
+inline rocblas_bfloat16 operator+(rocblas_bfloat16 a)
 {
     return a;
 }

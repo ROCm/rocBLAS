@@ -6,11 +6,14 @@
 #define ROCBLAS_MATH_H_
 
 #include "rocblas.h"
+#include <hip/hip_runtime.h>
+
 #include <cmath>
 #include <immintrin.h>
 
 /* ============================================================================================ */
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
+
 inline rocblas_half float_to_half(float val)
 {
     return _cvtss_sh(val, 0);
