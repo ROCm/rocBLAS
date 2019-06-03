@@ -65,6 +65,62 @@ namespace
             res_x[2] = x[(col + 2) * incx];
             res_x[3] = x[(col + 3) * incx];
 
+=======
+#include <hip/hip_runtime.h>
+
+namespace
+{
+
+    template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
+    __global__ void gemvn_kernel(rocblas_int m,
+                                 rocblas_int n,
+                                 U           alpha_device_host,
+                                 const T* __restrict__ A,
+                                 rocblas_int lda,
+                                 const T* __restrict__ x,
+                                 rocblas_int incx,
+                                 U           beta_device_host,
+                                 T*          y,
+                                 rocblas_int incy)
+    {
+        auto        alpha       = load_scalar(alpha_device_host);
+        auto        beta        = load_scalar(beta_device_host);
+        rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
+
+        if(DIM_X * DIM_Y != num_threads)
+            return; // need to launch exactly the same number of threads as template parameters indicate
+
+        rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+
+        // threads are all configurated locally
+        rocblas_int tx = thread_id % DIM_X;
+        rocblas_int ty = thread_id / DIM_X;
+
+        rocblas_int ind;
+
+        __shared__ T sdata[DIM_X * 4 * DIM_Y];
+
+        T res_A[4]; // micor tile is 4 * 4
+        T res_x[4];
+
+        res_A[0] = res_x[0] = 0.0;
+        res_A[1] = res_x[0] = 0.0;
+        res_A[2] = res_x[0] = 0.0;
+        res_A[3] = res_x[0] = 0.0;
+
+        ind = hipBlockIdx_x * DIM_X * 4 + tx;
+
+        rocblas_int n_tail = n % (4 * DIM_Y);
+        rocblas_int col    = ty * 4;
+
+        for(col = ty * 4; col < (n - n_tail); col += 4 * DIM_Y)
+        {
+            res_x[0] = x[(col + 0) * incx];
+            res_x[1] = x[(col + 1) * incx];
+            res_x[2] = x[(col + 2) * incx];
+            res_x[3] = x[(col + 3) * incx];
+
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
             if(ind < m)
             {
                 res_A[0] += A[ind + (col + 0) * lda] * res_x[0];
@@ -121,6 +177,7 @@ namespace
                 res_A[1] += A[ind + DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
                 res_A[1] += A[ind + DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
             }
+<<<<<<< HEAD
 
             if(ind + 2 * DIM_X < m)
             {
@@ -144,6 +201,31 @@ namespace
         sdata[tx + 2 * DIM_X + ty * DIM_X * 4] = res_A[2];
         sdata[tx + 3 * DIM_X + ty * DIM_X * 4] = res_A[3];
 
+=======
+
+            if(ind + 2 * DIM_X < m)
+            {
+                res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
+                res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
+                res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
+                res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+            }
+
+            if(ind + 3 * DIM_X < m)
+            {
+                res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
+                res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
+                res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
+                res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+            }
+        }
+
+        sdata[tx + ty * DIM_X * 4]             = res_A[0];
+        sdata[tx + DIM_X + ty * DIM_X * 4]     = res_A[1];
+        sdata[tx + 2 * DIM_X + ty * DIM_X * 4] = res_A[2];
+        sdata[tx + 3 * DIM_X + ty * DIM_X * 4] = res_A[3];
+
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
         __syncthreads();
 
         ind = hipBlockIdx_x * DIM_X * 4 + thread_id;
@@ -322,6 +404,7 @@ namespace
                               y,
                               incy);
             }
+<<<<<<< HEAD
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
@@ -340,6 +423,26 @@ namespace
                             incy);
         }
 
+=======
+
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle,
+                            rocblas_gemv_name<T>,
+                            "transA",
+                            transA_letter,
+                            "M",
+                            m,
+                            "N",
+                            n,
+                            "lda",
+                            lda,
+                            "incx",
+                            incx,
+                            "incy",
+                            incy);
+        }
+
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
         if(!A || !x || !y)
             return rocblas_status_invalid_pointer;
 

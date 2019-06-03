@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
 #include <hip/hip_runtime_api.h>
 
 #include <hip/hip_runtime.h>
@@ -14,6 +13,8 @@
 #include "definitions.h"
 #include "gemm.hpp"
 #include "trtri_trsm.hpp"
+
+#include "rocblas_unique_ptr.hpp"
 
 #include "handle.h"
 #include "logging.h"
@@ -731,11 +732,19 @@ namespace
         constexpr T zero         = 0;
         constexpr T one          = 1;
         constexpr T negative_one = -1;
+<<<<<<< HEAD
 
         rocblas_int       bsize      = (side == rocblas_side_left ? n : m);
         int               W          = 1 + ((bsize - 1) / (*B_chunk));
         static const bool arch_lt906 = handle->device_arch_id() < 906;
 
+=======
+
+        rocblas_int       bsize      = (side == rocblas_side_left ? n : m);
+        int               W          = 1 + ((bsize - 1) / (*B_chunk));
+        static const bool arch_lt906 = handle->device_arch_id() < 906;
+
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
         for(int w = 0; w < W; w++)
         {
             if(side == rocblas_side_left)

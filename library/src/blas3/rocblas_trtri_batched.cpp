@@ -2,7 +2,6 @@
  *  * Copyright 2016 Advanced Micro Devices, Inc.
  *   *
  *    * ************************************************************************ */
-
 #include <hip/hip_runtime.h>
 
 #include "rocblas.h"
@@ -33,11 +32,80 @@ namespace trtri
                                                T*               invA,
                                                rocblas_int      ldinvA,
                                                rocblas_int      bsinvA)
+<<<<<<< HEAD
     {
         // get the individual matrix which is processed by device function
         // device function only see one matrix
         const T* individual_A    = A + hipBlockIdx_x * bsa;
         T*       individual_invA = invA + hipBlockIdx_x * bsinvA;
+
+        trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+    }
+
+    template <typename T>
+    __global__ void trtri_remainder_kernel_batched(rocblas_fill     uplo,
+                                                   rocblas_diagonal diag,
+                                                   rocblas_int      n,
+                                                   const T*         A,
+                                                   rocblas_int      lda,
+                                                   rocblas_int      bsa,
+                                                   T*               invA,
+                                                   rocblas_int      ldinvA,
+                                                   rocblas_int      bsinvA)
+=======
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
+    {
+        // get the individual matrix which is processed by device function
+        // device function only see one matrix
+        const T* individual_A    = A + hipBlockIdx_x * bsa;
+        T*       individual_invA = invA + hipBlockIdx_x * bsinvA;
+<<<<<<< HEAD
+
+        trtri_device<T, 2 * NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
+    }
+
+    template <typename T>
+    rocblas_status rocblas_trtri_small_batched(rocblas_handle   handle,
+                                               rocblas_fill     uplo,
+                                               rocblas_diagonal diag,
+                                               rocblas_int      n,
+                                               const T*         A,
+                                               rocblas_int      lda,
+                                               rocblas_int      bsa,
+                                               T*               invA,
+                                               rocblas_int      ldinvA,
+                                               rocblas_int      bsinvA,
+                                               rocblas_int      batch_count)
+    {
+
+        if(n > NB)
+        {
+            printf("n is %d must be less than %d, will exit\n", n, NB);
+            return rocblas_status_not_implemented;
+        }
+
+        hipStream_t rocblas_stream       = handle->rocblas_stream;
+        size_t      blockSize            = 128;
+        size_t      tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
+        size_t      numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+        hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
+                           dim3(numBlocks, 1, 1),
+                           dim3(blockSize, 1, 1),
+                           0,
+                           rocblas_stream,
+                           handle,
+                           (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                           n,
+                           num_non_tri_elements(n),
+                           ldinvA,
+                           n * ldinvA,
+                           invA,
+                           batch_count);
+
+        dim3 grid(batch_count);
+        dim3 threads(NB);
+
+=======
 
         trtri_device<T, NB>(uplo, diag, n, individual_A, lda, individual_invA, ldinvA);
     }
@@ -102,6 +170,7 @@ namespace trtri
         dim3 grid(batch_count);
         dim3 threads(NB);
 
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
         hipLaunchKernelGGL(trtri_small_kernel_batched,
                            grid,
                            threads,
@@ -169,6 +238,7 @@ namespace trtri
 
         dim3 grid_trtri(n / NB / 2 * batch_count);
         dim3 threads(NB * NB);
+<<<<<<< HEAD
 
         // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
         // invA - Only deals with maximum even and complete NBxNB diagonals
@@ -239,6 +309,78 @@ namespace trtri
 
         for(current_n = IB; current_n * 2 <= n; current_n *= 2)
         {
+=======
+
+        // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
+        // invA - Only deals with maximum even and complete NBxNB diagonals
+        hipLaunchKernelGGL((trtri_diagonal_kernel_batched<T, NB>),
+                           grid_trtri,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           uplo,
+                           diag,
+                           n,
+                           A,
+                           lda,
+                           bsa,
+                           invA,
+                           ldinvA,
+                           bsinvA);
+
+        rocblas_int remainder = n - (n / NB / 2) * 2 * NB;
+        if(remainder > 0)
+        {
+            dim3 grid_remainder(batch_count);
+            dim3 threads_remainder(remainder);
+
+            hipLaunchKernelGGL(trtri_remainder_kernel_batched,
+                               grid_remainder,
+                               threads_remainder,
+                               0,
+                               rocblas_stream,
+                               uplo,
+                               diag,
+                               remainder,
+                               (const T*)A + (n - remainder) + (n - remainder) * lda,
+                               lda,
+                               bsa,
+                               (T*)invA + (n - remainder) + (n - remainder) * ldinvA,
+                               ldinvA,
+                               bsinvA);
+        }
+
+        if(n <= 2 * NB)
+        {
+            // if n is too small, no invA21 or invA12 exist, gemm is not required
+            return rocblas_status_success;
+        }
+
+        size_t blockSize            = 128;
+        size_t tri_elements_to_zero = num_non_tri_elements(n) * batch_count;
+        size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
+        hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
+                           dim3(numBlocks, 1, 1),
+                           dim3(blockSize, 1, 1),
+                           0,
+                           rocblas_stream,
+                           handle,
+                           (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                           n,
+                           num_non_tri_elements(n),
+                           ldinvA,
+                           n * ldinvA,
+                           invA,
+                           batch_count);
+
+        // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
+
+        constexpr rocblas_int IB = NB * 2;
+        rocblas_int           current_n;
+
+        for(current_n = IB; current_n * 2 <= n; current_n *= 2)
+        {
+>>>>>>> bfa2370fba344d08c520c96e531313360f47c301
             rocblas_int tiles_per_batch = n / current_n / 2;
 
             if(tiles_per_batch > batch_count)
