@@ -34,12 +34,19 @@
 
 #include <inttypes.h>
 
+/** @struct rocblas_bfloat16
+ * struct used for bfloat16
+ * @var rocblas_bfloat16::data
+ * struct member variable used to store bfloat16 data
+ */
 typedef struct
 {
     uint16_t data;
 } rocblas_bfloat16;
 
 #else // __cplusplus
+
+#include <hip/hip_runtime.h>
 
 #include <cinttypes>
 #include <cmath>
@@ -50,19 +57,19 @@ struct rocblas_bfloat16
 {
     uint16_t data;
 
-    constexpr rocblas_bfloat16()
-        : data(0)
-    {
-    }
+    // Skip initializing `data` on purpose so that `bfloat16` could be used
+    // with `__share__`, which forbids any initializer, including the implicit
+    // one.
+    __host__ __device__ rocblas_bfloat16() {}
 
     // round upper 16 bits of IEEE float to convert to bfloat16
-    explicit constexpr rocblas_bfloat16(float f)
+    explicit __host__ __device__ constexpr rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
     {
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
-    explicit constexpr operator float() const
+    explicit __host__ __device__ constexpr operator float() const
     {
         union
         {
@@ -73,7 +80,7 @@ struct rocblas_bfloat16
     }
 
 private:
-    static constexpr uint16_t float_to_bfloat16(float f)
+    static __host__ __device__ constexpr uint16_t float_to_bfloat16(float f)
     {
         union
         {
@@ -128,113 +135,113 @@ inline std::ostream& operator<<(std::ostream& os, const rocblas_bfloat16& bf16)
 {
     return os << float(bf16);
 }
-inline rocblas_bfloat16 operator+(rocblas_bfloat16 a)
+inline __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a)
 {
     return a;
 }
-inline rocblas_bfloat16 operator-(rocblas_bfloat16 a)
+inline __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a)
 {
     a.data ^= 0x8000;
     return a;
 }
-inline rocblas_bfloat16 operator+(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) + float(b));
 }
-inline rocblas_bfloat16 operator-(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) - float(b));
 }
-inline rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) * float(b));
 }
-inline rocblas_bfloat16 operator/(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16 operator/(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) / float(b));
 }
-inline bool operator<(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator<(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return float(a) < float(b);
 }
-inline bool operator==(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator==(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return float(a) == float(b);
 }
-inline bool operator>(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator>(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return b < a;
 }
-inline bool operator<=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator<=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a > b);
 }
-inline bool operator!=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator!=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a == b);
 }
-inline bool operator>=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+inline __host__ __device__ bool operator>=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a < b);
 }
-inline rocblas_bfloat16& operator+=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16& operator+=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a + b;
 }
-inline rocblas_bfloat16& operator-=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16& operator-=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a - b;
 }
-inline rocblas_bfloat16& operator*=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16& operator*=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a * b;
 }
-inline rocblas_bfloat16& operator/=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+inline __host__ __device__ rocblas_bfloat16& operator/=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a / b;
 }
-inline rocblas_bfloat16& operator++(rocblas_bfloat16& a)
+inline __host__ __device__ rocblas_bfloat16& operator++(rocblas_bfloat16& a)
 {
     return a += rocblas_bfloat16(1.0f);
 }
-inline rocblas_bfloat16& operator--(rocblas_bfloat16& a)
+inline __host__ __device__ rocblas_bfloat16& operator--(rocblas_bfloat16& a)
 {
     return a -= rocblas_bfloat16(1.0f);
 }
-inline rocblas_bfloat16 operator++(rocblas_bfloat16& a, int)
+inline __host__ __device__ rocblas_bfloat16 operator++(rocblas_bfloat16& a, int)
 {
     rocblas_bfloat16 orig = a;
     ++a;
     return orig;
 }
-inline rocblas_bfloat16 operator--(rocblas_bfloat16& a, int)
+inline __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, int)
 {
     rocblas_bfloat16 orig = a;
     --a;
     return orig;
 }
-inline bool isinf(rocblas_bfloat16 a)
+inline __host__ __device__ bool isinf(rocblas_bfloat16 a)
 {
     return !(~a.data & 0x7f80) && !(a.data & 0x7f);
 }
-inline bool isnan(rocblas_bfloat16 a)
+inline __host__ __device__ bool isnan(rocblas_bfloat16 a)
 {
     return !(~a.data & 0x7f80) && +(a.data & 0x7f);
 }
-inline bool iszero(rocblas_bfloat16 a)
+inline __host__ __device__ bool iszero(rocblas_bfloat16 a)
 {
     return !(a.data & 0x7fff);
 }
-inline rocblas_bfloat16 abs(rocblas_bfloat16 a)
+inline __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
 {
     a.data &= 0x7fff;
     return a;
 }
-inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
+inline __host__ __device__ rocblas_bfloat16 sin(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(sinf(float(a)));
 }
-inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
+inline __host__ __device__ rocblas_bfloat16 cos(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(cosf(float(a)));
 }
