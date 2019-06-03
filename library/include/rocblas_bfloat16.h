@@ -34,12 +34,19 @@
 
 #include <inttypes.h>
 
+/** @struct rocblas_bfloat16
+ * struct used for bfloat16
+ * @var rocblas_bfloat16::data
+ * struct member variable used to store bfloat16 data
+ */
 typedef struct
 {
     uint16_t data;
 } rocblas_bfloat16;
 
 #else // __cplusplus
+
+#include <hip/hip_runtime.h>
 
 #include <cinttypes>
 #include <cmath>
@@ -128,6 +135,7 @@ inline std::ostream& operator<<(std::ostream& os, const rocblas_bfloat16& bf16)
 {
     return os << float(bf16);
 }
+
 inline rocblas_bfloat16 operator+(rocblas_bfloat16 a)
 {
     return a;
@@ -136,14 +144,6 @@ inline rocblas_bfloat16 operator-(rocblas_bfloat16 a)
 {
     a.data ^= 0x8000;
     return a;
-}
-inline rocblas_bfloat16 operator+(rocblas_bfloat16 a, rocblas_bfloat16 b)
-{
-    return rocblas_bfloat16(float(a) + float(b));
-}
-inline rocblas_bfloat16 operator-(rocblas_bfloat16 a, rocblas_bfloat16 b)
-{
-    return rocblas_bfloat16(float(a) - float(b));
 }
 inline rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
