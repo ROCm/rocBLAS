@@ -28,6 +28,7 @@ foreach( exe ${sample_list} )
   target_include_directories( ${exe}
     SYSTEM PRIVATE
       $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+      $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
       )
 
   if( CUDA_FOUND )

@@ -5,16 +5,17 @@
 #ifndef ROCBLAS_MATH_H_
 #define ROCBLAS_MATH_H_
 
+#include <hip/hip_runtime.h>
 #include <cmath>
 #include <immintrin.h>
 #include "rocblas.h"
 
 /* ============================================================================================ */
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
-inline rocblas_half float_to_half(float val) { return _cvtss_sh(val, 0); }
+inline __host__ rocblas_half float_to_half(float val) { return _cvtss_sh(val, 0); }
 
 // Helper routine to convert halfs into their floats equivalent; uses F16C instructions
-inline float half_to_float(rocblas_half val) { return _cvtsh_ss(val); }
+inline __host__ float half_to_float(rocblas_half val) { return _cvtsh_ss(val); }
 
 /* ============================================================================================ */
 /*! \brief  returns true if value is NaN */
