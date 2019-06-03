@@ -282,7 +282,6 @@ namespace
         // quick return
         if(!m || !n)
             return rocblas_status_success;
-<<<<<<< HEAD
 
         if(m < 0 || n < 0 || ldc < m || lda < (transA == rocblas_operation_none ? m : n)
            || ldb < (transB == rocblas_operation_none ? m : n))
@@ -361,86 +360,6 @@ namespace
                                    ldc);
             }
         }
-=======
-
-        if(m < 0 || n < 0 || ldc < m || lda < (transA == rocblas_operation_none ? m : n)
-           || ldb < (transB == rocblas_operation_none ? m : n))
-            return rocblas_status_invalid_size;
-
-        if(!A || !B || !C || !alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
-        if((C == A && (lda != ldc || transA != rocblas_operation_none))
-           || (C == B && (ldb != ldc || transB != rocblas_operation_none)))
-            return rocblas_status_invalid_size;
-
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-
-        if(pointer_mode == rocblas_pointer_mode_host && !*alpha && !*beta)
-        {
-            // call hipMemset to set matrix C to zero because alpha and beta on host
-            // and alpha = beta = zero
-
-            if(ldc == m)
-            {
-                // one call to hipMemset because matrix C is coniguous
-                hipMemset(C, 0, sizeof(T) * m * n); //  unit-test-covered
-            }
-            else
-            {
-                // n calls to hipMemset because matrix C is coniguous
-                // note that matrix C is always normal (not transpose)
-                for(int i = 0; i < n; i++)
-                    hipMemset(&C[i * ldc], 0, sizeof(T) * m); //  unit-test-covered
-            }
-        }
-        else if(C == A)
-        {
-            // C <- alpha * C + beta * B
-            static constexpr int GEAM_DIM_X = 16;
-            static constexpr int GEAM_DIM_Y = 16;
-            rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
-            rocblas_int          blocksY    = (n - 1) / GEAM_DIM_Y + 1;
-
-            dim3 geam_grid(blocksX, blocksY);
-            dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
-
-            if(pointer_mode == rocblas_pointer_mode_host)
-            {
-                hipLaunchKernelGGL(geam_inplace_kernel_host_pointer<T>,
-                                   geam_grid,
-                                   geam_threads,
-                                   0,
-                                   rocblas_stream,
-                                   transB,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   *beta,
-                                   B,
-                                   ldb,
-                                   C,
-                                   ldc);
-            }
-            else
-            {
-                hipLaunchKernelGGL(geam_inplace_kernel_device_pointer<T>,
-                                   geam_grid,
-                                   geam_threads,
-                                   0,
-                                   rocblas_stream,
-                                   transB,
-                                   m,
-                                   n,
-                                   alpha,
-                                   beta,
-                                   B,
-                                   ldb,
-                                   C,
-                                   ldc);
-            }
-        }
->>>>>>> bfa2370fba344d08c520c96e531313360f47c301
         else if(C == B)
         {
             // C <- alpha * A + beta * C
