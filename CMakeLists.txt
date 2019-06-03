@@ -91,6 +91,7 @@ elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
 elseif( CXX_VERSION_STRING MATCHES "HCC" )
   message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm/bin/hcc cmake ... ]" )
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hc")
 endif( )
 
 # This finds the rocm-cmake project, and installs it if not found
