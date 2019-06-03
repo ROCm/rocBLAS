@@ -34,6 +34,11 @@
 
 #include <inttypes.h>
 
+/** @struct rocblas_bfloat16
+ * struct used for bfloat16
+ * @var rocblas_bfloat16::data
+ * struct member variable used to store bfloat16 data
+ */
 typedef struct
 {
     uint16_t data;
@@ -52,12 +57,13 @@ struct rocblas_bfloat16
 {
     uint16_t data;
 
-    __host__ __device__ rocblas_bfloat16()
-    {
-    }
+    // Skip initializing `data` on purpose so that `bfloat16` could be used
+    // with `__share__`, which forbids any initializer, including the implicit
+    // one.
+    __host__ __device__ rocblas_bfloat16() {}
 
     // round upper 16 bits of IEEE float to convert to bfloat16
-    explicit __host__ __device__ rocblas_bfloat16(float f)
+    explicit __host__ __device__ constexpr rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
     {
     }
