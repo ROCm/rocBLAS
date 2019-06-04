@@ -543,6 +543,68 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle handle,
                                             double* y,
                                             rocblas_int incy);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_batched(rocblas_handle handle,
+                                            rocblas_operation trans,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            const float* alpha,
+                                            const float *const A[],
+                                            rocblas_int lda,
+                                            const float *const x[],
+                                            rocblas_int incx,
+                                            const float* beta,
+                                            float *const y[],
+                                            rocblas_int incy,
+                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle handle,
+                                            rocblas_operation trans,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            const double* alpha,
+                                            const double *const A[],
+                                            rocblas_int lda,
+                                            const double *const x[],
+                                            rocblas_int incx,
+                                            const double* beta,
+                                            double *const y[],
+                                            rocblas_int incy,
+                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_strided_batched(rocblas_handle handle,
+                                            rocblas_operation transA,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            const float* alpha,
+                                            const float* A,
+                                            rocblas_int lda,
+                                            rocblas_int strideA,
+                                            const float* x,
+                                            rocblas_int incx,
+                                            rocblas_int stridex,
+                                            const float* beta,
+                                            float* y,
+                                            rocblas_int incy,
+                                            rocblas_int stridey,
+                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_strided_batched(rocblas_handle handle,
+                                            rocblas_operation transA,
+                                            rocblas_int m,
+                                            rocblas_int n,
+                                            const double* alpha,
+                                            const double* A,
+                                            rocblas_int lda,
+                                            rocblas_int strideA,
+                                            const double* x,
+                                            rocblas_int incx,
+                                            rocblas_int stridex,
+                                            const double* beta,
+                                            double* y,
+                                            rocblas_int incy,
+                                            rocblas_int stridey,
+                                            rocblas_int batch_count);
+
 /*! \brief BLAS Level 2 API
 
     \details
@@ -1586,8 +1648,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle handle,
         - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
    compute_type
-        - rocblas_datatype_bf16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
         - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
    compute_type
 
@@ -1775,8 +1835,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle handle,
         - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
         - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_bf16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
    compute_type
         - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
    compute_type
