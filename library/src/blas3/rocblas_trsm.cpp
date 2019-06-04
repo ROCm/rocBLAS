@@ -1,9 +1,11 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #include <hip/hip_runtime_api.h>
 #include <hip/hip_runtime.h>
 
+#include "rocblas_trsm.hpp"
 #include "rocblas.h"
 #include "status.h"
 #include "definitions.h"

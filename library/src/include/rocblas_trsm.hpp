@@ -1,6 +1,10 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#ifndef _ROCBLAS_TRSM_HPP_
+#define _ROCBLAS_TRSM_HPP_
+
 #include "rocblas.h"
 #include "status.h"
 
@@ -112,3 +116,4 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle handle,
                                         rocblas_int ldInvA,
                                         const size_t* x_temp_size,
                                         T* x_temp);
+#endif // _ROCBLAS_TRSM_HPP_

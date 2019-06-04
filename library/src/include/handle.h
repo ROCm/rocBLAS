@@ -1,10 +1,11 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef HANDLE_H
 #define HANDLE_H
 
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <utility>
@@ -193,7 +194,7 @@ struct _rocblas_handle
 
         // Constructor
         template <typename... Ss>
-        _device_memory_alloc(rocblas_handle handle, Ss... sizes)
+        explicit _device_memory_alloc(rocblas_handle handle, Ss... sizes)
             : handle(handle), pointers(allocate_pointers(sizes...))
         {
         }
@@ -204,6 +205,10 @@ struct _rocblas_handle
         {
             return std::tie(pointers[Is]...);
         }
+
+        // Copying and assignment is not allowed
+        operator _device_memory_alloc(const _device_memory_alloc&) = delete;
+        operator _device_memory_alloc& operator=(const _device_memory_alloc&) = delete;
 
         public:
         // The destructor marks the device memory as no longer in use
@@ -246,8 +251,8 @@ struct _rocblas_handle
 #define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)       \
     do                                                \
     {                                                 \
-        rocblas_handle tmp_handle = (h);              \
-        if(!tmp_handle)                               \
+        rocblas_handle _tmp_handle = (h);             \
+        if(!_tmp_handle)                              \
             return rocblas_status_invalid_handle;     \
         if(tmp_handle->is_device_memory_size_query()) \
             return rocblas_status_size_unchanged;     \
