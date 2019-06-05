@@ -396,7 +396,7 @@ void testing_gemm_ex(const Arguments& arg)
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
-        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
         // the following will overflow to inf in half arithmetic,
         // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
         //
@@ -409,6 +409,34 @@ void testing_gemm_ex(const Arguments& arg)
         const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
         const rocblas_half positive_two       = float_to_half(2.0);
         const rocblas_half negative_two       = float_to_half(-2.0);
+        if(M >= 2 && N >= 2 && K >= 2)
+        {
+            hA[0]       = static_cast<Ti>(ieee_half_near_max);
+            hA[1]       = static_cast<Ti>(ieee_half_near_max);
+            hA[lda]     = static_cast<Ti>(ieee_half_near_max);
+            hA[lda + 1] = static_cast<Ti>(ieee_half_near_max);
+            hB[0]       = static_cast<Ti>(positive_two);
+            hB[1]       = static_cast<Ti>(negative_two);
+            hB[ldb]     = static_cast<Ti>(negative_two);
+            hB[ldb + 1] = static_cast<Ti>(positive_two);
+        }
+    }
+    else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
+    {
+        // half precision IEEE has max and lowest values 65504 and -65504,
+        // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // the following will overflow to inf in half arithmetic,
+        // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
+        //
+        // set matrix A and matrix B upper left block to values below to cause
+        // inf overflow with 16 bit arithmetic, but no overflow for 32 bit arithmetic
+        //
+        // 65500 65500             2   -2
+        // 65500 65500            -2    2
+        //
+        const float ieee_half_near_max = 65504.0f - 4.0f;
+        const float positive_two       = 2.0f;
+        const float negative_two       = -2.0f;
         if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = static_cast<Ti>(ieee_half_near_max);
