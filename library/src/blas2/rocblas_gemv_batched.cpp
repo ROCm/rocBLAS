@@ -21,22 +21,22 @@ static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
 
 template <typename T>
 rocblas_status rocblas_gemv_batched(rocblas_handle handle,
-                            rocblas_operation transA,
-                            rocblas_int m,
-                            rocblas_int n,
-                            const T* alpha,
-                            const T *const A[],
-                            rocblas_int lda,
-                            const T *const x[],
-                            rocblas_int incx,
-                            const T* beta,
-                            T *const y[],
-                            rocblas_int incy,
-                            rocblas_int batch_count)
+                                    rocblas_operation transA,
+                                    rocblas_int m,
+                                    rocblas_int n,
+                                    const T* alpha,
+                                    const T* const A[],
+                                    rocblas_int lda,
+                                    const T* const x[],
+                                    rocblas_int incx,
+                                    const T* beta,
+                                    T* const y[],
+                                    rocblas_int incy,
+                                    rocblas_int batch_count)
 {
     if(!handle)
         return rocblas_status_invalid_handle;
-    
+
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                      rocblas_layer_mode_log_profile))
@@ -141,7 +141,7 @@ rocblas_status rocblas_gemv_batched(rocblas_handle handle,
         static constexpr int GEMVN_DIM_Y = 16;
         rocblas_int blocks               = (m - 1) / (GEMVN_DIM_X * 4) + 1;
 
-        dim3 gemvn_grid(blocks,batch_count);
+        dim3 gemvn_grid(blocks, batch_count);
         dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -190,7 +190,7 @@ rocblas_status rocblas_gemv_batched(rocblas_handle handle,
         // number of columns on the y-dim of the grid, using gemvc because gemvt(transpose) is a
         // instance of gemvc (conjugate)
         static constexpr int NB = 256;
-        dim3 gemvc_grid(n,batch_count);
+        dim3 gemvc_grid(n, batch_count);
         dim3 gemvc_threads(NB);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -238,47 +238,48 @@ rocblas_status rocblas_gemv_batched(rocblas_handle handle,
 
 } // namespace
 
- /*
- * ===========================================================================
- *    C wrapper
- * ===========================================================================
- */
+/*
+* ===========================================================================
+*    C wrapper
+* ===========================================================================
+*/
 
 extern "C" {
 
 rocblas_status rocblas_sgemv_batched(rocblas_handle handle,
-                             rocblas_operation transA,
-                             rocblas_int m,
-                             rocblas_int n,
-                             const float* alpha,
-                             const float *const A[],
-                             rocblas_int lda,
-                             const float *const x[],
-                             rocblas_int incx,
-                             const float*  beta,
-                             float *const y[],
-                             rocblas_int incy,
-                             rocblas_int batch_count)
+                                     rocblas_operation transA,
+                                     rocblas_int m,
+                                     rocblas_int n,
+                                     const float* alpha,
+                                     const float* const A[],
+                                     rocblas_int lda,
+                                     const float* const x[],
+                                     rocblas_int incx,
+                                     const float* beta,
+                                     float* const y[],
+                                     rocblas_int incy,
+                                     rocblas_int batch_count)
 {
-    return rocblas_gemv_batched(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy,batch_count);
+    return rocblas_gemv_batched(
+        handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 
 rocblas_status rocblas_dgemv_batched(rocblas_handle handle,
-                             rocblas_operation transA,
-                             rocblas_int m,
-                             rocblas_int n,
-                             const double* alpha,
-                             const double *const A[],
-                             rocblas_int lda,
-                             const double *const x[],
-                             rocblas_int incx,
-                             const double* beta,
-                             double *const y[],
-                             rocblas_int incy,
-                             rocblas_int batch_count)
+                                     rocblas_operation transA,
+                                     rocblas_int m,
+                                     rocblas_int n,
+                                     const double* alpha,
+                                     const double* const A[],
+                                     rocblas_int lda,
+                                     const double* const x[],
+                                     rocblas_int incx,
+                                     const double* beta,
+                                     double* const y[],
+                                     rocblas_int incy,
+                                     rocblas_int batch_count)
 {
-    return rocblas_gemv_batched(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy,batch_count);
+    return rocblas_gemv_batched(
+        handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
-
 
 } // extern "C"

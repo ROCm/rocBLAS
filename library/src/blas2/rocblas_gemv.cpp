@@ -35,7 +35,7 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
 {
     if(!handle)
         return rocblas_status_invalid_handle;
-    
+
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                      rocblas_layer_mode_log_profile))
@@ -134,7 +134,7 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
         static constexpr int GEMVN_DIM_Y = 16;
         rocblas_int blocks               = (m - 1) / (GEMVN_DIM_X * 4) + 1;
 
-        dim3 gemvn_grid(blocks,1);
+        dim3 gemvn_grid(blocks, 1);
         dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -149,14 +149,14 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
                                alpha,
                                A,
                                lda,
-                               0,   //strideA = 0
+                               0, // strideA = 0
                                x,
                                incx,
-                               0,   //stridex = 0
+                               0, // stridex = 0
                                beta,
                                y,
                                incy,
-                               0);  //stridey = 0
+                               0); // stridey = 0
         }
         else
         {
@@ -173,14 +173,14 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
                                *alpha,
                                A,
                                lda,
-                               0,   //strideA = 0
+                               0, // strideA = 0
                                x,
                                incx,
-                               0,   //stridex = 0
+                               0, // stridex = 0
                                *beta,
                                y,
                                incy,
-                               0);  //stridey = 0
+                               0); // stridey = 0
         }
     }
     else
@@ -189,7 +189,7 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
         // number of columns on the y-dim of the grid, using gemvc because gemvt(transpose) is a
         // instance of gemvc (conjugate)
         static constexpr int NB = 256;
-        dim3 gemvc_grid(n,1);
+        dim3 gemvc_grid(n, 1);
         dim3 gemvc_threads(NB);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -204,15 +204,14 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
                                alpha,
                                A,
                                lda,
-                               0,   //strideA = 0
+                               0, // strideA = 0
                                x,
                                incx,
-                               0,   //stridex = 0
+                               0, // stridex = 0
                                beta,
                                y,
                                incy,
-                               0);  //stridey = 0
-
+                               0); // stridey = 0
         }
         else
         {
@@ -229,14 +228,14 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
                                *alpha,
                                A,
                                lda,
-                               0,   //strideA = 0
+                               0, // strideA = 0
                                x,
                                incx,
-                               0,   //stridex = 0
+                               0, // stridex = 0
                                *beta,
                                y,
                                incy,
-                               0);  //stridey = 0
+                               0); // stridey = 0
         }
     }
     return rocblas_status_success;
@@ -244,11 +243,11 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
 
 } // namespace
 
- /*
- * ===========================================================================
- *    C wrapper
- * ===========================================================================
- */
+/*
+* ===========================================================================
+*    C wrapper
+* ===========================================================================
+*/
 
 extern "C" {
 

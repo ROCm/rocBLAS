@@ -150,7 +150,6 @@ __device__ void gemvn_kernel(rocblas_int m,
     }
 }
 
-
 template <rocblas_int NB_X, typename T, typename U>
 __device__ void gemvc_kernel(rocblas_int m,
                              rocblas_int n,
@@ -220,120 +219,119 @@ __device__ void gemvc_kernel(rocblas_int m,
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
 __global__ void gemvn_kernel_strided(rocblas_int m,
-                             rocblas_int n,
-                             U alpha_device_host,
-                             const T* Aa,
-                             rocblas_int lda,
-                             rocblas_int strideA,
-                             const T* xa,
-                             rocblas_int incx,
-                             rocblas_int stridex,
-                             U beta_device_host,
-                             T* ya,
-                             rocblas_int incy,
-                             rocblas_int stridey)
+                                     rocblas_int n,
+                                     U alpha_device_host,
+                                     const T* Aa,
+                                     rocblas_int lda,
+                                     rocblas_int strideA,
+                                     const T* xa,
+                                     rocblas_int incx,
+                                     rocblas_int stridex,
+                                     U beta_device_host,
+                                     T* ya,
+                                     rocblas_int incy,
+                                     rocblas_int stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
-    
+
     const T* A;
     const T* x;
     T* y;
-    A = Aa + hipBlockIdx_y*strideA;
-    x = xa + hipBlockIdx_y*stridex;
-    y = ya + hipBlockIdx_y*stridey;
-    
+    A = Aa + hipBlockIdx_y * strideA;
+    x = xa + hipBlockIdx_y * stridex;
+    y = ya + hipBlockIdx_y * stridey;
+
     if(incx < 0)
         x -= ssize_t(incx) * (n - 1);
     if(incy < 0)
         y -= ssize_t(incy) * (m - 1);
 
-    auto alpha              = load_scalar(alpha_device_host);
-    auto beta               = load_scalar(beta_device_host);
-    
-    gemvn_kernel<DIM_X,DIM_Y>(m,n,alpha,A,lda,x,incx,beta,y,incy);
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
+
+    gemvn_kernel<DIM_X, DIM_Y>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <rocblas_int NB_X, typename T, typename U>
 __global__ void gemvc_kernel_strided(rocblas_int m,
-                             rocblas_int n,
-                             U alpha_device_host,
-                             const T* Aa,
-                             rocblas_int lda,
-                             rocblas_int strideA,
-                             const T* xa,
-                             rocblas_int incx,
-                             rocblas_int stridex,
-                             U beta_device_host,
-                             T* ya,
-                             rocblas_int incy,
-                             rocblas_int stridey)
+                                     rocblas_int n,
+                                     U alpha_device_host,
+                                     const T* Aa,
+                                     rocblas_int lda,
+                                     rocblas_int strideA,
+                                     const T* xa,
+                                     rocblas_int incx,
+                                     rocblas_int stridex,
+                                     U beta_device_host,
+                                     T* ya,
+                                     rocblas_int incy,
+                                     rocblas_int stridey)
 {
     const T* A;
     const T* x;
     T* y;
-    A = Aa + hipBlockIdx_y*strideA;
-    x = xa + hipBlockIdx_y*stridex;
-    y = ya + hipBlockIdx_y*stridey;
+    A = Aa + hipBlockIdx_y * strideA;
+    x = xa + hipBlockIdx_y * stridex;
+    y = ya + hipBlockIdx_y * stridey;
 
     if(incx < 0)
         x -= ssize_t(incx) * (m - 1);
     if(incy < 0)
         y -= ssize_t(incy) * (n - 1);
-    
-    auto alpha     = load_scalar(alpha_device_host);
-    auto beta      = load_scalar(beta_device_host);
-    
-    gemvc_kernel<NB_X>(m,n,alpha,A,lda,x,incx,beta,y,incy);
+
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
+
+    gemvc_kernel<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
 __global__ void gemvn_kernel_batched(rocblas_int m,
-                            rocblas_int n,
-                            U alpha_device_host,
-                            const T *const Aa[],
-                            rocblas_int lda,
-                            const T *const xa[],
-                            rocblas_int incx,
-                            U beta_device_host,
-                            T *const ya[],
-                            rocblas_int incy)
+                                     rocblas_int n,
+                                     U alpha_device_host,
+                                     const T* const Aa[],
+                                     rocblas_int lda,
+                                     const T* const xa[],
+                                     rocblas_int incx,
+                                     U beta_device_host,
+                                     T* const ya[],
+                                     rocblas_int incy)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
-    
+
     const T* A;
     const T* x;
     T* y;
     A = Aa[hipBlockIdx_y];
     x = xa[hipBlockIdx_y];
     y = ya[hipBlockIdx_y];
-    
+
     if(incx < 0)
         x -= ssize_t(incx) * (n - 1);
     if(incy < 0)
         y -= ssize_t(incy) * (m - 1);
 
-    auto alpha              = load_scalar(alpha_device_host);
-    auto beta               = load_scalar(beta_device_host);
-    
-    gemvn_kernel<DIM_X,DIM_Y>(m,n,alpha,A,lda,x,incx,beta,y,incy);
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
 
+    gemvn_kernel<DIM_X, DIM_Y>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <rocblas_int NB_X, typename T, typename U>
 __global__ void gemvc_kernel_batched(rocblas_int m,
-                            rocblas_int n,
-                            U alpha_device_host,
-                            const T *const Aa[],
-                            rocblas_int lda,
-                            const T *const xa[],
-                            rocblas_int incx,
-                            U beta_device_host,
-                            T *const ya[],
-                            rocblas_int incy)
+                                     rocblas_int n,
+                                     U alpha_device_host,
+                                     const T* const Aa[],
+                                     rocblas_int lda,
+                                     const T* const xa[],
+                                     rocblas_int incx,
+                                     U beta_device_host,
+                                     T* const ya[],
+                                     rocblas_int incy)
 {
     const T* A;
     const T* x;
@@ -346,12 +344,11 @@ __global__ void gemvc_kernel_batched(rocblas_int m,
         x -= ssize_t(incx) * (m - 1);
     if(incy < 0)
         y -= ssize_t(incy) * (n - 1);
-    
-    auto alpha     = load_scalar(alpha_device_host);
-    auto beta      = load_scalar(beta_device_host);
-    
-    gemvc_kernel<NB_X>(m,n,alpha,A,lda,x,incx,beta,y,incy);
 
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
+
+    gemvc_kernel<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 #endif
