@@ -396,7 +396,7 @@ void testing_gemm_ex(const Arguments& arg)
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
-        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
         // the following will overflow to inf in half arithmetic,
         // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
         //
@@ -424,7 +424,7 @@ void testing_gemm_ex(const Arguments& arg)
     else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
-        // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
+        // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
         // the following will overflow to inf in half arithmetic,
         // but it will equal zero in float arithmetic   65504 * 2 - 65504 * 2
         //
