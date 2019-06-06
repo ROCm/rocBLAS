@@ -1,23 +1,19 @@
 /* ************************************************************************
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime_api.h>
 
 #include <hip/hip_runtime.h>
-
-#include "rocblas_trsm.hpp"
-
-#include "rocblas.h"
-#include "status.h"
+#include <hip/hip_runtime_api.h>
 
 #include "definitions.h"
 #include "gemm.hpp"
-#include "trtri_trsm.hpp"
-
-#include "rocblas_unique_ptr.hpp"
-
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "rocblas_trsm.hpp"
+#include "rocblas_unique_ptr.hpp"
+#include "status.h"
+#include "trtri_trsm.hpp"
 #include "utility.h"
 
 namespace
@@ -646,30 +642,29 @@ namespace
         return rocblas_status_success;
     }
 
-    __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
-                                              rocblas_int cols,
-                                              rocblas_int elem_size,
-                                              const void* a,
-                                              rocblas_int lda,
-                                              void*       b,
-                                              rocblas_int ldb)
+    template <typename T>
+    __global__ void copy_matrix_trsm(rocblas_int rows,
+                                     rocblas_int cols,
+                                     rocblas_int elem_size,
+                                     const T*    a,
+                                     rocblas_int lda,
+                                     T*          b,
+                                     rocblas_int ldb)
     {
         size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
         if(tx < rows && ty < cols)
-            memcpy(static_cast<char*>(b) + (tx + ldb * ty) * elem_size,
-                   static_cast<const char*>(a) + (tx + lda * ty) * elem_size,
-                   elem_size);
+            b[tx + ldb * ty] = a[tx + lda * ty];
     }
 
     template <typename T>
     void copy_block_unit(hipStream_t rocblas_stream,
                          rocblas_int m,
                          rocblas_int n,
-                         const void* src,
+                         const T*    src,
                          rocblas_int src_ld,
-                         void*       dst,
+                         T*          dst,
                          rocblas_int dst_ld)
     {
         rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
@@ -677,7 +672,7 @@ namespace
         dim3        grid(blocksX, blocksY);
         dim3        threads(128, 8);
 
-        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+        hipLaunchKernelGGL(copy_matrix_trsm,
                            grid,
                            threads,
                            0,
@@ -725,8 +720,8 @@ namespace
                 handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
         }
 
-        void*       x_temp = x ? x : handle->get_trsm_Y();
-        const void* invA   = x ? supplied_invA : static_cast<const void*>(handle->get_trsm_invA());
+        T*       x_temp = x ? x : static_cast<T*>(handle->get_trsm_Y());
+        const T* invA   = x ? supplied_invA : static_cast<T*>(handle->get_trsm_invA());
 
         int         R            = k / BLOCK;
         constexpr T zero         = 0;
