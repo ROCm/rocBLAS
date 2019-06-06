@@ -422,7 +422,7 @@ void testing_gemm_ex(const Arguments& arg)
             hB[ldb + 1] = static_cast<Ti>(positive_two);
         }
     }
-    else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
+    else if(std::is_same<Ti, rocblas_bfloat16> {} && std::is_same<Tc, float> {})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38

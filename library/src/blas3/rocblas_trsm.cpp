@@ -662,7 +662,7 @@ namespace
                    static_cast<const char*>(a) + (tx + lda * ty) * elem_size,
                    elem_size);
     }
-  
+
     template <typename T>
     void copy_block_unit(hipStream_t rocblas_stream,
                          rocblas_int m,
