@@ -5,10 +5,10 @@
 # - run this script in master branch 
 # - after running this script merge master into develop 
 
-OLD_ROCBLAS_VERSION="2.2.8"
-NEW_ROCBLAS_VERSION="2.3.8"
+OLD_ROCBLAS_VERSION="2.2.9"
+NEW_ROCBLAS_VERSION="2.3.9"
 
-OLD_TENSILE_VERSION="tensile_tag 3729a300cec64734feef88b01155da831094c245"
+OLD_TENSILE_VERSION="tensile_tag 8b8549b61c3adb56ffe4d71b55857107ec0aff80"
 NEW_TENSILE_VERSION="tensile_tag \"develop\""
 
 sed -i "s/${OLD_ROCBLAS_VERSION}/${NEW_ROCBLAS_VERSION}/g" CMakeLists.txt
