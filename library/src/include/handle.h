@@ -114,8 +114,9 @@ struct _rocblas_handle
             return rocblas_status_internal_error;
 
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
-        size_t total   = 0;
-        size_t dummy[] = {total += roundup_memory_size(sizes)...};
+        // TODO: Replace with C++17 fold expression eventually
+        size_t total = 0;
+        auto dummy   = {total += roundup_memory_size(sizes)...};
 
         if(total > device_memory_query_size)
         {

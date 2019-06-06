@@ -4,6 +4,7 @@
 #include "handle.h"
 #include <cstdlib>
 #include <numeric>
+#include <cstdio>
 
 /*******************************************************************************
  * constructor
