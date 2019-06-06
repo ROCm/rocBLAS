@@ -103,7 +103,7 @@ struct _rocblas_handle
     bool is_device_memory_size_query() const { return device_memory_size_query; }
 
     // Sets the optimal size(s) of device memory for a kernel call
-    // Maximum size is accumuated in device_memory_query size
+    // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <
         typename... Ss,
@@ -140,12 +140,11 @@ struct _rocblas_handle
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 1048576;
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
 
-    static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
-                  "MIN_CHUNK_SIZE must be a power of two");
-
     // Round up size to the nearest MIN_CHUNK_SIZE
     static constexpr size_t roundup_memory_size(size_t size)
     {
+        static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
+                      "MIN_CHUNK_SIZE must be a power of two");
         return ((size - 1) | (MIN_CHUNK_SIZE - 1)) + 1;
     }
 
@@ -248,14 +247,14 @@ struct _rocblas_handle
 //     RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
 //     ...
 // }
-#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)       \
-    do                                                \
-    {                                                 \
-        rocblas_handle _tmp_handle = (h);             \
-        if(!_tmp_handle)                              \
-            return rocblas_status_invalid_handle;     \
-        if(tmp_handle->is_device_memory_size_query()) \
-            return rocblas_status_size_unchanged;     \
+#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)        \
+    do                                                 \
+    {                                                  \
+        rocblas_handle _tmp_handle = (h);              \
+        if(!_tmp_handle)                               \
+            return rocblas_status_invalid_handle;      \
+        if(_tmp_handle->is_device_memory_size_query()) \
+            return rocblas_status_size_unchanged;      \
     } while(0)
 
 namespace rocblas {
