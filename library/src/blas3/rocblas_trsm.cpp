@@ -662,7 +662,7 @@ namespace
                    static_cast<const char*>(a) + (tx + lda * ty) * elem_size,
                    elem_size);
     }
-
+  
     template <typename T>
     void copy_block_unit(hipStream_t rocblas_stream,
                          rocblas_int m,
@@ -1083,18 +1083,8 @@ rocblas_status rocblas_trsm_ex_template(rocblas_handle    handle,
         dim3        grid(blocksX, blocksY);
         dim3        threads(128, 8);
 
-        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           sizeof(T),
-                           x_temp,
-                           m,
-                           B,
-                           ldb);
+        hipLaunchKernelGGL(
+            copy_matrix_trsm, grid, threads, 0, rocblas_stream, m, n, sizeof(T), x_temp, m, B, ldb);
     }
 
     return status;

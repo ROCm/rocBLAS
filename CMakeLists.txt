@@ -5,6 +5,9 @@
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
 cmake_minimum_required( VERSION 3.5 )
 
+# We use C++14 features, this will add compile option: -std=c++14
+set( CMAKE_CXX_STANDARD 14 )
+
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
 if( WIN32 )
@@ -72,6 +75,8 @@ endif()
 
 if( CXX_VERSION_STRING MATCHES "clang" )
   message( STATUS "Use hip-clang to build for amdgpu backend" )
+# set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
+  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
 elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
 
