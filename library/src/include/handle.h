@@ -206,9 +206,8 @@ struct _rocblas_handle
             return std::tie(pointers[Is]...);
         }
 
-        // Copying and assignment is not allowed
-        operator _device_memory_alloc(const _device_memory_alloc&) = delete;
-        operator _device_memory_alloc& operator=(const _device_memory_alloc&) = delete;
+        // Assignment is not allowed
+        _device_memory_alloc& operator=(const _device_memory_alloc&) = delete;
 
         public:
         // The destructor marks the device memory as no longer in use
@@ -225,7 +224,7 @@ struct _rocblas_handle
                   typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
         operator T() const
         {
-            return T{pointers[0]};
+            return T(pointers[0]);
         }
     };
 

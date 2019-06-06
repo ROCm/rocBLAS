@@ -15,6 +15,9 @@
 #include "handle.h"
 #include "logging.h"
 #include "utility.h"
+#include <cstdlib>
+#include <cstdio>
+#include <tuple>
 
 namespace {
 
@@ -82,6 +85,38 @@ void strided_vector_copy(hipStream_t rocblas_stream,
                        size);
 }
 
+template <typename T>
+static __device__ __constant__ T device_constant_values_store[3];
+
+template <typename T>
+static constexpr T constant_values[3] = {-1, 0, 1};
+
+template <typename T>
+static const T* initialize_constants()
+{
+    T* addr;
+    if(hipMemCpyToSymbol(device_constant_values_store<T>,
+                         constant_values<T>,
+                         sizeof(constant_values<T>)) != hipSuccess ||
+       hipGetSymbolAddress((void**)&addr, device_constant_values_store<T>) != hipSuccess)
+    {
+        fputs("Error initializing constants in rocblas_trsv\n", stderr);
+        abort();
+    }
+    return addr;
+}
+
+template <typename T>
+static const T* device_constant_values = initialize_constants<T>();
+
+template <typename T>
+static inline auto get_constants(rocblas_handle handle)
+{
+    const T* neg1 = handle->pointer_mode == rocblas_pointer_mode_device ? device_constant_values<T>
+                                                                        : constant_values<T>;
+    return std::make_tuple(neg1, neg1 + 1, neg1 + 2);
+}
+
 template <rocblas_int BLOCK, typename T>
 rocblas_status rocblas_trsv_left(rocblas_handle handle,
                                  rocblas_fill uplo,
@@ -94,21 +129,10 @@ rocblas_status rocblas_trsv_left(rocblas_handle handle,
                                  const T* invA,
                                  T* X)
 {
-    static constexpr T negative_one = -1;
-    static constexpr T one          = 1;
-    static constexpr T zero         = 0;
-
-    const T* p_one          = &one;
-    const T* p_zero         = &zero;
-    const T* p_negative_one = &negative_one;
-
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        p_one          = reinterpret_cast<T*>(handle->get_trsv_one());
-        p_zero         = reinterpret_cast<T*>(handle->get_trsv_zero());
-        p_negative_one = reinterpret_cast<T*>(handle->get_trsv_negative_one());
-    }
-
+    const T* p_negative_one;
+    const T* p_zero;
+    const T* p_one;
+    std::tie(p_negative_one, p_zero, p_one) = get_constants<T>(handle);
     rocblas_int i, jb;
 
     // transB is always non-transpose
@@ -368,22 +392,12 @@ rocblas_status special_trsv_template(rocblas_handle handle,
 
     T* x_temp     = x ? x : reinterpret_cast<T*>(handle->get_trsm_Y());
     const T* invA = x ? supplied_invA : reinterpret_cast<T*>(handle->get_trsm_invA());
+    int R         = m / BLOCK;
 
-    int R                = m / BLOCK;
-    const T zero         = 0;
-    const T one          = 1;
-    const T negative_one = -1;
-
-    const T* p_one          = &one;
-    const T* p_zero         = &zero;
-    const T* p_negative_one = &negative_one;
-
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        p_one          = reinterpret_cast<T*>(handle->get_trsv_one());
-        p_zero         = reinterpret_cast<T*>(handle->get_trsv_zero());
-        p_negative_one = reinterpret_cast<T*>(handle->get_trsv_negative_one());
-    }
+    const T* p_negative_one;
+    const T* p_zero;
+    const T* p_one;
+    std::tie(p_negative_one, p_zero, p_one) = get_constants<T>(handle);
 
     for(int r = 0; r < R; r++)
     {
@@ -503,67 +517,6 @@ template <>
 static constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
 
 template <rocblas_int BLOCK, typename T>
-rocblas_status rocblas_trsv_ex_template(rocblas_handle handle,
-                                        rocblas_fill uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal diag,
-                                        rocblas_int m,
-                                        const T* A,
-                                        rocblas_int lda,
-                                        T* B,
-                                        rocblas_int incx,
-                                        const T* invA,
-                                        rocblas_int ldInvA,
-                                        const size_t* x_temp_size,
-                                        T* x_temp)
-{
-    if(!m)
-        return rocblas_status_success;
-
-    if(!invA)
-        return rocblas_status_memory_error;
-
-    if(!x_temp_size || (*x_temp_size) < m)
-        return rocblas_status_invalid_size;
-
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        static const T one{1};
-        static const T zero{0};
-        static const T negative_one{-1};
-
-        T* one_d = (T*)handle->get_trsv_one();
-        RETURN_IF_HIP_ERROR(hipMemcpy(one_d, &one, sizeof(T), hipMemcpyHostToDevice));
-        T* zero_d = (T*)handle->get_trsv_zero();
-        RETURN_IF_HIP_ERROR(hipMemcpy(zero_d, &zero, sizeof(T), hipMemcpyHostToDevice));
-        T* negative_one_d = (T*)handle->get_trsv_negative_one();
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(negative_one_d, &negative_one, sizeof(T), hipMemcpyHostToDevice));
-    }
-
-    hipStream_t rocblas_stream;
-    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
-    // TODO: workaround to fix negative incx issue
-    rocblas_int abs_incx = (incx > 0) ? incx : -incx;
-
-    if(incx < 0)
-    {
-        flip_vector(rocblas_stream, B, (m - 1) * abs_incx + 1);
-    }
-
-    rocblas_status status = rocblas_trsv_impl<BLOCK>(
-        handle, uplo, transA, diag, m, A, lda, B, abs_incx, invA, ldInvA, x_temp_size, x_temp);
-
-    if(incx < 0)
-    {
-        flip_vector(rocblas_stream, B, (m - 1) * abs_incx + 1);
-    }
-
-    return status;
-}
-
-template <rocblas_int BLOCK, typename T>
 rocblas_status rocblas_trsv_template(rocblas_handle handle,
                                      rocblas_fill uplo,
                                      rocblas_operation transA,
@@ -644,21 +597,6 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
     if(!m)
         return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                      : rocblas_status_success;
-
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        static const T one{1};
-        static const T zero{0};
-        static const T negative_one{-1};
-
-        T* one_d = (T*)handle->get_trsv_one();
-        RETURN_IF_HIP_ERROR(hipMemcpy(one_d, &one, sizeof(T), hipMemcpyHostToDevice));
-        T* zero_d = (T*)handle->get_trsv_zero();
-        RETURN_IF_HIP_ERROR(hipMemcpy(zero_d, &zero, sizeof(T), hipMemcpyHostToDevice));
-        T* negative_one_d = (T*)handle->get_trsv_negative_one();
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(negative_one_d, &negative_one, sizeof(T), hipMemcpyHostToDevice));
-    }
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
@@ -760,44 +698,6 @@ rocblas_status rocblas_trsv_template(rocblas_handle handle,
  */
 
 extern "C" {
-
-rocblas_status rocblas_strsv_ex(rocblas_handle handle,
-                                rocblas_fill uplo,
-                                rocblas_operation transA,
-                                rocblas_diagonal diag,
-                                rocblas_int m,
-                                const float* A,
-                                rocblas_int lda,
-                                float* x,
-                                rocblas_int incx,
-                                const float* invA,
-                                rocblas_int ldInvA,
-                                const size_t* x_temp_size,
-                                float* x_temp)
-{
-    static constexpr rocblas_int STRSV_BLOCK = 128;
-    return rocblas_trsv_ex_template<STRSV_BLOCK>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, invA, ldInvA, x_temp_size, x_temp);
-}
-
-rocblas_status rocblas_dtrsv_ex(rocblas_handle handle,
-                                rocblas_fill uplo,
-                                rocblas_operation transA,
-                                rocblas_diagonal diag,
-                                rocblas_int m,
-                                const double* A,
-                                rocblas_int lda,
-                                double* x,
-                                rocblas_int incx,
-                                const double* invA,
-                                rocblas_int ldInvA,
-                                const size_t* x_temp_size,
-                                double* x_temp)
-{
-    static constexpr rocblas_int DTRSV_BLOCK = 128;
-    return rocblas_trsv_ex_template<DTRSV_BLOCK>(
-        handle, uplo, transA, diag, m, A, lda, x, incx, invA, ldInvA, x_temp_size, x_temp);
-}
 
 rocblas_status rocblas_strsv(rocblas_handle handle,
                              rocblas_fill uplo,
