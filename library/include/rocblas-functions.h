@@ -509,7 +509,7 @@ rocblas_idzamin(rocblas_handle handle,
     @param[in]
     x         pointer storing vector x on the GPU.
     @param[in]
-    incx      rocblas_int      
+    incx      rocblas_int
               specifies the increment for the elements of x.
     @param[in]
     beta      specifies the scalar beta.
@@ -555,7 +555,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle handle,
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
         y_i := alpha*A_i**H*x_i + beta*y_i,
 
-    where (A_i, x_i, y_i) is the i-th instance of the batch. 
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha and beta are scalars, x_i and y_i are vectors and A_i is an
     m by n matrix.
 
@@ -591,7 +591,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle handle,
     incy        rocblas_int
                 specifies the increment for the elements of vectors y_i.
     @param[in]
-    batch_count rocblas_int 
+    batch_count rocblas_int
                 number of instances in the batch
 
     ********************************************************************/
@@ -632,7 +632,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle handle,
         y_i := alpha*A_i**T*x_i + beta*y_i,   or
         y_i := alpha*A_i**H*x_i + beta*y_i,
 
-    where (A_i, x_i, y_i) is the i-th instance of the batch. 
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha and beta are scalars, x_i and y_i are vectors and A_i is an
     m by n matrix.
 
@@ -657,7 +657,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle handle,
                 specifies the leading dimension of matrices A_i.
     @param[in]
     strideA     rocblas_int
-                stride from the start of one matrix (A_i) and the next one (A_i+1)  
+                stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
     x           pointer to the first vector (x_0) in the batch stored on the GPU.
     @param[in]
