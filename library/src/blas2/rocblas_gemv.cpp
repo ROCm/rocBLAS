@@ -35,6 +35,8 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
 {
     if(!handle)
         return rocblas_status_invalid_handle;
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
@@ -115,8 +117,6 @@ rocblas_status rocblas_gemv(rocblas_handle handle,
                         incy);
     }
 
-    if(!alpha || !beta)
-        return rocblas_status_invalid_pointer;
     if(!A || !x || !y)
         return rocblas_status_invalid_pointer;
     if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
