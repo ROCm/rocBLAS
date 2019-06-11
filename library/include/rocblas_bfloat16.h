@@ -237,13 +237,13 @@ inline __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
     a.data &= 0x7fff;
     return a;
 }
-inline rocblas_bfloat16 sin(rocblas_bfloat16 a) 
+inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(sinf(float(a)));
 }
 inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
 {
-    return rocblas_bfloat16(cosf(float(a))); 
+    return rocblas_bfloat16(cosf(float(a)));
 }
 
 #endif // __cplusplus
