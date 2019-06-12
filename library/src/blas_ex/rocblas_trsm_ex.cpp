@@ -3,16 +3,16 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
-#include "rocblas.h"
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "status.h"
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "rocblas_trsm.hpp"
+#include "status.h"
 #include "utility.h"
 #include <type_traits>
-#include "rocblas_trsm.hpp"
 
 constexpr size_t WORKBUF_TRSM_A_BLKS     = 10;
 constexpr size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
@@ -21,21 +21,21 @@ constexpr size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
 constexpr size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
 constexpr size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
 
-extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
-                                          rocblas_side side,
-                                          rocblas_fill uplo,
+extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
+                                          rocblas_side      side,
+                                          rocblas_fill      uplo,
                                           rocblas_operation trans_a,
-                                          rocblas_diagonal diag,
-                                          rocblas_int m,
-                                          rocblas_int n,
-                                          const void* alpha,
-                                          const void* a,
-                                          rocblas_int lda,
-                                          void* b,
-                                          rocblas_int ldb,
-                                          const void* invA,
-                                          rocblas_int ld_invA,
-                                          rocblas_datatype compute_type)
+                                          rocblas_diagonal  diag,
+                                          rocblas_int       m,
+                                          rocblas_int       n,
+                                          const void*       alpha,
+                                          const void*       a,
+                                          rocblas_int       lda,
+                                          void*             b,
+                                          rocblas_int       ldb,
+                                          const void*       invA,
+                                          rocblas_int       ld_invA,
+                                          rocblas_datatype  compute_type)
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -51,7 +51,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
     }
 
     static constexpr rocblas_int TRSM_BLOCK = 128;
-    rocblas_int k                           = (side == rocblas_side_left ? m : n);
+    rocblas_int                  k          = (side == rocblas_side_left ? m : n);
 
     // Attempt to allocate the optimal size
     void* x_temp_workspace = handle->device_memory_alloc(x_temp_size);
@@ -76,8 +76,9 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
 
     auto layer_mode = handle->layer_mode;
-    if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
-                     rocblas_layer_mode_log_profile))
+    if(layer_mode
+       & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+          | rocblas_layer_mode_log_profile))
     {
         auto trans_a_letter      = rocblas_transpose_letter(trans_a);
         auto compute_type_string = rocblas_datatype_string(compute_type);

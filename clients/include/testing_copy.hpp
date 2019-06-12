@@ -2,28 +2,28 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
 #include "cblas_interface.hpp"
 #include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "unit.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
-    rocblas_int N                 = 100;
-    rocblas_int incx              = 1;
-    rocblas_int incy              = 1;
+    rocblas_int         N         = 100;
+    rocblas_int         incx      = 1;
+    rocblas_int         incy      = 1;
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
     rocblas_local_handle handle;
-    device_vector<T> dx(safe_size);
-    device_vector<T> dy(safe_size);
+    device_vector<T>     dx(safe_size);
+    device_vector<T>     dy(safe_size);
     if(!dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -41,17 +41,17 @@ void testing_copy_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_copy(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
+    rocblas_int          N    = arg.N;
+    rocblas_int          incx = arg.incx;
+    rocblas_int          incy = arg.incy;
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
-        device_vector<T> dx(safe_size);
-        device_vector<T> dy(safe_size);
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
         if(!dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -64,8 +64,8 @@ void testing_copy(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_x        = N * static_cast<size_t>(abs_incx);
-    size_t size_y        = N * static_cast<size_t>(abs_incy);
+    size_t      size_x   = N * static_cast<size_t>(abs_incx);
+    size_t      size_y   = N * static_cast<size_t>(abs_incy);
 
     // allocate memory on device
     device_vector<T> dx(size_x);

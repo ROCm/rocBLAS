@@ -5,16 +5,16 @@
 #ifndef HANDLE_H
 #define HANDLE_H
 
+#include "definitions.h"
+#include "rocblas.h"
+#include <array>
 #include <cstdlib>
 #include <fstream>
-#include <iostream>
-#include <utility>
-#include <tuple>
-#include <array>
-#include <type_traits>
-#include "rocblas.h"
-#include "definitions.h"
 #include <hip/hip_runtime_api.h>
+#include <iostream>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -24,18 +24,18 @@
 ******************************************************************************/
 struct _rocblas_handle
 {
-    private:
+private:
     // Emulate C++17 std::conjunction
     template <class...>
     struct conjunction : std::true_type
     {
     };
     template <class T, class... Ts>
-    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
+    struct conjunction<T, Ts...> : std::integral_constant<bool, T {} && conjunction<Ts...> {}>
     {
     };
 
-    public:
+public:
     _rocblas_handle();
     ~_rocblas_handle();
 
@@ -60,7 +60,7 @@ struct _rocblas_handle
         return rocblas_status_success;
     }
 
-    rocblas_int device;
+    rocblas_int     device;
     hipDeviceProp_t device_properties;
 
     // rocblas by default take the system default stream 0 users cannot create
@@ -100,14 +100,17 @@ struct _rocblas_handle
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
 
     // Returns whether the current kernel call is a device memory size query
-    bool is_device_memory_size_query() const { return device_memory_size_query; }
+    bool is_device_memory_size_query() const
+    {
+        return device_memory_size_query;
+    }
 
     // Sets the optimal size(s) of device memory for a kernel call
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
-    template <
-        typename... Ss,
-        typename = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+    template <typename... Ss,
+              typename
+              = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...> {}>::type>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
@@ -116,7 +119,7 @@ struct _rocblas_handle
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
         // TODO: Replace with C++17 fold expression eventually
         size_t total = 0;
-        auto dummy   = {total += roundup_memory_size(sizes)...};
+        auto   dummy = {total += roundup_memory_size(sizes)...};
 
         if(total > device_memory_query_size)
         {
@@ -129,13 +132,13 @@ struct _rocblas_handle
     // Allocate one or more sizes
     template <typename... Ss,
               typename = typename std::enable_if<
-                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...> {}>::type>
     auto device_memory_alloc(Ss... sizes)
     {
         return _device_memory_alloc<sizeof...(Ss)>(this, static_cast<size_t>(sizes)...);
     }
 
-    private:
+private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 1048576;
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
@@ -149,11 +152,11 @@ struct _rocblas_handle
     }
 
     // Variables holding state of device memory allocation
-    size_t device_memory_size             = 0;
-    bool device_memory_is_rocblas_managed = true;
-    bool device_memory_in_use             = false;
-    void* device_memory                   = nullptr;
-    bool device_memory_size_query         = false;
+    size_t device_memory_size               = 0;
+    bool   device_memory_is_rocblas_managed = true;
+    bool   device_memory_in_use             = false;
+    void*  device_memory                    = nullptr;
+    bool   device_memory_size_query         = false;
     size_t device_memory_query_size;
 
     // Helper for device memory allocator
@@ -164,7 +167,7 @@ struct _rocblas_handle
     class _device_memory_alloc
     {
         friend struct _rocblas_handle;
-        rocblas_handle handle;
+        rocblas_handle       handle;
         std::array<void*, N> pointers;
 
         // Allocate one or more pointers to buffers of different sizes
@@ -175,8 +178,8 @@ struct _rocblas_handle
             // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // total contains the total of all sizes at the end of the calculation of offsets.
             size_t oldtotal, total = 0;
-            size_t offsets[] = {
-                (oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
+            size_t offsets[]
+                = {(oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
 
             // We allocate the total amount needed. This is a constant-time operation if the space
             // is already available, or if an explicit size has been allocated.
@@ -195,7 +198,8 @@ struct _rocblas_handle
         // Constructor
         template <typename... Ss>
         explicit _device_memory_alloc(rocblas_handle handle, Ss... sizes)
-            : handle(handle), pointers(allocate_pointers(sizes...))
+            : handle(handle)
+            , pointers(allocate_pointers(sizes...))
         {
         }
 
@@ -209,19 +213,28 @@ struct _rocblas_handle
         // Assignment is not allowed
         _device_memory_alloc& operator=(const _device_memory_alloc&) = delete;
 
-        public:
+    public:
         // The destructor marks the device memory as no longer in use
-        ~_device_memory_alloc() { handle->device_memory_in_use = false; }
+        ~_device_memory_alloc()
+        {
+            handle->device_memory_in_use = false;
+        }
 
         // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool() const { return pointers[0] != nullptr; }
+        explicit operator bool() const
+        {
+            return pointers[0] != nullptr;
+        }
 
         // Conversion to std::tuple<void*&...> to be assigned to std::tie()
-        operator auto() { return tie_pointers(std::make_index_sequence<N>{}); }
+        operator auto()
+        {
+            return tie_pointers(std::make_index_sequence<N> {});
+        }
 
         // Conversion to any pointer type, but only if N == 1
         template <typename T,
-                  typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
+                  typename = typename std::enable_if<std::is_pointer<T> {} && N == 1>::type>
         operator T() const
         {
             return T(pointers[0]);
@@ -257,8 +270,9 @@ struct _rocblas_handle
             return rocblas_status_size_unchanged;      \
     } while(0)
 
-namespace rocblas {
-void reinit_logs(); // Reinitialize static data (for testing only)
+namespace rocblas
+{
+    void reinit_logs(); // Reinitialize static data (for testing only)
 }
 
 #endif

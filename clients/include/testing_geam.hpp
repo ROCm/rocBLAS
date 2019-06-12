@@ -2,17 +2,17 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 /* ============================================================================================ */
 
@@ -158,9 +158,9 @@ void testing_geam(const Arguments& arg)
     if(M <= 0 || N <= 0 || lda < A_row || ldb < B_row || ldc < M)
     {
         static const size_t safe_size = 100; // arbitararily set to 100
-        device_vector<T> dA(safe_size);
-        device_vector<T> dB(safe_size);
-        device_vector<T> dC(safe_size);
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dB(safe_size);
+        device_vector<T>    dC(safe_size);
         if(!dA || !dB || !dC)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -240,8 +240,8 @@ void testing_geam(const Arguments& arg)
         {
             for(int i2 = 0; i2 < N; i2++)
             {
-                hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A] +
-                                         h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
+                hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                         + h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
             }
         }
 
@@ -295,8 +295,8 @@ void testing_geam(const Arguments& arg)
                 {
                     for(int i2 = 0; i2 < N; i2++)
                     {
-                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A] +
-                                                 h_beta * hB[i1 * inc1_B + i2 * inc2_B];
+                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                                 + h_beta * hB[i1 * inc1_B + i2 * inc2_B];
                     }
                 }
 
@@ -347,8 +347,8 @@ void testing_geam(const Arguments& arg)
                 {
                     for(int i2 = 0; i2 < N; i2++)
                     {
-                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A] +
-                                                 h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
+                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                                 + h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
                     }
                 }
 

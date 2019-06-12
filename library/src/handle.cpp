@@ -2,9 +2,9 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
+#include <cstdio>
 #include <cstdlib>
 #include <numeric>
-#include <cstdio>
 
 /*******************************************************************************
  * constructor
@@ -26,8 +26,8 @@ _rocblas_handle::_rocblas_handle()
     // allocate a default initial size and manage device memory itself,
     // growing it as necessary.
     auto env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
-    device_memory_is_rocblas_managed =
-        !env || sscanf(env, "%zu", &device_memory_size) != 1 || !device_memory_size;
+    device_memory_is_rocblas_managed
+        = !env || sscanf(env, "%zu", &device_memory_size) != 1 || !device_memory_size;
     if(device_memory_is_rocblas_managed)
         device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
@@ -164,13 +164,13 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 /*******************************************************************************
  * Static handle data
  ******************************************************************************/
-rocblas_layer_mode _rocblas_handle::layer_mode = rocblas_layer_mode_none;
-std::ofstream _rocblas_handle::log_trace_ofs;
-std::ostream* _rocblas_handle::log_trace_os;
-std::ofstream _rocblas_handle::log_bench_ofs;
-std::ostream* _rocblas_handle::log_bench_os;
-std::ofstream _rocblas_handle::log_profile_ofs;
-std::ostream* _rocblas_handle::log_profile_os;
+rocblas_layer_mode    _rocblas_handle::layer_mode = rocblas_layer_mode_none;
+std::ofstream         _rocblas_handle::log_trace_ofs;
+std::ostream*         _rocblas_handle::log_trace_os;
+std::ofstream         _rocblas_handle::log_bench_ofs;
+std::ostream*         _rocblas_handle::log_bench_os;
+std::ofstream         _rocblas_handle::log_profile_ofs;
+std::ostream*         _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
 
 /**
@@ -201,7 +201,7 @@ _rocblas_handle::init _rocblas_handle::handle_init;
  *              will stream to log_ofs. Else it will stream to std::cerr.
  */
 
-static void open_log_stream(const char* environment_variable_name,
+static void open_log_stream(const char*    environment_variable_name,
                             std::ostream*& log_os,
                             std::ofstream& log_ofs)
 {
@@ -249,12 +249,13 @@ _rocblas_handle::init::init()
 /*******************************************************************************
  * Static reinitialization (for testing only)
  ******************************************************************************/
-namespace rocblas {
-void reinit_logs()
+namespace rocblas
 {
-    _rocblas_handle::log_trace_ofs.close();
-    _rocblas_handle::log_bench_ofs.close();
-    _rocblas_handle::log_profile_ofs.close();
-    new(&_rocblas_handle::handle_init) _rocblas_handle::init;
-}
+    void reinit_logs()
+    {
+        _rocblas_handle::log_trace_ofs.close();
+        _rocblas_handle::log_bench_ofs.close();
+        _rocblas_handle::log_profile_ofs.close();
+        new(&_rocblas_handle::handle_init) _rocblas_handle::init;
+    }
 } // namespace rocblas
