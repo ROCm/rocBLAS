@@ -2,49 +2,62 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <iostream>
+
+#include <cstdio>
+#include <cstring>
+#include <string>
+
+#include <cctype>
+
+#include <boost/program_options.hpp>
+
+#include <algorithm>
+#include <stdexcept>
+#include <type_traits>
+
 #include "rocblas.h"
+#include "utility.hpp"
+
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
-#include "rocblas_parse_data.hpp"
+#include "testing_iamax_iamin.hpp"
+
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
-#include "testing_geam.hpp"
+#include "testing_swap.hpp"
+
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
-#include "testing_iamax_iamin.hpp"
+#include "testing_syr.hpp"
+
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
-#include "testing_set_get_matrix.hpp"
-#include "testing_set_get_vector.hpp"
-#include "testing_swap.hpp"
-#include "testing_syr.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
+
+#include "testing_geam.hpp"
+#include "testing_set_get_vector.hpp"
+
+#include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
-#include "utility.hpp"
-#include <algorithm>
-#include <boost/program_options.hpp>
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
+
+#include "rocblas_parse_data.hpp"
 
 using namespace std::literals;
 
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
-#include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
-#include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
+
+#include "testing_gemm_ex.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or complex, the test is marked invalid
@@ -57,7 +70,7 @@ template <typename Ti, typename To, typename Tc>
 struct perf_gemm_ex<Ti,
                     To,
                     Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+                    typename std::enable_if<!std::is_same<Ti, void> {} && !is_complex<Ti>>::type>
 {
     explicit operator bool()
     {
@@ -81,7 +94,7 @@ struct perf_gemm_strided_batched_ex<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+    typename std::enable_if<!std::is_same<Ti, void> {} && !is_complex<Ti>>::type>
 {
     explicit operator bool()
     {
@@ -103,7 +116,7 @@ struct perf_blas : rocblas_test_invalid
 template <typename T>
 struct perf_blas<
     T,
-    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
 {
     explicit operator bool()
     {
@@ -162,7 +175,7 @@ struct perf_blas<
 };
 
 template <typename T>
-struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half> {}>::type>
 {
     explicit operator bool()
     {
