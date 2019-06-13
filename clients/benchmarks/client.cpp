@@ -70,7 +70,7 @@ template <typename Ti, typename To, typename Tc>
 struct perf_gemm_ex<Ti,
                     To,
                     Tc,
-                    typename std::enable_if<!std::is_same<Ti, void> {} && !is_complex<Ti>>::type>
+                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
     explicit operator bool()
     {
@@ -94,7 +94,7 @@ struct perf_gemm_strided_batched_ex<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void> {} && !is_complex<Ti>>::type>
+    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
     explicit operator bool()
     {
@@ -116,7 +116,7 @@ struct perf_blas : rocblas_test_invalid
 template <typename T>
 struct perf_blas<
     T,
-    typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool()
     {
@@ -175,7 +175,7 @@ struct perf_blas<
 };
 
 template <typename T>
-struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half> {}>::type>
+struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
     explicit operator bool()
     {
