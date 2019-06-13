@@ -2,26 +2,26 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_syr_bad_arg()
 {
-    rocblas_fill uplo = rocblas_fill_upper;
-    rocblas_int N     = 100;
-    rocblas_int incx  = 1;
-    rocblas_int lda   = 100;
-    T alpha           = 0.6;
+    rocblas_fill         uplo  = rocblas_fill_upper;
+    rocblas_int          N     = 100;
+    rocblas_int          incx  = 1;
+    rocblas_int          lda   = 100;
+    T                    alpha = 0.6;
     rocblas_local_handle handle;
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
@@ -50,11 +50,11 @@ void testing_syr_bad_arg()
 template <typename T>
 void testing_syr(const Arguments& arg)
 {
-    rocblas_int N     = arg.N;
-    rocblas_int incx  = arg.incx;
-    rocblas_int lda   = arg.lda;
-    T h_alpha         = arg.alpha;
-    rocblas_fill uplo = char2rocblas_fill(arg.uplo);
+    rocblas_int          N       = arg.N;
+    rocblas_int          incx    = arg.incx;
+    rocblas_int          lda     = arg.lda;
+    T                    h_alpha = arg.alpha;
+    rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory

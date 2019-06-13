@@ -2,12 +2,14 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-
 #include <stdio.h>
-#include <sstream>
 #include <string.h>
+
+#include <sstream>
+
 #include "definitions.h"
 #include "rocblas-types.h"
+
 #include "rocblas-functions.h"
 #include "rocblas-version.h"
 

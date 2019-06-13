@@ -2,17 +2,17 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_symv(const Arguments& arg)
@@ -37,9 +37,9 @@ void testing_symv(const Arguments& arg)
     if(N < 0 || lda < 0 || incx < 0 || incy < 0)
     {
         static const size_t safe_size = 100;
-        device_vector<T> dA(safe_size);
-        device_vector<T> dx(safe_size);
-        device_vector<T> dy(safe_size);
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
         if(!dA || !dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

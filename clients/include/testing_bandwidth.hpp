@@ -3,31 +3,31 @@
  *
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
 #include "cblas_interface.hpp"
 #include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "unit.hpp"
+#include "utility.hpp"
 
 /* ============================================================================================ */
 
 template <typename T>
 void testing_bandwidth(const Arguments& arg)
 {
-    rocblas_int N    = 25 * 1e7;
-    rocblas_int incx = 1;
-    size_t size_X    = N * static_cast<size_t>(incx);
-    T alpha          = 2.0;
+    rocblas_int N      = 25 * 1e7;
+    rocblas_int incx   = 1;
+    size_t      size_X = N * static_cast<size_t>(incx);
+    T           alpha  = 2.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_X);
     host_vector<T> hz(size_X);
-    double gpu_time_used, gpu_bandwidth;
+    double         gpu_time_used, gpu_bandwidth;
 
     rocblas_local_handle handle;
 

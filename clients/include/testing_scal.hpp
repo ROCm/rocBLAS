@@ -2,23 +2,23 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
 #include "cblas_interface.hpp"
 #include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "unit.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
-    rocblas_int N    = 100;
-    rocblas_int incx = 1;
-    T alpha          = 0.6;
+    rocblas_int N     = 100;
+    rocblas_int incx  = 1;
+    T           alpha = 0.6;
 
     rocblas_local_handle handle;
 
@@ -43,9 +43,9 @@ void testing_scal_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_scal(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    T h_alpha        = arg.alpha;
+    rocblas_int N       = arg.N;
+    rocblas_int incx    = arg.incx;
+    T           h_alpha = arg.alpha;
 
     rocblas_local_handle handle;
 
@@ -53,7 +53,7 @@ void testing_scal(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T> dx(safe_size);
+        device_vector<T>    dx(safe_size);
         if(!dx)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

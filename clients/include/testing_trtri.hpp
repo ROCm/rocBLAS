@@ -2,18 +2,18 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "near.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "near.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_trtri(const Arguments& arg)
@@ -28,7 +28,7 @@ void testing_trtri(const Arguments& arg)
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;
 
-    rocblas_fill uplo     = char2rocblas_fill(char_uplo);
+    rocblas_fill     uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
     rocblas_local_handle handle;
@@ -37,8 +37,8 @@ void testing_trtri(const Arguments& arg)
     if(N < 0 || lda < 0 || lda < N)
     {
         static const size_t safe_size = 100;
-        device_vector<T> dA(safe_size);
-        device_vector<T> dinvA(safe_size);
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dinvA(safe_size);
         if(!dA || !dinvA)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -78,8 +78,8 @@ void testing_trtri(const Arguments& arg)
 
             if(j % 2)
                 hA[i + j * lda] *= -1;
-            if(uplo == rocblas_fill_lower &&
-               j > i) // need to explicitly set unsused side to 0 if using it for temp storage
+            if(uplo == rocblas_fill_lower
+               && j > i) // need to explicitly set unsused side to 0 if using it for temp storage
                 hA[i + j * lda] = 0.0f;
             else if(uplo == rocblas_fill_upper && j < i)
                 hA[i + j * lda] = 0.0f;

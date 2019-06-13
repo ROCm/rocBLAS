@@ -5,13 +5,13 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
-#include <type_traits>
-#include <string>
-#include <iostream>
-#include <cstdio>
-#include <vector>
 #include "rocblas.h"
 #include "rocblas_test.hpp"
+#include <cstdio>
+#include <iostream>
+#include <string>
+#include <type_traits>
+#include <vector>
 
 /*!\file
  * \brief provide common utilities
@@ -23,13 +23,25 @@ class rocblas_local_handle
 {
     rocblas_handle handle;
 
-    public:
-    rocblas_local_handle() { rocblas_create_handle(&handle); }
-    ~rocblas_local_handle() { rocblas_destroy_handle(handle); }
+public:
+    rocblas_local_handle()
+    {
+        rocblas_create_handle(&handle);
+    }
+    ~rocblas_local_handle()
+    {
+        rocblas_destroy_handle(handle);
+    }
 
     // Allow rocblas_local_handle to be used anywhere rocblas_handle is expected
-    operator rocblas_handle&() { return handle; }
-    operator const rocblas_handle&() const { return handle; }
+    operator rocblas_handle&()
+    {
+        return handle;
+    }
+    operator const rocblas_handle&() const
+    {
+        return handle;
+    }
 };
 
 /* ============================================================================================ */

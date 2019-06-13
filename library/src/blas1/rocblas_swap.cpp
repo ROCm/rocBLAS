@@ -10,79 +10,80 @@
 #include "logging.h"
 #include "utility.h"
 
-namespace {
-static constexpr int NB = 256;
-
-template <typename T>
-__global__ void swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
+namespace
 {
-    ssize_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    if(tid < n)
+    static constexpr int NB = 256;
+
+    template <typename T>
+    __global__ void swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
-        auto tmp      = y[tid * incy];
-        y[tid * incy] = x[tid * incx];
-        x[tid * incx] = tmp;
+        ssize_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        if(tid < n)
+        {
+            auto tmp      = y[tid * incy];
+            y[tid * incy] = x[tid * incx];
+            x[tid * incx] = tmp;
+        }
     }
-}
 
-template <typename>
-static constexpr char rocblas_swap_name[] = "unknown";
-template <>
-static constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
-template <>
-static constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
-template <>
-static constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
-template <>
-static constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
-template <>
-static constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
+    template <typename>
+    static constexpr char rocblas_swap_name[] = "unknown";
+    template <>
+    static constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
+    template <>
+    static constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
+    template <>
+    static constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
+    template <>
+    static constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
+    template <>
+    static constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
 
-template <class T>
-rocblas_status
-rocblas_swap(rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
-{
-    if(!handle)
-        return rocblas_status_invalid_handle;
-    auto layer_mode = handle->layer_mode;
+    template <class T>
+    rocblas_status rocblas_swap(
+        rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
+    {
+        if(!handle)
+            return rocblas_status_invalid_handle;
+        auto layer_mode = handle->layer_mode;
 
-    if(layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, rocblas_swap_name<T>, n, x, incx, y, incy);
-    if(layer_mode & rocblas_layer_mode_log_bench)
-        log_bench(handle,
-                  "./rocblas-bench -f swap -r",
-                  rocblas_precision_string<T>,
-                  "-n",
-                  n,
-                  "--incx",
-                  incx,
-                  "--incy",
-                  incy);
-    if(layer_mode & rocblas_layer_mode_log_profile)
-        log_profile(handle, rocblas_swap_name<T>, "N", n, "incx", incx, "incy", incy);
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_swap_name<T>, n, x, incx, y, incy);
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f swap -r",
+                      rocblas_precision_string<T>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx,
+                      "--incy",
+                      incy);
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_swap_name<T>, "N", n, "incx", incx, "incy", incy);
 
-    if(!x || !y)
-        return rocblas_status_invalid_pointer;
-    /*
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
+        /*
      * Quick return if possible.
      */
-    if(n <= 0)
+        if(n <= 0)
+            return rocblas_status_success;
+
+        hipStream_t rocblas_stream = handle->rocblas_stream;
+        int         blocks         = (n - 1) / NB + 1;
+        dim3        grid(blocks);
+        dim3        threads(NB);
+
+        if(incx < 0)
+            x -= ssize_t(incx) * (n - 1);
+        if(incy < 0)
+            y -= ssize_t(incy) * (n - 1);
+
+        hipLaunchKernelGGL(swap_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
+
         return rocblas_status_success;
-
-    hipStream_t rocblas_stream = handle->rocblas_stream;
-    int blocks                 = (n - 1) / NB + 1;
-    dim3 grid(blocks);
-    dim3 threads(NB);
-
-    if(incx < 0)
-        x -= ssize_t(incx) * (n - 1);
-    if(incy < 0)
-        y -= ssize_t(incy) * (n - 1);
-
-    hipLaunchKernelGGL(swap_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
-
-    return rocblas_status_success;
-}
+    }
 
 } // namespace
 

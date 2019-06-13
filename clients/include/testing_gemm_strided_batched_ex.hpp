@@ -2,19 +2,19 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "near.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "near.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 #define DEBUG_PRINT false
 
@@ -47,11 +47,11 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
     const float alpha_float = 1.0;
     const float beta_float  = 1.0;
 
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index = 0;
-    rocblas_int flags      = 0;
-    size_t workspace_size  = 0;
-    void* workspace        = nullptr;
+    rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+    int32_t           solution_index = 0;
+    rocblas_int       flags          = 0;
+    size_t            workspace_size = 0;
+    void*             workspace      = nullptr;
 
     const size_t safe_size = 100;
 
@@ -306,14 +306,14 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_strided_batched_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo = static_cast<rocblas_gemm_algo>(arg.algo);
-    int32_t solution_index = arg.solution_index;
-    uint32_t flags         = arg.flags;
-    size_t workspace_size  = arg.workspace_size;
-    void* workspace        = nullptr;
+    rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
+    int32_t           solution_index = arg.solution_index;
+    uint32_t          flags          = arg.flags;
+    size_t            workspace_size = arg.workspace_size;
+    void*             workspace      = nullptr;
 
     bool nantest = rocblas_isnan(arg.beta);
-    Tc h_alpha_Tc, h_beta_Tc;
+    Tc   h_alpha_Tc, h_beta_Tc;
     if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
@@ -332,38 +332,39 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         return;
     }
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    double               gpu_time_used, cpu_time_used;
+    double               rocblas_gflops, cblas_gflops;
+    double               rocblas_error = 0.0;
     rocblas_local_handle handle;
-    auto transA = char2rocblas_operation(arg.transA);
-    auto transB = char2rocblas_operation(arg.transB);
-    auto M = arg.M, N = arg.N, K = arg.K;
-    auto lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
-    auto stride_a = arg.stride_a, stride_b = arg.stride_b;
-    auto stride_c = arg.stride_c, stride_d = arg.stride_d;
-    auto A_row       = transA == rocblas_operation_none ? M : K;
-    auto A_col       = transA == rocblas_operation_none ? K : M;
-    auto B_row       = transB == rocblas_operation_none ? K : N;
-    auto B_col       = transB == rocblas_operation_none ? N : K;
-    auto batch_count = arg.batch_count;
+    auto                 transA = char2rocblas_operation(arg.transA);
+    auto                 transB = char2rocblas_operation(arg.transB);
+    auto                 M = arg.M, N = arg.N, K = arg.K;
+    auto                 lda = arg.lda, ldb = arg.ldb, ldc = arg.ldc, ldd = arg.ldd;
+    auto                 stride_a = arg.stride_a, stride_b = arg.stride_b;
+    auto                 stride_c = arg.stride_c, stride_d = arg.stride_d;
+    auto                 A_row       = transA == rocblas_operation_none ? M : K;
+    auto                 A_col       = transA == rocblas_operation_none ? K : M;
+    auto                 B_row       = transB == rocblas_operation_none ? K : N;
+    auto                 B_col       = transB == rocblas_operation_none ? N : K;
+    auto                 batch_count = arg.batch_count;
 
     // Early exit
     if(!M || !N || !batch_count)
         return;
 
     // check for invalid sizes
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
-       batch_count < 0 || (std::is_same<Ti, int8_t>{} &&
-                           (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
-                            (transB == rocblas_operation_none && ldb % 4 != 0) ||
-                            stride_a % 4 != 0 || stride_b % 4 != 0)))
+    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
+       || batch_count < 0
+       || (std::is_same<Ti, int8_t>{}
+           && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
+               || (transB == rocblas_operation_none && ldb % 4 != 0) || stride_a % 4 != 0
+               || stride_b % 4 != 0)))
     {
         static const size_t safe_size = 100;
-        device_vector<Ti> dA(safe_size);
-        device_vector<Ti> dB(safe_size);
-        device_vector<To> dC(safe_size);
-        device_vector<To> dD(safe_size);
+        device_vector<Ti>   dA(safe_size);
+        device_vector<Ti>   dB(safe_size);
+        device_vector<To>   dC(safe_size);
+        device_vector<To>   dD(safe_size);
         if(!dA || !dB || !dC || !dD)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -433,8 +434,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     device_vector<To> dD(size_d);
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
-    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || (!dD && size_d) || !d_alpha_Tc ||
-       !d_beta_Tc)
+    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || (!dD && size_d) || !d_alpha_Tc
+       || !d_beta_Tc)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -681,8 +682,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                 for(int i2 = 0; i2 < N; i2++)
                     for(int i1 = 0; i1 < M; i1++)
                     {
-                        hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] =
-                            hC[i1 + (i2 * ldc) + (i3 * stride_c)];
+                        hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
+                            = hC[i1 + (i2 * ldc) + (i3 * stride_c)];
                     }
         cpu_time_used = get_time_us();
 
@@ -722,8 +723,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
             {
                 for(int i1 = 0; i1 < M; i1++)
                 {
-                    if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] !=
-                       hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
+                    if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
+                       != hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
                     {
                         if(std::is_same<To, rocblas_half>{})
                         {
@@ -765,10 +766,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 =
-                fabs(norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1));
-            auto err2 =
-                fabs(norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2));
+            auto err1 = fabs(
+                norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1));
+            auto err2 = fabs(
+                norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
@@ -851,8 +852,8 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                             workspace);
         }
         gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_gflops =
-            gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
+        rocblas_gflops
+            = gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout
             << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,ldd,stride_"

@@ -2,35 +2,35 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_ger_bad_arg(const Arguments& arg)
 {
-    rocblas_int M    = 100;
-    rocblas_int N    = 100;
-    rocblas_int incx = 1;
-    rocblas_int incy = 1;
-    rocblas_int lda  = 100;
-    T alpha          = 0.6;
+    rocblas_int M     = 100;
+    rocblas_int N     = 100;
+    rocblas_int incx  = 1;
+    rocblas_int incy  = 1;
+    rocblas_int lda   = 100;
+    T           alpha = 0.6;
 
     rocblas_local_handle handle;
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A        = lda * static_cast<size_t>(N);
-    size_t size_x        = M * static_cast<size_t>(abs_incx);
-    size_t size_y        = N * static_cast<size_t>(abs_incy);
+    size_t      size_A   = lda * static_cast<size_t>(N);
+    size_t      size_x   = M * static_cast<size_t>(abs_incx);
+    size_t      size_y   = N * static_cast<size_t>(abs_incy);
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -55,12 +55,12 @@ void testing_ger_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_ger(const Arguments& arg)
 {
-    rocblas_int M    = arg.M;
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
-    rocblas_int lda  = arg.lda;
-    T h_alpha        = (T)arg.alpha;
+    rocblas_int M       = arg.M;
+    rocblas_int N       = arg.N;
+    rocblas_int incx    = arg.incx;
+    rocblas_int incy    = arg.incy;
+    rocblas_int lda     = arg.lda;
+    T           h_alpha = (T)arg.alpha;
 
     rocblas_local_handle handle;
 
@@ -68,9 +68,9 @@ void testing_ger(const Arguments& arg)
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T> dA_1(safe_size);
-        device_vector<T> dx(safe_size);
-        device_vector<T> dy(safe_size);
+        device_vector<T>    dA_1(safe_size);
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
         if(!dA_1 || !dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

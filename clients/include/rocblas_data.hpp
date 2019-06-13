@@ -5,19 +5,19 @@
 #ifndef ROCBLAS_DATA_H_
 #define ROCBLAS_DATA_H_
 
-#include <iostream>
-#include <fstream>
-#include <iterator>
-#include <string>
-#include <cstring>
-#include <cstdlib>
-#include <cstdio>
-#include <functional>
-#include <cerrno>
-#include <utility>
-#include <boost/iterator/filter_iterator.hpp>
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"
+#include <boost/iterator/filter_iterator.hpp>
+#include <cerrno>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <fstream>
+#include <functional>
+#include <iostream>
+#include <iterator>
+#include <string>
+#include <utility>
 
 // Class used to read Arguments data into the tests
 class RocBLAS_TestData
@@ -25,12 +25,12 @@ class RocBLAS_TestData
     // data filename
     static auto& filename()
     {
-        static std::string filename =
-            "(Uninitialized data. RocBLAS_TestData::set_filename needs to be called first.)";
+        static std::string filename
+            = "(Uninitialized data. RocBLAS_TestData::set_filename needs to be called first.)";
         return filename;
     }
 
-    public:
+public:
     // filter iterator
     using iterator = boost::filter_iterator<std::function<bool(const Arguments&)>,
                                             std::istream_iterator<Arguments>>;
@@ -77,7 +77,10 @@ class RocBLAS_TestData
     }
 
     // end() iterator
-    static iterator end() { return {}; }
+    static iterator end()
+    {
+        return {};
+    }
 };
 
 #endif

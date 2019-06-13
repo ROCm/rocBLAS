@@ -1,20 +1,20 @@
-#include "rocblas-types.h"
 #include "Tensile.h"
+#include "rocblas-types.h"
 
 /*******************************************************************************
  * Infer Batch Strides
  ******************************************************************************/
 inline void infer_batch_strides(rocblas_operation trans_a,
                                 rocblas_operation trans_b,
-                                rocblas_int m,
-                                rocblas_int n,
-                                rocblas_int k,
-                                rocblas_int ld_a,
-                                rocblas_int* stride_a,
-                                rocblas_int ld_b,
-                                rocblas_int* stride_b,
-                                rocblas_int ld_c,
-                                rocblas_int* stride_c)
+                                rocblas_int       m,
+                                rocblas_int       n,
+                                rocblas_int       k,
+                                rocblas_int       ld_a,
+                                rocblas_int*      stride_a,
+                                rocblas_int       ld_b,
+                                rocblas_int*      stride_b,
+                                rocblas_int       ld_c,
+                                rocblas_int*      stride_c)
 {
 
     rocblas_int num_cols_c = n;
@@ -33,24 +33,24 @@ inline void infer_batch_strides(rocblas_operation trans_a,
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/
-inline rocblas_status validateArgs(rocblas_handle handle,
+inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_operation trans_a,
                                    rocblas_operation trans_b,
-                                   rocblas_int m,
-                                   rocblas_int n,
-                                   rocblas_int k,
-                                   const void* alpha,
-                                   const void* a,
-                                   rocblas_int ld_a,
-                                   rocblas_int stride_a,
-                                   const void* b,
-                                   rocblas_int ld_b,
-                                   rocblas_int stride_b,
-                                   const void* beta,
-                                   void* c,
-                                   rocblas_int ld_c,
-                                   rocblas_int stride_c,
-                                   rocblas_int batch_count)
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const void*       alpha,
+                                   const void*       a,
+                                   rocblas_int       ld_a,
+                                   rocblas_int       stride_a,
+                                   const void*       b,
+                                   rocblas_int       ld_b,
+                                   rocblas_int       stride_b,
+                                   const void*       beta,
+                                   void*             c,
+                                   rocblas_int       ld_c,
+                                   rocblas_int       stride_c,
+                                   rocblas_int       batch_count)
 {
 
     // quick return 0 is valid in BLAS

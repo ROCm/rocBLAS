@@ -2,26 +2,26 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "utility.hpp"
 #include "rocblas.h"
+#include "utility.hpp"
 
 #define DIM1 1023
 #define DIM2 1024
 #define DIM3 1025
 
 template <typename T>
-void mat_mat_mult(T alpha,
-                  T beta,
+void mat_mat_mult(T   alpha,
+                  T   beta,
                   int M,
                   int N,
                   int K,
-                  T* A,
+                  T*  A,
                   int As1,
                   int As2,
-                  T* B,
+                  T*  B,
                   int Bs1,
                   int Bs2,
-                  T* C,
+                  T*  C,
                   int Cs1,
                   int Cs2)
 {
@@ -42,11 +42,11 @@ void mat_mat_mult(T alpha,
 int main()
 {
     rocblas_operation transa = rocblas_operation_none, transb = rocblas_operation_transpose;
-    float alpha = 1.1, beta = 0.9;
+    float             alpha = 1.1, beta = 0.9;
 
     rocblas_int m = DIM1, n = DIM2, k = DIM3;
     rocblas_int lda, ldb, ldc, size_a, size_b, size_c;
-    int a_stride_1, a_stride_2, b_stride_1, b_stride_2;
+    int         a_stride_1, a_stride_2, b_stride_1, b_stride_2;
     std::cout << "sgemm example" << std::endl;
     if(transa == rocblas_operation_none)
     {
@@ -150,8 +150,8 @@ int main()
     {
         float relative_error = (hc_gold[i] - hc[i]) / hc_gold[i];
         relative_error       = relative_error > 0 ? relative_error : -relative_error;
-        max_relative_error =
-            relative_error < max_relative_error ? max_relative_error : relative_error;
+        max_relative_error
+            = relative_error < max_relative_error ? max_relative_error : relative_error;
     }
     float eps       = std::numeric_limits<float>::epsilon();
     float tolerance = 10;
