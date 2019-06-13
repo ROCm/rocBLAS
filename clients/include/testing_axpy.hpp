@@ -2,28 +2,28 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 /* ============================================================================================ */
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    rocblas_int N                 = 100;
-    rocblas_int incx              = 1;
-    rocblas_int incy              = 1;
-    static const size_t safe_size = 100;
-    float alpha_float             = 0.6;
-    T alpha;
+    rocblas_int         N           = 100;
+    rocblas_int         incx        = 1;
+    rocblas_int         incy        = 1;
+    static const size_t safe_size   = 100;
+    float               alpha_float = 0.6;
+    T                   alpha;
 
     if(std::is_same<T, rocblas_half>{})
         alpha = float_to_half(alpha_float);
@@ -31,8 +31,8 @@ void testing_axpy_bad_arg(const Arguments& arg)
         alpha = alpha_float;
 
     rocblas_local_handle handle;
-    device_vector<T> dx(safe_size);
-    device_vector<T> dy(safe_size);
+    device_vector<T>     dx(safe_size);
+    device_vector<T>     dy(safe_size);
     if(!dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -55,7 +55,7 @@ void testing_axpy(const Arguments& arg)
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
-    T h_alpha;
+    T           h_alpha;
     if(std::is_same<T, rocblas_half>{})
         h_alpha = float_to_half(arg.alpha);
     else
@@ -67,8 +67,8 @@ void testing_axpy(const Arguments& arg)
     if(N <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T> dx(safe_size);
-        device_vector<T> dy(safe_size);
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
         if(!dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -82,8 +82,8 @@ void testing_axpy(const Arguments& arg)
 
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
-    size_t size_x        = N * static_cast<size_t>(abs_incx);
-    size_t size_y        = N * static_cast<size_t>(abs_incy);
+    size_t      size_x   = N * static_cast<size_t>(abs_incx);
+    size_t      size_y   = N * static_cast<size_t>(abs_incy);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);

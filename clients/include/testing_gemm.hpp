@@ -2,19 +2,19 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "near.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "near.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
@@ -103,9 +103,9 @@ void testing_gemm(const Arguments& arg)
         h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
     }
 
-    double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    double               gpu_time_used, cpu_time_used;
+    double               rocblas_gflops, cblas_gflops;
+    double               rocblas_error = 0.0;
     rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
