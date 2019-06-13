@@ -24,7 +24,7 @@ namespace
     template <typename T>
     struct set_get_matrix_testing<
         T,
-        typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
     {
         explicit operator bool()
         {
@@ -56,9 +56,9 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<set_get_matrix> {} << rocblas_datatype2string(arg.a_type) << '_'
-                                                       << arg.M << '_' << arg.N << '_' << arg.lda
-                                                       << '_' << arg.ldb;
+            return RocBLAS_TestName<set_get_matrix>{} << rocblas_datatype2string(arg.a_type) << '_'
+                                                      << arg.M << '_' << arg.N << '_' << arg.lda
+                                                      << '_' << arg.ldb;
         }
     };
 

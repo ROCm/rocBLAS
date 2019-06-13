@@ -26,7 +26,7 @@ namespace
     template <typename T>
     struct logging_testing<
         T,
-        typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
     {
         explicit operator bool()
         {
@@ -58,7 +58,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<logging> {} << rocblas_datatype2string(arg.a_type);
+            return RocBLAS_TestName<logging>{} << rocblas_datatype2string(arg.a_type);
         }
     };
 

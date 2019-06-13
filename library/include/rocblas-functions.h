@@ -25,11 +25,16 @@
 
 /*
    ROCBLAS_VA_OPT_PRAGMA(pragma, ...) creates a _Pragma with stringized pragma
-   if the trailing argument list is non-empty. It simulates the C++20 macro:
+   if the trailing argument list is non-empty.
 
-   #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
+   __VA_OPT__ support is automatically detected if it's available; otherwise,
+   the GCC/Clang ##__VA_ARGS__ extension is used to emulate it.
 */
-
+#define ROCBLAS_VA_OPT_3RD_ARG(_1, _2, _3, ...) _3
+#define ROCBLAS_VA_OPT_SUPPORTED(...) ROCBLAS_VA_OPT_3RD_ARG(__VA_OPT__(, ), 1, 0, )
+#if ROCBLAS_VA_OPT_SUPPORTED(?)
+#define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
+#else // ROCBLAS_VA_OPT_SUPPORTED
 #define ROCBLAS_VA_OPT_COUNT_IMPL(X, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define ROCBLAS_VA_OPT_COUNT(...) \
     ROCBLAS_VA_OPT_COUNT_IMPL(, ##__VA_ARGS__, N, N, N, N, N, N, N, N, N, N, 0)
@@ -39,6 +44,7 @@
 #define ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, count) ROCBLAS_VA_OPT_PRAGMA_IMPL2(pragma, count)
 #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) \
     ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, ROCBLAS_VA_OPT_COUNT(__VA_ARGS__))
+#endif // ROCBLAS_VA_OPT_SUPPORTED
 
 #ifdef __cplusplus
 extern "C" {
@@ -509,13 +515,15 @@ rocblas_idzamin(rocblas_handle handle,
               handle to the rocblas library context queue.
     @param[in]
     trans     rocblas_operation
+              indicates whether matrix A is tranposed (conjugated) or not
     @param[in]
     m         rocblas_int
+              number of rows of matrix A
     @param[in]
     n         rocblas_int
+              number of columns of matrix A
     @param[in]
-    alpha
-              specifies the scalar alpha.
+    alpha     specifies the scalar alpha.
     @param[in]
     A         pointer storing matrix A on the GPU.
     @param[in]
@@ -524,10 +532,11 @@ rocblas_idzamin(rocblas_handle handle,
     @param[in]
     x         pointer storing vector x on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[in]
     beta      specifies the scalar beta.
-    @param[out]
+    @param[inout]
     y         pointer storing vector y on the GPU.
     @param[in]
     incy      rocblas_int
@@ -559,6 +568,175 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle    handle,
                                             const double*     beta,
                                             double*           y,
                                             rocblas_int       incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGEMV_BATCHED performs a batch of matrix-vector operations
+
+        y_i := alpha*A_i*x_i    + beta*y_i,   or
+        y_i := alpha*A_i**T*x_i + beta*y_i,   or
+        y_i := alpha*A_i**H*x_i + beta*y_i,
+
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha and beta are scalars, x_i and y_i are vectors and A_i is an
+    m by n matrix.
+
+    @param[in]
+    handle      rocblas_handle.
+                handle to the rocblas library context queue.
+    @param[in]
+    trans       rocblas_operation
+                indicates whether matrices A_i are tranposed (conjugated) or not
+    @param[in]
+    m           rocblas_int
+                number of rows of matrices A_i
+    @param[in]
+    n           rocblas_int
+                number of columns of matrices A_i
+    @param[in]
+    alpha       specifies the scalar alpha.
+    @param[in]
+    A           array of pointers storing the different matrices A_i on the GPU.
+    @param[in]
+    lda         rocblas_int
+                specifies the leading dimension of matrices A_i.
+    @param[in]
+    x           array of pointers storing the different vectors x_i on the GPU.
+    @param[in]
+    incx        rocblas_int
+                specifies the increment for the elements of vectors x_i.
+    @param[in]
+    beta        specifies the scalar beta.
+    @param[inout]
+    y           array of pointers storing the different vectors y_i on the GPU.
+    @param[in]
+    incy        rocblas_int
+                specifies the increment for the elements of vectors y_i.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_batched(rocblas_handle     handle,
+                                                    rocblas_operation  trans,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
+                                                    rocblas_operation   trans,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGEMV_STRIDED_BATCHED performs a batch of matrix-vector operations
+
+        y_i := alpha*A_i*x_i    + beta*y_i,   or
+        y_i := alpha*A_i**T*x_i + beta*y_i,   or
+        y_i := alpha*A_i**H*x_i + beta*y_i,
+
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha and beta are scalars, x_i and y_i are vectors and A_i is an
+    m by n matrix.
+
+    @param[in]
+    handle      rocblas_handle.
+                handle to the rocblas library context queue.
+    @param[in]
+    trans       rocblas_operation
+                indicates whether matrices A_i are tranposed (conjugated) or not
+    @param[in]
+    m           rocblas_int
+                number of rows of matrices A_i
+    @param[in]
+    n           rocblas_int
+                number of columns of matrices A_i
+    @param[in]
+    alpha       specifies the scalar alpha.
+    @param[in]
+    A           pointer to the first matrix (A_0) in the batch stored on the GPU.
+    @param[in]
+    lda         rocblas_int
+                specifies the leading dimension of matrices A_i.
+    @param[in]
+    strideA     rocblas_int
+                stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    x           pointer to the first vector (x_0) in the batch stored on the GPU.
+    @param[in]
+    incx        rocblas_int
+                specifies the increment for the elements of vectors x_i.
+    @param[in]
+    stridex     rocblas_int
+                stride form the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    beta        specifies the scalar beta.
+    @param[inout]
+    y           pointer to the first vector (y_0) in the batch stored on the GPU.
+    @param[in]
+    incy        rocblas_int
+                specifies the increment for the elements of vectors y_i.
+    @param[in]
+    stridey     rocblas_int
+                stride from the start of one vector (y_i) and the next one (y_i+1)
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_int       strideA,
+                                                            const float*      x,
+                                                            rocblas_int       incx,
+                                                            rocblas_int       stridex,
+                                                            const float*      beta,
+                                                            float*            y,
+                                                            rocblas_int       incy,
+                                                            rocblas_int       stridey,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_int       strideA,
+                                                            const double*     x,
+                                                            rocblas_int       incx,
+                                                            rocblas_int       stridex,
+                                                            const double*     beta,
+                                                            double*           y,
+                                                            rocblas_int       incy,
+                                                            rocblas_int       stridey,
+                                                            rocblas_int       batch_count);
 
 /*! \brief BLAS Level 2 API
 

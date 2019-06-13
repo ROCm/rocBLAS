@@ -152,8 +152,8 @@ static rocblas_status rocblas_iamaxmin(
     static constexpr int NB     = 1024;
     rocblas_int          blocks = (n - 1) / NB + 1;
 
-    auto workspace = rocblas_unique_ptr {rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
-                                         rocblas::device_free};
+    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
+                                        rocblas::device_free};
     if(!workspace)
         return rocblas_status_memory_error;
 

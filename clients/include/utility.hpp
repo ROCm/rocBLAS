@@ -70,17 +70,17 @@ std::string rocblas_exepath();
 template <typename T>
 inline void rocblas_print_vector(std::vector<T>& A, size_t M, size_t N, size_t lda)
 {
-    if(std::is_same<T, float> {})
+    if(std::is_same<T, float>{})
         std::cout << "vec[float]: ";
-    else if(std::is_same<T, double> {})
+    else if(std::is_same<T, double>{})
         std::cout << "vec[double]: ";
-    else if(std::is_same<T, rocblas_half> {})
+    else if(std::is_same<T, rocblas_half>{})
         std::cout << "vec[rocblas_half]: ";
 
     for(size_t i = 0; i < M; ++i)
         for(size_t j = 0; j < N; ++j)
-            std::cout << (std::is_same<T, rocblas_half> {} ? half_to_float(A[i + j * lda])
-                                                           : A[i + j * lda])
+            std::cout << (std::is_same<T, rocblas_half>{} ? half_to_float(A[i + j * lda])
+                                                          : A[i + j * lda])
                       << ", ";
 
     std::cout << std::endl;

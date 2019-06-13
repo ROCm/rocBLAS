@@ -88,8 +88,8 @@ struct Arguments
             exit(EXIT_FAILURE);
         };
 
-        char      header[8] {}, trailer[8] {};
-        Arguments arg {};
+        char      header[8]{}, trailer[8]{};
+        Arguments arg{};
         ifs.read(header, sizeof(header));
         ifs >> arg;
         ifs.read(trailer, sizeof(trailer));
@@ -189,7 +189,7 @@ private:
     // Character output
     static void print_value(std::ostream& str, char c)
     {
-        char s[] {c, 0};
+        char s[]{c, 0};
         str << std::quoted(s, '\'');
     }
 
@@ -260,11 +260,11 @@ private:
     }
 };
 
-static_assert(std::is_standard_layout<Arguments> {},
+static_assert(std::is_standard_layout<Arguments>{},
               "Arguments is not a standard layout type, and thus is "
               "incompatible with C.");
 
-static_assert(std::is_trivially_copyable<Arguments> {},
+static_assert(std::is_trivially_copyable<Arguments>{},
               "Arguments is not a trivially copyable type, and thus is "
               "incompatible with C.");
 

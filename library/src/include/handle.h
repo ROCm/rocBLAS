@@ -31,7 +31,7 @@ private:
     {
     };
     template <class T, class... Ts>
-    struct conjunction<T, Ts...> : std::integral_constant<bool, T {} && conjunction<Ts...> {}>
+    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
     {
     };
 
@@ -110,7 +110,7 @@ public:
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
               typename
-              = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...> {}>::type>
+              = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
@@ -119,7 +119,7 @@ public:
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
         // TODO: Replace with C++17 fold expression eventually
         size_t total = 0;
-        auto   dummy = {total += roundup_memory_size(sizes)...};
+        auto   dummy = {total += roundup_device_memory_size(sizes)...};
 
         if(total > device_memory_query_size)
         {
@@ -132,7 +132,7 @@ public:
     // Allocate one or more sizes
     template <typename... Ss,
               typename = typename std::enable_if<
-                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...> {}>::type>
+                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
     auto device_memory_alloc(Ss... sizes)
     {
         return _device_memory_alloc<sizeof...(Ss)>(this, static_cast<size_t>(sizes)...);
@@ -144,7 +144,7 @@ private:
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
 
     // Round up size to the nearest MIN_CHUNK_SIZE
-    static constexpr size_t roundup_memory_size(size_t size)
+    static constexpr size_t roundup_device_memory_size(size_t size)
     {
         static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
                       "MIN_CHUNK_SIZE must be a power of two");
@@ -179,7 +179,7 @@ private:
             // total contains the total of all sizes at the end of the calculation of offsets.
             size_t oldtotal, total = 0;
             size_t offsets[]
-                = {(oldtotal = total, total += roundup_memory_size(sizes), oldtotal)...};
+                = {(oldtotal = total, total += roundup_device_memory_size(sizes), oldtotal)...};
 
             // We allocate the total amount needed. This is a constant-time operation if the space
             // is already available, or if an explicit size has been allocated.
@@ -229,12 +229,12 @@ private:
         // Conversion to std::tuple<void*&...> to be assigned to std::tie()
         operator auto()
         {
-            return tie_pointers(std::make_index_sequence<N> {});
+            return tie_pointers(std::make_index_sequence<N>{});
         }
 
         // Conversion to any pointer type, but only if N == 1
         template <typename T,
-                  typename = typename std::enable_if<std::is_pointer<T> {} && N == 1>::type>
+                  typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
         operator T() const
         {
             return T(pointers[0]);

@@ -11,13 +11,11 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_constant.h"
 #include "rocblas_trsv.hpp"
 #include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"
-#include <cstdio>
-#include <cstdlib>
-#include <tuple>
 
 namespace
 {
@@ -86,39 +84,6 @@ namespace
                            size);
     }
 
-    template <typename T>
-    static __device__ __constant__ T device_constant_values_store[3];
-
-    template <typename T>
-    static constexpr T constant_values[3] = {-1, 0, 1};
-
-    template <typename T>
-    static const T* initialize_constants()
-    {
-        T* addr;
-        if(hipMemCpyToSymbol(
-               device_constant_values_store<T>, constant_values<T>, sizeof(constant_values<T>))
-               != hipSuccess
-           || hipGetSymbolAddress((void**)&addr, device_constant_values_store<T>) != hipSuccess)
-        {
-            fputs("Error initializing constants in rocblas_trsv\n", stderr);
-            abort();
-        }
-        return addr;
-    }
-
-    template <typename T>
-    static const T* device_constant_values = initialize_constants<T>();
-
-    template <typename T>
-    static inline auto get_constants(rocblas_handle handle)
-    {
-        const T* neg1 = handle->pointer_mode == rocblas_pointer_mode_device
-                            ? device_constant_values<T>
-                            : constant_values<T>;
-        return std::make_tuple(neg1, neg1 + 1, neg1 + 2);
-    }
-
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsv_left(rocblas_handle    handle,
                                      rocblas_fill      uplo,
@@ -131,10 +96,9 @@ namespace
                                      const T*          invA,
                                      T*                X)
     {
-        const T* p_negative_one;
-        const T* p_zero;
-        const T* p_one;
-        std::tie(p_negative_one, p_zero, p_one) = get_constants<T>(handle);
+        const T*    p_one          = rocblas_get_constant<T>(handle, rocblas_constant_one);
+        const T*    p_zero         = rocblas_get_constant<T>(handle, rocblas_constant_zero);
+        const T*    p_negative_one = rocblas_get_constant<T>(handle, rocblas_constant_neg1);
         rocblas_int i, jb;
 
         // transB is always non-transpose
@@ -434,12 +398,11 @@ namespace
 
         T*       x_temp = x ? x : reinterpret_cast<T*>(handle->get_trsm_Y());
         const T* invA   = x ? supplied_invA : reinterpret_cast<T*>(handle->get_trsm_invA());
-        int      R      = m / BLOCK;
 
-        const T* p_negative_one;
-        const T* p_zero;
-        const T* p_one;
-        std::tie(p_negative_one, p_zero, p_one) = get_constants<T>(handle);
+        int      R              = m / BLOCK;
+        const T* p_one          = rocblas_get_constant<T>(handle, rocblas_constant_one);
+        const T* p_zero         = rocblas_get_constant<T>(handle, rocblas_constant_zero);
+        const T* p_negative_one = rocblas_get_constant<T>(handle, rocblas_constant_neg1);
 
         for(int r = 0; r < R; r++)
         {
@@ -578,54 +541,47 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
     if(layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, m, A, lda, B, incx);
 
-    if(!handle->is_device_memory_size_query())
+    if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
     {
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_trsv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
+        auto uplo_letter   = rocblas_fill_letter(uplo);
+        auto transA_letter = rocblas_transpose_letter(transA);
+        auto diag_letter   = rocblas_diag_letter(diag);
 
-        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
+        if(layer_mode & rocblas_layer_mode_log_bench)
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                if(pointer_mode == rocblas_pointer_mode_host)
-                    log_bench(handle,
-                              "./rocblas-bench -f trsv -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx);
-            }
-
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_trsv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx);
+            if(pointer_mode == rocblas_pointer_mode_host)
+                log_bench(handle,
+                          "./rocblas-bench -f trsv -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "--diag",
+                          diag_letter,
+                          "-m",
+                          m,
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx);
         }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_trsv_name<T>,
+                        "uplo",
+                        uplo_letter,
+                        "transA",
+                        transA_letter,
+                        "diag",
+                        diag_letter,
+                        "M",
+                        m,
+                        "lda",
+                        lda,
+                        "incx",
+                        incx);
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
@@ -637,8 +593,7 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
 
     // quick return if possible.
     if(!m)
-        return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                     : rocblas_status_success;
+        return rocblas_status_success;
 
     hipStream_t rocblas_stream;
     RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
@@ -685,18 +640,18 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
     // invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
     auto invA
-        = rocblas_unique_ptr {rocblas::device_malloc(BLOCK * m * sizeof(T)), rocblas::device_free};
+        = rocblas_unique_ptr{rocblas::device_malloc(BLOCK * m * sizeof(T)), rocblas::device_free};
     if(!invA)
         return rocblas_status_memory_error;
 
-    auto C_tmp = rocblas_unique_ptr {
+    auto C_tmp = rocblas_unique_ptr{
         rocblas::device_malloc(sizeof(T) * (BLOCK / 2) * (BLOCK / 2) * (m / BLOCK)),
         rocblas::device_free};
     if(!C_tmp && m >= BLOCK)
         return rocblas_status_memory_error;
 
     // X is size of packed B
-    auto X = rocblas_unique_ptr {rocblas::device_malloc(m * sizeof(T)), rocblas::device_free};
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(m * sizeof(T)), rocblas::device_free};
     if(!X)
         return rocblas_status_memory_error;
 
@@ -740,6 +695,44 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
  */
 
 extern "C" {
+
+rocblas_status rocblas_strsv_ex(rocblas_handle    handle,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_diagonal  diag,
+                                rocblas_int       m,
+                                const float*      A,
+                                rocblas_int       lda,
+                                float*            x,
+                                rocblas_int       incx,
+                                const float*      invA,
+                                rocblas_int       ldInvA,
+                                const size_t*     x_temp_size,
+                                float*            x_temp)
+{
+    static constexpr rocblas_int STRSV_BLOCK = 128;
+    return rocblas_trsv_ex_template<STRSV_BLOCK>(
+        handle, uplo, transA, diag, m, A, lda, x, incx, invA, ldInvA, x_temp_size, x_temp);
+}
+
+rocblas_status rocblas_dtrsv_ex(rocblas_handle    handle,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_diagonal  diag,
+                                rocblas_int       m,
+                                const double*     A,
+                                rocblas_int       lda,
+                                double*           x,
+                                rocblas_int       incx,
+                                const double*     invA,
+                                rocblas_int       ldInvA,
+                                const size_t*     x_temp_size,
+                                double*           x_temp)
+{
+    static constexpr rocblas_int DTRSV_BLOCK = 128;
+    return rocblas_trsv_ex_template<DTRSV_BLOCK>(
+        handle, uplo, transA, diag, m, A, lda, x, incx, invA, ldInvA, x_temp_size, x_temp);
+}
 
 rocblas_status rocblas_strsv(rocblas_handle    handle,
                              rocblas_fill      uplo,

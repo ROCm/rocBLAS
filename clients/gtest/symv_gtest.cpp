@@ -60,10 +60,10 @@ struct symv_testing<
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<symv> {}
-                   << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
-                   << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_' << arg.incx << '_'
-                   << arg.beta << '_' << arg.incy;
+            return RocBLAS_TestName<symv>{} << rocblas_datatype2string(arg.a_type) << '_'
+                                            << (char)std::toupper(arg.uplo) << '_' << arg.N << '_'
+                                            << arg.alpha << '_' << arg.lda << '_' << arg.incx << '_'
+                                            << arg.beta << '_' << arg.incy;
         }
     };
 

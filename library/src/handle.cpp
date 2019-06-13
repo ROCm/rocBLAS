@@ -4,7 +4,6 @@
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
-#include <numeric>
 
 /*******************************************************************************
  * constructor
@@ -144,7 +143,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
     handle->device_memory_is_rocblas_managed = !size;
     if(size)
     {
-        size           = handle->roundup_memory_size(size);
+        size           = handle->roundup_device_memory_size(size);
         auto hipStatus = hipMalloc(&handle->device_memory, size);
         if(hipStatus != hipSuccess)
             return get_rocblas_status_for_hip_status(hipStatus);

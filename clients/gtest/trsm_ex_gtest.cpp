@@ -59,7 +59,7 @@ namespace
         // Goggle Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<trsm_ex> {}
+            return RocBLAS_TestName<trsm_ex>{}
                    << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
                    << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
                    << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_'

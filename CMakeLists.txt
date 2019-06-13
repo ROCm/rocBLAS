@@ -75,6 +75,8 @@ endif()
 
 if( CXX_VERSION_STRING MATCHES "clang" )
   message( STATUS "Use hip-clang to build for amdgpu backend" )
+# set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
+  set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
 elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
 
@@ -132,7 +134,7 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
-set ( VERSION_STRING "2.3.8." )
+set ( VERSION_STRING "2.3.10" )
 # Check if BUILD_NUMBER is defined in a Jenkins envirnment
 if ($ENV{BUILD_NUMBER} )
   string(CONCAT BUILD_VERSION ${VERSION_STRING} $ENV{BUILD_NUMBER})

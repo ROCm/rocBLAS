@@ -24,33 +24,6 @@ namespace
 #define X(ii, jj) (X + (ii) + (jj)*m)
 #define invA(ii) (invA + (ii)*BLOCK)
 
-    static constexpr size_t WORKBUF_TRSM_A_BLKS     = 10;
-    static constexpr size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
-    static constexpr size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10;
-    static constexpr size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 / 2;
-    static constexpr size_t WORKBUF_TRSV_X_SZ       = 131072;
-    static constexpr size_t WORKBUF_TRSV_ALPHA_SZ   = 1;
-
-    static size_t getenv_value(const char* name, size_t min)
-    {
-        const char* env = getenv(name);
-        size_t      val;
-        return env && sscanf(env, "%zu", &val) == 1 && val > min ? val : min;
-    }
-
-    static size_t get_trsm_B_chnk()
-    {
-        static size_t val = getenv_value("WORKBUF_TRSM_B_CHNK", WORKBUF_TRSM_B_MIN_CHNK);
-        return val;
-    }
-
-    template <typename>
-    static constexpr char rocblas_trsm_name[] = "unknown";
-    template <>
-    static constexpr char rocblas_trsm_name<float>[] = "rocblas_strsm";
-    template <>
-    static constexpr char rocblas_trsm_name<double>[] = "rocblas_dtrsm";
-
     /* ===============left==================================================== */
 
     template <rocblas_int BLOCK, typename T>
@@ -75,7 +48,7 @@ namespace
         rocblas_int i, jb;
 
         // transB is always non-transpose
-        static constexpr rocblas_operation transB = rocblas_operation_none;
+        rocblas_operation transB = rocblas_operation_none;
 
         if(transA == transB)
         {
@@ -143,40 +116,12 @@ namespace
                 }
 
 #if 0
-            for(i = 0; i < m; i += BLOCK)
-            {
-                jb     = min(m - i, BLOCK);
-                T* tmp = (i == 0) ? alpha : one;
-                rocblas_gemm_template<T>(handle,
-                                         transA,
-                                         transB,
-                                         jb,
-                                         n,
-                                         jb,
-                                         tmp,
-                                         invA(i),
-                                         BLOCK,
-                                         B(i, 0),
-                                         ldb,
-                                         &zero,
-                                         X(i, 0),
-                                         ldb);
-                if(i + BLOCK < m)
-                {
-                    rocblas_gemm_template<T>(handle,
-                                             transA,
-                                             transB,
-                                             m - i - BLOCK,
-                                             n,
-                                             BLOCK,
-                                             &negative_one,
-                                             A(i + BLOCK, i),
-                                             lda,
-                                             X(i, 0),
-                                             ldb,
-                                             tmp,
-                                             B(i + BLOCK, 0),
-                                             ldb);
+            for( i=0; i < m; i += BLOCK ) {
+                jb = min(m-i, BLOCK);
+                T *tmp = (i == 0) ? alpha : one;
+                rocblas_gemm_template<T>(handle, transA, transB, jb, n, jb, tmp, invA(i), BLOCK, B(i,0), ldb, &zero, X(i,0), ldb);
+                if(i + BLOCK < m){
+                    rocblas_gemm_template<T>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negative_one, A(i+BLOCK,i), lda, X(i,0), ldb, tmp, B(i+BLOCK,0), ldb);
                 }
             }
 
@@ -205,6 +150,7 @@ namespace
                                          m);
                 if(i - BLOCK >= 0)
                 {
+
                     rocblas_gemm_template<T>(handle,
                                              transA,
                                              transB,
@@ -263,7 +209,7 @@ namespace
             if(uplo == rocblas_fill_lower)
             {
                 // left, lower transpose
-                jb = m % BLOCK == 0 ? BLOCK : m % BLOCK;
+                jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
                 i  = m - jb;
                 rocblas_gemm_template<T>(handle,
                                          transA,
@@ -413,6 +359,7 @@ namespace
                                       const T*          invA,
                                       T*                X)
     {
+
         static constexpr T negative_one = -1;
         static constexpr T one          = 1;
         static constexpr T zero         = 0;
@@ -420,8 +367,7 @@ namespace
         rocblas_int i, jb;
 
         // transB is always non-transpose
-        static constexpr rocblas_operation transB = rocblas_operation_none;
-
+        rocblas_operation transB = rocblas_operation_none;
         if(transA == transB)
         {
             if(uplo == rocblas_fill_lower)
@@ -622,7 +568,7 @@ namespace
             else
             {
                 // right, upper transpose
-                jb = n % BLOCK == 0 ? BLOCK : n % BLOCK;
+                jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
                 rocblas_gemm_template<T>(handle,
                                          transB,
@@ -696,38 +642,37 @@ namespace
         return rocblas_status_success;
     }
 
-    __global__ void copy_void_ptr_matrix_trsm(rocblas_int rows,
-                                              rocblas_int cols,
-                                              rocblas_int elem_size,
-                                              const void* a,
-                                              rocblas_int lda,
-                                              void*       b,
-                                              rocblas_int ldb)
+    template <typename T>
+    __global__ void copy_matrix_trsm(rocblas_int rows,
+                                     rocblas_int cols,
+                                     rocblas_int elem_size,
+                                     const T*    a,
+                                     rocblas_int lda,
+                                     T*          b,
+                                     rocblas_int ldb)
     {
         size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
         if(tx < rows && ty < cols)
-            memcpy((char*)b + (tx + ldb * ty) * elem_size,
-                   (char*)a + (tx + lda * ty) * elem_size,
-                   elem_size);
+            b[tx + ldb * ty] = a[tx + lda * ty];
     }
 
     template <typename T>
     void copy_block_unit(hipStream_t rocblas_stream,
                          rocblas_int m,
                          rocblas_int n,
-                         const void* src,
+                         const T*    src,
                          rocblas_int src_ld,
-                         void*       dst,
+                         T*          dst,
                          rocblas_int dst_ld)
     {
-        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-        rocblas_int blocksY = (n - 1) / 8 + 1;
+        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
+        rocblas_int blocksY = ((n - 1) / 8) + 1;
         dim3        grid(blocksX, blocksY);
         dim3        threads(128, 8);
 
-        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
+        hipLaunchKernelGGL(copy_matrix_trsm,
                            grid,
                            threads,
                            0,
@@ -741,10 +686,7 @@ namespace
                            dst_ld);
     }
 
-    template <rocblas_int BLOCK,
-              typename T,
-              typename = typename std::enable_if<std::is_same<T, float> {}
-                                                 || std::is_same<T, double> {}>::type>
+    template <rocblas_int BLOCK, typename T>
     rocblas_status special_trsm_template(rocblas_handle    handle,
                                          rocblas_side      side,
                                          rocblas_fill      uplo,
@@ -757,38 +699,54 @@ namespace
                                          rocblas_int       lda,
                                          T*                B,
                                          rocblas_int       ldb,
-                                         const T*          invA,
-                                         size_t            B_chunk,
-                                         T*                x_temp)
+                                         const T*          supplied_invA,
+                                         rocblas_int       ldinvA,
+                                         const size_t*     B_chunk,
+                                         T*                x)
     {
         hipStream_t rocblas_stream;
         RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-        const rocblas_int k = side == rocblas_side_left ? m : n;
+        if(*B_chunk == 0)
+            return rocblas_status_invalid_size;
 
-        int                R            = k / BLOCK;
-        static constexpr T zero         = 0;
-        static constexpr T one          = 1;
-        static constexpr T negative_one = -1;
+        rocblas_int k = (side == rocblas_side_left ? m : n);
+        if(!x)
+        {
+            void* invA_temp = handle->get_trsm_invA();
+            void* invA_C    = handle->get_trsm_invA_C();
 
-        rocblas_int       bsize      = side == rocblas_side_left ? n : m;
-        int               W          = 1 + (bsize - 1) / B_chunk;
+            rocblas_trtri_trsm_template<T, BLOCK>(
+                handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA_temp);
+        }
+
+        T*       x_temp = x ? x : static_cast<T*>(handle->get_trsm_Y());
+        const T* invA   = x ? supplied_invA : static_cast<T*>(handle->get_trsm_invA());
+
+        int         R            = k / BLOCK;
+        constexpr T zero         = 0;
+        constexpr T one          = 1;
+        constexpr T negative_one = -1;
+
+        rocblas_int       bsize      = (side == rocblas_side_left ? n : m);
+        int               W          = 1 + ((bsize - 1) / (*B_chunk));
         static const bool arch_lt906 = handle->device_arch_id() < 906;
 
         for(int w = 0; w < W; w++)
         {
             if(side == rocblas_side_left)
             {
-                T*  Bw    = B + (size_t)w * B_chunk * (size_t)ldb;
-                int width = bsize > (w + 1) * B_chunk ? B_chunk : bsize - w * B_chunk;
+                T*  Bw = B + ((size_t)w) * (*B_chunk) * ((size_t)ldb);
+                int width
+                    = ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk) : (bsize - w * (*B_chunk)));
 
                 for(int r = 0; r < R; r++)
                 {
                     int q = R - 1 - r;
 
-                    int j = (uplo == rocblas_fill_lower && transA == rocblas_operation_none)
-                                    || (uplo == rocblas_fill_upper
-                                        && transA == rocblas_operation_transpose)
+                    int j = (((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
+                             || ((uplo == rocblas_fill_upper)
+                                 && (transA == rocblas_operation_transpose)))
                                 ? r
                                 : q;
 
@@ -802,22 +760,23 @@ namespace
                         const T* A_current = nullptr;
                         T*       B_current = nullptr;
 
-                        if(uplo == rocblas_fill_upper && transA == rocblas_operation_transpose)
+                        if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
                         {
                             A_current = A + r * BLOCK * lda;
                             B_current = Bw;
                         }
-                        else if(uplo == rocblas_fill_lower && transA == rocblas_operation_none)
+                        else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
                         {
                             A_current = A + r * BLOCK;
                             B_current = Bw;
                         }
-                        else if(uplo == rocblas_fill_lower && transA == rocblas_operation_transpose)
+                        else if((uplo == rocblas_fill_lower)
+                                && (transA == rocblas_operation_transpose))
                         {
                             A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
                             B_current = Bw + (q + 1) * BLOCK;
                         }
-                        else // uplo == rocblas_fill_upper && transA == rocblas_operation_none
+                        else // ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
                         {
                             A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
                             B_current = Bw + (q + 1) * BLOCK;
@@ -846,10 +805,12 @@ namespace
                             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
+                            size_t*           workspace_size = 0;
+                            void*             workspace      = 0;
 
                             if(std::is_same<T, float>::value)
                                 compute_type = rocblas_datatype_f32_r;
-                            else
+                            else if(std::is_same<T, double>::value)
                                 compute_type = rocblas_datatype_f64_r;
 
                             rocblas_gemm_ex(handle,
@@ -875,11 +836,13 @@ namespace
                                             compute_type,
                                             algo,
                                             solution_index,
-                                            flags);
+                                            flags,
+                                            workspace_size,
+                                            workspace);
                         }
                     }
 
-                    const T* theta = r == 0 ? alpha : &one;
+                    const T* theta = (r == 0 ? alpha : &one);
                     rocblas_gemm_template<T>(handle,
                                              transA,
                                              rocblas_operation_none,
@@ -887,7 +850,7 @@ namespace
                                              width,
                                              BLOCK,
                                              theta,
-                                             (T*)invA + j * BLOCK * BLOCK,
+                                             ((T*)invA) + j * BLOCK * BLOCK,
                                              BLOCK,
                                              (T*)x_temp,
                                              BLOCK,
@@ -898,18 +861,19 @@ namespace
             }
             else
             {
-                T*  Bw    = B + (size_t)w * B_chunk;
-                int width = bsize > (w + 1) * B_chunk ? B_chunk : bsize - w * B_chunk;
+                T*  Bw = B + ((size_t)w) * (*B_chunk);
+                int width
+                    = ((bsize > (w + 1) * (*B_chunk)) ? (*B_chunk) : (bsize - w * (*B_chunk)));
 
                 for(int r = 0; r < R; r++)
                 {
                     int q = R - 1 - r;
 
-                    int j = (uplo == rocblas_fill_lower && transA == rocblas_operation_transpose)
-                                    || (uplo == rocblas_fill_upper
-                                        && transA == rocblas_operation_none)
-                                ? r
-                                : q;
+                    int j
+                        = (((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
+                           || ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none)))
+                              ? r
+                              : q;
 
                     // copy a m*BLOCK piece we are solving at a time
                     if(r == 0 || arch_lt906)
@@ -921,25 +885,26 @@ namespace
                         const T* A_current = nullptr;
                         T*       B_current = nullptr;
 
-                        if(uplo == rocblas_fill_lower && transA == rocblas_operation_transpose)
+                        if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
                         {
                             A_current = A + r * BLOCK;
                             B_current = Bw;
                         }
-                        else if(uplo == rocblas_fill_upper && transA == rocblas_operation_none)
+                        else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
                         {
                             A_current = A + r * BLOCK * lda;
                             B_current = Bw;
                         }
-                        else if(uplo == rocblas_fill_upper && transA == rocblas_operation_transpose)
+                        else if((uplo == rocblas_fill_upper)
+                                && (transA == rocblas_operation_transpose))
                         {
                             A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
-                            B_current = Bw + (size_t)(q + 1) * BLOCK * (size_t)ldb;
+                            B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
                         }
-                        else // uplo == rocblas_fill_lower && transA == rocblas_operation_none
+                        else // ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
                         {
                             A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
-                            B_current = Bw + (size_t)(q + 1) * BLOCK * (size_t)ldb;
+                            B_current = Bw + ((size_t)(q + 1)) * BLOCK * ((size_t)ldb);
                         }
 
                         if(arch_lt906)
@@ -965,10 +930,12 @@ namespace
                             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
+                            size_t*           workspace_size = 0;
+                            void*             workspace      = 0;
 
                             if(std::is_same<T, float>::value)
                                 compute_type = rocblas_datatype_f32_r;
-                            else
+                            else if(std::is_same<T, double>::value)
                                 compute_type = rocblas_datatype_f64_r;
 
                             rocblas_gemm_ex(handle,
@@ -994,11 +961,13 @@ namespace
                                             compute_type,
                                             algo,
                                             solution_index,
-                                            flags);
+                                            flags,
+                                            workspace_size,
+                                            workspace);
                         }
                     }
 
-                    const T* theta = r == 0 ? alpha : &one;
+                    const T* theta = (r == 0 ? alpha : &one);
 
                     rocblas_gemm_template<T>(handle,
                                              rocblas_operation_none,
@@ -1009,7 +978,7 @@ namespace
                                              theta,
                                              (T*)x_temp,
                                              width,
-                                             (T*)invA + j * BLOCK * BLOCK,
+                                             ((T*)invA) + j * BLOCK * BLOCK,
                                              BLOCK,
                                              &zero,
                                              Bw + j * BLOCK * ldb,
@@ -1022,6 +991,99 @@ namespace
     }
 
 } // namespace
+
+template <typename>
+static constexpr char rocblas_trsm_name[] = "unknown";
+template <>
+static constexpr char rocblas_trsm_name<float>[] = "rocblas_strsm";
+template <>
+static constexpr char rocblas_trsm_name<double>[] = "rocblas_dtrsm";
+
+template <rocblas_int BLOCK, typename T>
+rocblas_status rocblas_trsm_ex_template(rocblas_handle    handle,
+                                        rocblas_side      side,
+                                        rocblas_fill      uplo,
+                                        rocblas_operation transA,
+                                        rocblas_diagonal  diag,
+                                        rocblas_int       m,
+                                        rocblas_int       n,
+                                        const T*          alpha,
+                                        const T*          A,
+                                        rocblas_int       lda,
+                                        T*                B,
+                                        rocblas_int       ldb,
+                                        const T*          invA,
+                                        rocblas_int       ldInvA,
+                                        const size_t*     x_temp_size,
+                                        T*                x_temp)
+{
+    // A is of size lda*k
+    rocblas_int k = side == rocblas_side_left ? m : n;
+
+    // quick return if possible.
+    if(!m || !n)
+        return rocblas_status_success;
+
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
+    {
+        rocblas_operation trA = transA;
+        if(trA == rocblas_operation_conjugate_transpose)
+            trA = rocblas_operation_transpose;
+
+        return special_trsm_template<BLOCK>(handle,
+                                            side,
+                                            uplo,
+                                            trA,
+                                            diag,
+                                            m,
+                                            n,
+                                            alpha,
+                                            A,
+                                            lda,
+                                            B,
+                                            ldb,
+                                            invA,
+                                            ldInvA,
+                                            x_temp_size,
+                                            x_temp);
+    }
+
+    if(!invA)
+        return rocblas_status_memory_error;
+
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
+
+    rocblas_status status;
+
+    if(side == rocblas_side_left)
+    {
+        status = rocblas_trsm_left<BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, x_temp);
+    }
+    else
+    { // side == rocblas_side_right
+        status = rocblas_trsm_right<BLOCK>(
+            handle, uplo, transA, m, n, alpha, A, lda, B, ldb, invA, x_temp);
+    }
+
+#ifndef NDEBUG
+    printf("copy x to b\n");
+#endif
+
+    // copy solution X into B
+    {
+        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
+        rocblas_int blocksY = (n - 1) / 8 + 1;
+        dim3        grid(blocksX, blocksY);
+        dim3        threads(128, 8);
+
+        hipLaunchKernelGGL(
+            copy_matrix_trsm, grid, threads, 0, rocblas_stream, m, n, sizeof(T), x_temp, m, B, ldb);
+    }
+
+    return status;
+}
 
 /* ============================================================================================ */
 
@@ -1042,152 +1104,134 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    if(!handle->is_device_memory_size_query())
+    auto layer_mode = handle->layer_mode;
+    if(layer_mode
+       & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+          | rocblas_layer_mode_log_profile))
     {
-        if(!alpha || !A || !B)
-            return rocblas_status_invalid_pointer;
+        auto side_letter   = rocblas_side_letter(side);
+        auto uplo_letter   = rocblas_fill_letter(uplo);
+        auto transA_letter = rocblas_transpose_letter(transA);
+        auto diag_letter   = rocblas_diag_letter(diag);
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
-            auto side_letter   = rocblas_side_letter(side);
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_trsm_name<T>,
+                          side,
+                          uplo,
+                          transA,
+                          diag,
+                          m,
+                          n,
+                          *alpha,
+                          A,
+                          lda,
+                          B,
+                          ldb);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
+            if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_trsm_name<T>,
-                              side,
-                              uplo,
-                              transA,
-                              diag,
-                              m,
-                              n,
-                              *alpha,
-                              A,
-                              lda,
-                              B,
-                              ldb);
+                log_bench(handle,
+                          "./rocblas-bench -f trsm -r",
+                          rocblas_precision_string<T>,
+                          "--side",
+                          side_letter,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "--diag",
+                          diag_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "--alpha",
+                          *alpha,
+                          "--lda",
+                          lda,
+                          "--ldb",
+                          ldb);
+            }
+        }
+        else
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_trsm_name<T>,
+                          side,
+                          uplo,
+                          transA,
+                          diag,
+                          m,
+                          n,
+                          alpha,
+                          A,
+                          lda,
+                          B,
+                          ldb);
+        }
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f trsm -r",
-                              rocblas_precision_string<T>,
-                              "--side",
-                              side_letter,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "--alpha",
-                              *alpha,
-                              "--lda",
-                              lda,
-                              "--ldb",
-                              ldb);
-                }
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_trsm_name<T>,
-                              side,
-                              uplo,
-                              transA,
-                              diag,
-                              m,
-                              n,
-                              alpha,
-                              A,
-                              lda,
-                              B,
-                              ldb);
-            }
-
-            if(layer_mode & rocblas_layer_mode_log_profile)
-            {
-                log_profile(handle,
-                            rocblas_trsm_name<T>,
-                            "side",
-                            side_letter,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "m",
-                            m,
-                            "n",
-                            n,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb);
-            }
+        if(layer_mode & rocblas_layer_mode_log_profile)
+        {
+            log_profile(handle,
+                        rocblas_trsm_name<T>,
+                        "side",
+                        side_letter,
+                        "uplo",
+                        uplo_letter,
+                        "transA",
+                        transA_letter,
+                        "diag",
+                        diag_letter,
+                        "m",
+                        m,
+                        "n",
+                        n,
+                        "lda",
+                        lda,
+                        "ldb",
+                        ldb);
         }
     }
 
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_not_implemented;
+    if(m < 0 || n < 0)
+        return rocblas_status_invalid_size;
+    if(!alpha || !A)
+        return rocblas_status_invalid_pointer;
 
     // A is of size lda*k
     rocblas_int k = side == rocblas_side_left ? m : n;
 
-    if(m < 0 || n < 0 || lda < k || ldb < m)
+    if(lda < k)
+        return rocblas_status_invalid_size;
+    if(!B)
+        return rocblas_status_invalid_pointer;
+    if(ldb < m)
         return rocblas_status_invalid_size;
 
     // quick return if possible.
     if(!m || !n)
-        return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                     : rocblas_status_success;
+        return rocblas_status_success;
 
-    if(transA == rocblas_operation_conjugate_transpose)
-        transA = rocblas_operation_transpose;
-
-    static constexpr size_t ldInvA    = BLOCK;
-    size_t                  invA_size = sizeof(T) * ldInvA * k;
-
-    if(k % BLOCK == 0 && k <= BLOCK * WORKBUF_TRSM_A_BLKS)
+    if(k % BLOCK == 0 && k <= BLOCK * *(handle->get_trsm_A_blks()))
     {
-        size_t B_chnk_size = get_trsm_B_chnk();
-        size_t invA_C_size = WORKBUF_TRSM_INVA_C_SZ * sizeof(T);
-        size_t Y_size      = B_chnk_size * BLOCK * sizeof(T);
-        size_t max_size    = invA_C_size > Y_size ? invA_C_size : Y_size;
+        rocblas_operation trA = transA;
+        if(trA == rocblas_operation_conjugate_transpose)
+            trA = rocblas_operation_transpose;
 
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(invA_size, max_size);
-
-        auto device_mem = handle->device_memory_alloc(invA_size, max_size);
-        if(!device_mem)
-            return rocblas_status_memory_error;
-
-        void *invA, *x_temp;
-        std::tie(invA, x_temp) = device_mem;
-
-        void*          invA_C = x_temp;
-        rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
-            handle, (T*)invA_C, uplo, diag, k, A, lda, (T*)invA);
-        if(status != rocblas_status_success)
-            return status;
+        T*            x_temp      = nullptr;
+        const T*      invA        = nullptr;
+        const size_t* x_temp_size = nullptr;
 
         return special_trsm_template<BLOCK>(handle,
                                             side,
                                             uplo,
-                                            transA,
+                                            trA,
                                             diag,
                                             m,
                                             n,
@@ -1196,69 +1240,55 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                             lda,
                                             B,
                                             ldb,
-                                            (T*)invA,
-                                            B_chnk_size,
-                                            (T*)x_temp);
+                                            invA,
+                                            0,
+                                            (handle->get_trsm_B_chnk()),
+                                            x_temp);
     }
-    else
-    {
-        size_t invA_C_size = k < BLOCK ? 0 : (sizeof(T) * (BLOCK / 2) * (BLOCK / 2)) * (k / BLOCK);
-        size_t X_size      = sizeof(T) * m * n;
-        size_t max_size    = invA_C_size > X_size ? invA_C_size : X_size;
 
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(invA_size, max_size);
+    // invA is of size BLOCK*k, BLOCK is the blocking size
+    // used unique_ptr to avoid memory leak
+    auto invA
+        = rocblas_unique_ptr{rocblas::device_malloc(BLOCK * k * sizeof(T)), rocblas::device_free};
+    if(!invA)
+        return rocblas_status_memory_error;
 
-        auto device_mem = handle->device_memory_alloc(invA_size, max_size);
-        if(!device_mem)
-            return rocblas_status_memory_error;
+    auto C_tmp = rocblas_unique_ptr{
+        rocblas::device_malloc(sizeof(T) * (BLOCK / 2) * (BLOCK / 2) * (k / BLOCK)),
+        rocblas::device_free};
+    if(!C_tmp && k >= BLOCK)
+        return rocblas_status_memory_error;
 
-        void *invA, *X;
-        std::tie(invA, X) = device_mem;
+    // X is size of packed B
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(m * n * sizeof(T)), rocblas::device_free};
+    if(!X)
+        return rocblas_status_memory_error;
 
-        // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-        rocblas_status status
-            = rocblas_trtri_trsm_template<T, BLOCK>(handle, (T*)X, uplo, diag, k, A, lda, (T*)invA);
+    hipStream_t rocblas_stream;
+    RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
-        if(status != rocblas_status_success)
-            return status;
+    // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
+    rocblas_status status = rocblas_trtri_trsm_template<T, BLOCK>(
+        handle, (T*)C_tmp.get(), uplo, diag, k, A, lda, (T*)invA.get());
 
-        if(side == rocblas_side_left)
-        {
-            status = rocblas_trsm_left<BLOCK>(
-                handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA, (T*)X);
-        }
-        else
-        { // side == rocblas_side_right
-            status = rocblas_trsm_right<BLOCK>(
-                handle, uplo, transA, m, n, alpha, A, lda, B, ldb, (T*)invA, (T*)X);
-        }
+    status = rocblas_trsm_ex_template<BLOCK>(handle,
+                                             side,
+                                             uplo,
+                                             transA,
+                                             diag,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             B,
+                                             ldb,
+                                             (T*)invA.get(),
+                                             BLOCK,
+                                             (handle->get_trsm_B_chnk()),
+                                             (T*)X.get());
 
-        if(status != rocblas_status_success)
-            return status;
-
-        hipStream_t rocblas_stream;
-        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
-        // copy solution X into B
-        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
-        rocblas_int blocksY = (n - 1) / 8 + 1;
-
-        hipLaunchKernelGGL(copy_void_ptr_matrix_trsm,
-                           dim3(blocksX, blocksY),
-                           dim3(128, 8),
-                           0,
-                           rocblas_stream,
-                           m,
-                           n,
-                           sizeof(T),
-                           (T*)X,
-                           m,
-                           B,
-                           ldb);
-
-        return rocblas_status_success;
-    }
+    return status;
 }
 
 /* ============================================================================================ */
@@ -1270,6 +1300,84 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
  */
 
 extern "C" {
+
+rocblas_status rocblas_strsm_ex(rocblas_handle    handle,
+                                rocblas_side      side,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_diagonal  diag,
+                                rocblas_int       m,
+                                rocblas_int       n,
+                                const float*      alpha,
+                                const float*      A,
+                                rocblas_int       lda,
+                                float*            B,
+                                rocblas_int       ldb,
+                                const float*      invA,
+                                rocblas_int       ldInvA,
+                                const size_t*     x_temp_size,
+                                float*            x_temp)
+{
+
+    // shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically
+    // you can use all 64K, but in practice no.
+    static constexpr rocblas_int STRSM_BLOCK = 128;
+    return rocblas_trsm_ex_template<STRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 alpha,
+                                                 A,
+                                                 lda,
+                                                 B,
+                                                 ldb,
+                                                 invA,
+                                                 ldInvA,
+                                                 x_temp_size,
+                                                 x_temp);
+}
+
+rocblas_status rocblas_dtrsm_ex(rocblas_handle    handle,
+                                rocblas_side      side,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_diagonal  diag,
+                                rocblas_int       m,
+                                rocblas_int       n,
+                                const double*     alpha,
+                                const double*     A,
+                                rocblas_int       lda,
+                                double*           B,
+                                rocblas_int       ldb,
+                                const double*     invA,
+                                rocblas_int       ldInvA,
+                                const size_t*     x_temp_size,
+                                double*           x_temp)
+{
+
+    // shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
+    // you can use all 64K, but in practice no.
+    static constexpr rocblas_int DTRSM_BLOCK = 128;
+    return rocblas_trsm_ex_template<DTRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 alpha,
+                                                 A,
+                                                 lda,
+                                                 B,
+                                                 ldb,
+                                                 invA,
+                                                 ldInvA,
+                                                 x_temp_size,
+                                                 x_temp);
+}
 
 rocblas_status rocblas_strsm(rocblas_handle    handle,
                              rocblas_side      side,
@@ -1284,6 +1392,7 @@ rocblas_status rocblas_strsm(rocblas_handle    handle,
                              float*            B,
                              rocblas_int       ldb)
 {
+
     // shared memory usuage is (192/2)^2 * sizeof(float) = 36K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
     static constexpr rocblas_int STRSM_BLOCK = 128;
@@ -1304,6 +1413,7 @@ rocblas_status rocblas_dtrsm(rocblas_handle    handle,
                              double*           B,
                              rocblas_int       ldb)
 {
+
     // shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
     static constexpr rocblas_int DTRSM_BLOCK = 128;

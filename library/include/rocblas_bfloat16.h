@@ -49,6 +49,7 @@ typedef struct
 #include <cinttypes>
 #include <cmath>
 #include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
 #include <iostream>
 #include <type_traits>
 
@@ -122,11 +123,11 @@ private:
     }
 };
 
-static_assert(std::is_standard_layout<rocblas_bfloat16> {},
+static_assert(std::is_standard_layout<rocblas_bfloat16>{},
               "rocblas_bfloat16 is not a standard layout type, and thus is "
               "incompatible with C.");
 
-static_assert(std::is_trivially_copyable<rocblas_bfloat16> {},
+static_assert(std::is_trivially_copyable<rocblas_bfloat16>{},
               "rocblas_bfloat16 is not trivially copyable, and thus is "
               "incompatible with C.");
 
@@ -236,11 +237,11 @@ inline __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
     a.data &= 0x7fff;
     return a;
 }
-inline __host__ __device__ rocblas_bfloat16 sin(rocblas_bfloat16 a)
+inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(sinf(float(a)));
 }
-inline __host__ __device__ rocblas_bfloat16 cos(rocblas_bfloat16 a)
+inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(cosf(float(a)));
 }

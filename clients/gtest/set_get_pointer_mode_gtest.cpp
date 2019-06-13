@@ -47,13 +47,13 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments&)
         {
-            return RocBLAS_TestName<set_get_pointer_mode> {};
+            return RocBLAS_TestName<set_get_pointer_mode>{};
         }
     };
 
     TEST_P(set_get_pointer_mode, auxilliary)
     {
-        testing_set_get_pointer_mode<> {}(GetParam());
+        testing_set_get_pointer_mode<>{}(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_pointer_mode)
 
