@@ -123,11 +123,11 @@ private:
     }
 };
 
-static_assert(std::is_standard_layout<rocblas_bfloat16> {},
+static_assert(std::is_standard_layout<rocblas_bfloat16>{},
               "rocblas_bfloat16 is not a standard layout type, and thus is "
               "incompatible with C.");
 
-static_assert(std::is_trivially_copyable<rocblas_bfloat16> {},
+static_assert(std::is_trivially_copyable<rocblas_bfloat16>{},
               "rocblas_bfloat16 is not trivially copyable, and thus is "
               "incompatible with C.");
 

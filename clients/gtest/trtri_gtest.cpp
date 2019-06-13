@@ -28,7 +28,7 @@ namespace
     template <typename T>
     struct trtri_testing<
         T,
-        typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
     {
         explicit operator bool()
         {

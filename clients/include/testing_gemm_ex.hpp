@@ -268,18 +268,17 @@ void testing_gemm_ex(const Arguments& arg)
     void*             workspace      = nullptr;
 
     bool nantest = rocblas_isnan(arg.beta);
-    if(!std::is_same<To, float> {} && !std::is_same<To, double> {}
-       && !std::is_same<To, rocblas_half> {} && nantest)
+    if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
+       && !std::is_same<To, rocblas_half>{} && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half> {})
+    if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
         h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
     }
-    else if(std::is_same<Tc, float> {} || std::is_same<Tc, double> {}
-            || std::is_same<Tc, int32_t> {})
+    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
         h_alpha_Tc = static_cast<Tc>(arg.alpha);
         h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
@@ -310,7 +309,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
-       || (std::is_same<Ti, int8_t> {}
+       || (std::is_same<Ti, int8_t>{}
            && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
                || (transB == rocblas_operation_none && ldb % 4 != 0))))
     {
@@ -394,7 +393,7 @@ void testing_gemm_ex(const Arguments& arg)
         rocblas_init<To>(hC, M, N, ldc);
     rocblas_init<To>(hD_1, M, N, ldd);
 
-    if(std::is_same<To, rocblas_half> {} && std::is_same<Tc, float> {})
+    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -422,7 +421,7 @@ void testing_gemm_ex(const Arguments& arg)
             hB[ldb + 1] = static_cast<Ti>(positive_two);
         }
     }
-    else if(std::is_same<Ti, rocblas_bfloat16> {} && std::is_same<Tc, float> {})
+    else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -457,7 +456,7 @@ void testing_gemm_ex(const Arguments& arg)
 
     // copy data from CPU to device
     // if int8 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t> {} && transA == rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
     {
         host_vector<Ti> hA_packed(hA);
 
@@ -470,7 +469,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
     // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t> {} && transB != rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
     {
         host_vector<Ti> hB_packed(hB);
 
@@ -574,7 +573,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tc, rocblas_half> {} && K > 10000)
+            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

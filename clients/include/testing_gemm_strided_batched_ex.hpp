@@ -314,13 +314,12 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     bool nantest = rocblas_isnan(arg.beta);
     Tc   h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half> {})
+    if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
         h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
     }
-    else if(std::is_same<Tc, float> {} || std::is_same<Tc, double> {}
-            || std::is_same<Tc, int32_t> {})
+    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
         h_alpha_Tc = static_cast<Tc>(arg.alpha);
         h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
@@ -356,7 +355,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
        || batch_count < 0
-       || (std::is_same<Ti, int8_t> {}
+       || (std::is_same<Ti, int8_t>{}
            && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
                || (transB == rocblas_operation_none && ldb % 4 != 0) || stride_a % 4 != 0
                || stride_b % 4 != 0)))
@@ -462,7 +461,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     rocblas_init<To>(hD_1, M, N, ldd, stride_d, batch_count);
 
 #if DEBUG_PRINT
-    if(std::is_same<To, rocblas_half> {})
+    if(std::is_same<To, rocblas_half>{})
     {
         std::cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
@@ -617,7 +616,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_1---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half> {})
+        if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << half_to_float(hD_1[i]) << "  ";
         else
@@ -667,7 +666,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
 #if DEBUG_PRINT
         std::cout << std::endl << "-----hD_2---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half> {})
+        if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << half_to_float(hD_2[i]) << "  ";
         else
@@ -710,7 +709,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
 #if DEBUG_PRINT
         std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
-        if(std::is_same<To, rocblas_half> {})
+        if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 std::cout << half_to_float(hD_gold[i]) << "  ";
         else
@@ -727,7 +726,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                     if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
                        != hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
                     {
-                        if(std::is_same<To, rocblas_half> {})
+                        if(std::is_same<To, rocblas_half>{})
                         {
                             std::cout
                                 << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
@@ -750,7 +749,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<Tc, rocblas_half> {} && K > 10000)
+            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0

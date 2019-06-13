@@ -38,7 +38,7 @@ class rocblas_nan_rng
             T      fp;
         } x;
         do
-            x.u = std::uniform_int_distribution<UINT_T> {}(rocblas_rng);
+            x.u = std::uniform_int_distribution<UINT_T>{}(rocblas_rng);
         while(!(x.u & (((UINT_T)1 << SIG) - 1))); // Reject Inf (mantissa == 0)
         x.u |= (((UINT_T)1 << EXP) - 1) << SIG; // Exponent = all 1's
         return x.fp; // NaN with random bits
@@ -46,10 +46,10 @@ class rocblas_nan_rng
 
 public:
     // Random integer
-    template <typename T, typename = typename std::enable_if<std::is_integral<T> {}>::type>
+    template <typename T, typename = typename std::enable_if<std::is_integral<T>{}>::type>
     explicit operator T()
     {
-        return std::uniform_int_distribution<T> {}(rocblas_rng);
+        return std::uniform_int_distribution<T>{}(rocblas_rng);
     }
 
     // Random NaN double

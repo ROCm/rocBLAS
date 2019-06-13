@@ -570,9 +570,9 @@ rocblas_status rocblas_trsv_ex_template(rocblas_handle    handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        static const T one {1};
-        static const T zero {0};
-        static const T negative_one {-1};
+        static const T one{1};
+        static const T zero{0};
+        static const T negative_one{-1};
 
         T* one_d = (T*)handle->get_trsv_one();
         RETURN_IF_HIP_ERROR(hipMemcpy(one_d, &one, sizeof(T), hipMemcpyHostToDevice));
@@ -681,9 +681,9 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        static const T one {1};
-        static const T zero {0};
-        static const T negative_one {-1};
+        static const T one{1};
+        static const T zero{0};
+        static const T negative_one{-1};
 
         T* one_d = (T*)handle->get_trsv_one();
         RETURN_IF_HIP_ERROR(hipMemcpy(one_d, &one, sizeof(T), hipMemcpyHostToDevice));
@@ -739,18 +739,18 @@ rocblas_status rocblas_trsv_template(rocblas_handle    handle,
     // invA is of size BLOCK*k, BLOCK is the blocking size
     // used unique_ptr to avoid memory leak
     auto invA
-        = rocblas_unique_ptr {rocblas::device_malloc(BLOCK * m * sizeof(T)), rocblas::device_free};
+        = rocblas_unique_ptr{rocblas::device_malloc(BLOCK * m * sizeof(T)), rocblas::device_free};
     if(!invA)
         return rocblas_status_memory_error;
 
-    auto C_tmp = rocblas_unique_ptr {
+    auto C_tmp = rocblas_unique_ptr{
         rocblas::device_malloc(sizeof(T) * (BLOCK / 2) * (BLOCK / 2) * (m / BLOCK)),
         rocblas::device_free};
     if(!C_tmp && m >= BLOCK)
         return rocblas_status_memory_error;
 
     // X is size of packed B
-    auto X = rocblas_unique_ptr {rocblas::device_malloc(m * sizeof(T)), rocblas::device_free};
+    auto X = rocblas_unique_ptr{rocblas::device_malloc(m * sizeof(T)), rocblas::device_free};
     if(!X)
         return rocblas_status_memory_error;
 

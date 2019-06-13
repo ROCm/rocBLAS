@@ -202,12 +202,12 @@ try
             if((incx != 1) && (incy != 1))
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -236,8 +236,8 @@ try
             else if(incx == 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -259,7 +259,7 @@ try
             else if(incx != 1 && incy == 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
@@ -332,12 +332,12 @@ try
             if(incx != 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -366,7 +366,7 @@ try
             else if(incx == 1 && incy != 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
@@ -384,8 +384,8 @@ try
             else if(incx != 1 && incy == 1)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -510,12 +510,12 @@ try
             if((lda != rows) && (ldb != rows))
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -545,8 +545,8 @@ try
             else if(lda == rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -569,7 +569,7 @@ try
             else if(lda != rows && ldb == rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
@@ -660,12 +660,12 @@ try
             if(lda != rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
@@ -695,7 +695,7 @@ try
             else if(lda == rows && ldb != rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_h_managed = rocblas_unique_ptr {malloc(temp_byte_size), free};
+                auto  t_h_managed = rocblas_unique_ptr{malloc(temp_byte_size), free};
                 void* t_h         = t_h_managed.get();
                 if(!t_h)
                     return rocblas_status_memory_error;
@@ -712,8 +712,8 @@ try
             else if(lda != rows && ldb == rows)
             {
                 // used unique_ptr to avoid memory leak
-                auto  t_d_managed = rocblas_unique_ptr {rocblas::device_malloc(temp_byte_size),
-                                                       rocblas::device_free};
+                auto  t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
+                                                      rocblas::device_free};
                 void* t_d         = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;

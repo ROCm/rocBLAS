@@ -118,7 +118,7 @@ namespace
     struct gemm_testing<T,
                         T,
                         T,
-                        typename std::enable_if<!std::is_same<T, void> {} && !is_complex<T>>::type>
+                        typename std::enable_if<!std::is_same<T, void>{} && !is_complex<T>>::type>
     {
         explicit operator bool()
         {
@@ -172,7 +172,7 @@ namespace
         Ti,
         To,
         Tc,
-        typename std::enable_if<!std::is_same<Ti, void> {} && !is_complex<Ti>>::type>
+        typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
     {
         explicit operator bool()
         {

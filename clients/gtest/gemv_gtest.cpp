@@ -26,7 +26,7 @@ namespace
     template <typename T>
     struct gemv_testing<
         T,
-        typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
     {
         explicit operator bool()
         {
@@ -60,10 +60,10 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<gemv> {}
-                   << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
-                   << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda << '_'
-                   << arg.incx << '_' << arg.beta << '_' << arg.incy;
+            return RocBLAS_TestName<gemv>{} << rocblas_datatype2string(arg.a_type) << '_'
+                                            << (char)std::toupper(arg.transA) << '_' << arg.M << '_'
+                                            << arg.N << '_' << arg.alpha << '_' << arg.lda << '_'
+                                            << arg.incx << '_' << arg.beta << '_' << arg.incy;
         }
     };
 

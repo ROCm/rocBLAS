@@ -73,9 +73,9 @@ namespace
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
     using blas1_enabled
         = std::integral_constant<bool,
-                                 std::is_same<Ti, To> {} && std::is_same<To, Tc> {}
-                                     && (std::is_same<Ti, float> {} || std::is_same<Ti, double> {}
-                                         || (std::is_same<Ti, rocblas_half> {}
+                                 std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                                     && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                                         || (std::is_same<Ti, rocblas_half>{}
                                              && BLAS1 == blas1::axpy))>;
 
 // Creates tests for one of the BLAS 1 functions

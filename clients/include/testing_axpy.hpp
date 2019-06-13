@@ -25,7 +25,7 @@ void testing_axpy_bad_arg(const Arguments& arg)
     float               alpha_float = 0.6;
     T                   alpha;
 
-    if(std::is_same<T, rocblas_half> {})
+    if(std::is_same<T, rocblas_half>{})
         alpha = float_to_half(alpha_float);
     else
         alpha = alpha_float;
@@ -56,7 +56,7 @@ void testing_axpy(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
     T           h_alpha;
-    if(std::is_same<T, rocblas_half> {})
+    if(std::is_same<T, rocblas_half>{})
         h_alpha = float_to_half(arg.alpha);
     else
         h_alpha = arg.alpha;

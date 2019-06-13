@@ -27,7 +27,7 @@ namespace
     template <typename T>
     struct trsv_testing<
         T,
-        typename std::enable_if<std::is_same<T, float> {} || std::is_same<T, double> {}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
     {
         explicit operator bool()
         {
@@ -59,7 +59,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<trsv> {}
+            return RocBLAS_TestName<trsv>{}
                    << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                    << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
                    << '_' << arg.lda << '_' << arg.incx;

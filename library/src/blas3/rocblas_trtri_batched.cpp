@@ -337,7 +337,7 @@ namespace trtri
 
         if(remainder || oddRemainder)
         {
-            auto C_tmp = rocblas_unique_ptr {
+            auto C_tmp = rocblas_unique_ptr{
                 rocblas::device_malloc(
                     sizeof(T) * batch_count
                     * (remainder ? (remainder * current_n) : (oddRemainder * (n - remainder)))),

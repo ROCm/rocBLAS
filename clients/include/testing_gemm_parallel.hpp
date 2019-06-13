@@ -42,7 +42,7 @@ void testing_gemm_parallel(const Arguments& arg,
 
     T h_alpha;
     T h_beta;
-    if(std::is_same<T, rocblas_half> {})
+    if(std::is_same<T, rocblas_half>{})
     {
         h_alpha = float_to_half(arg.alpha);
         h_beta  = float_to_half(arg.beta);

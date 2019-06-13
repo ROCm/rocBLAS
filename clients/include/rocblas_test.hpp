@@ -204,7 +204,7 @@ protected:
     {
         bool operator()(const Arguments&)
         {
-            return static_cast<bool>(FILTER<T...> {});
+            return static_cast<bool>(FILTER<T...>{});
         }
     };
 

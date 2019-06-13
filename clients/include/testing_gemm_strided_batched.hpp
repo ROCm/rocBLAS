@@ -25,7 +25,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     T h_alpha;
     T h_beta;
-    if(std::is_same<T, rocblas_half> {})
+    if(std::is_same<T, rocblas_half>{})
     {
         h_alpha = float_to_half(arg.alpha);
         h_beta  = rocblas_isnan(arg.beta) ? 0 : float_to_half(arg.beta);
@@ -229,7 +229,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_half> {} && K > 10000)
+            if(std::is_same<T, rocblas_half>{} && K > 10000)
             {
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
@@ -321,9 +321,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half> {} ? half_to_float(h_alpha) : h_alpha) << ","
+                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
                   << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-                  << (std::is_same<T, rocblas_half> {} ? half_to_float(h_beta) : h_beta) << ","
+                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
                   << ldc << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
                   << gpu_time_used;
 
