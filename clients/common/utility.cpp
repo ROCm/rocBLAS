@@ -4,9 +4,9 @@
 
 #include "utility.hpp"
 #include "rocblas_random.hpp"
-#include <sys/time.h>
-#include <cstring>
 #include <cstdlib>
+#include <cstring>
+#include <sys/time.h>
 
 // Random number generator
 // Note: We do not use random_device to initialize the RNG, because we want
@@ -20,7 +20,7 @@ rocblas_rng_t rocblas_seed(rocblas_rng);
 std::string rocblas_exepath()
 {
     std::string pathstr;
-    char* path = realpath("/proc/self/exe", 0);
+    char*       path = realpath("/proc/self/exe", 0);
     if(path)
     {
         char* p = strrchr(path, '/');
@@ -59,7 +59,7 @@ double get_time_us_sync(hipStream_t stream)
 /*  device query and print out their ID and name; return number of compute-capable devices. */
 rocblas_int query_device_property()
 {
-    int device_count;
+    int            device_count;
     rocblas_status status = (rocblas_status)hipGetDeviceCount(&device_count);
     if(status != rocblas_status_success)
     {
@@ -81,7 +81,7 @@ rocblas_int query_device_property()
         }
 
         hipDeviceProp_t props;
-        rocblas_status status = (rocblas_status)hipGetDeviceProperties(&props, i);
+        rocblas_status  status = (rocblas_status)hipGetDeviceProperties(&props, i);
         if(status != rocblas_status_success)
         {
             printf("Query device error: cannot get device ID %d's property\n", i);

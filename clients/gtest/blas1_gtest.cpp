@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "utility.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "testing_asum.hpp"
@@ -13,68 +12,71 @@
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
 #include "type_dispatch.hpp"
+#include "utility.hpp"
 
-namespace {
-
-enum class blas1
+namespace
 {
-    nrm2,
-    asum,
-    iamax,
-    iamin,
-    axpy,
-    copy,
-    dot,
-    scal,
-    swap,
-};
 
-// ----------------------------------------------------------------------------
-// BLAS1 testing template
-// ----------------------------------------------------------------------------
-template <template <typename...> class FILTER, blas1 BLAS1>
-struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLAS1>, FILTER>
-{
-    // Filter for which types apply to this suite
-    static bool type_filter(const Arguments& arg)
+    enum class blas1
     {
-        return rocblas_blas1_dispatch<blas1_test_template::template type_filter_functor>(arg);
-    }
+        nrm2,
+        asum,
+        iamax,
+        iamin,
+        axpy,
+        copy,
+        dot,
+        scal,
+        swap,
+    };
 
-    // Filter for which functions apply to this suite
-    static bool function_filter(const Arguments& arg);
-
-    // Google Test name suffix based on parameters
-    static std::string name_suffix(const Arguments& arg)
+    // ----------------------------------------------------------------------------
+    // BLAS1 testing template
+    // ----------------------------------------------------------------------------
+    template <template <typename...> class FILTER, blas1 BLAS1>
+    struct blas1_test_template : public RocBLAS_Test<blas1_test_template<FILTER, BLAS1>, FILTER>
     {
-        RocBLAS_TestName<blas1_test_template> name;
-        name << rocblas_datatype2string(arg.a_type);
+        // Filter for which types apply to this suite
+        static bool type_filter(const Arguments& arg)
+        {
+            return rocblas_blas1_dispatch<blas1_test_template::template type_filter_functor>(arg);
+        }
 
-        if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
-            name << rocblas_datatype2string(arg.d_type);
+        // Filter for which functions apply to this suite
+        static bool function_filter(const Arguments& arg);
 
-        name << '_' << arg.N;
+        // Google Test name suffix based on parameters
+        static std::string name_suffix(const Arguments& arg)
+        {
+            RocBLAS_TestName<blas1_test_template> name;
+            name << rocblas_datatype2string(arg.a_type);
 
-        if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
-            name << '_' << arg.alpha;
+            if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
+                name << rocblas_datatype2string(arg.d_type);
 
-        name << '_' << arg.incx;
+            name << '_' << arg.N;
 
-        if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot ||
-           BLAS1 == blas1::swap)
-            name << '_' << arg.incy;
+            if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+                name << '_' << arg.alpha;
 
-        return std::move(name);
-    }
-};
+            name << '_' << arg.incx;
 
-// This tells whether the BLAS1 tests are enabled
-template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-using blas1_enabled =
-    std::integral_constant<bool,
-                           std::is_same<Ti, To>{} && std::is_same<To, Tc>{} &&
-                               (std::is_same<Ti, float>{} || std::is_same<Ti, double>{} ||
-                                (std::is_same<Ti, rocblas_half>{} && BLAS1 == blas1::axpy))>;
+            if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
+               || BLAS1 == blas1::swap)
+                name << '_' << arg.incy;
+
+            return std::move(name);
+        }
+    };
+
+    // This tells whether the BLAS1 tests are enabled
+    template <blas1 BLAS1, typename Ti, typename To, typename Tc>
+    using blas1_enabled
+        = std::integral_constant<bool,
+                                 std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                                     && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                                         || (std::is_same<Ti, rocblas_half>{}
+                                             && BLAS1 == blas1::axpy))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -136,6 +138,6 @@ BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(scal,  ARG1)
 BLAS1_TESTING(swap,  ARG1)
 
-// clang-format on
+    // clang-format on
 
 } // namespace

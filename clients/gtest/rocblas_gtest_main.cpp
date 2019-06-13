@@ -2,12 +2,12 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <gtest/gtest.h>
-#include "utility.hpp"
 #include "rocblas_data.hpp"
-#include "test_cleanup.hpp"
 #include "rocblas_parse_data.hpp"
+#include "test_cleanup.hpp"
+#include "utility.hpp"
 #include <cstdlib>
+#include <gtest/gtest.h>
 
 using namespace testing;
 
@@ -15,24 +15,27 @@ class ConfigurableEventListener : public TestEventListener
 {
     TestEventListener* eventListener;
 
-    public:
-    bool showTestCases;      // Show the names of each test case.
-    bool showTestNames;      // Show the names of each test.
-    bool showSuccesses;      // Show each success.
+public:
+    bool showTestCases; // Show the names of each test case.
+    bool showTestNames; // Show the names of each test.
+    bool showSuccesses; // Show each success.
     bool showInlineFailures; // Show each failure as it occurs.
-    bool showEnvironment;    // Show the setup of the global environment.
+    bool showEnvironment; // Show the setup of the global environment.
 
     explicit ConfigurableEventListener(TestEventListener* theEventListener)
-        : eventListener(theEventListener),
-          showTestCases(true),
-          showTestNames(true),
-          showSuccesses(true),
-          showInlineFailures(true),
-          showEnvironment(true)
+        : eventListener(theEventListener)
+        , showTestCases(true)
+        , showTestNames(true)
+        , showSuccesses(true)
+        , showInlineFailures(true)
+        , showEnvironment(true)
     {
     }
 
-    ~ConfigurableEventListener() override { delete eventListener; }
+    ~ConfigurableEventListener() override
+    {
+        delete eventListener;
+    }
 
     void OnTestProgramStart(const UnitTest& unit_test) override
     {
@@ -139,8 +142,8 @@ int main(int argc, char** argv)
     test_cleanup::cleanup();
 
     // remove the default listener
-    auto& listeners      = testing::UnitTest::GetInstance()->listeners();
-    auto default_printer = listeners.Release(listeners.default_result_printer());
+    auto& listeners       = testing::UnitTest::GetInstance()->listeners();
+    auto  default_printer = listeners.Release(listeners.default_result_printer());
 
     // add our listener, by default everything is on (the same as using the default listener)
     // here I am turning everything off so I only see the 3 lines for the result
