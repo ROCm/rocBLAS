@@ -24,8 +24,11 @@ RUN yum install -y \
     gtest \
     pkgconfig \
     python27 \
-    python34 \
-    python-yaml \
+    python36 \
+    python36-devel \
+    python36-pip \
+    python36-pytest \
+    python36-setuptools \
     PyYAML \
     libcxx-devel \
     boost-devel \
