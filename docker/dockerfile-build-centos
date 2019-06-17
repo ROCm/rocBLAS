@@ -30,7 +30,8 @@ RUN yum install -y \
     libcxx-devel \
     boost-devel \
     numactl-libs \
-    rpm-build
+    rpm-build \ 
+    deltarpm
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
     'source scl_source enable devtoolset-7' >>/etc/profile.d/devtoolset7.sh
