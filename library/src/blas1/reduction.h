@@ -1,12 +1,15 @@
 #ifndef REDUCTION_H_
 #define REDUCTION_H_
 
-#include "definitions.h"
-#include "handle.h"
-#include "rocblas.h"
 #include <cstddef>
-#include <hip/hip_runtime.h>
 #include <type_traits>
+
+#include "definitions.h"
+#include "rocblas.h"
+
+#include "handle.h"
+
+#include <hip/hip_runtime.h>
 
 /*
  * ===========================================================================

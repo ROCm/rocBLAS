@@ -2,15 +2,20 @@
  *  * Copyright 2016 Advanced Micro Devices, Inc.
  *   *
  *    * ************************************************************************ */
-#include "rocblas_trtri_batched.hpp"
-#include "definitions.h"
-#include "handle.h"
-#include "logging.h"
+
+#include <hip/hip_runtime.h>
+
 #include "rocblas.h"
+
+#include "definitions.h"
 #include "trtri_device.h"
 #include "trtri_trsm.hpp"
+
+#include "rocblas_trtri_batched.hpp"
+
+#include "handle.h"
+#include "logging.h"
 #include "utility.h"
-#include <hip/hip_runtime.h>
 
 namespace trtri
 {

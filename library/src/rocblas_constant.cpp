@@ -1,7 +1,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <hip/hip_runtime_api.h>
-#include <rocbals_constant.h>
+#include <rocblas_constant.h>
 
 // Constants to be used in rocBLAS kernels
 // Note: Order is important, and must match rocblas_constant_t.

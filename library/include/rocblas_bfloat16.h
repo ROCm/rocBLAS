@@ -46,6 +46,8 @@ typedef struct
 
 #else // __cplusplus
 
+#include <hip/hip_runtime.h>
+
 #include <cinttypes>
 #include <cmath>
 #include <hip/hip_runtime.h>

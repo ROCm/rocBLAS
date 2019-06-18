@@ -3,9 +3,10 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
+#include "rocblas.h"
+
 #include "definitions.h"
 #include "logging.h"
-#include "rocblas.h"
 #include "utility.h"
 
 namespace

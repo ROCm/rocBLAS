@@ -10,10 +10,11 @@
 #include <hip/hip_runtime.h>
 
 #include "definitions.h"
-#include "gemm.hpp"
-#include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "trtri.hpp"
+
+#include "gemm.hpp"
+#include "rocblas_unique_ptr.hpp"
 
 template <typename T>
 __device__ void rocblas_tritri_batched_fill_upper(

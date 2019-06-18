@@ -2171,7 +2171,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                                               const void*       a,
                                                               rocblas_datatype  a_type,
                                                               rocblas_int       lda,
-
                                                               rocblas_long      stride_a,
                                                               const void*       b,
                                                               rocblas_datatype  b_type,

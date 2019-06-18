@@ -1,16 +1,18 @@
 /**************************************************************************
  * Copyright 2018 Advanced Micro Devices, Inc.
  ************************************************************************** */
+#include <hip/hip_runtime.h>
+#include <sys/time.h>
 
-#include "gemm.h"
+#include "rocblas.h"
+
 #include "Tensile.h"
+#include "gemm.h"
+
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
 #include "utility.h"
-#include <hip/hip_runtime.h>
-#include <sys/time.h>
 
 /*******************************************************************************
  * Helper enumeration over different transpose combinations

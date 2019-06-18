@@ -1,11 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
 #include <hip/hip_runtime_api.h>
-
-#include "../blas3/trtri_trsm.hpp"
 #include "definitions.h"
 #include "gemv.hpp"
 #include "handle.h"
@@ -16,6 +12,7 @@
 #include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"
+#include "../blas3/trtri_trsm.hpp"
 
 namespace
 {

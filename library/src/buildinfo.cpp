@@ -2,14 +2,16 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-
-#include "definitions.h"
-#include "rocblas-functions.h"
-#include "rocblas-types.h"
-#include "rocblas-version.h"
-#include <sstream>
 #include <stdio.h>
 #include <string.h>
+
+#include <sstream>
+
+#include "definitions.h"
+#include "rocblas-types.h"
+
+#include "rocblas-functions.h"
+#include "rocblas-version.h"
 
 #define TO_STR2(x) #x
 #define TO_STR(x) TO_STR2(x)

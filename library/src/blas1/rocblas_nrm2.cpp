@@ -3,14 +3,17 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
+#include "rocblas.h"
+#include "status.h"
+
 #include "definitions.h"
+#include "reduction.h"
+
 #include "fetch_template.h"
+#include "rocblas_unique_ptr.hpp"
+
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
-#include "rocblas.h"
-#include "rocblas_unique_ptr.hpp"
-#include "status.h"
 #include "utility.h"
 
 namespace

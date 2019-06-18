@@ -3,77 +3,63 @@
  * ************************************************************************ */
 #include <hip/hip_runtime.h>
 
+#include "rocblas.h"
+
 #include "Tensile.h"
 #include "TensileTypes.h"
+#include "status.h"
+
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "rocblas_trsm.hpp"
-#include "status.h"
 #include "utility.h"
 #include <type_traits>
 
-constexpr size_t WORKBUF_TRSM_A_BLKS     = 10;
-constexpr size_t WORKBUF_TRSM_B_MIN_CHNK = 1024;
-constexpr size_t WORKBUF_TRSM_INVA_SZ    = 128 * 128 * 10 * sizeof(double);
-constexpr size_t WORKBUF_TRSM_INVA_C_SZ  = 128 * 128 * 10 * sizeof(double) / 2;
-constexpr size_t WORKBUF_TRSV_X_SZ       = 131072 * sizeof(double);
-constexpr size_t WORKBUF_TRSV_ALPHA_SZ   = sizeof(double);
+#include "rocblas_trsm.hpp"
 
-extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
-                                          rocblas_side      side,
-                                          rocblas_fill      uplo,
-                                          rocblas_operation trans_a,
-                                          rocblas_diagonal  diag,
-                                          rocblas_int       m,
-                                          rocblas_int       n,
-                                          const void*       alpha,
-                                          const void*       a,
-                                          rocblas_int       lda,
-                                          void*             b,
-                                          rocblas_int       ldb,
-                                          const void*       invA,
-                                          rocblas_int       ld_invA,
-                                          rocblas_datatype  compute_type)
+extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle      handle,
+                                          rocblas_side        side,
+                                          rocblas_fill        uplo,
+                                          rocblas_operation   trans_a,
+                                          rocblas_diagonal    diag,
+                                          rocblas_int         m,
+                                          rocblas_int         n,
+                                          const void*         alpha,
+                                          const void*         a,
+                                          rocblas_int         lda,
+                                          void*               b,
+                                          rocblas_int         ldb,
+                                          const void*         invA,
+                                          rocblas_int         ld_invA,
+                                          rocblas_datatype    compute_type)
 {
+    // handle, alpha must not be null pointers for logging
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    // Compute the optimum size in bytes for maximum speed
-    size_t x_temp_size = rocblas_sizeof_datatype(compute_type) * m * n;
-
-    // If this call is a device memory size query,
-    if(handle->is_device_memory_size_query())
-    {
-        // return the size in bytes recommended for maximum speed
-        return handle->set_optimal_device_memory_size(x_temp_size);
-    }
-
     static constexpr rocblas_int TRSM_BLOCK = 128;
     rocblas_int                  k          = (side == rocblas_side_left ? m : n);
+    bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * *(handle->get_trsm_A_blks()));
 
-    // Attempt to allocate the optimal size
-    void* x_temp_workspace = handle->device_memory_alloc(x_temp_size);
-
-    // If optimal size is not available, try the smaller size
     if(!x_temp_workspace)
     {
-        bool allowChunking = (k % TRSM_BLOCK == 0 && k <= TRSM_BLOCK * WORKBUF_TRSM_A_BLKS);
+        rocblas_int k = (side == rocblas_side_left ? m : n);
 
-        if(!allowChunking) // Chunking not supported
-            return rocblas_status_memory_error;
+        if(option == rocblas_trsm_high_performance || !allowChunking)
+            *x_temp_size = m * n;
+        else if(option == rocblas_trsm_low_memory)
+            *x_temp_size = m;
+        else
+            return rocblas_status_not_implemented;
 
-        x_temp_size = rocblas_sizeof_datatype(compute_type) * m;
-        //        x_temp_workspace = handle->device_memory_alloc(x_temp_size);
-
-        // If the smaller size cannot be allocated, return error
-        if(!x_temp_workspace)
-            return rocblas_status_memory_error;
+        return rocblas_status_success;
     }
 
     if(!alpha)
         return rocblas_status_invalid_pointer;
+
+    if(!allowChunking && (*x_temp_size / m) < n) // Chunking not supported
+        return rocblas_status_invalid_size;
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode
@@ -159,6 +145,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                           ldb,
                           invA,
                           ld_invA,
+                          x_temp_workspace,
                           compute_type_string);
         }
 
@@ -224,7 +211,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                                          ldb,
                                                          static_cast<const double*>(invA),
                                                          ld_invA,
-                                                         &x_temp_size,
+                                                         static_cast<const size_t*>(x_temp_size),
                                                          static_cast<double*>(x_temp_workspace));
     }
     else if(compute_type == rocblas_datatype_f32_r)
@@ -243,7 +230,7 @@ extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                                          ldb,
                                                          static_cast<const float*>(invA),
                                                          ld_invA,
-                                                         &x_temp_size,
+                                                         static_cast<const size_t*>(x_temp_size),
                                                          static_cast<float*>(x_temp_workspace));
     }
     else

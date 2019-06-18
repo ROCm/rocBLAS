@@ -9,10 +9,10 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_gemm_ex.hpp"
 #include "status.h"
 #include "utility.h"
-#include <type_traits>
+
+#include "rocblas_gemm_ex.hpp"
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_operation trans_a,
