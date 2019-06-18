@@ -75,6 +75,16 @@ public:
     {
         return random_nan_data<rocblas_bfloat16, uint16_t, 7, 8>();
     }
+
+    explicit operator rocblas_float_complex()
+    {
+        return {float(*this), float(*this)};
+    }
+
+    explicit operator rocblas_double_complex()
+    {
+        return {double(*this), double(*this)};
+    }
 };
 
 /* ============================================================================================ */
@@ -108,6 +118,22 @@ template <>
 inline int8_t random_generator<int8_t>()
 {
     return std::uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
+};
+
+template <>
+inline rocblas_float_complex random_generator<rocblas_float_complex>()
+{
+    float real = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    float imag = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return {real, imag};
+};
+
+template <>
+inline rocblas_double_complex random_generator<rocblas_double_complex>()
+{
+    double real = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    double imag = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return {real, imag};
 };
 
 /*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */

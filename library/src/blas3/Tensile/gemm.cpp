@@ -4,14 +4,13 @@
 #include <hip/hip_runtime.h>
 #include <sys/time.h>
 
-#include "rocblas.h"
-
 #include "Tensile.h"
-#include "gemm.h"
-
 #include "definitions.h"
+#include "gemm.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "rocblas_unique_ptr.hpp"
 #include "utility.h"
 
 /*******************************************************************************
@@ -117,6 +116,290 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
 /*******************************************************************************
  * Tensile Function call
  ******************************************************************************/
+template <typename ComplexT, typename UnitT>
+hipError_t callComplexTensile(const ComplexT*   alpha,
+                              const ComplexT*   beta,
+                              const ComplexT*   A,
+                              const ComplexT*   B,
+                              ComplexT*         C,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_int       strideC1, // ldc
+                              rocblas_int       strideC2, // b_stride
+                              rocblas_int       strideA1, // lda
+                              rocblas_int       strideA2,
+                              rocblas_int       strideB1, // ldb
+                              rocblas_int       strideB2,
+                              rocblas_int       sizeI, // m
+                              rocblas_int       sizeJ, // n
+                              rocblas_int       sizeK, // b
+                              rocblas_int       sizeL, // k
+                              rocblas_handle    handle)
+{
+    hipError_t status;
+
+    rocblas_int A_row = trans_a == rocblas_operation_none ? sizeI : sizeL;
+    rocblas_int A_col = trans_a == rocblas_operation_none ? sizeL : sizeI;
+    rocblas_int B_row = trans_b == rocblas_operation_none ? sizeL : sizeJ;
+    rocblas_int B_col = trans_b == rocblas_operation_none ? sizeJ : sizeL;
+    rocblas_int C_row = sizeI;
+    rocblas_int C_col = sizeJ;
+    rocblas_int batch = sizeK;
+
+    auto tempA  = rocblas_unique_ptr{rocblas::device_malloc(batch * A_row * A_col * sizeof(UnitT)),
+                                    rocblas::device_free};
+    auto tempB  = rocblas_unique_ptr{rocblas::device_malloc(batch * B_row * B_col * sizeof(UnitT)),
+                                    rocblas::device_free};
+    auto tempCr = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)),
+                                     rocblas::device_free};
+    auto tempCi = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)),
+                                     rocblas::device_free};
+
+    UnitT* tAptr  = static_cast<UnitT*>(tempA.get());
+    UnitT* tBptr  = static_cast<UnitT*>(tempB.get());
+    UnitT* tCrptr = static_cast<UnitT*>(tempCr.get());
+    UnitT* tCiptr = static_cast<UnitT*>(tempCi.get());
+
+    UnitT falpha = 1.0f;
+    UnitT fbeta  = 1.0f;
+
+    hipStream_t rocblas_stream;
+    rocblas_get_stream(handle, &rocblas_stream);
+
+    // ----- real part -----
+    // copy realA to tempA
+    copy_part_of_complex_matrix(rocblas_stream,
+                                true,
+                                tAptr,
+                                A_row,
+                                A_row * A_col,
+                                A,
+                                strideA1,
+                                strideA2,
+                                A_row,
+                                A_col,
+                                batch);
+
+    // copy realB to tempB
+    copy_part_of_complex_matrix(rocblas_stream,
+                                true,
+                                tBptr,
+                                B_row,
+                                B_row * B_col,
+                                B,
+                                strideB1,
+                                strideB2,
+                                B_row,
+                                B_col,
+                                batch);
+
+    // gemm tempCr = tempA * tempB
+    falpha = 1.0f;
+    fbeta  = 0.0f;
+    status = callTensile(&falpha,
+                         &fbeta,
+                         tAptr,
+                         tBptr,
+                         tCrptr,
+                         trans_a,
+                         trans_b,
+                         C_row,
+                         C_row * C_col,
+                         A_row,
+                         A_row * A_col,
+                         B_row,
+                         B_row * B_col,
+                         sizeI,
+                         sizeJ,
+                         sizeK,
+                         sizeL,
+                         handle);
+    if(hipSuccess != status)
+    {
+        return status;
+    }
+
+    // copy imageA to tempA
+    copy_part_of_complex_matrix(rocblas_stream,
+                                false,
+                                tAptr,
+                                A_row,
+                                A_row * A_col,
+                                A,
+                                strideA1,
+                                strideA2,
+                                A_row,
+                                A_col,
+                                batch);
+
+    // copy imageB to tempB
+    copy_part_of_complex_matrix(rocblas_stream,
+                                false,
+                                tBptr,
+                                B_row,
+                                B_row * B_col,
+                                B,
+                                strideB1,
+                                strideB2,
+                                B_row,
+                                B_col,
+                                batch);
+
+    // gemm tempCr = (-tempA * tempB) + tempCr
+    falpha = ((trans_a == rocblas_operation_conjugate_transpose)
+              == (trans_b == rocblas_operation_conjugate_transpose))
+                 ? -1.0f
+                 : 1.0f;
+    fbeta  = 1.0f;
+    status = callTensile(&falpha,
+                         &fbeta,
+                         tAptr,
+                         tBptr,
+                         tCrptr,
+                         trans_a,
+                         trans_b,
+                         C_row,
+                         C_row * C_col,
+                         A_row,
+                         A_row * A_col,
+                         B_row,
+                         B_row * B_col,
+                         sizeI,
+                         sizeJ,
+                         sizeK,
+                         sizeL,
+                         handle);
+    if(hipSuccess != status)
+    {
+        return status;
+    }
+
+    // ----- image part -----
+    // copy realA to tempA
+    copy_part_of_complex_matrix(rocblas_stream,
+                                true,
+                                tAptr,
+                                A_row,
+                                A_row * A_col,
+                                A,
+                                strideA1,
+                                strideA2,
+                                A_row,
+                                A_col,
+                                batch);
+
+    // copy imageB to tempB
+    copy_part_of_complex_matrix(rocblas_stream,
+                                false,
+                                tBptr,
+                                B_row,
+                                B_row * B_col,
+                                B,
+                                strideB1,
+                                strideB2,
+                                B_row,
+                                B_col,
+                                batch);
+
+    // gemm tempCi = tempA * tempB
+    falpha = (trans_b == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
+    fbeta  = 0.0f;
+    status = callTensile(&falpha,
+                         &fbeta,
+                         tAptr,
+                         tBptr,
+                         tCiptr,
+                         trans_a,
+                         trans_b,
+                         C_row,
+                         C_row * C_col,
+                         A_row,
+                         A_row * A_col,
+                         B_row,
+                         B_row * B_col,
+                         sizeI,
+                         sizeJ,
+                         sizeK,
+                         sizeL,
+                         handle);
+    if(hipSuccess != status)
+    {
+        return status;
+    }
+
+    // copy imageA to tempA
+    copy_part_of_complex_matrix(rocblas_stream,
+                                false,
+                                tAptr,
+                                A_row,
+                                A_row * A_col,
+                                A,
+                                strideA1,
+                                strideA2,
+                                A_row,
+                                A_col,
+                                batch);
+
+    // copy realB to tempB
+    copy_part_of_complex_matrix(rocblas_stream,
+                                true,
+                                tBptr,
+                                B_row,
+                                B_row * B_col,
+                                B,
+                                strideB1,
+                                strideB2,
+                                B_row,
+                                B_col,
+                                batch);
+
+    // gemm tempCi = tempA * tempB
+    falpha = (trans_a == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
+    fbeta  = 1.0f;
+    status = callTensile(&falpha,
+                         &fbeta,
+                         tAptr,
+                         tBptr,
+                         tCiptr,
+                         trans_a,
+                         trans_b,
+                         C_row,
+                         C_row * C_col,
+                         A_row,
+                         A_row * A_col,
+                         B_row,
+                         B_row * B_col,
+                         sizeI,
+                         sizeJ,
+                         sizeK,
+                         sizeL,
+                         handle);
+    if(hipSuccess != status)
+    {
+        return status;
+    }
+
+    complex_addition(rocblas_stream,
+                     handle->pointer_mode,
+                     tCrptr,
+                     tCiptr,
+                     C_row,
+                     C_row * C_col,
+                     alpha,
+                     C,
+                     strideC1,
+                     strideC2,
+                     beta,
+                     C,
+                     strideC1,
+                     strideC2,
+                     sizeI,
+                     sizeJ,
+                     batch);
+
+    return hipSuccess;
+}
+
 template <typename T>
 hipError_t callTensile(const T*          alpha,
                        const T*          beta,
@@ -244,6 +527,86 @@ hipError_t callTensile(const T*          alpha,
     return status;
 }
 
+template <>
+hipError_t callTensile<rocblas_float_complex>(const rocblas_float_complex* alpha,
+                                              const rocblas_float_complex* beta,
+                                              const rocblas_float_complex* A,
+                                              const rocblas_float_complex* B,
+                                              rocblas_float_complex*       C,
+                                              rocblas_operation            trans_a,
+                                              rocblas_operation            trans_b,
+                                              rocblas_int                  strideC1, // ldc
+                                              rocblas_int                  strideC2, // b_stride
+                                              rocblas_int                  strideA1, // lda
+                                              rocblas_int                  strideA2,
+                                              rocblas_int                  strideB1, // ldb
+                                              rocblas_int                  strideB2,
+                                              rocblas_int                  sizeI, // m
+                                              rocblas_int                  sizeJ, // n
+                                              rocblas_int                  sizeK, // b
+                                              rocblas_int                  sizeL, // k
+                                              rocblas_handle               handle)
+{
+    return callComplexTensile<rocblas_float_complex, float>(alpha,
+                                                            beta,
+                                                            A,
+                                                            B,
+                                                            C,
+                                                            trans_a,
+                                                            trans_b,
+                                                            strideC1,
+                                                            strideC2,
+                                                            strideA1,
+                                                            strideA2,
+                                                            strideB1,
+                                                            strideB2,
+                                                            sizeI,
+                                                            sizeJ,
+                                                            sizeK,
+                                                            sizeL,
+                                                            handle);
+}
+
+template <>
+hipError_t callTensile<rocblas_double_complex>(const rocblas_double_complex* alpha,
+                                               const rocblas_double_complex* beta,
+                                               const rocblas_double_complex* A,
+                                               const rocblas_double_complex* B,
+                                               rocblas_double_complex*       C,
+                                               rocblas_operation             trans_a,
+                                               rocblas_operation             trans_b,
+                                               rocblas_int                   strideC1, // ldc
+                                               rocblas_int                   strideC2, // b_stride
+                                               rocblas_int                   strideA1, // lda
+                                               rocblas_int                   strideA2,
+                                               rocblas_int                   strideB1, // ldb
+                                               rocblas_int                   strideB2,
+                                               rocblas_int                   sizeI, // m
+                                               rocblas_int                   sizeJ, // n
+                                               rocblas_int                   sizeK, // b
+                                               rocblas_int                   sizeL, // k
+                                               rocblas_handle                handle)
+{
+    return callComplexTensile<rocblas_double_complex, double>(alpha,
+                                                              beta,
+                                                              A,
+                                                              B,
+                                                              C,
+                                                              trans_a,
+                                                              trans_b,
+                                                              strideC1,
+                                                              strideC2,
+                                                              strideA1,
+                                                              strideA2,
+                                                              strideB1,
+                                                              strideB2,
+                                                              sizeI,
+                                                              sizeJ,
+                                                              sizeK,
+                                                              sizeL,
+                                                              handle);
+}
+
 template <typename>
 static constexpr char rocblas_gemm_name[] = "unknown";
 template <>
@@ -252,6 +615,10 @@ template <>
 static constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
 template <>
 static constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
+template <>
+static constexpr char rocblas_gemm_name<rocblas_float_complex>[] = "rocblas_cgemm";
+template <>
+static constexpr char rocblas_gemm_name<rocblas_double_complex>[] = "rocblas_zgemm";
 
 /*******************************************************************************
  * GEMM implementation
@@ -424,7 +791,12 @@ template <>
 static constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
 template <>
 static constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
-
+template <>
+static constexpr char rocblas_gemm_strided_batched_name<rocblas_float_complex>[]
+    = "rocblas_cgemm_strided_batched";
+template <>
+static constexpr char rocblas_gemm_strided_batched_name<rocblas_double_complex>[]
+    = "rocblas_zgemm_strided_batched";
 /*******************************************************************************
  * Strided / Batched GEMM implementation
  ******************************************************************************/
@@ -854,6 +1226,46 @@ rocblas_status rocblas_dgemm(rocblas_handle handle,
                                      B, ld_b, beta, C, ld_c);
 }
 
+rocblas_status rocblas_cgemm(rocblas_handle handle,
+                             rocblas_operation trans_a,
+                             rocblas_operation trans_b,
+                             rocblas_int m,
+                             rocblas_int n,
+                             rocblas_int k,
+                             const rocblas_float_complex *alpha,
+                             const rocblas_float_complex *A,
+                             rocblas_int ld_a,
+                             const rocblas_float_complex *B,
+                             rocblas_int ld_b,
+                             const rocblas_float_complex *beta,
+                             rocblas_float_complex *C,
+                             rocblas_int ld_c)
+{
+    return rocblas_gemm_impl<rocblas_float_complex>(handle, trans_a, trans_b,
+                                                    m, n, k, alpha, A, ld_a,
+                                                    B, ld_b, beta, C, ld_c);
+}
+
+
+rocblas_status rocblas_zgemm(rocblas_handle handle,
+                             rocblas_operation trans_a,
+                             rocblas_operation trans_b,
+                             rocblas_int m,
+                             rocblas_int n,
+                             rocblas_int k,
+                             const rocblas_double_complex *alpha,
+                             const rocblas_double_complex *A,
+                             rocblas_int ld_a,
+                             const rocblas_double_complex *B,
+                             rocblas_int ld_b,
+                             const rocblas_double_complex *beta,
+                             rocblas_double_complex *C,
+                             rocblas_int ld_c)
+{
+    return rocblas_gemm_impl<rocblas_double_complex>(handle, trans_a, trans_b,
+                                                    m, n, k, alpha, A, ld_a,
+                                                    B, ld_b, beta, C, ld_c);
+}
 
 /*******************************************************************************
  * Batched / Strided GEMM APIs
@@ -945,6 +1357,65 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
         beta,
         C, ld_c, stride_c, b_c);
 }
+
+rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
+                                             rocblas_operation trans_a,
+                                             rocblas_operation trans_b,
+                                             rocblas_int m,
+                                             rocblas_int n,
+                                             rocblas_int k,
+                                             const rocblas_float_complex *alpha,
+                                             const rocblas_float_complex *A,
+                                             rocblas_int ld_a,
+                                             rocblas_int stride_a,
+                                             const rocblas_float_complex *B,
+                                             rocblas_int ld_b,
+                                             rocblas_int stride_b,
+                                             const rocblas_float_complex *beta,
+                                             rocblas_float_complex *C,
+                                             rocblas_int ld_c,
+                                             rocblas_int stride_c,
+                                             rocblas_int b_c)
+{
+    return rocblas_gemm_strided_batched_impl<rocblas_float_complex>(
+        handle, trans_a, trans_b,
+        m, n, k,
+        alpha,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
+        beta,
+        C, ld_c, stride_c, b_c);
+}
+
+rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
+                                             rocblas_operation trans_a,
+                                             rocblas_operation trans_b,
+                                             rocblas_int m,
+                                             rocblas_int n,
+                                             rocblas_int k,
+                                             const rocblas_double_complex *alpha,
+                                             const rocblas_double_complex *A,
+                                             rocblas_int ld_a,
+                                             rocblas_int stride_a,
+                                             const rocblas_double_complex *B,
+                                             rocblas_int ld_b,
+                                             rocblas_int stride_b,
+                                             const rocblas_double_complex *beta,
+                                             rocblas_double_complex *C,
+                                             rocblas_int ld_c,
+                                             rocblas_int stride_c,
+                                             rocblas_int b_c)
+{
+    return rocblas_gemm_strided_batched_impl<rocblas_double_complex>(
+        handle, trans_a, trans_b,
+        m, n, k,
+        alpha,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
+        beta,
+        C, ld_c, stride_c, b_c);
+}
+
 
 /*******************************************************************************
  * Batched / Strided GEMM Kernel name APIs

@@ -283,10 +283,9 @@ void testing_gemm(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
-                  << lda << "," << ldb << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
-                  << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+                  << rocblas_type_to_string(h_alpha) << "," << lda << "," << ldb << ","
+                  << rocblas_type_to_string(h_beta) << "," << ldc << "," << rocblas_gflops << ","
+                  << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

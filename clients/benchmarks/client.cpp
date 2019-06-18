@@ -67,10 +67,7 @@ struct perf_gemm_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_ex<Ti,
-                    To,
-                    Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_ex<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -90,11 +87,10 @@ struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<
-    Ti,
-    To,
-    Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_strided_batched_ex<Ti,
+                                    To,
+                                    Tc,
+                                    typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -111,6 +107,25 @@ struct perf_gemm_strided_batched_ex<
 template <typename T, typename = void>
 struct perf_blas : rocblas_test_invalid
 {
+};
+
+template <typename T>
+struct perf_blas<T, typename std::enable_if<is_complex<T>>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
 };
 
 template <typename T>

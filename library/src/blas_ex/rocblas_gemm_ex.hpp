@@ -1,6 +1,8 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "gemm.h"
+#include "rocblas_unique_ptr.hpp"
 
 // clang-format off
 void device_matrix_copy(const void* src,
@@ -298,6 +300,125 @@ TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(
 #undef TENSILE_OUT_ARGS
 //------------------------------------------------------------------------------
 
+template <typename ComplexT, typename UnitT>
+rocblas_status gemm_ex_handle_complex_transpose(rocblas_handle handle,
+                                                rocblas_operation trans_a,
+                                                rocblas_operation trans_b,
+                                                unsigned int m,
+                                                unsigned int n,
+                                                unsigned int k,
+                                                const ComplexT alpha,
+                                                const ComplexT* a, unsigned int lda, unsigned int stride_a,
+                                                const ComplexT* b, unsigned int ldb, unsigned int stride_b,
+                                                const ComplexT beta,
+                                                const ComplexT* c, unsigned int ldc, unsigned int stride_c,
+                                                      ComplexT* d, unsigned int ldd, unsigned int stride_d,
+                                                unsigned int batch_count)
+{
+    unsigned int A_row = trans_a == rocblas_operation_none ? m : k;
+    unsigned int A_col = trans_a == rocblas_operation_none ? k : m;
+    unsigned int B_row = trans_b == rocblas_operation_none ? k : n;
+    unsigned int B_col = trans_b == rocblas_operation_none ? n : k;
+    unsigned int C_row = m;
+    unsigned int C_col = n;
+    unsigned int batch = batch_count;
+
+    auto tempA  = rocblas_unique_ptr{rocblas::device_malloc(batch * A_row * A_col * sizeof(UnitT)), rocblas::device_free};
+    auto tempB  = rocblas_unique_ptr{rocblas::device_malloc(batch * B_row * B_col * sizeof(UnitT)), rocblas::device_free};
+    auto tempCr = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)), rocblas::device_free};
+    auto tempCi = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)), rocblas::device_free};
+
+    UnitT* tAptr  = static_cast<UnitT*>(tempA.get());
+    UnitT* tBptr  = static_cast<UnitT*>(tempB.get());
+    UnitT* tCrptr = static_cast<UnitT*>(tempCr.get());
+    UnitT* tCiptr = static_cast<UnitT*>(tempCi.get());
+
+    UnitT falpha = 1.0f;
+    UnitT fbeta  = 1.0f;
+
+    hipStream_t rocblas_stream;
+    rocblas_get_stream(handle, &rocblas_stream);
+
+    // ----- real part -----
+    // copy realA to tempA
+    copy_part_of_complex_matrix(rocblas_stream, true, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
+
+    // copy realB to tempB
+    copy_part_of_complex_matrix(rocblas_stream, true, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
+
+    // gemm tempCr = tempA * tempB
+    falpha = 1.0f;
+    fbeta  = 0.0f;
+    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
+                             falpha,
+                             tAptr, A_row, A_row * A_col,
+                             tBptr, B_row, B_row * B_col,
+                             fbeta,
+                             tCrptr, C_row, C_row * C_col,
+                             tCrptr, C_row, C_row * C_col,
+                             batch);
+
+    // copy imageA to tempA
+    copy_part_of_complex_matrix(rocblas_stream, false, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
+
+    // copy imageB to tempB
+    copy_part_of_complex_matrix(rocblas_stream, false, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
+
+    // gemm tempCr = (-tempA * tempB) + tempCr
+    falpha = ((trans_a == rocblas_operation_conjugate_transpose) == (trans_b == rocblas_operation_conjugate_transpose)) ? -1.0f : 1.0f;
+    fbeta  = 1.0f;
+    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
+                             falpha,
+                             tAptr, A_row, A_row * A_col,
+                             tBptr, B_row, B_row * B_col,
+                             fbeta,
+                             tCrptr, C_row, C_row * C_col,
+                             tCrptr, C_row, C_row * C_col,
+                             batch);
+
+    // ----- image part -----
+    // copy realA to tempA
+    copy_part_of_complex_matrix(rocblas_stream, true, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
+
+    // copy imageB to tempB
+    copy_part_of_complex_matrix(rocblas_stream, false, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
+
+    // gemm tempCi = tempA * tempB
+    falpha = (trans_b == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
+    fbeta  = 0.0f;
+    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
+                             falpha,
+                             tAptr, A_row, A_row * A_col,
+                             tBptr, B_row, B_row * B_col,
+                             fbeta,
+                             tCiptr, C_row, C_row * C_col,
+                             tCiptr, C_row, C_row * C_col,
+                             batch);
+
+    // copy imageA to tempA
+    copy_part_of_complex_matrix(rocblas_stream, false, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
+
+    // copy realB to tempB
+    copy_part_of_complex_matrix(rocblas_stream, true, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
+
+    // gemm tempCi = tempA * tempB
+    falpha = (trans_a == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
+    fbeta  = 1.0f;
+    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
+                             falpha,
+                             tAptr, A_row, A_row * A_col,
+                             tBptr, B_row, B_row * B_col,
+                             fbeta,
+                             tCiptr, C_row, C_row * C_col,
+                             tCiptr, C_row, C_row * C_col,
+                             batch);
+
+    complex_addition(rocblas_stream, rocblas_pointer_mode_host, tCrptr, tCiptr, C_row, C_row * C_col, &alpha,
+                     c, ldc, stride_c, &beta, d, ldd, stride_d, m, n, batch);
+
+    return rocblas_status_success;
+}
+
 template <typename Ti, typename To, typename Tc>
 rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                         rocblas_operation trans_a,
@@ -418,6 +539,52 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     }
 
     return rb_status;
+}
+
+template <>
+rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
+                                        rocblas_operation trans_a,
+                                        rocblas_operation trans_b,
+                                        unsigned int m,
+                                        unsigned int n,
+                                        unsigned int k,
+                                        const rocblas_float_complex alpha,
+                                        const rocblas_float_complex* a, unsigned int lda, unsigned int stride_a,
+                                        const rocblas_float_complex* b, unsigned int ldb, unsigned int stride_b,
+                                        const rocblas_float_complex beta,
+                                        const rocblas_float_complex* c, unsigned int ldc, unsigned int stride_c,
+                                              rocblas_float_complex* d, unsigned int ldd, unsigned int stride_d,
+                                        unsigned int batch_count)
+{
+    return gemm_ex_handle_complex_transpose<rocblas_float_complex, float>(
+        handle, trans_a, trans_b, m, n, k, alpha,
+        a, lda, stride_a,
+        b, ldb, stride_b, beta,
+        c, ldc, stride_c,
+        d, ldd, stride_d, batch_count);
+}
+
+template <>
+rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
+                                        rocblas_operation trans_a,
+                                        rocblas_operation trans_b,
+                                        unsigned int m,
+                                        unsigned int n,
+                                        unsigned int k,
+                                        const rocblas_double_complex alpha,
+                                        const rocblas_double_complex* a, unsigned int lda, unsigned int stride_a,
+                                        const rocblas_double_complex* b, unsigned int ldb, unsigned int stride_b,
+                                        const rocblas_double_complex beta,
+                                        const rocblas_double_complex* c, unsigned int ldc, unsigned int stride_c,
+                                              rocblas_double_complex* d, unsigned int ldd, unsigned int stride_d,
+                                        unsigned int batch_count)
+{
+    return gemm_ex_handle_complex_transpose<rocblas_double_complex, double>(
+        handle, trans_a, trans_b, m, n, k, alpha,
+        a, lda, stride_a,
+        b, ldb, stride_b, beta,
+        c, ldc, stride_c,
+        d, ldd, stride_d, batch_count);
 }
 
 #if defined(USE_CHUNKING)

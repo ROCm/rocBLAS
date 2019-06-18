@@ -321,10 +321,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
-                  << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
-                  << ldc << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
+                  << rocblas_type_to_string(h_alpha) << "," << lda << "," << stride_a << "," << ldb
+                  << "," << stride_b << "," << rocblas_type_to_string(h_beta) << "," << ldc << ","
+                  << stride_c << "," << batch_count << "," << rocblas_gflops << ","
                   << gpu_time_used;
 
         if(arg.norm_check)
