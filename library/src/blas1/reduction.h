@@ -162,8 +162,8 @@ template <rocblas_int NB,
 __global__ void
     rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
-    ssize_t    tx  = hipThreadIdx_x;
-    ssize_t    tid = hipBlockIdx_x * hipBlockDim_x + tx;
+    ssize_t       tx  = hipThreadIdx_x;
+    ssize_t       tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
     // bound
@@ -187,7 +187,7 @@ template <rocblas_int NB,
           typename Tr>
 __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int   tx = hipThreadIdx_x;
     __shared__ To tmp[NB];
 
     if(tx < nblocks)
