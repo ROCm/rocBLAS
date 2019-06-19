@@ -43,7 +43,9 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
-#if 0 // TODO: Compute an optimum size of device memory which can be used as workspace
+// TODO: Compute an optimum size of device memory which can be used as workspace.
+// workspace is managed out-of-band, and is not directly part of the rocblas_gemm_ex API.
+#if 0
     if(handle->is_device_memory_size_query())
     {
         size_t size = rocblas_sizeof_datatype(compute_type) * m * n; // Example

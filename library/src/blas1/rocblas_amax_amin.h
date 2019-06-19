@@ -10,7 +10,6 @@
 #include "definitions.h"
 #include "fetch_template.h"
 #include "reduction.h"
-#include "rocblas_unique_ptr.hpp"
 
 #include "handle.h"
 #include "logging.h"
@@ -116,8 +115,19 @@ template <typename To, typename Ti>
 static rocblas_status rocblas_iamaxmin(
     rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, rocblas_int* result)
 {
+    // HIP support up to 1024 threads/work itmes per thread block/work group
+    static constexpr int NB = 1024;
+
     if(!handle)
         return rocblas_status_invalid_handle;
+
+    if(handle->is_device_memory_size_query())
+    {
+        if(n <= 0 || incx <= 0)
+            return rocblas_status_size_unchanged;
+        auto blocks = (n - 1) / NB + 1;
+        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
+    }
 
     auto layer_mode = handle->layer_mode;
 
@@ -138,9 +148,8 @@ static rocblas_status rocblas_iamaxmin(
 
     if(!x || !result)
         return rocblas_status_invalid_pointer;
-    /*
-     * Quick return if possible.
-     */
+
+    // Quick return if possible.
     if(n <= 0 || incx <= 0)
     {
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -150,12 +159,8 @@ static rocblas_status rocblas_iamaxmin(
         return rocblas_status_success;
     }
 
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    static constexpr int NB     = 1024;
-    rocblas_int          blocks = (n - 1) / NB + 1;
-
-    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
-                                        rocblas::device_free};
+    auto blocks    = (n - 1) / NB + 1;
+    auto workspace = handle->device_alloc(sizeof(index_value_t<To>) * blocks);
     if(!workspace)
         return rocblas_status_memory_error;
 
@@ -163,7 +168,7 @@ static rocblas_status rocblas_iamaxmin(
                                            rocblas_fetch_amax_amin<To>,
                                            AMAX_AMIN_REDUCTION,
                                            rocblas_finalize_amax_amin>(
-        handle, n, x, incx, result, (index_value_t<To>*)workspace.get(), blocks);
+        handle, n, x, incx, result, (index_value_t<To>*)workspace, blocks);
 
     return status;
 }

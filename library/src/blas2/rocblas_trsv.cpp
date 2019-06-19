@@ -1,18 +1,17 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime_api.h>
+#include "rocblas_trsv.hpp"
+#include "../blas3/trtri_trsm.hpp"
 #include "definitions.h"
 #include "gemv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "rocblas_constant.h"
-#include "rocblas_trsv.hpp"
-#include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"
-#include "../blas3/trtri_trsm.hpp"
+#include <hip/hip_runtime_api.h>
 
 namespace
 {

@@ -10,7 +10,6 @@
 #include "reduction.h"
 
 #include "fetch_template.h"
-#include "rocblas_unique_ptr.hpp"
 
 #include "handle.h"
 #include "logging.h"
@@ -45,8 +44,18 @@ namespace
     rocblas_status rocblas_asum(
         rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, To* result)
     {
+        // HIP support up to 1024 threads/work itmes per thread block/work group
+        static constexpr int NB = 512;
+
         if(!handle)
             return rocblas_status_invalid_handle;
+        if(handle->is_device_memory_query())
+        {
+            if(n <= 0 || incx <= 0)
+                return rocblas_status_size_unchanged;
+            auto blocks = (n - 1) / NB + 1;
+            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
+        }
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
@@ -67,9 +76,7 @@ namespace
         if(!x || !result)
             return rocblas_status_invalid_pointer;
 
-        /*
-     * Quick return if possible.
-     */
+        // Quick return if possible.
         if(n <= 0 || incx <= 0)
         {
             if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -79,16 +86,13 @@ namespace
             return rocblas_status_success;
         }
 
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        static constexpr int NB     = 512;
-        auto                 blocks = (n - 1) / NB + 1;
-        auto                 workspace
-            = rocblas_unique_ptr{rocblas::device_malloc(sizeof(To) * blocks), rocblas::device_free};
+        auto blocks    = (n - 1) / NB + 1;
+        auto workspace = handle->device_memory_alloc(sizeof(To) * blocks);
         if(!workspace)
             return rocblas_status_memory_error;
 
         auto status = rocblas_reduction_kernel<NB, rocblas_fetch_asum<To>>(
-            handle, n, x, incx, result, (To*)workspace.get(), blocks);
+            handle, n, x, incx, result, (To*)workspace, blocks);
 
         return status;
     }

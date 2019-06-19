@@ -11,7 +11,6 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "rocblas_trsm.hpp"
-#include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "trtri_trsm.hpp"
 #include "utility.h"

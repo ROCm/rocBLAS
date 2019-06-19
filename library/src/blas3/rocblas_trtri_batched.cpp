@@ -19,7 +19,6 @@
 
 namespace trtri
 {
-
     constexpr int NB = 16;
 
     // flag indicate whether write into A or invA
@@ -233,8 +232,7 @@ namespace trtri
                            batch_count);
 
         // second stage: using a special gemm to compute invA21 (lower) or invA12 (upper)
-
-        constexpr rocblas_int IB = NB * 2;
+        static constexpr auto IB = NB * 2;
         rocblas_int           current_n;
 
         for(current_n = IB; current_n * 2 <= n; current_n *= 2)
@@ -332,16 +330,15 @@ namespace trtri
                            invA,
                            batch_count);
 
-        remainder = n - current_n - ((n / NB) % 2 == 0 ? 0 : NB) - (n - (n / NB) * NB);
+        remainder                = (n / NB) * NB - current_n - ((n / NB) % 2 == 0 ? 0 : NB);
         rocblas_int oddRemainder = n - current_n - remainder; // should always be NB - 16
 
         if(remainder || oddRemainder)
         {
-            auto C_tmp = rocblas_unique_ptr{
-                rocblas::device_malloc(
-                    sizeof(T) * batch_count
-                    * (remainder ? (remainder * current_n) : (oddRemainder * (n - remainder)))),
-                rocblas::device_free};
+            size_t size  = remainder ? remainder * current_n : oddRemainder * n;
+            auto   C_tmp = handle->device_alloc(sizeof(T) * batch_count * size);
+            if(!C_tmp)
+                return rocblas_status_memory_error;
 
             if(remainder > 0)
             {
@@ -361,7 +358,7 @@ namespace trtri
                     (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
                     ldinvA,
                     bsinvA,
-                    (T*)(C_tmp.get()),
+                    (T*)C_tmp,
                     (uplo == rocblas_fill_lower) ? remainder : current_n,
                     remainder * current_n,
                     batch_count);
@@ -387,7 +384,7 @@ namespace trtri
                     (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
                     ldinvA,
                     bsinvA,
-                    (T*)(C_tmp.get()),
+                    (T*)C_tmp,
                     (uplo == rocblas_fill_lower) ? oddRemainder : current_n,
                     oddRemainder * current_n,
                     batch_count);
@@ -468,10 +465,26 @@ namespace trtri
         if(ldinvA < n || bsinvA < ldinvA * n || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possNBle.
-     */
+        // Compute the optimal size for temporary device memory
+        if(handle->is_device_memory_size_query())
+        {
+            if(n > NB && batch_count > 0)
+            {
+                rocblas_int current_n;
+                for(current_n = NB * 2; current_n * 2 <= n; current_n *= 2)
+                    ;
+                rocblas_int remainder    = (n / NB) * NB - current_n - ((n / NB) % 2 == 0 ? 0 : NB);
+                rocblas_int oddRemainder = n - current_n - remainder; // should always be NB - 16
+                if(remainder || oddRemainder)
+                {
+                    size_t size = remainder ? remainder * current_n : oddRemainder * n;
+                    return handle->set_optimal_device_memory_size(sizeof(T) * batch_count * size);
+                }
+            }
+            return rocblas_status_size_unchanged;
+        }
 
+        // Quick return if possible.
         if(!n || !batch_count)
             return rocblas_status_success;
 

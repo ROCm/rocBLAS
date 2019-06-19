@@ -9,7 +9,6 @@
 #include "handle.h"
 #include "logging.h"
 #include "reduction.h"
-#include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"
 
@@ -119,8 +118,15 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
+        if(handle->is_device_memory_query())
+        {
+            if(n <= 0)
+                return rocblas_status_size_unchanged;
+            auto blocks = (n - 1) / NB + 1;
+            return handle->set_optimal_device_memory_size(sizeof(T) * blocks);
+        }
 
+        auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_dot_name<T>, n, x, incx, y, incy);
 
@@ -141,9 +147,7 @@ namespace
         if(!x || !y || !result)
             return rocblas_status_invalid_pointer;
 
-        /*
-     * Quick return if possible.
-     */
+        // Quick return if possible.
         if(n <= 0)
         {
             if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -153,15 +157,13 @@ namespace
             return rocblas_status_success;
         }
 
-        rocblas_int blocks = (n - 1) / NB + 1;
-
-        auto workspace
-            = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks), rocblas::device_free};
+        auto blocks    = (n - 1) / NB + 1;
+        auto workspace = handle->device_alloc(sizeof(T) * blocks);
         if(!workspace)
             return rocblas_status_memory_error;
 
-        auto status = rocblas_dot_workspace<T>(
-            handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
+        auto status
+            = rocblas_dot_workspace<T>(handle, n, x, incx, y, incy, result, (T*)workspace, blocks);
 
         return status;
     }

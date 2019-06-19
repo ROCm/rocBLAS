@@ -17,21 +17,21 @@
 
 #include "rocblas_trsm.hpp"
 
-extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle      handle,
-                                          rocblas_side        side,
-                                          rocblas_fill        uplo,
-                                          rocblas_operation   trans_a,
-                                          rocblas_diagonal    diag,
-                                          rocblas_int         m,
-                                          rocblas_int         n,
-                                          const void*         alpha,
-                                          const void*         a,
-                                          rocblas_int         lda,
-                                          void*               b,
-                                          rocblas_int         ldb,
-                                          const void*         invA,
-                                          rocblas_int         ld_invA,
-                                          rocblas_datatype    compute_type)
+extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
+                                          rocblas_side      side,
+                                          rocblas_fill      uplo,
+                                          rocblas_operation trans_a,
+                                          rocblas_diagonal  diag,
+                                          rocblas_int       m,
+                                          rocblas_int       n,
+                                          const void*       alpha,
+                                          const void*       a,
+                                          rocblas_int       lda,
+                                          void*             b,
+                                          rocblas_int       ldb,
+                                          const void*       invA,
+                                          rocblas_int       ld_invA,
+                                          rocblas_datatype  compute_type)
 {
     // handle, alpha must not be null pointers for logging
     if(!handle)

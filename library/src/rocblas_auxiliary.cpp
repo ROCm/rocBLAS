@@ -13,7 +13,6 @@
 #include "utility.h"
 
 #include "rocblas-auxiliary.h"
-#include "rocblas_unique_ptr.hpp"
 
 #include "Tensile.h"
 
