@@ -34,7 +34,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && centos7', 'gfx906'], rocblas)
+    def nodes = new dockerNodes(['gfx900', 'gfx906 && centos7'], rocblas)
 
     boolean formatCheck = true
 
