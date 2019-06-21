@@ -154,7 +154,7 @@ namespace
             return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
-        if(strideA < lda*n)
+        if(strideA < lda * n)
             return rocblas_status_invalid_size;
 
         // Quick return if possible. Not Argument error
@@ -164,8 +164,8 @@ namespace
         hipStream_t rocblas_stream = handle->rocblas_stream;
         rocblas_int absincx, absincy;
 
-        absincx = incx > 0 ? incx: -incx;
-        absincy = incy > 0 ? incy: -incy;
+        absincx = incx > 0 ? incx : -incx;
+        absincy = incy > 0 ? incy : -incy;
 
         if(transA == rocblas_operation_none)
         {
@@ -231,10 +231,10 @@ namespace
             // transpose
             // number of columns on the y-dim of the grid, using gemvc because gemvt(transpose) is a
             // instance of gemvc (conjugate)
-            
+
             if(stridex < m * absincx || stridey < n * absincy)
                 return rocblas_status_invalid_size;
-            
+
             static constexpr int NB = 256;
             dim3                 gemvc_grid(n, batch_count);
             dim3                 gemvc_threads(NB);

@@ -19,6 +19,8 @@
 /*! \brief Class used to parse command arguments in both client & gtest   */
 /* WARNING: If this data is changed, then rocblas_common.yaml must also be changed. */
 
+#define check(arg) check_(arg, #arg)
+
 struct Arguments
 {
     rocblas_int M;
@@ -57,6 +59,9 @@ struct Arguments
     rocblas_int stride_c; //  stride_c > ldc * N
     rocblas_int stride_d; //  stride_d > ldd * N
 
+    rocblas_int stride_x;
+    rocblas_int stride_y;
+
     rocblas_int norm_check;
     rocblas_int unit_check;
     rocblas_int timing;
@@ -78,8 +83,9 @@ struct Arguments
     // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
     static void validate(std::istream& ifs)
     {
-        auto error = [] {
-            std::cerr << "Fatal error: Binary test data does match input format.\n"
+        auto error = [](const char* name) {
+            std::cerr << "Fatal error: Binary test data does not match input format at " << name
+                      << ".\n"
                          "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                          "define exactly the same Arguments, that rocblas_gentest.py\n"
                          "generates the data correctly, and that endianness is the same.\n";
@@ -93,14 +99,14 @@ struct Arguments
         ifs.read(trailer, sizeof(trailer));
 
         if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
-            error();
+            error(" ");
 
-        auto check = [&, sig = (unsigned char)0](const auto& elem) mutable {
+        auto check_ = [&, sig = (unsigned char)0](const auto& elem, const char* name) mutable {
             static_assert(sizeof(elem) <= 255,
                           "One of the fields of Arguments is too large (> 255 bytes)");
             for(unsigned char i = 0; i < sizeof(elem); ++i)
                 if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
-                    error();
+                    error(name);
             sig += 89;
         };
 
@@ -133,6 +139,8 @@ struct Arguments
         check(arg.stride_b);
         check(arg.stride_c);
         check(arg.stride_d);
+        check(arg.stride_x);
+        check(arg.stride_y);
         check(arg.norm_check);
         check(arg.unit_check);
         check(arg.timing);
@@ -243,6 +251,8 @@ private:
         print("stride_b", arg.stride_b);
         print("stride_c", arg.stride_c);
         print("stride_d", arg.stride_d);
+        print("stride_x", arg.stride_x);
+        print("stride_y", arg.stride_y);
         print("algo", arg.algo);
         print("solution_index", arg.solution_index);
         print("flags", arg.flags);

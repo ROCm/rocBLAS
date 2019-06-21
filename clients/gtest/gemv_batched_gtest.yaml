@@ -42,46 +42,44 @@ Definitions:
     - { alpha:  0.0, beta:  1.0 }
 
 Tests:
-- name: gemv_bad_arg
+- name: gemv_batched_NaN
   category: pre_checkin
-  function: gemv_bad_arg
-  precision: *single_double_precisions
-  transA: N
-
-- name: gemv_NaN
-  category: pre_checkin
-  function: gemv
+  function: gemv_batched
   precision: *single_double_precisions
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
+  batch_count: [ 1, 5, 10 ]
 
-- name: gemv_small
+- name: gemv_batched_small
   category: quick
-  function: gemv
+  function: gemv_batched
   precision: *single_double_precisions
   transA: [ N, T ]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 5, 10 ]
 
-- name: gemv_medium
+- name: gemv_batched_medium
   category: quick
-  function: gemv
+  function: gemv_batched
   precision: *single_double_precisions
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 5, 10 ]
 
-- name: gemv_large
+- name: gemv_batched_large
   category: nightly
-  function: gemv
+  function: gemv_batched
   precision: *single_double_precisions
   transA: [ N, T ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 5, 10 ]
 ...

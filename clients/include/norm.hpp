@@ -7,6 +7,7 @@
 #define _NORM_H
 
 #include "rocblas.h"
+#include "rocblas_vector.hpp"
 
 /* =====================================================================
         Norm check: norm(A-B)/norm(A), evaluate relative error
@@ -38,6 +39,16 @@ double norm_check_general(char        norm_type,
                           rocblas_int batch_count,
                           T*          hCPU,
                           T*          hGPU);
+
+/*! \brief  Template: norm check for batched Matrix: half/float/double/complex */
+template <typename T>
+double norm_check_general(char           norm_type,
+                          rocblas_int    M,
+                          rocblas_int    N,
+                          rocblas_int    lda,
+                          rocblas_int    batch_count,
+                          host_vector<T> hCPU[],
+                          host_vector<T> hGPU[]);
 
 /*! \brief  Template: norm check for hermitian/symmetric Matrix: half/float/double/complex */
 
