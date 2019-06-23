@@ -170,6 +170,8 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: -1
+  stride_x: 0
+  stride_y: 0
   norm_check: 0
   unit_check: 1
   timing: 0

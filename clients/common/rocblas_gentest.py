@@ -211,16 +211,12 @@ def setdefaults(test):
                              test['K']))
             test.setdefault('stride_c', test['ldc'] * test['N'])
             test.setdefault('stride_d', test['ldd'] * test['N'])
-            test.setdefault('stride_x', 0)
-            test.setdefault('stride_y', 0)
             return
 
     test.setdefault('stride_a', 0)
     test.setdefault('stride_b', 0)
     test.setdefault('stride_c', 0)
     test.setdefault('stride_d', 0)
-    test.setdefault('stride_x', 0)
-    test.setdefault('stride_y', 0)
 
 
 def write_signature(out):

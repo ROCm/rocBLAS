@@ -46,7 +46,7 @@ Tests:
   category: pre_checkin
   function: gemv_batched
   precision: *single_double_precisions
-  transA: [ N, T ]
+  transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -1.0, 0, 1.0, 2.0 ]
@@ -57,7 +57,7 @@ Tests:
   category: quick
   function: gemv_batched
   precision: *single_double_precisions
-  transA: [ N, T ]
+  transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
@@ -67,7 +67,7 @@ Tests:
   category: quick
   function: gemv_batched
   precision: *single_double_precisions
-  transA: [ N, T ]
+  transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
@@ -77,7 +77,7 @@ Tests:
   category: nightly
   function: gemv_batched
   precision: *single_double_precisions
-  transA: [ N, T ]
+  transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range

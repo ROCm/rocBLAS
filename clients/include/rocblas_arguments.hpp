@@ -99,7 +99,7 @@ struct Arguments
         ifs.read(trailer, sizeof(trailer));
 
         if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
-            error(" ");
+            error("beginning or ending of signature");
 
         auto check_ = [&, sig = (unsigned char)0](const auto& elem, const char* name) mutable {
             static_assert(sizeof(elem) <= 255,
