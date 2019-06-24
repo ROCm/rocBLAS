@@ -354,10 +354,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     // check for invalid sizes
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M ||
-       batch_count < 0 || (std::is_same<Ti, int8_t>{} &&
-                           (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
-                            (transB == rocblas_operation_none && ldb % 4 != 0) ||
-                            stride_a % 4 != 0 || stride_b % 4 != 0)))
+       batch_count < 0 ||
+       (std::is_same<Ti, int8_t>{} &&
+        (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0) ||
+         (transB == rocblas_operation_none && ldb % 4 != 0) || stride_a % 4 != 0 ||
+         stride_b % 4 != 0)))
     {
         static const size_t safe_size = 100;
         device_vector<Ti> dA(safe_size);

@@ -158,7 +158,8 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                                              const void* x_h,
                                              rocblas_int incx,
                                              void* y_d,
-                                             rocblas_int incy) try
+                                             rocblas_int incy)
+try
 {
     if(n == 0) // quick return
         return rocblas_status_success;
@@ -204,7 +205,7 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                     return rocblas_status_memory_error;
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous host vector -> host buffer
@@ -234,7 +235,7 @@ extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                 // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // contiguous host vector -> device buffer
@@ -287,7 +288,8 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                                              const void* x_d,
                                              rocblas_int incx,
                                              void* y_h,
-                                             rocblas_int incy) try
+                                             rocblas_int incy)
+try
 {
     if(n == 0) // quick return
         return rocblas_status_success;
@@ -333,7 +335,7 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                     return rocblas_status_memory_error;
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
@@ -381,7 +383,7 @@ extern "C" rocblas_status rocblas_get_vector(rocblas_int n,
                 // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
@@ -446,7 +448,8 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                                              const void* a_h,
                                              rocblas_int lda,
                                              void* b_d,
-                                             rocblas_int ldb) try
+                                             rocblas_int ldb)
+try
 {
     if(rows == 0 || cols == 0) // quick return
         return rocblas_status_success;
@@ -510,7 +513,7 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                     return rocblas_status_memory_error;
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous host matrix -> host buffer
@@ -541,7 +544,7 @@ extern "C" rocblas_status rocblas_set_matrix(rocblas_int rows,
                 // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // contiguous host matrix -> device buffer
@@ -598,7 +601,8 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                                              const void* a_d,
                                              rocblas_int lda,
                                              void* b_h,
-                                             rocblas_int ldb) try
+                                             rocblas_int ldb)
+try
 {
     if(rows == 0 || cols == 0) // quick return
         return rocblas_status_success;
@@ -659,7 +663,7 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                     return rocblas_status_memory_error;
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer
@@ -707,7 +711,7 @@ extern "C" rocblas_status rocblas_get_matrix(rocblas_int rows,
                 // used unique_ptr to avoid memory leak
                 auto t_d_managed = rocblas_unique_ptr{rocblas::device_malloc(temp_byte_size),
                                                       rocblas::device_free};
-                void* t_d = t_d_managed.get();
+                void* t_d        = t_d_managed.get();
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer

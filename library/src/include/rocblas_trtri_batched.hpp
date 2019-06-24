@@ -46,6 +46,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle handle,
                                                      rocblas_int ldinvA,
                                                      rocblas_int bsinvA,
                                                      rocblas_int batch_count);
-}
+} // namespace trtri
 
 #endif // _ROCBLAS_TRTRI_BATCHED_HPP_

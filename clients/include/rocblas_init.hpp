@@ -24,7 +24,7 @@ inline void rocblas_init(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j                          = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = random_generator<T>();
 }
 
@@ -34,7 +34,7 @@ inline void rocblas_init_sin(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j                          = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = sin(i + j * lda + i_batch * stride);
 }
 
@@ -64,7 +64,7 @@ inline void rocblas_init_cos(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j                          = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = cos(i + j * lda + i_batch * stride);
 }
 
@@ -107,7 +107,7 @@ inline void rocblas_init_hpl(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j                          = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = random_hpl_generator<T>();
 }
 
@@ -118,7 +118,7 @@ template <typename T>
 inline void rocblas_init_nan(T* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
-        A[i]     = static_cast<T>(rocblas_nan_rng());
+        A[i] = static_cast<T>(rocblas_nan_rng());
 }
 
 template <typename T>
@@ -127,7 +127,7 @@ inline void rocblas_init_nan(
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
-            for(size_t j                          = 0; j < N; ++j)
+            for(size_t j = 0; j < N; ++j)
                 A[i + j * lda + i_batch * stride] = static_cast<T>(rocblas_nan_rng());
 }
 

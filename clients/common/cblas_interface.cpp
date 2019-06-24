@@ -75,11 +75,11 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
-    for(size_t i   = 0; i < sizeA; i++)
+    for(size_t i = 0; i < sizeA; i++)
         A_float[i] = static_cast<float>(A[i]);
-    for(size_t i   = 0; i < sizeB; i++)
+    for(size_t i = 0; i < sizeB; i++)
         B_float[i] = static_cast<float>(B[i]);
-    for(size_t i   = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
         C_float[i] = static_cast<float>(C[i]);
 
     // just directly cast, since transA, transB are integers in the enum
@@ -100,7 +100,7 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i]     = static_cast<rocblas_bfloat16>(C_float[i]);
+        C[i] = static_cast<rocblas_bfloat16>(C_float[i]);
 }
 
 template <>
@@ -127,11 +127,11 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
-    for(size_t i   = 0; i < sizeA; i++)
+    for(size_t i = 0; i < sizeA; i++)
         A_float[i] = half_to_float(A[i]);
-    for(size_t i   = 0; i < sizeB; i++)
+    for(size_t i = 0; i < sizeB; i++)
         B_float[i] = half_to_float(B[i]);
-    for(size_t i   = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
         C_float[i] = half_to_float(C[i]);
 
     // just directly cast, since transA, transB are integers in the enum
@@ -152,7 +152,7 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i]     = float_to_half(C_float[i]);
+        C[i] = float_to_half(C_float[i]);
 }
 
 template <>
@@ -181,11 +181,11 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
-    for(size_t i   = 0; i < sizeA; i++)
+    for(size_t i = 0; i < sizeA; i++)
         A_float[i] = half_to_float(A[i]);
-    for(size_t i   = 0; i < sizeB; i++)
+    for(size_t i = 0; i < sizeB; i++)
         B_float[i] = half_to_float(B[i]);
-    for(size_t i   = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
         C_float[i] = half_to_float(C[i]);
 
     // just directly cast, since transA, transB are integers in the enum
@@ -206,7 +206,7 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i]     = float_to_half(C_float[i]);
+        C[i] = float_to_half(C_float[i]);
 }
 
 template <>
@@ -238,11 +238,11 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
     host_vector<double> B_double(sizeB);
     host_vector<double> C_double(sizeC);
 
-    for(size_t i    = 0; i < sizeA; i++)
+    for(size_t i = 0; i < sizeA; i++)
         A_double[i] = static_cast<double>(A[i]);
-    for(size_t i    = 0; i < sizeB; i++)
+    for(size_t i = 0; i < sizeB; i++)
         B_double[i] = static_cast<double>(B[i]);
-    for(size_t i    = 0; i < sizeC; i++)
+    for(size_t i = 0; i < sizeC; i++)
         C_double[i] = static_cast<double>(C[i]);
 
     // just directly cast, since transA, transB are integers in the enum
@@ -262,5 +262,5 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i]     = static_cast<int32_t>(C_double[i]);
+        C[i] = static_cast<int32_t>(C_double[i]);
 }

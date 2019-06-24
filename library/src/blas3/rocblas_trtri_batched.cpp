@@ -466,7 +466,7 @@ rocblas_status rocblas_trtri_batched_template(rocblas_handle handle,
     }
 }
 
-} // namespace
+} // namespace trtri
 
 /* ============================================================================================ */
 

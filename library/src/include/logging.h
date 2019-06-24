@@ -99,8 +99,7 @@ class tuple_helper
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
         // delim starts as "- {" and becomes "," afterwards
-        auto print_argument = [&, delim = "- {" ](auto&& name, auto&& value) mutable
-        {
+        auto print_argument = [&, delim = "- {"](auto&& name, auto&& value) mutable {
             os << delim << " " << name << ": ";
             print_value(os, value);
             delim = ",";
@@ -263,7 +262,8 @@ class argument_profile : tuple_helper
     explicit argument_profile(std::ostream& os) : os(os) {}
 
     // Cleanup handler which dumps profile at destruction
-    ~argument_profile() try
+    ~argument_profile()
+    try
     {
         // Print all of the tuples in the map
         for(auto& p : map)

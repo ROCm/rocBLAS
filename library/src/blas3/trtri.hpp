@@ -28,6 +28,6 @@ rocblas_status rocblas_trtri_template(rocblas_handle handle,
     return rocblas_trtri_batched_template<T>(
         handle, uplo, diag, n, A, lda, lda * n, invA, ldinvA, ldinvA * n, 1);
 }
-}
+} // namespace trtri
 
 #endif // _TRTRI_HPP_
