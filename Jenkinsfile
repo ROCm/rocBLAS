@@ -34,7 +34,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900', 'gfx906 && centos7'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && centos7', 'gfx906 && hip-clang && ubuntu'], rocblas)
 
     boolean formatCheck = true
 
@@ -43,12 +43,25 @@ rocBLASCI:
         platform, project->
 
         project.paths.construct_build_prefix()
-        def command = """#!/usr/bin/env bash
-                  set -x
-                  cd ${project.paths.project_build_prefix}
-                  LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=${project.compiler.compiler_path} ${project.paths.build_command}
-                """
+        
+        def command
 
+        if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    """
+        }
+        else
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command}
+                    """
+        }
         platform.runCommand(this, command)
     }
 
