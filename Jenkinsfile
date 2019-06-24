@@ -136,6 +136,10 @@ rocBLASCI:
             platform.runCommand(this, command)
             platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")        
         }
+        else if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            packageCommand = null
+        }
         else
         {
             command = """
