@@ -85,7 +85,7 @@ void testing_set_get_matrix(const Arguments& arg)
         // reference calculation
         cpu_time_used = get_time_us();
         for(int i1 = 0; i1 < rows; i1++)
-            for(int i2                 = 0; i2 < cols; i2++)
+            for(int i2 = 0; i2 < cols; i2++)
                 hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
 
         cpu_time_used = get_time_us() - cpu_time_used;

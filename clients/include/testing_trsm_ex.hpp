@@ -127,7 +127,7 @@ void testing_trsm_ex(const Arguments& arg)
 
     //  pad untouched area into zero
     for(int i = K; i < lda; i++)
-        for(int j           = 0; j < K; j++)
+        for(int j = 0; j < K; j++)
             hA[i + j * lda] = 0.0;
 
     //  calculate AAT = hA * hA ^ T
@@ -167,14 +167,14 @@ void testing_trsm_ex(const Arguments& arg)
             for(int i = 0; i < K; i++)
             {
                 T diag = hA[i + i * lda];
-                for(int j           = 0; j <= i; j++)
+                for(int j = 0; j <= i; j++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
             }
         else
             for(int j = 0; j < K; j++)
             {
                 T diag = hA[j + j * lda];
-                for(int i           = 0; i <= j; i++)
+                for(int i = 0; i <= j; i++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
             }
     }
@@ -183,9 +183,9 @@ void testing_trsm_ex(const Arguments& arg)
     rocblas_init<T>(hX, M, N, ldb);
     // pad untouched area into zero
     for(int i = M; i < ldb; i++)
-        for(int j           = 0; j < N; j++)
+        for(int j = 0; j < N; j++)
             hX[i + j * ldb] = 0.0;
-    hB                      = hX;
+    hB = hX;
 
     // Calculate hB = hA*hX;
     cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hB, ldb);

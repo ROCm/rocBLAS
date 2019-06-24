@@ -15,7 +15,8 @@
 /*******************************************************************************
  * Helper enumeration over different transpose combinations
  ******************************************************************************/
-typedef enum transpose_mode_ {
+typedef enum transpose_mode_
+{
     // First letter refers to A, second letter refers to B
     NN,
     NT,
@@ -123,18 +124,19 @@ hipError_t callTensile(const T* alpha,
                        rocblas_handle handle)
 {
 #ifndef NDEBUG
-    std::cout << "Solution Name: " << tensileGetSolutionName<T>(trans_a,
-                                                                trans_b,
-                                                                strideC1,
-                                                                strideC2,
-                                                                strideA1,
-                                                                strideA2,
-                                                                strideB1,
-                                                                strideB2,
-                                                                sizeI,
-                                                                sizeJ,
-                                                                sizeK,
-                                                                sizeL)
+    std::cout << "Solution Name: "
+              << tensileGetSolutionName<T>(trans_a,
+                                           trans_b,
+                                           strideC1,
+                                           strideC2,
+                                           strideA1,
+                                           strideA2,
+                                           strideB1,
+                                           strideB2,
+                                           sizeI,
+                                           sizeJ,
+                                           sizeK,
+                                           sizeL)
               << std::endl;
 #endif
 

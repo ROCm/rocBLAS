@@ -118,14 +118,14 @@ void testing_trsv(const Arguments& arg)
             for(int i = 0; i < M; i++)
             {
                 T diag = hA[i + i * lda];
-                for(int j           = 0; j <= i; j++)
+                for(int j = 0; j <= i; j++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
             }
         else
             for(int j = 0; j < M; j++)
             {
                 T diag = hA[j + j * lda];
-                for(int i           = 0; i <= j; i++)
+                for(int i = 0; i <= j; i++)
                     hA[i + j * lda] = hA[i + j * lda] / diag;
             }
     }
