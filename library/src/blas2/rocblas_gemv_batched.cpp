@@ -133,8 +133,11 @@ namespace
             return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
+        if(batch_count < 0)
+            return rocblas_status_invalid_size;
+
         // Quick return if possible. Not Argument error
-        if(!m || !n)
+        if(!m || !n || !batch_count)
             return rocblas_status_success;
 
         hipStream_t rocblas_stream = handle->rocblas_stream;

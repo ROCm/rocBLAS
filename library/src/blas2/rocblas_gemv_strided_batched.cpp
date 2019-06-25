@@ -156,22 +156,40 @@ namespace
             return rocblas_status_invalid_size;
         if(strideA < lda * n)
             return rocblas_status_invalid_size;
+        if(batch_count < 0)
+            return rocblas_status_invalid_size;
 
-        // Quick return if possible. Not Argument error
-        if(!m || !n)
-            return rocblas_status_success;
-
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-        rocblas_int absincx, absincy;
-
-        absincx = incx > 0 ? incx : -incx;
-        absincy = incy > 0 ? incy : -incy;
+        size_t               size_x, dim_x, abs_incx;
+        size_t               size_y, dim_y, abs_incy;
 
         if(transA == rocblas_operation_none)
         {
-            if(stridex < n * absincx || stridey < m * absincy)
-                return rocblas_status_invalid_size;
+            dim_x = n;
+            dim_y = m;
+        }
+        else
+        {
+            dim_x = m;
+            dim_y = n;
+        }
 
+        abs_incx = incx >= 0 ? incx : -incx;
+        abs_incy = incy >= 0 ? incy : -incy;
+
+        size_x = dim_x * abs_incx;
+        size_y = dim_y * abs_incy;
+            
+        if(stridex < size_x || stridey < size_y)
+            return rocblas_status_invalid_size;
+
+        // Quick return if possible. Not Argument error
+        if(!m || !n || !batch_count)
+            return rocblas_status_success;
+
+        hipStream_t rocblas_stream = handle->rocblas_stream;
+
+        if(transA == rocblas_operation_none)
+        {
             // GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
             static constexpr int GEMVN_DIM_X = 64;
             static constexpr int GEMVN_DIM_Y = 16;
@@ -231,10 +249,6 @@ namespace
             // transpose
             // number of columns on the y-dim of the grid, using gemvc because gemvt(transpose) is a
             // instance of gemvc (conjugate)
-
-            if(stridex < m * absincx || stridey < n * absincy)
-                return rocblas_status_invalid_size;
-
             static constexpr int NB = 256;
             dim3                 gemvc_grid(n, batch_count);
             dim3                 gemvc_threads(NB);

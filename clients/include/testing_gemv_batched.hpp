@@ -31,6 +31,43 @@ void testing_gemv_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
+    // argument sanity check before allocating invalid memory
+    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    {
+        T** dAA1;
+        T** dxA1;
+        T** dy_1A1;
+        hipMalloc(&dAA1, sizeof(T*));
+        hipMalloc(&dxA1, sizeof(T*));
+        hipMalloc(&dy_1A1, sizeof(T*));
+        if(!dAA1 || !dxA1 || !dy_1A1)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+        
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      &h_alpha,
+                                                      dAA1,
+                                                      lda,
+                                                      dxA1,
+                                                      incx,
+                                                      &h_beta,
+                                                      dy_1A1,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_invalid_size);
+
+        return;
+    }
+    
+    //quick return
+    if(!M || !N ||!batch_count)
+        return;
+    
     //Device-arrays of pointers to device memory
     T** dAA;
     T** dxA;
@@ -40,33 +77,12 @@ void testing_gemv_batched(const Arguments& arg)
     hipMalloc(&dxA, batch_count * sizeof(T*));
     hipMalloc(&dy_1A, batch_count * sizeof(T*));
     hipMalloc(&dy_2A, batch_count * sizeof(T*));
-
-    // argument sanity check before allocating invalid memory
     if(!dAA || !dxA || !dy_1A || !dy_2A)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
-    {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      &h_alpha,
-                                                      dAA,
-                                                      lda,
-                                                      dxA,
-                                                      incx,
-                                                      &h_beta,
-                                                      dy_1A,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_invalid_size);
-
-        return;
-    }
 
     size_t size_A = lda * static_cast<size_t>(N);
     size_t size_x, dim_x, abs_incx;
@@ -274,7 +290,7 @@ void testing_gemv_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,N,alpha,lda,incx,beta,incy,batch_count,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
             std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
@@ -282,7 +298,7 @@ void testing_gemv_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta
-                  << "," << incy << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+                  << "," << incy << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

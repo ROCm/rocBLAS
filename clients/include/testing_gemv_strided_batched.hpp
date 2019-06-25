@@ -56,7 +56,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
 
     // argument sanity check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || stride_a < size_A
-       || stride_x < size_x || stride_y < size_y)
+       || stride_x < size_x || stride_y < size_y || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA1(safe_size);
@@ -88,6 +88,10 @@ void testing_gemv_strided_batched(const Arguments& arg)
 
         return;
     }
+
+    //quick return
+    if(!M || !N || !batch_count)
+        return;
 
     size_A = size_A + static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
     size_x = size_x + static_cast<size_t>(stride_x) * static_cast<size_t>(batch_count - 1);
@@ -273,15 +277,15 @@ void testing_gemv_strided_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,N,alpha,lda,stride_a,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
             std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
         std::cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta
-                  << "," << incy << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << stride_a << "," << incx << "," << stride_x << "," << h_beta
+                  << "," << incy << "," << stride_y << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

@@ -61,10 +61,10 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 5, 10 ]
+  batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: gemv_strided_batched_medium
-  category: quick
+  category: pre_checkin
   function: gemv_strided_batched
   precision: *single_double_precisions
   transA: [ N, T, C ]

@@ -68,7 +68,7 @@ Tests:
   alpha_beta: *alpha_beta_range
 
 - name: gemv_medium
-  category: quick
+  category: pre_checkin
   function: gemv
   precision: *single_double_precisions
   transA: [ N, T, C ]
