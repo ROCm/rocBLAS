@@ -17,6 +17,66 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_gemv_batched_bad_arg(const Arguments& arg)
+{
+    const rocblas_int       M      = 100;
+    const rocblas_int       N      = 100;
+    const rocblas_int       lda    = 100;
+    const rocblas_int       incx   = 1;
+    const rocblas_int       incy   = 1;
+    const T                 alpha  = 1.0;
+    const T                 beta   = 1.0;
+    const rocblas_int batch_count = 5;
+ 
+    const rocblas_operation transA = rocblas_operation_none;
+
+    rocblas_local_handle handle;
+
+    // allocate memory on device
+    T** dA;
+    T** dx;
+    T** dy;
+    hipMalloc(&dA, batch_count * sizeof(T*));
+    hipMalloc(&dx, batch_count * sizeof(T*));
+    hipMalloc(&dy, batch_count * sizeof(T*));
+    if(!dA || !dx || !dy)
+    {
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(handle, transA, M, N, nullptr, dA, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched<T>(nullptr, transA, M, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_handle);
+
+    CHECK_HIP_ERROR(hipFree(dA));
+    CHECK_HIP_ERROR(hipFree(dx));
+    CHECK_HIP_ERROR(hipFree(dy));
+}
+
+
+
+template <typename T>
 void testing_gemv_batched(const Arguments& arg)
 {
     rocblas_int       M           = arg.M;

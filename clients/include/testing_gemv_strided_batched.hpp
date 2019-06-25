@@ -17,6 +17,65 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
+{
+    const rocblas_int       M      = 100;
+    const rocblas_int       N      = 100;
+    const rocblas_int       lda    = 100;
+    const rocblas_int       incx   = 1;
+    const rocblas_int       incy   = 1;
+    const T                 alpha  = 1.0;
+    const T                 beta   = 1.0;
+    const rocblas_int stride_a = 10000;
+    const rocblas_int stride_x = 100;
+    const rocblas_int stride_y = 100;
+    const rocblas_int batch_count = 5;
+ 
+    const rocblas_operation transA = rocblas_operation_none;
+
+    rocblas_local_handle handle;
+
+    size_t size_A = lda * static_cast<size_t>(N);
+    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_y = M * static_cast<size_t>(incy);
+
+    // allocate memory on device
+    device_vector<T> dA(size_A);
+    device_vector<T> dx(size_x);
+    device_vector<T> dy(size_y);
+    if(!dA || !dx || !dy)
+    {
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(handle, transA, M, N, &alpha, nullptr, lda, stride_a, dx, incx, stride_x, &beta, dy, incy, stride_y, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(handle, transA, M, N, &alpha, dA, lda, stride_a, nullptr, incx, stride_x, &beta, dy, incy, stride_y, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(handle, transA, M, N, &alpha, dA, lda, stride_a, dx, incx, stride_x, &beta, nullptr, incy, stride_y, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(handle, transA, M, N, nullptr, dA, lda, stride_a, dx, incx, stride_x, &beta, dy, incy, stride_y, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(handle, transA, M, N, &alpha, dA, lda, stride_a, dx, incx, stride_x, nullptr, dy, incy, stride_y, batch_count),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_strided_batched<T>(nullptr, transA, M, N, &alpha, dA, lda, stride_a, dx, incx, stride_x, &beta, dy, incy, stride_y, batch_count),
+        rocblas_status_invalid_handle);
+}
+
+
+template <typename T>
 void testing_gemv_strided_batched(const Arguments& arg)
 {
     rocblas_int       M           = arg.M;

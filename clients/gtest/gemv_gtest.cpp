@@ -41,9 +41,9 @@ namespace
             case GEMV:
                 return !strcmp(arg.function, "gemv") || !strcmp(arg.function, "gemv_bad_arg");
             case GEMV_BATCHED:
-                return !strcmp(arg.function, "gemv_batched");
+                return !strcmp(arg.function, "gemv_batched") || !strcmp(arg.function, "gemv_batched_bad_arg");
             case GEMV_STRIDED_BATCHED:
-                return !strcmp(arg.function, "gemv_strided_batched");
+                return !strcmp(arg.function, "gemv_strided_batched") || !strcmp(arg.function, "gemv_strided_batched_bad_arg");
             }
             return false;
         }
@@ -102,8 +102,12 @@ namespace
                 testing_gemv_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "gemv_batched"))
                 testing_gemv_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemv_batched_bad_arg"))
+                testing_gemv_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "gemv_strided_batched"))
                 testing_gemv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemv_strided_batched_bad_arg"))
+                testing_gemv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

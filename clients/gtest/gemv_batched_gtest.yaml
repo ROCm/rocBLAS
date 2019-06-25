@@ -42,6 +42,12 @@ Definitions:
     - { alpha:  0.0, beta:  1.0 }
 
 Tests:
+- name: gemv_batched_bad_arg
+  category: pre_checkin
+  function: gemv_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
 - name: gemv_batched_NaN
   category: pre_checkin
   function: gemv_batched
