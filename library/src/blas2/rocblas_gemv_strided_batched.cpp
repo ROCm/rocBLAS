@@ -159,8 +159,8 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t               size_x, dim_x, abs_incx;
-        size_t               size_y, dim_y, abs_incy;
+        size_t size_x, dim_x, abs_incx;
+        size_t size_y, dim_y, abs_incy;
 
         if(transA == rocblas_operation_none)
         {
@@ -178,7 +178,7 @@ namespace
 
         size_x = dim_x * abs_incx;
         size_y = dim_y * abs_incy;
-            
+
         if(stridex < size_x || stridey < size_y)
             return rocblas_status_invalid_size;
 

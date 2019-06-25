@@ -19,15 +19,15 @@
 template <typename T>
 void testing_gemv_batched_bad_arg(const Arguments& arg)
 {
-    const rocblas_int       M      = 100;
-    const rocblas_int       N      = 100;
-    const rocblas_int       lda    = 100;
-    const rocblas_int       incx   = 1;
-    const rocblas_int       incy   = 1;
-    const T                 alpha  = 1.0;
-    const T                 beta   = 1.0;
+    const rocblas_int M           = 100;
+    const rocblas_int N           = 100;
+    const rocblas_int lda         = 100;
+    const rocblas_int incx        = 1;
+    const rocblas_int incy        = 1;
+    const T           alpha       = 1.0;
+    const T           beta        = 1.0;
     const rocblas_int batch_count = 5;
- 
+
     const rocblas_operation transA = rocblas_operation_none;
 
     rocblas_local_handle handle;
@@ -46,35 +46,39 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     }
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            handle, transA, M, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            handle, transA, M, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            handle, transA, M, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(handle, transA, M, N, nullptr, dA, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            handle, transA, M, N, nullptr, dA, lda, dx, incx, &beta, dy, incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            handle, transA, M, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(nullptr, transA, M, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_gemv_batched<T>(
+            nullptr, transA, M, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
         rocblas_status_invalid_handle);
 
     CHECK_HIP_ERROR(hipFree(dA));
     CHECK_HIP_ERROR(hipFree(dx));
     CHECK_HIP_ERROR(hipFree(dy));
 }
-
-
 
 template <typename T>
 void testing_gemv_batched(const Arguments& arg)
@@ -105,7 +109,7 @@ void testing_gemv_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        
+
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
                                                       transA,
                                                       M,
@@ -123,11 +127,11 @@ void testing_gemv_batched(const Arguments& arg)
 
         return;
     }
-    
+
     //quick return
-    if(!M || !N ||!batch_count)
+    if(!M || !N || !batch_count)
         return;
-    
+
     //Device-arrays of pointers to device memory
     T** dAA;
     T** dxA;
@@ -142,7 +146,6 @@ void testing_gemv_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
-
 
     size_t size_A = lda * static_cast<size_t>(N);
     size_t size_x, dim_x, abs_incx;
@@ -358,7 +361,8 @@ void testing_gemv_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta
-                  << "," << incy << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+                  << "," << incy << "," << batch_count << "," << rocblas_gflops << ","
+                  << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

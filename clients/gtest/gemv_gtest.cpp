@@ -41,9 +41,11 @@ namespace
             case GEMV:
                 return !strcmp(arg.function, "gemv") || !strcmp(arg.function, "gemv_bad_arg");
             case GEMV_BATCHED:
-                return !strcmp(arg.function, "gemv_batched") || !strcmp(arg.function, "gemv_batched_bad_arg");
+                return !strcmp(arg.function, "gemv_batched")
+                       || !strcmp(arg.function, "gemv_batched_bad_arg");
             case GEMV_STRIDED_BATCHED:
-                return !strcmp(arg.function, "gemv_strided_batched") || !strcmp(arg.function, "gemv_strided_batched_bad_arg");
+                return !strcmp(arg.function, "gemv_strided_batched")
+                       || !strcmp(arg.function, "gemv_strided_batched_bad_arg");
             }
             return false;
         }
