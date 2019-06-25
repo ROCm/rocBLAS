@@ -11,7 +11,7 @@
 
 /*!\file
  *  This file exposes C++ templated BLAS interface with only the precision templated.
-*/
+ */
 
 /*
  * ===========================================================================

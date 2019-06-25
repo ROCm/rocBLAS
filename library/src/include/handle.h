@@ -16,7 +16,7 @@
  * It must be initialized using rocblas_create_handle() and the returned handle mus
  * It should be destroyed at the end using rocblas_destroy_handle().
  * Exactly like CUBLAS, ROCBLAS only uses one stream for one API routine
-******************************************************************************/
+ ******************************************************************************/
 struct _rocblas_handle
 {
     _rocblas_handle();

@@ -13,7 +13,7 @@
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
  * NVIDIA GPUs.
  *  This file exposes C89 BLAS interface
-*/
+ */
 
 /*
  * ===========================================================================
