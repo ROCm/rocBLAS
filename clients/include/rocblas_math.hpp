@@ -7,6 +7,9 @@
 
 #include <hip/hip_runtime.h>
 
+#include <sstream>
+#include <string>
+
 #include <cmath>
 #include <immintrin.h>
 
@@ -20,7 +23,7 @@ inline __host__ rocblas_half float_to_half(float val)
 }
 
 // Helper routine to convert halfs into their floats equivalent; uses F16C instructions
-inline __host__ float half_to_float(rocblas_half val)
+inline __host__ float half_to_float(const rocblas_half val)
 {
     return _cvtsh_ss(val);
 }
@@ -48,19 +51,15 @@ inline bool rocblas_isnan(rocblas_half arg)
 
 /* ============================================================================================ */
 /*! \brief is_complex<T> returns true iff T is complex */
-
 template <typename>
 static constexpr bool is_complex = false;
-
+template <>
+static constexpr bool is_complex<rocblas_float_complex> = true;
 template <>
 static constexpr bool is_complex<rocblas_double_complex> = true;
 
-template <>
-static constexpr bool is_complex<rocblas_float_complex> = true;
-
 /* ============================================================================================ */
 /*! \brief negate a value */
-
 template <class T>
 inline T negate(T x)
 {

@@ -18,17 +18,11 @@
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_int         incy        = 1;
-    static const size_t safe_size   = 100;
-    float               alpha_float = 0.6;
-    T                   alpha;
-
-    if(std::is_same<T, rocblas_half>{})
-        alpha = float_to_half(alpha_float);
-    else
-        alpha = alpha_float;
+    rocblas_int         N         = 100;
+    rocblas_int         incx      = 1;
+    rocblas_int         incy      = 1;
+    static const size_t safe_size = 100;
+    T                   alpha     = string2rocblas_datavalue<T>("0.6");
 
     rocblas_local_handle handle;
     device_vector<T>     dx(safe_size);
@@ -52,14 +46,10 @@ void testing_axpy_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
-    T           h_alpha;
-    if(std::is_same<T, rocblas_half>{})
-        h_alpha = float_to_half(arg.alpha);
-    else
-        h_alpha = arg.alpha;
+    rocblas_int N       = arg.N;
+    rocblas_int incx    = arg.incx;
+    rocblas_int incy    = arg.incy;
+    T           h_alpha = string2rocblas_datavalue<T>(arg.alpha);
 
     rocblas_local_handle handle;
 

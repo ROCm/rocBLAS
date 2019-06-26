@@ -75,16 +75,34 @@ public:
     {
         return random_nan_data<rocblas_bfloat16, uint16_t, 7, 8>();
     }
+
+    explicit operator rocblas_float_complex()
+    {
+        return {float(*this), float(*this)};
+    }
+
+    explicit operator rocblas_double_complex()
+    {
+        return {double(*this), double(*this)};
+    }
 };
 
 /* ============================================================================================ */
 /* generate random number :*/
 
 /*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
-template <typename T>
+template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
 inline T random_generator()
 {
     return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+}
+
+template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+inline T random_generator()
+{
+    decltype(T::x) real = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    decltype(T::y) imag = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return {real, imag};
 }
 
 // for rocblas_half, generate float, and convert to rocblas_half

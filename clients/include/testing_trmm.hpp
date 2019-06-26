@@ -27,7 +27,7 @@ void testing_trmm(const Arguments& arg)
     char char_uplo   = arg.uplo;
     char char_transA = arg.transA;
     char char_diag   = arg.diag;
-    T    alpha       = arg.alpha;
+    T    alpha       = string2rocblas_datavalue<T>(arg.alpha);
 
     rocblas_side      side   = char2rocblas_side(char_side);
     rocblas_fill      uplo   = char2rocblas_fill(char_uplo);

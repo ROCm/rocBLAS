@@ -53,7 +53,7 @@ void testing_syr(const Arguments& arg)
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          lda     = arg.lda;
-    T                    h_alpha = arg.alpha;
+    T                    h_alpha = string2rocblas_datavalue<T>(arg.alpha);
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
     rocblas_local_handle handle;
 

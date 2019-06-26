@@ -67,10 +67,7 @@ struct perf_gemm_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_ex<Ti,
-                    To,
-                    Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_ex<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -90,11 +87,10 @@ struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<
-    Ti,
-    To,
-    Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_strided_batched_ex<Ti,
+                                    To,
+                                    Tc,
+                                    typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -111,6 +107,25 @@ struct perf_gemm_strided_batched_ex<
 template <typename T, typename = void>
 struct perf_blas : rocblas_test_invalid
 {
+};
+
+template <typename T>
+struct perf_blas<T, typename std::enable_if<is_complex<T>>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
 };
 
 template <typename T>
@@ -377,6 +392,8 @@ try
 
     std::string function;
     std::string precision;
+    std::string alpha;
+    std::string beta;
     std::string a_type;
     std::string b_type;
     std::string c_type;
@@ -450,10 +467,10 @@ try
          "increment between values in y vector")
 
         ("alpha",
-          value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")
+          value<std::string>(&alpha)->default_value("1.0"), "specifies the scalar alpha")
 
         ("beta",
-         value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
+          value<std::string>(&beta)->default_value("0.0"), "specifies the scalar alpha")
 
         ("function,f",
          value<std::string>(&function),
@@ -612,6 +629,14 @@ try
     int copied = snprintf(arg.function, sizeof(arg.function), "%s", function.c_str());
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
+
+    copied = snprintf(arg.alpha, sizeof(arg.alpha), "%s", alpha.c_str());
+    if(copied < 0 || copied >= sizeof(arg.alpha))
+        throw std::invalid_argument("Invalid value for --alpha");
+
+    copied = snprintf(arg.beta, sizeof(arg.beta), "%s", beta.c_str());
+    if(copied < 0 || copied >= sizeof(arg.beta))
+        throw std::invalid_argument("Invalid value for --beta");
 
     return run_bench_test(arg);
 }

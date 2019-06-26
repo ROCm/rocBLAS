@@ -104,8 +104,8 @@ void testing_geam(const Arguments& arg)
     rocblas_int ldb = arg.ldb;
     rocblas_int ldc = arg.ldc;
 
-    T h_alpha = arg.alpha;
-    T h_beta  = arg.beta;
+    T h_alpha = string2rocblas_datavalue<T>(arg.alpha);
+    T h_beta  = string2rocblas_datavalue<T>(arg.beta);
 
     T* dC_in_place;
 

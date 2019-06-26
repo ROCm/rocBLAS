@@ -103,4 +103,31 @@ inline void rocblas_print_matrix(
         }
 }
 
+template <typename T>
+inline void dump_batch_matrix(const char*           message,
+                              const std::vector<T>& data,
+                              int                   row,
+                              int                   col,
+                              int                   batch,
+                              int                   ld,
+                              int                   stride)
+{
+    std::cout << std::endl << std::endl;
+    std::cout << message << std::endl;
+
+    for(int b = 0; b < batch; b++)
+    {
+        std::cout << "batch " << b << std::endl;
+        for(int j = 0; j < row; j++)
+        {
+            for(int i = 0; i < col; i++)
+            {
+                std::cout << data[b * stride + j + i * ld] << ",";
+            }
+            std::cout << std::endl;
+        }
+        std::cout << std::endl;
+    }
+}
+
 #endif

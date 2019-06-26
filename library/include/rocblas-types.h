@@ -10,12 +10,11 @@
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
+#include "rocblas_bfloat16.h"
+#include <hip/hip_vector_types.h>
+#include <iostream>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <hip/hip_vector_types.h>
-
-#include "rocblas_bfloat16.h"
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
@@ -41,6 +40,38 @@ typedef double2 rocblas_double_complex;
 // half types
 typedef uint16_t rocblas_half;
 typedef float2   rocblas_half_complex;
+
+#ifdef __cplusplus
+/* ============================================================================================ */
+/*! \brief complex output helper function */
+inline std::ostream& operator<<(std::ostream& out, const rocblas_float_complex& data)
+{
+    if(data.y >= 0)
+    {
+        out << data.x << "+" << data.y << "i";
+    }
+    else
+    {
+        out << data.x << data.y << "i";
+    }
+
+    return out;
+}
+
+inline std::ostream& operator<<(std::ostream& out, const rocblas_double_complex& data)
+{
+    if(data.y >= 0)
+    {
+        out << data.x << "+" << data.y << "i";
+    }
+    else
+    {
+        out << data.x << data.y << "i";
+    }
+
+    return out;
+}
+#endif
 
 /* ============================================================================================ */
 

@@ -12,8 +12,8 @@ Definitions:
     - { incx: -1, incy: -1 }
 
   - &alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  2.0, beta: -1.0 }
+    - { alpha:  "1.0", beta:  "0.0" }
+    - { alpha:  "2.0", beta: "-1.0" }
 
 Tests:
 - name: blas1
