@@ -2,18 +2,18 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 20
@@ -21,26 +21,26 @@
 template <typename T>
 void testing_trsv(const Arguments& arg)
 {
-    rocblas_int M    = arg.M;
-    rocblas_int lda  = arg.lda;
-    rocblas_int incx = arg.incx;
-    char char_uplo   = arg.uplo;
-    char char_transA = arg.transA;
-    char char_diag   = arg.diag;
+    rocblas_int M           = arg.M;
+    rocblas_int lda         = arg.lda;
+    rocblas_int incx        = arg.incx;
+    char        char_uplo   = arg.uplo;
+    char        char_transA = arg.transA;
+    char        char_diag   = arg.diag;
 
-    rocblas_fill uplo        = char2rocblas_fill(char_uplo);
+    rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
-    rocblas_diagonal diag    = char2rocblas_diagonal(char_diag);
+    rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_status status;
+    rocblas_status       status;
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || lda < M || !incx)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T> dx_or_b(safe_size);
-        device_vector<T> dA(safe_size);
+        device_vector<T>    dx_or_b(safe_size);
+        device_vector<T>    dA(safe_size);
 
         if(!dA || !dx_or_b)
         {
@@ -72,9 +72,9 @@ void testing_trsv(const Arguments& arg)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
-    T error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    T residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    T eps                     = std::numeric_limits<T>::epsilon();
+    T      error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    T      residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    T      eps                     = std::numeric_limits<T>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);

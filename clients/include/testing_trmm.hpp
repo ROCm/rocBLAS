@@ -2,18 +2,18 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_datatype2string.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_trmm(const Arguments& arg)
@@ -27,24 +27,24 @@ void testing_trmm(const Arguments& arg)
     char char_uplo   = arg.uplo;
     char char_transA = arg.transA;
     char char_diag   = arg.diag;
-    T alpha          = arg.alpha;
+    T    alpha       = arg.alpha;
 
-    rocblas_side side        = char2rocblas_side(char_side);
-    rocblas_fill uplo        = char2rocblas_fill(char_uplo);
+    rocblas_side      side   = char2rocblas_side(char_side);
+    rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
-    rocblas_diagonal diag    = char2rocblas_diagonal(char_diag);
+    rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K = (side == rocblas_side_left ? M : N);
-    size_t size_A = lda * static_cast<size_t>(K);
-    size_t size_B = ldb * static_cast<size_t>(N);
+    rocblas_int K      = (side == rocblas_side_left ? M : N);
+    size_t      size_A = lda * static_cast<size_t>(K);
+    size_t      size_B = ldb * static_cast<size_t>(N);
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < 0 || ldb < 0)
     {
         static const size_t safe_size = 100;
-        device_vector<T> dA(safe_size);
-        device_vector<T> dB(safe_size);
-        device_vector<T> dC(safe_size);
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dB(safe_size);
+        device_vector<T>    dC(safe_size);
         if(!dA || !dB || !dC)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

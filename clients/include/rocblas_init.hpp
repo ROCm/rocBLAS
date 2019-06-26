@@ -5,12 +5,12 @@
 #ifndef ROCBLAS_INIT_H_
 #define ROCBLAS_INIT_H_
 
-#include <iostream>
-#include <cinttypes>
-#include <vector>
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include <cinttypes>
+#include <iostream>
+#include <vector>
 
 /* ============================================================================================ */
 /*! \brief  matrix/vector initialization: */
@@ -146,8 +146,8 @@ inline void rocblas_packInt8(
         for(size_t colBase = 0; colBase < N; colBase += 4)
             for(size_t row = 0; row < lda; row++)
                 for(size_t colOffset = 0; colOffset < 4; colOffset++)
-                    A[(colBase * lda + 4 * row) + colOffset + (stride_a * count)] =
-                        temp[(colBase + colOffset) * lda + row + (stride_a * count)];
+                    A[(colBase * lda + 4 * row) + colOffset + (stride_a * count)]
+                        = temp[(colBase + colOffset) * lda + row + (stride_a * count)];
 }
 
 /* ============================================================================================ */

@@ -1,29 +1,29 @@
-#include <string>
-#include <cstring>
+#include "rocblas_parse_data.hpp"
+#include "rocblas_data.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
-#include <iostream>
-#include <unistd.h>
+#include <cstring>
 #include <fcntl.h>
+#include <iostream>
+#include <string>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "utility.hpp"
-#include "rocblas_data.hpp"
-#include "rocblas_parse_data.hpp"
+#include <unistd.h>
 
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)
 {
     char tmp[] = "/tmp/rocblas-XXXXXX";
-    int fd     = mkostemp(tmp, O_CLOEXEC);
+    int  fd    = mkostemp(tmp, O_CLOEXEC);
     if(fd == -1)
     {
         perror("Cannot open temporary file");
         exit(EXIT_FAILURE);
     }
     auto exepath = rocblas_exepath();
-    auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o " +
-               tmp + " " + yaml;
+    auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
+               + tmp + " " + yaml;
     std::cerr << cmd << std::endl;
     int status = system(cmd.c_str());
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
@@ -35,8 +35,8 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
 bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
 {
     std::string filename;
-    char** argv_p = argv + 1;
-    bool help = false, yaml = false;
+    char**      argv_p = argv + 1;
+    bool        help = false, yaml = false;
 
     // Scan, process and remove any --yaml or --data options
     for(int i = 1; argv[i]; ++i)

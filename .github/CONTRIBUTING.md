@@ -53,10 +53,12 @@ This project follows the [CPP Core guidelines](https://github.com/isocpp/CppCore
 -  [I.2](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Ri-global): Avoid global variables
 
 ## Format
-C and C++ code is formatted using clang-format. To format a file, use
+C and C++ code is formatted using clang-format. Use the clang-format version for Clang 9, which is available in the /opt/rocm directory. Please do not use your system's built-in clang-format, as this is an older version that will result in different results. 
+
+To format a file, use:
 
 ```
-clang-format-3.8 -style=file -i <path-to-source-file>
+/opt/rocm/hcc/bin/clang-format -style=file -i <path-to-source-file>
 ```
 
 To format all files, run the following script in rocBLAS directory:
@@ -72,7 +74,7 @@ find . -iname '*.h' \
 -o -iname '*.cpp.in' \
 -o -iname '*.cl' \
 | grep -v 'build' \
-| xargs -n 1 -P 8 -I{} clang-format-3.8 -style=file -i {}
+| xargs -n 1 -P 8 -I{} /opt/rocm/hcc/bin/clang-format -style=file -i {}
 ```
 
 

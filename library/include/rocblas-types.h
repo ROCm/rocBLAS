@@ -12,7 +12,9 @@
 
 #include <stddef.h>
 #include <stdint.h>
+
 #include <hip/hip_vector_types.h>
+
 #include "rocblas_bfloat16.h"
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
@@ -34,11 +36,11 @@ typedef int32_t rocblas_int;
 typedef int64_t rocblas_long;
 #endif
 // complex types
-typedef float2 rocblas_float_complex;
+typedef float2  rocblas_float_complex;
 typedef double2 rocblas_double_complex;
 // half types
 typedef uint16_t rocblas_half;
-typedef float2 rocblas_half_complex;
+typedef float2   rocblas_half_complex;
 
 /* ============================================================================================ */
 
@@ -55,8 +57,8 @@ typedef enum rocblas_operation_
 {
     rocblas_operation_none      = 111, /**< Operate with the matrix. */
     rocblas_operation_transpose = 112, /**< Operate with the transpose of the matrix. */
-    rocblas_operation_conjugate_transpose =
-        113 /**< Operate with the conjugate transpose of the matrix. */
+    rocblas_operation_conjugate_transpose
+    = 113 /**< Operate with the conjugate transpose of the matrix. */
 } rocblas_operation;
 
 /*! \brief Used by the Hermitian, symmetric and triangular matrix
@@ -81,11 +83,11 @@ typedef enum rocblas_diagonal_
 /*! \brief Indicates the side matrix A is located relative to matrix B during multiplication. */
 typedef enum rocblas_side_
 {
-    rocblas_side_left = 141,  /**< Multiply general matrix by symmetric,
+    rocblas_side_left  = 141, /**< Multiply general matrix by symmetric,
                         Hermitian or triangular matrix on the left. */
     rocblas_side_right = 142, /**< Multiply general matrix by symmetric,
                         Hermitian or triangular matrix on the right. */
-    rocblas_side_both = 143
+    rocblas_side_both  = 143
 } rocblas_side;
 
 /* ============================================================================================ */

@@ -5,26 +5,26 @@
 #ifndef LOGGING_H
 #define LOGGING_H
 #include "handle.h"
-#include <cstring>
+#include <atomic>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <functional>
 #include <iomanip>
 #include <map>
-#include <unordered_map>
-#include <atomic>
+#include <memory>
 #include <mutex>
 #include <shared_mutex>
-#include <memory>
-#include <functional>
+#include <string>
 #include <tuple>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
-#include <string>
 
 class tuple_helper
 {
-    protected:
+protected:
     /************************************************************************************
      * Print values
      ************************************************************************************/
@@ -63,11 +63,20 @@ class tuple_helper
     }
 
     // bool output
-    static void print_value(std::ostream& os, bool b) { os << (b ? "true" : "false"); }
+    static void print_value(std::ostream& os, bool b)
+    {
+        os << (b ? "true" : "false");
+    }
 
     // string output
-    static void print_value(std::ostream& os, const char* s) { os << std::quoted(s); }
-    static void print_value(std::ostream& os, const std::string& s) { print_value(os, s.c_str()); }
+    static void print_value(std::ostream& os, const char* s)
+    {
+        os << std::quoted(s);
+    }
+    static void print_value(std::ostream& os, const std::string& s)
+    {
+        print_value(os, s.c_str());
+    }
 
     /************************************************************************************
      * Print tuples
@@ -135,7 +144,10 @@ class tuple_helper
     }
 
     // For consistency with above
-    static size_t hash(const std::string& s) { return hash(s.c_str()); }
+    static size_t hash(const std::string& s)
+    {
+        return hash(s.c_str());
+    }
 
     // Combine tuple value hashes, computing hash of all tuple values
     template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
@@ -152,7 +164,10 @@ class tuple_helper
     template <typename TUP>
     struct tuple_hash_recurse<TUP, 0>
     {
-        __attribute__((always_inline)) size_t operator()(const TUP&) { return 0; }
+        __attribute__((always_inline)) size_t operator()(const TUP&)
+        {
+            return 0;
+        }
     };
 
     // Hash function class compatible with STL containers
@@ -160,7 +175,10 @@ class tuple_helper
     struct hash_t
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        size_t operator()(const TUP& x) const { return tuple_hash_recurse<TUP>{}(x); }
+        size_t operator()(const TUP& x) const
+        {
+            return tuple_hash_recurse<TUP>{}(x);
+        }
     };
 
     /************************************************************************************
@@ -172,9 +190,18 @@ class tuple_helper
         return x1 == x2;
     }
 
-    static bool equal(const char* s1, const char* s2) { return !strcmp(s1, s2); }
-    static bool equal(const std::string& s1, const char* s2) { return !strcmp(s1.c_str(), s2); }
-    static bool equal(const char* s1, const std::string& s2) { return !strcmp(s1, s2.c_str()); }
+    static bool equal(const char* s1, const char* s2)
+    {
+        return !strcmp(s1, s2);
+    }
+    static bool equal(const std::string& s1, const char* s2)
+    {
+        return !strcmp(s1.c_str(), s2);
+    }
+    static bool equal(const char* s1, const std::string& s2)
+    {
+        return !strcmp(s1, s2.c_str());
+    }
 
     // Recursively compare tuple values, short-circuiting
     template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
@@ -182,8 +209,8 @@ class tuple_helper
     {
         bool operator()(const TUP& t1, const TUP& t2)
         {
-            return equal(std::get<idx - 1>(t1), std::get<idx - 1>(t2)) &&
-                   tuple_equal_recurse<TUP, idx - 2>{}(t1, t2);
+            return equal(std::get<idx - 1>(t1), std::get<idx - 1>(t2))
+                   && tuple_equal_recurse<TUP, idx - 2>{}(t1, t2);
         }
     };
 
@@ -191,7 +218,10 @@ class tuple_helper
     template <typename TUP>
     struct tuple_equal_recurse<TUP, 0>
     {
-        bool operator()(const TUP&, const TUP&) { return true; }
+        bool operator()(const TUP&, const TUP&)
+        {
+            return true;
+        }
     };
 
     // Equality test class compatible with STL containers
@@ -221,7 +251,7 @@ class argument_profile : tuple_helper
     // Table mapping argument tuples into atomic counts
     std::unordered_map<TUP, std::atomic_size_t*, hash_t<TUP>, equal_t<TUP>> map;
 
-    public:
+public:
     // A tuple of arguments is looked up in an unordered map.
     // A count of the number of calls with these arguments is kept.
     // arg is assumed to be an rvalue for efficiency
@@ -259,7 +289,10 @@ class argument_profile : tuple_helper
     }
 
     // Constructor
-    explicit argument_profile(std::ostream& os) : os(os) {}
+    explicit argument_profile(std::ostream& os)
+        : os(os)
+    {
+    }
 
     // Cleanup handler which dumps profile at destruction
     ~argument_profile()
@@ -288,7 +321,7 @@ inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
     auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
     static argument_profile<decltype(tup)> profile{*handle->log_profile_os};
-    static int aqe = at_quick_exit([] { profile.~argument_profile(); });
+    static int                             aqe = at_quick_exit([] { profile.~argument_profile(); });
     profile(std::move(tup));
 }
 

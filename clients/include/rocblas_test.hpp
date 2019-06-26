@@ -5,17 +5,17 @@
 #ifndef ROCBLAS_TEST_H_
 #define ROCBLAS_TEST_H_
 
-#include <cstdio>
-#include <type_traits>
-#include <iostream>
-#include <sstream>
-#include <string>
-#include <unordered_map>
-#include <algorithm>
-#include <utility>
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"
+#include <algorithm>
+#include <cstdio>
+#include <iostream>
+#include <sstream>
+#include <string>
+#include <type_traits>
+#include <unordered_map>
+#include <utility>
 
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>
@@ -32,14 +32,22 @@ inline const char* rocblas_status_to_string(rocblas_status status)
 {
     switch(status)
     {
-    case rocblas_status_success: return "rocblas_status_success";
-    case rocblas_status_invalid_handle: return "rocblas_status_invalid_handle";
-    case rocblas_status_not_implemented: return "rocblas_status_not_implemented";
-    case rocblas_status_invalid_pointer: return "rocblas_status_invalid_pointer";
-    case rocblas_status_invalid_size: return "rocblas_status_invalid_size";
-    case rocblas_status_memory_error: return "rocblas_status_memory_error";
-    case rocblas_status_internal_error: return "rocblas_status_internal_error";
-    default: return "<undefined rocblas_status value>";
+    case rocblas_status_success:
+        return "rocblas_status_success";
+    case rocblas_status_invalid_handle:
+        return "rocblas_status_invalid_handle";
+    case rocblas_status_not_implemented:
+        return "rocblas_status_not_implemented";
+    case rocblas_status_invalid_pointer:
+        return "rocblas_status_invalid_pointer";
+    case rocblas_status_invalid_size:
+        return "rocblas_status_invalid_size";
+    case rocblas_status_memory_error:
+        return "rocblas_status_memory_error";
+    case rocblas_status_internal_error:
+        return "rocblas_status_internal_error";
+    default:
+        return "<undefined rocblas_status value>";
     }
 }
 
@@ -86,9 +94,9 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CASE_P(categ0ry,                                                            \
                             testclass,                                                           \
                             testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                  return !strcmp(arg.category, #categ0ry) &&     \
-                                                         testclass::type_filter(arg) &&          \
-                                                         testclass::function_filter(arg);        \
+                                                  return !strcmp(arg.category, #categ0ry)        \
+                                                         && testclass::type_filter(arg)          \
+                                                         && testclass::function_filter(arg);     \
                                               }),                                                \
                                               RocBLAS_TestData::end()),                          \
                             testclass::PrintToStringParamName());
@@ -116,14 +124,14 @@ class RocBLAS_TestName
         return *table;
     }
 
-    public:
+public:
     // Convert stream to normalized Google Test name
     // rvalue reference qualified so that it can only be called once
     // The name should only be generated once before the stream is destroyed
     operator std::string() &&
     {
         // This table is private to each instantation of RocBLAS_TestName
-        table_t& table = get_table();
+        table_t&    table = get_table();
         std::string name(str.str());
 
         if(name == "")
@@ -188,16 +196,19 @@ class RocBLAS_TestName
 template <typename TEST, template <typename...> class FILTER>
 class RocBLAS_Test : public testing::TestWithParam<Arguments>
 {
-    protected:
+protected:
     // This template functor returns true if the type arguments are valid.
     // It converts a FILTER specialization to bool to test type matching.
     template <typename... T>
     struct type_filter_functor
     {
-        bool operator()(const Arguments&) { return static_cast<bool>(FILTER<T...>{}); }
+        bool operator()(const Arguments&)
+        {
+            return static_cast<bool>(FILTER<T...>{});
+        }
     };
 
-    public:
+public:
     // Wrapper functor class which calls name_suffix()
     struct PrintToStringParamName
     {
@@ -218,7 +229,10 @@ class RocBLAS_Test : public testing::TestWithParam<Arguments>
 struct rocblas_test_invalid
 {
     // Return false to indicate the type combination is invalid, for filtering
-    explicit operator bool() { return false; }
+    explicit operator bool()
+    {
+        return false;
+    }
 
     // If this specialization is actually called, print fatal error message
     void operator()(const Arguments&)
