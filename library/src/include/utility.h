@@ -55,6 +55,24 @@ inline bool isAligned(const void* pointer, size_t byte_count)
     return reinterpret_cast<uintptr_t>(pointer) % byte_count == 0;
 }
 
+template <typename T>
+__forceinline__ __device__ __host__ T conjugate(T x)
+{
+    return x;
+}
+
+template <>
+__forceinline__ __device__ __host__ auto conjugate(rocblas_float_complex x)
+{
+    return conj(x);
+}
+
+template <>
+__forceinline__ __device__ __host__ auto conjugate(rocblas_double_complex x)
+{
+    return conj(x);
+}
+
 // clang-format off
 // return letter N,T,C in place of rocblas_operation enum
 constexpr auto rocblas_transpose_letter(rocblas_operation trans)

@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
+#include "near.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
@@ -110,8 +111,19 @@ void testing_asum(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1);
-            unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2);
+            if(std::is_same<T1, rocblas_float_complex>::value
+               || std::is_same<T1, rocblas_double_complex>::value)
+            {
+                double tol = 0.001 * cpu_result; // 0.1% of expected result (?)
+
+                near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
+                near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
+            }
+            else
+            {
+                unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1);
+                unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2);
+            }
         }
 
         if(arg.norm_check)
@@ -120,6 +132,7 @@ void testing_asum(const Arguments& arg)
                    cpu_result,
                    rocblas_result_1,
                    rocblas_result_2);
+
             rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);
         }

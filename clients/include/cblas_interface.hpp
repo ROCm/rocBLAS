@@ -226,6 +226,33 @@ inline void cblas_dot(rocblas_int                   n,
     cblas_zdotu_sub(n, x, incx, y, incy, result);
 }
 
+// dotc
+template <typename T>
+void cblas_dotc(
+    rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* result);
+
+template <>
+inline void cblas_dotc(rocblas_int                  n,
+                       const rocblas_float_complex* x,
+                       rocblas_int                  incx,
+                       const rocblas_float_complex* y,
+                       rocblas_int                  incy,
+                       rocblas_float_complex*       result)
+{
+    cblas_cdotc_sub(n, x, incx, y, incy, result);
+}
+
+template <>
+inline void cblas_dotc(rocblas_int                   n,
+                       const rocblas_double_complex* x,
+                       rocblas_int                   incx,
+                       const rocblas_double_complex* y,
+                       rocblas_int                   incy,
+                       rocblas_double_complex*       result)
+{
+    cblas_zdotc_sub(n, x, incx, y, incy, result);
+}
+
 // nrm2
 template <typename T1, typename T2>
 void cblas_nrm2(rocblas_int n, const T1* x, rocblas_int incx, T2* result);
@@ -257,8 +284,8 @@ inline void
 }
 
 // scal
-template <typename T>
-inline void cblas_scal(rocblas_int n, T alpha, T* x, rocblas_int incx);
+template <typename T, typename U>
+inline void cblas_scal(rocblas_int n, U alpha, T* x, rocblas_int incx);
 
 template <>
 inline void cblas_scal(rocblas_int n, float alpha, float* x, rocblas_int incx)
@@ -288,6 +315,18 @@ inline void cblas_scal(rocblas_int             n,
                        rocblas_int             incx)
 {
     cblas_zscal(n, &alpha, x, incx);
+}
+
+template <>
+inline void cblas_scal(rocblas_int n, float alpha, rocblas_float_complex* x, rocblas_int incx)
+{
+    cblas_csscal(n, alpha, x, incx);
+}
+
+template <>
+inline void cblas_scal(rocblas_int n, double alpha, rocblas_double_complex* x, rocblas_int incx)
+{
+    cblas_zdscal(n, alpha, x, incx);
 }
 
 // swap

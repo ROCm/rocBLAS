@@ -75,6 +75,16 @@ public:
     {
         return random_nan_data<rocblas_bfloat16, uint16_t, 7, 8>();
     }
+
+    explicit operator rocblas_float_complex()
+    {
+        return {float(*this), float(*this)};
+    }
+
+    explicit operator rocblas_double_complex()
+    {
+        return {double(*this), double(*this)};
+    }
 };
 
 /* ============================================================================================ */
@@ -86,6 +96,22 @@ inline T random_generator()
 {
     return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
 }
+
+// for rocblas_float_complex, generate two floats
+template <>
+inline rocblas_float_complex random_generator<rocblas_float_complex>()
+{
+    return {std::uniform_real_distribution<float>(-1, 1)(rocblas_rng),
+            std::uniform_real_distribution<float>(-1, 1)(rocblas_rng)};
+};
+
+// for rocblas_double_complex, generate two floats
+template <>
+inline rocblas_double_complex random_generator<rocblas_double_complex>()
+{
+    return {std::uniform_real_distribution<double>(-2, 2)(rocblas_rng),
+            std::uniform_real_distribution<double>(-2, 2)(rocblas_rng)};
+};
 
 // for rocblas_half, generate float, and convert to rocblas_half
 /*! \brief  generate a random number in range [-2,-1,0,1,2] */

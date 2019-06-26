@@ -106,8 +106,6 @@ rocblas_status rocblas_dswap(
     return rocblas_swap(handle, n, x, incx, y, incy);
 }
 
-#if 0 // complex not supported
-
 rocblas_status rocblas_cswap(rocblas_handle handle,
                              rocblas_int n,
                              rocblas_float_complex* x,
@@ -127,7 +125,5 @@ rocblas_status rocblas_zswap(rocblas_handle handle,
 {
     return rocblas_swap(handle, n, x, incx, y, incy);
 }
-
-#endif
 
 } // extern "C"

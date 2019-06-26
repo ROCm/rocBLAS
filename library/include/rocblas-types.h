@@ -42,14 +42,16 @@ typedef int64_t rocblas_long;
 typedef uint16_t rocblas_half;
 
 // complex types
-typedef struct
-{
-    float x, y;
-} rocblas_float_complex;
-typedef struct
-{
-    double x, y;
-} rocblas_double_complex;
+// C++11 std::complex is guaranted to be layout-compatible with C99 _Complex
+#ifdef __cplusplus
+#include <complex>
+typedef std::complex<float> rocblas_float_complex;
+typedef std::complex<double> rocblas_double_complex;
+#else
+#include <complex.h>
+typedef float complex rocblas_float_complex;
+typedef double complex rocblas_double_complex;
+#endif
 
 /* ============================================================================================ */
 

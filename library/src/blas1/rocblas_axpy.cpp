@@ -23,40 +23,6 @@ namespace
     template <>
     constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
-    template <typename T>
-    void rocblas_axpy_log(rocblas_handle handle,
-                          rocblas_int    n,
-                          const T*       alpha,
-                          const T*       x,
-                          rocblas_int    incx,
-                          T*             y,
-                          rocblas_int    incy)
-    {
-        auto layer_mode = handle->layer_mode;
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f axpy -r",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          "--alpha",
-                          *alpha,
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incx);
-        }
-        else if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
-
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
-    }
-
     template <typename T, typename U>
     __global__ void axpy_kernel(
         rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
@@ -83,7 +49,34 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         if(!alpha)
             return rocblas_status_invalid_pointer;
-        rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
+
+        auto layer_mode = handle->layer_mode;
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f axpy -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--alpha",
+                          *alpha,
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy);
+        }
+        else
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
+        }
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
+
         if(!x || !y)
             return rocblas_status_invalid_pointer;
         if(n <= 0) // Quick return if possible. Not Argument error
@@ -320,28 +313,26 @@ rocblas_status rocblas_daxpy(rocblas_handle handle,
     return rocblas_axpy(handle, n, alpha, x, incx, y, incy);
 }
 
-#if 0 // complex not supported
-rocblas_status rocblas_caxpy(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_float_complex* alpha,
-                                        const rocblas_float_complex* x,
-                                        rocblas_int incx,
-                                        rocblas_float_complex* y,
-                                        rocblas_int incy)
+rocblas_status rocblas_caxpy(rocblas_handle               handle,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* alpha,
+                             const rocblas_float_complex* x,
+                             rocblas_int                  incx,
+                             rocblas_float_complex*       y,
+                             rocblas_int                  incy)
 {
     return rocblas_axpy(handle, n, alpha, x, incx, y, incy);
 }
 
-rocblas_status rocblas_zaxpy(rocblas_handle handle,
-                                        rocblas_int n,
-                                        const rocblas_double_complex* alpha,
-                                        const rocblas_double_complex* x,
-                                        rocblas_int incx,
-                                        rocblas_double_complex* y,
-                                        rocblas_int incy)
+rocblas_status rocblas_zaxpy(rocblas_handle                handle,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* x,
+                             rocblas_int                   incx,
+                             rocblas_double_complex*       y,
+                             rocblas_int                   incy)
 {
     return rocblas_axpy(handle, n, alpha, x, incx, y, incy);
 }
-#endif
 
 } // extern "C"

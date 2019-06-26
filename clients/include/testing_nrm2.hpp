@@ -12,6 +12,7 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
+#include "near.hpp"
 #include "utility.hpp"
 
 template <typename T1, typename T2 = T1>
@@ -122,8 +123,8 @@ void testing_nrm2(const Arguments& arg)
         abs_error *= tolerance;
         if(arg.unit_check)
         {
-            near_check_general<T1>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-            near_check_general<T1>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+            near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
         }
 
         if(arg.norm_check)

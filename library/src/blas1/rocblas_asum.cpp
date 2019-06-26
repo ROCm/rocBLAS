@@ -107,8 +107,6 @@ rocblas_status rocblas_dasum(
     return rocblas_asum(handle, n, x, incx, result);
 }
 
-#if 0 // complex not supported
-
 rocblas_status rocblas_scasum(rocblas_handle handle,
                               rocblas_int n,
                               const rocblas_float_complex* x,
@@ -126,7 +124,5 @@ rocblas_status rocblas_dzasum(rocblas_handle handle,
 {
     return rocblas_asum(handle, n, x, incx, result);
 }
-
-#endif
 
 } // extern "C"

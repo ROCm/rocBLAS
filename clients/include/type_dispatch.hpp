@@ -41,10 +41,19 @@ auto rocblas_simple_dispatch(const Arguments& arg)
 template <template <typename...> class TEST>
 auto rocblas_blas1_dispatch(const Arguments& arg)
 {
-    const auto Ti = arg.a_type, To = arg.d_type;
-
+    const auto Ti = arg.a_type, Tb = arg.b_type, To = arg.d_type;
     if(Ti == To)
-        return rocblas_simple_dispatch<TEST>(arg);
+    {
+        if(Tb == Ti)
+            return rocblas_simple_dispatch<TEST>(arg);
+        else
+        { // for csscal and zdscal only
+            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
+                return TEST<rocblas_float_complex, float>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
+                return TEST<rocblas_double_complex, double>{}(arg);
+        }
+    }
     //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
     //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
     else if(Ti == rocblas_datatype_f32_c && To == rocblas_datatype_f32_r)

@@ -10,6 +10,7 @@
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <iomanip>
 #include <iostream>
@@ -44,7 +45,9 @@ struct Arguments
     rocblas_int incb;
 
     double alpha;
+    double alpha_imag;
     double beta;
+    double beta_imag;
 
     char transA;
     char transB;
@@ -79,12 +82,13 @@ struct Arguments
     // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
     static void validate(std::istream& ifs)
     {
-        auto error = [] {
-            std::cerr << "Fatal error: Binary test data does match input format.\n"
+        auto error = [](auto name) {
+            std::cerr << "Arguments field " << name << " does not match format.\n\n"
+                      << "Fatal error: Binary test data does match input format.\n"
                          "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                          "define exactly the same Arguments, that rocblas_gentest.py\n"
                          "generates the data correctly, and that endianness is the same.\n";
-            exit(EXIT_FAILURE);
+            abort();
         };
 
         char      header[8]{}, trailer[8]{};
@@ -96,55 +100,59 @@ struct Arguments
         if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
             error();
 
-        auto check = [&, sig = (unsigned char)0](const auto& elem) mutable {
+        auto check_func = [&, sig = (unsigned char)0](const auto& elem, auto name) mutable {
             static_assert(sizeof(elem) <= 255,
                           "One of the fields of Arguments is too large (> 255 bytes)");
             for(unsigned char i = 0; i < sizeof(elem); ++i)
                 if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
-                    error();
+                    error(name);
             sig += 89;
         };
 
+#define ROCBLAS_FORMAT_CHECK(x) check_func(arg.x, #x)
+
         // Order is important
-        check(arg.M);
-        check(arg.N);
-        check(arg.K);
-        check(arg.lda);
-        check(arg.ldb);
-        check(arg.ldc);
-        check(arg.ldd);
-        check(arg.a_type);
-        check(arg.b_type);
-        check(arg.c_type);
-        check(arg.d_type);
-        check(arg.compute_type);
-        check(arg.incx);
-        check(arg.incy);
-        check(arg.incd);
-        check(arg.incb);
-        check(arg.alpha);
-        check(arg.beta);
-        check(arg.transA);
-        check(arg.transB);
-        check(arg.side);
-        check(arg.uplo);
-        check(arg.diag);
-        check(arg.batch_count);
-        check(arg.stride_a);
-        check(arg.stride_b);
-        check(arg.stride_c);
-        check(arg.stride_d);
-        check(arg.norm_check);
-        check(arg.unit_check);
-        check(arg.timing);
-        check(arg.iters);
-        check(arg.algo);
-        check(arg.solution_index);
-        check(arg.flags);
-        check(arg.function);
-        check(arg.name);
-        check(arg.category);
-        check(arg.initialization);
+        ROCBLAS_FORMAT_CHECK(M);
+        ROCBLAS_FORMAT_CHECK(N);
+        ROCBLAS_FORMAT_CHECK(K);
+        ROCBLAS_FORMAT_CHECK(lda);
+        ROCBLAS_FORMAT_CHECK(ldb);
+        ROCBLAS_FORMAT_CHECK(ldc);
+        ROCBLAS_FORMAT_CHECK(ldd);
+        ROCBLAS_FORMAT_CHECK(a_type);
+        ROCBLAS_FORMAT_CHECK(b_type);
+        ROCBLAS_FORMAT_CHECK(c_type);
+        ROCBLAS_FORMAT_CHECK(d_type);
+        ROCBLAS_FORMAT_CHECK(compute_type);
+        ROCBLAS_FORMAT_CHECK(incx);
+        ROCBLAS_FORMAT_CHECK(incy);
+        ROCBLAS_FORMAT_CHECK(incd);
+        ROCBLAS_FORMAT_CHECK(incb);
+        ROCBLAS_FORMAT_CHECK(alpha);
+        ROCBLAS_FORMAT_CHECK(alpha_imag);
+        ROCBLAS_FORMAT_CHECK(beta);
+        ROCBLAS_FORMAT_CHECK(beta_imag);
+        ROCBLAS_FORMAT_CHECK(transA);
+        ROCBLAS_FORMAT_CHECK(transB);
+        ROCBLAS_FORMAT_CHECK(side);
+        ROCBLAS_FORMAT_CHECK(uplo);
+        ROCBLAS_FORMAT_CHECK(diag);
+        ROCBLAS_FORMAT_CHECK(batch_count);
+        ROCBLAS_FORMAT_CHECK(stride_a);
+        ROCBLAS_FORMAT_CHECK(stride_b);
+        ROCBLAS_FORMAT_CHECK(stride_c);
+        ROCBLAS_FORMAT_CHECK(stride_d);
+        ROCBLAS_FORMAT_CHECK(norm_check);
+        ROCBLAS_FORMAT_CHECK(unit_check);
+        ROCBLAS_FORMAT_CHECK(timing);
+        ROCBLAS_FORMAT_CHECK(iters);
+        ROCBLAS_FORMAT_CHECK(algo);
+        ROCBLAS_FORMAT_CHECK(solution_index);
+        ROCBLAS_FORMAT_CHECK(flags);
+        ROCBLAS_FORMAT_CHECK(function);
+        ROCBLAS_FORMAT_CHECK(name);
+        ROCBLAS_FORMAT_CHECK(category);
+        ROCBLAS_FORMAT_CHECK(initialization);
     }
 
 private:
@@ -262,8 +270,8 @@ static_assert(std::is_standard_layout<Arguments>{},
               "Arguments is not a standard layout type, and thus is "
               "incompatible with C.");
 
-static_assert(std::is_trivially_copyable<Arguments>{},
-              "Arguments is not a trivially copyable type, and thus is "
+static_assert(std::is_trivial<Arguments>{},
+              "Arguments is not a trivial type, and thus is "
               "incompatible with C.");
 
 #endif

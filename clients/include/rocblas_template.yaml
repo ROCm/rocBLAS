@@ -13,11 +13,15 @@ Functions:
   rocblas_ddot:  { function: dot, <<: *double_precision  }
   rocblas_sasum: { function: asum, <<: *single_precision }
   rocblas_dasum: { function: asum, <<: *double_precision }
+  rocblas_scasum: { function: asum, <<: *single_precision_complex }
+  rocblas_dzasum: { funciton: asum, <<: *double_precision_complex }
   rocblas_snrm2: { function: nrm2, <<: *single_precision }
   rocblas_dnrm2: { function: nrm2, <<: *double_precision }
   rocblas_haxpy: { function: axpy, <<: *half_precision   }
   rocblas_saxpy: { function: axpy, <<: *single_precision }
   rocblas_daxpy: { function: axpy, <<: *double_precision }
+  rocblas_caxpy: { function: axpy, <<: *single_precision_complex }
+  rocblas_zaxpy: { function: axpy, <<: *double_precision_complex }
   rocblas_sger:  { function: ger, <<: *single_precision  }
   rocblas_dger:  { function: ger, <<: *double_precision  }
   rocblas_ssyr:  { function: syr, <<: *single_precision  }

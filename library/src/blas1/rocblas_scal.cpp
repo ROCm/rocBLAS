@@ -110,26 +110,22 @@ rocblas_status rocblas_dscal(
     return rocblas_scal(handle, n, alpha, x, incx);
 }
 
-#if 0 // complex not supported
-
-rocblas_status rocblas_cscal(rocblas_handle handle,
-                             rocblas_int n,
+rocblas_status rocblas_cscal(rocblas_handle               handle,
+                             rocblas_int                  n,
                              const rocblas_float_complex* alpha,
-                             rocblas_float_complex* x,
-                             rocblas_int incx)
+                             rocblas_float_complex*       x,
+                             rocblas_int                  incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }
 
-rocblas_status rocblas_zscal(rocblas_handle handle,
-                             rocblas_int n,
+rocblas_status rocblas_zscal(rocblas_handle                handle,
+                             rocblas_int                   n,
                              const rocblas_double_complex* alpha,
-                             rocblas_double_complex* x,
-                             rocblas_int incx)
+                             rocblas_double_complex*       x,
+                             rocblas_int                   incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }
-
-#endif
 
 } // extern "C"
