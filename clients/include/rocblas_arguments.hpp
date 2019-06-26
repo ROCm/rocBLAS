@@ -5,15 +5,15 @@
 #ifndef ROCBLAS_ARGUMENTS_H_
 #define ROCBLAS_ARGUMENTS_H_
 
-#include <cinttypes>
-#include <cstdio>
-#include <cmath>
-#include <iostream>
-#include <iomanip>
-#include <cstring>
-#include <type_traits>
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
+#include <cinttypes>
+#include <cmath>
+#include <cstdio>
+#include <cstring>
+#include <iomanip>
+#include <iostream>
+#include <type_traits>
 
 /* ============================================================================================ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
@@ -63,9 +63,9 @@ struct Arguments
     rocblas_int iters;
 
     uint32_t algo;
-    int32_t solution_index;
+    int32_t  solution_index;
     uint32_t flags;
-    size_t workspace_size;
+    size_t   workspace_size;
 
     char function[64];
     char name[64];
@@ -86,7 +86,7 @@ struct Arguments
             exit(EXIT_FAILURE);
         };
 
-        char header[8]{}, trailer[8]{};
+        char      header[8]{}, trailer[8]{};
         Arguments arg{};
         ifs.read(header, sizeof(header));
         ifs >> arg;
@@ -147,7 +147,7 @@ struct Arguments
         check(arg.initialization);
     }
 
-    private:
+private:
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg)
     {
@@ -192,10 +192,16 @@ struct Arguments
     }
 
     // bool output
-    static void print_value(std::ostream& str, bool b) { str << (b ? "true" : "false"); }
+    static void print_value(std::ostream& str, bool b)
+    {
+        str << (b ? "true" : "false");
+    }
 
     // string output
-    static void print_value(std::ostream& str, const char* s) { str << std::quoted(s); }
+    static void print_value(std::ostream& str, const char* s)
+    {
+        str << std::quoted(s);
+    }
 
     // Function to print Arguments out to stream in YAML format
     // Google Tests uses this automatically to dump parameters

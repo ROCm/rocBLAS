@@ -2,21 +2,21 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <mutex>
 #include <condition_variable>
+#include <mutex>
 
-#include "rocblas_test.hpp"
-#include "rocblas_math.hpp"
-#include "rocblas_random.hpp"
-#include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_datatype2string.hpp"
-#include "utility.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
+#include "rocblas_init.hpp"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 std::mutex memcpy_mutex;
 
@@ -26,8 +26,8 @@ template <typename T>
 void testing_gemm_parallel(const Arguments& arg,
                            // std::shared_future<void> & start_rocblas,
                            std::condition_variable& cv,
-                           int& waiting_threads,
-                           int total_threads)
+                           int&                     waiting_threads,
+                           int                      total_threads)
 {
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
@@ -67,9 +67,9 @@ void testing_gemm_parallel(const Arguments& arg,
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
     {
         static const size_t safe_size = 100;
-        device_vector<T> dA(safe_size);
-        device_vector<T> dB(safe_size);
-        device_vector<T> dC(safe_size);
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dB(safe_size);
+        device_vector<T>    dC(safe_size);
         if(!dA || !dB || !dC)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -166,10 +166,10 @@ void testing_gemm_parallel(const Arguments& arg,
 
     if(arg.norm_check)
     {
-        double error_hst_ptr =
-            fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data()));
-        double error_dev_ptr =
-            fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data()));
+        double error_hst_ptr
+            = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data()));
+        double error_dev_ptr
+            = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data()));
         rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
     }
 }

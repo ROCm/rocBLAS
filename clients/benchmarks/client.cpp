@@ -3,36 +3,48 @@
  * ************************************************************************ */
 
 #include <iostream>
+
 #include <cstdio>
 #include <cstring>
 #include <string>
+
 #include <cctype>
+
 #include <boost/program_options.hpp>
+
 #include <algorithm>
 #include <stdexcept>
 #include <type_traits>
+
 #include "rocblas.h"
 #include "utility.hpp"
+
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "testing_iamax_iamin.hpp"
+
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
 #include "testing_swap.hpp"
+
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
 #include "testing_syr.hpp"
+
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
+
 #include "testing_geam.hpp"
 #include "testing_set_get_vector.hpp"
+
 #include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
+
 #include "rocblas_parse_data.hpp"
 
 using namespace std::literals;
@@ -43,6 +55,7 @@ using namespace std::literals;
 #include "testing_trsm.hpp"
 #include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
+
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 
@@ -59,8 +72,14 @@ struct perf_gemm_ex<Ti,
                     Tc,
                     typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
-    explicit operator bool() { return true; }
-    void operator()(const Arguments& arg) { testing_gemm_ex<Ti, To, Tc>(arg); }
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        testing_gemm_ex<Ti, To, Tc>(arg);
+    }
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
@@ -77,8 +96,14 @@ struct perf_gemm_strided_batched_ex<
     Tc,
     typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
 {
-    explicit operator bool() { return true; }
-    void operator()(const Arguments& arg) { testing_gemm_strided_batched_ex<Ti, To, Tc>(arg); }
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
+    }
 };
 
 #endif
@@ -93,7 +118,10 @@ struct perf_blas<
     T,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
-    explicit operator bool() { return true; }
+    explicit operator bool()
+    {
+        return true;
+    }
     void operator()(const Arguments& arg)
     {
         if(!strcmp(arg.function, "gemm"))
@@ -141,15 +169,18 @@ struct perf_blas<
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
         else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function +
-                                        " --a_type "s + rocblas_datatype2string(arg.a_type));
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
     }
 };
 
 template <typename T>
 struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
-    explicit operator bool() { return true; }
+    explicit operator bool()
+    {
+        return true;
+    }
     void operator()(const Arguments& arg)
     {
         if(!strcmp(arg.function, "axpy"))
@@ -159,8 +190,8 @@ struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::ty
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function +
-                                        " --a_type "s + rocblas_datatype2string(arg.a_type));
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
     }
 };
 
@@ -174,7 +205,7 @@ int run_bench_test(Arguments& arg)
 
     // Skip past any testing_ prefix in function
     static constexpr char prefix[] = "testing_";
-    const char* function           = arg.function;
+    const char*           function = arg.function;
     if(!strncmp(function, prefix, sizeof(prefix) - 1))
         function += sizeof(prefix) - 1;
 
@@ -354,7 +385,7 @@ try
     std::string initialization;
 
     rocblas_int device_id;
-    bool datafile = rocblas_parse_data(argc, argv);
+    bool        datafile = rocblas_parse_data(argc, argv);
 
     options_description desc("rocblas-bench command line options");
     desc.add_options()

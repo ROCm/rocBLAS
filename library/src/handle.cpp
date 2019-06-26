@@ -72,13 +72,13 @@ _rocblas_handle::~_rocblas_handle()
 /*******************************************************************************
  * Static handle data
  ******************************************************************************/
-rocblas_layer_mode _rocblas_handle::layer_mode = rocblas_layer_mode_none;
-std::ofstream _rocblas_handle::log_trace_ofs;
-std::ostream* _rocblas_handle::log_trace_os;
-std::ofstream _rocblas_handle::log_bench_ofs;
-std::ostream* _rocblas_handle::log_bench_os;
-std::ofstream _rocblas_handle::log_profile_ofs;
-std::ostream* _rocblas_handle::log_profile_os;
+rocblas_layer_mode    _rocblas_handle::layer_mode = rocblas_layer_mode_none;
+std::ofstream         _rocblas_handle::log_trace_ofs;
+std::ostream*         _rocblas_handle::log_trace_os;
+std::ofstream         _rocblas_handle::log_bench_ofs;
+std::ostream*         _rocblas_handle::log_bench_os;
+std::ofstream         _rocblas_handle::log_profile_ofs;
+std::ostream*         _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
 
 /**
@@ -109,7 +109,7 @@ _rocblas_handle::init _rocblas_handle::handle_init;
  *              will stream to log_ofs. Else it will stream to std::cerr.
  */
 
-static void open_log_stream(const char* environment_variable_name,
+static void open_log_stream(const char*    environment_variable_name,
                             std::ostream*& log_os,
                             std::ofstream& log_ofs)
 
@@ -158,12 +158,13 @@ _rocblas_handle::init::init()
 /*******************************************************************************
  * Static reinitialization (for testing only)
  ******************************************************************************/
-namespace rocblas {
-void reinit_logs()
+namespace rocblas
 {
-    _rocblas_handle::log_trace_ofs.close();
-    _rocblas_handle::log_bench_ofs.close();
-    _rocblas_handle::log_profile_ofs.close();
-    new(&_rocblas_handle::handle_init) _rocblas_handle::init;
-}
+    void reinit_logs()
+    {
+        _rocblas_handle::log_trace_ofs.close();
+        _rocblas_handle::log_bench_ofs.close();
+        _rocblas_handle::log_profile_ofs.close();
+        new(&_rocblas_handle::handle_init) _rocblas_handle::init;
+    }
 } // namespace rocblas

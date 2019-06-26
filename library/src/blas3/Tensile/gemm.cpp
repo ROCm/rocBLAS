@@ -1,12 +1,14 @@
 /**************************************************************************
  * Copyright 2018 Advanced Micro Devices, Inc.
  ************************************************************************** */
-
 #include <hip/hip_runtime.h>
 #include <sys/time.h>
+
 #include "rocblas.h"
+
 #include "Tensile.h"
 #include "gemm.h"
+
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
@@ -46,16 +48,16 @@ transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation tra
 template <typename T>
 const char* tensileGetSolutionName(rocblas_operation trans_a,
                                    rocblas_operation trans_b,
-                                   rocblas_int strideC1,
-                                   rocblas_int strideC2,
-                                   rocblas_int strideA1,
-                                   rocblas_int strideA2,
-                                   rocblas_int strideB1,
-                                   rocblas_int strideB2,
-                                   rocblas_int sizeI,
-                                   rocblas_int sizeJ,
-                                   rocblas_int sizeK,
-                                   rocblas_int sizeL)
+                                   rocblas_int       strideC1,
+                                   rocblas_int       strideC2,
+                                   rocblas_int       strideA1,
+                                   rocblas_int       strideA2,
+                                   rocblas_int       strideB1,
+                                   rocblas_int       strideB2,
+                                   rocblas_int       sizeI,
+                                   rocblas_int       sizeJ,
+                                   rocblas_int       sizeK,
+                                   rocblas_int       sizeL)
 {
 // This macro condenses all the identical arguments to the various
 // tensileGetSolutionName function calls for consistency / brevity
@@ -69,30 +71,42 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
     {
         switch(transposeMode)
         {
-        case NN: return tensileGetSolutionName_Cijk_Ailk_Bljk_HB(TENSILE_ARG_NAMES);
-        case NT: return tensileGetSolutionName_Cijk_Ailk_Bjlk_HB(TENSILE_ARG_NAMES);
-        case TN: return tensileGetSolutionName_Cijk_Alik_Bljk_HB(TENSILE_ARG_NAMES);
-        case TT: return tensileGetSolutionName_Cijk_Alik_Bjlk_HB(TENSILE_ARG_NAMES);
+        case NN:
+            return tensileGetSolutionName_Cijk_Ailk_Bljk_HB(TENSILE_ARG_NAMES);
+        case NT:
+            return tensileGetSolutionName_Cijk_Ailk_Bjlk_HB(TENSILE_ARG_NAMES);
+        case TN:
+            return tensileGetSolutionName_Cijk_Alik_Bljk_HB(TENSILE_ARG_NAMES);
+        case TT:
+            return tensileGetSolutionName_Cijk_Alik_Bjlk_HB(TENSILE_ARG_NAMES);
         }
     }
     else if(std::is_same<T, float>{})
     {
         switch(transposeMode)
         {
-        case NN: return tensileGetSolutionName_Cijk_Ailk_Bljk_SB(TENSILE_ARG_NAMES);
-        case NT: return tensileGetSolutionName_Cijk_Ailk_Bjlk_SB(TENSILE_ARG_NAMES);
-        case TN: return tensileGetSolutionName_Cijk_Alik_Bljk_SB(TENSILE_ARG_NAMES);
-        case TT: return tensileGetSolutionName_Cijk_Alik_Bjlk_SB(TENSILE_ARG_NAMES);
+        case NN:
+            return tensileGetSolutionName_Cijk_Ailk_Bljk_SB(TENSILE_ARG_NAMES);
+        case NT:
+            return tensileGetSolutionName_Cijk_Ailk_Bjlk_SB(TENSILE_ARG_NAMES);
+        case TN:
+            return tensileGetSolutionName_Cijk_Alik_Bljk_SB(TENSILE_ARG_NAMES);
+        case TT:
+            return tensileGetSolutionName_Cijk_Alik_Bjlk_SB(TENSILE_ARG_NAMES);
         }
     }
     else if(std::is_same<T, double>{})
     {
         switch(transposeMode)
         {
-        case NN: return tensileGetSolutionName_Cijk_Ailk_Bljk_DB(TENSILE_ARG_NAMES);
-        case NT: return tensileGetSolutionName_Cijk_Ailk_Bjlk_DB(TENSILE_ARG_NAMES);
-        case TN: return tensileGetSolutionName_Cijk_Alik_Bljk_DB(TENSILE_ARG_NAMES);
-        case TT: return tensileGetSolutionName_Cijk_Alik_Bjlk_DB(TENSILE_ARG_NAMES);
+        case NN:
+            return tensileGetSolutionName_Cijk_Ailk_Bljk_DB(TENSILE_ARG_NAMES);
+        case NT:
+            return tensileGetSolutionName_Cijk_Ailk_Bjlk_DB(TENSILE_ARG_NAMES);
+        case TN:
+            return tensileGetSolutionName_Cijk_Alik_Bljk_DB(TENSILE_ARG_NAMES);
+        case TT:
+            return tensileGetSolutionName_Cijk_Alik_Bjlk_DB(TENSILE_ARG_NAMES);
         }
     }
     return "";
@@ -104,24 +118,24 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
  * Tensile Function call
  ******************************************************************************/
 template <typename T>
-hipError_t callTensile(const T* alpha,
-                       const T* beta,
-                       const T* A,
-                       const T* B,
-                       T* C,
+hipError_t callTensile(const T*          alpha,
+                       const T*          beta,
+                       const T*          A,
+                       const T*          B,
+                       T*                C,
                        rocblas_operation trans_a,
                        rocblas_operation trans_b,
-                       rocblas_int strideC1,
-                       rocblas_int strideC2,
-                       rocblas_int strideA1,
-                       rocblas_int strideA2,
-                       rocblas_int strideB1,
-                       rocblas_int strideB2,
-                       rocblas_int sizeI,
-                       rocblas_int sizeJ,
-                       rocblas_int sizeK,
-                       rocblas_int sizeL,
-                       rocblas_handle handle)
+                       rocblas_int       strideC1,
+                       rocblas_int       strideC2,
+                       rocblas_int       strideA1,
+                       rocblas_int       strideA2,
+                       rocblas_int       strideB1,
+                       rocblas_int       strideB2,
+                       rocblas_int       sizeI,
+                       rocblas_int       sizeJ,
+                       rocblas_int       sizeK,
+                       rocblas_int       sizeL,
+                       rocblas_handle    handle)
 {
 #ifndef NDEBUG
     std::cout << "Solution Name: "
@@ -162,36 +176,60 @@ hipError_t callTensile(const T* alpha,
         strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, \
         nullptr, nullptr
 
-    hipError_t status;
+    hipError_t     status;
     transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
     if(std::is_same<T, rocblas_half>{})
     {
         switch(transposeMode)
         {
-        case NN: status = tensile_Cijk_Ailk_Bljk_HB(TENSILE_ARGS(_Float16)); break;
-        case NT: status = tensile_Cijk_Ailk_Bjlk_HB(TENSILE_ARGS(_Float16)); break;
-        case TN: status = tensile_Cijk_Alik_Bljk_HB(TENSILE_ARGS(_Float16)); break;
-        case TT: status = tensile_Cijk_Alik_Bjlk_HB(TENSILE_ARGS(_Float16)); break;
+        case NN:
+            status = tensile_Cijk_Ailk_Bljk_HB(TENSILE_ARGS(_Float16));
+            break;
+        case NT:
+            status = tensile_Cijk_Ailk_Bjlk_HB(TENSILE_ARGS(_Float16));
+            break;
+        case TN:
+            status = tensile_Cijk_Alik_Bljk_HB(TENSILE_ARGS(_Float16));
+            break;
+        case TT:
+            status = tensile_Cijk_Alik_Bjlk_HB(TENSILE_ARGS(_Float16));
+            break;
         }
     }
     else if(std::is_same<T, float>{})
     {
         switch(transposeMode)
         {
-        case NN: status = tensile_Cijk_Ailk_Bljk_SB(TENSILE_ARGS(float)); break;
-        case NT: status = tensile_Cijk_Ailk_Bjlk_SB(TENSILE_ARGS(float)); break;
-        case TN: status = tensile_Cijk_Alik_Bljk_SB(TENSILE_ARGS(float)); break;
-        case TT: status = tensile_Cijk_Alik_Bjlk_SB(TENSILE_ARGS(float)); break;
+        case NN:
+            status = tensile_Cijk_Ailk_Bljk_SB(TENSILE_ARGS(float));
+            break;
+        case NT:
+            status = tensile_Cijk_Ailk_Bjlk_SB(TENSILE_ARGS(float));
+            break;
+        case TN:
+            status = tensile_Cijk_Alik_Bljk_SB(TENSILE_ARGS(float));
+            break;
+        case TT:
+            status = tensile_Cijk_Alik_Bjlk_SB(TENSILE_ARGS(float));
+            break;
         }
     }
     else if(std::is_same<T, double>{})
     {
         switch(transposeMode)
         {
-        case NN: status = tensile_Cijk_Ailk_Bljk_DB(TENSILE_ARGS(double)); break;
-        case NT: status = tensile_Cijk_Ailk_Bjlk_DB(TENSILE_ARGS(double)); break;
-        case TN: status = tensile_Cijk_Alik_Bljk_DB(TENSILE_ARGS(double)); break;
-        case TT: status = tensile_Cijk_Alik_Bjlk_DB(TENSILE_ARGS(double)); break;
+        case NN:
+            status = tensile_Cijk_Ailk_Bljk_DB(TENSILE_ARGS(double));
+            break;
+        case NT:
+            status = tensile_Cijk_Ailk_Bjlk_DB(TENSILE_ARGS(double));
+            break;
+        case TN:
+            status = tensile_Cijk_Alik_Bljk_DB(TENSILE_ARGS(double));
+            break;
+        case TT:
+            status = tensile_Cijk_Alik_Bjlk_DB(TENSILE_ARGS(double));
+            break;
         }
     }
     else
@@ -219,20 +257,20 @@ static constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
  * GEMM implementation
  ******************************************************************************/
 template <typename T>
-rocblas_status rocblas_gemm_impl(rocblas_handle handle,
+rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                                  rocblas_operation trans_a,
                                  rocblas_operation trans_b,
-                                 rocblas_int m,
-                                 rocblas_int n,
-                                 rocblas_int k,
-                                 const T* alpha,
-                                 const T* A,
-                                 rocblas_int ld_a,
-                                 const T* B,
-                                 rocblas_int ld_b,
-                                 const T* beta,
-                                 T* C,
-                                 rocblas_int ld_c)
+                                 rocblas_int       m,
+                                 rocblas_int       n,
+                                 rocblas_int       k,
+                                 const T*          alpha,
+                                 const T*          A,
+                                 rocblas_int       ld_a,
+                                 const T*          B,
+                                 rocblas_int       ld_b,
+                                 const T*          beta,
+                                 T*                C,
+                                 rocblas_int       ld_c)
 {
     // clang-format off
     // Perform logging
@@ -380,8 +418,8 @@ rocblas_status rocblas_gemm_impl(rocblas_handle handle,
 template <typename>
 static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
 template <>
-static constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[] =
-    "rocblas_hgemm_strided_batched";
+static constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[]
+    = "rocblas_hgemm_strided_batched";
 template <>
 static constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
 template <>
@@ -391,24 +429,24 @@ static constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dge
  * Strided / Batched GEMM implementation
  ******************************************************************************/
 template <typename T>
-rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle handle,
+rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
                                                  rocblas_operation trans_a,
                                                  rocblas_operation trans_b,
-                                                 rocblas_int m,
-                                                 rocblas_int n,
-                                                 rocblas_int k,
-                                                 const T* alpha,
-                                                 const T* A,
-                                                 rocblas_int ld_a,
-                                                 rocblas_int stride_a,
-                                                 const T* B,
-                                                 rocblas_int ld_b,
-                                                 rocblas_int stride_b,
-                                                 const T* beta,
-                                                 T* C,
-                                                 rocblas_int ld_c,
-                                                 rocblas_int stride_c,
-                                                 rocblas_int b_c)
+                                                 rocblas_int       m,
+                                                 rocblas_int       n,
+                                                 rocblas_int       k,
+                                                 const T*          alpha,
+                                                 const T*          A,
+                                                 rocblas_int       ld_a,
+                                                 rocblas_int       stride_a,
+                                                 const T*          B,
+                                                 rocblas_int       ld_b,
+                                                 rocblas_int       stride_b,
+                                                 const T*          beta,
+                                                 T*                C,
+                                                 rocblas_int       ld_c,
+                                                 rocblas_int       stride_c,
+                                                 rocblas_int       b_c)
 
 {
     // clang-format off
@@ -579,24 +617,24 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle handle,
  * Batched / Strided GEMM Kernel name implementation
  ******************************************************************************/
 template <typename T>
-rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle handle,
+rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                                              rocblas_operation trans_a,
                                              rocblas_operation trans_b,
-                                             rocblas_int m,
-                                             rocblas_int n,
-                                             rocblas_int k,
-                                             const T* alpha,
-                                             const T* A,
-                                             rocblas_int ld_a,
-                                             rocblas_int stride_a,
-                                             const T* B,
-                                             rocblas_int ld_b,
-                                             rocblas_int stride_b,
-                                             const T* beta,
-                                             T* C,
-                                             rocblas_int ld_c,
-                                             rocblas_int stride_c,
-                                             rocblas_int b_c)
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const T*          alpha,
+                                             const T*          A,
+                                             rocblas_int       ld_a,
+                                             rocblas_int       stride_a,
+                                             const T*          B,
+                                             rocblas_int       ld_b,
+                                             rocblas_int       stride_b,
+                                             const T*          beta,
+                                             T*                C,
+                                             rocblas_int       ld_c,
+                                             rocblas_int       stride_c,
+                                             rocblas_int       b_c)
 {
     // clang-format off
     if(!handle)

@@ -11,82 +11,83 @@
 #include "logging.h"
 #include "utility.h"
 
-namespace {
-constexpr int NB = 256;
-
-template <typename T, typename U>
-__global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
+namespace
 {
-    auto alpha  = load_scalar(alpha_device_host);
-    ssize_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    constexpr int NB = 256;
 
-    // bound
-    if(tid < n)
-        x[tid * incx] *= alpha;
-}
-
-template <typename>
-static constexpr char rocblas_scal_name[] = "unknown";
-template <>
-static constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
-template <>
-static constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
-template <>
-static constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
-template <>
-static constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
-
-template <class T>
-rocblas_status
-rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
-{
-    if(!handle)
-        return rocblas_status_invalid_handle;
-    if(!alpha)
-        return rocblas_status_invalid_pointer;
-    auto layer_mode = handle->layer_mode;
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    template <typename T, typename U>
+    __global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
     {
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_scal_name<T>, n, *alpha, x, incx);
+        auto    alpha = load_scalar(alpha_device_host);
+        ssize_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f scal -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--alpha",
-                      *alpha);
+        // bound
+        if(tid < n)
+            x[tid * incx] *= alpha;
     }
-    else
+
+    template <typename>
+    static constexpr char rocblas_scal_name[] = "unknown";
+    template <>
+    static constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
+    template <>
+    static constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
+    template <>
+    static constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
+    template <>
+    static constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
+
+    template <class T>
+    rocblas_status
+        rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
     {
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_scal_name<T>, n, alpha, x, incx);
-    }
-    if(layer_mode & rocblas_layer_mode_log_profile)
-        log_profile(handle, rocblas_scal_name<T>, "N", n, "incx", incx);
+        if(!handle)
+            return rocblas_status_invalid_handle;
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+        auto layer_mode = handle->layer_mode;
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_scal_name<T>, n, *alpha, x, incx);
 
-    if(!x)
-        return rocblas_status_invalid_pointer;
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f scal -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          "--alpha",
+                          *alpha);
+        }
+        else
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_scal_name<T>, n, alpha, x, incx);
+        }
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_scal_name<T>, "N", n, "incx", incx);
 
-    // Quick return if possible. Not Argument error
-    if(n <= 0 || incx <= 0)
+        if(!x)
+            return rocblas_status_invalid_pointer;
+
+        // Quick return if possible. Not Argument error
+        if(n <= 0 || incx <= 0)
+            return rocblas_status_success;
+
+        rocblas_int blocks = (n - 1) / NB + 1;
+        dim3        threads(NB);
+        hipStream_t rocblas_stream = handle->rocblas_stream;
+
+        if(rocblas_pointer_mode_device == handle->pointer_mode)
+            hipLaunchKernelGGL(scal_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx);
+        else // alpha is on host
+            hipLaunchKernelGGL(scal_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx);
+
         return rocblas_status_success;
-
-    rocblas_int blocks = (n - 1) / NB + 1;
-    dim3 threads(NB);
-    hipStream_t rocblas_stream = handle->rocblas_stream;
-
-    if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(scal_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx);
-    else // alpha is on host
-        hipLaunchKernelGGL(scal_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx);
-
-    return rocblas_status_success;
-}
+    }
 
 } // namespace
 
@@ -98,8 +99,8 @@ rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas
 
 extern "C" {
 
-rocblas_status
-rocblas_sscal(rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
+rocblas_status rocblas_sscal(
+    rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }

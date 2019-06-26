@@ -1,6 +1,8 @@
 import os
 
-files = [f for f in os.listdir(".") if (f.startswith('vega20') and f.endswith('DB.yaml')) or (f.startswith('vega20') and f.endswith('SB.yaml'))]
+files = [f for f in os.listdir(".") if (f.startswith('vega20') and f.endswith('DB.yaml')) or \
+                                       (f.startswith('vega20') and f.endswith('SB.yaml')) or \
+                                       (f.startswith('hip') and f.endswith('.yaml'))]
 # print(files)
 for f in files:
    with open('ldd_'+f, "w") as fo: 

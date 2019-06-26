@@ -2,17 +2,17 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_test.hpp"
+#include "cblas_interface.hpp"
+#include "flops.hpp"
+#include "norm.hpp"
+#include "rocblas.hpp"
+#include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
+#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
-#include "rocblas_init.hpp"
-#include "utility.hpp"
-#include "rocblas.hpp"
-#include "cblas_interface.hpp"
-#include "norm.hpp"
 #include "unit.hpp"
-#include "flops.hpp"
+#include "utility.hpp"
 
 template <typename T>
 void testing_set_get_matrix(const Arguments& arg)
@@ -25,8 +25,8 @@ void testing_set_get_matrix(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(rows < 0 || lda <= 0 || lda < rows || cols < 0 || ldb <= 0 || ldb < rows || ldc <= 0 ||
-       ldc < rows)
+    if(rows < 0 || lda <= 0 || lda < rows || cols < 0 || ldb <= 0 || ldb < rows || ldc <= 0
+       || ldc < rows)
     {
         static const size_t safe_size = 100; // arbritrarily set to 100
 
@@ -114,8 +114,8 @@ void testing_set_get_matrix(const Arguments& arg)
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;
-        rocblas_bandwidth =
-            (rows * cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
+        rocblas_bandwidth
+            = (rows * cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
         std::cout << "rows,cols,lda,ldb,rocblas-GB/s";
 

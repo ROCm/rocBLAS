@@ -64,28 +64,28 @@
     ********************************************************************/
 
 template <rocblas_int BLOCK, typename T>
-rocblas_status rocblas_trsv_template(rocblas_handle handle,
-                                     rocblas_fill uplo,
+rocblas_status rocblas_trsv_template(rocblas_handle    handle,
+                                     rocblas_fill      uplo,
                                      rocblas_operation transA,
-                                     rocblas_diagonal diag,
-                                     rocblas_int m,
-                                     const T* A,
-                                     rocblas_int lda,
-                                     T* x,
-                                     rocblas_int incx);
+                                     rocblas_diagonal  diag,
+                                     rocblas_int       m,
+                                     const T*          A,
+                                     rocblas_int       lda,
+                                     T*                x,
+                                     rocblas_int       incx);
 
 template <rocblas_int BLOCK, typename T>
-rocblas_status rocblas_trsv_ex_template(rocblas_handle handle,
-                                        rocblas_fill uplo,
+rocblas_status rocblas_trsv_ex_template(rocblas_handle    handle,
+                                        rocblas_fill      uplo,
                                         rocblas_operation transA,
-                                        rocblas_diagonal diag,
-                                        rocblas_int m,
-                                        const T* A,
-                                        rocblas_int lda,
-                                        T* x,
-                                        rocblas_int incx,
-                                        const T* invA,
-                                        rocblas_int ldInvA,
-                                        const size_t* x_temp_size,
-                                        T* x_temp);
+                                        rocblas_diagonal  diag,
+                                        rocblas_int       m,
+                                        const T*          A,
+                                        rocblas_int       lda,
+                                        T*                x,
+                                        rocblas_int       incx,
+                                        const T*          invA,
+                                        rocblas_int       ldInvA,
+                                        const size_t*     x_temp_size,
+                                        T*                x_temp);
 #endif // _ROCBLAS_TRSV_HPP_

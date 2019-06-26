@@ -16,13 +16,13 @@
 /* ============================================================================================ */
 
 template <typename T, rocblas_int NB>
-__device__ void trtri_device(rocblas_fill uplo,
+__device__ void trtri_device(rocblas_fill     uplo,
                              rocblas_diagonal diag,
-                             rocblas_int n,
-                             const T* A,
-                             rocblas_int lda,
-                             T* invA,
-                             rocblas_int ldinvA)
+                             rocblas_int      n,
+                             const T*         A,
+                             rocblas_int      lda,
+                             T*               invA,
+                             rocblas_int      ldinvA)
 {
 
     // quick return
@@ -67,7 +67,7 @@ __device__ void trtri_device(rocblas_fill uplo,
         else
         { // inverse the diagonal
             if(sA[tx + tx * n] == 0.0)
-            {                          // notice this does not apply for complex
+            { // notice this does not apply for complex
                 sA[tx + tx * n] = 1.0; // means the matrix is singular
             }
             else
@@ -135,13 +135,13 @@ __device__ void trtri_device(rocblas_fill uplo,
 }
 
 template <typename T, rocblas_int IB>
-__device__ void custom_trtri_device(rocblas_fill uplo,
+__device__ void custom_trtri_device(rocblas_fill     uplo,
                                     rocblas_diagonal diag,
-                                    rocblas_int n,
-                                    const T* A,
-                                    rocblas_int lda,
-                                    T* invA,
-                                    rocblas_int ldinvA)
+                                    rocblas_int      n,
+                                    const T*         A,
+                                    rocblas_int      lda,
+                                    T*               invA,
+                                    rocblas_int      ldinvA)
 {
 
     // quick return
@@ -155,7 +155,7 @@ __device__ void custom_trtri_device(rocblas_fill uplo,
     __shared__ T sA[IB * IB];
     __shared__ T temp[IB * IB];
 
-    T* diagP       = tx < n ? diag1 : (tx < 2 * n ? diag2 : sA);
+    T*  diagP      = tx < n ? diag1 : (tx < 2 * n ? diag2 : sA);
     int Aoffset    = tx < n ? 0 : n * lda + n;
     int AInvoffset = tx < n ? 0 : n * ldinvA + n;
     int index      = tx < n ? tx : (tx < 2 * n ? tx - n : tx - 2 * n);
@@ -178,8 +178,8 @@ __device__ void custom_trtri_device(rocblas_fill uplo,
         { // transpose A in sA if upper
             for(int i = n - 1; i >= 0; i--)
             {
-                diagP[(n - 1 - index) + (n - 1 - i) * n] =
-                    i >= index ? A[Aoffset + index + i * lda] : 0.0f;
+                diagP[(n - 1 - index) + (n - 1 - i) * n]
+                    = i >= index ? A[Aoffset + index + i * lda] : 0.0f;
             }
         }
     }
@@ -214,7 +214,7 @@ __device__ void custom_trtri_device(rocblas_fill uplo,
         else
         { // inverse the diagonal
             if(diagP[index + index * n] == 0.0)
-            {                                   // notice this does not apply for complex
+            { // notice this does not apply for complex
                 diagP[index + index * n] = 1.0; // means the matrix is singular
             }
             else

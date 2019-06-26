@@ -101,14 +101,14 @@ constexpr double gemm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
 
 template <>
 constexpr double
-gemm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
+    gemm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
     return (8.0 * m * n * k) / 1e9;
 }
 
 template <>
 constexpr double
-gemm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
+    gemm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
     return (8.0 * m * n * k) / 1e9;
 }
@@ -129,14 +129,14 @@ constexpr double trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
 
 template <>
 constexpr double
-trsm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
+    trsm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
     return (4.0 * m * n * (k + 1)) / 1e9;
 }
 
 template <>
 constexpr double
-trsm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
+    trsm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_int k)
 {
     return (4.0 * m * n * (k + 1)) / 1e9;
 }

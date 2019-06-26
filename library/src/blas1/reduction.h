@@ -3,9 +3,12 @@
 
 #include <cstddef>
 #include <type_traits>
+
 #include "definitions.h"
 #include "rocblas.h"
+
 #include "handle.h"
+
 #include <hip/hip_runtime.h>
 
 /*
@@ -143,7 +146,10 @@ struct rocblas_finalize_identity
 template <typename T>
 struct default_value
 {
-    __forceinline__ __host__ __device__ constexpr T operator()() const { return {}; }
+    __forceinline__ __host__ __device__ constexpr T operator()() const
+    {
+        return {};
+    }
 };
 
 // kennel 1 writes partial results per thread block in workspace; number of partial results is
@@ -154,10 +160,10 @@ template <rocblas_int NB,
           typename Ti,
           typename To>
 __global__ void
-rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
+    rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
-    ssize_t tx  = hipThreadIdx_x;
-    ssize_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
+    ssize_t       tx  = hipThreadIdx_x;
+    ssize_t       tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
     // bound
@@ -181,7 +187,7 @@ template <rocblas_int NB,
           typename Tr>
 __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
-    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int   tx = hipThreadIdx_x;
     __shared__ To tmp[NB];
 
     if(tx < nblocks)
@@ -229,10 +235,10 @@ template <rocblas_int NB,
           typename Tr>
 rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
                                         rocblas_int n,
-                                        const Ti* x,
+                                        const Ti*   x,
                                         rocblas_int incx,
-                                        Tr* result,
-                                        To* workspace,
+                                        Tr*         result,
+                                        To*         workspace,
                                         rocblas_int blocks)
 {
     hipLaunchKernelGGL((rocblas_reduction_kernel_part1<NB, FETCH, REDUCE>),

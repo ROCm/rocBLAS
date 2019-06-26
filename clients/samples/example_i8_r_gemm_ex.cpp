@@ -2,9 +2,9 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas.h"
 #include <iomanip>
 #include <random>
-#include "rocblas.h"
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \
@@ -47,7 +47,10 @@ using rocblas_rng_t = std::mt19937;
 extern rocblas_rng_t rocblas_rng, rocblas_seed;
 //
 // Reset the seed (mainly to ensure repeatability of failures in a given suite)
-inline void rocblas_seedrand() { rocblas_rng = rocblas_seed; }
+inline void rocblas_seedrand()
+{
+    rocblas_rng = rocblas_seed;
+}
 
 template <typename T>
 void print_matrix(
@@ -65,23 +68,23 @@ void print_matrix(
     }
 }
 
-void mat_mat_mult(int32_t alpha,
-                  int32_t beta,
-                  int M,
-                  int N,
-                  int K,
-                  std::vector<int8_t>& A,
-                  int As1,
-                  int As2,
-                  std::vector<int8_t>& B,
-                  int Bs1,
-                  int Bs2,
+void mat_mat_mult(int32_t               alpha,
+                  int32_t               beta,
+                  int                   M,
+                  int                   N,
+                  int                   K,
+                  std::vector<int8_t>&  A,
+                  int                   As1,
+                  int                   As2,
+                  std::vector<int8_t>&  B,
+                  int                   Bs1,
+                  int                   Bs2,
                   std::vector<int32_t>& C,
-                  int Cs1,
-                  int Cs2,
+                  int                   Cs1,
+                  int                   Cs2,
                   std::vector<int32_t>& D,
-                  int Ds1,
-                  int Ds2)
+                  int                   Ds1,
+                  int                   Ds2)
 {
     for(int i1 = 0; i1 < M; i1++)
     {
@@ -90,8 +93,8 @@ void mat_mat_mult(int32_t alpha,
             int32_t t = 0.0;
             for(int i3 = 0; i3 < K; i3++)
             {
-                t += static_cast<int32_t>(A[i1 * As1 + i3 * As2]) *
-                     static_cast<int32_t>(B[i3 * Bs1 + i2 * Bs2]);
+                t += static_cast<int32_t>(A[i1 * As1 + i3 * As2])
+                     * static_cast<int32_t>(B[i3 * Bs1 + i2 * Bs2]);
             }
             D[i1 * Ds1 + i2 * Ds2] = beta * C[i1 * Cs1 + i2 * Cs2] + alpha * t;
         }
@@ -118,21 +121,21 @@ static void show_usage(char* argv[])
               << std::endl;
 }
 
-static int parse_arguments(int argc,
-                           char* argv[],
-                           int& m,
-                           int& n,
-                           int& k,
-                           int& lda,
-                           int& ldb,
-                           int& ldc,
-                           int& ldd,
-                           int32_t& alpha,
-                           int32_t& beta,
+static int parse_arguments(int                argc,
+                           char*              argv[],
+                           int&               m,
+                           int&               n,
+                           int&               k,
+                           int&               lda,
+                           int&               ldb,
+                           int&               ldc,
+                           int&               ldd,
+                           int32_t&           alpha,
+                           int32_t&           beta,
                            rocblas_operation& trans_a,
                            rocblas_operation& trans_b,
-                           bool& header,
-                           bool& verbose)
+                           bool&              header,
+                           bool&              verbose)
 {
     if(argc >= 2)
     {
@@ -246,13 +249,13 @@ static int parse_arguments(int argc,
 
 bool bad_argument(rocblas_operation trans_a,
                   rocblas_operation trans_b,
-                  rocblas_int m,
-                  rocblas_int n,
-                  rocblas_int k,
-                  rocblas_int lda,
-                  rocblas_int ldb,
-                  rocblas_int ldc,
-                  rocblas_int ldd)
+                  rocblas_int       m,
+                  rocblas_int       n,
+                  rocblas_int       k,
+                  rocblas_int       lda,
+                  rocblas_int       ldb,
+                  rocblas_int       ldc,
+                  rocblas_int       ldd)
 {
     bool argument_error = false;
     if((trans_a == rocblas_operation_none) && (lda < m))
@@ -288,12 +291,12 @@ bool bad_argument(rocblas_operation trans_a,
     return argument_error;
 }
 
-void initialize_a_b_c(std::vector<int8_t>& ha,
-                      rocblas_int size_a,
-                      std::vector<int8_t>& hb,
-                      rocblas_int size_b,
+void initialize_a_b_c(std::vector<int8_t>&  ha,
+                      rocblas_int           size_a,
+                      std::vector<int8_t>&  hb,
+                      rocblas_int           size_b,
                       std::vector<int32_t>& hc,
-                      rocblas_int size_c)
+                      rocblas_int           size_c)
 {
     for(int i = 0; i < size_a; ++i)
     {
@@ -327,11 +330,11 @@ int main(int argc, char* argv[])
     constexpr rocblas_datatype d_type       = rocblas_datatype_i32_r;
     constexpr rocblas_datatype compute_type = rocblas_datatype_i32_r;
 
-    rocblas_gemm_algo algo = rocblas_gemm_algo_standard;
-    int32_t solution_index = 0;
-    uint32_t flags         = 0;
-    size_t* workspace_size = 0;
-    void* workspace        = 0;
+    rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+    int32_t           solution_index = 0;
+    uint32_t          flags          = 0;
+    size_t*           workspace_size = 0;
+    void*             workspace      = 0;
 
     bool verbose = false;
     bool header  = false;
@@ -393,8 +396,8 @@ int main(int argc, char* argv[])
               << ldd << ", " << alpha << ", " << beta << ", ";
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
-    std::vector<int8_t> ha(size_a), ha_packed(size_a);
-    std::vector<int8_t> hb(size_b), hb_packed(size_a);
+    std::vector<int8_t>  ha(size_a), ha_packed(size_a);
+    std::vector<int8_t>  hb(size_b), hb_packed(size_a);
     std::vector<int32_t> hc(size_c);
     std::vector<int32_t> hd(size_d);
     std::vector<int32_t> hd_gold(size_d);
