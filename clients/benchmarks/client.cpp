@@ -440,6 +440,9 @@ try
         ("alpha",
           value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")
 
+        ("alphai",
+         value<double>(&arg.alphai)->default_value(0.0), "specifies the imaginary part of the scalar alpha")
+
         ("beta",
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
 

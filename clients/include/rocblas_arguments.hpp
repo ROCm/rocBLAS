@@ -242,7 +242,9 @@ private:
         print("incd", arg.incd);
         print("incb", arg.incb);
         print("alpha", arg.alpha);
+        print("alphai", arg.alphai);
         print("beta", arg.beta);
+        print("betai", arg.betai);
         print("side", arg.side);
         print("uplo", arg.uplo);
         print("diag", arg.diag);

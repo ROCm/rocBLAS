@@ -19,7 +19,11 @@ void testing_scal_bad_arg(const Arguments& arg)
 {
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
-    T           alpha = 0.6;
+    T alpha;
+    if constexpr(is_complex<T>)
+        alpha = T(0.5, 1.0);
+    else
+        alpha = 0.6;
 
     rocblas_local_handle handle;
 
@@ -46,7 +50,11 @@ void testing_scal(const Arguments& arg)
 {
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
-    T           h_alpha = arg.alpha;
+    T h_alpha;
+    if constexpr(is_complex<T>)
+        h_alpha = T(arg.alpha, arg.alphai);
+    else
+        h_alpha = arg.alpha;
 
     rocblas_local_handle handle;
 

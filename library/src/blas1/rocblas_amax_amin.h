@@ -194,7 +194,7 @@ rocblas_status JOIN(rocblas_ica, MAX_MIN)(rocblas_handle               handle,
                                           rocblas_int                  incx,
                                           rocblas_int*                 result)
 {
-    return rocblas_iamaxmin<rocblas_float_complex>(handle, n, x, incx, result);
+    return rocblas_iamaxmin<float, rocblas_float_complex>(handle, n, x, incx, result);
 }
 
 rocblas_status JOIN(rocblas_iza, MAX_MIN)(rocblas_handle                handle,
@@ -203,7 +203,7 @@ rocblas_status JOIN(rocblas_iza, MAX_MIN)(rocblas_handle                handle,
                                           rocblas_int                   incx,
                                           rocblas_int*                  result)
 {
-    return rocblas_iamaxmin<rocblas_double_complex>(handle, n, x, incx, result);
+    return rocblas_iamaxmin<double, rocblas_double_complex>(handle, n, x, incx, result);
 }
 
 } // extern "C"

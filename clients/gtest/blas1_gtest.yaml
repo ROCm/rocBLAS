@@ -15,42 +15,49 @@ Definitions:
     - { alpha:  1.0, beta:  0.0 }
     - { alpha:  2.0, beta: -1.0 }
 
+  - &alphai_range
+    - {alphai: 0.5}
+    - {alphai: 0.8}
+    - {alphai: 1.5}
+
 Tests:
 - name: blas1
   category: quick
   N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  alphai: *alphai_range
   function:
     - nrm2:  *single_double_real_joined
     - asum:  *single_double_real_joined
     - iamax: *single_double_precisions_complex_real
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
-    - copy:  *single_double_precisions
+    - copy:  *single_double_precisions_complex_real
     - dot:   *single_double_precisions_complex_real
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
     - scalrc: *single_double_complex_real_in_complex_out
-    - swap:  *single_double_precisions
+    - swap:  *single_double_precisions_complex_real
 
 - name: blas1
   category: pre_checkin
   N: [ 1048576, 1049600, 4000000, 8000000 ]
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  alphai: *alphai_range
   function:
     - nrm2:  *double_real_joined
     - asum:  *double_real_joined
     - iamax: *single_double_precisions_complex_real
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
-    - copy:  *single_double_precisions
+    - copy:  *single_double_precisions_complex_real
     - dot:   *double_precision_complex_real
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
     - scalrc: *single_double_complex_real_in_complex_out
-    - swap:  *single_double_precisions
+    - swap:  *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin
@@ -60,10 +67,10 @@ Tests:
     - iamax_bad_arg: *single_double_precisions_complex_real
     - iamin_bad_arg: *single_double_precisions_complex_real
     - axpy_bad_arg:  *half_single_precisions_complex_real
-    - copy_bad_arg:  *single_double_precisions
+    - copy_bad_arg:  *single_double_precisions_complex_real
     - dot_bad_arg:   *single_double_precisions_complex_real
     - dotc_bad_arg:  *single_double_precisions_complex
     - scal_bad_arg:  *single_double_precisions_complex_real
     - scalrc_bad_arg: *single_double_complex_real_in_complex_out
-    - swap_bad_arg:  *single_double_precisions
+    - swap_bad_arg:  *single_double_precisions_complex_real
 ...

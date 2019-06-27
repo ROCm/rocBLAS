@@ -26,7 +26,7 @@ namespace
         if(tid < n)
             tmp[tx] = y[tid * incy] * (CONJ ? conjugate(x[tid * incx]) : x[tid * incx]);
         else
-            tmp[tx] = 0; // pad with zero
+            tmp[tx] = (T)0; // pad with zero
 
         rocblas_sum_reduce<NB>(tx, tmp);
 
@@ -145,7 +145,7 @@ namespace
             else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
-                *result = 0;
+                *result = (T)0;
             return rocblas_status_success;
         }
 

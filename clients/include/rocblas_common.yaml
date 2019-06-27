@@ -308,6 +308,7 @@ Dictionary lists to expand:
   - arguments
   - transA_transB
   - alpha_beta
+  - alphai
   - incx_incy
   - matrix_size
   - precision

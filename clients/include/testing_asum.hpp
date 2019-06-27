@@ -128,10 +128,7 @@ void testing_asum(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            printf("cpu=%e, gpu_host_ptr,=%e, gup_dev_ptr=%e\n",
-                   cpu_result,
-                   rocblas_result_1,
-                   rocblas_result_2);
+            std::cout << "cpu=" << std::scientific << cpu_result << ", gpu_host_ptr=" << rocblas_result_1 << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
 
             rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);

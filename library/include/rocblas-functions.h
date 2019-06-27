@@ -178,19 +178,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_dcopy(rocblas_handle handle,
                                             double*        y,
                                             rocblas_int    incy);
 
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_ccopy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y,       rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy(rocblas_handle handle,
+                                            rocblas_int n,
+                                            const rocblas_float_complex *x, rocblas_int incx,
+                                            rocblas_float_complex* y,       rocblas_int incy);
 
-ROCBLAS_EXPORT rocblas_status
-rocblas_zcopy(rocblas_handle handle,
-    rocblas_int n,
-    const rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y,       rocblas_int incy);
-*/
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle handle,
+                                            rocblas_int n,
+                                            const rocblas_double_complex *x, rocblas_int incx,
+                                            rocblas_double_complex* y,       rocblas_int incy);
 
 /*! \brief BLAS Level 1 API
 
@@ -298,19 +294,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_sswap(
 ROCBLAS_EXPORT rocblas_status rocblas_dswap(
     rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy);
 
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_cswap(rocblas_handle handle,
-    rocblas_int n,
-    rocblas_float_complex *x, rocblas_int incx,
-    rocblas_float_complex* y, rocblas_int incy);
+ROCBLAS_EXPORT rocblas_status rocblas_cswap(rocblas_handle handle,
+                                            rocblas_int n,
+                                            rocblas_float_complex *x, rocblas_int incx,
+                                            rocblas_float_complex* y, rocblas_int incy);
 
-ROCBLAS_EXPORT rocblas_status
-rocblas_zswap(rocblas_handle handle,
-    rocblas_int n,
-    rocblas_double_complex *x, rocblas_int incx,
-    rocblas_double_complex* y, rocblas_int incy);
-*/
+ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle handle,
+                                            rocblas_int n,
+                                            rocblas_double_complex *x, rocblas_int incx,
+                                            rocblas_double_complex* y, rocblas_int incy);
+
 
 /*! \brief BLAS Level 1 API
 

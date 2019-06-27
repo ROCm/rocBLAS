@@ -121,6 +121,26 @@ inline void rocblas_init_nan(T* A, size_t N)
         A[i] = static_cast<T>(rocblas_nan_rng());
 }
 
+template<>
+inline void rocblas_init_nan(rocblas_float_complex* A, size_t N)
+{
+    for(size_t i = 0; i < N; ++i)
+    {
+        float x = (float) rocblas_nan_rng(); float y = (float) rocblas_nan_rng();
+        A[i] = rocblas_float_complex(x, y);
+    }
+}
+
+template<>
+inline void rocblas_init_nan(rocblas_double_complex* A, size_t N)
+{
+    for(size_t i = 0; i < N; ++i)
+    {
+        double x = (double) rocblas_nan_rng(); double y = (double) rocblas_nan_rng();
+        A[i] = rocblas_double_complex(x, y);
+    }
+}
+
 template <typename T>
 inline void rocblas_init_nan(
     std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
