@@ -63,7 +63,10 @@ struct rocblas_bfloat16
     __host__ __device__ rocblas_bfloat16() {}
 
     // round upper 16 bits of IEEE float to convert to bfloat16
-    explicit __host__ __device__ rocblas_bfloat16(float f) : data(float_to_bfloat16(f)) {}
+    explicit __host__ __device__ rocblas_bfloat16(float f)
+        : data(float_to_bfloat16(f))
+    {
+    }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
     explicit __host__ __device__ operator float() const
@@ -76,7 +79,7 @@ struct rocblas_bfloat16
         return u.fp32;
     }
 
-    private:
+private:
     static __host__ __device__ uint16_t float_to_bfloat16(float f)
     {
         union
