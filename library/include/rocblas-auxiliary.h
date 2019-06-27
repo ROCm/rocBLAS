@@ -12,7 +12,7 @@
 
 /*!\file
  * \brief rocblas-auxiliary.h provides auxilary functions in rocblas
-*/
+ */
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,7 +49,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        han
                                                        rocblas_pointer_mode* pointer_mode);
 
 /*! \brief  Indicates whether the pointer is on the host or device.
-*/
+ */
 ROCBLAS_EXPORT rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr);
 
 /*! \brief copy vector from host to device
