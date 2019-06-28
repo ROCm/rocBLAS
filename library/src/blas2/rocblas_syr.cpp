@@ -12,7 +12,6 @@
 
 namespace
 {
-
     template <typename T, typename U>
     __global__ void syr_kernel(rocblas_fill uplo,
                                rocblas_int  n,
@@ -31,11 +30,11 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_syr_name[] = "unknown";
+    constexpr char rocblas_syr_name[] = "unknown";
     template <>
-    static constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
+    constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
     template <>
-    static constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
+    constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
 
     template <typename T>
     rocblas_status rocblas_syr(rocblas_handle handle,
@@ -122,7 +121,7 @@ namespace
         dim3 syr_threads(GEMV_DIM_X, GEMV_DIM_Y);
 
         if(incx < 0)
-            x += size_t(-incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
             hipLaunchKernelGGL(syr_kernel,

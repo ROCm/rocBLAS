@@ -532,10 +532,6 @@ try
          value<uint32_t>(&arg.flags)->default_value(10),
          "extended precision gemm flags")
 
-        ("workspace_size",
-         value<size_t>(&arg.workspace_size)->default_value(10),
-         "extended precision gemm workspace size")
-
         ("device",
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")

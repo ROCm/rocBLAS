@@ -137,7 +137,7 @@ protected:
     // C-style string hash since std::hash does not hash them
     static size_t hash(const char* s)
     {
-        size_t seed = 0xcbf29ce484222325;
+        size_t seed{0xcbf29ce484222325};
         for(auto p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
             seed = (seed ^ *p) * 0x100000001b3; // FNV-1a
         return seed;

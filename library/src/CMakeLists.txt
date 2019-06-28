@@ -90,12 +90,10 @@ set( rocblas_auxiliary_source
   rocblas_auxiliary.cpp
   status.cpp
   buildinfo.cpp
-  rocblas_constant.cpp
 )
 
 set( rocblas_ex_source
   blas_ex/rocblas_gemm_ex.cpp
-  blas_ex/rocblas_trsm_ex.cpp
 )
 
 set( rocblas_blas3_source

@@ -32,9 +32,13 @@
 */
 #define ROCBLAS_VA_OPT_3RD_ARG(_1, _2, _3, ...) _3
 #define ROCBLAS_VA_OPT_SUPPORTED(...) ROCBLAS_VA_OPT_3RD_ARG(__VA_OPT__(, ), 1, 0, )
+
 #if ROCBLAS_VA_OPT_SUPPORTED(?)
+
 #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
+
 #else // ROCBLAS_VA_OPT_SUPPORTED
+
 #define ROCBLAS_VA_OPT_COUNT_IMPL(X, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, N, ...) N
 #define ROCBLAS_VA_OPT_COUNT(...) \
     ROCBLAS_VA_OPT_COUNT_IMPL(, ##__VA_ARGS__, N, N, N, N, N, N, N, N, N, N, 0)
@@ -44,6 +48,7 @@
 #define ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, count) ROCBLAS_VA_OPT_PRAGMA_IMPL2(pragma, count)
 #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) \
     ROCBLAS_VA_OPT_PRAGMA_IMPL(pragma, ROCBLAS_VA_OPT_COUNT(__VA_ARGS__))
+
 #endif // ROCBLAS_VA_OPT_SUPPORTED
 
 #ifdef __cplusplus
@@ -1801,7 +1806,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
           the B_packed matrix is the same as the size of the B matrix.
 
     @code
-    if(trans_a == rocblas_operation_none)
+    if(transA == rocblas_operation_none)
     {
         int nb = 4;
         for(int i_m = 0; i_m < m; i_m++)
@@ -1910,7 +1915,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
-                                              rocblas_operation trans_a,
+                                              rocblas_operation transA,
                                               rocblas_operation trans_b,
                                               rocblas_int       m,
                                               rocblas_int       n,
@@ -1937,7 +1942,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
 /* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
 // clang-format off
 #define rocblas_gemm_ex(handle,         \
-                        trans_a,        \
+                        transA,         \
                         trans_b,        \
                         m,              \
                         n,              \
@@ -1961,9 +1966,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                         solution_index, \
                         flags,          \
                         ...)            \
-                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_ex: workspace_size and workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
         rocblas_gemm_ex(handle,         \
-                        trans_a,        \
+                        transA,         \
                         trans_b,        \
                         m,              \
                         n,              \
@@ -2037,7 +2042,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
           the B_packed matrix is the same as the size of the B matrix.
 
     @code
-    if(trans_a == rocblas_operation_none)
+    if(transA == rocblas_operation_none)
     {
         int nb = 4;
         for(int i_m = 0; i_m < m; i_m++)
@@ -2162,7 +2167,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
-                                                              rocblas_operation trans_a,
+                                                              rocblas_operation transA,
                                                               rocblas_operation trans_b,
                                                               rocblas_int       m,
                                                               rocblas_int       n,
@@ -2194,7 +2199,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 /* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
 // clang-format off
 #define rocblas_gemm_strided_batched_ex(handle,         \
-                                        trans_a,        \
+                                        transA,         \
                                         trans_b,        \
                                         m,              \
                                         n,              \
@@ -2223,9 +2228,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                         solution_index, \
                                         flags,          \
                                         ...)            \
-                                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: workspace_size and workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+                                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
         rocblas_gemm_strided_batched_ex(handle,         \
-                                        trans_a,        \
+                                        transA,         \
                                         trans_b,        \
                                         m,              \
                                         n,              \
@@ -2269,13 +2274,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 
     The matrix X is overwritten on B.
 
+    TRSM_EX gives the user the ability to reuse the invA matrix between runs.
+    If invA == NULL, rocblas_trsm_ex will automatically calculate invA on every run.
+
     Setting up invA:
     The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
     matrix A, followed by any smaller diagonal block that remains.
     To set up invA it is recommended that rocblas_trtri_batched be used with matrix A as the input.
 
     Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when
-    rocblas_side_left and is n when rocblas_side_right.
+    rocblas_side_left and is n when rocblas_side_right. The actual number of elements in invA
+    should be passed as invA_size.
 
     To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of
     matrix A. Below are the restricted parameters:
@@ -2291,36 +2300,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
       - batch_count = 1
 
     @param[in]
-    handle  rocblas_handle.
+    handle  rocblas_handle
             handle to the rocblas library context queue.
 
     @param[in]
-    side    rocblas_side.
+    side    rocblas_side
             rocblas_side_left:       op(A)*X = alpha*B.
             rocblas_side_right:      X*op(A) = alpha*B.
 
     @param[in]
-    uplo    rocblas_fill.
+    uplo    rocblas_fill
             rocblas_fill_upper:  A is an upper triangular matrix.
             rocblas_fill_lower:  A is a lower triangular matrix.
 
     @param[in]
-    transA  rocblas_operation.
+    transA  rocblas_operation
             transB:    op(A) = A.
             rocblas_operation_transpose:      op(A) = A^T.
             rocblas_operation_conjugate_transpose:  op(A) = A^H.
 
     @param[in]
-    diag    rocblas_diagonal.
+    diag    rocblas_diagonal
             rocblas_diagonal_unit:     A is assumed to be unit triangular.
             rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m       rocblas_int.
+    m       rocblas_int
             m specifies the number of rows of B. m >= 0.
 
     @param[in]
-    n       rocblas_int.
+    n       rocblas_int
             n specifies the number of columns of B. n >= 0.
 
     @param[in]
@@ -2338,7 +2347,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
             only the upper/lower triangular part is accessed.
 
     @param[in]
-    lda     rocblas_int.
+    lda     rocblas_int
             lda specifies the first dimension of A.
             if side = rocblas_side_left,  lda >= max( 1, m ),
             if side = rocblas_side_right, lda >= max( 1, n ).
@@ -2352,7 +2361,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
             overwritten by the solution matrix X.
 
     @param[in]
-    ldb    rocblas_int.
+    ldb    rocblas_int
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     @param[in]
@@ -2364,8 +2373,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
             ld_invA must be equal to 128.
 
     @param[in]
-    ld_invA rocblas_int.
-            ldb specifies the first dimension of invA. ld_invA >= max( 1, BLOCK ).
+    invA_size rocblas_int
+            invA_size specifies the number of elements of device memory in invA.
 
     @param[in]
     compute_type rocblas_datatype
@@ -2376,17 +2385,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                               rocblas_side      side,
                                               rocblas_fill      uplo,
-                                              rocblas_operation trans_a,
+                                              rocblas_operation transA,
                                               rocblas_diagonal  diag,
                                               rocblas_int       m,
                                               rocblas_int       n,
                                               const void*       alpha,
-                                              const void*       a,
+                                              const void*       A,
                                               rocblas_int       lda,
-                                              void*             b,
+                                              void*             B,
                                               rocblas_int       ldb,
                                               const void*       invA,
-                                              rocblas_int       ld_invA,
+                                              rocblas_int       invA_size,
                                               rocblas_datatype  compute_type);
 
 /* For backward compatiblity, option, x_temp_size and x_temp_workspace arguments are ignored */
@@ -2394,34 +2403,34 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 #define rocblas_trsm_ex(handle,       \
                         side,         \
                         uplo,         \
-                        trans_a,      \
+                        transA,       \
                         diag,         \
                         m,            \
                         n,            \
                         alpha,        \
-                        a,            \
+                        A,            \
                         lda,          \
-                        b,            \
+                        B,            \
                         ldb,          \
                         invA,         \
-                        ld_invA,      \
+                        invA_size,    \
                         compute_type, \
                         ...)          \
-                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_trsm_ex: option, x_temp_size and x_temp_workspace arguments are deprecated, and will be ignored", __VA_ARGS__) \
+                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_trsm_ex: The option, x_temp_size and x_temp_workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
         rocblas_trsm_ex(handle,       \
                         side,         \
                         uplo,         \
-                        trans_a,      \
+                        transA,       \
                         diag,         \
                         m,            \
                         n,            \
                         alpha,        \
-                        a,            \
+                        A,            \
                         lda,          \
-                        b,            \
+                        B,            \
                         ldb,          \
                         invA,         \
-                        ld_invA,      \
+                        invA_size,    \
                         compute_type)
 // clang-format on
 

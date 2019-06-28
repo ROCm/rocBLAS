@@ -15,13 +15,12 @@
 
 namespace
 {
-
     template <typename>
-    static constexpr char rocblas_gemv_name[] = "unknown";
+    constexpr char rocblas_gemv_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_batched";
+    constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_batched";
     template <>
-    static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
+    constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
 
     template <typename T>
     rocblas_status rocblas_gemv_batched(rocblas_handle    handle,
@@ -246,10 +245,10 @@ namespace
 } // namespace
 
 /*
-* ===========================================================================
-*    C wrapper
-* ===========================================================================
-*/
+ * ===========================================================================
+ *    C wrapper
+ * ===========================================================================
+ */
 
 extern "C" {
 

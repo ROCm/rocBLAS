@@ -121,16 +121,7 @@ static rocblas_status rocblas_iamaxmin(
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    if(handle->is_device_memory_size_query())
-    {
-        if(n <= 0 || incx <= 0)
-            return rocblas_status_size_unchanged;
-        auto blocks = (n - 1) / NB + 1;
-        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
-    }
-
     auto layer_mode = handle->layer_mode;
-
     if(layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, rocblas_iamaxmin_name<Ti>, n, x, incx);
 
@@ -152,25 +143,28 @@ static rocblas_status rocblas_iamaxmin(
     // Quick return if possible.
     if(n <= 0 || incx <= 0)
     {
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(handle->is_device_memory_size_query())
+            return rocblas_status_size_unchanged;
+        else if(handle->pointer_mode == rocblas_pointer_mode_device)
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
         else
             *result = 0;
         return rocblas_status_success;
     }
 
-    auto blocks    = (n - 1) / NB + 1;
-    auto workspace = handle->device_alloc(sizeof(index_value_t<To>) * blocks);
-    if(!workspace)
+    auto blocks = (n - 1) / NB + 1;
+    if(handle->is_device_memory_size_query())
+        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
+
+    auto mem = handle->device_malloc(sizeof(index_value_t<To>) * blocks);
+    if(!mem)
         return rocblas_status_memory_error;
 
-    auto status = rocblas_reduction_kernel<NB,
-                                           rocblas_fetch_amax_amin<To>,
-                                           AMAX_AMIN_REDUCTION,
-                                           rocblas_finalize_amax_amin>(
-        handle, n, x, incx, result, (index_value_t<To>*)workspace, blocks);
-
-    return status;
+    return rocblas_reduction_kernel<NB,
+                                    rocblas_fetch_amax_amin<To>,
+                                    AMAX_AMIN_REDUCTION,
+                                    rocblas_finalize_amax_amin>(
+        handle, n, x, incx, result, (index_value_t<To>*)mem, blocks);
 }
 
 /*

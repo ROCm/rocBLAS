@@ -67,7 +67,6 @@ struct Arguments
     uint32_t algo;
     int32_t  solution_index;
     uint32_t flags;
-    size_t   workspace_size;
 
     char function[64];
     char name[64];
@@ -142,7 +141,6 @@ struct Arguments
         check(arg.algo);
         check(arg.solution_index);
         check(arg.flags);
-        check(arg.workspace_size);
         check(arg.function);
         check(arg.name);
         check(arg.category);

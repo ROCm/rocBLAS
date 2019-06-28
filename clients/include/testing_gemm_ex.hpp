@@ -46,8 +46,6 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 
     int32_t              solution_index = 0;
     rocblas_int          flags          = 0;
-    size_t               workspace_size = 0;
-    void*                workspace      = nullptr;
     rocblas_local_handle handle;
 
     // allocate memory on device
@@ -84,9 +82,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -112,9 +108,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -140,9 +134,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -168,9 +160,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -196,9 +186,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -224,9 +212,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(nullptr,
@@ -252,9 +238,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          &workspace_size,
-                                          workspace),
+                                          flags),
                           rocblas_status_invalid_handle);
 }
 
@@ -264,8 +248,6 @@ void testing_gemm_ex(const Arguments& arg)
     rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
     int32_t           solution_index = arg.solution_index;
     uint32_t          flags          = arg.flags;
-    size_t            workspace_size = arg.workspace_size;
-    void*             workspace      = nullptr;
 
     bool nantest = rocblas_isnan(arg.beta);
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
@@ -347,9 +329,7 @@ void testing_gemm_ex(const Arguments& arg)
                                               arg.compute_type,
                                               algo,
                                               solution_index,
-                                              flags,
-                                              &workspace_size,
-                                              workspace),
+                                              flags),
                               rocblas_status_invalid_size);
         return;
     }
@@ -512,9 +492,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             arg.compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            &workspace_size,
-                                            workspace));
+                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
@@ -547,9 +525,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             arg.compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            &workspace_size,
-                                            workspace));
+                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
@@ -638,9 +614,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                 arg.compute_type,
                                                 algo,
                                                 solution_index,
-                                                flags,
-                                                &workspace_size,
-                                                workspace));
+                                                flags));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -669,9 +643,7 @@ void testing_gemm_ex(const Arguments& arg)
                             arg.compute_type,
                             algo,
                             solution_index,
-                            flags,
-                            &workspace_size,
-                            workspace);
+                            flags);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<Ti>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;

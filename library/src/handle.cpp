@@ -24,10 +24,21 @@ _rocblas_handle::_rocblas_handle()
     // If ROCBLAS_DEVICE_MEMORY_SIZE is unset, invalid or 0, then rocBLAS will
     // allocate a default initial size and manage device memory itself,
     // growing it as necessary.
-    auto env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
-    device_memory_is_rocblas_managed
-        = !env || sscanf(env, "%zu", &device_memory_size) != 1 || !device_memory_size;
-    if(device_memory_is_rocblas_managed)
+    const char* env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
+    if(!env)
+    {
+        env = getenv("WORKBUF_TRSM_B_CHNK");
+        if(env)
+        {
+            static int once
+                = fputs("Warning: Environment variable WORKBUF_TRSM_B_CHNK is obsolete.\n"
+                        "Use ROCBLAS_DEVICE_MEMORY_SIZE instead.\n",
+                        stderr);
+        }
+    }
+
+    if((device_memory_is_rocblas_managed
+        = !env || !(device_memory_size = strtoul(env, nullptr, 0))))
         device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
     // Allocate device memory
@@ -51,10 +62,13 @@ _rocblas_handle::~_rocblas_handle()
 /*******************************************************************************
  * helper for allocating device memory
  ******************************************************************************/
-void* _rocblas_handle::device_memory_allocator(size_t size)
+void* _rocblas_handle::device_allocator(size_t size)
 {
     if(device_memory_in_use)
+    {
+        abort();
         return nullptr;
+    }
     if(size > device_memory_size)
     {
         if(!device_memory_is_rocblas_managed)
@@ -125,7 +139,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    // Cannot change memory allocation when a device_memory_alloc
+    // Cannot change memory allocation when a device_malloc
     // object is alive and using device memory.
     if(handle->device_memory_in_use)
         return rocblas_status_internal_error;
@@ -171,6 +185,8 @@ std::ostream*         _rocblas_handle::log_bench_os;
 std::ofstream         _rocblas_handle::log_profile_ofs;
 std::ostream*         _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
+constexpr size_t      _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE; // Not needed in C++17
+constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
 
 /**
  *  @brief Logging function

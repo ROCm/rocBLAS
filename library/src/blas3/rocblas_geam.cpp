@@ -14,7 +14,6 @@
 
 namespace
 {
-
     // general cases for any transA, transB, alpha, beta, lda, ldb, ldc
     template <typename T>
     __global__ void geam_kernel_host_pointer(rocblas_operation transA,
@@ -158,11 +157,11 @@ namespace
     /* ============================================================================================ */
 
     template <typename>
-    static constexpr char rocblas_geam_name[] = "unknown";
+    constexpr char rocblas_geam_name[] = "unknown";
     template <>
-    static constexpr char rocblas_geam_name<float>[] = "rocblas_sgeam";
+    constexpr char rocblas_geam_name<float>[] = "rocblas_sgeam";
     template <>
-    static constexpr char rocblas_geam_name<double>[] = "rocblas_dgeam";
+    constexpr char rocblas_geam_name<double>[] = "rocblas_dgeam";
 
     /*
  * ===========================================================================

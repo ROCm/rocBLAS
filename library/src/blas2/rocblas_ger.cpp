@@ -13,7 +13,6 @@
 
 namespace
 {
-
     template <typename T, typename U>
     __global__ void ger_kernel(rocblas_int m,
                                rocblas_int n,
@@ -25,20 +24,20 @@ namespace
                                T*          A,
                                rocblas_int lda)
     {
-        auto    alpha = load_scalar(alpha_device_host);
-        ssize_t tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-        ssize_t ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+        auto      alpha = load_scalar(alpha_device_host);
+        ptrdiff_t tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        ptrdiff_t ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
         if(tx < m && ty < n)
             A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
     }
 
     template <typename>
-    static constexpr char rocblas_ger_name[] = "unknown";
+    constexpr char rocblas_ger_name[] = "unknown";
     template <>
-    static constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
+    constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
     template <>
-    static constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
+    constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
 
     template <typename T>
     rocblas_status rocblas_ger(rocblas_handle handle,
@@ -125,9 +124,9 @@ namespace
         dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y);
 
         if(incx < 0)
-            x += size_t(-incx) * (m - 1);
+            x -= ptrdiff_t(incx) * (m - 1);
         if(incy < 0)
-            y += size_t(-incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
             hipLaunchKernelGGL(ger_kernel,

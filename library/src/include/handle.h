@@ -8,6 +8,7 @@
 #include "definitions.h"
 #include "rocblas.h"
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <fstream>
 #include <hip/hip_runtime_api.h>
@@ -109,8 +110,8 @@ public:
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
-              typename
-              = typename std::enable_if<conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
+              typename = typename std::enable_if<
+                  sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{}>::type>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
@@ -119,7 +120,7 @@ public:
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
         // TODO: Replace with C++17 fold expression eventually
         size_t total = 0;
-        auto   dummy = {total += roundup_device_memory_size(sizes)...};
+        auto   dummy = {total += roundup_device_memory_size(size_t(sizes))...};
 
         if(total > device_memory_query_size)
         {
@@ -132,15 +133,21 @@ public:
     // Allocate one or more sizes
     template <typename... Ss,
               typename = typename std::enable_if<
-                  sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}>::type>
-    auto device_memory_alloc(Ss... sizes)
+                  sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{}>::type>
+    auto device_malloc(Ss... sizes)
     {
-        return _device_memory_alloc<sizeof...(Ss)>(this, static_cast<size_t>(sizes)...);
+        return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
+    }
+
+    // Temporarily change pointer mode, returning object which restores old mode when destroyed
+    auto push_pointer_mode(rocblas_pointer_mode mode)
+    {
+        return _pushed_pointer_mode(this, mode);
     }
 
 private:
     // device memory work buffer
-    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 1048576;
+    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 4 * 1048576;
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
 
     // Round up size to the nearest MIN_CHUNK_SIZE
@@ -152,23 +159,23 @@ private:
     }
 
     // Variables holding state of device memory allocation
-    size_t device_memory_size               = 0;
-    bool   device_memory_is_rocblas_managed = true;
-    bool   device_memory_in_use             = false;
-    void*  device_memory                    = nullptr;
-    bool   device_memory_size_query         = false;
+    size_t device_memory_size = 0;
     size_t device_memory_query_size;
+    void*  device_memory                    = nullptr;
+    bool   device_memory_is_rocblas_managed = false;
+    bool   device_memory_in_use             = false;
+    bool   device_memory_size_query         = false;
 
     // Helper for device memory allocator
-    void* device_memory_allocator(size_t size);
+    void* device_allocator(size_t size);
 
     // Opaque smart allocator class to perform device memory allocations
     template <size_t N>
-    class _device_memory_alloc
+    class _device_malloc
     {
-        friend struct _rocblas_handle;
         rocblas_handle       handle;
-        std::array<void*, N> pointers;
+        bool                 success;
+        std::array<void*, N> pointers; // Important: must come after handle and success
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
@@ -177,56 +184,54 @@ private:
             // This creates a list of partial sums which are the offsets of each of the allocated
             // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // total contains the total of all sizes at the end of the calculation of offsets.
-            size_t oldtotal, total = 0;
-            size_t offsets[]
-                = {(oldtotal = total, total += roundup_device_memory_size(sizes), oldtotal)...};
+            size_t total     = 0, old;
+            size_t offsets[] = {(old = total, total += roundup_device_memory_size(sizes), old)...};
+
+            // If total size is 0, return an array of nullptr's, but leave it marked as successful
+            if(!total)
+                return {};
 
             // We allocate the total amount needed. This is a constant-time operation if the space
             // is already available, or if an explicit size has been allocated.
-            void* ptr = handle->device_memory_allocator(total);
+            void* ptr = handle->device_allocator(total);
 
-            // If allocation failed, return an array of nullptr's
+            // If allocation failed, return an array of nullptr's and mark allocation as failed
             if(!ptr)
+            {
+                success = false;
                 return {};
+            }
 
             // An array of pointers to all of the allocated arrays is formed.
-            // sizes is only used to expand the parameter pack.
+            // If a size is 0, the corresponding pointer is nullptr
             total = 0;
-            return {((void)sizes, (void*)((char*)ptr + offsets[total++]))...};
-        }
-
-        // Constructor
-        template <typename... Ss>
-        explicit _device_memory_alloc(rocblas_handle handle, Ss... sizes)
-            : handle(handle)
-            , pointers(allocate_pointers(sizes...))
-        {
+            return {(sizes ? (void*)((char*)ptr + offsets[total++]) : nullptr)...};
         }
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
         template <size_t... Is>
-        auto tie_pointers(std::index_sequence<Is...>)
+        const auto tie_pointers(std::index_sequence<Is...>)
         {
             return std::tie(pointers[Is]...);
         }
 
-        // Assignment is not allowed
-        _device_memory_alloc& operator=(const _device_memory_alloc&) = delete;
-
     public:
-        // The destructor marks the device memory as no longer in use
-        ~_device_memory_alloc()
+        // Constructor
+        template <typename... Ss>
+        _device_malloc(rocblas_handle handle, Ss... sizes)
+            : handle(handle)
+            , success(true)
+            , pointers(allocate_pointers(sizes...))
         {
-            handle->device_memory_in_use = false;
         }
 
         // Conversion to bool to tell if the allocation succeeded
         explicit operator bool() const
         {
-            return pointers[0] != nullptr;
+            return success;
         }
 
-        // Conversion to std::tuple<void*&...> to be assigned to std::tie()
+        // Conversion to std::tuple<void*&...> to be assigned to std::tie(ptr1, ptr2, ...)
         operator auto()
         {
             return tie_pointers(std::make_index_sequence<N>{});
@@ -235,10 +240,21 @@ private:
         // Conversion to any pointer type, but only if N == 1
         template <typename T,
                   typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
-        operator T() const
+        explicit operator T() const
         {
             return T(pointers[0]);
         }
+
+        // The destructor marks the device memory as no longer in use
+        ~_device_malloc()
+        {
+            handle->device_memory_in_use = false;
+        }
+
+        _device_malloc(const _device_malloc&) = default;
+        _device_malloc(_device_malloc&&)      = default;
+        _device_malloc& operator=(const _device_malloc&) = default;
+        _device_malloc& operator=(_device_malloc&&) = default;
     };
 
     static int get_device_arch_id()
@@ -249,6 +265,39 @@ private:
         hipGetDeviceProperties(&deviceProperties, deviceId);
         return deviceProperties.gcnArch;
     }
+
+    // Temporarily change the pointer mode
+    class _pushed_pointer_mode
+    {
+        const rocblas_handle       handle;
+        const rocblas_pointer_mode old_mode;
+
+    public:
+        // Constructor
+        _pushed_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
+            : handle(handle)
+            , old_mode(handle->pointer_mode)
+        {
+            handle->pointer_mode = mode;
+        }
+
+        // Temporary object implicitly converts to old pointer mode
+        operator rocblas_pointer_mode() const
+        {
+            return old_mode;
+        }
+
+        // Old pointer mode is restored on destruction
+        ~_pushed_pointer_mode()
+        {
+            handle->pointer_mode = old_mode;
+        }
+
+        _pushed_pointer_mode(const _pushed_pointer_mode&) = default;
+        _pushed_pointer_mode(_pushed_pointer_mode&&)      = default;
+        _pushed_pointer_mode& operator=(const _pushed_pointer_mode&) = delete;
+        _pushed_pointer_mode& operator=(_pushed_pointer_mode&&) = delete;
+    };
 };
 
 // For functions which don't use temporary device memory, and won't be likely

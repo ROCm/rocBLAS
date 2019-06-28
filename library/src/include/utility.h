@@ -93,23 +93,23 @@ constexpr auto rocblas_datatype_string(rocblas_datatype type)
 {
     switch(type)
     {
-    case rocblas_datatype_f16_r: return "f16_r";
-    case rocblas_datatype_f32_r: return "f32_r";
-    case rocblas_datatype_f64_r: return "f64_r";
-    case rocblas_datatype_f16_c: return "f16_c";
-    case rocblas_datatype_f32_c: return "f32_c";
-    case rocblas_datatype_f64_c: return "f64_c";
-    case rocblas_datatype_i8_r:  return "i8_r";
-    case rocblas_datatype_u8_r:  return "u8_r";
-    case rocblas_datatype_i32_r: return "i32_r";
-    case rocblas_datatype_u32_r: return "u32_r";
-    case rocblas_datatype_i8_c:  return "i8_c";
-    case rocblas_datatype_u8_c:  return "u8_c";
-    case rocblas_datatype_i32_c: return "i32_c";
-    case rocblas_datatype_u32_c: return "u32_c";
+    case rocblas_datatype_f16_r:  return "f16_r";
+    case rocblas_datatype_f32_r:  return "f32_r";
+    case rocblas_datatype_f64_r:  return "f64_r";
+    case rocblas_datatype_f16_c:  return "f16_c";
+    case rocblas_datatype_f32_c:  return "f32_c";
+    case rocblas_datatype_f64_c:  return "f64_c";
+    case rocblas_datatype_i8_r:   return "i8_r";
+    case rocblas_datatype_u8_r:   return "u8_r";
+    case rocblas_datatype_i32_r:  return "i32_r";
+    case rocblas_datatype_u32_r:  return "u32_r";
+    case rocblas_datatype_i8_c:   return "i8_c";
+    case rocblas_datatype_u8_c:   return "u8_c";
+    case rocblas_datatype_i32_c:  return "i32_c";
+    case rocblas_datatype_u32_c:  return "u32_c";
     case rocblas_datatype_bf16_r: return "bf16_r";
     case rocblas_datatype_bf16_c: return "bf16_c";
-    default:                     return "invalid";
+    default:                      return "invalid";
     }
 }
 
@@ -135,6 +135,19 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
     default:                     return 0;
     }
 }
+
+// return rocblas_datatype from type
+template <typename> static constexpr rocblas_datatype rocblas_datatype_from_type     = rocblas_datatype(-1);
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_half>           = rocblas_datatype_f16_r;
+template <> static constexpr auto rocblas_datatype_from_type<float>                  = rocblas_datatype_f32_r;
+template <> static constexpr auto rocblas_datatype_from_type<double>                 = rocblas_datatype_f64_r;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_float_complex>  = rocblas_datatype_f32_c;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_double_complex> = rocblas_datatype_f64_c;
+template <> static constexpr auto rocblas_datatype_from_type<int8_t>                 = rocblas_datatype_i8_r;
+template <> static constexpr auto rocblas_datatype_from_type<uint8_t>                = rocblas_datatype_u8_r;
+template <> static constexpr auto rocblas_datatype_from_type<int32_t>                = rocblas_datatype_i32_r;
+template <> static constexpr auto rocblas_datatype_from_type<uint32_t>               = rocblas_datatype_u32_r;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";

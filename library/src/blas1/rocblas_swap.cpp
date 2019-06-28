@@ -12,12 +12,12 @@
 
 namespace
 {
-    static constexpr int NB = 256;
+    constexpr int NB = 256;
 
     template <typename T>
     __global__ void swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
-        ssize_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tid < n)
         {
             auto tmp      = y[tid * incy];
@@ -27,17 +27,17 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_swap_name[] = "unknown";
+    constexpr char rocblas_swap_name[] = "unknown";
     template <>
-    static constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
+    constexpr char rocblas_swap_name<float>[] = "rocblas_sswap";
     template <>
-    static constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
+    constexpr char rocblas_swap_name<double>[] = "rocblas_dswap";
     template <>
-    static constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
+    constexpr char rocblas_swap_name<rocblas_half>[] = "rocblas_hswap";
     template <>
-    static constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
+    constexpr char rocblas_swap_name<rocblas_float_complex>[] = "rocblas_cswap";
     template <>
-    static constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
+    constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
 
     template <class T>
     rocblas_status rocblas_swap(
@@ -45,9 +45,8 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
-        auto layer_mode = handle->layer_mode;
 
+        auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_swap_name<T>, n, x, incx, y, incy);
         if(layer_mode & rocblas_layer_mode_log_bench)
@@ -65,9 +64,10 @@ namespace
 
         if(!x || !y)
             return rocblas_status_invalid_pointer;
-        /*
-     * Quick return if possible.
-     */
+
+        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+
+        // Quick return if possible.
         if(n <= 0)
             return rocblas_status_success;
 
@@ -77,9 +77,9 @@ namespace
         dim3        threads(NB);
 
         if(incx < 0)
-            x -= ssize_t(incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
         if(incy < 0)
-            y -= ssize_t(incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         hipLaunchKernelGGL(swap_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
 

@@ -15,13 +15,12 @@
 
 namespace
 {
-
     template <typename>
-    static constexpr char rocblas_gemv_name[] = "unknown";
+    constexpr char rocblas_gemv_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
+    constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
     template <>
-    static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
+    constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
 
     template <typename T>
     rocblas_status rocblas_gemv(rocblas_handle    handle,

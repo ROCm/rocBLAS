@@ -21,8 +21,12 @@
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    char* env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
-    setenv("WORKBUF_TRSM_B_CHNK", "32000", 1);
+    static constexpr char ENV[] = "WORKBUF_TRSM_B_CHNK";
+
+    // restore the environment on return or exception
+    auto restore_env = [](auto env) { env ? setenv(ENV, env, 1) : unsetenv(ENV); };
+    auto env_p       = std::unique_ptr<char, decltype(restore_env)>(getenv(ENV), restore_env);
+    setenv(ENV, "32000", 1);
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -41,8 +45,8 @@ void testing_trsm(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * static_cast<size_t>(K);
-    size_t      size_B = ldb * static_cast<size_t>(N);
+    size_t      size_A = lda * size_t(K);
+    size_t      size_B = ldb * size_t(N);
 
     rocblas_local_handle handle;
 
@@ -55,7 +59,6 @@ void testing_trsm(const Arguments& arg)
         if(!dA || !dXorB)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            setenv("WORKBUF_TRSM_B_CHNK", env_p ? env_p : "", 1);
             return;
         }
 
@@ -63,7 +66,6 @@ void testing_trsm(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(
             rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
             rocblas_status_invalid_size);
-        setenv("WORKBUF_TRSM_B_CHNK", env_p ? env_p : "", 1);
         return;
     }
 
@@ -89,7 +91,6 @@ void testing_trsm(const Arguments& arg)
     if(!dA || !dXorB || !alpha_d)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        setenv("WORKBUF_TRSM_B_CHNK", env_p ? env_p : "", 1);
         return;
     }
 
@@ -308,6 +309,4 @@ void testing_trsm(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
-    setenv("WORKBUF_TRSM_B_CHNK", env_p ? env_p : "", 1);
 }

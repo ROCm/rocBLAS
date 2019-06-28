@@ -17,12 +17,14 @@
 
 namespace
 {
+    // HIP support up to 1024 threads/work itmes per thread block/work group
+    constexpr int NB = 512;
 
     template <class To>
     struct rocblas_fetch_nrm2
     {
         template <class Ti>
-        __forceinline__ __device__ To operator()(Ti x, ssize_t tid)
+        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
         {
             return {fetch_abs2(x)};
         }
@@ -38,39 +40,27 @@ namespace
     };
 
     template <typename>
-    static constexpr char rocblas_nrm2_name[] = "unknown";
+    constexpr char rocblas_nrm2_name[] = "unknown";
     template <>
-    static constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
+    constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
+    constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
+    constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
+    constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
+    constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
 
     // allocate workspace inside this API
     template <typename Ti, typename To>
     rocblas_status rocblas_nrm2(
         rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, To* result)
     {
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        static constexpr int NB = 512;
-
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if(handle->is_device_memory_query())
-        {
-            if(n <= 0 || incx <= 0)
-                return rocblas_status_size_unchanged;
-            auto blocks = (n - 1) / NB + 1;
-            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
-        }
-
         auto layer_mode = handle->layer_mode;
-
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_nrm2_name<Ti>, n, x, incx);
 
@@ -92,25 +82,28 @@ namespace
         // Quick return if possible.
         if(n <= 0 || incx <= 0)
         {
-            if(rocblas_pointer_mode_device == handle->pointer_mode)
+            if(handle->is_device_memory_size_query())
+                return rocblas_status_size_unchanged;
+            else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
                 *result = 0;
             return rocblas_status_success;
         }
 
-        auto blocks    = (n - 1) / NB + 1;
-        auto workspace = handle->device_alloc(sizeof(To) * blocks);
-        if(!workspace)
+        auto blocks = (n - 1) / NB + 1;
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
+
+        auto mem = handle->device_malloc(sizeof(To) * blocks);
+        if(!mem)
             return rocblas_status_memory_error;
 
-        auto status = rocblas_reduction_kernel<NB,
-                                               rocblas_fetch_nrm2<To>,
-                                               rocblas_reduce_sum,
-                                               rocblas_finalize_nrm2>(
-            handle, n, x, incx, result, (To*)workspace, blocks);
-
-        return status;
+        return rocblas_reduction_kernel<NB,
+                                        rocblas_fetch_nrm2<To>,
+                                        rocblas_reduce_sum,
+                                        rocblas_finalize_nrm2>(
+            handle, n, x, incx, result, (To*)mem, blocks);
     }
 
 } // namespace

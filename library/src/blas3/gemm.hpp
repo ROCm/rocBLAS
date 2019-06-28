@@ -6,6 +6,7 @@
 #ifndef _GEMM_HPP_
 #define _GEMM_HPP_
 
+#include "rocblas.h"
 #include <hip/hip_runtime.h>
 
 template <typename T>
