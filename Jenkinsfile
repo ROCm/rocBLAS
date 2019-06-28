@@ -78,6 +78,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
             else
             {
@@ -87,6 +90,9 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
         }
         else if(platform.jenkinsLabel.contains('hip-clang'))
@@ -98,6 +104,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*quick*-*known_bug* #--gtest_filter=*quick*
                     """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
             else
             {
@@ -113,6 +122,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
             else
             {
@@ -122,11 +134,11 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
         }
-        
-        platform.runCommand(this, command)
-        junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
     }
 
     def packageCommand =
