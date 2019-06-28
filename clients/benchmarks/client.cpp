@@ -183,6 +183,101 @@ struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::ty
     }
 };
 
+template <typename T>
+struct perf_blas<T,
+                 typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
+                                         || std::is_same<T, rocblas_float_complex>{}>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "axpy"))
+            testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "copy"))
+            testing_copy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
+        else if(!strcmp(arg.function, "dotc"))
+            testing_dotc<T>(arg);
+        else if(!strcmp(arg.function, "swap"))
+            testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "iamax"))
+            testing_iamax<T>(arg);
+        else if(!strcmp(arg.function, "iamin"))
+            testing_iamin<T>(arg);
+        else if(!strcmp(arg.function, "scal"))
+            testing_scal<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+// Template to dispatch testing_gemm_ex for performance tests
+// When Ti == void or complex, the test is marked invalid
+template <typename Ti, typename To = Ti, typename = void>
+struct perf_asum_nrm2 : rocblas_test_invalid
+{
+};
+
+template <typename Ti, typename To>
+struct perf_asum_nrm2<
+    Ti,
+    To,
+    typename std::enable_if<
+        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
+        || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
+        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "asum"))
+            testing_asum<Ti, To>(arg);
+        else if(!strcmp(arg.function, "nrm2"))
+            testing_nrm2<Ti, To>(arg);
+        // else if(!strcmp(arg.function, "scalrc"))
+        //     testing_scalrc<Ti, To>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename Ti, typename To = Ti, typename = void>
+struct perf_scalrc : rocblas_test_invalid
+{
+};
+
+template <typename Ti, typename To>
+struct perf_scalrc<
+    Ti,
+    To,
+    typename std::enable_if<
+        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "scalrc"))
+            testing_scalrc<Ti, To>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
 int run_bench_test(Arguments& arg)
 {
     // disable unit_check in client benchmark, it is only used in gtest unit test
@@ -342,7 +437,12 @@ int run_bench_test(Arguments& arg)
     else
 #endif
     {
-        rocblas_simple_dispatch<perf_blas>(arg);
+        if(!strcmp(function, "nrm2") || !strcmp(function, "asum"))
+            rocblas_blas1_dispatch<perf_asum_nrm2>(arg);
+        else if(!strcmp(function, "scalrc"))
+            rocblas_blas1_dispatch<perf_scalrc>(arg);
+        else
+            rocblas_simple_dispatch<perf_blas>(arg);
     }
     return 0;
 }

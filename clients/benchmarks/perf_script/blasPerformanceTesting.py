@@ -237,14 +237,14 @@ def decode_parameter_problemsize(problemsize):
     return problemsize
 
 def blas_table_header():
-    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,beta,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
+    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,alpha_imag,beta,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
 
 class BlasTestCombination:
     def __init__(self,
                  sizem, sizen, sizek,
                  lda, ldb, ldc,
                  offa, offb, offc,
-                 alpha, beta,
+                 alpha, alpha_imag, beta,
                  transa, transb,
                  side, uplo, diag,
                  function, precision,
@@ -259,6 +259,7 @@ class BlasTestCombination:
         self.offb = str(offb)
         self.offc = str(offc)
         self.alpha = str(alpha)
+        self.alpha_imag = str(alpha_imagi)
         self.beta = str(beta)
         self.transa = transa
         self.transb = transb
@@ -272,7 +273,7 @@ class BlasTestCombination:
         self.label = label
 
     def __str__(self):
-        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), beta(' + self.beta + '), transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
+        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), alpha_imag(' + self.alpha_imag + '), beta(' + self.beta + '), transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
 
 class BlasGraphPoint:
     def __init__(self,
