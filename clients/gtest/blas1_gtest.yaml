@@ -17,7 +17,6 @@ Definitions:
 
   - &alphai_range
     - {alphai: 0.5}
-    - {alphai: 0.8}
     - {alphai: 1.5}
 
 Tests:

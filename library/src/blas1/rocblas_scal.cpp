@@ -48,6 +48,14 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle, rocblas_scal_name<T>, n, *alpha, x, incx);
 
+            double ar = 0, ai = 0;
+            if constexpr(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
+            {
+                ar = alpha->x;
+                ai = alpha->y;
+            }
+            else
+                ar = *alpha;
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
                           "./rocblas-bench -f scal -r",
@@ -57,7 +65,9 @@ namespace
                           "--incx",
                           incx,
                           "--alpha",
-                          *alpha);
+                          ar,
+                          "--alphai",
+                          ai);
         }
         else
         {

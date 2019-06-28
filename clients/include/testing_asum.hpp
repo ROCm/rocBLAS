@@ -114,7 +114,7 @@ void testing_asum(const Arguments& arg)
             if(std::is_same<T1, rocblas_float_complex>::value
                || std::is_same<T1, rocblas_double_complex>::value)
             {
-                double tol = 0.001 * cpu_result; // 0.1% of expected result (?)
+                double tol = sum_error_tolerance<T1> * cpu_result; // tolerance calculated as a measurement of the expected result (?)
 
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
