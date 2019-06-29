@@ -150,7 +150,7 @@ in an unnamed namespace, or be placed in the `rocblas` namespace if they need to
 document on this.**
 
 
-11. With some BLAS functions, especially BLAS1 functions with two vectors, the `incx` and `incy` arguments can be negative, which means the vector is treated backwards from the end. A simple trick to handle this, is to adjust the pointer to the end of the vector if the increment is negative, as in:
+11. For BLAS2 functions and BLAS1 functions with two vectors, the `incx` and/or `incy` arguments can be negative, which means the vector is treated backwards from the end. A simple trick to handle this, is to adjust the pointer to the end of the vector if the increment is negative, as in:
     ```c++
     if(incx < 0)
         x -= ptrdiff_t(incx) * (n - 1);
