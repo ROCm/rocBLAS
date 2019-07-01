@@ -6,6 +6,7 @@
 #ifndef _ROCBLAS_TRTRI_BATCHED_HPP_
 #define _ROCBLAS_TRTRI_BATCHED_HPP_
 
+#include "gemm.hpp"
 #include "handle.h"
 #include "status.h"
 

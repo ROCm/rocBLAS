@@ -24,7 +24,7 @@
         [    IB ]
 
 */
-template <typename T, rocblas_int NB, rocblas_int IB, rocblas_int IBD>
+template <rocblas_int NB, rocblas_int IB, rocblas_int IBD, typename T>
 static __global__ void trtri_trsm_kernel(
     rocblas_fill uplo, rocblas_diagonal diag, const T* A, rocblas_int lda, T* invA)
 {
@@ -45,14 +45,14 @@ static __global__ void trtri_trsm_kernel(
 
 template <rocblas_int NB, typename T>
 rocblas_status rocblas_trtri_template(rocblas_handle   handle,
-                                             rocblas_fill     uplo,
-                                             rocblas_diagonal diag,
-                                             rocblas_int      n,
-                                             const T*         A,
-                                             rocblas_int      lda,
-                                             T*               invA,
-                                             rocblas_int      ldinvA,
-                                             T*               C_tmp)
+                                      rocblas_fill     uplo,
+                                      rocblas_diagonal diag,
+                                      rocblas_int      n,
+                                      const T*         A,
+                                      rocblas_int      lda,
+                                      T*               invA,
+                                      rocblas_int      ldinvA,
+                                      T*               C_tmp)
 {
     return rocblas_trtri_batched_template<NB>(
         handle, uplo, diag, n, A, lda, lda * n, invA, ldinvA, ldinvA * n, 1, C_tmp);
@@ -160,7 +160,7 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
 
         // invert IB * IB diagonal blocks of A and write the result of invA11 and invA22 in invA
 
-        hipLaunchKernelGGL((trtri_trsm_kernel<T, NB, IB, IBD>),
+        hipLaunchKernelGGL((trtri_trsm_kernel<NB, IB, IBD>),
                            grid,
                            threads,
                            0,
@@ -274,14 +274,15 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            invA + blocks * NB * NB,
                            1);
 
-        status = rocblas_trtri_template(handle,
-                                        uplo,
-                                        diag,
-                                        n - blocks * NB,
-                                        A + blocks * NB * lda + blocks * NB,
-                                        lda,
-                                        invA + blocks * NB * NB,
-                                        NB);
+        status = rocblas_trtri_template<NB>(handle,
+                                            uplo,
+                                            diag,
+                                            n - blocks * NB,
+                                            A + blocks * NB * lda + blocks * NB,
+                                            lda,
+                                            invA + blocks * NB * NB,
+                                            NB,
+                                            C_tmp);
 
         if(status != rocblas_status_success)
             return status;

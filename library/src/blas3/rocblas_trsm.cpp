@@ -28,9 +28,12 @@ namespace
     constexpr rocblas_int STRSM_BLOCK = 128;
     constexpr rocblas_int DTRSM_BLOCK = 128;
 
-    constexpr T negative_one(-1);
-    constexpr T zero(0);
-    constexpr T one(1);
+    template <typename T>
+    constexpr T negative_one = -1;
+    template <typename T>
+    constexpr T zero = 0;
+    template <typename T>
+    constexpr T one = 1;
 
     /* ===============left==================================================== */
     template <rocblas_int BLOCK, typename T>
@@ -59,7 +62,7 @@ namespace
                 // left, lower no-transpose
                 jb = min(BLOCK, m);
                 rocblas_gemm_template(
-                    handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, m);
+                    handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero<T>, X, m);
                 if(BLOCK < m)
                 {
                     rocblas_gemm_template(handle,
