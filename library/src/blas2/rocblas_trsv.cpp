@@ -7,7 +7,6 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "status.h"
 #include "utility.h"
 #include <algorithm>
 #include <hip/hip_runtime_api.h>
@@ -42,6 +41,7 @@ namespace
     constexpr rocblas_int NB_X        = 1024;
     constexpr rocblas_int STRSV_BLOCK = 128;
     constexpr rocblas_int DTRSV_BLOCK = 128;
+    constexpr rocblas_int NB          = 16;
 
     template <typename T>
     constexpr T negative_one(-1);
@@ -616,7 +616,7 @@ namespace
         {
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
             auto c_temp = x_temp; // Uses same memory as x_temp
-            status = rocblas_trtri_trsm_template<BLOCK>(
+            status      = rocblas_trtri_trsm_template<NB>(
                 handle, (T*)c_temp, uplo, diag, m, A, lda, (T*)invA);
             if(status != rocblas_status_success)
                 return status;
@@ -650,7 +650,12 @@ namespace
 
             // copy solution X into B
             // TODO: workaround to fix negative incx issue
-            strided_vector_copy(handle, B, abs_incx, incx < 0 ? (T*)x_temp + m - 1 : (T*)x_temp, incx < 0 ? -1 : 1, m);
+            strided_vector_copy(handle,
+                                B,
+                                abs_incx,
+                                incx < 0 ? (T*)x_temp + m - 1 : (T*)x_temp,
+                                incx < 0 ? -1 : 1,
+                                m);
         }
 
         return perf_status;

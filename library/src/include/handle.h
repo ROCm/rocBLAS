@@ -2,8 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef HANDLE_H
-#define HANDLE_H
+#ifndef _ROCBLAS_HANDLE_H_
+#define _ROCBLAS_HANDLE_H_
 
 #include "definitions.h"
 #include "rocblas.h"

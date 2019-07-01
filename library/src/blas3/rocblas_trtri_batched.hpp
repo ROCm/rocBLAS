@@ -8,7 +8,6 @@
 
 #include "gemm.hpp"
 #include "handle.h"
-#include "status.h"
 
 // return the number of elements in a NxN matrix that do not belong to the triangular region
 constexpr size_t num_non_tri_elements(rocblas_int n)
@@ -503,10 +502,10 @@ rocblas_status trtri_strided_gemm_block(rocblas_handle handle,
                                         rocblas_int    stride_C,
                                         rocblas_int    batch)
 {
-    rocblas_status status;
-    T              one          = 1;
-    T              zero         = 0;
-    T              negative_one = -1;
+    rocblas_status     status;
+    static constexpr T one          = 1;
+    static constexpr T zero         = 0;
+    static constexpr T negative_one = -1;
 
 #ifndef NDEBUG
     printf("first batched gemm\n");

@@ -1,14 +1,12 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "status.h"
 #include "utility.h"
+#include <hip/hip_runtime.h>
 
 namespace
 {
@@ -104,9 +102,7 @@ namespace
         if(n < 0 || !incx || lda < n || lda < 1)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possible. Not Argument error
-     */
+        // Quick return if possible. Not Argument error
         if(!n)
             return rocblas_status_success;
 

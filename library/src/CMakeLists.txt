@@ -83,12 +83,8 @@ if( BUILD_WITH_TENSILE )
 endif( )
 
 set( rocblas_auxiliary_source
-  include/handle.h
-  include/definitions.h
-  include/status.h
   handle.cpp
   rocblas_auxiliary.cpp
-  status.cpp
   buildinfo.cpp
 )
 

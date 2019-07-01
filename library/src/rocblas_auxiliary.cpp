@@ -2,21 +2,16 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-#include <stdio.h>
-
+#include "Tensile.h"
 #include "definitions.h"
-#include "rocblas-types.h"
-
 #include "handle.h"
 #include "logging.h"
-#include "utility.h"
-
 #include "rocblas-auxiliary.h"
-
-#include "Tensile.h"
-
+#include "rocblas-types.h"
+#include "utility.h"
+#include <hip/hip_runtime.h>
 #include <memory>
+#include <stdio.h>
 
 /* ============================================================================================ */
 

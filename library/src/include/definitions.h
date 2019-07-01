@@ -5,7 +5,8 @@
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
-#include "status.h"
+#include "rocblas.h"
+#include <cstdio>
 
 /*******************************************************************************
  * Definitions

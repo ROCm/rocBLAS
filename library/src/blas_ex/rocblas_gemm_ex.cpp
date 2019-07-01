@@ -1,18 +1,8 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "Tensile.h"
-#include "TensileTypes.h"
-#include "definitions.h"
-#include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
-#include "status.h"
-#include "utility.h"
-
 #include "rocblas_gemm_ex.hpp"
+#include <hip/hip_runtime.h>
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_operation trans_a,
@@ -43,15 +33,8 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     if(!handle)
         return rocblas_status_invalid_handle;
 
-// TODO: Compute an optimum size of device memory which can be used as workspace.
-// workspace is managed out-of-band, and is not directly part of the rocblas_gemm_ex API.
-#if 0
-    if(handle->is_device_memory_size_query())
-    {
-        size_t size = rocblas_sizeof_datatype(compute_type) * m * n; // Example
-        return handle->set_optimal_device_memory_size(size);
-    }
-#endif
+    // TODO: Compute an optimum size of device memory which can be used as workspace.
+    RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
 
     if(!alpha || !beta)
         return rocblas_status_invalid_pointer;

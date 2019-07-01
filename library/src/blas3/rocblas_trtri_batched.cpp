@@ -81,7 +81,7 @@ namespace
             return rocblas_status_invalid_size;
 
         // For small n or zero batch_count, and device memory size query, return size unchanged
-        if ((n <= NB || !batch_count) && handle->is_device_memory_size_query())
+        if((n <= NB || !batch_count) && handle->is_device_memory_size_query())
             return rocblas_status_size_unchanged;
 
         // Quick return if possible.
@@ -127,7 +127,6 @@ namespace
  */
 
 extern "C" {
-
 rocblas_status rocblas_strtri_batched(rocblas_handle   handle,
                                       rocblas_fill     uplo,
                                       rocblas_diagonal diag,

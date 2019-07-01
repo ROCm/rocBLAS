@@ -1,16 +1,13 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "reduction.h"
-#include "status.h"
+#include "rocblas.h"
 #include "utility.h"
+#include <hip/hip_runtime.h>
 
 namespace
 {

@@ -1,13 +1,11 @@
 /* ************************************************************************
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
 #include "definitions.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
+#include <hip/hip_runtime.h>
 
 namespace
 {
@@ -363,10 +361,7 @@ namespace
         if(ldc < M)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possible.
-     */
-
+        // Quick return if possible.
         if(!M || !N)
             return rocblas_status_success;
 

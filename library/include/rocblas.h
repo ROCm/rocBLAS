@@ -10,16 +10,16 @@
 #ifndef _ROCBLAS_H_
 #define _ROCBLAS_H_
 
+#ifndef __cplusplus
 /* system headers */
 #include <stdbool.h>
+#endif
 
 /* library headers */
-#include "rocblas-export.h"
-#include "rocblas-version.h"
-
-#include "rocblas-types.h"
-
 #include "rocblas-auxiliary.h"
+#include "rocblas-export.h"
 #include "rocblas-functions.h"
+#include "rocblas-types.h"
+#include "rocblas-version.h"
 
 #endif // _ROCBLAS_H_

@@ -2,18 +2,16 @@
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
-
 #include "definitions.h"
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "status.h"
 #include "trtri_trsm.hpp"
 #include "utility.h"
 #include <algorithm>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
 #include <tuple>
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
@@ -27,6 +25,7 @@ namespace
     // you can use all 64K, but in practice no.
     constexpr rocblas_int STRSM_BLOCK = 128;
     constexpr rocblas_int DTRSM_BLOCK = 128;
+    constexpr rocblas_int NB          = 16;
 
     template <typename T>
     constexpr T negative_one = -1;
@@ -1148,7 +1147,7 @@ namespace
             auto c_temp = x_temp;
 
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-            status = rocblas_trtri_trsm_template<BLOCK>(
+            status = rocblas_trtri_trsm_template<NB>(
                 handle, (T*)c_temp, uplo, diag, k, A, lda, (T*)invA);
             if(status != rocblas_status_success)
                 return status;

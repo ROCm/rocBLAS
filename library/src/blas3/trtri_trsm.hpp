@@ -10,7 +10,6 @@
 #include "gemm.hpp"
 #include "handle.h"
 #include "rocblas_trtri_batched.hpp"
-#include "status.h"
 #include <hip/hip_runtime.h>
 
 /*

@@ -1,9 +1,10 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+   * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef _ROCBLAS_LOGGING_H_
+#define _ROCBLAS_LOGGING_H_
+
 #include "handle.h"
 #include <atomic>
 #include <cmath>
