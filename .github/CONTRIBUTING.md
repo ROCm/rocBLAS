@@ -243,3 +243,8 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
         func<double>(args);
     ```
     etc. everywhere, it's done only in one place, and a `template` template argument is passed to specify which action is actually taken. It's fairly abstract, but it is powerful. There are examples of using the type dispatch in `clients/gtest/*_gtest.cpp` and `clients/benchmarks/client.cpp`.
+
+
+18. Functions are preferred to macros. Functions or functors inside of `class` / `struct` templates can be used when partial template specializations are needed.
+
+When C preprocessor macros are needed (such as if they contain a `return` statement), if they are more than simple expressions, then [they should be wrapped in a `do { } while(0)`](https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros), without a terminating semicolon. This is to allow them to be used inside `if` statements.
