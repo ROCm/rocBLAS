@@ -247,4 +247,4 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
 
 18. Functions are preferred to macros. Functions or functors inside of `class` / `struct` templates can be used when partial template specializations are needed.
 
-When C preprocessor macros are needed (such as if they contain a `return` statement), if they are more than simple expressions, then [they should be wrapped in a `do { } while(0)`](https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros), without a terminating semicolon. This is to allow them to be used inside `if` statements.
+    When C preprocessor macros are needed (such as if they contain a `return` statement), if they are more than simple expressions, then [they should be wrapped in a `do { } while(0)`](https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros), without a terminating semicolon. This is to allow them to be used inside `if` statements.
