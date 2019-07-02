@@ -189,9 +189,10 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     static auto& get_table()
     {
         // Placed inside function to avoid dependency on initialization order
-        static table_t* table = test_cleanup::allocate<table_t>(table);
+        static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         return *table;
     }
+
     ```
     This is sometimes called the singleton pattern. A `static` variable is made local to a function rather than a namespace or class, and it gets initialized the first time the function is called. A reference to the `static` variable is returned from the function, and the function is used everywhere access to the variable is needed. In the case of multithreaded programs, the C++11 and later standards guarantee that there won't be any race conditions. It is also [faster](https://www.modernescpp.com/index.php/thread-safe-initialization-of-a-singleton) to initialize function-local `static` variables than it is to explicitly call `std::call_once`. For example:
 
@@ -228,9 +229,9 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     When `saved_pointer_mode` is destroyed, the handle's pointer mode returns to the previous pointer mode.
 
 
-16. When tests are added to `rocblas-test` and `rocblas-bench`, they should use [this guide](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/gtest/README.md).
+16. When tests are added to `rocblas-test` and `rocblas-bench`, refer to [this guide](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/gtest/README.md).
 
-    The test framework is templated, and uses [SFINAE](https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error) to enable/disable certain types for certain tests for certain types. There are `std::enable_if<...>` expressions which enable certain combinations of types.
+    The test framework is templated, and uses [SFINAE](https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error) and `std::enable_if<...>` to enable and disable certain types for certain tests.
 
 
 17. The `rocblas-test` and `rocblas-bench` [type dispatch file](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/include/type_dispatch.hpp) is central to all tests. Basically, rather than duplicate:
@@ -247,4 +248,14 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
 
 18. Functions are preferred to macros. Functions or functors inside of `class` / `struct` templates can be used when partial template specializations are needed.
 
-    When C preprocessor macros are needed (such as if they contain a `return` statement), if they are more than simple expressions, then [they should be wrapped in a `do { } while(0)`](https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros), without a terminating semicolon. This is to allow them to be used inside `if` statements.
+    When C preprocessor macros are needed (such as if they contain a `return` statement to return from the calling function), if the macro's definition contains more than one simple expression, then [it should be wrapped in a `do { } while(0)`](https://stackoverflow.com/questions/154136/why-use-apparently-meaningless-do-while-and-if-else-statements-in-macros), without a terminating semicolon. This is to allow them to be used inside `if` statements.
+
+
+19. `<type_traits>` classes which return Boolean values can be converted to `bool` in Boolean contexts. Hence many traits can be tested by simply creating an instance of them with `{}` initialization syntax and using it in a Boolean context:
+    ```
+    template<typename T, typename = typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    void function(T x)
+    {
+    }
+    ```
+    Here, instances of the `std::is_same<...>` traits class are created with the `{}` syntax. The resulting temporary objects can be explicitly converted to `bool`, which is what occurs when an object appears in a conditional expression (`if`, `while`, `for`, `&&`, `||`, `!`, `? :`, etc.). This is a shorter syntax than using `std::is_same<...>::value`.
