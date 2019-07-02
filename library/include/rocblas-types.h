@@ -41,38 +41,6 @@ typedef double2 rocblas_double_complex;
 typedef uint16_t rocblas_half;
 typedef float2   rocblas_half_complex;
 
-#ifdef __cplusplus
-/* ============================================================================================ */
-/*! \brief complex output helper function */
-inline std::ostream& operator<<(std::ostream& out, const rocblas_float_complex& data)
-{
-    if(data.y >= 0)
-    {
-        out << data.x << "+" << data.y << "i";
-    }
-    else
-    {
-        out << data.x << data.y << "i";
-    }
-
-    return out;
-}
-
-inline std::ostream& operator<<(std::ostream& out, const rocblas_double_complex& data)
-{
-    if(data.y >= 0)
-    {
-        out << data.x << "+" << data.y << "i";
-    }
-    else
-    {
-        out << data.x << data.y << "i";
-    }
-
-    return out;
-}
-#endif
-
 /* ============================================================================================ */
 
 /*! parameter constants.

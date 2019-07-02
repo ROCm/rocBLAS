@@ -2,6 +2,51 @@
 #include "rocblas-types.h"
 
 /*******************************************************************************
+ * Helper enumeration over different transpose combinations
+ ******************************************************************************/
+typedef enum transpose_mode_
+{
+    // First letter refers to A, second letter refers to B
+    NN,
+    NT,
+    TN,
+    TT,
+    NC,
+    CN,
+    TC,
+    CT,
+    CC
+} transpose_mode;
+
+transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
+{
+    if(trans_a == rocblas_operation_none)
+    {
+        if(trans_b == rocblas_operation_none)
+            return NN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return NC;
+        return NT;
+    }
+    else if(trans_a == rocblas_operation_conjugate_transpose)
+    {
+        if(trans_b == rocblas_operation_none)
+            return CN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return CC;
+        return CT;
+    }
+    else
+    {
+        if(trans_b == rocblas_operation_none)
+            return TN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return TC;
+        return TT;
+    }
+}
+
+/*******************************************************************************
  * Infer Batch Strides
  ******************************************************************************/
 inline void infer_batch_strides(rocblas_operation trans_a,
@@ -92,251 +137,3 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
 
     return rocblas_status_success;
 } // validate parameters
-
-/*******************************************************************************
- * temporary solution: complex gemm helper
- * we will use tensile for final solution
- ******************************************************************************/
-template <typename DT, typename ST>
-__global__ void kernel_copy_real_part_of_complex_matrix(DT*               dst,
-                                                        const rocblas_int ld_dst,
-                                                        const rocblas_int str_dst,
-                                                        const ST*         src,
-                                                        const rocblas_int ld_src,
-                                                        const rocblas_int str_src,
-                                                        const rocblas_int m,
-                                                        const rocblas_int n)
-{
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-
-    dst = dst + hipBlockIdx_z * str_dst;
-    src = src + hipBlockIdx_z * str_src;
-
-    if(tx < m && ty < n)
-        dst[tx + ld_dst * ty] = src[tx + ld_src * ty].x;
-}
-
-template <typename DT, typename ST>
-__global__ void kernel_copy_imag_part_of_complex_matrix(DT*               dst,
-                                                        const rocblas_int ld_dst,
-                                                        const rocblas_int str_dst,
-                                                        const ST*         src,
-                                                        const rocblas_int ld_src,
-                                                        const rocblas_int str_src,
-                                                        const rocblas_int m,
-                                                        const rocblas_int n)
-{
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-
-    dst = dst + hipBlockIdx_z * str_dst;
-    src = src + hipBlockIdx_z * str_src;
-
-    if(tx < m && ty < n)
-        dst[tx + ld_dst * ty] = src[tx + ld_src * ty].y;
-}
-
-template <typename DT, typename ST>
-void copy_part_of_complex_matrix(const hipStream_t rocblas_stream,
-                                 const bool        real,
-                                 DT*               dst,
-                                 const rocblas_int ld_dst,
-                                 const rocblas_int str_dst,
-                                 const ST*         src,
-                                 const rocblas_int ld_src,
-                                 const rocblas_int str_src,
-                                 const rocblas_int m,
-                                 const rocblas_int n,
-                                 const rocblas_int b)
-{
-    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-    rocblas_int blocksY = ((n - 1) / 8) + 1;
-    rocblas_int blocksZ = b;
-    dim3        grid(blocksX, blocksY, blocksZ);
-    dim3        threads(128, 8, 1);
-
-    if(real)
-    {
-        hipLaunchKernelGGL(kernel_copy_real_part_of_complex_matrix,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           dst,
-                           ld_dst,
-                           str_dst,
-                           src,
-                           ld_src,
-                           str_src,
-                           m,
-                           n);
-    }
-    else
-    {
-        hipLaunchKernelGGL(kernel_copy_imag_part_of_complex_matrix,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           dst,
-                           ld_dst,
-                           str_dst,
-                           src,
-                           ld_src,
-                           str_src,
-                           m,
-                           n);
-    }
-}
-
-template <typename T1, typename T2>
-__device__ void kernel_complex_addition(const T1*         data1_r,
-                                        const T1*         data1_i,
-                                        const rocblas_int ld1,
-                                        const rocblas_int str1,
-                                        const T2          alpha,
-                                        const T2*         data2,
-                                        const rocblas_int ld2,
-                                        const rocblas_int str2,
-                                        const T2          beta,
-                                        T2*               data3,
-                                        const rocblas_int ld3,
-                                        const rocblas_int str3,
-                                        const rocblas_int m,
-                                        const rocblas_int n)
-{
-    size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-
-    data1_r = data1_r + hipBlockIdx_z * str1;
-    data1_i = data1_i + hipBlockIdx_z * str1;
-    data2   = data2 + hipBlockIdx_z * str2;
-    data3   = data3 + hipBlockIdx_z * str3;
-
-    if(tx < m && ty < n)
-    {
-        T1 d1_r = data1_r[tx + ld1 * ty];
-        T1 d1_i = data1_i[tx + ld1 * ty];
-        T2 d2   = data2[tx + ld2 * ty];
-
-        T2 res;
-        res.x = (alpha.x * d1_r - alpha.y * d1_i) + (beta.x * d2.x - beta.y * d2.y);
-        res.y = (alpha.x * d1_i + alpha.y * d1_r) + (beta.x * d2.y + beta.y * d2.x);
-
-        data3[tx + ld3 * ty] = res;
-    }
-}
-
-template <typename T1, typename T2>
-__global__ void kernel_complex_addition_h(const T1*         data1_r,
-                                          const T1*         data1_i,
-                                          const rocblas_int ld1,
-                                          const rocblas_int str1,
-                                          const T2          alpha,
-                                          const T2*         data2,
-                                          const rocblas_int ld2,
-                                          const rocblas_int str2,
-                                          const T2          beta,
-                                          T2*               data3,
-                                          const rocblas_int ld3,
-                                          const rocblas_int str3,
-                                          const rocblas_int m,
-                                          const rocblas_int n)
-{
-    kernel_complex_addition(
-        data1_r, data1_i, ld1, str1, alpha, data2, ld2, str2, beta, data3, ld3, str3, m, n);
-}
-
-template <typename T1, typename T2>
-__global__ void kernel_complex_addition_d(const T1*         data1_r,
-                                          const T1*         data1_i,
-                                          const rocblas_int ld1,
-                                          const rocblas_int str1,
-                                          const T2*         alpha,
-                                          const T2*         data2,
-                                          const rocblas_int ld2,
-                                          const rocblas_int str2,
-                                          const T2*         beta,
-                                          T2*               data3,
-                                          const rocblas_int ld3,
-                                          const rocblas_int str3,
-                                          const rocblas_int m,
-                                          const rocblas_int n)
-{
-    kernel_complex_addition(
-        data1_r, data1_i, ld1, str1, *alpha, data2, ld2, str2, *beta, data3, ld3, str3, m, n);
-}
-
-// T1 is float, T2 is complex
-template <typename T1, typename T2>
-void complex_addition(const hipStream_t          rocblas_stream,
-                      const rocblas_pointer_mode pointer_mode,
-                      const T1*                  data1_r,
-                      const T1*                  data1_i,
-                      const rocblas_int          ld1,
-                      const rocblas_int          str1,
-                      const T2*                  alpha,
-                      const T2*                  data2,
-                      const rocblas_int          ld2,
-                      const rocblas_int          str2,
-                      const T2*                  beta,
-                      T2*                        data3,
-                      const rocblas_int          ld3,
-                      const rocblas_int          str3,
-                      const rocblas_int          m,
-                      const rocblas_int          n,
-                      const rocblas_int          b)
-{
-    rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-    rocblas_int blocksY = ((n - 1) / 8) + 1;
-    rocblas_int blocksZ = b;
-
-    dim3 grid(blocksX, blocksY, blocksZ);
-    dim3 threads(128, 8, 1);
-
-    if(rocblas_pointer_mode_host == pointer_mode)
-    {
-        hipLaunchKernelGGL(kernel_complex_addition_h,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           data1_r,
-                           data1_i,
-                           ld1,
-                           str1,
-                           *alpha,
-                           data2,
-                           ld2,
-                           str2,
-                           *beta,
-                           data3,
-                           ld3,
-                           str3,
-                           m,
-                           n);
-    }
-    else
-    {
-        hipLaunchKernelGGL(kernel_complex_addition_d,
-                           grid,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           data1_r,
-                           data1_i,
-                           ld1,
-                           str1,
-                           alpha,
-                           data2,
-                           ld2,
-                           str2,
-                           beta,
-                           data3,
-                           ld3,
-                           str3,
-                           m,
-                           n);
-    }
-}

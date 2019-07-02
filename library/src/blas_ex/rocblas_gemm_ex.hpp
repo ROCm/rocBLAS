@@ -121,6 +121,17 @@ template <typename Ti, typename To, typename Tc>
 TensileStatus tensile_Cijk_Alik_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
 template <typename Ti, typename To, typename Tc>
 TensileStatus tensile_Cijk_Alik_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
+// Complex Conjugate
+template <typename Ti, typename To, typename Tc>
+TensileStatus tensile_Cijk_Ailk_BjlkC_B(TENSILE_IN_ARGS(Ti, To, Tc));
+template <typename Ti, typename To, typename Tc>
+TensileStatus tensile_Cijk_AlikC_Bljk_B(TENSILE_IN_ARGS(Ti, To, Tc));
+template <typename Ti, typename To, typename Tc>
+TensileStatus tensile_Cijk_Alik_BjlkC_B(TENSILE_IN_ARGS(Ti, To, Tc));
+template <typename Ti, typename To, typename Tc>
+TensileStatus tensile_Cijk_AlikC_Bjlk_B(TENSILE_IN_ARGS(Ti, To, Tc));
+template <typename Ti, typename To, typename Tc>
+TensileStatus tensile_Cijk_AlikC_BjlkC_B(TENSILE_IN_ARGS(Ti, To, Tc));
 
 #define TENSILE_OUT_ARGS                                        \
     dataD, dataC, dataA, dataB, alpha, beta,                    \
@@ -296,129 +307,211 @@ TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4,TensileInt32,TensileInt32>(
 {
     return tensile_Cijk_Alik_Bjlk_4xi8BH(TENSILE_OUT_ARGS);
 }
+//---typename_data=rocblas_float_complex----------typename_compute=rocblas_float_complex--------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Ailk_Bljk_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Ailk_Bjlk_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Alik_Bljk_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Alik_Bjlk_CB(TENSILE_OUT_ARGS);
+}
+// Complex Conjugate
+template <>
+TensileStatus tensile_Cijk_Ailk_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Ailk_BjlkC_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_AlikC_Bljk_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_Alik_BjlkC_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_AlikC_Bjlk_CB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
+{
+    return tensile_Cijk_AlikC_BjlkC_CB(TENSILE_OUT_ARGS);
+}
+
+//---typename_data=rocblas_double_complex----------typename_compute=rocblas_double_complex--------------------------
+template <>
+TensileStatus tensile_Cijk_Ailk_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Ailk_Bljk_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Ailk_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Ailk_Bjlk_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Alik_Bljk_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Alik_Bjlk_ZB(TENSILE_OUT_ARGS);
+}
+// Complex Conjugate
+template <>
+TensileStatus tensile_Cijk_Ailk_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Ailk_BjlkC_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_AlikC_Bljk_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_Alik_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_Alik_BjlkC_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_AlikC_Bjlk_ZB(TENSILE_OUT_ARGS);
+}
+template <>
+TensileStatus tensile_Cijk_AlikC_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
+{
+    return tensile_Cijk_AlikC_BjlkC_ZB(TENSILE_OUT_ARGS);
+}
+
+// Helper macros for function call brevity
+#define TENSILE_BYPASS_ARGS                                     \
+    dataD, dataC, dataA, dataB, alpha, beta,                    \
+        strideD1J, strideD2K, strideC1J, strideC2K,             \
+        strideA1L, strideA2K, strideB1J, strideB2K,             \
+        sizeI, sizeJ, sizeK, sizeL, stream
+
+template <typename Ti, typename To, typename Tc>
+TensileStatus callTensile_ex(TENSILE_IN_ARGS(Ti, To, Tc), transpose_mode transposeMode)
+{
+
+    switch(transposeMode)
+    {
+    case NN:
+        return tensile_Cijk_Ailk_Bljk_B<Ti,To,Tc>(TENSILE_BYPASS_ARGS);
+    case NT:
+    case NC:
+        return tensile_Cijk_Ailk_Bjlk_B<Ti,To,Tc>(TENSILE_BYPASS_ARGS);
+    case TN:
+    case CN:
+        return tensile_Cijk_Alik_Bljk_B<Ti,To,Tc>(TENSILE_BYPASS_ARGS);
+    case TT:
+    case TC:
+    case CT:
+    case CC:
+        return tensile_Cijk_Alik_Bjlk_B<Ti,To,Tc>(TENSILE_BYPASS_ARGS);
+    }
+
+}
+
+template <>
+TensileStatus callTensile_ex<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
+    TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex), transpose_mode transposeMode)
+{
+
+    switch(transposeMode)
+    {
+    case NN:
+        return tensile_Cijk_Ailk_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case NT:
+        return tensile_Cijk_Ailk_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case NC:
+        return tensile_Cijk_Ailk_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case TN:
+        return tensile_Cijk_Alik_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case CN:
+        return tensile_Cijk_AlikC_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case TT:
+        return tensile_Cijk_Alik_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case TC:
+        return tensile_Cijk_Alik_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case CT:
+        return tensile_Cijk_AlikC_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    case CC:
+        return tensile_Cijk_AlikC_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(TENSILE_BYPASS_ARGS);
+    }
+
+}
+template <>
+TensileStatus callTensile_ex<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
+    TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex), transpose_mode transposeMode)
+{
+
+    switch(transposeMode)
+    {
+    case NN:
+        return tensile_Cijk_Ailk_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case NT:
+        return tensile_Cijk_Ailk_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case NC:
+        return tensile_Cijk_Ailk_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case TN:
+        return tensile_Cijk_Alik_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case CN:
+        return tensile_Cijk_AlikC_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case TT:
+        return tensile_Cijk_Alik_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case TC:
+        return tensile_Cijk_Alik_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case CT:
+        return tensile_Cijk_AlikC_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    case CC:
+        return tensile_Cijk_AlikC_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(TENSILE_BYPASS_ARGS);
+    }
+
+}
+
+#undef TENSILE_BYPASS_ARGS
 #undef TENSILE_IN_ARGS
 #undef TENSILE_OUT_ARGS
 //------------------------------------------------------------------------------
-
-template <typename ComplexT, typename UnitT>
-rocblas_status gemm_ex_handle_complex_transpose(rocblas_handle handle,
-                                                rocblas_operation trans_a,
-                                                rocblas_operation trans_b,
-                                                unsigned int m,
-                                                unsigned int n,
-                                                unsigned int k,
-                                                const ComplexT alpha,
-                                                const ComplexT* a, unsigned int lda, unsigned int stride_a,
-                                                const ComplexT* b, unsigned int ldb, unsigned int stride_b,
-                                                const ComplexT beta,
-                                                const ComplexT* c, unsigned int ldc, unsigned int stride_c,
-                                                      ComplexT* d, unsigned int ldd, unsigned int stride_d,
-                                                unsigned int batch_count)
-{
-    unsigned int A_row = trans_a == rocblas_operation_none ? m : k;
-    unsigned int A_col = trans_a == rocblas_operation_none ? k : m;
-    unsigned int B_row = trans_b == rocblas_operation_none ? k : n;
-    unsigned int B_col = trans_b == rocblas_operation_none ? n : k;
-    unsigned int C_row = m;
-    unsigned int C_col = n;
-    unsigned int batch = batch_count;
-
-    auto tempA  = rocblas_unique_ptr{rocblas::device_malloc(batch * A_row * A_col * sizeof(UnitT)), rocblas::device_free};
-    auto tempB  = rocblas_unique_ptr{rocblas::device_malloc(batch * B_row * B_col * sizeof(UnitT)), rocblas::device_free};
-    auto tempCr = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)), rocblas::device_free};
-    auto tempCi = rocblas_unique_ptr{rocblas::device_malloc(batch * C_row * C_col * sizeof(UnitT)), rocblas::device_free};
-
-    UnitT* tAptr  = static_cast<UnitT*>(tempA.get());
-    UnitT* tBptr  = static_cast<UnitT*>(tempB.get());
-    UnitT* tCrptr = static_cast<UnitT*>(tempCr.get());
-    UnitT* tCiptr = static_cast<UnitT*>(tempCi.get());
-
-    UnitT falpha = 1.0f;
-    UnitT fbeta  = 1.0f;
-
-    hipStream_t rocblas_stream;
-    rocblas_get_stream(handle, &rocblas_stream);
-
-    // ----- real part -----
-    // copy realA to tempA
-    copy_part_of_complex_matrix(rocblas_stream, true, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
-
-    // copy realB to tempB
-    copy_part_of_complex_matrix(rocblas_stream, true, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
-
-    // gemm tempCr = tempA * tempB
-    falpha = 1.0f;
-    fbeta  = 0.0f;
-    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
-                             falpha,
-                             tAptr, A_row, A_row * A_col,
-                             tBptr, B_row, B_row * B_col,
-                             fbeta,
-                             tCrptr, C_row, C_row * C_col,
-                             tCrptr, C_row, C_row * C_col,
-                             batch);
-
-    // copy imageA to tempA
-    copy_part_of_complex_matrix(rocblas_stream, false, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
-
-    // copy imageB to tempB
-    copy_part_of_complex_matrix(rocblas_stream, false, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
-
-    // gemm tempCr = (-tempA * tempB) + tempCr
-    falpha = ((trans_a == rocblas_operation_conjugate_transpose) == (trans_b == rocblas_operation_conjugate_transpose)) ? -1.0f : 1.0f;
-    fbeta  = 1.0f;
-    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
-                             falpha,
-                             tAptr, A_row, A_row * A_col,
-                             tBptr, B_row, B_row * B_col,
-                             fbeta,
-                             tCrptr, C_row, C_row * C_col,
-                             tCrptr, C_row, C_row * C_col,
-                             batch);
-
-    // ----- image part -----
-    // copy realA to tempA
-    copy_part_of_complex_matrix(rocblas_stream, true, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
-
-    // copy imageB to tempB
-    copy_part_of_complex_matrix(rocblas_stream, false, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
-
-    // gemm tempCi = tempA * tempB
-    falpha = (trans_b == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
-    fbeta  = 0.0f;
-    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
-                             falpha,
-                             tAptr, A_row, A_row * A_col,
-                             tBptr, B_row, B_row * B_col,
-                             fbeta,
-                             tCiptr, C_row, C_row * C_col,
-                             tCiptr, C_row, C_row * C_col,
-                             batch);
-
-    // copy imageA to tempA
-    copy_part_of_complex_matrix(rocblas_stream, false, tAptr, A_row, A_row * A_col, a, lda, stride_a, A_row, A_col, batch);
-
-    // copy realB to tempB
-    copy_part_of_complex_matrix(rocblas_stream, true, tBptr, B_row, B_row * B_col, b, ldb, stride_b, B_row, B_col, batch);
-
-    // gemm tempCi = tempA * tempB
-    falpha = (trans_a == rocblas_operation_conjugate_transpose) ? -1.0f : 1.0f;
-    fbeta  = 1.0f;
-    gemm_ex_handle_transpose(handle, trans_a, trans_b, m, n, k,
-                             falpha,
-                             tAptr, A_row, A_row * A_col,
-                             tBptr, B_row, B_row * B_col,
-                             fbeta,
-                             tCiptr, C_row, C_row * C_col,
-                             tCiptr, C_row, C_row * C_col,
-                             batch);
-
-    complex_addition(rocblas_stream, rocblas_pointer_mode_host, tCrptr, tCiptr, C_row, C_row * C_col, &alpha,
-                     c, ldc, stride_c, &beta, d, ldd, stride_d, m, n, batch);
-
-    return rocblas_status_success;
-}
-
 template <typename Ti, typename To, typename Tc>
 rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
                                         rocblas_operation trans_a,
@@ -438,6 +531,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     static const bool arch_lt906 = handle->device_arch_id() < 906;
     const To* c_in;
     unsigned int ldi, stride_i;
+    transpose_mode transposeMode = GetTransposeMode(trans_a, trans_b);
+
     if(!arch_lt906 && (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) && 
        ((ldc >= ldd && stride_c >= stride_d && m == ldd) || (ldc == ldd && stride_c == stride_d)))
     {
@@ -453,81 +548,20 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
         stride_i = stride_d;
     }
 
-    if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none))
-    {
-        t_status = tensile_Cijk_Ailk_Bljk_B<Ti,To,Tc>(static_cast<To*>(d),
-                                                      static_cast<const To*>(c_in),
-                                                      static_cast<const Ti*>(a),
-                                                      static_cast<const Ti*>(b),
-                                                      alpha, beta,
-                                                      static_cast<unsigned int>(ldd), stride_d,
-                                                      static_cast<unsigned int>(ldi), stride_i,
-                                                      static_cast<unsigned int>(lda), stride_a,
-                                                      static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m),
-                                                      static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count),
-                                                      static_cast<unsigned int>(k),
-                                                      handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_none) &&
-            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
-    {
-        t_status = tensile_Cijk_Ailk_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d),
-                                                      static_cast<const To*>(c_in),
-                                                      static_cast<const Ti*>(a), 
-                                                      static_cast<const Ti*>(b),
-                                                      alpha, beta,
-                                                      static_cast<unsigned int>(ldd), stride_d,
-                                                      static_cast<unsigned int>(ldi), stride_i,
-                                                      static_cast<unsigned int>(lda), stride_a,
-                                                      static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m),
-                                                      static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count),
-                                                      static_cast<unsigned int>(k),
-                                                      handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
-            (trans_b == rocblas_operation_none))
-    {
-        t_status = tensile_Cijk_Alik_Bljk_B<Ti,To,Tc>(static_cast<To*>(d),
-                                                      static_cast<const To*>(c_in),
-                                                      static_cast<const Ti*>(a),
-                                                      static_cast<const Ti*>(b),
-                                                      alpha, beta,
-                                                      static_cast<unsigned int>(ldd), stride_d,
-                                                      static_cast<unsigned int>(ldi), stride_i,
-                                                      static_cast<unsigned int>(lda), stride_a,
-                                                      static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m),
-                                                      static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count),
-                                                      static_cast<unsigned int>(k),
-                                                      handle->rocblas_stream);
-    }
-    else if((trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose) &&
-            (trans_b == rocblas_operation_transpose || trans_b == rocblas_operation_conjugate_transpose))
-    {
-        t_status = tensile_Cijk_Alik_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d),
-                                                      static_cast<const To*>(c_in),
-                                                      static_cast<const Ti*>(a),
-                                                      static_cast<const Ti*>(b),
-                                                      alpha, beta,
-                                                      static_cast<unsigned int>(ldd), stride_d,
-                                                      static_cast<unsigned int>(ldi), stride_i,
-                                                      static_cast<unsigned int>(lda), stride_a,
-                                                      static_cast<unsigned int>(ldb), stride_b,
-                                                      static_cast<unsigned int>(m),
-                                                      static_cast<unsigned int>(n),
-                                                      static_cast<unsigned int>(batch_count),
-                                                      static_cast<unsigned int>(k),
-                                                      handle->rocblas_stream);
-    }
-    else
-    {
-        t_status = tensileStatusFailure;
-    }
+    t_status = callTensile_ex<Ti,To,Tc>(static_cast<To*>(d),
+                                        static_cast<const To*>(c_in),
+                                        static_cast<const Ti*>(a),
+                                        static_cast<const Ti*>(b),
+                                        alpha, beta,
+                                        static_cast<unsigned int>(ldd), stride_d,
+                                        static_cast<unsigned int>(ldi), stride_i,
+                                        static_cast<unsigned int>(lda), stride_a,
+                                        static_cast<unsigned int>(ldb), stride_b,
+                                        static_cast<unsigned int>(m),
+                                        static_cast<unsigned int>(n),
+                                        static_cast<unsigned int>(batch_count),
+                                        static_cast<unsigned int>(k),
+                                        handle->rocblas_stream, transposeMode);
 
     if(t_status == tensileStatusSuccess)
     {
@@ -539,52 +573,6 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     }
 
     return rb_status;
-}
-
-template <>
-rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
-                                        rocblas_operation trans_a,
-                                        rocblas_operation trans_b,
-                                        unsigned int m,
-                                        unsigned int n,
-                                        unsigned int k,
-                                        const rocblas_float_complex alpha,
-                                        const rocblas_float_complex* a, unsigned int lda, unsigned int stride_a,
-                                        const rocblas_float_complex* b, unsigned int ldb, unsigned int stride_b,
-                                        const rocblas_float_complex beta,
-                                        const rocblas_float_complex* c, unsigned int ldc, unsigned int stride_c,
-                                              rocblas_float_complex* d, unsigned int ldd, unsigned int stride_d,
-                                        unsigned int batch_count)
-{
-    return gemm_ex_handle_complex_transpose<rocblas_float_complex, float>(
-        handle, trans_a, trans_b, m, n, k, alpha,
-        a, lda, stride_a,
-        b, ldb, stride_b, beta,
-        c, ldc, stride_c,
-        d, ldd, stride_d, batch_count);
-}
-
-template <>
-rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
-                                        rocblas_operation trans_a,
-                                        rocblas_operation trans_b,
-                                        unsigned int m,
-                                        unsigned int n,
-                                        unsigned int k,
-                                        const rocblas_double_complex alpha,
-                                        const rocblas_double_complex* a, unsigned int lda, unsigned int stride_a,
-                                        const rocblas_double_complex* b, unsigned int ldb, unsigned int stride_b,
-                                        const rocblas_double_complex beta,
-                                        const rocblas_double_complex* c, unsigned int ldc, unsigned int stride_c,
-                                              rocblas_double_complex* d, unsigned int ldd, unsigned int stride_d,
-                                        unsigned int batch_count)
-{
-    return gemm_ex_handle_complex_transpose<rocblas_double_complex, double>(
-        handle, trans_a, trans_b, m, n, k, alpha,
-        a, lda, stride_a,
-        b, ldb, stride_b, beta,
-        c, ldc, stride_c,
-        d, ldd, stride_d, batch_count);
 }
 
 #if defined(USE_CHUNKING)
