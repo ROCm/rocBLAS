@@ -185,7 +185,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto pointer_mode = handle->pointer_mode;
         auto layer_mode   = handle->layer_mode;

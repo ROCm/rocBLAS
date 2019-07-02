@@ -20,7 +20,6 @@ namespace
     constexpr rocblas_int NB_X        = 1024;
     constexpr rocblas_int STRSV_BLOCK = 128;
     constexpr rocblas_int DTRSV_BLOCK = 128;
-    constexpr rocblas_int NB          = 16;
 
     template <typename T>
     constexpr T negative_one = -1;
@@ -563,14 +562,15 @@ namespace
         size_t invA_bytes = supplied_invA ? 0 : sizeof(T) * BLOCK * m;
 
         // Temporary solution vector
-        size_t x_temp_bytes   = sizeof(T) * m;
+        size_t x_temp_bytes = sizeof(T) * m;
 
         // When m < BLOCK, C is unnecessary for trtri
-        size_t c_temp_bytes   = m < BLOCK ? 0 : sizeof(T) * BLOCK / 4 * m;
+        size_t c_temp_bytes = m < BLOCK ? 0 : sizeof(T) * BLOCK / 4 * m;
 
         // For the remainder of size BLOCK, we need C_temp in case m % BLOCK != 0
-        size_t remainder_bytes = sizeof(T) * NB * BLOCK * 2;
-        c_temp_bytes = max(c_temp_bytes, remainder_bytes);
+        // TODO: Make this more accurate -- right now it's much larger than necessary
+        size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
+        c_temp_bytes           = max(c_temp_bytes, remainder_bytes);
 
         // X and C temporaries can share space, so the maximum size of the two is allocated
         size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
@@ -608,7 +608,6 @@ namespace
                 return status;
         }
 
-
         if(transA == rocblas_operation_conjugate_transpose)
             transA = rocblas_operation_transpose;
 
@@ -617,7 +616,7 @@ namespace
         if(incx < 0)
             flip_vector(handle, B, m, abs_incx);
 
-        if(m % BLOCK == 0 && 0)
+        if(m % BLOCK == 0)
         {
             status = special_trsv_template<BLOCK>(
                 handle, uplo, transA, diag, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);

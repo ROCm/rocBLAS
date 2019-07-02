@@ -12,6 +12,8 @@
 #include "rocblas_trtri_batched.hpp"
 #include <hip/hip_runtime.h>
 
+static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
+
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB
     and stores the results in part of invA of size NB by NB.
@@ -272,16 +274,15 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            invA + blocks * NB * NB,
                            1);
 
-        constexpr rocblas_int NB_2 = 16;
-        status = rocblas_trtri_template<NB_2>(handle,
-                                            uplo,
-                                            diag,
-                                            n - blocks * NB,
-                                            A + blocks * NB * lda + blocks * NB,
-                                            lda,
-                                            invA + blocks * NB * NB,
-                                            NB,
-                                            C_tmp);
+        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB>(handle,
+                                                          uplo,
+                                                          diag,
+                                                          n - blocks * NB,
+                                                          A + blocks * NB * lda + blocks * NB,
+                                                          lda,
+                                                          invA + blocks * NB * NB,
+                                                          NB,
+                                                          C_tmp);
 
         if(status != rocblas_status_success)
             return status;

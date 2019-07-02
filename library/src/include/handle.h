@@ -301,13 +301,13 @@ private:
 };
 
 // For functions which don't use temporary device memory, and won't be likely
-// to use them in the future, the RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle)
+// to use them in the future, the RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle)
 // macro can be used to return from a rocblas function with a requested size of 0.
-#define RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(h)   \
-    do                                            \
-    {                                             \
-        if((h)->is_device_memory_size_query())    \
-            return rocblas_status_size_unchanged; \
+#define RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(h) \
+    do                                               \
+    {                                                \
+        if((h)->is_device_memory_size_query())       \
+            return rocblas_status_size_unchanged;    \
     } while(0)
 
 namespace rocblas

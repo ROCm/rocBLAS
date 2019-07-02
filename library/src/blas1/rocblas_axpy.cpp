@@ -83,7 +83,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         if(!alpha)
             return rocblas_status_invalid_pointer;
         rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
@@ -182,7 +182,7 @@ namespace
         if(!alpha || !x || !y)
             return rocblas_status_invalid_pointer;
 
-        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         if(n <= 0) // Quick return if possible. Not Argument error
             return rocblas_status_success;

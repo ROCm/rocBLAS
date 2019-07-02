@@ -12,13 +12,13 @@
 #include "rocblas.h"
 #include "utility.h"
 
-void device_matrix_copy(const void* src,
-                        rocblas_int ld_src,
-                        void*       dst,
-                        rocblas_int ld_dst,
-                        rocblas_int n1,
-                        rocblas_int n2,
-                        size_t      elem_size)
+static void device_matrix_copy(const void* src,
+                               rocblas_int ld_src,
+                               void*       dst,
+                               rocblas_int ld_dst,
+                               rocblas_int n1,
+                               rocblas_int n2,
+                               size_t      elem_size)
 {
     if(src != dst || ld_src != ld_dst) // no copy if src matrix == dst matrix
     {
@@ -48,16 +48,16 @@ void device_matrix_copy(const void* src,
     }
 }
 
-void device_strided_batched_matrix_copy(const void* src,
-                                        rocblas_int ld_src,
-                                        rocblas_int stride_src,
-                                        void*       dst,
-                                        rocblas_int ld_dst,
-                                        rocblas_int stride_dst,
-                                        rocblas_int n1,
-                                        rocblas_int n2,
-                                        rocblas_int batch_count,
-                                        size_t      elem_size)
+static void device_strided_batched_matrix_copy(const void* src,
+                                               rocblas_int ld_src,
+                                               rocblas_int stride_src,
+                                               void*       dst,
+                                               rocblas_int ld_dst,
+                                               rocblas_int stride_dst,
+                                               rocblas_int n1,
+                                               rocblas_int n2,
+                                               rocblas_int batch_count,
+                                               size_t      elem_size)
 {
     if(src != dst || ld_src != ld_dst
        || stride_src != stride_dst) // no copy if src matrix == dst matrix
@@ -171,8 +171,8 @@ TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf, TensileHalf, float>(TENSILE_
                                                                                         float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
-    TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
-    TensileHalf beta_half  = static_cast<TensileHalf>(beta);
+    TensileHalf alpha_half(alpha);
+    TensileHalf beta_half(beta);
     return tensile_Cijk_Ailk_Bljk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
@@ -181,8 +181,8 @@ TensileStatus tensile_Cijk_Ailk_Bjlk_B<TensileHalf, TensileHalf, float>(TENSILE_
                                                                                         float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
-    TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
-    TensileHalf beta_half  = static_cast<TensileHalf>(beta);
+    TensileHalf alpha_half(alpha);
+    TensileHalf beta_half(beta);
     return tensile_Cijk_Ailk_Bjlk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
@@ -191,8 +191,8 @@ TensileStatus tensile_Cijk_Alik_Bljk_B<TensileHalf, TensileHalf, float>(TENSILE_
                                                                                         float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
-    TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
-    TensileHalf beta_half  = static_cast<TensileHalf>(beta);
+    TensileHalf alpha_half(alpha);
+    TensileHalf beta_half(beta);
     return tensile_Cijk_Alik_Bljk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 template <>
@@ -201,8 +201,8 @@ TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileHalf, TensileHalf, float>(TENSILE_
                                                                                         float))
 {
     //TODO: alpha and beta need to have precision equal to compute type, not data type
-    TensileHalf alpha_half = static_cast<TensileHalf>(alpha);
-    TensileHalf beta_half  = static_cast<TensileHalf>(beta);
+    TensileHalf alpha_half(alpha);
+    TensileHalf beta_half(beta);
     return tensile_Cijk_Alik_Bjlk_HBH(TENSILE_OUT_ARGS_HALF);
 }
 #undef TENSILE_OUT_ARGS_HALF
@@ -452,15 +452,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
         t_status = tensileStatusFailure;
     }
 
-    if(t_status == tensileStatusSuccess)
-    {
-        rb_status = rocblas_status_success;
-    }
-    else
-    {
-        rb_status = rocblas_status_internal_error;
-    }
-
+    rb_status
+        = t_status == tensileStatusSuccess ? rocblas_status_success : rocblas_status_internal_error;
     return rb_status;
 }
 

@@ -63,7 +63,7 @@ namespace
         if(!x || !y)
             return rocblas_status_invalid_pointer;
 
-        RETURN_ZERO_DEVICE_MEMORY_IF_QUERIED(handle);
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         // Quick return if possible.
         if(n <= 0)

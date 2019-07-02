@@ -10,9 +10,9 @@
 #include "handle.h"
 
 // return the number of elements in a NxN matrix that do not belong to the triangular region
-constexpr size_t num_non_tri_elements(rocblas_int n)
+constexpr size_t num_non_tri_elements(size_t n)
 {
-    return size_t(n) * size_t(n - 1) / 2;
+    return n * (n - 1) / 2;
 }
 
 template <rocblas_int IB, typename T>

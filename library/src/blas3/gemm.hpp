@@ -44,7 +44,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle    handle,
                                                      rocblas_int       stride_c,
                                                      rocblas_int       batch_count);
 
-#define COMPLEX 0
+#undef COMPLEX
 
 /* ============================================================================================ */
 
