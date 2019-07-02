@@ -119,8 +119,7 @@ class RocBLAS_TestName
     static auto& get_table()
     {
         // Placed inside function to avoid dependency on initialization order
-        using table_t     = std::unordered_map<std::string, size_t>;
-        static auto table = test_cleanup::allocate<table_t>(table);
+        static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         return *table;
     }
 

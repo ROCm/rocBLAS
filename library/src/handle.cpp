@@ -2,6 +2,7 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
+#include "utility.h"
 #include <cstdio>
 #include <cstdlib>
 

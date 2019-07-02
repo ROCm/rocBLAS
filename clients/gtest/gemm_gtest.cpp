@@ -15,7 +15,6 @@
 
 namespace
 {
-
     // Types of GEMM tests
     enum gemm_test_type
     {

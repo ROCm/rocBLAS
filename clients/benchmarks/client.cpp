@@ -2,50 +2,38 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <iostream>
-
-#include <cstdio>
-#include <cstring>
-#include <string>
-
-#include <cctype>
-
-#include <boost/program_options.hpp>
-
-#include <algorithm>
-#include <stdexcept>
-#include <type_traits>
-
 #include "rocblas.h"
-#include "utility.hpp"
-
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
-#include "testing_iamax_iamin.hpp"
-
+#include "rocblas_parse_data.hpp"
 #include "testing_asum.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
-#include "testing_swap.hpp"
-
+#include "testing_geam.hpp"
 #include "testing_gemv.hpp"
 #include "testing_ger.hpp"
-#include "testing_syr.hpp"
-
+#include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
+#include "testing_set_get_matrix.hpp"
+#include "testing_set_get_vector.hpp"
+#include "testing_swap.hpp"
+#include "testing_syr.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
-
-#include "testing_geam.hpp"
-#include "testing_set_get_vector.hpp"
-
-#include "testing_set_get_matrix.hpp"
 #include "type_dispatch.hpp"
-
-#include "rocblas_parse_data.hpp"
+#include "utility.hpp"
+#include <algorithm>
+#include <boost/program_options.hpp>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
 
 using namespace std::literals;
 

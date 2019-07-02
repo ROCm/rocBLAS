@@ -5,12 +5,10 @@
 #ifndef ROCBLAS_MATH_H_
 #define ROCBLAS_MATH_H_
 
-#include <hip/hip_runtime.h>
-
-#include <cmath>
-#include <immintrin.h>
-
 #include "rocblas.h"
+#include <cmath>
+#include <hip/hip_runtime.h>
+#include <immintrin.h>
 
 /* ============================================================================================ */
 // Helper routine to convert floats into their half equivalent; uses F16C instructions

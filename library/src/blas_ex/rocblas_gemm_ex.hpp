@@ -2,7 +2,7 @@
  * Copyright 2016 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #ifndef _ROCBLAS_GEMM_EX_H
-#define _ROCBLAS_GEMM_EX_H 1
+#define _ROCBLAS_GEMM_EX_H
 
 #include "Tensile.h"
 #include "TensileTypes.h"

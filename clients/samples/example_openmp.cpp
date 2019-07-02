@@ -20,14 +20,13 @@
            all rocblas routine take the NULL (0) stream.
 */
 
+#include "rocblas.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <iostream>
 #include <omp.h>
 #include <vector>
-
-#include "rocblas.hpp"
-#include "utility.hpp"
 
 #define NUM_THREADS 4
 
@@ -35,7 +34,6 @@
 
 int main()
 {
-
     rocblas_int N     = 102400;
     float       alpha = 10.0;
 

@@ -12,27 +12,6 @@
 #include <hip/hip_runtime_api.h>
 #include <tuple>
 
-#define A(ii, jj) (A + (ii) + (jj)*lda)
-#define B(ii) (B + (ii))
-#define X(ii) (X + (ii))
-#define invA(ii) (invA + (ii)*BLOCK)
-
-// device_malloc wraps hipMalloc and provides same API as malloc
-static void* device_malloc(size_t byte_size)
-{
-    void* pointer = nullptr;
-    PRINT_IF_HIP_ERROR(hipMalloc(&pointer, byte_size));
-    return pointer;
-}
-
-// device_free wraps hipFree and provides same API as free
-static void device_free(void* ptr)
-{
-    PRINT_IF_HIP_ERROR(hipFree(ptr));
-}
-
-using rocblas_unique_ptr = std::unique_ptr<void, void (*)(void*)>;
-
 namespace
 {
     using std::max;

@@ -2,9 +2,6 @@
  * Copyright 2018 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <condition_variable>
-#include <mutex>
-
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -17,6 +14,8 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
+#include <condition_variable>
+#include <mutex>
 
 std::mutex memcpy_mutex;
 
