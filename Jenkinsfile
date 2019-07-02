@@ -98,7 +98,7 @@ rocBLASCI:
                     """
             }
         }
-        
+
         platform.runCommand(this, command)
         junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
     }
@@ -107,8 +107,8 @@ rocBLASCI:
     {
         platform, project->
 
-        def command 
-        
+        def command
+
         if(platform.jenkinsLabel.contains('centos'))
         {
             command = """
@@ -121,7 +121,7 @@ rocBLASCI:
                 """
 
             platform.runCommand(this, command)
-            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")        
+            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")
         }
         else
         {
@@ -129,8 +129,10 @@ rocBLASCI:
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
                     make package
+                    make package_clients
                     rm -rf package && mkdir -p package
                     mv *.deb package/
+                    mv clients/*.deb package/
                     dpkg -c package/*.deb
                 """
 
