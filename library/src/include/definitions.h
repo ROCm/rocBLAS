@@ -10,8 +10,6 @@
 
 /*******************************************************************************
  * Definitions
- * this file to not include any others
- * thereby it can include top-level definitions included by all
  ******************************************************************************/
 
 // half vectors
