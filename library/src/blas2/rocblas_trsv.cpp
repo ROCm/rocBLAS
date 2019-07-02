@@ -23,13 +23,13 @@ namespace
     constexpr rocblas_int NB          = 16;
 
     template <typename T>
-    constexpr T negative_one(-1);
+    constexpr T negative_one = -1;
 
     template <typename T>
-    constexpr T zero(0);
+    constexpr T zero = 0;
 
     template <typename T>
-    constexpr T one(1);
+    constexpr T one = 1;
 
     template <typename T>
     __global__ void flip_vector_kernel(T* __restrict__ data,
@@ -562,10 +562,17 @@ namespace
         // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
         size_t invA_bytes = supplied_invA ? 0 : sizeof(T) * BLOCK * m;
 
-        // X and C temporaries can share space, so the maximum size of the two is allocated
-        // When m < BLOCK, C is unnecessary.
+        // Temporary solution vector
         size_t x_temp_bytes   = sizeof(T) * m;
+
+        // When m < BLOCK, C is unnecessary for trtri
         size_t c_temp_bytes   = m < BLOCK ? 0 : sizeof(T) * BLOCK / 4 * m;
+
+        // For the remainder of size BLOCK, we need C_temp in case m % BLOCK != 0
+        size_t remainder_bytes = sizeof(T) * NB * BLOCK * 2;
+        c_temp_bytes = max(c_temp_bytes, remainder_bytes);
+
+        // X and C temporaries can share space, so the maximum size of the two is allocated
         size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
 
         // If this is a device memory size query, set optimal size and return changed status
@@ -595,11 +602,12 @@ namespace
         {
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
             auto c_temp = x_temp; // Uses same memory as x_temp
-            status      = rocblas_trtri_trsm_template<NB>(
+            status      = rocblas_trtri_trsm_template<BLOCK>(
                 handle, (T*)c_temp, uplo, diag, m, A, lda, (T*)invA);
             if(status != rocblas_status_success)
                 return status;
         }
+
 
         if(transA == rocblas_operation_conjugate_transpose)
             transA = rocblas_operation_transpose;

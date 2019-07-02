@@ -24,7 +24,7 @@
 
 */
 template <rocblas_int NB, rocblas_int IB, rocblas_int IBD, typename T>
-static __global__ void trtri_trsm_kernel(
+__global__ void trtri_trsm_kernel(
     rocblas_fill uplo, rocblas_diagonal diag, const T* A, rocblas_int lda, T* invA)
 {
     // get the individual matrix which is processed by device function
@@ -102,14 +102,14 @@ rocblas_status rocblas_trtri_template(rocblas_handle   handle,
 // assume invA has already been allocated, and leading dimension of invA is NB
 // assume IB is exactly half of NB
 template <rocblas_int NB, typename T>
-static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
-                                                  T*               C_tmp,
-                                                  rocblas_fill     uplo,
-                                                  rocblas_diagonal diag,
-                                                  rocblas_int      n,
-                                                  const T*         A,
-                                                  rocblas_int      lda,
-                                                  T*               invA)
+rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
+                                           T*               C_tmp,
+                                           rocblas_fill     uplo,
+                                           rocblas_diagonal diag,
+                                           rocblas_int      n,
+                                           const T*         A,
+                                           rocblas_int      lda,
+                                           T*               invA)
 {
     // Quick return if possible.
     if(!n)
@@ -174,12 +174,12 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         size_t tri_elements_to_zero = num_non_tri_elements(NB) * blocks;
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
         hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
-                           dim3(numBlocks, 1, 1),
-                           dim3(blockSize, 1, 1),
+                           dim3(numBlocks),
+                           dim3(blockSize),
                            0,
                            handle->rocblas_stream,
                            handle,
-                           (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                           uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                            NB,
                            num_non_tri_elements(NB),
                            NB,
@@ -196,12 +196,12 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
             handle,
             IB * 2,
             IB * 2,
-            (const T*)(A + ((uplo == rocblas_fill_lower) ? IB * 2 : IB * 2 * lda)),
+            (const T*)(A + (uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * lda)),
             lda,
             stride_A,
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 : IB * 2 * NB + IB * 2)),
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 2 * NB + IB * 2 : 0)),
-            (T*)(invA + ((uplo == rocblas_fill_lower) ? IB * 2 : IB * 2 * NB)),
+            (const T*)(invA + (uplo == rocblas_fill_lower ? 0 : IB * 2 * NB + IB * 2)),
+            (const T*)(invA + (uplo == rocblas_fill_lower ? IB * 2 * NB + IB * 2 : 0)),
+            (T*)(invA + (uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * NB)),
             NB,
             stride_invA,
             (T*)C_tmp,
@@ -214,18 +214,17 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
             IB * 2,
             IB * 2,
             (const T*)(A
-                       + ((uplo == rocblas_fill_lower) ? IB * 4 * lda + IB * 6
-                                                       : IB * 6 * lda + IB * 4)),
+                       + (uplo == rocblas_fill_lower ? IB * 4 * lda + IB * 6
+                                                     : IB * 6 * lda + IB * 4)),
             lda,
             stride_A,
             (const T*)(invA
-                       + ((uplo == rocblas_fill_lower) ? IB * 4 * NB + IB * 4
-                                                       : IB * 6 * NB + IB * 6)),
+                       + (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 4
+                                                     : IB * 6 * NB + IB * 6)),
             (const T*)(invA
-                       + ((uplo == rocblas_fill_lower) ? IB * 6 * NB + IB * 6
-                                                       : IB * 4 * NB + IB * 4)),
-            (T*)(invA
-                 + ((uplo == rocblas_fill_lower) ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4)),
+                       + (uplo == rocblas_fill_lower ? IB * 6 * NB + IB * 6
+                                                     : IB * 4 * NB + IB * 4)),
+            (T*)(invA + (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4)),
             NB,
             stride_invA,
             (T*)C_tmp,
@@ -240,9 +239,9 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
             (const T*)(A + ((uplo == rocblas_fill_lower) ? JB : JB * lda)),
             lda,
             stride_A,
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? 0 : JB * NB + JB)),
-            (const T*)(invA + ((uplo == rocblas_fill_lower) ? JB * NB + JB : 0)),
-            (T*)(invA + ((uplo == rocblas_fill_lower) ? JB : JB * NB)),
+            (const T*)(invA + (uplo == rocblas_fill_lower ? 0 : JB * NB + JB)),
+            (const T*)(invA + (uplo == rocblas_fill_lower ? JB * NB + JB : 0)),
+            (T*)(invA + (uplo == rocblas_fill_lower ? JB : JB * NB)),
             NB,
             stride_invA,
             (T*)C_tmp,
@@ -260,12 +259,12 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         size_t tri_elements_to_zero = num_non_tri_elements(n - blocks * NB);
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
         hipLaunchKernelGGL(rocblas_trtri_batched_fill<T>,
-                           dim3(numBlocks, 1, 1),
-                           dim3(blockSize, 1, 1),
+                           dim3(numBlocks),
+                           dim3(blockSize),
                            0,
                            handle->rocblas_stream,
                            handle,
-                           (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                           uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                            n - blocks * NB,
                            num_non_tri_elements(n - blocks * NB),
                            NB,
@@ -273,7 +272,8 @@ static rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            invA + blocks * NB * NB,
                            1);
 
-        status = rocblas_trtri_template<NB>(handle,
+        constexpr rocblas_int NB_2 = 16;
+        status = rocblas_trtri_template<NB_2>(handle,
                                             uplo,
                                             diag,
                                             n - blocks * NB,

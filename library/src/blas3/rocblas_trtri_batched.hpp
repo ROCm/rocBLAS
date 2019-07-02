@@ -12,7 +12,7 @@
 // return the number of elements in a NxN matrix that do not belong to the triangular region
 constexpr size_t num_non_tri_elements(rocblas_int n)
 {
-    return static_cast<size_t>(n) * static_cast<size_t>(n - 1) / 2;
+    return size_t(n) * size_t(n - 1) / 2;
 }
 
 template <rocblas_int IB, typename T>
@@ -424,7 +424,7 @@ rocblas_status rocblas_trtri_small_batched(rocblas_handle   handle,
                        0,
                        handle->rocblas_stream,
                        handle,
-                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                       uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                        n,
                        num_non_tri_elements(n),
                        ldinvA,
@@ -630,7 +630,7 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle   handle,
                        0,
                        handle->rocblas_stream,
                        handle,
-                       (uplo == rocblas_fill_lower) ? rocblas_fill_upper : rocblas_fill_lower,
+                       uplo == rocblas_fill_lower ? rocblas_fill_upper : rocblas_fill_lower,
                        n,
                        num_non_tri_elements(n),
                        ldinvA,
@@ -655,25 +655,25 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle   handle,
                     current_n,
                     current_n,
                     (const T*)(A
-                               + ((uplo == rocblas_fill_lower) ? current_n + i * bsa
-                                                               : current_n * lda + i * bsa)),
+                               + (uplo == rocblas_fill_lower ? current_n + i * bsa
+                                                             : current_n * lda + i * bsa)),
                     lda,
                     2 * current_n * lda + 2 * current_n,
                     (const T*)(invA
-                               + ((uplo == rocblas_fill_lower)
+                               + (uplo == rocblas_fill_lower
                                       ? 0 + i * bsinvA
                                       : current_n * ldinvA + current_n + i * bsinvA)),
                     (const T*)(invA
-                               + ((uplo == rocblas_fill_lower)
+                               + (uplo == rocblas_fill_lower
                                       ? current_n * ldinvA + current_n + i * bsinvA
                                       : 0 + i * bsinvA)),
                     (T*)(invA
-                         + ((uplo == rocblas_fill_lower) ? current_n + i * bsinvA
-                                                         : current_n * ldinvA + i * bsinvA)),
+                         + (uplo == rocblas_fill_lower ? current_n + i * bsinvA
+                                                       : current_n * ldinvA + i * bsinvA)),
                     ldinvA,
                     2 * current_n * ldinvA + 2 * current_n,
                     (T*)(invA
-                         + ((uplo == rocblas_fill_lower)
+                         + (uplo == rocblas_fill_lower
                                 ? (n - current_n) * ldinvA + i * bsinvA
                                 : (n - current_n * tiles_per_batch) + i * bsinvA)),
                     ldinvA,
@@ -693,25 +693,25 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle   handle,
                     current_n,
                     current_n,
                     (const T*)(A
-                               + ((uplo == rocblas_fill_lower) ? current_n + i * stride_A
-                                                               : current_n * lda + i * stride_A)),
+                               + (uplo == rocblas_fill_lower ? current_n + i * stride_A
+                                                             : current_n * lda + i * stride_A)),
                     lda,
                     bsa,
                     (const T*)(invA
-                               + ((uplo == rocblas_fill_lower)
+                               + (uplo == rocblas_fill_lower
                                       ? 0 + i * stride_invA
                                       : current_n * ldinvA + current_n + i * stride_invA)),
                     (const T*)(invA
-                               + ((uplo == rocblas_fill_lower)
+                               + (uplo == rocblas_fill_lower
                                       ? current_n * ldinvA + current_n + i * stride_invA
                                       : 0 + i * stride_invA)),
                     (T*)(invA
-                         + ((uplo == rocblas_fill_lower) ? current_n + i * stride_invA
-                                                         : current_n * ldinvA + i * stride_invA)),
+                         + (uplo == rocblas_fill_lower ? current_n + i * stride_invA
+                                                       : current_n * ldinvA + i * stride_invA)),
                     ldinvA,
                     bsinvA,
                     (T*)(invA
-                         + ((uplo == rocblas_fill_lower)
+                         + (uplo == rocblas_fill_lower
                                 ? (n - current_n) * ldinvA + i * current_n
                                 : (n - current_n * tiles_per_batch) + i * current_n)),
                     ldinvA,
@@ -744,20 +744,20 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle   handle,
         {
             trtri_strided_gemm_block(
                 handle,
-                (uplo == rocblas_fill_lower) ? remainder : current_n,
-                (uplo == rocblas_fill_lower) ? current_n : remainder,
-                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n : current_n * lda)),
+                uplo == rocblas_fill_lower ? remainder : current_n,
+                uplo == rocblas_fill_lower ? current_n : remainder,
+                (const T*)(A + (uplo == rocblas_fill_lower ? current_n : current_n * lda)),
                 lda,
                 bsa,
                 (const T*)(invA
-                           + ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n)),
+                           + (uplo == rocblas_fill_lower ? 0 : current_n * ldinvA + current_n)),
                 (const T*)(invA
-                           + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n : 0)),
-                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
+                           + (uplo == rocblas_fill_lower ? current_n * ldinvA + current_n : 0)),
+                (T*)(invA + (uplo == rocblas_fill_lower ? current_n : current_n * ldinvA)),
                 ldinvA,
                 bsinvA,
                 C_tmp,
-                (uplo == rocblas_fill_lower) ? remainder : current_n,
+                uplo == rocblas_fill_lower ? remainder : current_n,
                 remainder * current_n,
                 batch_count);
         }
@@ -768,20 +768,20 @@ rocblas_status rocblas_trtri_large_batched(rocblas_handle   handle,
 
             trtri_strided_gemm_block(
                 handle,
-                (uplo == rocblas_fill_lower) ? oddRemainder : current_n,
-                (uplo == rocblas_fill_lower) ? current_n : oddRemainder,
-                (const T*)(A + ((uplo == rocblas_fill_lower) ? current_n : current_n * lda)),
+                uplo == rocblas_fill_lower ? oddRemainder : current_n,
+                uplo == rocblas_fill_lower ? current_n : oddRemainder,
+                (const T*)(A + (uplo == rocblas_fill_lower ? current_n : current_n * lda)),
                 lda,
                 bsa,
                 (const T*)(invA
-                           + ((uplo == rocblas_fill_lower) ? 0 : current_n * ldinvA + current_n)),
+                           + (uplo == rocblas_fill_lower ? 0 : current_n * ldinvA + current_n)),
                 (const T*)(invA
-                           + ((uplo == rocblas_fill_lower) ? current_n * ldinvA + current_n : 0)),
-                (T*)(invA + ((uplo == rocblas_fill_lower) ? current_n : current_n * ldinvA)),
+                           + (uplo == rocblas_fill_lower ? current_n * ldinvA + current_n : 0)),
+                (T*)(invA + (uplo == rocblas_fill_lower ? current_n : current_n * ldinvA)),
                 ldinvA,
                 bsinvA,
                 C_tmp,
-                (uplo == rocblas_fill_lower) ? oddRemainder : current_n,
+                uplo == rocblas_fill_lower ? oddRemainder : current_n,
                 oddRemainder * current_n,
                 batch_count);
         }
