@@ -36,7 +36,7 @@ Tests:
     - dot:   *single_double_precisions_complex_real
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
-    - scalrc: *single_double_complex_real_in_complex_out
+    - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real
 
 - name: blas1
@@ -55,7 +55,7 @@ Tests:
     - dot:   *double_precision_complex_real
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
-    - scalrc: *single_double_complex_real_in_complex_out
+    - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
@@ -70,6 +70,6 @@ Tests:
     - dot_bad_arg:   *single_double_precisions_complex_real
     - dotc_bad_arg:  *single_double_precisions_complex
     - scal_bad_arg:  *single_double_precisions_complex_real
-    - scalrc_bad_arg: *single_double_complex_real_in_complex_out
+    - scal_bad_arg:  *single_double_complex_real_in_complex_out
     - swap_bad_arg:  *single_double_precisions_complex_real
 ...

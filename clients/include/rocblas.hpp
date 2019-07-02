@@ -33,13 +33,13 @@ rocblas_status (*rocblas_scal)(
     rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx);
 
 template <>
-static constexpr auto rocblas_scal<float> = rocblas_sscal;
+static constexpr auto rocblas_scal<float, float> = rocblas_sscal;
 
 template <>
-static constexpr auto rocblas_scal<double> = rocblas_dscal;
+static constexpr auto rocblas_scal<double, double> = rocblas_dscal;
 
 template <>
-static constexpr auto rocblas_scal<rocblas_float_complex> = rocblas_cscal;
+static constexpr auto rocblas_scal<rocblas_float_complex, rocblas_float_complex> = rocblas_cscal;
 
 template <>
 static constexpr auto rocblas_scal<rocblas_double_complex> = rocblas_zscal;

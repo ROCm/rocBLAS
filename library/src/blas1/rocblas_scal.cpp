@@ -12,7 +12,7 @@ namespace
     constexpr int NB = 256;
 
     template <typename T, typename U>
-    __global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
+    __global__ void scal_kernel(rocblas_int n, T alpha_device_host, U* x, rocblas_int incx)
     {
         auto      alpha = load_scalar(alpha_device_host);
         ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -22,20 +22,24 @@ namespace
             x[tid * incx] *= alpha;
     }
 
-    template <typename>
+    template <typename, typename>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
-    constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
+    constexpr char rocblas_scal_name<float, float>[] = "rocblas_sscal";
     template <>
-    constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
+    constexpr char rocblas_scal_name<double, double>[] = "rocblas_dscal";
     template <>
-    constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
+    constexpr char rocblas_scal_name<rocblas_float_complex, rocblas_float_complex>[] = "rocblas_cscal";
     template <>
-    constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
+    constexpr char rocblas_scal_name<rocblas_double_complex, rocblas_double_complex>[] = "rocblas_zscal";
+    template<>
+    constexpr char rocblas_scal_name<float, rocblas_float_complex>[] = "rocblas_csscal";
+    template<>
+    constexpr char rocblas_scal_name<double, rocblas_double_complex>[] = "rocblas_zdscal";
 
-    template <class T>
+    template <class T, class U = T>
     rocblas_status
-        rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx)
+        rocblas_scal(rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -46,36 +50,36 @@ namespace
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_scal_name<T>, n, *alpha, x, incx);
+                log_trace(handle, rocblas_scal_name<T, U>, n, *alpha, x, incx);
 
-            double ar = 0, ai = 0;
-            if constexpr(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, rocblas_double_complex>{})
-            {
-                ar = alpha->x;
-                ai = alpha->y;
-            }
-            else
-                ar = *alpha;
+            // there are an extra 2 scal functions, thus
+            // the -r mode will not work correctly. Substitute
+            // with --a_type and --b_type (?)
+            // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f scal -r",
+                          "./rocblas-bench -f scal --a_type",
+                          rocblas_precision_string<T>,
+                          "--b_type",
+                          rocblas_precision_string<U>,
+                          "--d_type",
                           rocblas_precision_string<T>,
                           "-n",
                           n,
                           "--incx",
                           incx,
                           "--alpha",
-                          ar,
-                          "--alphai",
-                          ai);
+                          real(*alpha),
+                          "--alpha_imag",
+                          imag(*alpha));
         }
         else
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_scal_name<T>, n, alpha, x, incx);
+                log_trace(handle, rocblas_scal_name<T, U>, n, alpha, x, incx);
         }
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_scal_name<T>, "N", n, "incx", incx);
+            log_profile(handle, rocblas_scal_name<T, U>, "N", n, "incx", incx);
 
         if(!x)
             return rocblas_status_invalid_pointer;
@@ -134,6 +138,25 @@ rocblas_status rocblas_zscal(rocblas_handle                handle,
                              const rocblas_double_complex* alpha,
                              rocblas_double_complex*       x,
                              rocblas_int                   incx)
+{
+    return rocblas_scal(handle, n, alpha, x, incx);
+}
+
+// Scal with a real alpha & complex vector
+rocblas_status rocblas_csscal(rocblas_handle handle,
+                              rocblas_int n,
+                              const float* alpha,
+                              rocblas_float_complex* x,
+                              rocblas_int incx)
+{
+    return rocblas_scal(handle, n, alpha, x, incx);
+}
+
+rocblas_status rocblas_zdscal(rocblas_handle handle,
+                              rocblas_int n,
+                              const double* alpha,
+                              rocblas_double_complex* x,
+                              rocblas_int incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }

@@ -101,44 +101,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zscal(rocblas_handle                handle
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
-/*
- * ===========================================================================
- *    level 1 BLAS
- * ===========================================================================
- */
+ROCBLAS_EXPORT rocblas_status rocblas_csscal(rocblas_handle handle,
+                                             rocblas_int n,
+                                             const float *alpha,
+                                             rocblas_float_complex *x, rocblas_int incx);
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    scalrc  scal the complex vector x[i] with real scalar alpha, for  i = 1 , … , n
-
-        x := alpha * x ,
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int.
-    @param[in]
-    alpha     specifies the real scalar alpha.
-    @param[inout]
-    x         pointer storing complex vector x on the GPU.
-    @param[in]
-    incx      specifies the increment for the elements of x.
-
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_csscal(rocblas_handle         handle,
-                                             rocblas_int            n,
-                                             const float*           alpha,
-                                             rocblas_float_complex* x,
-                                             rocblas_int            incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle          handle,
-                                             rocblas_int             n,
-                                             const double*           alpha,
-                                             rocblas_double_complex* x,
-                                             rocblas_int             incx);
+ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle handle,
+                                             rocblas_int n,
+                                             const double *alpha,
+                                             rocblas_double_complex *x, rocblas_int incx);
 
 /*! \brief BLAS Level 1 API
 
@@ -2418,34 +2389,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
     compute_type rocblas_datatype
             specifies the datatype of computation
 
-<<<<<<< HEAD
-=======
-    @param[in]
-    option  rocblas_trsm_option
-            enumerant specifying the selected trsm memory option.
-            -   rocblas_trsm_high_performance
-            -   rocblas_trsm_low_memory
-            Trsm can choose algorithms that either use large work memory size in order
-            to get high performance, or small work memory with reduced performance.
-            User can inspect returned work memory size to fit their application needs.
-    @param[in, out]
-    x_temp_size size_t*
-            During setup the suggested size of x_temp is returned with respect
-            to the selected rocblas_trsm_option.
-            During run x_temp_size specifies the size allocated for
-            x_temp_workspace
-            Note: Must use rocblas_trsm_high_performance suggest size
-            If rocblas_side_left and m is not a multiple of 128
-            If rocblas_side_right and n is not a multiple of 128
-    @parm[in]
-    x_temp_workspace void*
-            During setup x_temp_workspace must hold a null pointer to signal
-            the request for x_temp_size
-            During run x_temp_workspace is a pointer to store temporary matrix X
-            on the GPU.
-            x_temp_workspace is of dimension ( m, x_temp_size/m )
-
->>>>>>> develop
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,

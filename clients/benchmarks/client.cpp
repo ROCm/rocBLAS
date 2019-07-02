@@ -96,14 +96,14 @@ struct perf_gemm_strided_batched_ex<
 
 #endif
 
-template <typename T, typename = void>
+template <typename T, typename U=T, typename = void>
 struct perf_blas : rocblas_test_invalid
 {
 };
 
-template <typename T>
+template <typename T, typename U>
 struct perf_blas<
-    T,
+    T, U,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool()
@@ -138,8 +138,6 @@ struct perf_blas<
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
-        else if(!strcmp(arg.function, "scal"))
-            testing_scal<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "ger"))
@@ -162,8 +160,8 @@ struct perf_blas<
     }
 };
 
-template <typename T>
-struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+template <typename T, typename U>
+struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
     explicit operator bool()
     {
@@ -208,30 +206,49 @@ struct perf_blas<T,
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
             testing_iamin<T>(arg);
-        else if(!strcmp(arg.function, "scal"))
-            testing_scal<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
     }
 };
 
-// Template to dispatch testing_gemm_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+template <typename Ta, typename Tb=Ta, typename = void>
+struct perf_blas_scal : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tb>
+struct perf_blas_scal<Ta, Tb, typename std::enable_if<(std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{}) ||
+                                                      (std::is_same<Ta, float>{}  && std::is_same<Tb, rocblas_float_complex>{} ) ||
+                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{}                     ) ||
+                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{}                    ) ||
+                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{}     ) ||
+                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{}    )>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "scal"))
+            testing_scal<Ta, Tb>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
 template <typename Ti, typename To = Ti, typename = void>
 struct perf_asum_nrm2 : rocblas_test_invalid
 {
 };
 
 template <typename Ti, typename To>
-struct perf_asum_nrm2<
-    Ti,
-    To,
-    typename std::enable_if<
-        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
-        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
-        || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
-        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})>::type>
+struct perf_asum_nrm2<Ti, To, typename std::enable_if<(std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}) ||
+                                                      (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})   ||
+                                                      (std::is_same<Ti, float>{} && std::is_same<Ti, To>{} )                     ||
+                                                      (std::is_same<Ti, double>{} && std::is_same<Ti, To>{}) >::type>
 {
     explicit operator bool()
     {
@@ -243,35 +260,6 @@ struct perf_asum_nrm2<
             testing_asum<Ti, To>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<Ti, To>(arg);
-        // else if(!strcmp(arg.function, "scalrc"))
-        //     testing_scalrc<Ti, To>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
-    }
-};
-
-template <typename Ti, typename To = Ti, typename = void>
-struct perf_scalrc : rocblas_test_invalid
-{
-};
-
-template <typename Ti, typename To>
-struct perf_scalrc<
-    Ti,
-    To,
-    typename std::enable_if<
-        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
-        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})>::type>
-{
-    explicit operator bool()
-    {
-        return true;
-    }
-    void operator()(const Arguments& arg)
-    {
-        if(!strcmp(arg.function, "scalrc"))
-            testing_scalrc<Ti, To>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -280,6 +268,7 @@ struct perf_scalrc<
 
 int run_bench_test(Arguments& arg)
 {
+    std::cout << "a_type: " << arg.a_type << "\n";
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
@@ -439,8 +428,8 @@ int run_bench_test(Arguments& arg)
     {
         if(!strcmp(function, "nrm2") || !strcmp(function, "asum"))
             rocblas_blas1_dispatch<perf_asum_nrm2>(arg);
-        else if(!strcmp(function, "scalrc"))
-            rocblas_blas1_dispatch<perf_scalrc>(arg);
+        else if(!strcmp(function, "scal"))
+            rocblas_blas1_dispatch<perf_blas_scal>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }

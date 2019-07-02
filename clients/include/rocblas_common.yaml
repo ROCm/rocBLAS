@@ -186,7 +186,7 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *double_precision_complex
 
 ###########################################
-# TODO: These are just for asum right now #
+#    These are just for asum right now    #
 ###########################################
 Joined precisions: &joined_precisions
   # - &half_precision_joined
@@ -217,7 +217,7 @@ Single real and joined: &single_real_joined
   - *single_precision
 
 #############################################
-# TODO: These are just for scalrc right now #
+#     These are just for scal right now     #
 #############################################
 Joined precisions: &complex_real_in_complex_out
   # - &half_prec_complex_real_in_complex_out
@@ -308,7 +308,6 @@ Dictionary lists to expand:
   - arguments
   - transA_transB
   - alpha_beta
-  - alphai
   - incx_incy
   - matrix_size
   - precision
