@@ -84,10 +84,10 @@ Also, githooks can be installed to format the code per-commit:
     `hipMalloc()` and `hipFree()` are synchronizing operations which should be avoided as much as possible.
 
     The device memory allocation system provides:
-         * A `device_malloc` method for temporarily using device memory which has either been allocated before, or which is allocated on demand.
-         * A method to reuse device memory across rocBLAS calls, without allocating them and deallocating them at every call.
-         * A method for users to query how much device memory is needed for a particular kernel call, in order for it to perform optimally.
-         * A method for users to control how much device memory is allocated, or whether to leave it up to rocBLAS to allocate it on demand.
+    * A `device_malloc` method for temporarily using device memory which has either been allocated before, or which is allocated on demand.
+    * A method to reuse device memory across rocBLAS calls, without allocating them and deallocating them at every call.
+    * A method for users to query how much device memory is needed for a particular kernel call, in order for it to perform optimally.
+    * A method for users to control how much device memory is allocated, or whether to leave it up to rocBLAS to allocate it on demand.
 
     Extra pointers or size arguments for temporary storage should not be added to the end of public APIs, only private internal ones. Instead, implementations of the public APIs should request and obtain device memory using the rocBLAS device memory manager. rocBLAS kernels in the C public API must also detect and respond to device memory size queries.
 
@@ -371,9 +371,9 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
 
 
 18. For reduction operations, the file [reduction.h](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas1/reduction.h) has been created to systematize reductions and perform their device kernels in one place. This works for `amax`, `amin`, `asum`, `nrm2`, and (partially) `dot` and `gemv`. `rocblas_reduction_kernel` is a generalized kernel which takes 3 *functors* as template arguments:
-        * One to *fetch* values (such as fetching a complex value and taking the sum of the squares of its real and imaginary parts before reducing it)
-        * One to *reduce* values (such as to compute a sum or maximum)
-        * One to *finalize* the reduction (such as taking the square root of a sum of squares)
+    * One to *fetch* values (such as fetching a complex value and taking the sum of the squares of its real and imaginary parts before reducing it)
+    * One to *reduce* values (such as to compute a sum or maximum)
+    * One to *finalize* the reduction (such as taking the square root of a sum of squares)
 
     There is a `default_value()` function which returns the default value for a reduction. The default value is the value of the reduction when the size is 0, and reducing a value with the `default_value()` does not change the value of the reduction.
 
