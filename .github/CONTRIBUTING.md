@@ -380,7 +380,7 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     There is a `default_value()` function which returns the default value for a reduction. The default value is the value of the reduction when the size is 0, and reducing a value with the `default_value()` does not change the value of the reduction.
 
 
-19. When [type punning](https://en.wikipedia.org/wiki/Type_punning) is needed, `union` should be used instead of pointer-casting, which violates *strict aliasing* ([C](https://en.cppreference.com/w/c/language/object#Strict_aliasing), [C++](https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing)). For example:
+19. When [type punning](https://en.wikipedia.org/wiki/Type_punning) is needed, `union` should be used instead of pointer-casting, which violates *strict aliasing*. For example:
     ```c++
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
     explicit __host__ __device__ operator float() const
