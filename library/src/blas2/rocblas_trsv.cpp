@@ -383,54 +383,36 @@ namespace
                                          const T*          invA,
                                          T*                x_temp)
     {
-        rocblas_int R = m / BLOCK;
-        for(rocblas_int r = 0; r < R; r++)
+        int R = m / BLOCK;
+
+        for(int r = 0; r < R; r++)
         {
-            rocblas_int q = R - 1 - r;
-            rocblas_int j
-                = (transA == rocblas_operation_none ? rocblas_fill_lower : rocblas_fill_upper)
-                          == uplo
-                      ? r
-                      : q;
+            int q = R - 1 - r;
+            int j = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_upper) ? r : q;
 
             // copy a BLOCK*n piece we are solving at a time
-            strided_vector_copy(handle, x_temp, 1, B + j * BLOCK * incx, incx, BLOCK);
+            strided_vector_copy<T>(handle, x_temp, 1, B + incx * j * BLOCK, incx, BLOCK);
 
-            if(r > 0)
+            if(r)
             {
                 const T*    A_current;
                 T*          B_current;
-                rocblas_int M, N;
+                rocblas_int M = BLOCK;
+                rocblas_int N = BLOCK;
 
                 if(transA == rocblas_operation_none)
                 {
-                    M = BLOCK;
-                    N = r * BLOCK;
-                    if(uplo == rocblas_fill_upper)
-                    {
-                        A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
-                        B_current = B + (q + 1) * BLOCK * incx;
-                    }
-                    else
-                    {
-                        A_current = A + N;
-                        B_current = B;
-                    }
+                    N *= r;
+                    A_current = uplo == rocblas_fill_lower ? A + N
+                                                           : A + (q + 1) * BLOCK * lda + q * BLOCK;
+                    B_current = uplo == rocblas_fill_lower ? B : B + (q + 1) * BLOCK * incx;
                 }
                 else
                 {
-                    M = r * BLOCK;
-                    N = BLOCK;
-                    if(transA == rocblas_operation_none)
-                    {
-                        A_current = A + M * lda;
-                        B_current = B;
-                    }
-                    else
-                    {
-                        A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
-                        B_current = B + (q + 1) * BLOCK * incx;
-                    }
+                    M *= r;
+                    A_current = uplo == rocblas_fill_lower ? A + q * BLOCK * lda + (q + 1) * BLOCK
+                                                           : A + M * lda;
+                    B_current = uplo == rocblas_fill_lower ? B + (q + 1) * BLOCK * incx : B;
                 }
 
                 rocblas_gemv_template(handle,
@@ -443,7 +425,7 @@ namespace
                                       B_current,
                                       incx,
                                       &one<T>,
-                                      (T*)x_temp,
+                                      x_temp,
                                       1);
             }
 
@@ -452,12 +434,12 @@ namespace
                                   BLOCK,
                                   BLOCK,
                                   &one<T>,
-                                  (T*)invA + j * BLOCK * BLOCK,
+                                  invA + j * BLOCK * BLOCK,
                                   BLOCK,
-                                  (T*)x_temp,
+                                  x_temp,
                                   1,
                                   &zero<T>,
-                                  (T*)B + j * BLOCK * incx,
+                                  B + j * BLOCK * incx,
                                   incx);
         }
 
@@ -562,18 +544,18 @@ namespace
         size_t invA_bytes = supplied_invA ? 0 : sizeof(T) * BLOCK * m;
 
         // Temporary solution vector
-        size_t x_temp_bytes = sizeof(T) * m;
+        // If the special solver can be used, then only BLOCK words are needed instead of m
+        size_t x_temp_bytes = m % BLOCK ? sizeof(T) * m : sizeof(T) * BLOCK;
 
         // When m < BLOCK, C is unnecessary for trtri
-        size_t c_temp_bytes = m < BLOCK ? 0 : sizeof(T) * BLOCK / 4 * m;
+        size_t c_temp_bytes = (sizeof(T) * (BLOCK / 2) * (BLOCK / 2)) * (m / BLOCK);
 
-        // For the remainder of size BLOCK, we need C_temp in case m % BLOCK != 0
+        // For the TRTRI last diagonal block we need remainder space if m % BLOCK != 0
         // TODO: Make this more accurate -- right now it's much larger than necessary
-        size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
-        c_temp_bytes           = max(c_temp_bytes, remainder_bytes);
+        size_t remainder_bytes = m % BLOCK ? sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2 * 0 : 0;
 
-        // X and C temporaries can share space, so the maximum size of the two is allocated
-        size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
+        // X, C and remainder temporaries can share space, so the maximum size is allocated
+        size_t x_c_temp_bytes = max(x_temp_bytes, max(c_temp_bytes, remainder_bytes));
 
         // If this is a device memory size query, set optimal size and return changed status
         if(handle->is_device_memory_size_query())
@@ -611,26 +593,31 @@ namespace
         if(transA == rocblas_operation_conjugate_transpose)
             transA = rocblas_operation_transpose;
 
-        // TODO: workaround to fix negative incx issue
         rocblas_int abs_incx = incx < 0 ? -incx : incx;
-        if(incx < 0)
-            flip_vector(handle, B, m, abs_incx);
 
         if(m % BLOCK == 0)
         {
+            // TODO: workaround to fix negative incx issue
+            if(incx < 0)
+                flip_vector(handle, B, m, abs_incx);
+
             status = special_trsv_template<BLOCK>(
                 handle, uplo, transA, diag, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);
             if(status != rocblas_status_success)
                 return status;
-
             // TODO: workaround to fix negative incx issue
             if(incx < 0)
                 flip_vector(handle, B, m, abs_incx);
         }
         else
         {
+            // TODO: workaround to fix negative incx issue
+            if(incx < 0)
+                flip_vector(handle, B, m, abs_incx);
+
             status = rocblas_trsv_left<BLOCK>(
                 handle, uplo, transA, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);
+
             if(status != rocblas_status_success)
                 return status;
 

@@ -324,7 +324,7 @@ namespace
 
             if(pointer_mode == rocblas_pointer_mode_host)
             {
-                hipLaunchKernelGGL(geam_inplace_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_inplace_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -341,7 +341,7 @@ namespace
             }
             else
             {
-                hipLaunchKernelGGL(geam_inplace_kernel_device_pointer<T>,
+                hipLaunchKernelGGL(geam_inplace_kernel_device_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -370,7 +370,7 @@ namespace
 
             if(pointer_mode == rocblas_pointer_mode_host)
             {
-                hipLaunchKernelGGL(geam_inplace_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_inplace_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -387,7 +387,7 @@ namespace
             }
             else
             {
-                hipLaunchKernelGGL(geam_inplace_kernel_device_pointer<T>,
+                hipLaunchKernelGGL(geam_inplace_kernel_device_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -417,7 +417,7 @@ namespace
                 dim3 geam_grid(blocks);
                 dim3 geam_threads(GEAM_DIM);
 
-                hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -439,7 +439,7 @@ namespace
                 dim3 geam_grid(blocksX, blocksY);
                 dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
-                hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -468,7 +468,7 @@ namespace
                 dim3 geam_grid(blocks);
                 dim3 geam_threads(GEAM_DIM);
 
-                hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_1D_2matrix_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -491,7 +491,7 @@ namespace
                 dim3 geam_grid(blocksX, blocksY);
                 dim3 geam_threads(GEAM_DIM_X, GEAM_DIM_Y);
 
-                hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_2matrix_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -520,7 +520,7 @@ namespace
 
             if(rocblas_pointer_mode_host == pointer_mode)
             {
-                hipLaunchKernelGGL(geam_1D_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_1D_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -534,7 +534,7 @@ namespace
             }
             else
             {
-                hipLaunchKernelGGL(geam_1D_kernel_device_pointer<T>,
+                hipLaunchKernelGGL(geam_1D_kernel_device_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -561,7 +561,7 @@ namespace
 
             if(pointer_mode == rocblas_pointer_mode_host)
             {
-                hipLaunchKernelGGL(geam_kernel_host_pointer<T>,
+                hipLaunchKernelGGL(geam_kernel_host_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
@@ -581,7 +581,7 @@ namespace
             }
             else
             {
-                hipLaunchKernelGGL(geam_kernel_device_pointer<T>,
+                hipLaunchKernelGGL(geam_kernel_device_pointer,
                                    geam_grid,
                                    geam_threads,
                                    0,
