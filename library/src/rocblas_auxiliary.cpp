@@ -13,24 +13,6 @@
 #include <memory>
 #include <stdio.h>
 
-/* ============================================================================================ */
-
-// device_malloc wraps hipMalloc and provides same API as malloc
-static void* device_malloc(size_t byte_size)
-{
-    void* pointer = nullptr;
-    PRINT_IF_HIP_ERROR(hipMalloc(&pointer, byte_size));
-    return pointer;
-}
-
-// device_free wraps hipFree and provides same API as free
-static void device_free(void* ptr)
-{
-    PRINT_IF_HIP_ERROR(hipFree(ptr));
-}
-
-using rocblas_unique_ptr = std::unique_ptr<void, void (*)(void*)>;
-
 /*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.
  * currently HIP API can only recoginize the input ptr on deive or not
@@ -173,9 +155,29 @@ __global__ void copy_void_ptr_vector_kernel(rocblas_int n,
     }
 }
 
+/* ============================================================================================ */
+// TODO: Need to replace this with new device memory allocation system
+
+// device_malloc wraps hipMalloc and provides same API as malloc
+static void* device_malloc(size_t byte_size)
+{
+    void* pointer = nullptr;
+    PRINT_IF_HIP_ERROR((hipMalloc)(&pointer, byte_size));
+    return pointer;
+}
+
+// device_free wraps hipFree and provides same API as free
+static void device_free(void* ptr)
+{
+    PRINT_IF_HIP_ERROR((hipFree)(ptr));
+}
+
+using rocblas_unique_ptr = std::unique_ptr<void, void (*)(void*)>;
+
 /*******************************************************************************
  *! \brief   copies void* vector x with stride incx on host to void* vector
      y with stride incy on device. Vectors have n elements of size elem_size.
+  TODO: Need to replace device memory allocation with new system
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_vector(rocblas_int n,
                                              rocblas_int elem_size,

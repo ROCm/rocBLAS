@@ -3,10 +3,10 @@
  * ************************************************************************ */
 #include "../blas3/trtri_trsm.hpp"
 #include "definitions.h"
-#include "gemv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemv.hpp"
 #include "utility.h"
 #include <algorithm>
 #include <hip/hip_runtime_api.h>
@@ -399,6 +399,7 @@ namespace
                 rocblas_int M = BLOCK;
                 rocblas_int N = BLOCK;
                 const T*    A_current;
+                T*          B_current = parity ? B + q * BLOCK * incx : B;
 
                 if(transA == rocblas_operation_none)
                 {
@@ -418,7 +419,7 @@ namespace
                                       &negative_one<T>,
                                       A_current,
                                       lda,
-                                      parity ? B + q * BLOCK * incx : B,
+                                      B_current,
                                       incx,
                                       &one<T>,
                                       x_temp,

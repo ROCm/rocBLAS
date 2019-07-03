@@ -43,7 +43,7 @@ _rocblas_handle::_rocblas_handle()
         device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
     // Allocate device memory
-    THROW_IF_HIP_ERROR(hipMalloc(&device_memory, device_memory_size));
+    THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));
 }
 
 /*******************************************************************************
@@ -57,7 +57,7 @@ _rocblas_handle::~_rocblas_handle()
         abort();
     }
     if(device_memory)
-        hipFree(device_memory);
+        (hipFree)(device_memory);
 }
 
 /*******************************************************************************
@@ -76,11 +76,11 @@ void* _rocblas_handle::device_allocator(size_t size)
             return nullptr;
         if(device_memory)
         {
-            hipFree(device_memory);
+            (hipFree)(device_memory);
             device_memory = nullptr;
         }
         device_memory_size = 0;
-        if(hipMalloc(&device_memory, size) == hipSuccess)
+        if((hipMalloc)(&device_memory, size) == hipSuccess)
             device_memory_size = size;
         else
             return nullptr;
@@ -148,7 +148,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
     // Free existing device memory, if any
     if(handle->device_memory)
     {
-        hipFree(handle->device_memory);
+        (hipFree)(handle->device_memory);
         handle->device_memory = nullptr;
     }
     handle->device_memory_size = 0;
@@ -159,7 +159,7 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
     if(size)
     {
         size           = handle->roundup_device_memory_size(size);
-        auto hipStatus = hipMalloc(&handle->device_memory, size);
+        auto hipStatus = (hipMalloc)(&handle->device_memory, size);
         if(hipStatus != hipSuccess)
             return get_rocblas_status_for_hip_status(hipStatus);
         handle->device_memory_size = size;

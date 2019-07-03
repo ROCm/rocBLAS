@@ -310,6 +310,15 @@ private:
             return rocblas_status_size_unchanged;    \
     } while(0)
 
+// Warn about potentially unsafe and synchronizing uses of hipMalloc and hipFree
+#define hipMalloc(ptr, size)                                                                     \
+    _Pragma(                                                                                     \
+        "GCC warning \"Direct use of hipMalloc in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
+        hipMalloc(ptr, size)
+#define hipFree(ptr)                                                                               \
+    _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
+        hipFree(ptr)
+
 namespace rocblas
 {
     void reinit_logs(); // Reinitialize static data (for testing only)
