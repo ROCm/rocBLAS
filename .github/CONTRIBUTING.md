@@ -353,7 +353,7 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     `std::string` involves dynamic memory allocation and copying of temporaries, which can be slow. `std::string_view` is supposed to help alleviate that, but it's not available until C++17, and we're using C++14 now. `const char*` should be used for read-only views of strings, in the interest of efficiency.
 
 
-16. For code brevity and readability, when converting to numeric types, function-style casts are preferred to `static_cast<>()` or C-style casts. For example, `T(x)` is preferred to `static_cast<T>(x)` or `(T)x`.
+16. For code brevity and readability, when converting to *numeric* types, function-style casts are preferred to `static_cast<>()` or C-style casts. For example, `T(x)` is preferred to `static_cast<T>(x)` or `(T)x`.
 
     When writing general containers or templates which can accept *arbitrary* types as parameters, not just *numeric* types, then the specific cast (`static_cast`, `const_cast`, `reinterpret_cast`) should be used, to avoid surprises.
 
@@ -369,7 +369,7 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     ```
     After that adjustment, the code does not need to treat negative increments any differently than positive ones.
 
-    Note: Some blocked matrix-vector algorithmns which call other BLAS kernels may not work if this simple transformation is used; see TRSV for an example, and how it's handled there.
+    Note: Some blocked matrix-vector algorithms which call other BLAS kernels may not work if this simple transformation is used; see [TRSV](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas2/rocblas_trsv.cpp) for an example, and how it's handled there.
 
 
 18. For reduction operations, the file [reduction.h](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas1/reduction.h) has been created to systematize reductions and perform their device kernels in one place. This works for `amax`, `amin`, `asum`, `nrm2`, and (partially) `dot` and `gemv`. `rocblas_reduction_kernel` is a generalized kernel which takes 3 *functors* as template arguments:
