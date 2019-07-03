@@ -80,7 +80,9 @@ Also, githooks can be installed to format the code per-commit:
 ## Here are some guidelines for writing rocBLAS code:
 
 1. With the rocBLAS device memory allocation system, rocBLAS kernels should not call `hipMalloc() ` or `hipFree()` in their own code, but should use the device memory manager.
+
     `hipMalloc()` and `hipFree()` are synchronizing operations which should be avoided as much as possible.
+
     The device memory allocation system provides:
          A. A `device_malloc` method for temporarily using device memory which has either been allocated before, or which is allocated on demand.
          B. A method to reuse device memory across rocBLAS calls, without allocating them and deallocating them at every call.
@@ -89,7 +91,7 @@ Also, githooks can be installed to format the code per-commit:
 
     Extra pointers or size arguments for temporary storage should not be added to the end of public APIs, only private internal ones. Instead, implementations of the public APIs should request and obtain device memory using the rocBLAS device memory manager. rocBLAS kernels in the C public API must also detect and respond to device memory size queries.
 
-    A kernel must allocate all of its device memory upfront, for use during the entirety of the kernel call. It must not allocate and deallocate device memory at different levels of kernel calls. This means that if a lower-level kernel needs device memory, it must be allocated by higher-level routines and passed down to the lower-level routines. When device memory can be shared between two or more opreations, the maximum size needed by all them should be reported or allocated.
+    A kernel must allocate all of its device memory upfront, for use during the entirety of the kernel call. It must not allocate and deallocate device memory at different levels of kernel calls. This means that if a lower-level kernel needs device memory, it must be allocated by higher-level routines and passed down to the lower-level routines. When device memory can be shared between two or more operations, the maximum size needed by all them should be reported or allocated.
 
     Details are in the [Device Memory Allocation](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf) design document.
 
@@ -100,7 +102,7 @@ Also, githooks can be installed to format the code per-commit:
 
     ```c++
     template <...>
-    rocblas_status rocblas_<kernel>_template(..., T* memory)
+    rocblas_status rocblas_<kernel>_template(..., T* device_memory)
     {
         // Performs fast computation
         // No argument error checking
@@ -130,7 +132,7 @@ Also, githooks can be installed to format the code per-commit:
         // Public API
     }
     ```
-    B. Use a template argument to specify if the kernel template should perform full functionality or not. Pass device memory pointer(s) which will be used if full functionality is turned off:
+    B. Use a `bool` template argument to specify if the kernel template should perform full functionality or not. Pass device memory pointer(s) which will be used if full functionality is turned off:
     ```c++
     template <bool full_function, ...>
     rocblas_status rocblas_<kernel>_template(..., T* device_memory = nullptr)
@@ -150,7 +152,7 @@ Also, githooks can be installed to format the code per-commit:
     *Device memory allocation, and temporarily switching pointer mode, might be difficult to enclose in an `if` statement with the RAII design, so the code might have to use recursion to call the non-fully-functional version of itself after setting these things up. That's why method A above is preferred, but for some huge functions like GEMM, method B might be more practical to implement, since it disrupts existing code less.
 
 
-3. The pointer mode should be temporarily switched to host mode during kernels which pass constants to other kernels, so that host-side constants of `-1.0`, `0.0` and `1.0` can be passed to kernels like `GEMM`. For example:
+3. The pointer mode should be temporarily switched to host mode during kernels which pass constants to other kernels, so that host-side constants of `-1.0`, `0.0` and `1.0` can be passed to kernels like `GEMM`, without causing synchronizing host<->device memory copies. For example:
     ```c++
     // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
@@ -179,7 +181,7 @@ Also, githooks can be installed to format the code per-commit:
 
     The test framework is templated, and uses [SFINAE](https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error) and `std::enable_if<...>` to enable and disable certain types for certain tests.
 
-    YAML files are used to describe tests as combinations of arguments. [`rocblas_gentest.py`](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/common/rocblas_gentest.py) is used to parse the YAML files and generate tests in the form of a binary file of `Arguments` records.
+    YAML files are used to describe tests as combinations of arguments. [`rocblas_gentest.py`](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/common/rocblas_gentest.py) is used to parse the YAML files and generate tests in the form of a binary file of [`Arguments`](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/include/rocblas_arguments.hpp) records.
 
     The `rocblas-test` and `rocblas-bench` [type dispatch file](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/clients/include/type_dispatch.hpp) is central to all tests. Basically, rather than duplicate:
     ```c++
@@ -194,7 +196,9 @@ Also, githooks can be installed to format the code per-commit:
 
 
 5. Code should not be copied-and pasted, but rather, templates, macros, [SFINAE](https://en.wikipedia.org/wiki/Substitution_failure_is_not_an_error), [CRTP](https://en.wikipedia.org/wiki/Curiously_recurring_template_pattern), [lambdas](https://en.cppreference.com/w/cpp/language/lambda), etc. should be used to factor out differences in similar code.
+
     A code should be made more generalized, rather than copied and modified, unless it is a completely different kernel function, and the old code is just being used as a start.
+
     If a new function is similar to an existing function, then the existing function should be generalized, or the new function and existing function should be refactored and based on a third templated function or class, rather than duplicating code.
 
 
@@ -222,12 +226,16 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     When the pointer mode indicates `alpha` is on the host, the `alpha` pointer is dereferenced on the host and the numeric value it points to is passed to the kernel. When the pointer mode indicates `alpha` is on the device, the `alpha` pointer is passed to the kernel and dereferenced by the kernel on the device. This allows a single kernel to handle both cases, eliminating duplicate code.
 
 
-7. If new arithmetic datatypes (like `rocblas_bfloat16`) are created, then unless they correspond *exactly* to a predefined system type, they should be wrapped into a `struct`, and not simply be a `typedef` to another type of the same size, so that their type is unique and can be differentiated from other types. Right now `rocblas_half` is `typedef`ed to `uint16_t`, which unfortunately prevents `rocblas_half` and `uint16_t` from being differentiable. If `rocblas_half` were simply a `struct` with a `uint16_t` member, then it would be a distinct type. It is legal to convert a pointer to a [standard-layout `class`/`struct`](https://en.cppreference.com/w/cpp/language/data_members#Standard_layout) to a pointer to its first element, and vice-versa, so the C API is unaffected by whether the type is enclosed in a `struct` or not.
+7. If new arithmetic datatypes (like `rocblas_bfloat16`) are created, then unless they correspond *exactly* to a predefined system type, they should be wrapped into a `struct`, and not simply be a `typedef` to another type of the same size, so that their type is unique and can be differentiated from other types.
+
+    Right now `rocblas_half` is `typedef`ed to `uint16_t`, which unfortunately prevents `rocblas_half` and `uint16_t` from being differentiable. If `rocblas_half` were simply a `struct` with a `uint16_t` member, then it would be a distinct type.
+
+    It is legal to convert a pointer to a [standard-layout `class`/`struct`](https://en.cppreference.com/w/cpp/language/data_members#Standard_layout) to a pointer to its first element, and vice-versa, so the C API is unaffected by whether the type is enclosed in a `struct` or not.
 
 
 8. [RAII](https://en.wikipedia.org/wiki/Resource_acquisition_is_initialization) classes should be used instead of explicit `new`/`delete`, `hipMalloc`/`hipFree`, `malloc`/`free`, etc. RAII classes are automatically exception-safe because their destructor gets called during unwinding. They only have to be declared once to construct them, and they are automatically destroyed when they go out of scope. This is better than having to match `new`/`delete` `malloc`/`free` calls in the code, especially when exceptions or early returns are possible.
 
-    Even if an operation does not allocate and free memory, if it represents a change in state which must be undone when a function returns, then it belongs in an RAII class. For example, `handle->push_pointer_mode()` creates an RAII object which saves and restores the pointer mode.
+    Even if an operation does not allocate and free memory, if it represents a change in state which must be undone when a function returns, then it belongs in an RAII class. For example, `handle->push_pointer_mode()` creates an RAII object which saves the pointer mode on construction, and restores it on destruction.
 
 
 9. When writing function templates, place any non-type parameters before type parameters, i.e., leave the type parameters at the end. For example:
@@ -268,13 +276,13 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     Note: C++14 variable templates can sometimes be used to provide constants. For example:
     ```c++
     template <typename T>
-    constexpr T negative_one = -1;
+    static constexpr T negative_one = -1;
 
     template <typename T>
-    constexpr T zero = 0;
+    static constexpr T zero = 0;
 
     template <typename T>
-    constexpr T one = 1;
+    static constexpr T one = 1;
     ```
 
 11. static duration variables which aren't constants should usually be made function-local `static` variables, rather than namespace or class static variables. This is to avoid the [static initialization order fiasco](https://isocpp.org/wiki/faq/ctors#static-init-order). For example:
@@ -295,7 +303,7 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
         static int dummy = (func_to_call_once(), 0);
     }
     ```
-    This is much faster than explicitly calling `std::call_once`, since the compiler has special ways of optimizing `static` initialization. The first time `my_func()` is called, it will call `func_to_call_once()` just once in a thread-safe way. After that, there is almost no overhead in later calls to `my_func()`.
+    This is much simpler and faster than explicitly calling `std::call_once`, since the compiler has special ways of optimizing `static` initialization. The first time `my_func()` is called, it will call `func_to_call_once()` once in a thread-safe way. After that, there is almost no overhead in later calls to `my_func()`.
 
 
 12. Functions are preferred to macros. Functions or functors inside of `class` / `struct` templates can be used when partial template specializations are needed.
@@ -312,7 +320,13 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     The `do { } while(0)` allows the macro expansion to be a single statement which can be terminated with a semicolon, and which can be used anywhere a regular function call can be used.
 
 
-13. For most template functions which are used in other compilation units, it is preferred that they be put in header files, rather than `.cpp` files, because putting them in `.cpp` files requires explicit instantiation of them for all possible arguments, and there are less opportunities for inlining and interprocedural optimization. The C++ standard explicitly says that unused templates can be omitted from the output, so including unused templates in a header file does not increase the size of the program, since only the used ones are in the final output. For template functions which are only used in one `.cpp` file, they can be placed in the `.cpp` file. Templates, like inline functions, are granted an exception to the one definition rule (ODR) as long as the sequence of tokens in each compilation unit is identical.
+13. For most template functions which are used in other compilation units, it is preferred that they be put in header files, rather than `.cpp` files, because putting them in `.cpp` files requires explicit instantiation of them for all possible arguments, and there are less opportunities for inlining and interprocedural optimization.
+
+    The C++ standard explicitly says that unused templates can be omitted from the output, so including unused templates in a header file does not increase the size of the program, since only the used ones are in the final output.
+
+    For template functions which are only used in one `.cpp` file, they can be placed in the `.cpp` file.
+
+    Templates, like inline functions, are granted an exception to the one definition rule (ODR) as long as the sequence of tokens in each compilation unit is identical.
 
 
 14. Functions and namespace-scope variables which are not a part of the public interface of rocBLAS, should either be marked static, be placed in an unnamed namespace, or be placed in `namespace rocblas`. For example:
@@ -327,15 +341,21 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
         // Public C interfaces
     } // extern "C"
     ```
-    However, unnamed namespaces should not be used in header files. If absolutely required to mark a function or variable private to a compilation unit but defined in a header file, it should be declared `constexpr`, `static`, or `inline`.
+    However, unnamed namespaces should not be used in header files. If it is absolutely necessary to mark a function or variable as private to a compilation unit but defined in a header file, it should be declared `static`, `constexpr` and/or `inline` (`constexpr` implies `static` for non-template variables and `inline` for functions).
 
     Even though rocBLAS goes into a shared library which exports a limited number of symbols, this is still a good idea, to decrease the chances of name collisions *inside* of rocBLAS.
 
 
-15. `std::string` should only be used for strings whose length is unknown at compile time or which can grow. For simple static strings, or strings which are initialized once and then used read-only, `const char*` should be used to refer to the string or pass it as an argument. `std::string` involves dynamic memory allocation and copying of temporaries, which can be slow. `std::string_view` is supposed to help alleviate that, but it's not available until C++17, and we're using C++14 now. `const char*` should be used for read-only views of strings, in the interest of efficiency.
+15. `std::string` should only be used for strings which can grow, or which must be dynamically allocated as read-write strings. For simple static strings, strings returned from functions like `getenv()`, or strings which are initialized once and then used read-only, `const char*` should be used to refer to the string or pass it as an argument.
+
+    `std::string` involves dynamic memory allocation and copying of temporaries, which can be slow. `std::string_view` is supposed to help alleviate that, but it's not available until C++17, and we're using C++14 now. `const char*` should be used for read-only views of strings, in the interest of efficiency.
 
 
-16. For code brevity and readability, when converting to numeric types, function-style casts are preferred to `static_cast<>()`. For example, `T(x)` is preferred to `static_cast<T>(x)`. When writing general containers or templates which can accept *arbitrary* types as parameters, not just *numeric* types, then the specific cast (`static_cast`, `const_cast`, `reinterpret_cast`) should be used, to avoid surprises. But when converting to *numeric* types, which have very well-understood behavior and are *side-effect free*, `type(x)` is more compact and clearer than `static_cast<type>(x)`. For pointers, C-style casts are okay, such as `(T*)A`.
+16. For code brevity and readability, when converting to numeric types, function-style casts are preferred to `static_cast<>()` or C-style casts. For example, `T(x)` is preferred to `static_cast<T>(x)` or `(T)x`.
+
+    When writing general containers or templates which can accept *arbitrary* types as parameters, not just *numeric* types, then the specific cast (`static_cast`, `const_cast`, `reinterpret_cast`) should be used, to avoid surprises.
+
+    But when converting to *numeric* types, which have very well-understood behavior and are *side-effect free*, `type(x)` is more compact and clearer than `static_cast<type>(x)`. For pointers, C-style casts are okay, such as `(T*)A`.
 
 
 17. For BLAS2 functions and BLAS1 functions with two vectors, the `incx` and/or `incy` arguments can be negative, which means the vector is treated backwards from the end. A simple trick to handle this, is to adjust the pointer to the end of the vector if the increment is negative, as in:
@@ -345,15 +365,25 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     if(incy < 0)
         y -= ptrdiff_t(incy) * (n - 1);
     ```
-    After that adjustment, the code does not need to treat negative increments any differently than positive ones. (Note: Some blocked matrix-vector algorithmns which call other BLAS kernels may not work if this simple transformation is used; see TRSV for an example, and how it's handled.)
+    After that adjustment, the code does not need to treat negative increments any differently than positive ones.
+
+    Note: Some blocked matrix-vector algorithmns which call other BLAS kernels may not work if this simple transformation is used; see TRSV for an example, and how it's handled there.
 
 
-18. For reduction operations, the file [reduction.h](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas1/reduction.h) has been created to systematize reductions and perform their device kernels in one place. This works for `amax`, `amin`, `asum`, `nrm2`, and (partially) `dot` and `gemv`. `rocblas_reduction_kernel` is a generalized kernel which takes 3 *functors* as template arguments: One to *fetch* values (such as fetching a complex value and taking the sum of the squares of its real and imaginary parts before reducing it), one to *reduce* values (such as to compute a sum or maximum), and one to *finalize* the reduction (such as taking the square root of a sum of squares). There is a `default_value()` function which returns the default value for a reduction. The default value is the value of the reduction when the size is 0, and reducing a value with the `default_value()` does not change the value of the reduction.
+18. For reduction operations, the file [reduction.h](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas1/reduction.h) has been created to systematize reductions and perform their device kernels in one place. This works for `amax`, `amin`, `asum`, `nrm2`, and (partially) `dot` and `gemv`. `rocblas_reduction_kernel` is a generalized kernel which takes 3 *functors* as template arguments:
+        One to *fetch* values (such as fetching a complex value and taking the sum of the squares of its real and imaginary parts before reducing it)
+
+        One to *reduce* values (such as to compute a sum or maximum)
+
+        One to *finalize* the reduction (such as taking the square root of a sum of squares)
+
+    There is a `default_value()` function which returns the default value for a reduction. The default value is the value of the reduction when the size is 0, and reducing a value with the `default_value()` does not change the value of the reduction.
 
 
 19. `<type_traits>` classes which return Boolean values can be converted to `bool` in Boolean contexts. Hence many traits can be tested by simply creating an instance of them with `{}` initialization syntax and using it in a Boolean context:
     ```c++
-    template<typename T, typename = typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    template<typename T, typename = typename std::enable_if<std::is_same<T, float>{} ||
+                                                            std::is_same<T, double>{}>::type>
     void function(T x)
     {
     }
