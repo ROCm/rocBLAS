@@ -380,7 +380,43 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     There is a `default_value()` function which returns the default value for a reduction. The default value is the value of the reduction when the size is 0, and reducing a value with the `default_value()` does not change the value of the reduction.
 
 
-19. `<type_traits>` classes which return Boolean values can be converted to `bool` in Boolean contexts. Hence many traits can be tested by simply creating an instance of them with `{}` initialization syntax and using it in a Boolean context:
+19. When [type punning](https://en.wikipedia.org/wiki/Type_punning) is needed, `union` should be used instead of pointer-casting, which violates *strict aliasing* ([C](https://en.cppreference.com/w/c/language/object#Strict_aliasing), [C++](https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing)). For example:
+    ```c++
+    // zero extend lower 16 bits of bfloat16 to convert to IEEE float
+    explicit __host__ __device__ operator float() const
+    {
+        union
+        {
+            uint32_t int32;
+            float    fp32;
+        } u = {uint32_t(data) << 16};
+        return u.fp32; // Legal in C, nonstandard extension in C++
+    }
+    ```
+    This violates the strict aliasing rule of [C](https://en.cppreference.com/w/c/language/object#Strict_aliasing) and [C++](https://en.cppreference.com/w/cpp/language/reinterpret_cast#Type_aliasing):
+    ```c++
+    // zero extend lower 16 bits of bfloat16 to convert to IEEE float
+    explicit __host__ __device__ operator float() const
+    {
+        uint32_t int32 = uint32_t(data) << 16;
+        return *(float *) &int32; // Violates strict aliasing rule in both C and C++
+    }
+    ```
+    The only 100% standard C++ way to do it, is to use `memcpy()`, but this should not be required as long as GCC or Clang are used:
+    ```c++
+    // zero extend lower 16 bits of bfloat16 to convert to IEEE float
+    explicit __host__ __device__ operator float() const
+    {
+        uint32_t int32 = uint32_t(data) << 16;
+        float fp32;
+        static_assert(sizeof(int32) == sizeof(fp32), "Different sizes");
+        memcpy(&fp32, &int32, sizeof(fp32));
+        return fp32;
+    }
+    ```
+
+
+20. `<type_traits>` classes which return Boolean values can be converted to `bool` in Boolean contexts. Hence many traits can be tested by simply creating an instance of them with `{}` initialization syntax and using it in a Boolean context:
     ```c++
     template<typename T, typename = typename std::enable_if<std::is_same<T, float>{} ||
                                                             std::is_same<T, double>{}>::type>
