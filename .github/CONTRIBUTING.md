@@ -89,14 +89,15 @@ Also, githooks can be installed to format the code per-commit:
     * A method for users to query how much device memory is needed for a particular kernel call, in order for it to perform optimally.
     * A method for users to control how much device memory is allocated, or whether to leave it up to rocBLAS to allocate it on demand.
 
-    Extra pointers or size arguments for temporary storage should not be added to the end of public APIs, only private internal ones. Instead, implementations of the public APIs should request and obtain device memory using the rocBLAS device memory manager. rocBLAS kernels in the C public API must also detect and respond to device memory size queries.
+    **Extra pointers or size arguments for temporary storage should not be added to the end of public APIs, only private internal ones.** Instead, implementations of the public APIs should request and obtain device memory using the rocBLAS device memory manager. rocBLAS kernels in the public API must also detect and respond to *device memory size queries*.
 
     A kernel must allocate all of its device memory upfront, for use during the entirety of the kernel call. It must not allocate and deallocate device memory at different levels of kernel calls. This means that if a lower-level kernel needs device memory, it must be allocated by higher-level routines and passed down to the lower-level routines. When device memory can be shared between two or more operations, the maximum size needed by all them should be reported or allocated.
 
     Details are in the [Device Memory Allocation](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf) design document.
+    Examples of how to use the device memory allocator are in [TRSV](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas2/rocblas_trsv.cpp) and [TRSM](https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/library/src/blas3/rocblas_trsm.cpp).
 
 
-2. Logging, argument error checking and device memory allocation should only occur at the top-level routines called by the user. Therefore, if one rocBLAS routine calls another, the lower-level called routine(s) should not perform logging, argument checking, or device memory allocation. This can be accomplished in one of two ways:
+2. Logging, argument error checking and device memory allocation should only occur at the top-level kernel routines. Therefore, if one rocBLAS routine calls another, the lower-level called routine(s) should not perform logging, argument checking, or device memory allocation. This can be accomplished in one of two ways:
 
     A. (Preferred.) Abstract out the computational part of the kernel into a separate template function (usually named `rocblas_<kernel>_template`, and call it from a higher-level template routine (usually named `rocblas_<kernel>_impl`) which does error-checking, device memory allocation, and logging, and which gets called by the C wrappers:
 
@@ -143,7 +144,8 @@ Also, githooks can be installed to format the code per-commit:
             // Logging
             // Responding to device memory size queries
             // Device memory allocation (memory pointer assumed already allocated otherwise)*
-            // Temporarily switching to host pointer mode if scalar constants are used (might be hard with RAII)*
+            // Temporarily switching to host pointer mode if scalar constants are used*
+            return rocblas_<kernel>_template<false, ...>(...);
         }
         // Perform fast computation
         // Private internal API
