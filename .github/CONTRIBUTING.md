@@ -64,11 +64,7 @@ To format all files, run the following script in rocBLAS directory:
 
 ```
 #!/bin/bash
-
-find . \( -name build -o -name \*.git \) -prune -o \( -type f \( -name \*.h \
-    -o -name \*.hpp -o -name \*.cpp -o -name \*.h.in -o -name \*.hpp.in -o \
-    -name \*.cpp.in -o -name \*.cl \) -print0 \) | \
-    xargs -0 /opt/rocm/hcc/bin/clang-format -i -style=file
+git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/hcc/bin/clang-format  -style=file -i
 ```
 
 Also, githooks can be installed to format the code per-commit:
