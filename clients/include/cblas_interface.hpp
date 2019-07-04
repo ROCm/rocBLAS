@@ -323,6 +323,7 @@ inline void cblas_scal(rocblas_int n, float alpha, rocblas_float_complex* x, roc
     cblas_csscal(n, alpha, x, incx);
 }
 
+template <>
 inline void cblas_scal(rocblas_int n, double alpha, rocblas_double_complex* x, rocblas_int incx)
 {
     cblas_zdscal(n, alpha, x, incx);

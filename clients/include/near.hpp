@@ -28,6 +28,10 @@ static constexpr double sum_error_tolerance = 0.0;
 
 template <>
 static constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
+template <>
+static constexpr double sum_error_tolerance<rocblas_float_complex> = 1 / 5000.0;
+template <>
+static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 10000.0;
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)

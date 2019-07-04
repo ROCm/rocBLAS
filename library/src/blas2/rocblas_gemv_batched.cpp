@@ -15,6 +15,10 @@ namespace
     constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_batched";
     template <>
     constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_float_complex>[] = "rocblas_cgemv_batched";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_double_complex>[] = "rocblas_zgemv_batched";
 
     template <typename T>
     rocblas_status rocblas_gemv_batched(rocblas_handle    handle,
@@ -184,13 +188,60 @@ namespace
                                    incy);
             }
         }
-        else
+        else if(transA == rocblas_operation_transpose)
         {
             // transpose
-            // number of columns on the y-dim of the grid, using gemvc because gemvt(transpose) is a
-            // instance of gemvc (conjugate)
+            // number of columns on the y-dim of the grid
             static constexpr int NB = 256;
-            dim3                 gemvc_grid(n, batch_count);
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL(gemvt_kernel_batched<NB>,
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   A,
+                                   lda,
+                                   x,
+                                   incx,
+                                   beta,
+                                   y,
+                                   incy);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL(gemvt_kernel_batched<NB>,
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   A,
+                                   lda,
+                                   x,
+                                   incx,
+                                   *beta,
+                                   y,
+                                   incy);
+            }
+        }
+        else // conjugate transpose
+        {
+            // conjugate transpose
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 256;
+            dim3                 gemvc_grid(n, 1);
             dim3                 gemvc_threads(NB);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -281,5 +332,41 @@ rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
     return rocblas_gemv_batched(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
+
+rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
+                                     rocblas_operation                  transA,
+                                     rocblas_int                        m,
+                                     rocblas_int                        n,
+                                     const rocblas_float_complex*       alpha,
+                                     const rocblas_float_complex* const A[],
+                                     rocblas_int                        lda,
+                                     const rocblas_float_complex* const x[],
+                                     rocblas_int                        incx,
+                                     const rocblas_float_complex*       beta,
+                                     rocblas_float_complex* const       y[],
+                                     rocblas_int                        incy,
+                                     rocblas_int                        batch_count)
+{
+    return rocblas_gemv_batched(
+        handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
+
+// rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
+//                                      rocblas_operation                   transA,
+//                                      rocblas_int                        m,
+//                                      rocblas_int                         n,
+//                                      const rocblas_double_complex*       alpha,
+//                                      const rocblas_double_complex* const A[],
+//                                      rocblas_int                         lda,
+//                                      const rocblas_double_complex* const x[],
+//                                      rocblas_int                         incx,
+//                                      const rocblas_double_complex*       beta,
+//                                      rocblas_double_complex* const       y[],
+//                                      rocblas_int                         incy,
+//                                      rocblas_int                         batch_count)
+// {
+//     return rocblas_gemv_batched(
+//         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+// }
 
 } // extern "C"

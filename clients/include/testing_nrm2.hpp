@@ -12,7 +12,6 @@
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
-#include "near.hpp"
 #include "utility.hpp"
 
 template <typename T1, typename T2 = T1>

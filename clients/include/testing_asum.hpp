@@ -114,7 +114,9 @@ void testing_asum(const Arguments& arg)
             if(std::is_same<T1, rocblas_float_complex>::value
                || std::is_same<T1, rocblas_double_complex>::value)
             {
-                double tol = sum_error_tolerance<T1> * cpu_result; // tolerance calculated as a measurement of the expected result (?)
+                double tol
+                    = sum_error_tolerance<
+                          T1> * cpu_result; // tolerance calculated as a measurement of the expected result (?)
 
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
@@ -128,7 +130,9 @@ void testing_asum(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << std::scientific << cpu_result << ", gpu_host_ptr=" << rocblas_result_1 << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
+            std::cout << "cpu=" << std::scientific << cpu_result
+                      << ", gpu_host_ptr=" << rocblas_result_1
+                      << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
 
             rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);

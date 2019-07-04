@@ -189,20 +189,12 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
 #    These are just for asum right now    #
 ###########################################
 Joined precisions: &joined_precisions
-  # - &half_precision_joined
-  #   { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f16_r }
-  # - &hpa_half_precision_complex
-  #   { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f32_c }
   - &single_precision_joined
     { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_r, compute_type: f32_r }
   - &double_precision_joined
     { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_r, compute_type: f64_r }
-  # - &int8_precision_complex
-  #   { a_type:  i8_c, b_type:  i8_c, c_type: i32_c, d_type: i32_c, compute_type: i32_c }
-  # - &hpa_bf16_precision_complex
-  #   { a_type:  bf16_c, b_type:  bf16_c, c_type: bf16_c, d_type: bf16_c, compute_type: f32_c }
 
-Singled double real and joined: &single_double_real_joined
+Single double real and joined: &single_double_real_joined
   - *single_precision_joined
   - *double_precision_joined
   - *single_precision
@@ -220,23 +212,22 @@ Single real and joined: &single_real_joined
 #     These are just for scal right now     #
 #############################################
 Joined precisions: &complex_real_in_complex_out
-  # - &half_prec_complex_real_in_complex_out
-  #   { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f16_r }
-  # - &hpa_half_prec_complex_real_in_complex_out
-  #   { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f32_c }
   - &single_precision_complex_real_in_complex_out
     { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_r }
   - &double_precision_complex_real_in_complex_out
     { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_r }
-  # - &int8_precision_complex
-  #   { a_type:  i8_c, b_type:  i8_c, c_type: i32_c, d_type: i32_c, compute_type: i32_c }
-  # - &hpa_bf16_precision_complex
-  #   { a_type:  bf16_c, b_type:  bf16_c, c_type: bf16_c, d_type: bf16_c, compute_type: f32_c }
 
 Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
-###########################################
+
+#############################################
+#     These are just for gemv right now     #
+#############################################
+Single double real single complex: &single_double_real_single_complex
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
 
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.

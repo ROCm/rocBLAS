@@ -28,6 +28,8 @@ Functions:
   rocblas_dsyr:  { function: syr, <<: *double_precision  }
   rocblas_sgemv: { function: gemv, <<: *single_precision }
   rocblas_dgemv: { function: gemv, <<: *double_precision }
+  rocblas_cgemv: { function: gemv, <<: *single_precision_complex }
+  # rocblas_zgemv: { function: gemv, <<: *double_precision_complex } 
   rocblas_strsv: { function: trsv, <<: *single_precision }
   rocblas_dtrsv: { function: trsv, <<: *double_precision }
   rocblas_ssymv: { function: symv, <<: *single_precision }

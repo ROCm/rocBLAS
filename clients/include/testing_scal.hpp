@@ -14,12 +14,12 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T, typename U=T>
+template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
-    rocblas_int N     = 100;
-    rocblas_int incx  = 1;
-    U alpha;
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
+    U           alpha;
     if constexpr(is_complex<U>)
         alpha = T(0.5, 1.0);
     else
@@ -45,12 +45,12 @@ void testing_scal_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-template <typename T, typename U=T>
+template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
-    rocblas_int N       = arg.N;
-    rocblas_int incx    = arg.incx;
-    T h_alpha;
+    rocblas_int N    = arg.N;
+    rocblas_int incx = arg.incx;
+    T           h_alpha;
     if constexpr(is_complex<T>)
         h_alpha = T(arg.alpha, arg.alphai);
     else

@@ -96,14 +96,15 @@ struct perf_gemm_strided_batched_ex<
 
 #endif
 
-template <typename T, typename U=T, typename = void>
+template <typename T, typename U = T, typename = void>
 struct perf_blas : rocblas_test_invalid
 {
 };
 
 template <typename T, typename U>
 struct perf_blas<
-    T, U,
+    T,
+    U,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool()
@@ -183,6 +184,7 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
 
 template <typename T>
 struct perf_blas<T,
+                 U,
                  typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
                                          || std::is_same<T, rocblas_float_complex>{}>::type>
 {
@@ -212,18 +214,22 @@ struct perf_blas<T,
     }
 };
 
-template <typename Ta, typename Tb=Ta, typename = void>
+template <typename Ta, typename Tb = Ta, typename = void>
 struct perf_blas_scal : rocblas_test_invalid
 {
 };
 
 template <typename Ta, typename Tb>
-struct perf_blas_scal<Ta, Tb, typename std::enable_if<(std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{}) ||
-                                                      (std::is_same<Ta, float>{}  && std::is_same<Tb, rocblas_float_complex>{} ) ||
-                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{}                     ) ||
-                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{}                    ) ||
-                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{}     ) ||
-                                                      (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{}    )>::type>
+struct perf_blas_scal<
+    Ta,
+    Tb,
+    typename std::enable_if<
+        (std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tb, rocblas_float_complex>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>::type>
 {
     explicit operator bool()
     {
@@ -245,10 +251,14 @@ struct perf_asum_nrm2 : rocblas_test_invalid
 };
 
 template <typename Ti, typename To>
-struct perf_asum_nrm2<Ti, To, typename std::enable_if<(std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}) ||
-                                                      (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})   ||
-                                                      (std::is_same<Ti, float>{} && std::is_same<Ti, To>{} )                     ||
-                                                      (std::is_same<Ti, double>{} && std::is_same<Ti, To>{}) >::type>
+struct perf_asum_nrm2<
+    Ti,
+    To,
+    typename std::enable_if<
+        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
+        || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
+        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})>::type>
 {
     explicit operator bool()
     {

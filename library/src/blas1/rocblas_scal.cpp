@@ -22,22 +22,22 @@ namespace
             x[tid * incx] *= alpha;
     }
 
-    template <typename, typename>
+    template <typename T, typename = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
-    constexpr char rocblas_scal_name<float, float>[] = "rocblas_sscal";
+    constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
     template <>
-    constexpr char rocblas_scal_name<double, double>[] = "rocblas_dscal";
+    constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
     template <>
-    constexpr char rocblas_scal_name<rocblas_float_complex, rocblas_float_complex>[] = "rocblas_cscal";
+    constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
     template <>
-    constexpr char rocblas_scal_name<rocblas_double_complex, rocblas_double_complex>[] = "rocblas_zscal";
+    constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
     template<>
-    constexpr char rocblas_scal_name<float, rocblas_float_complex>[] = "rocblas_csscal";
+    constexpr char rocblas_scal_name<rocblas_float_complex, float>[] = "rocblas_csscal";
     template<>
-    constexpr char rocblas_scal_name<double, rocblas_double_complex>[] = "rocblas_zdscal";
+    constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal";
 
-    template <class T, class U = T>
+    template <class T, class U>
     rocblas_status
         rocblas_scal(rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx)
     {
@@ -143,20 +143,20 @@ rocblas_status rocblas_zscal(rocblas_handle                handle,
 }
 
 // Scal with a real alpha & complex vector
-rocblas_status rocblas_csscal(rocblas_handle handle,
-                              rocblas_int n,
-                              const float* alpha,
+rocblas_status rocblas_csscal(rocblas_handle         handle,
+                              rocblas_int            n,
+                              const float*           alpha,
                               rocblas_float_complex* x,
-                              rocblas_int incx)
+                              rocblas_int            incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }
 
-rocblas_status rocblas_zdscal(rocblas_handle handle,
-                              rocblas_int n,
-                              const double* alpha,
+rocblas_status rocblas_zdscal(rocblas_handle          handle,
+                              rocblas_int             n,
+                              const double*           alpha,
                               rocblas_double_complex* x,
-                              rocblas_int incx)
+                              rocblas_int             incx)
 {
     return rocblas_scal(handle, n, alpha, x, incx);
 }

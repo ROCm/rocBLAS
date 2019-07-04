@@ -5,6 +5,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -19,13 +20,22 @@
 template <typename T>
 void testing_gemv_bad_arg(const Arguments& arg)
 {
-    const rocblas_int       M      = 100;
-    const rocblas_int       N      = 100;
-    const rocblas_int       lda    = 100;
-    const rocblas_int       incx   = 1;
-    const rocblas_int       incy   = 1;
-    const T                 alpha  = 1.0;
-    const T                 beta   = 1.0;
+    const rocblas_int M    = 100;
+    const rocblas_int N    = 100;
+    const rocblas_int lda  = 100;
+    const rocblas_int incx = 1;
+    const rocblas_int incy = 1;
+    T                 alpha;
+    T                 beta;
+    if constexpr(is_complex<T>)
+    {
+        alpha.x = 1.0;
+        alpha.y = 1.0;
+        beta.x  = 1.0;
+        beta.y  = 1.0;
+    }
+    else
+        alpha = beta = 1.0;
     const rocblas_operation transA = rocblas_operation_none;
 
     rocblas_local_handle handle;
@@ -88,14 +98,27 @@ void testing_gemv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemv(const Arguments& arg)
 {
-    rocblas_int       M       = arg.M;
-    rocblas_int       N       = arg.N;
-    rocblas_int       lda     = arg.lda;
-    rocblas_int       incx    = arg.incx;
-    rocblas_int       incy    = arg.incy;
-    T                 h_alpha = static_cast<T>(arg.alpha);
-    T                 h_beta  = rocblas_isnan(arg.beta) ? 0 : static_cast<T>(arg.beta);
-    rocblas_operation transA  = char2rocblas_operation(arg.transA);
+    rocblas_int       M    = arg.M;
+    rocblas_int       N    = arg.N;
+    rocblas_int       lda  = arg.lda;
+    rocblas_int       incx = arg.incx;
+    rocblas_int       incy = arg.incy;
+    T                 h_alpha;
+    T                 h_beta;
+    rocblas_operation transA = char2rocblas_operation(arg.transA);
+    if constexpr(is_complex<T>)
+    {
+        h_alpha.x = arg.alpha;
+        h_alpha.y = arg.alphai;
+        h_beta.x  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
+        h_beta.y  = rocblas_isnan(arg.betai) ? 0 : arg.betai;
+        std::cout << "alpha: " << h_alpha << "beta: " << h_beta << "\n";
+    }
+    else
+    {
+        h_alpha = static_cast<T>(arg.alpha);
+        h_beta  = rocblas_isnan(arg.beta) ? 0 : static_cast<T>(arg.beta);
+    }
 
     rocblas_local_handle handle;
 
@@ -217,8 +240,19 @@ void testing_gemv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            if constexpr(is_complex<T>)
+            {
+                double tol = sum_error_tolerance<
+                    T>; // * 10;// * hy_gold; // tolerance calculated as a measurement of the expected result (?)
+
+                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
+                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
+                unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            }
         }
 
         if(arg.norm_check)

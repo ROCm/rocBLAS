@@ -121,23 +121,25 @@ inline void rocblas_init_nan(T* A, size_t N)
         A[i] = static_cast<T>(rocblas_nan_rng());
 }
 
-template<>
+template <>
 inline void rocblas_init_nan(rocblas_float_complex* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
     {
-        float x = (float) rocblas_nan_rng(); float y = (float) rocblas_nan_rng();
-        A[i] = rocblas_float_complex(x, y);
+        float x = (float)rocblas_nan_rng();
+        float y = (float)rocblas_nan_rng();
+        A[i]    = rocblas_float_complex(x, y);
     }
 }
 
-template<>
+template <>
 inline void rocblas_init_nan(rocblas_double_complex* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
     {
-        double x = (double) rocblas_nan_rng(); double y = (double) rocblas_nan_rng();
-        A[i] = rocblas_double_complex(x, y);
+        double x = (double)rocblas_nan_rng();
+        double y = (double)rocblas_nan_rng();
+        A[i]     = rocblas_double_complex(x, y);
     }
 }
 
