@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 // This shared library is available at https://github.com/ROCmSoftwarePlatform/rocJENKINS/
-@Library('rocJenkins@clang9') _
+@Library('rocJenkins') _
 
 // This is file for internal AMD use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
@@ -22,8 +22,6 @@ properties([
     [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
    ])
 
-
-////////////////////////////////////////////////////////////////////////
 import java.nio.file.Path;
 
 rocBLASCI:
@@ -34,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900', 'gfx906 && centos7'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && centos7', 'gfx900 && hip-clang && ubuntu'], rocblas)
 
     boolean formatCheck = true
 
@@ -43,12 +41,25 @@ rocBLASCI:
         platform, project->
 
         project.paths.construct_build_prefix()
-        def command = """#!/usr/bin/env bash
-                  set -x
-                  cd ${project.paths.project_build_prefix}
-                  LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=${project.compiler.compiler_path} ${project.paths.build_command}
-                """
+        
+        def command
 
+        if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    """
+        }
+        else
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command}
+                    """
+        }
         platform.runCommand(this, command)
     }
 
@@ -67,6 +78,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
             else
             {
@@ -76,6 +90,27 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
+        }
+        else if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            if(auxiliary.isJobStartedByTimer())
+            {
+                command = """#!/usr/bin/env bash
+                        set -x
+                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*quick*-*known_bug* #--gtest_filter=*quick*
+                    """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
+            else
+            {
+                testCommand = null
             }
         }
         else
@@ -87,6 +122,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
             else
             {
@@ -96,11 +134,11 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
         }
-        
-        platform.runCommand(this, command)
-        junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
     }
 
     def packageCommand =
@@ -122,6 +160,10 @@ rocBLASCI:
 
             platform.runCommand(this, command)
             platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")        
+        }
+        else if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            packageCommand = null
         }
         else
         {
