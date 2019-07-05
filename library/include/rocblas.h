@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2018 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*!\file
@@ -11,7 +11,6 @@
 #define _ROCBLAS_H_
 
 #ifndef __cplusplus
-/* system headers */
 #include <stdbool.h>
 #endif
 

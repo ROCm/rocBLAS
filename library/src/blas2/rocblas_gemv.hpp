@@ -7,7 +7,6 @@
 #include "gemv_device.hpp"
 #include "handle.h"
 #include "rocblas.h"
-#include <hip/hip_runtime.h>
 
 template <typename T>
 rocblas_status rocblas_gemv_template(rocblas_handle    handle,

@@ -9,7 +9,6 @@
 #include "rocblas_gemv.hpp"
 #include "utility.h"
 #include <algorithm>
-#include <hip/hip_runtime_api.h>
 #include <tuple>
 
 namespace
@@ -23,10 +22,8 @@ namespace
 
     template <typename T>
     constexpr T negative_one = -1;
-
     template <typename T>
     constexpr T zero = 0;
-
     template <typename T>
     constexpr T one = 1;
 
@@ -451,17 +448,17 @@ namespace
     constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
 
     template <rocblas_int BLOCK, typename T>
-    rocblas_status rocblas_trsv_ex_template(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const T*          A,
-                                            rocblas_int       lda,
-                                            T*                B,
-                                            rocblas_int       incx,
-                                            const T*          supplied_invA      = nullptr,
-                                            rocblas_int       supplied_invA_size = 0)
+    rocblas_status rocblas_trsv_ex_impl(rocblas_handle    handle,
+                                        rocblas_fill      uplo,
+                                        rocblas_operation transA,
+                                        rocblas_diagonal  diag,
+                                        rocblas_int       m,
+                                        const T*          A,
+                                        rocblas_int       lda,
+                                        T*                B,
+                                        rocblas_int       incx,
+                                        const T*          supplied_invA      = nullptr,
+                                        rocblas_int       supplied_invA_size = 0)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -526,8 +523,14 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
+        // Whether chunking is allowed
+        const bool can_chunk = (m % BLOCK) == 0;
+
         // perf_status indicates whether optimal performance is obtainable with available memory
         rocblas_status perf_status = rocblas_status_success;
+
+        size_t invA_bytes   = 0;
+        size_t c_temp_bytes = 0;
 
         // For user-supplied invA, check to make sure size is large enough
         // If not large enough, indicate degraded performance and ignore supplied invA
@@ -537,22 +540,31 @@ namespace
             supplied_invA = nullptr;
         }
 
-        // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
-        size_t invA_bytes = supplied_invA ? 0 : sizeof(T) * BLOCK * m;
+        if(!supplied_invA)
+        {
+            // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
+            invA_bytes = sizeof(T) * BLOCK * m;
+
+            // When m < BLOCK, C is unnecessary for trtri
+            c_temp_bytes = (m / BLOCK) * (sizeof(T) * (BLOCK / 2) * (BLOCK / 2));
+
+            // For the TRTRI last diagonal block we need remainder space if m % BLOCK != 0
+            if(!can_chunk)
+            {
+                // TODO: Make this more accurate -- right now it's much larger than necessary
+                size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
+
+                // C is the maximum of the temporary space needed for TRTRI
+                c_temp_bytes = max(c_temp_bytes, remainder_bytes);
+            }
+        }
 
         // Temporary solution vector
         // If the special solver can be used, then only BLOCK words are needed instead of m words
-        size_t x_temp_bytes = m % BLOCK ? sizeof(T) * m : sizeof(T) * BLOCK;
+        size_t x_temp_bytes = can_chunk ? sizeof(T) * BLOCK : sizeof(T) * m;
 
-        // When m < BLOCK, C is unnecessary for trtri
-        size_t c_temp_bytes = (sizeof(T) * (BLOCK / 2) * (BLOCK / 2)) * (m / BLOCK);
-
-        // For the TRTRI last diagonal block we need remainder space if m % BLOCK != 0
-        // TODO: Make this more accurate -- right now it's much larger than necessary
-        size_t remainder_bytes = m % BLOCK ? sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2 : 0;
-
-        // X, C and remainder temporaries can share space, so the maximum size is allocated
-        size_t x_c_temp_bytes = max(x_temp_bytes, max(c_temp_bytes, remainder_bytes));
+        // X and C temporaries can share space, so the maximum size is allocated
+        size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
 
         // If this is a device memory size query, set optimal size and return changed status
         if(handle->is_device_memory_size_query())
@@ -572,7 +584,7 @@ namespace
         // Temporarily switch to host pointer mode, restoring on return
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        rocblas_status status;
+        rocblas_status status = rocblas_status_success;
         if(supplied_invA)
             invA = const_cast<T*>(supplied_invA);
         else
@@ -593,7 +605,18 @@ namespace
         if(incx < 0)
             flip_vector(handle, B, m, abs_incx);
 
-        if(m % BLOCK)
+        if(can_chunk)
+        {
+            status = special_trsv_template<BLOCK>(
+                handle, uplo, transA, diag, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);
+            if(status != rocblas_status_success)
+                return status;
+
+            // TODO: workaround to fix negative incx issue
+            if(incx < 0)
+                flip_vector(handle, B, m, abs_incx);
+        }
+        else
         {
             status = rocblas_trsv_left<BLOCK>(
                 handle, uplo, transA, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);
@@ -609,18 +632,6 @@ namespace
                                 incx < 0 ? -1 : 1,
                                 m);
         }
-        else
-        {
-            status = special_trsv_template<BLOCK>(
-                handle, uplo, transA, diag, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);
-            if(status != rocblas_status_success)
-                return status;
-
-            // TODO: workaround to fix negative incx issue
-            if(incx < 0)
-                flip_vector(handle, B, m, abs_incx);
-        }
-
         return perf_status;
     }
 
@@ -644,7 +655,7 @@ rocblas_status rocblas_strsv(rocblas_handle    handle,
                              float*            x,
                              rocblas_int       incx)
 {
-    return rocblas_trsv_ex_template<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 
 rocblas_status rocblas_dtrsv(rocblas_handle    handle,
@@ -657,7 +668,7 @@ rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                              double*           x,
                              rocblas_int       incx)
 {
-    return rocblas_trsv_ex_template<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 
 rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
@@ -677,30 +688,30 @@ rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsv_ex_template<DTRSV_BLOCK>(handle,
-                                                     uplo,
-                                                     transA,
-                                                     diag,
-                                                     m,
-                                                     static_cast<const double*>(A),
-                                                     lda,
-                                                     static_cast<double*>(x),
-                                                     incx,
-                                                     static_cast<const double*>(invA),
-                                                     invA_size);
+        return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 static_cast<const double*>(A),
+                                                 lda,
+                                                 static_cast<double*>(x),
+                                                 incx,
+                                                 static_cast<const double*>(invA),
+                                                 invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsv_ex_template<STRSV_BLOCK>(handle,
-                                                     uplo,
-                                                     transA,
-                                                     diag,
-                                                     m,
-                                                     static_cast<const float*>(A),
-                                                     lda,
-                                                     static_cast<float*>(x),
-                                                     incx,
-                                                     static_cast<const float*>(invA),
-                                                     invA_size);
+        return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 static_cast<const float*>(A),
+                                                 lda,
+                                                 static_cast<float*>(x),
+                                                 incx,
+                                                 static_cast<const float*>(invA),
+                                                 invA_size);
 
     default:
         return rocblas_status_not_implemented;

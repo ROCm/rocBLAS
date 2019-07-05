@@ -1,8 +1,7 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_gemm_ex.hpp"
-#include <hip/hip_runtime.h>
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_operation trans_a,

@@ -10,7 +10,6 @@
 #include "gemm.hpp"
 #include "handle.h"
 #include "rocblas_trtri_batched.hpp"
-#include <hip/hip_runtime.h>
 
 static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 

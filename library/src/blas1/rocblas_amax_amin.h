@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "definitions.h"
@@ -9,7 +9,6 @@
 #include "reduction.h"
 #include "rocblas.h"
 #include "utility.h"
-#include <hip/hip_runtime.h>
 
 #define QUOTE2(S) #S
 #define QUOTE(S) QUOTE2(S)

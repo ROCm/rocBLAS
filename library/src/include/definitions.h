@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -7,6 +7,7 @@
 #define DEFINITIONS_H
 #include "rocblas.h"
 #include <cstdio>
+#include <hip/hip_runtime.h>
 
 /*******************************************************************************
  * Definitions

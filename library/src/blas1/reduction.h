@@ -6,7 +6,6 @@
 #include "rocblas.h"
 #include "utility.h"
 #include <cstddef>
-#include <hip/hip_runtime.h>
 #include <type_traits>
 
 /*

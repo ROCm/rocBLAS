@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_MATH_H_
@@ -7,7 +7,6 @@
 
 #include "rocblas.h"
 #include <cmath>
-#include <hip/hip_runtime.h>
 #include <immintrin.h>
 
 /* ============================================================================================ */

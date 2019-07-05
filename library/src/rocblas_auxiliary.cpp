@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 #include "Tensile.h"
@@ -9,7 +9,6 @@
 #include "rocblas-auxiliary.h"
 #include "rocblas-types.h"
 #include "utility.h"
-#include <hip/hip_runtime.h>
 #include <memory>
 #include <stdio.h>
 

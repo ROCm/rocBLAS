@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2018 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -8,7 +8,6 @@
 
 #include "rocblas-export.h"
 #include "rocblas-types.h"
-#include <hip/hip_runtime_api.h>
 
 /*!\file
  * \brief rocblas-auxiliary.h provides auxilary functions in rocblas

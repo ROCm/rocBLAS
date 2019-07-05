@@ -10,8 +10,6 @@
 #include "trtri_trsm.hpp"
 #include "utility.h"
 #include <algorithm>
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
 #include <tuple>
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
@@ -21,7 +19,10 @@
 
 namespace
 {
-    // shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
+    using std::max;
+    using std::min;
+
+    // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
     // you can use all 64K, but in practice no.
     constexpr rocblas_int STRSM_BLOCK = 128;
     constexpr rocblas_int DTRSM_BLOCK = 128;
@@ -35,6 +36,7 @@ namespace
     constexpr T one = 1;
 
     /* ===============left==================================================== */
+
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsm_left(rocblas_handle    handle,
                                      rocblas_fill      uplo,
@@ -52,7 +54,7 @@ namespace
         rocblas_int i, jb;
 
         // transB is always non-transpose
-        rocblas_operation transB = rocblas_operation_none;
+        static constexpr rocblas_operation transB = rocblas_operation_none;
 
         if(transA == transB)
         {
@@ -97,21 +99,25 @@ namespace
                                               &zero<T>,
                                               X(i, 0),
                                               m);
-                        if(i + BLOCK < m)
-                            rocblas_gemm_template(handle,
-                                                  transA,
-                                                  transB,
-                                                  m - i - BLOCK,
-                                                  n,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  A(i + BLOCK, i),
-                                                  lda,
-                                                  X(i, 0),
-                                                  m,
-                                                  &one<T>,
-                                                  B(i + BLOCK, 0),
-                                                  ldb);
+                        if(i + BLOCK
+                           >= m) // this condition is not necessary at all and can be changed
+                            // as if (i+BLOCK<m)
+                            break;
+
+                        rocblas_gemm_template(handle,
+                                              transA,
+                                              transB,
+                                              m - i - BLOCK,
+                                              n,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              A(i + BLOCK, i),
+                                              lda,
+                                              X(i, 0),
+                                              m,
+                                              &one<T>,
+                                              B(i + BLOCK, 0),
+                                              ldb);
                     }
                 }
 
@@ -150,6 +156,7 @@ namespace
                                       m);
                 if(i - BLOCK >= 0)
                 {
+
                     rocblas_gemm_template(handle,
                                           transA,
                                           transB,
@@ -183,21 +190,22 @@ namespace
                                               &zero<T>,
                                               X(i, 0),
                                               m);
-                        if(i >= BLOCK)
-                            rocblas_gemm_template(handle,
-                                                  transA,
-                                                  transB,
-                                                  i,
-                                                  n,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  A(0, i),
-                                                  lda,
-                                                  X(i, 0),
-                                                  m,
-                                                  &one<T>,
-                                                  B,
-                                                  ldb);
+                        if(i - BLOCK < 0)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transA,
+                                              transB,
+                                              i,
+                                              n,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              A(0, i),
+                                              lda,
+                                              X(i, 0),
+                                              m,
+                                              &one<T>,
+                                              B,
+                                              ldb);
                     }
                 }
             }
@@ -257,21 +265,22 @@ namespace
                                               &zero<T>,
                                               X(i, 0),
                                               m);
-                        if(i >= BLOCK)
-                            rocblas_gemm_template(handle,
-                                                  transA,
-                                                  transB,
-                                                  i,
-                                                  n,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  A(i, 0),
-                                                  lda,
-                                                  X(i, 0),
-                                                  m,
-                                                  &one<T>,
-                                                  B,
-                                                  ldb);
+                        if(i - BLOCK < 0)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transA,
+                                              transB,
+                                              i,
+                                              n,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              A(i, 0),
+                                              lda,
+                                              X(i, 0),
+                                              m,
+                                              &one<T>,
+                                              B,
+                                              ldb);
                     }
                 }
             }
@@ -316,21 +325,22 @@ namespace
                                               &zero<T>,
                                               X(i, 0),
                                               m);
-                        if(i + BLOCK < m)
-                            rocblas_gemm_template(handle,
-                                                  transA,
-                                                  transB,
-                                                  m - i - BLOCK,
-                                                  n,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  A(i, i + BLOCK),
-                                                  lda,
-                                                  X(i, 0),
-                                                  m,
-                                                  &one<T>,
-                                                  B(i + BLOCK, 0),
-                                                  ldb);
+                        if(i + BLOCK >= m)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transA,
+                                              transB,
+                                              m - i - BLOCK,
+                                              n,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              A(i, i + BLOCK),
+                                              lda,
+                                              X(i, 0),
+                                              m,
+                                              &one<T>,
+                                              B(i + BLOCK, 0),
+                                              ldb);
                     }
                 }
             }
@@ -340,6 +350,7 @@ namespace
     }
 
     /* ===============right==================================================== */
+
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsm_right(rocblas_handle    handle,
                                       rocblas_fill      uplo,
@@ -357,13 +368,14 @@ namespace
         rocblas_int i, jb;
 
         // transB is always non-transpose
-        rocblas_operation transB = rocblas_operation_none;
+        static constexpr rocblas_operation transB = rocblas_operation_none;
+
         if(transA == transB)
         {
             if(uplo == rocblas_fill_lower)
             {
                 // right, lower no-transpose
-                jb = n % BLOCK == 0 ? BLOCK : n % BLOCK;
+                jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
                 rocblas_gemm_template(handle,
                                       transB,
@@ -413,21 +425,22 @@ namespace
                                               &zero<T>,
                                               X(0, i),
                                               m);
-                        if(i >= BLOCK)
-                            rocblas_gemm_template(handle,
-                                                  transB,
-                                                  transA,
-                                                  m,
-                                                  i,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  X(0, i),
-                                                  m,
-                                                  A(i, 0),
-                                                  lda,
-                                                  &one<T>,
-                                                  B,
-                                                  ldb);
+                        if(i - BLOCK < 0)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transB,
+                                              transA,
+                                              m,
+                                              i,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              X(0, i),
+                                              m,
+                                              A(i, 0),
+                                              lda,
+                                              &one<T>,
+                                              B,
+                                              ldb);
                     }
                 }
             }
@@ -472,21 +485,22 @@ namespace
                                               &zero<T>,
                                               X(0, i),
                                               m);
-                        if(i + BLOCK < n)
-                            rocblas_gemm_template(handle,
-                                                  transB,
-                                                  transA,
-                                                  m,
-                                                  n - i - BLOCK,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  X(0, i),
-                                                  m,
-                                                  A(i, i + BLOCK),
-                                                  lda,
-                                                  &one<T>,
-                                                  B(0, i + BLOCK),
-                                                  ldb);
+                        if(i + BLOCK >= n)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transB,
+                                              transA,
+                                              m,
+                                              n - i - BLOCK,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              X(0, i),
+                                              m,
+                                              A(i, i + BLOCK),
+                                              lda,
+                                              &one<T>,
+                                              B(0, i + BLOCK),
+                                              ldb);
                     }
                 }
             }
@@ -534,28 +548,29 @@ namespace
                                               &zero<T>,
                                               X(0, i),
                                               m);
-                        if(i + BLOCK < n)
-                            rocblas_gemm_template(handle,
-                                                  transB,
-                                                  transA,
-                                                  m,
-                                                  n - i - BLOCK,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  X(0, i),
-                                                  m,
-                                                  A(BLOCK + i, i),
-                                                  lda,
-                                                  &one<T>,
-                                                  B(0, i + BLOCK),
-                                                  ldb);
+                        if(i + BLOCK >= n)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transB,
+                                              transA,
+                                              m,
+                                              n - i - BLOCK,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              X(0, i),
+                                              m,
+                                              A(BLOCK + i, i),
+                                              lda,
+                                              &one<T>,
+                                              B(0, i + BLOCK),
+                                              ldb);
                     }
                 }
             }
             else
             {
                 // right, upper transpose
-                jb = n % BLOCK == 0 ? BLOCK : n % BLOCK;
+                jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
                 rocblas_gemm_template(handle,
                                       transB,
@@ -605,21 +620,22 @@ namespace
                                               &zero<T>,
                                               X(0, i),
                                               m);
-                        if(i >= BLOCK)
-                            rocblas_gemm_template(handle,
-                                                  transB,
-                                                  transA,
-                                                  m,
-                                                  i,
-                                                  BLOCK,
-                                                  &negative_one<T>,
-                                                  X(0, i),
-                                                  m,
-                                                  A(0, i),
-                                                  lda,
-                                                  &one<T>,
-                                                  B,
-                                                  ldb);
+                        if(i - BLOCK < 0)
+                            break;
+                        rocblas_gemm_template(handle,
+                                              transB,
+                                              transA,
+                                              m,
+                                              i,
+                                              BLOCK,
+                                              &negative_one<T>,
+                                              X(0, i),
+                                              m,
+                                              A(0, i),
+                                              lda,
+                                              &one<T>,
+                                              B,
+                                              ldb);
                     }
                 }
             }
@@ -715,8 +731,7 @@ namespace
 
                     // copy a BLOCK*n piece we are solving at a time
                     if(r == 0 || arch_lt906)
-                        copy_block_unit<T>(
-                            handle, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
+                        copy_block_unit(handle, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
 
                     if(r > 0)
                     {
@@ -831,7 +846,7 @@ namespace
 
                     // copy a m*BLOCK piece we are solving at a time
                     if(r == 0 || arch_lt906)
-                        copy_block_unit<T>(
+                        copy_block_unit(
                             handle, width, BLOCK, Bw + j * BLOCK * ldb, ldb, x_temp, width);
 
                     if(r > 0)
@@ -923,7 +938,7 @@ namespace
                                           theta,
                                           (T*)x_temp,
                                           width,
-                                          ((T*)invA) + j * BLOCK * BLOCK,
+                                          (T*)invA + j * BLOCK * BLOCK,
                                           BLOCK,
                                           &zero<T>,
                                           Bw + j * BLOCK * ldb,
@@ -945,20 +960,20 @@ namespace
     /* ============================================================================================ */
 
     template <rocblas_int BLOCK, typename T>
-    rocblas_status rocblas_trsm_ex_template(rocblas_handle    handle,
-                                            rocblas_side      side,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const T*          alpha,
-                                            const T*          A,
-                                            rocblas_int       lda,
-                                            T*                B,
-                                            rocblas_int       ldb,
-                                            const T*          supplied_invA      = nullptr,
-                                            rocblas_int       supplied_invA_size = 0)
+    rocblas_status rocblas_trsm_ex_impl(rocblas_handle    handle,
+                                        rocblas_side      side,
+                                        rocblas_fill      uplo,
+                                        rocblas_operation transA,
+                                        rocblas_diagonal  diag,
+                                        rocblas_int       m,
+                                        rocblas_int       n,
+                                        const T*          alpha,
+                                        const T*          A,
+                                        rocblas_int       lda,
+                                        T*                B,
+                                        rocblas_int       ldb,
+                                        const T*          supplied_invA      = nullptr,
+                                        rocblas_int       supplied_invA_size = 0)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -1081,41 +1096,73 @@ namespace
         if(!m || !n)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
+        // Whether chunking is allowed
+        const bool can_chunk = (k % BLOCK == 0) && 0;
 
         // perf_status indicates whether optimal performance is obtainable with available memory
         rocblas_status perf_status = rocblas_status_success;
+
+        size_t invA_bytes   = 0;
+        size_t c_temp_bytes = 0;
 
         // For user-supplied invA, check to make sure size is large enough
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
-            supplied_invA = nullptr;
             perf_status   = rocblas_status_perf_degraded;
+            supplied_invA = nullptr;
         }
 
-        // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
-        size_t invA_size     = supplied_invA ? 0 : size_t(k) * BLOCK;
-        size_t c_temp_size   = size_t(k) * (BLOCK / 4);
-        size_t x_temp_size   = size_t(n) * size_t(m);
-        size_t max_temp_size = std::max(c_temp_size, x_temp_size);
+        if(!supplied_invA)
+        {
+            // Only allocate bytes for invA if supplied_invA == nullptr or supplied_invA_size is too small
+            invA_bytes = sizeof(T) * BLOCK * k;
+
+            // When k < BLOCK, C is unnecessary for trtri
+            c_temp_bytes = (k / BLOCK) * (sizeof(T) * (BLOCK / 2) * (BLOCK / 2));
+
+            // For the TRTRI last diagonal block we need remainder space if k % BLOCK != 0
+            if(!can_chunk)
+            {
+                // TODO: Make this more accurate -- right now it's much larger than necessary
+                size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
+
+                // C is the maximum of the temporary space needed for TRTRI
+                c_temp_bytes = max(c_temp_bytes, remainder_bytes);
+            }
+        }
+
+        // Temporary solution matrix
+        // If the special solver can be used, then only k words are needed instead of m * n words
+        size_t x_temp_size = can_chunk ? size_t(k) : size_t(m) * size_t(n);
+
+        // X and C temporaries can share space, so the maximum size is allocated
+        size_t x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
 
         // If this is a device memory size query, set optimal size and return changed status
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(max_temp_size * sizeof(T),
-                                                          invA_size * sizeof(T));
-        // Attempt to allocate optimal memory size
-        auto mem = handle->device_malloc(max_temp_size * sizeof(T), invA_size * sizeof(T));
-        if(!mem)
-        { // If allocation of optimal size failed, try smaller x_temp_size
-            x_temp_size   = m;
-            max_temp_size = std::max(c_temp_size, x_temp_size);
+            return handle->set_optimal_device_memory_size(x_c_temp_bytes, invA_bytes);
 
-            // If allocation of smaller size fails, return rocblas_status_memory_error
-            mem = handle->device_malloc(max_temp_size * sizeof(T), invA_size * sizeof(T));
+        // Attempt to allocate optimal memory size
+        auto mem = handle->device_malloc(x_c_temp_bytes, invA_bytes);
+        if(!mem)
+        {
+            if(can_chunk) // Only retry if chunkable
+            {
+                // If not enough memory is available, try decreasing X to size m instead of size m * n
+                x_temp_size = m;
+
+                // Recalculate maximum size
+                x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
+
+                mem = handle->device_malloc(x_c_temp_bytes, invA_bytes);
+            }
+
+            // If cannot allocate smaller size, return error
             if(!mem)
                 return rocblas_status_memory_error;
 
-            // Indicate degraded performance
+            // Mark performance as degraded
             perf_status = rocblas_status_perf_degraded;
         }
 
@@ -1135,12 +1182,9 @@ namespace
         else
             RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
 
-        rocblas_status status;
-
+        rocblas_status status = rocblas_status_success;
         if(supplied_invA)
-        {
             invA = const_cast<T*>(supplied_invA);
-        }
         else
         {
             // c_temp and x_temp can reuse the same device memory
@@ -1153,7 +1197,7 @@ namespace
                 return status;
         }
 
-        if(k % BLOCK == 0)
+        if(can_chunk)
         {
             status = special_trsm_template<BLOCK>(handle,
                                                   side,
@@ -1220,7 +1264,7 @@ rocblas_status rocblas_strsm(rocblas_handle    handle,
                              float*            B,
                              rocblas_int       ldb)
 {
-    return rocblas_trsm_ex_template<STRSM_BLOCK>(
+    return rocblas_trsm_ex_impl<STRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
@@ -1237,7 +1281,7 @@ rocblas_status rocblas_dtrsm(rocblas_handle    handle,
                              double*           B,
                              rocblas_int       ldb)
 {
-    return rocblas_trsm_ex_template<DTRSM_BLOCK>(
+    return rocblas_trsm_ex_impl<DTRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
 }
 
@@ -1260,36 +1304,36 @@ rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
     switch(compute_type)
     {
     case rocblas_datatype_f64_r:
-        return rocblas_trsm_ex_template<DTRSM_BLOCK>(handle,
-                                                     side,
-                                                     uplo,
-                                                     transA,
-                                                     diag,
-                                                     m,
-                                                     n,
-                                                     static_cast<const double*>(alpha),
-                                                     static_cast<const double*>(A),
-                                                     lda,
-                                                     static_cast<double*>(B),
-                                                     ldb,
-                                                     static_cast<const double*>(invA),
-                                                     invA_size);
+        return rocblas_trsm_ex_impl<DTRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 static_cast<const double*>(alpha),
+                                                 static_cast<const double*>(A),
+                                                 lda,
+                                                 static_cast<double*>(B),
+                                                 ldb,
+                                                 static_cast<const double*>(invA),
+                                                 invA_size);
 
     case rocblas_datatype_f32_r:
-        return rocblas_trsm_ex_template<STRSM_BLOCK>(handle,
-                                                     side,
-                                                     uplo,
-                                                     transA,
-                                                     diag,
-                                                     m,
-                                                     n,
-                                                     static_cast<const float*>(alpha),
-                                                     static_cast<const float*>(A),
-                                                     lda,
-                                                     static_cast<float*>(B),
-                                                     ldb,
-                                                     static_cast<const float*>(invA),
-                                                     invA_size);
+        return rocblas_trsm_ex_impl<STRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 static_cast<const float*>(alpha),
+                                                 static_cast<const float*>(A),
+                                                 lda,
+                                                 static_cast<float*>(B),
+                                                 ldb,
+                                                 static_cast<const float*>(invA),
+                                                 invA_size);
 
     default:
         return rocblas_status_not_implemented;

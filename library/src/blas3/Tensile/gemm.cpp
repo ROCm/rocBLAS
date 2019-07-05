@@ -1,5 +1,5 @@
 /**************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  ************************************************************************** */
 #include "gemm.h"
 #include "Tensile.h"
@@ -8,7 +8,6 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
-#include <hip/hip_runtime.h>
 #include <sys/time.h>
 
 /*******************************************************************************
