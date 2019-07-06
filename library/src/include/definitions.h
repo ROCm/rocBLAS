@@ -5,12 +5,11 @@
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
-#include "status.h"
+
+#include <hip/hip_runtime.h>
 
 /*******************************************************************************
  * Definitions
- * this file to not include any others
- * thereby it can include top-level definitions included by all
  ******************************************************************************/
 
 // half vectors

@@ -5,7 +5,7 @@
 #pragma once
 #ifndef _ROCBLAS_FUNCTIONS_H_
 #define _ROCBLAS_FUNCTIONS_H_
-
+#include "rocblas-export.h"
 #include "rocblas-types.h"
 
 /*!\file
@@ -2262,8 +2262,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
     @param[in]
     option  rocblas_trsm_option
             enumerant specifying the selected trsm memory option.
-            -	rocblas_trsm_high_performance
-            -	rocblas_trsm_low_memory
+            -   rocblas_trsm_high_performance
+            -   rocblas_trsm_low_memory
             Trsm can choose algorithms that either use large work memory size in order
             to get high performance, or small work memory with reduced performance.
             User can inspect returned work memory size to fit their application needs.

@@ -1,5 +1,9 @@
+#ifndef _GEMM_H_INCLUDED_
+#define _GEMM_H_INCLUDED_
+
 #include "Tensile.h"
 #include "rocblas-types.h"
+#include "status.h"
 
 /*******************************************************************************
  * Infer Batch Strides
@@ -92,3 +96,5 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
 
     return rocblas_status_success;
 } // validate parameters
+
+#endif

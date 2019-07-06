@@ -10,12 +10,10 @@
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
+#include "rocblas_bfloat16.h"
+#include <hip/hip_runtime_api.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <hip/hip_vector_types.h>
-
-#include "rocblas_bfloat16.h"
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
@@ -38,9 +36,13 @@ typedef int64_t rocblas_long;
 // complex types
 typedef float2  rocblas_float_complex;
 typedef double2 rocblas_double_complex;
+
 // half types
+// TODO: should be replaced with a struct, to become a unique type
 typedef uint16_t rocblas_half;
-typedef float2   rocblas_half_complex;
+
+// TODO: should be replaced with a struct, to become a unique type
+typedef float2 rocblas_half_complex;
 
 /* ============================================================================================ */
 

@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -317,7 +316,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
+        h_beta_Tc  = float_to_half(nantest ? 0 : arg.beta);
     }
     else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
