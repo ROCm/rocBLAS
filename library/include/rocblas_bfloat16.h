@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright (C) 2019 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright 2019 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -46,7 +46,7 @@ typedef struct
 
 #else // __cplusplus
 
-#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
 
 #include <cinttypes>
 #include <cmath>
