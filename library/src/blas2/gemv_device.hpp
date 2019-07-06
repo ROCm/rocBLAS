@@ -3,10 +3,9 @@
  * ************************************************************************ */
 #ifndef __GEMV_DEVICE_HPP__
 #define __GEMV_DEVICE_HPP__
-
-#include <hip/hip_runtime.h>
-
 #include "../blas1/reduction.h"
+#include "status.h"
+#include "utility.h"
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
 __device__ void gemvn_kernel(rocblas_int m,

@@ -1,21 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "Tensile.h"
-#include "TensileTypes.h"
-#include "status.h"
-
-#include "definitions.h"
-#include "handle.h"
-#include "logging.h"
-#include "utility.h"
-#include <type_traits>
-
 #include "rocblas_gemm_ex.hpp"
+#include "logging.h"
+#include "status.h"
+#include <type_traits>
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_operation trans_a,

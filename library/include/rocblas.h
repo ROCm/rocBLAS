@@ -9,17 +9,14 @@
 #pragma once
 #ifndef _ROCBLAS_H_
 #define _ROCBLAS_H_
-
 /* system headers */
 #include <stdbool.h>
 
 /* library headers */
-#include "rocblas-export.h"
-#include "rocblas-version.h"
-
-#include "rocblas-types.h"
-
 #include "rocblas-auxiliary.h"
+#include "rocblas-export.h"
 #include "rocblas-functions.h"
+#include "rocblas-types.h"
+#include "rocblas-version.h"
 
 #endif // _ROCBLAS_H_

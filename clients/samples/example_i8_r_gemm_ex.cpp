@@ -1,9 +1,12 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
 #include "rocblas.h"
+#include <cstdio>
+#include <cstring>
+#include <hip/hip_runtime.h>
 #include <iomanip>
+#include <iostream>
 #include <random>
 
 #ifndef CHECK_HIP_ERROR

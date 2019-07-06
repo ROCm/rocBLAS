@@ -1,14 +1,11 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "reduction.h"
+#include "rocblas.h"
 #include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"

@@ -1,17 +1,13 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
 #include "definitions.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-
 // do not use fma which is 50% slower than regular fmaf
 #define fmaf(a, b, c) (a) * (b) + (c)
 

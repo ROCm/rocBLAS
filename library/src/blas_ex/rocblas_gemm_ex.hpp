@@ -1,6 +1,12 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "Tensile.h"
+#include "TensileTypes.h"
+#include "definitions.h"
+#include "handle.h"
+#include "rocblas.h"
+#include "utility.h"
 
 // clang-format off
 void device_matrix_copy(const void* src,
@@ -317,7 +323,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     static const bool arch_lt906 = handle->device_arch_id() < 906;
     const To* c_in;
     unsigned int ldi, stride_i;
-    if(!arch_lt906 && (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) && 
+    if(!arch_lt906 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}) &&
        ((ldc >= ldd && stride_c >= stride_d && m == ldd) || (ldc == ldd && stride_c == stride_d)))
     {
         c_in = c;
@@ -354,7 +360,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle handle,
     {
         t_status = tensile_Cijk_Ailk_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d),
                                                       static_cast<const To*>(c_in),
-                                                      static_cast<const Ti*>(a), 
+                                                      static_cast<const Ti*>(a),
                                                       static_cast<const Ti*>(b),
                                                       alpha, beta,
                                                       static_cast<unsigned int>(ldd), stride_d,

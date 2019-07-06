@@ -6,18 +6,13 @@
 #pragma once
 #ifndef _TRTRI_HPP_
 #define _TRTRI_HPP_
-
-#include <hip/hip_runtime.h>
-
-#include "trtri_device.h"
-
 #include "rocblas_trtri_batched.hpp"
+#include "trtri_device.h"
 
 /* ============================================================================================ */
 
 namespace trtri
 {
-
     template <typename T>
     rocblas_status rocblas_trtri_template(rocblas_handle   handle,
                                           rocblas_fill     uplo,

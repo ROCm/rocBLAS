@@ -1,29 +1,24 @@
 /* ************************************************************************
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
-#include <hip/hip_runtime_api.h>
-
+#include "rocblas_trsm.hpp"
 #include "definitions.h"
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_trsm.hpp"
 #include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "trtri_trsm.hpp"
 #include "utility.h"
-
-namespace
-{
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii, jj) (B + (ii) + (jj)*ldb)
 #define X(ii, jj) (X + (ii) + (jj)*m)
 #define invA(ii) (invA + (ii)*BLOCK)
 
+namespace
+{
     /* ===============left==================================================== */
 
     template <rocblas_int BLOCK, typename T>
