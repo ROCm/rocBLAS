@@ -2,7 +2,11 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_gemv.hpp"
+#include "definitions.h"
+#include "gemv_device.hpp"
+#include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace

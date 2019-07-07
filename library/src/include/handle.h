@@ -11,6 +11,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <fstream>
+#include <hip/hip_runtime.h>
 #include <iostream>
 #include <tuple>
 #include <type_traits>

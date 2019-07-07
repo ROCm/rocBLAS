@@ -3,8 +3,8 @@
  ************************************************************************** */
 #include "gemm.h"
 #include "Tensile.h"
-#include "definitions.h"
 #include "handle.h"
+#include "definitions.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
@@ -22,7 +22,7 @@ typedef enum transpose_mode_
     TT
 } transpose_mode;
 
-transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
+constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
 {
     if(trans_a == rocblas_operation_none)
     {

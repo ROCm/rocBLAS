@@ -12,13 +12,14 @@
 #include "rocblas.h"
 #include "utility.h"
 
-static void device_matrix_copy(const void* src,
-                               rocblas_int ld_src,
-                               void*       dst,
-                               rocblas_int ld_dst,
-                               rocblas_int n1,
-                               rocblas_int n2,
-                               size_t      elem_size)
+// clang-format off
+void device_matrix_copy(const void* src,
+                        rocblas_int ld_src,
+                        void* dst,
+                        rocblas_int ld_dst,
+                        rocblas_int n1,
+                        rocblas_int n2,
+                        size_t elem_size)
 {
     if(src != dst || ld_src != ld_dst) // no copy if src matrix == dst matrix
     {
@@ -333,11 +334,10 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     rocblas_status rb_status;
 
     static const bool arch_lt906 = handle->device_arch_id() < 906;
-    const To*         c_in;
-    unsigned int      ldi, stride_i;
-    if(!arch_lt906 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
-       && ((ldc >= ldd && stride_c >= stride_d && m == ldd)
-           || (ldc == ldd && stride_c == stride_d)))
+    const To* c_in;
+    unsigned int ldi, stride_i;
+    if(!arch_lt906 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}) &&
+       ((ldc >= ldd && stride_c >= stride_d && m == ldd) || (ldc == ldd && stride_c == stride_d)))
     {
         c_in     = c;
         ldi      = ldc;
@@ -378,25 +378,20 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
             && (trans_b == rocblas_operation_transpose
                 || trans_b == rocblas_operation_conjugate_transpose))
     {
-        t_status = tensile_Cijk_Ailk_Bjlk_B<Ti, To, Tc>(static_cast<To*>(d),
-                                                        static_cast<const To*>(c_in),
-                                                        static_cast<const Ti*>(a),
-                                                        static_cast<const Ti*>(b),
-                                                        alpha,
-                                                        beta,
-                                                        static_cast<unsigned int>(ldd),
-                                                        stride_d,
-                                                        static_cast<unsigned int>(ldi),
-                                                        stride_i,
-                                                        static_cast<unsigned int>(lda),
-                                                        stride_a,
-                                                        static_cast<unsigned int>(ldb),
-                                                        stride_b,
-                                                        static_cast<unsigned int>(m),
-                                                        static_cast<unsigned int>(n),
-                                                        static_cast<unsigned int>(batch_count),
-                                                        static_cast<unsigned int>(k),
-                                                        handle->rocblas_stream);
+        t_status = tensile_Cijk_Ailk_Bjlk_B<Ti,To,Tc>(static_cast<To*>(d),
+                                                      static_cast<const To*>(c_in),
+                                                      static_cast<const Ti*>(a),
+                                                      static_cast<const Ti*>(b),
+                                                      alpha, beta,
+                                                      static_cast<unsigned int>(ldd), stride_d,
+                                                      static_cast<unsigned int>(ldi), stride_i,
+                                                      static_cast<unsigned int>(lda), stride_a,
+                                                      static_cast<unsigned int>(ldb), stride_b,
+                                                      static_cast<unsigned int>(m),
+                                                      static_cast<unsigned int>(n),
+                                                      static_cast<unsigned int>(batch_count),
+                                                      static_cast<unsigned int>(k),
+                                                      handle->rocblas_stream);
     }
     else if((trans_a == rocblas_operation_transpose
              || trans_a == rocblas_operation_conjugate_transpose)

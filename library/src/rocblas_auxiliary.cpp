@@ -8,9 +8,12 @@
 #include "logging.h"
 #include "rocblas-auxiliary.h"
 #include "rocblas-types.h"
-#include "utility.h"
 #include <memory>
-#include <stdio.h>
+#include "utility.h"
+#include <cstdio>
+
+/* ============================================================================================ */
+>>>>>>> develop
 
 /*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.

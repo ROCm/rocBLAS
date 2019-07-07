@@ -7,6 +7,7 @@
 
 #include "rocblas.h"
 #include <cmath>
+#include <hip/hip_runtime.h>
 #include <immintrin.h>
 
 /* ============================================================================================ */
@@ -73,7 +74,7 @@ inline rocblas_half negate(rocblas_half x)
 template <>
 inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
 {
-    x.data = x.data ^ 0x8000;
+    x.data ^= 0x8000;
     return x;
 }
 #endif

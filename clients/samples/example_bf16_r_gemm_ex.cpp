@@ -22,8 +22,13 @@
  */
 
 #include "rocblas.h"
+#include <cstdio>
+#include <cstring>
+#include <hip/hip_runtime.h>
 #include <iomanip>
+#include <iostream>
 #include <random>
+#include <vector>
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \

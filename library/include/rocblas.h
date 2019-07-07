@@ -11,7 +11,9 @@
 #define _ROCBLAS_H_
 
 #ifndef __cplusplus
+/* system headers */
 #include <stdbool.h>
+#include <stddef.h>
 #endif
 
 /* library headers */

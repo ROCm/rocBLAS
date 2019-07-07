@@ -1,6 +1,5 @@
 #ifndef _ROCBLAS_TYPE_DISPATCH_
 #define _ROCBLAS_TYPE_DISPATCH_
-
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 

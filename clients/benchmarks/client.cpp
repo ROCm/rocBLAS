@@ -26,6 +26,7 @@
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
+#undef I
 #include <boost/program_options.hpp>
 #include <cctype>
 #include <cstdio>
@@ -39,13 +40,12 @@ using namespace std::literals;
 
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
+#include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
+#include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
-
-#include "testing_gemm_ex.hpp"
-#include "testing_gemm_strided_batched_ex.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or complex, the test is marked invalid

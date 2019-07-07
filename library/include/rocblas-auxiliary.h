@@ -5,7 +5,6 @@
 #pragma once
 #ifndef _ROCBLAS_AUXILIARY_H_
 #define _ROCBLAS_AUXILIARY_H_
-
 #include "rocblas-export.h"
 #include "rocblas-types.h"
 

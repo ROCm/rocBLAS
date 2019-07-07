@@ -5,6 +5,8 @@
 #pragma once
 #ifndef _ROCBLAS_FUNCTIONS_H_
 #define _ROCBLAS_FUNCTIONS_H_
+#include "rocblas-export.h"
+#include "rocblas-types.h"
 
 /*!\file
  * \brief rocblas_functions.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
@@ -20,8 +22,6 @@
  *   Lower case for vector, e.g. vector x, y    GEMV (y = A*x)
  * ===========================================================================
  */
-
-#include "rocblas-types.h"
 
 /*
    ROCBLAS_VA_OPT_PRAGMA(pragma, ...) creates a _Pragma with stringized pragma
@@ -2380,6 +2380,34 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
     compute_type rocblas_datatype
             specifies the datatype of computation
 
+<<<<<<< HEAD
+=======
+    @param[in]
+    option  rocblas_trsm_option
+            enumerant specifying the selected trsm memory option.
+            -   rocblas_trsm_high_performance
+            -   rocblas_trsm_low_memory
+            Trsm can choose algorithms that either use large work memory size in order
+            to get high performance, or small work memory with reduced performance.
+            User can inspect returned work memory size to fit their application needs.
+    @param[in, out]
+    x_temp_size size_t*
+            During setup the suggested size of x_temp is returned with respect
+            to the selected rocblas_trsm_option.
+            During run x_temp_size specifies the size allocated for
+            x_temp_workspace
+            Note: Must use rocblas_trsm_high_performance suggest size
+            If rocblas_side_left and m is not a multiple of 128
+            If rocblas_side_right and n is not a multiple of 128
+    @parm[in]
+    x_temp_workspace void*
+            During setup x_temp_workspace must hold a null pointer to signal
+            the request for x_temp_size
+            During run x_temp_workspace is a pointer to store temporary matrix X
+            on the GPU.
+            x_temp_workspace is of dimension ( m, x_temp_size/m )
+
+>>>>>>> develop
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,

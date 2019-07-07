@@ -5,8 +5,7 @@
 
 #ifndef DEFINITIONS_H
 #define DEFINITIONS_H
-#include "rocblas.h"
-#include <cstdio>
+
 #include <hip/hip_runtime.h>
 
 /*******************************************************************************

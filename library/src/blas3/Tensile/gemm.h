@@ -1,5 +1,5 @@
-#ifndef _ROCBLAS_GEMM_H_
-#define _ROCBLAS_GEMM_H_
+#ifndef _GEMM_H_INCLUDED_
+#define _GEMM_H_INCLUDED_
 
 #include "Tensile.h"
 #include "rocblas-types.h"
