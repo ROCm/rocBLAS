@@ -9,8 +9,6 @@
 #pragma once
 #ifndef _ROCBLAS_H_
 #define _ROCBLAS_H_
-/* system headers */
-#include <stdbool.h>
 
 /* library headers */
 #include "rocblas-auxiliary.h"
