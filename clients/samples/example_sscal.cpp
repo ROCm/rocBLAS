@@ -8,6 +8,7 @@
 #include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <hip/hip_runtime.h>
 #include <iostream>
 #include <vector>
 

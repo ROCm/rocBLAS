@@ -5,6 +5,7 @@
 #pragma once
 #ifndef _GEMM_HPP_
 #define _GEMM_HPP_
+#include "rocblas.h"
 
 #include "rocblas.h"
 

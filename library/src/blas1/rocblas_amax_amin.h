@@ -8,6 +8,14 @@
 #include "rocblas.h"
 #include "utility.h"
 
+#ifndef MAX_MIN
+#define MAX_MIN max
+#endif
+
+#ifndef AMAX_AMIN_REDUCTION
+#define AMAX_AMIN_REDUCTION rocblas_reduce_amax
+#endif
+
 #define QUOTE2(S) #S
 #define QUOTE(S) QUOTE2(S)
 
