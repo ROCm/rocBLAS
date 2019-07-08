@@ -1,7 +1,7 @@
 /* ************************************************************************
  *  * Copyright 2016-2019 Advanced Micro Devices, Inc.
- *   *
- *    * ************************************************************************ */
+ *  *
+ *  * ************************************************************************ */
 #include "trtri_trsm.hpp"
 
 namespace
@@ -40,7 +40,7 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_trtri_template<NB>(handle, uplo, diag, n, A, lda, invA, NB, (T*)mem);
+        return rocblas_trtri_template<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, (T*)mem);
     }
 
 } // namespace
