@@ -11,6 +11,7 @@
 #define _ROCBLAS_TYPES_H_
 
 #include "rocblas_bfloat16.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
