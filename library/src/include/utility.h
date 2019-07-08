@@ -8,6 +8,10 @@
 #include "rocblas.h"
 #include <hip/hip_runtime.h>
 
+// half vectors
+typedef _Float16 rocblas_half8 __attribute__((ext_vector_type(8)));
+typedef _Float16 rocblas_half2 __attribute__((ext_vector_type(2)));
+
 #ifndef GOOGLE_TEST
 extern "C" __device__ rocblas_half2 llvm_fma_v2f16(rocblas_half2,
                                                    rocblas_half2,

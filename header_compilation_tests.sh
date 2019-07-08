@@ -3,14 +3,12 @@
 set -e
 exec >&2
 
-if [[ ! -e build/release/include/rocblas-export.h || \
-      ! -e build/release/library/src/librocblas.so ]]; then
+if [[ ! -e build/release/include/rocblas-export.h ]]; then
     echo "Please run this script after at least one build of rocBLAS."
     exit 1
 fi
 
 script=$(realpath "$0")
-library=$(realpath "build/release/library/src/librocblas.so")
 
 echocmd()
 {
@@ -32,14 +30,22 @@ C++ implemenation, not in the public headers, which must be compatible with C.
 EOF
 }
 
-# Returns whether the output file is up to date. Prints output file.
-uptodate()
+# Returns whether the output file is up to date.
+# Prints the output file.
+# The first argument is the source header file name.
+# The second argument is the suffix to use for the output file.
+# If the third argument is empty, the return value is always false.
+out_uptodate()
 {
     local file="$1_$2"
     local out="build/compilation_tests/$file.o"
     mkdir -p $(dirname "$out")
     realpath "$out"
-    [[ -e "$out" && "$out" -nt "$file" && "$out" -nt "$script" && "$out" -nt "$library" ]]
+    [[ -n "$3" && "$out" -nt "$script" ]] || return
+    find library clients \( -iname \*.hpp -o -iname \*.h \) -print0 \
+        | while read -r -d $'\0' file; do
+        [[ "$out" -nt "$file" ]] || return
+    done
 }
 
 HCC=/opt/rocm/hcc/bin/hcc
@@ -48,7 +54,9 @@ HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTens
 
 GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
-CLANG="clang -xc-header -std=c99 -D__HIP_PLATFORM_HCC__"
+CLANG=/opt/rocm/llvm/bin/clang
+CLANG_OPTS="-xc-header -std=c99 -D__HIP_PLATFORM_HCC__"
+
 C99="$HCC -xc-header -std=c99"
 CPP11="$HCC -xc++-header -std=c++11"
 CPP14="$HCC -xc++-header -std=c++14"
@@ -60,7 +68,10 @@ CPP14="$HCC -xc++-header -std=c++14"
 #
 find library clients \( -iname \*.hpp -o -iname \*.h \) \
      \! -name testing_trmm.hpp -print0 | while read -r -d $'\0' file; do
-    if ! out=$(uptodate $file cpp14) && ! echocmd $CPP14 -c -o $out -D_ROCBLAS_INTERNAL_BFLOAT16_ $HCC_OPTS $GPU_OPTS "$file"; then
+    if ! out=$(out_uptodate $file cpp14 true) && \
+            ! echocmd $CPP14 -c -o "$out" -D_ROCBLAS_INTERNAL_BFLOAT16_ \
+              $HCC_OPTS $GPU_OPTS "$file"; then
+        rm -f "$out"
         cat <<EOF
 
 The header file $file cannot be compiled by itself,
@@ -84,16 +95,23 @@ done
 # for client code.
 #
 for file in library/include/*.{h,in}; do
-    if ! out=$(uptodate $file clang) && ! echocmd $CLANG -c -o $out $HCC_OPTS $file; then
-        cat <<EOF
+    if [[ -x "$CLANG" ]]; then
+        if ! out=$(out_uptodate $file clang) && \
+                ! echocmd $CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS $file; then
+            rm -f "$out"
+            cat <<EOF
 
 The public header $file cannot be compiled with clang host-only
 compiler. rocBLAS public headers need to be compatible with host-only
 compilers.
 EOF
-        hip_warning
-        exit 1
-    elif ! out=$(uptodate $file c99) && ! echocmd $C99 -c -o $out $HCC_OPTS $GPU_OPTS $file; then
+            hip_warning
+            exit 1
+        fi
+    fi
+    if ! out=$(out_uptodate $file c99) && \
+            ! echocmd $C99 -c -o "$out" $HCC_OPTS $GPU_OPTS $file; then
+        rm -f "$out"
         cat <<EOF
 
 The public header $file cannot be compiled with a C compiler.
@@ -101,7 +119,9 @@ rocBLAS public headers need to be compatible with C99.
 EOF
         hip_warning
         exit 1
-    elif ! out=$(uptodate $file cpp11) && ! echocmd $CPP11 -c -o $out $HCC_OPTS $GPU_OPTS $file; then
+    elif ! out=$(out_uptodate $file cpp11) && \
+            ! echocmd $CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS $file; then
+        rm -f "$out"
         cat <<EOF
 
 The public header $file cannot be compiled with -std=c++11.

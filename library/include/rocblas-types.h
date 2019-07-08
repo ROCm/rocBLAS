@@ -41,10 +41,6 @@ typedef int64_t rocblas_long;
 // TODO: should be replaced with a struct, to become a unique type
 typedef uint16_t rocblas_half;
 
-// half vectors
-typedef _Float16 rocblas_half8 __attribute__((ext_vector_type(8)));
-typedef _Float16 rocblas_half2 __attribute__((ext_vector_type(2)));
-
 // complex types
 typedef struct
 {
