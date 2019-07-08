@@ -61,7 +61,7 @@ Tests:
 - name: gemv_small
   category: quick
   function: gemv
-  precision: *single_double_real_single_complex
+  precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -70,7 +70,7 @@ Tests:
 - name: gemv_medium
   category: pre_checkin
   function: gemv
-  precision: *single_double_real_single_complex
+  precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -79,7 +79,7 @@ Tests:
 - name: gemv_large
   category: nightly
   function: gemv
-  precision: *single_double_real_single_complex
+  precision: *single_double_precisions_complex_real
   transA: [  N, T, C ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range

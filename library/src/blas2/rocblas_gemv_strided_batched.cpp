@@ -442,39 +442,39 @@ rocblas_status rocblas_cgemv_strided_batched(rocblas_handle               handle
                                         batch_count);
 }
 
-// rocblas_status rocblas_zgemv_strided_batched(rocblas_handle                    handle,
-//                                              rocblas_operation                 transA,
-//                                              rocblas_int                       m,
-//                                              rocblas_int                       n,
-//                                              const rocblas_double_complex*     alpha,
-//                                              const rocblas_double_complex*     A,
-//                                              rocblas_int                       lda,
-//                                              rocblas_int                       strideA,
-//                                              const rocblas_double_complex*     x,
-//                                              rocblas_int                       incx,
-//                                              rocblas_int                       stridex,
-//                                              const rocblas_double_complex*     beta,
-//                                              rocblas_double_complex*           y,
-//                                              rocblas_int                       incy,
-//                                              rocblas_int                       stridey,
-//                                              rocblas_int                       batch_count)
-// {
-//     return rocblas_gemv_strided_batched(handle,
-//                                         transA,
-//                                         m,
-//                                         n,
-//                                         alpha,
-//                                         A,
-//                                         lda,
-//                                         strideA,
-//                                         x,
-//                                         incx,
-//                                         stridex,
-//                                         beta,
-//                                         y,
-//                                         incy,
-//                                         stridey,
-//                                         batch_count);
-// }
+rocblas_status rocblas_zgemv_strided_batched(rocblas_handle                handle,
+                                             rocblas_operation             transA,
+                                             rocblas_int                   m,
+                                             rocblas_int                   n,
+                                             const rocblas_double_complex* alpha,
+                                             const rocblas_double_complex* A,
+                                             rocblas_int                   lda,
+                                             rocblas_int                   strideA,
+                                             const rocblas_double_complex* x,
+                                             rocblas_int                   incx,
+                                             rocblas_int                   stridex,
+                                             const rocblas_double_complex* beta,
+                                             rocblas_double_complex*       y,
+                                             rocblas_int                   incy,
+                                             rocblas_int                   stridey,
+                                             rocblas_int                   batch_count)
+{
+    return rocblas_gemv_strided_batched(handle,
+                                        transA,
+                                        m,
+                                        n,
+                                        alpha,
+                                        A,
+                                        lda,
+                                        strideA,
+                                        x,
+                                        incx,
+                                        stridex,
+                                        beta,
+                                        y,
+                                        incy,
+                                        stridey,
+                                        batch_count);
+}
 
 } // extern "C"

@@ -328,8 +328,8 @@ static constexpr auto rocblas_gemv<double> = rocblas_dgemv;
 template <>
 static constexpr auto rocblas_gemv<rocblas_float_complex> = rocblas_cgemv;
 
-// template <>
-// static constexpr auto rocblas_gemv<rocblas_double_complex> = rocblas_zgemv;
+template <>
+static constexpr auto rocblas_gemv<rocblas_double_complex> = rocblas_zgemv;
 
 // trsv
 template <typename T>

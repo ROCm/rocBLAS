@@ -7,7 +7,12 @@
 #include "../blas1/reduction.h"
 #include "utility.h"
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
+template <rocblas_int DIM_X,
+          rocblas_int DIM_Y,
+          typename T,
+          typename U,
+          typename
+          = typename std::enable_if<!std::is_same<T, rocblas_double_complex>::value, bool>::type>
 __device__ void gemvn_kernel(rocblas_int m,
                              rocblas_int n,
                              U           alpha,
@@ -150,6 +155,87 @@ __device__ void gemvn_kernel(rocblas_int m,
     {
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * 4 * i];
+
+        if(ind < m)
+        {
+            if(beta != 0)
+            {
+                y[ind * incy] = (alpha * sdata[thread_id]) + (beta * y[ind * incy]);
+            }
+            else
+            {
+                y[ind * incy] = alpha * sdata[thread_id];
+            }
+        }
+    }
+}
+
+// Specialization for double precision complex numbers. We run out of registers
+// if we use the above algorithm.
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U>
+__device__ void gemvn_kernel(rocblas_int                   m,
+                             rocblas_int                   n,
+                             U                             alpha,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             const rocblas_double_complex* x,
+                             rocblas_int                   incx,
+                             U                             beta,
+                             rocblas_double_complex*       y,
+                             rocblas_int                   incy)
+{
+    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+
+    // threads are all configurated locally
+    rocblas_int tx = thread_id % DIM_X;
+    rocblas_int ty = thread_id / DIM_X;
+
+    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+    ;
+
+    __shared__ rocblas_double_complex sdata[DIM_X * DIM_Y];
+
+    rocblas_double_complex res_A;
+    rocblas_double_complex res_x;
+
+    res_A = res_x = rocblas_double_complex(0.0, 0.0);
+
+    rocblas_int n_tail = n % (DIM_Y);
+    rocblas_int col    = ty;
+
+    for(col = ty; col < (n - n_tail); col += DIM_Y)
+    {
+        res_x = x[(col)*incx];
+
+        if(ind < m)
+        {
+            res_A += A[ind + col * lda] * x[col * incx];
+        }
+    }
+
+    // if n  is not multiple of (DIM_Y)
+    if(n_tail > 0)
+    {
+        if(col + 0 < n)
+            res_x = x[(col)*incx];
+        else
+            res_x = rocblas_double_complex(0.0, 0.0);
+
+        if(ind < m)
+        {
+            res_A += A[ind + (col)*lda * (col < n)] * res_x;
+        }
+    }
+
+    sdata[tx + ty * DIM_X] = res_A;
+
+    __syncthreads();
+
+    ind = hipBlockIdx_x * DIM_X + thread_id;
+    if(thread_id < DIM_X)
+    {
+        for(rocblas_int i = 1; i < DIM_Y; i++)
+            sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
         if(ind < m)
         {

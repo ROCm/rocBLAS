@@ -244,7 +244,7 @@ class BlasTestCombination:
                  sizem, sizen, sizek,
                  lda, ldb, ldc,
                  offa, offb, offc,
-                 alpha, alpha_imag, beta,
+                 alpha, alphai, beta, betai,
                  transa, transb,
                  side, uplo, diag,
                  function, precision,
@@ -261,6 +261,7 @@ class BlasTestCombination:
         self.alpha = str(alpha)
         self.alpha_imag = str(alpha_imagi)
         self.beta = str(beta)
+        self.betai = str(betai)
         self.transa = transa
         self.transb = transb
         self.side = side
@@ -273,7 +274,7 @@ class BlasTestCombination:
         self.label = label
 
     def __str__(self):
-        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), alpha_imag(' + self.alpha_imag + '), beta(' + self.beta + '), transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
+        return self.sizem + 'x' + self.sizen + 'x' + self.sizek + ':' + self.lda + 'x' + self.ldb + 'x' + self.ldc + self.offa + 'x' + self.offb + 'x' + self.offc + ', ' + self.device + ', ' + self.precision + self.function + ', ' + self.library + ', alpha(' + self.alpha + '), alphai(' + self.alphai + '), beta(' + self.beta + '), betai(' + self.betai + ') transa(' + self.transa + '), transb(' + self.transb + '), side(' + self.side  + '), uplo(' + self.uplo + '), diag(' + self.diag + ') -- ' + self.label
 
 class BlasGraphPoint:
     def __init__(self,

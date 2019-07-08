@@ -188,20 +188,20 @@ rocblas_status rocblas_cgemv(rocblas_handle               handle,
     return rocblas_gemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
-// rocblas_status rocblas_zgemv(rocblas_handle               handle,
-//                             rocblas_operation             transA,
-//                             rocblas_int                   m,
-//                             rocblas_int                   n,
-//                             const rocblas_double_complex* alpha,
-//                             const rocblas_double_complex* A,
-//                             rocblas_int                   lda,
-//                             const rocblas_double_complex* x,
-//                             rocblas_int                   incx,
-//                             const rocblas_double_complex* beta,
-//                             rocblas_double_complex*       y,
-//                             rocblas_int                   incy)
-// {
-//     return rocblas_gemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
-// }
+rocblas_status rocblas_zgemv(rocblas_handle                handle,
+                             rocblas_operation             transA,
+                             rocblas_int                   m,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             const rocblas_double_complex* x,
+                             rocblas_int                   incx,
+                             const rocblas_double_complex* beta,
+                             rocblas_double_complex*       y,
+                             rocblas_int                   incy)
+{
+    return rocblas_gemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
 
 } // extern "C"

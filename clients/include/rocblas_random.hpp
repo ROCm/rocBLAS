@@ -105,7 +105,7 @@ inline rocblas_float_complex random_generator<rocblas_float_complex>()
             std::uniform_real_distribution<float>(-1, 1)(rocblas_rng)};
 };
 
-// for rocblas_double_complex, generate two floats
+// for rocblas_double_complex, generate two doubles
 template <>
 inline rocblas_double_complex random_generator<rocblas_double_complex>()
 {

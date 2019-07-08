@@ -112,7 +112,6 @@ void testing_gemv(const Arguments& arg)
         h_alpha.y = arg.alphai;
         h_beta.x  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
         h_beta.y  = rocblas_isnan(arg.betai) ? 0 : arg.betai;
-        std::cout << "alpha: " << h_alpha << "beta: " << h_beta << "\n";
     }
     else
     {
@@ -242,8 +241,7 @@ void testing_gemv(const Arguments& arg)
         {
             if constexpr(is_complex<T>)
             {
-                double tol = sum_error_tolerance<
-                    T>; // * 10;// * hy_gold; // tolerance calculated as a measurement of the expected result (?)
+                double tol = sum_error_tolerance<T>;
 
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);

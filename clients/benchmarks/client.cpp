@@ -278,7 +278,6 @@ struct perf_asum_nrm2<
 
 int run_bench_test(Arguments& arg)
 {
-    std::cout << "a_type: " << arg.a_type << "\n";
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
@@ -544,6 +543,9 @@ try
 
         ("beta",
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
+
+        ("betai",
+         value<double>(&arg.beta)->default_value(0.0), "specifies the imaginary part of the scalar beta")
 
         ("function,f",
          value<std::string>(&function),

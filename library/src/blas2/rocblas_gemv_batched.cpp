@@ -351,22 +351,22 @@ rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 
-// rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
-//                                      rocblas_operation                   transA,
-//                                      rocblas_int                        m,
-//                                      rocblas_int                         n,
-//                                      const rocblas_double_complex*       alpha,
-//                                      const rocblas_double_complex* const A[],
-//                                      rocblas_int                         lda,
-//                                      const rocblas_double_complex* const x[],
-//                                      rocblas_int                         incx,
-//                                      const rocblas_double_complex*       beta,
-//                                      rocblas_double_complex* const       y[],
-//                                      rocblas_int                         incy,
-//                                      rocblas_int                         batch_count)
-// {
-//     return rocblas_gemv_batched(
-//         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
-// }
+rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
+                                     rocblas_operation                   transA,
+                                     rocblas_int                         m,
+                                     rocblas_int                         n,
+                                     const rocblas_double_complex*       alpha,
+                                     const rocblas_double_complex* const A[],
+                                     rocblas_int                         lda,
+                                     const rocblas_double_complex* const x[],
+                                     rocblas_int                         incx,
+                                     const rocblas_double_complex*       beta,
+                                     rocblas_double_complex* const       y[],
+                                     rocblas_int                         incy,
+                                     rocblas_int                         batch_count)
+{
+    return rocblas_gemv_batched(
+        handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
 
 } // extern "C"

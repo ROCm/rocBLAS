@@ -26,8 +26,8 @@ namespace
     struct gemv_testing<
         T,
         typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
-                                || std::is_same<T, rocblas_float_complex>{}>::
-            type> // || std::is_same<T, rocblas_double_complex>{}>::type>
+                                || std::is_same<T, rocblas_float_complex>{}
+                                || std::is_same<T, rocblas_double_complex>{}>::type>
     {
         explicit operator bool()
         {
