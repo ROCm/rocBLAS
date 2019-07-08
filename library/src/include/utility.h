@@ -5,8 +5,18 @@
 #ifndef UTILITY_H
 #define UTILITY_H
 #include "rocblas.h"
+#include <hip/hip_runtime.h>
 
 #ifndef GOOGLE_TEST
+extern "C" __device__ rocblas_half2 llvm_fma_v2f16(rocblas_half2,
+                                                   rocblas_half2,
+                                                   rocblas_half2) __asm("llvm.fma.v2f16");
+
+__device__ inline rocblas_half2
+    rocblas_fmadd_half2(rocblas_half2 multiplier, rocblas_half2 multiplicand, rocblas_half2 addend)
+{
+    return llvm_fma_v2f16(multiplier, multiplicand, addend);
+}
 
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
 // it. Allows the same kernels to be used for host and device scalars.

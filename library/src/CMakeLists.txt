@@ -204,3 +204,12 @@ rocm_export_targets(
  )
 
 rocm_install_symlink_subdir( rocblas )
+
+# Compilation tests to ensure that header files work independently,
+# and that public header files work across several languages
+add_custom_command(
+  TARGET rocblas
+  POST_BUILD
+  COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+ )
