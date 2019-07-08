@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sys/param.h>
+#include <unistd.h>
 
 template <typename T>
 static constexpr auto precision_letter = "*";
