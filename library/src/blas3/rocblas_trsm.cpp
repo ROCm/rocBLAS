@@ -1096,7 +1096,7 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
         // Whether chunking is allowed
-        const bool can_chunk = (k % BLOCK == 0) && 0;
+        const bool can_chunk = (k % BLOCK == 0);
 
         // perf_status indicates whether optimal performance is obtainable with available memory
         rocblas_status perf_status = rocblas_status_success;
@@ -1132,8 +1132,8 @@ namespace
         }
 
         // Temporary solution matrix
-        // If the special solver can be used, then only k words are needed instead of m * n words
-        size_t x_temp_size = can_chunk ? size_t(k) : size_t(m) * size_t(n);
+        // If the special solver can be used, then only m words are needed instead of m * n words
+        size_t x_temp_size = can_chunk ? size_t(m) : size_t(m) * size_t(n);
 
         // X and C temporaries can share space, so the maximum size is allocated
         size_t x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
@@ -1145,25 +1145,7 @@ namespace
         // Attempt to allocate optimal memory size
         auto mem = handle->device_malloc(x_c_temp_bytes, invA_bytes);
         if(!mem)
-        {
-            if(can_chunk) // Only retry if chunkable
-            {
-                // If not enough memory is available, try decreasing X to size m instead of size m * n
-                x_temp_size = m;
-
-                // Recalculate maximum size
-                x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
-
-                mem = handle->device_malloc(x_c_temp_bytes, invA_bytes);
-            }
-
-            // If cannot allocate smaller size, return error
-            if(!mem)
-                return rocblas_status_memory_error;
-
-            // Mark performance as degraded
-            perf_status = rocblas_status_perf_degraded;
-        }
+            return rocblas_status_memory_error;
 
         // Get pointers to allocated device memory
         // Note: Order of pointers in std::tie(...) must match order of sizes in handle->device_malloc(...)
