@@ -1,9 +1,8 @@
 #ifndef REDUCTION_H_
 #define REDUCTION_H_
-#include "definitions.h"
 #include "handle.h"
 #include "rocblas.h"
-#include <cstddef>
+#include "utility.h"
 #include <type_traits>
 #include <utility>
 

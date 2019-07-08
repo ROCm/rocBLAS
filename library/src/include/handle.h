@@ -5,11 +5,9 @@
 #ifndef _ROCBLAS_HANDLE_H_
 #define _ROCBLAS_HANDLE_H_
 
-#include "definitions.h"
 #include "rocblas.h"
+#include "utility.h"
 #include <array>
-#include <cstddef>
-#include <cstdlib>
 #include <fstream>
 #include <hip/hip_runtime.h>
 #include <iostream>

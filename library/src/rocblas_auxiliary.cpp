@@ -3,14 +3,13 @@
  *
  * ************************************************************************ */
 #include "Tensile.h"
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
 #include "rocblas-types.h"
-#include <memory>
 #include "utility.h"
 #include <cstdio>
+#include <memory>
 
 /* ============================================================================================ */
 >>>>>>> develop

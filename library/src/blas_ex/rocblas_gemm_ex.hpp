@@ -6,7 +6,6 @@
 
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"

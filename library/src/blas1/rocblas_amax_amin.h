@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "fetch_template.h"
 #include "handle.h"
 #include "logging.h"

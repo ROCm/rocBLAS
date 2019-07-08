@@ -4,6 +4,7 @@
 
 #ifndef UTILITY_H
 #define UTILITY_H
+#include "definitions.h"
 #include "rocblas.h"
 
 #ifndef GOOGLE_TEST

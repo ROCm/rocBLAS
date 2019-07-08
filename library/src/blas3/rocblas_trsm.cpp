@@ -2,7 +2,6 @@
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "definitions.h"
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"

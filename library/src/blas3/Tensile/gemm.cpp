@@ -4,7 +4,6 @@
 #include "gemm.h"
 #include "Tensile.h"
 #include "handle.h"
-#include "definitions.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"

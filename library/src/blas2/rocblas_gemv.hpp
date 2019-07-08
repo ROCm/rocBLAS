@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_GEMV_HPP__
 #define __ROCBLAS_GEMV_HPP__
-#include "definitions.h"
 #include "gemv_device.hpp"
 #include "handle.h"
 #include "rocblas.h"
