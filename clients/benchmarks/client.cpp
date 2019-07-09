@@ -208,6 +208,8 @@ struct perf_blas<T,
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
             testing_iamin<T>(arg);
+        else if(!strcmp(arg.function, "gemv"))
+            testing_gemv<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));

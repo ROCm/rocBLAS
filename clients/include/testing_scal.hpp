@@ -17,13 +17,9 @@
 template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
-    rocblas_int N    = 100;
-    rocblas_int incx = 1;
-    U           alpha;
-    if constexpr(is_complex<U>)
-        alpha = T(0.5, 1.0);
-    else
-        alpha = 0.6;
+    rocblas_int N     = 100;
+    rocblas_int incx  = 1;
+    U           alpha = (U)0.6;
 
     rocblas_local_handle handle;
 
@@ -48,13 +44,9 @@ void testing_scal_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    T           h_alpha;
-    if constexpr(is_complex<T>)
-        h_alpha = T(arg.alpha, arg.alphai);
-    else
-        h_alpha = arg.alpha;
+    rocblas_int N       = arg.N;
+    rocblas_int incx    = arg.incx;
+    T           h_alpha = arg.getAlphaBeta<T>();
 
     rocblas_local_handle handle;
 

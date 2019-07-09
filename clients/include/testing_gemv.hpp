@@ -27,15 +27,8 @@ void testing_gemv_bad_arg(const Arguments& arg)
     const rocblas_int incy = 1;
     T                 alpha;
     T                 beta;
-    if constexpr(is_complex<T>)
-    {
-        alpha.x = 1.0;
-        alpha.y = 1.0;
-        beta.x  = 1.0;
-        beta.y  = 1.0;
-    }
-    else
-        alpha = beta = 1.0;
+    alpha = beta = 1.0;
+
     const rocblas_operation transA = rocblas_operation_none;
 
     rocblas_local_handle handle;
@@ -98,26 +91,14 @@ void testing_gemv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemv(const Arguments& arg)
 {
-    rocblas_int       M    = arg.M;
-    rocblas_int       N    = arg.N;
-    rocblas_int       lda  = arg.lda;
-    rocblas_int       incx = arg.incx;
-    rocblas_int       incy = arg.incy;
-    T                 h_alpha;
-    T                 h_beta;
-    rocblas_operation transA = char2rocblas_operation(arg.transA);
-    if constexpr(is_complex<T>)
-    {
-        h_alpha.x = arg.alpha;
-        h_alpha.y = arg.alphai;
-        h_beta.x  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
-        h_beta.y  = rocblas_isnan(arg.betai) ? 0 : arg.betai;
-    }
-    else
-    {
-        h_alpha = static_cast<T>(arg.alpha);
-        h_beta  = rocblas_isnan(arg.beta) ? 0 : static_cast<T>(arg.beta);
-    }
+    rocblas_int       M       = arg.M;
+    rocblas_int       N       = arg.N;
+    rocblas_int       lda     = arg.lda;
+    rocblas_int       incx    = arg.incx;
+    rocblas_int       incy    = arg.incy;
+    T                 h_alpha = arg.getAlphaBeta<T>();
+    T                 h_beta  = arg.getAlphaBeta<T>(false);
+    rocblas_operation transA  = char2rocblas_operation(arg.transA);
 
     rocblas_local_handle handle;
 
@@ -239,17 +220,18 @@ void testing_gemv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if constexpr(is_complex<T>)
-            {
-                double tol = sum_error_tolerance<T>;
-
-                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
-                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
-            }
-            else
+            // Do unit checks if not concerned about error propogation for complex numbers, always for real numbers
+            if(!is_complex<T>)
             {
                 unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
                 unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            }
+            else
+            {
+                // tolerance calculated as a measurement of the expected result (?)
+                double tol = sum_error_tolerance<T>; // * M or N?
+                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
+                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
             }
         }
 

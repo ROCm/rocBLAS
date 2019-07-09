@@ -186,30 +186,30 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *double_precision_complex
 
 ###########################################
-#    These are just for asum right now    #
+#          Used for asum and nrm2         #
 ###########################################
-Joined precisions: &joined_precisions
+Complex in real out: &complex_in_real_out_precisions
   - &single_precision_joined
     { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_r, compute_type: f32_r }
   - &double_precision_joined
     { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_r, compute_type: f64_r }
 
-Single double real and joined: &single_double_real_joined
+Single double real and joined: &single_double_real_complex_in_real_out
   - *single_precision_joined
   - *double_precision_joined
   - *single_precision
   - *double_precision
 
-Double real and joined: &double_real_joined
+Double real and joined: &double_real_complex_in_real_out
   - *double_precision_joined
   - *double_precision
 
-Single real and joined: &single_real_joined
+Single real and joined: &single_real_complex_in_real_out
   - *single_precision_joined
   - *single_precision
 
 #############################################
-#     These are just for scal right now     #
+#               Used for Scal               #
 #############################################
 Joined precisions: &complex_real_in_complex_out
   - &single_precision_complex_real_in_complex_out
@@ -221,13 +221,6 @@ Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
 
-#############################################
-#     These are just for gemv right now     #
-#############################################
-Single double real single complex: &single_double_real_single_complex
-  - *single_precision
-  - *double_precision
-  - *single_precision_complex
 
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.

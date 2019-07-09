@@ -129,23 +129,18 @@ void testing_dot(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_float_complex>::value
-               || std::is_same<T, rocblas_double_complex>::value)
-            {
-                double max
-                    = std::abs((std::abs(cpu_result.x) > std::abs(cpu_result.y)) ? cpu_result.x
-                                                                                 : cpu_result.y);
-                double tol
-                    = sum_error_tolerance<
-                          T> * max; // tolerance calculated as a measurement of the expected result (?)
-
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
-            }
-            else
+            // Do unit checks if not concerned about error propogation for complex numbers, always for real numbers
+            if(!is_complex<T>)
             {
                 unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
                 unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
+            }
+            else
+            {
+                // tolerance calculated as a measurement of the expected result (?)
+                double tol = sum_error_tolerance<rocblas_float_complex> * N;
+                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
+                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
             }
         }
 
@@ -154,19 +149,8 @@ void testing_dot(const Arguments& arg)
             std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
                       << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
 
-            if(std::is_same<T, rocblas_float_complex>::value
-               || std::is_same<T, rocblas_double_complex>::value)
-            {
-                auto err        = (cpu_result - rocblas_result_1) / cpu_result;
-                rocblas_error_1 = std::abs(err);
-                err             = (cpu_result - rocblas_result_2) / cpu_result;
-                rocblas_error_2 = std::abs(err);
-            }
-            else
-            {
-                rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
-                rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
-            }
+            rocblas_error_1 = getAbsError<T>((cpu_result - rocblas_result_1) / cpu_result);
+            rocblas_error_2 = getAbsError<T>((cpu_result - rocblas_result_2) / cpu_result);
         }
     }
 

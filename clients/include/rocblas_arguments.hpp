@@ -7,6 +7,8 @@
 
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
+#include "utilty.hpp"
+#include "rocblas_math.hpp"
 #include <cinttypes>
 #include <cmath>
 #include <cstdio>
@@ -45,9 +47,9 @@ struct Arguments
     rocblas_int incb;
 
     double alpha;
-    double alpha_imag;
+    double alphai;
     double beta;
-    double beta_imag;
+    double betai;
 
     char transA;
     char transB;
@@ -129,9 +131,9 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(incd);
         ROCBLAS_FORMAT_CHECK(incb);
         ROCBLAS_FORMAT_CHECK(alpha);
-        ROCBLAS_FORMAT_CHECK(alpha_imag);
+        ROCBLAS_FORMAT_CHECK(alphai);
         ROCBLAS_FORMAT_CHECK(beta);
-        ROCBLAS_FORMAT_CHECK(beta_imag);
+        ROCBLAS_FORMAT_CHECK(betai);
         ROCBLAS_FORMAT_CHECK(transA);
         ROCBLAS_FORMAT_CHECK(transB);
         ROCBLAS_FORMAT_CHECK(side);
@@ -155,7 +157,37 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(initialization);
     }
 
+    template<typename T>
+    T get_alpha()
+    {
+        return rocblas_isnan(alpha) ? T(0) : convert_alpha_beta<T>(alpha, alphai);
+    }
+
+    template<typename T>
+    T get_beta()
+    {
+        return rocblas_isnan(beta) ? T(0) : convert_alpha_beta<T>(beta, betai);
+    }
+
 private:
+    template<typename T, typename U, typename = std::enable_if<!is_complex<T> && !is_same<T, rocblas_half>{}>::type>
+    T convert_alpha_beta(U r, U i)
+    {
+        return T(r);
+    };
+
+    template<typename T, typename U, typename = std::enable_if<is_complex<T>>::type>
+    T convert_alpha_beta(U r, U i)
+    {
+        return { T::value_type(r), T::value_type(i) };
+    };
+
+    template<typename T, typename U, typename = std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+    T convert_alpha_beta(U r, U i)
+    {
+        return float_to_half(r);
+    }
+
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg)
     {

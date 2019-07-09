@@ -23,6 +23,9 @@ constexpr double sqrthalf = 0.7071067811865475244;
 
 // Sum error tolerance for large sums. Multiplied by the number of items
 // in the sum to get an expected absolute error bound.
+
+// TODO: should the tolerances not be a function of magnitude
+//       as well as number of items in the sum?
 template <class T>
 static constexpr double sum_error_tolerance = 0.0;
 

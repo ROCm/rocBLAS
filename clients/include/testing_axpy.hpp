@@ -55,11 +55,10 @@ void testing_axpy(const Arguments& arg)
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
-    T           h_alpha;
-    if(std::is_same<T, rocblas_half>{})
-        h_alpha = float_to_half(arg.alpha);
-    else
-        h_alpha = arg.alpha;
+    T           h_alpha = arg.get_alpha<T>();
+    rocblas_int N       = arg.N;
+    rocblas_int incx    = arg.incx;
+    rocblas_int incy    = arg.incy;
 
     rocblas_local_handle handle;
 
@@ -92,6 +91,7 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
+    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy_1, 1, N, abs_incy);

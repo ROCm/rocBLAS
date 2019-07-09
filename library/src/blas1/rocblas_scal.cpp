@@ -70,7 +70,7 @@ namespace
                           incx,
                           "--alpha",
                           real(*alpha),
-                          "--alpha_imag",
+                          "--alphai",
                           imag(*alpha));
         }
         else

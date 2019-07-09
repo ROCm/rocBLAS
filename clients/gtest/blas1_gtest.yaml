@@ -27,8 +27,8 @@ Tests:
   alpha_beta: *alpha_beta_range
   alphai: *alphai_range
   function:
-    - nrm2:  *single_double_real_joined
-    - asum:  *single_double_real_joined
+    - nrm2:  *single_double_real_complex_in_real_out
+    - asum:  *single_double_real_complex_in_real_out
     - iamax: *single_double_precisions_complex_real
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
@@ -46,8 +46,8 @@ Tests:
   alpha_beta: *alpha_beta_range
   alphai: *alphai_range
   function:
-    - nrm2:  *double_real_joined
-    - asum:  *double_real_joined
+    - nrm2:  *double_real_complex_in_real_out
+    - asum:  *double_real_complex_in_real_out
     - iamax: *single_double_precisions_complex_real
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
@@ -61,8 +61,8 @@ Tests:
 - name: blas1_bad_arg
   category: pre_checkin
   function:
-    - nrm2_bad_arg:  *single_double_real_joined
-    - asum_bad_arg:  *single_double_real_joined
+    - nrm2_bad_arg:  *single_real_complex_in_real_out
+    - asum_bad_arg:  *single_real_complex_in_real_out
     - iamax_bad_arg: *single_double_precisions_complex_real
     - iamin_bad_arg: *single_double_precisions_complex_real
     - axpy_bad_arg:  *half_single_precisions_complex_real

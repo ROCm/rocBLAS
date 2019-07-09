@@ -251,6 +251,24 @@ __device__ void gemvn_kernel(rocblas_int                   m,
     }
 }
 
+template <typename T>
+__device__ T conjugateVal(const T& val)
+{
+    return val;
+}
+
+template <>
+__device__ rocblas_float_complex conjugateVal(const rocblas_float_complex& val)
+{
+    return val.getConjugate();
+}
+
+template <>
+__device__ rocblas_double_complex conjugateVal(const rocblas_double_complex& val)
+{
+    return val.getConjugate();
+}
+
 template <rocblas_int NB_X, typename T, typename U>
 __device__ void gemvc_kernel(rocblas_int m,
                              rocblas_int n,

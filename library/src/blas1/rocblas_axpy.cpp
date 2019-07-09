@@ -23,6 +23,95 @@ namespace
     template <>
     constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
+    template <typename T>
+    void axpy_log_bench(
+        rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx, rocblas_int incy)
+    {
+        log_bench(handle,
+                  "./rocblas-bench -f axpy -r",
+                  rocblas_precision_string<T>,
+                  "-n",
+                  n,
+                  "--alpha",
+                  *alpha,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incy);
+    }
+
+    template <>
+    void axpy_log_bench<rocblas_float_complex>(rocblas_handle               handle,
+                                               rocblas_int                  n,
+                                               const rocblas_float_complex* alpha,
+                                               rocblas_int                  incx,
+                                               rocblas_int                  incy)
+    {
+        log_bench(handle,
+                  "./rocblas-bench -f axpy -r",
+                  rocblas_precision_string<rocblas_float_complex>,
+                  "-n",
+                  n,
+                  "--alpha",
+                  alpha->x,
+                  "--alphai",
+                  alpha->y,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incy);
+    }
+
+    template <>
+    void axpy_log_bench<rocblas_double_complex>(rocblas_handle                handle,
+                                                rocblas_int                   n,
+                                                const rocblas_double_complex* alpha,
+                                                rocblas_int                   incx,
+                                                rocblas_int                   incy)
+    {
+        log_bench(handle,
+                  "./rocblas-bench -f axpy -r",
+                  rocblas_precision_string<rocblas_double_complex>,
+                  "-n",
+                  n,
+                  "--alpha",
+                  alpha->x,
+                  "--alphai",
+                  alpha->y,
+                  "--incx",
+                  incx,
+                  "--incy",
+                  incy);
+    }
+
+    template <typename T>
+    void rocblas_axpy_log(rocblas_handle handle,
+                          rocblas_int    n,
+                          const T*       alpha,
+                          const T*       x,
+                          rocblas_int    incx,
+                          T*             y,
+                          rocblas_int    incy)
+    {
+        auto layer_mode = handle->layer_mode;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                axpy_log_bench(handle, n, alpha, incx, incy);
+            }
+        }
+        else if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
+    }
+>>>>>>> Removed c++17 references to if constexpr, other cleanup.
+
     template <typename T, typename U>
     __global__ void axpy_kernel(
         rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
