@@ -25,7 +25,6 @@ namespace
     // you can use all 64K, but in practice no.
     constexpr rocblas_int STRSM_BLOCK = 128;
     constexpr rocblas_int DTRSM_BLOCK = 128;
-    constexpr rocblas_int NB          = 16;
 
     template <typename T>
     constexpr T negative_one = -1;
@@ -1095,8 +1094,8 @@ namespace
         if(!m || !n)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
-        // Whether chunking is allowed
-        const bool can_chunk = (k % BLOCK == 0);
+        // Whether size is an exact multiple of blocksize
+        const bool exact_blocks = (k % BLOCK) == 0;
 
         // perf_status indicates whether optimal performance is obtainable with available memory
         rocblas_status perf_status = rocblas_status_success;
@@ -1121,7 +1120,7 @@ namespace
             c_temp_bytes = (k / BLOCK) * (sizeof(T) * (BLOCK / 2) * (BLOCK / 2));
 
             // For the TRTRI last diagonal block we need remainder space if k % BLOCK != 0
-            if(!can_chunk)
+            if(!exact_blocks)
             {
                 // TODO: Make this more accurate -- right now it's much larger than necessary
                 size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
@@ -1132,8 +1131,7 @@ namespace
         }
 
         // Temporary solution matrix
-        // If the special solver can be used, then only m words are needed instead of m * n words
-        size_t x_temp_size = can_chunk ? size_t(m) : size_t(m) * size_t(n);
+        size_t x_temp_size = size_t(m) * size_t(n);
 
         // X and C temporaries can share space, so the maximum size is allocated
         size_t x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
@@ -1145,7 +1143,18 @@ namespace
         // Attempt to allocate optimal memory size
         auto mem = handle->device_malloc(x_c_temp_bytes, invA_bytes);
         if(!mem)
-            return rocblas_status_memory_error;
+        {
+            if(exact_blocks)
+            {
+                // Fall back on smaller size m
+                x_temp_size    = sizeof(m);
+                x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
+                mem            = handle->device_malloc(x_c_temp_bytes, invA_bytes);
+            }
+            if(!mem)
+                return rocblas_status_memory_error;
+            perf_status = rocblas_status_perf_degraded;
+        }
 
         // Get pointers to allocated device memory
         // Note: Order of pointers in std::tie(...) must match order of sizes in handle->device_malloc(...)
@@ -1172,13 +1181,13 @@ namespace
             auto c_temp = x_temp;
 
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-            status = rocblas_trtri_trsm_template<NB>(
+            status = rocblas_trtri_trsm_template<BLOCK>(
                 handle, (T*)c_temp, uplo, diag, k, A, lda, (T*)invA);
             if(status != rocblas_status_success)
                 return status;
         }
 
-        if(can_chunk)
+        if(exact_blocks)
         {
             status = special_trsm_template<BLOCK>(handle,
                                                   side,
@@ -1193,7 +1202,7 @@ namespace
                                                   B,
                                                   ldb,
                                                   (T*)invA,
-                                                  x_temp_size,
+                                                  x_temp_size / m,
                                                   (T*)x_temp);
         }
         else
