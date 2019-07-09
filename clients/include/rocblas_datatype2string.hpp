@@ -6,6 +6,7 @@
 #define ROCBLAS_DATATYPE2CHAR_H_
 
 #include "rocblas.h"
+#include <string>
 
 typedef enum rocblas_initialization_
 {

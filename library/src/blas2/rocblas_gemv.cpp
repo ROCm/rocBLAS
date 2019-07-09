@@ -1,21 +1,16 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
 #include "definitions.h"
+#include "gemv_device.hpp"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "status.h"
 #include "utility.h"
-
-#include "gemv_device.hpp"
 
 namespace
 {
-
     template <typename>
     static constexpr char rocblas_gemv_name[] = "unknown";
     template <>

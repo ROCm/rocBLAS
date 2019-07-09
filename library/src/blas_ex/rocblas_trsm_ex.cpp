@@ -1,21 +1,16 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "status.h"
-
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "rocblas_trsm.hpp"
+#include "status.h"
 #include "utility.h"
 #include <type_traits>
-
-#include "rocblas_trsm.hpp"
 
 extern "C" rocblas_status rocblas_trsm_ex(rocblas_handle      handle,
                                           rocblas_side        side,

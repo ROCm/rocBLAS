@@ -1,20 +1,16 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
 #include "definitions.h"
 #include "geam_device.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "status.h"
 #include "utility.h"
 
 namespace
 {
-
     // general cases for any transA, transB, alpha, beta, lda, ldb, ldc
     template <typename T>
     __global__ void geam_kernel_host_pointer(rocblas_operation transA,

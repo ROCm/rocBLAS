@@ -2,7 +2,6 @@
  *  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *   *
  *    * ************************************************************************ */
-#include <hip/hip_runtime.h>
 
 #include "rocblas.h"
 #include "trtri.hpp"

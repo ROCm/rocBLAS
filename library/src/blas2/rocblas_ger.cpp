@@ -1,19 +1,15 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
 #include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "status.h"
 #include "utility.h"
 
 namespace
 {
-
     template <typename T, typename U>
     __global__ void ger_kernel(rocblas_int m,
                                rocblas_int n,

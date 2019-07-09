@@ -1,20 +1,23 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
 #include "definitions.h"
 #include "fetch_template.h"
-#include "reduction.h"
-#include "rocblas_unique_ptr.hpp"
-
 #include "handle.h"
 #include "logging.h"
+#include "reduction.h"
+#include "rocblas.h"
+#include "rocblas_unique_ptr.hpp"
+#include "status.h"
 #include "utility.h"
+
+#ifndef MAX_MIN
+#define MAX_MIN max
+#endif
+
+#ifndef AMAX_AMIN_REDUCTION
+#define AMAX_AMIN_REDUCTION rocblas_reduce_amax
+#endif
 
 #define QUOTE2(S) #S
 #define QUOTE(S) QUOTE2(S)

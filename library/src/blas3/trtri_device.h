@@ -7,6 +7,8 @@
 #ifndef _TRTRI_DEVICE_H_
 #define _TRTRI_DEVICE_H_
 
+#include "rocblas-types.h"
+
 /*
  * ===========================================================================
  *    This file provide common device function for trtri routines

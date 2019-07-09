@@ -1,6 +1,8 @@
 #ifndef GUARD_ROCBLAS_MANAGE_PTR_HPP
 #define GUARD_ROCBLAS_MANAGE_PTR_HPP
-
+#include "definitions.h"
+#include "status.h"
+#include <hip/hip_runtime.h>
 #include <memory>
 
 namespace rocblas

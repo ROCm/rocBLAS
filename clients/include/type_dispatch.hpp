@@ -1,6 +1,5 @@
 #ifndef _ROCBLAS_TYPE_DISPATCH_
 #define _ROCBLAS_TYPE_DISPATCH_
-
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
@@ -27,8 +26,8 @@ auto rocblas_simple_dispatch(const Arguments& arg)
         return TEST<float>{}(arg);
     case rocblas_datatype_f64_r:
         return TEST<double>{}(arg);
-    case rocblas_datatype_f16_c:
-        return TEST<rocblas_half_complex>{}(arg);
+        //  case rocblas_datatype_f16_c:
+        //      return TEST<rocblas_half_complex>{}(arg);
     case rocblas_datatype_f32_c:
         return TEST<rocblas_float_complex>{}(arg);
     case rocblas_datatype_f64_c:
@@ -46,8 +45,8 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
 
     if(Ti == To)
         return rocblas_simple_dispatch<TEST>(arg);
-    else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
-        return TEST<rocblas_half_complex, rocblas_half>{}(arg);
+    //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
+    //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
     else if(Ti == rocblas_datatype_f32_c && To == rocblas_datatype_f32_r)
         return TEST<rocblas_float_complex, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_c && To == rocblas_datatype_f64_r)

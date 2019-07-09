@@ -2,19 +2,14 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-
 #pragma once
 #ifndef __TRTRI_TRSM_HPP__
 #define __TRTRI_TRSM_HPP__
-
-#include <hip/hip_runtime.h>
-
 #include "definitions.h"
-#include "status.h"
-#include "trtri.hpp"
-
 #include "gemm.hpp"
 #include "rocblas_unique_ptr.hpp"
+#include "status.h"
+#include "trtri.hpp"
 
 template <typename T>
 __device__ void rocblas_tritri_batched_fill_upper(
