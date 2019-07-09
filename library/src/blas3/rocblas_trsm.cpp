@@ -1204,7 +1204,7 @@ namespace
                                                                                 transA,
                                                                                 m,
                                                                                 n,
-                                                                                alpha,
+                                                                                &alpha_h,
                                                                                 A,
                                                                                 lda,
                                                                                 B,
