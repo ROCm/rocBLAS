@@ -1147,7 +1147,7 @@ namespace
             if(exact_blocks)
             {
                 // Fall back on smaller size m
-                x_temp_size    = sizeof(m);
+                x_temp_size    = m;
                 x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
                 mem            = handle->device_malloc(x_c_temp_bytes, invA_bytes);
             }
