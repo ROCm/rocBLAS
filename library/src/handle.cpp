@@ -25,7 +25,9 @@ _rocblas_handle::_rocblas_handle()
     // allocate a default initial size and manage device memory itself,
     // growing it as necessary.
     const char* env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
-    if(!env)
+    if(env)
+        device_memory_size = strtoul(env, nullptr, 0);
+    else
     {
         env = getenv("WORKBUF_TRSM_B_CHNK");
         if(env)
@@ -34,11 +36,14 @@ _rocblas_handle::_rocblas_handle()
                 = fputs("Warning: Environment variable WORKBUF_TRSM_B_CHNK is obsolete.\n"
                         "Use ROCBLAS_DEVICE_MEMORY_SIZE instead.\n",
                         stderr);
+            device_memory_size = strtoul(env, nullptr, 0);
+            if(device_memory_size)
+                device_memory_size = device_memory_size * 1024 + 1024 * 1024 * 2;
         }
     }
 
-    if((device_memory_is_rocblas_managed
-        = !env || !(device_memory_size = strtoul(env, nullptr, 0))))
+    device_memory_is_rocblas_managed = !env || !device_memory_size;
+    if(device_memory_is_rocblas_managed)
         device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
     // Allocate device memory
