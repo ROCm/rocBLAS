@@ -23,6 +23,8 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
+add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
+
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
@@ -83,13 +85,8 @@ if( BUILD_WITH_TENSILE )
 endif( )
 
 set( rocblas_auxiliary_source
-  include/handle.h
-  include/definitions.h
-  include/status.h
-  include/rocblas_unique_ptr.hpp
   handle.cpp
   rocblas_auxiliary.cpp
-  status.cpp
   buildinfo.cpp
 )
 
@@ -207,3 +204,12 @@ rocm_export_targets(
  )
 
 rocm_install_symlink_subdir( rocblas )
+
+# Compilation tests to ensure that header files work independently,
+# and that public header files work across several languages
+add_custom_command(
+  TARGET rocblas
+  POST_BUILD
+  COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+ )

@@ -2,8 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef LOGGING_H
-#define LOGGING_H
+#ifndef _ROCBLAS_LOGGING_H_
+#define _ROCBLAS_LOGGING_H_
 #include "handle.h"
 #include <atomic>
 #include <cmath>
@@ -12,6 +12,7 @@
 #include <cstring>
 #include <functional>
 #include <iomanip>
+#include <iostream>
 #include <map>
 #include <memory>
 #include <mutex>

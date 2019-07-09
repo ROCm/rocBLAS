@@ -1,25 +1,17 @@
 /* ************************************************************************
- *  * Copyright 2016-2019 Advanced Micro Devices, Inc.
- *   *
- *    * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "definitions.h"
-#include "trtri_device.h"
-#include "trtri_trsm.hpp"
-
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ *
+ * ************************************************************************ */
 #include "rocblas_trtri_batched.hpp"
-
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
+#include "trtri_device.h"
+#include "trtri_trsm.hpp"
 #include "utility.h"
 
 namespace trtri
 {
-
     constexpr int NB = 16;
 
     // flag indicate whether write into A or invA

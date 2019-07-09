@@ -1,30 +1,24 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime_api.h>
-
-#include <hip/hip_runtime.h>
-
+#include "rocblas_trsv.hpp"
+#include "../blas3/trtri_trsm.hpp"
 #include "definitions.h"
 #include "gemv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_trsv.hpp"
 #include "rocblas_unique_ptr.hpp"
 #include "status.h"
 #include "utility.h"
-
-#include "../blas3/trtri_trsm.hpp"
-
-namespace
-{
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
 #define B(ii) (B + (ii))
 #define X(ii) (X + (ii))
 #define invA(ii) (invA + (ii)*BLOCK)
 
+namespace
+{
     template <typename T>
     __global__ void flip_vector_kernel(T* data, rocblas_int size)
     {

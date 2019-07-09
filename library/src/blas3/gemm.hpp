@@ -5,8 +5,7 @@
 #pragma once
 #ifndef _GEMM_HPP_
 #define _GEMM_HPP_
-
-#include <hip/hip_runtime.h>
+#include "rocblas.h"
 
 template <typename T>
 rocblas_status rocblas_gemm_template(rocblas_handle    handle,

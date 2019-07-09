@@ -7,8 +7,9 @@
 
 #include "definitions.h"
 #include "rocblas.h"
+#include "status.h"
 #include <fstream>
-#include <hip/hip_runtime_api.h>
+#include <hip/hip_runtime.h>
 #include <iostream>
 
 /*******************************************************************************

@@ -19,15 +19,14 @@
            If users do not create streams explicitely like what I am doing here,
            all rocblas routine take the NULL (0) stream.
 */
-
+#include "rocblas.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <hip/hip_runtime.h>
 #include <iostream>
 #include <omp.h>
 #include <vector>
-
-#include "rocblas.hpp"
-#include "utility.hpp"
 
 #define NUM_THREADS 4
 

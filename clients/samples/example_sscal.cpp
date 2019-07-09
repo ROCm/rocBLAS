@@ -3,21 +3,21 @@
  *
  * ************************************************************************ */
 
-#include <cstdio>
-#include <cstdlib>
-#include <iostream>
-#include <vector>
-
 #include "rocblas.h"
 #include "rocblas_init.hpp"
 #include "utility.hpp"
+#include <cstdio>
+#include <cstdlib>
+#include <hip/hip_runtime.h>
+#include <iostream>
+#include <vector>
+
 using std::vector;
 
 /* ============================================================================================ */
 
 int main()
 {
-
     rocblas_int    N      = 10240;
     rocblas_status status = rocblas_status_success;
     float          alpha  = 10.0;

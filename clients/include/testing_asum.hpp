@@ -11,7 +11,6 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
-#include <complex.h>
 
 template <typename T1, typename T2 = T1>
 void testing_asum_bad_arg(const Arguments& arg)
