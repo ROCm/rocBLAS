@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
@@ -518,10 +519,6 @@ try
         ("flags",
          value<uint32_t>(&arg.flags)->default_value(10),
          "extended precision gemm flags")
-
-        ("workspace_size",
-         value<size_t>(&arg.workspace_size)->default_value(10),
-         "extended precision gemm workspace size")
 
         ("device",
          value<rocblas_int>(&device_id)->default_value(0),

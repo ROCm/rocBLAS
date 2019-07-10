@@ -16,7 +16,6 @@
 
 namespace
 {
-
     enum class blas1
     {
         nrm2,

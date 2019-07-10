@@ -1,23 +1,23 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "fetch_template.h"
 #include "handle.h"
 #include "logging.h"
 #include "reduction.h"
 #include "rocblas.h"
-#include "rocblas_unique_ptr.hpp"
-#include "status.h"
 #include "utility.h"
 
 namespace
 {
+    // HIP support up to 1024 threads/work itmes per thread block/work group
+    constexpr int NB = 512;
+
     template <class To>
     struct rocblas_fetch_nrm2
     {
         template <class Ti>
-        __forceinline__ __device__ To operator()(Ti x, ssize_t tid)
+        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
         {
             return {fetch_abs2(x)};
         }
@@ -33,17 +33,17 @@ namespace
     };
 
     template <typename>
-    static constexpr char rocblas_nrm2_name[] = "unknown";
+    constexpr char rocblas_nrm2_name[] = "unknown";
     template <>
-    static constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
+    constexpr char rocblas_nrm2_name<float>[] = "rocblas_snrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
+    constexpr char rocblas_nrm2_name<double>[] = "rocblas_dnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
+    constexpr char rocblas_nrm2_name<rocblas_half>[] = "rocblas_hnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
+    constexpr char rocblas_nrm2_name<rocblas_float_complex>[] = "rocblas_scnrm2";
     template <>
-    static constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
+    constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
 
     // allocate workspace inside this API
     template <typename Ti, typename To>
@@ -54,7 +54,6 @@ namespace
             return rocblas_status_invalid_handle;
 
         auto layer_mode = handle->layer_mode;
-
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_nrm2_name<Ti>, n, x, incx);
 
@@ -73,34 +72,31 @@ namespace
         if(!x || !result)
             return rocblas_status_invalid_pointer;
 
-        /*
-     * Quick return if possible.
-     */
+        // Quick return if possible.
         if(n <= 0 || incx <= 0)
         {
-            if(rocblas_pointer_mode_device == handle->pointer_mode)
+            if(handle->is_device_memory_size_query())
+                return rocblas_status_size_unchanged;
+            else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
                 *result = 0;
             return rocblas_status_success;
         }
 
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        static constexpr int NB     = 512;
-        rocblas_int          blocks = (n - 1) / NB + 1;
+        auto blocks = (n - 1) / NB + 1;
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
 
-        auto workspace
-            = rocblas_unique_ptr{rocblas::device_malloc(sizeof(To) * blocks), rocblas::device_free};
-        if(!workspace)
+        auto mem = handle->device_malloc(sizeof(To) * blocks);
+        if(!mem)
             return rocblas_status_memory_error;
 
-        auto status = rocblas_reduction_kernel<NB,
-                                               rocblas_fetch_nrm2<To>,
-                                               rocblas_reduce_sum,
-                                               rocblas_finalize_nrm2>(
-            handle, n, x, incx, result, (To*)workspace.get(), blocks);
-
-        return status;
+        return rocblas_reduction_kernel<NB,
+                                        rocblas_fetch_nrm2<To>,
+                                        rocblas_reduce_sum,
+                                        rocblas_finalize_nrm2>(
+            handle, n, x, incx, result, (To*)mem, blocks);
     }
 
 } // namespace
