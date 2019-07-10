@@ -12,8 +12,6 @@
 #include <iostream>
 #include <vector>
 
-using std::vector;
-
 /* ============================================================================================ */
 
 int main()
@@ -23,9 +21,9 @@ int main()
     float          alpha  = 10.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    vector<float> hx(N);
-    vector<float> hz(N);
-    float*        dx;
+    std::vector<float> hx(N);
+    std::vector<float> hz(N);
+    float*             dx;
 
     double gpu_time_used;
 

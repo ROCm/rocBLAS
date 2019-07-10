@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"

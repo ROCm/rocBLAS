@@ -18,7 +18,6 @@
 
 namespace
 {
-
 #if 0 // TODO: Need to refactor into new framework; currently disabled because of HIP bug
 
 // Parallel GEMM testing class

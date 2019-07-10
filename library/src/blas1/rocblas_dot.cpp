@@ -1,13 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "reduction.h"
 #include "rocblas.h"
-#include "rocblas_unique_ptr.hpp"
-#include "status.h"
 #include "utility.h"
 
 namespace
@@ -20,8 +17,8 @@ namespace
     __global__ void dot_kernel_part1(
         rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* workspace)
     {
-        ssize_t tx  = hipThreadIdx_x;
-        ssize_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
+        ptrdiff_t tx  = hipThreadIdx_x;
+        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
 
         __shared__ T tmp[NB];
 
@@ -60,9 +57,9 @@ namespace
         dim3 threads(NB);
 
         if(incx < 0)
-            x -= ssize_t(incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
         if(incy < 0)
-            y -= ssize_t(incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         hipLaunchKernelGGL(dot_kernel_part1,
                            grid,
@@ -93,15 +90,15 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_dot_name[] = "unknown";
+    constexpr char rocblas_dot_name[] = "unknown";
     template <>
-    static constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
+    constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
     template <>
-    static constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
+    constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
     template <>
-    static constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
+    constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
     template <>
-    static constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
+    constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
 
     // allocate workspace inside this API
     template <typename T>
@@ -117,7 +114,6 @@ namespace
             return rocblas_status_invalid_handle;
 
         auto layer_mode = handle->layer_mode;
-
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_dot_name<T>, n, x, incx, y, incy);
 
@@ -138,29 +134,27 @@ namespace
         if(!x || !y || !result)
             return rocblas_status_invalid_pointer;
 
-        /*
-     * Quick return if possible.
-     */
+        // Quick return if possible.
         if(n <= 0)
         {
-            if(rocblas_pointer_mode_device == handle->pointer_mode)
+            if(handle->is_device_memory_size_query())
+                return rocblas_status_size_unchanged;
+            else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
                 *result = 0;
             return rocblas_status_success;
         }
 
-        rocblas_int blocks = (n - 1) / NB + 1;
+        auto blocks = (n - 1) / NB + 1;
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(sizeof(T) * blocks);
 
-        auto workspace
-            = rocblas_unique_ptr{rocblas::device_malloc(sizeof(T) * blocks), rocblas::device_free};
-        if(!workspace)
+        auto mem = handle->device_malloc(sizeof(T) * blocks);
+        if(!mem)
             return rocblas_status_memory_error;
 
-        auto status = rocblas_dot_workspace<T>(
-            handle, n, x, incx, y, incy, result, (T*)workspace.get(), blocks);
-
-        return status;
+        return rocblas_dot_workspace<T>(handle, n, x, incx, y, incy, result, (T*)mem, blocks);
     }
 
 } // namespace

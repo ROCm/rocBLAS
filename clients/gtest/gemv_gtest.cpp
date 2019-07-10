@@ -13,7 +13,6 @@
 
 namespace
 {
-
     // By default, arbitrary type combinations are invalid.
     // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>

@@ -1,16 +1,13 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "status.h"
 #include "utility.h"
 
 namespace
 {
-
     template <typename T, typename U>
     __global__ void syr_kernel(rocblas_fill uplo,
                                rocblas_int  n,
@@ -29,11 +26,11 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_syr_name[] = "unknown";
+    constexpr char rocblas_syr_name[] = "unknown";
     template <>
-    static constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
+    constexpr char rocblas_syr_name<float>[] = "rocblas_ssyr";
     template <>
-    static constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
+    constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
 
     template <typename T>
     rocblas_status rocblas_syr(rocblas_handle handle,
@@ -47,6 +44,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         if(!alpha)
             return rocblas_status_invalid_pointer;
         auto layer_mode = handle->layer_mode;
@@ -102,9 +100,7 @@ namespace
         if(n < 0 || !incx || lda < n || lda < 1)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possible. Not Argument error
-     */
+        // Quick return if possible. Not Argument error
         if(!n)
             return rocblas_status_success;
 
@@ -119,7 +115,7 @@ namespace
         dim3 syr_threads(GEMV_DIM_X, GEMV_DIM_Y);
 
         if(incx < 0)
-            x += size_t(-incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
 
         if(rocblas_pointer_mode_device == handle->pointer_mode)
             hipLaunchKernelGGL(syr_kernel,

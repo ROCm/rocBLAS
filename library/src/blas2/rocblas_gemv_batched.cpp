@@ -1,22 +1,20 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "gemv_device.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "status.h"
 #include "utility.h"
 
 namespace
 {
     template <typename>
-    static constexpr char rocblas_gemv_name[] = "unknown";
+    constexpr char rocblas_gemv_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_batched";
+    constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_batched";
     template <>
-    static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
+    constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_batched";
 
     template <typename T>
     rocblas_status rocblas_gemv_batched(rocblas_handle    handle,
@@ -35,6 +33,8 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         if(!alpha || !beta)
             return rocblas_status_invalid_pointer;
 
@@ -239,10 +239,10 @@ namespace
 } // namespace
 
 /*
-* ===========================================================================
-*    C wrapper
-* ===========================================================================
-*/
+ * ===========================================================================
+ *    C wrapper
+ * ===========================================================================
+ */
 
 extern "C" {
 

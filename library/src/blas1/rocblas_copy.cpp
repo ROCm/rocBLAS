@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -14,24 +13,24 @@ namespace
     template <typename T>
     __global__ void copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
-        ssize_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         // bound
         if(tid < n)
             y[tid * incy] = x[tid * incx];
     }
 
     template <typename>
-    static constexpr char rocblas_copy_name[] = "unknown";
+    constexpr char rocblas_copy_name[] = "unknown";
     template <>
-    static constexpr char rocblas_copy_name<float>[] = "rocblas_scopy";
+    constexpr char rocblas_copy_name<float>[] = "rocblas_scopy";
     template <>
-    static constexpr char rocblas_copy_name<double>[] = "rocblas_dcopy";
+    constexpr char rocblas_copy_name<double>[] = "rocblas_dcopy";
     template <>
-    static constexpr char rocblas_copy_name<rocblas_half>[] = "rocblas_hcopy";
+    constexpr char rocblas_copy_name<rocblas_half>[] = "rocblas_hcopy";
     template <>
-    static constexpr char rocblas_copy_name<rocblas_float_complex>[] = "rocblas_ccopy";
+    constexpr char rocblas_copy_name<rocblas_float_complex>[] = "rocblas_ccopy";
     template <>
-    static constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
+    constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
 
     template <class T>
     rocblas_status rocblas_copy_template(
@@ -61,9 +60,9 @@ namespace
         if(!x || !y)
             return rocblas_status_invalid_pointer;
 
-        /*
-     * Quick return if possible.
-     */
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
+        // Quick return if possible.
         if(n <= 0)
             return rocblas_status_success;
 
@@ -74,9 +73,9 @@ namespace
         hipStream_t rocblas_stream = handle->rocblas_stream;
 
         if(incx < 0)
-            x -= ssize_t(incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
         if(incy < 0)
-            y -= ssize_t(incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         hipLaunchKernelGGL(copy_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
 

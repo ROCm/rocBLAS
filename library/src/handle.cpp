@@ -2,6 +2,7 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
+#include <cstdio>
 #include <cstdlib>
 
 /*******************************************************************************
@@ -14,36 +15,39 @@ _rocblas_handle::_rocblas_handle()
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
-    char* env_p = std::getenv("WORKBUF_TRSM_B_CHNK");
-    if(env_p)
-    {
-        try
-        {
-            WORKBUF_TRSM_B_CHNK = std::stoi(std::string(env_p));
-        }
-        catch(...)
-        {
-            WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
-        }
-    }
+
+    // Device memory size
+    //
+    // If ROCBLAS_DEVICE_MEMORY_SIZE is set to > 0, then rocBLAS will allocate
+    // the size specified, and will not manage device memory itself.
+    //
+    // If ROCBLAS_DEVICE_MEMORY_SIZE is unset, invalid or 0, then rocBLAS will
+    // allocate a default initial size and manage device memory itself,
+    // growing it as necessary.
+    const char* env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
+    if(env)
+        device_memory_size = strtoul(env, nullptr, 0);
     else
     {
-        WORKBUF_TRSM_B_CHNK = WORKBUF_TRSM_B_MIN_CHNK;
+        env = getenv("WORKBUF_TRSM_B_CHNK");
+        if(env)
+        {
+            static int once
+                = fputs("Warning: Environment variable WORKBUF_TRSM_B_CHNK is obsolete.\n"
+                        "Use ROCBLAS_DEVICE_MEMORY_SIZE instead.\n",
+                        stderr);
+            device_memory_size = strtoul(env, nullptr, 0);
+            if(device_memory_size)
+                device_memory_size = device_memory_size * 1024 + 1024 * 1024 * 2;
+        }
     }
 
-    WORKBUF_TRSM_Y_SZ = WORKBUF_TRSM_B_CHNK * 128 * sizeof(double);
+    device_memory_is_rocblas_managed = !env || !device_memory_size;
+    if(device_memory_is_rocblas_managed)
+        device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
 
-    // allocate trsm temp buffers
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_Y, WORKBUF_TRSM_Y_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA, WORKBUF_TRSM_INVA_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsm_invA_C, WORKBUF_TRSM_INVA_C_SZ));
-
-    // allocate trsv temp buffers
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_x, WORKBUF_TRSV_X_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_alpha, WORKBUF_TRSV_ALPHA_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_one, WORKBUF_TRSV_CONSTANT_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_zero, WORKBUF_TRSV_CONSTANT_SZ));
-    THROW_IF_HIP_ERROR(hipMalloc(&trsv_negative_one, WORKBUF_TRSV_CONSTANT_SZ));
+    // Allocate device memory
+    THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));
 }
 
 /*******************************************************************************
@@ -51,22 +55,131 @@ _rocblas_handle::_rocblas_handle()
  ******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
-    if(trsm_Y)
-        hipFree(trsm_Y);
-    if(trsm_invA)
-        hipFree(trsm_invA);
-    if(trsm_invA_C)
-        hipFree(trsm_invA_C);
-    if(trsv_x)
-        hipFree(trsv_x);
-    if(trsv_alpha)
-        hipFree(trsv_alpha);
-    if(trsv_one)
-        hipFree(trsv_one);
-    if(trsv_zero)
-        hipFree(trsv_zero);
-    if(trsv_negative_one)
-        hipFree(trsv_negative_one);
+    if(device_memory_in_use)
+    {
+        fputs("rocBLAS internal error: Handle object destroyed while device memory still in use.\n",
+              stderr);
+        abort();
+    }
+    if(device_memory)
+        (hipFree)(device_memory);
+}
+
+/*******************************************************************************
+ * helper for allocating device memory
+ ******************************************************************************/
+void* _rocblas_handle::device_allocator(size_t size)
+{
+    if(device_memory_in_use)
+    {
+        fputs("rocBLAS internal error: Cannot allocate device memory while it is already "
+              "allocated.\n",
+              stderr);
+        abort();
+    }
+    if(size > device_memory_size)
+    {
+        if(!device_memory_is_rocblas_managed)
+            return nullptr;
+        if(device_memory)
+        {
+            (hipFree)(device_memory);
+            device_memory = nullptr;
+        }
+        device_memory_size = 0;
+        if((hipMalloc)(&device_memory, size) == hipSuccess)
+            device_memory_size = size;
+        else
+            return nullptr;
+    }
+    device_memory_in_use = true;
+    return device_memory;
+}
+
+/*******************************************************************************
+ * start device memory size queries
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(handle->device_memory_size_query)
+        return rocblas_status_size_query_mismatch;
+    handle->device_memory_size_query = true;
+    handle->device_memory_query_size = 0;
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * stop device memory size queries
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle, size_t* size)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!handle->device_memory_size_query)
+        return rocblas_status_size_query_mismatch;
+    if(!size)
+        return rocblas_status_invalid_pointer;
+    *size                            = handle->device_memory_query_size;
+    handle->device_memory_size_query = false;
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * get the device memory size
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!size)
+        return rocblas_status_invalid_pointer;
+    *size = handle->device_memory_size;
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * set the device memory size
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    // Cannot change memory allocation when a device_malloc
+    // object is alive and using device memory.
+    if(handle->device_memory_in_use)
+        return rocblas_status_internal_error;
+
+    // Free existing device memory, if any
+    if(handle->device_memory)
+    {
+        (hipFree)(handle->device_memory);
+        handle->device_memory = nullptr;
+    }
+    handle->device_memory_size = 0;
+
+    // A zero size requests rocBLAS to take over management of device memory.
+    // A nonzero size forces rocBLAS to use that as a fixed size, and not change it.
+    handle->device_memory_is_rocblas_managed = !size;
+    if(size)
+    {
+        size           = handle->roundup_device_memory_size(size);
+        auto hipStatus = (hipMalloc)(&handle->device_memory, size);
+        if(hipStatus != hipSuccess)
+            return get_rocblas_status_for_hip_status(hipStatus);
+        handle->device_memory_size = size;
+    }
+    return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * Returns whether device memory is rocblas-managed
+ ******************************************************************************/
+extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
+{
+    return handle && handle->device_memory_is_rocblas_managed;
 }
 
 /*******************************************************************************
@@ -80,6 +193,8 @@ std::ostream*         _rocblas_handle::log_bench_os;
 std::ofstream         _rocblas_handle::log_profile_ofs;
 std::ostream*         _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
+constexpr size_t      _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE; // Not needed in C++17
+constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
 
 /**
  *  @brief Logging function
@@ -112,7 +227,6 @@ _rocblas_handle::init _rocblas_handle::handle_init;
 static void open_log_stream(const char*    environment_variable_name,
                             std::ostream*& log_os,
                             std::ofstream& log_ofs)
-
 {
     // By default, output to cerr
     log_os = &std::cerr;

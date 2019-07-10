@@ -34,7 +34,6 @@
 
 int main()
 {
-
     rocblas_int N     = 102400;
     float       alpha = 10.0;
 

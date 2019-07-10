@@ -4,6 +4,7 @@
 
 #ifndef UTILITY_H
 #define UTILITY_H
+#include "definitions.h"
 #include "rocblas.h"
 #include <hip/hip_runtime.h>
 
@@ -107,25 +108,61 @@ constexpr auto rocblas_datatype_string(rocblas_datatype type)
 {
     switch(type)
     {
-    case rocblas_datatype_f16_r: return "f16_r";
-    case rocblas_datatype_f32_r: return "f32_r";
-    case rocblas_datatype_f64_r: return "f64_r";
-    case rocblas_datatype_f16_c: return "f16_c";
-    case rocblas_datatype_f32_c: return "f32_c";
-    case rocblas_datatype_f64_c: return "f64_c";
-    case rocblas_datatype_i8_r:  return "i8_r";
-    case rocblas_datatype_u8_r:  return "u8_r";
-    case rocblas_datatype_i32_r: return "i32_r";
-    case rocblas_datatype_u32_r: return "u32_r";
-    case rocblas_datatype_i8_c:  return "i8_c";
-    case rocblas_datatype_u8_c:  return "u8_c";
-    case rocblas_datatype_i32_c: return "i32_c";
-    case rocblas_datatype_u32_c: return "u32_c";
+    case rocblas_datatype_f16_r:  return "f16_r";
+    case rocblas_datatype_f32_r:  return "f32_r";
+    case rocblas_datatype_f64_r:  return "f64_r";
+    case rocblas_datatype_f16_c:  return "f16_c";
+    case rocblas_datatype_f32_c:  return "f32_c";
+    case rocblas_datatype_f64_c:  return "f64_c";
+    case rocblas_datatype_i8_r:   return "i8_r";
+    case rocblas_datatype_u8_r:   return "u8_r";
+    case rocblas_datatype_i32_r:  return "i32_r";
+    case rocblas_datatype_u32_r:  return "u32_r";
+    case rocblas_datatype_i8_c:   return "i8_c";
+    case rocblas_datatype_u8_c:   return "u8_c";
+    case rocblas_datatype_i32_c:  return "i32_c";
+    case rocblas_datatype_u32_c:  return "u32_c";
     case rocblas_datatype_bf16_r: return "bf16_r";
     case rocblas_datatype_bf16_c: return "bf16_c";
-    default:                     return "invalid";
+    default:                      return "invalid";
     }
 }
+
+// return sizeof rocblas_datatype
+constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
+{
+    switch(type)
+    {
+    case rocblas_datatype_f16_r: return 2;
+    case rocblas_datatype_f32_r: return 4;
+    case rocblas_datatype_f64_r: return 8;
+    case rocblas_datatype_f16_c: return 4;
+    case rocblas_datatype_f32_c: return 8;
+    case rocblas_datatype_f64_c: return 16;
+    case rocblas_datatype_i8_r:  return 1;
+    case rocblas_datatype_u8_r:  return 1;
+    case rocblas_datatype_i32_r: return 4;
+    case rocblas_datatype_u32_r: return 4;
+    case rocblas_datatype_i8_c:  return 2;
+    case rocblas_datatype_u8_c:  return 2;
+    case rocblas_datatype_i32_c: return 8;
+    case rocblas_datatype_u32_c: return 8;
+    default:                     return 0;
+    }
+}
+
+// return rocblas_datatype from type
+template <typename> static constexpr rocblas_datatype rocblas_datatype_from_type     = rocblas_datatype(-1);
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_half>           = rocblas_datatype_f16_r;
+template <> static constexpr auto rocblas_datatype_from_type<float>                  = rocblas_datatype_f32_r;
+template <> static constexpr auto rocblas_datatype_from_type<double>                 = rocblas_datatype_f64_r;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_float_complex>  = rocblas_datatype_f32_c;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_double_complex> = rocblas_datatype_f64_c;
+template <> static constexpr auto rocblas_datatype_from_type<int8_t>                 = rocblas_datatype_i8_r;
+template <> static constexpr auto rocblas_datatype_from_type<uint8_t>                = rocblas_datatype_u8_r;
+template <> static constexpr auto rocblas_datatype_from_type<int32_t>                = rocblas_datatype_i32_r;
+template <> static constexpr auto rocblas_datatype_from_type<uint32_t>               = rocblas_datatype_u32_r;
+template <> static constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
@@ -147,4 +184,42 @@ template <> static constexpr char rocblas_precision_string<rocblas_u32_complex  
 #endif
 
 // clang-format on
+
+/*******************************************************************************
+ * \brief convert hipError_t to rocblas_status
+ * TODO - enumerate library calls to hip runtime, enumerate possible errors from those calls
+ ******************************************************************************/
+constexpr auto get_rocblas_status_for_hip_status(hipError_t status)
+{
+    switch(status)
+    {
+    // success
+    case hipSuccess:
+        return rocblas_status_success;
+
+    // internal hip memory allocation
+    case hipErrorMemoryAllocation:
+    case hipErrorLaunchOutOfResources:
+        return rocblas_status_memory_error;
+
+    // user-allocated hip memory
+    case hipErrorInvalidDevicePointer: // hip memory
+        return rocblas_status_invalid_pointer;
+
+    // user-allocated device, stream, event
+    case hipErrorInvalidDevice:
+    case hipErrorInvalidResourceHandle:
+        return rocblas_status_invalid_handle;
+
+    // library using hip incorrectly
+    case hipErrorInvalidValue:
+        return rocblas_status_internal_error;
+
+    // hip runtime failing
+    case hipErrorNoDevice: // no hip devices
+    case hipErrorUnknown:
+    default:
+        return rocblas_status_internal_error;
+    }
+}
 #endif

@@ -112,6 +112,10 @@ typedef enum rocblas_status_
     rocblas_status_invalid_size    = 4, /**< invalid size parameter */
     rocblas_status_memory_error    = 5, /**< failed internal memory allocation, copy or dealloc */
     rocblas_status_internal_error  = 6, /**< other internal library failure */
+    rocblas_status_perf_degraded   = 7, /**< performance degraded due to low device memory */
+    rocblas_status_size_query_mismatch = 8, /**< unmatched start/stop size query */
+    rocblas_status_size_increased      = 9, /**< queried device memory size increased */
+    rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
@@ -156,13 +160,6 @@ typedef enum rocblas_gemm_algo_
 {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
-
-/*! \brief Indicates selected option to run trsm*/
-typedef enum rocblas_trsm_option_
-{
-    rocblas_trsm_high_performance = 0,
-    rocblas_trsm_low_memory       = 1
-} rocblas_trsm_option;
 
 #ifdef __cplusplus
 }

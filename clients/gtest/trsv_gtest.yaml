@@ -7,9 +7,12 @@ Definitions:
     - { M:    -1, lda:     1 }
     - { M:     4, lda:     4 }
     - { M:    10, lda:    20 }
+    - { M:   128, lda:   256 }
 
   - &medium_matrix_size_range
     - { M:   192, lda:   192 }
+    - { M:   256, lda:   256 }
+    - { M:   384, lda:   384 }
     - { M:   600, lda:   600 }
     - { M:   800, lda:   801 }
 
@@ -31,13 +34,13 @@ Tests:
   category: quick
   arguments: *common_args
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 0, 1, 2, 3, 10, 100 ]
+  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
 
 - name: trsv_medium
   category: pre_checkin
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  incx: [ -1, 0, 1, 2, 3, 10 ]
+  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
 
 - name: trsv_large
   category: nightly
