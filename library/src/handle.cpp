@@ -57,7 +57,8 @@ _rocblas_handle::~_rocblas_handle()
 {
     if(device_memory_in_use)
     {
-        fputs("Handle object destroyed while device memory still in use\n", stderr);
+        fputs("rocBLAS internal error: Handle object destroyed while device memory still in use.\n",
+              stderr);
         abort();
     }
     if(device_memory)
@@ -71,8 +72,10 @@ void* _rocblas_handle::device_allocator(size_t size)
 {
     if(device_memory_in_use)
     {
+        fputs("rocBLAS internal error: Cannot allocate device memory while it is already "
+              "allocated.\n",
+              stderr);
         abort();
-        return nullptr;
     }
     if(size > device_memory_size)
     {

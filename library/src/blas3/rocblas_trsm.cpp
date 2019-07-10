@@ -667,8 +667,8 @@ namespace
                          T*             dst,
                          rocblas_int    dst_ld)
     {
-        rocblas_int blocksX = ((m - 1) / 128) + 1; // parameters for device kernel
-        rocblas_int blocksY = ((n - 1) / 8) + 1;
+        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
+        rocblas_int blocksY = (n - 1) / 8 + 1;
         dim3        grid(blocksX, blocksY);
         dim3        threads(128, 8);
 
@@ -703,60 +703,40 @@ namespace
                                          size_t            B_chunk_size,
                                          T*                x_temp)
     {
+        bool   parity     = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_upper);
         size_t k          = side == rocblas_side_left ? m : n;
         size_t R          = k / BLOCK;
         size_t bsize      = side == rocblas_side_left ? n : m;
         size_t W          = 1 + (bsize - 1) / B_chunk_size;
         bool   arch_lt906 = handle->device_arch_id() < 906;
 
-        for(int w = 0; w < W; w++)
+        for(size_t w = 0; w < W; w++)
         {
+            size_t width = min(bsize - w * B_chunk_size, B_chunk_size);
+
             if(side == rocblas_side_left)
             {
-                T*  Bw = B + w * B_chunk_size * ldb;
-                int width
-                    = bsize > (w + 1) * B_chunk_size ? B_chunk_size : bsize - w * B_chunk_size;
+                T* Bw = B + w * B_chunk_size * ldb;
 
-                for(int r = 0; r < R; r++)
+                for(size_t r = 0; r < R; r++)
                 {
-                    int q = R - 1 - r;
-
-                    int j = (((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
-                             || ((uplo == rocblas_fill_upper)
-                                 && (transA == rocblas_operation_transpose)))
-                                ? r
-                                : q;
+                    size_t q = R - 1 - r;
+                    size_t j = parity ? r : q;
 
                     // copy a BLOCK*n piece we are solving at a time
-                    if(r == 0 || arch_lt906)
+                    if(!r || arch_lt906)
                         copy_block_unit(handle, BLOCK, width, Bw + j * BLOCK, ldb, x_temp, BLOCK);
 
-                    if(r > 0)
+                    if(r)
                     {
-                        const T* A_current = nullptr;
-                        T*       B_current = nullptr;
+                        const T* A_current;
+                        T*       B_current = parity ? Bw : Bw + (q + 1) * BLOCK;
 
-                        if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_transpose))
-                        {
-                            A_current = A + r * BLOCK * lda;
-                            B_current = Bw;
-                        }
-                        else if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
-                        {
-                            A_current = A + r * BLOCK;
-                            B_current = Bw;
-                        }
-                        else if((uplo == rocblas_fill_lower)
-                                && (transA == rocblas_operation_transpose))
-                        {
-                            A_current = A + q * BLOCK * lda + (q + 1) * BLOCK;
-                            B_current = Bw + (q + 1) * BLOCK;
-                        }
-                        else // ((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
-                        {
-                            A_current = A + (q + 1) * BLOCK * lda + q * BLOCK;
-                            B_current = Bw + (q + 1) * BLOCK;
-                        }
+                        if(transA == rocblas_operation_none)
+                            A_current = parity ? A + r * BLOCK : A + BLOCK * (q * lda + q + lda);
+                        else
+                            A_current
+                                = parity ? A + r * BLOCK * lda : A + BLOCK * (q * lda + q + 1);
 
                         if(arch_lt906)
                         {
@@ -772,7 +752,7 @@ namespace
                                                   B_current,
                                                   ldb,
                                                   alpha,
-                                                  (T*)x_temp,
+                                                  x_temp,
                                                   BLOCK);
                         }
                         else
@@ -799,7 +779,7 @@ namespace
                                             Bw + j * BLOCK,
                                             compute_type,
                                             ldb,
-                                            (T*)x_temp,
+                                            x_temp,
                                             compute_type,
                                             BLOCK,
                                             compute_type,
@@ -809,17 +789,16 @@ namespace
                         }
                     }
 
-                    const T* theta = (r == 0 ? alpha : &one<T>);
                     rocblas_gemm_template(handle,
                                           transA,
                                           rocblas_operation_none,
                                           BLOCK,
                                           width,
                                           BLOCK,
-                                          theta,
-                                          ((T*)invA) + j * BLOCK * BLOCK,
+                                          r ? &one<T> : alpha,
+                                          invA + j * BLOCK * BLOCK,
                                           BLOCK,
-                                          (T*)x_temp,
+                                          x_temp,
                                           BLOCK,
                                           &zero<T>,
                                           Bw + j * BLOCK,
@@ -828,51 +807,26 @@ namespace
             }
             else
             {
-                T*  Bw = B + size_t(w) * B_chunk_size;
-                int width
-                    = bsize > (w + 1) * B_chunk_size ? B_chunk_size : bsize - w * B_chunk_size;
-
-                for(int r = 0; r < R; r++)
+                T* Bw = B + w * B_chunk_size;
+                for(size_t r = 0; r < R; r++)
                 {
-                    int q = R - 1 - r;
-
-                    int j = (uplo == rocblas_fill_lower && transA == rocblas_operation_transpose)
-                                    || (uplo == rocblas_fill_upper
-                                        && transA == rocblas_operation_none)
-                                ? r
-                                : q;
+                    size_t q = R - 1 - r;
+                    size_t j = parity ? q : r;
 
                     // copy a m*BLOCK piece we are solving at a time
-                    if(r == 0 || arch_lt906)
+                    if(!r || arch_lt906)
                         copy_block_unit(
                             handle, width, BLOCK, Bw + j * BLOCK * ldb, ldb, x_temp, width);
 
-                    if(r > 0)
+                    if(r)
                     {
-                        const T* A_current = nullptr;
-                        T*       B_current = nullptr;
-
-                        if((uplo == rocblas_fill_lower) && (transA == rocblas_operation_transpose))
-                        {
-                            A_current = A + r * BLOCK;
-                            B_current = Bw;
-                        }
-                        else if((uplo == rocblas_fill_upper) && (transA == rocblas_operation_none))
-                        {
-                            A_current = A + r * BLOCK * lda;
-                            B_current = Bw;
-                        }
-                        else if((uplo == rocblas_fill_upper)
-                                && (transA == rocblas_operation_transpose))
-                        {
-                            A_current = A + size_t(q + 1) * BLOCK * lda + size_t(q) * BLOCK;
-                            B_current = Bw + size_t(q + 1) * BLOCK * size_t(ldb);
-                        }
-                        else // ((uplo == rocblas_fill_lower) && (transA == rocblas_operation_none))
-                        {
-                            A_current = A + size_t(q) * BLOCK * lda + size_t(q + 1) * BLOCK;
-                            B_current = Bw + size_t(q + 1) * BLOCK * size_t(ldb);
-                        }
+                        const T* A_current;
+                        T*       B_current = parity ? Bw + (q + 1) * BLOCK * ldb : Bw;
+                        if(transA == rocblas_operation_none)
+                            A_current
+                                = parity ? A + BLOCK * (q * lda + q + 1) : A + r * BLOCK * lda;
+                        else
+                            A_current = parity ? A + BLOCK * (q * lda + q + lda) : A + r * BLOCK;
 
                         if(arch_lt906)
                         {
@@ -888,7 +842,7 @@ namespace
                                                   A_current,
                                                   lda,
                                                   alpha,
-                                                  (T*)x_temp,
+                                                  x_temp,
                                                   width);
                         }
                         else
@@ -915,7 +869,7 @@ namespace
                                             Bw + j * BLOCK * ldb,
                                             compute_type,
                                             ldb,
-                                            (T*)x_temp,
+                                            x_temp,
                                             compute_type,
                                             width,
                                             compute_type,
@@ -925,18 +879,16 @@ namespace
                         }
                     }
 
-                    const T* theta = r == 0 ? alpha : &one<T>;
-
                     rocblas_gemm_template(handle,
                                           rocblas_operation_none,
                                           transA,
                                           width,
                                           BLOCK,
                                           BLOCK,
-                                          theta,
-                                          (T*)x_temp,
+                                          r ? &one<T> : alpha,
+                                          x_temp,
                                           width,
-                                          (T*)invA + j * BLOCK * BLOCK,
+                                          invA + j * BLOCK * BLOCK,
                                           BLOCK,
                                           &zero<T>,
                                           Bw + j * BLOCK * ldb,
@@ -1107,7 +1059,7 @@ namespace
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
-            perf_status   = rocblas_status_perf_degraded;
+            //            perf_status   = rocblas_status_perf_degraded;
             supplied_invA = nullptr;
         }
 
@@ -1130,11 +1082,28 @@ namespace
             }
         }
 
+        // Chunk size for special algorithm
+        size_t B_chunk_size = 0;
+
         // Temporary solution matrix
-        size_t x_temp_size = size_t(m) * size_t(n);
+        size_t x_temp_bytes;
+
+        if(exact_blocks)
+        {
+            // Optimal B_chunk_size is the orthogonal dimension to k
+            B_chunk_size = size_t(m) + size_t(n) - size_t(k);
+
+            // When k % BLOCK == 0, we only need BLOCK * B_chunk_size space
+            x_temp_bytes = sizeof(T) * BLOCK * B_chunk_size;
+        }
+        else
+        {
+            // When k % BLOCK != 0, we need m * n space
+            x_temp_bytes = sizeof(T) * m * n;
+        }
 
         // X and C temporaries can share space, so the maximum size is allocated
-        size_t x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
+        size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
 
         // If this is a device memory size query, set optimal size and return changed status
         if(handle->is_device_memory_size_query())
@@ -1146,9 +1115,9 @@ namespace
         {
             if(exact_blocks)
             {
-                // Fall back on smaller size m
-                x_temp_size    = m;
-                x_c_temp_bytes = max(sizeof(T) * x_temp_size, c_temp_bytes);
+                B_chunk_size   = 1; // Fall back on chunk size of 1 (like TRSV)
+                x_temp_bytes   = sizeof(T) * BLOCK;
+                x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
                 mem            = handle->device_malloc(x_c_temp_bytes, invA_bytes);
             }
             if(!mem)
@@ -1202,7 +1171,7 @@ namespace
                                                   B,
                                                   ldb,
                                                   (T*)invA,
-                                                  x_temp_size / m,
+                                                  B_chunk_size,
                                                   (T*)x_temp);
         }
         else

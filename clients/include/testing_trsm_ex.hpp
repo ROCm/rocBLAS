@@ -256,7 +256,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            TRSM_BLOCK,
+                                            TRSM_BLOCK * K,
                                             arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
@@ -279,7 +279,7 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            TRSM_BLOCK,
+                                            TRSM_BLOCK * K,
                                             arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));

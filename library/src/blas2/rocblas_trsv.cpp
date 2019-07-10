@@ -379,13 +379,13 @@ namespace
                                          const T*          invA,
                                          T*                x_temp)
     {
-        bool parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
-        int  R      = m / BLOCK;
+        bool   parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
+        size_t R      = m / BLOCK;
 
-        for(int r = 0; r < R; r++)
+        for(size_t r = 0; r < R; r++)
         {
-            int q = R - r;
-            int j = parity ? q - 1 : r;
+            size_t q = R - r;
+            size_t j = parity ? q - 1 : r;
 
             // copy a BLOCK*n piece we are solving at a time
             strided_vector_copy<T>(handle, x_temp, 1, B + incx * j * BLOCK, incx, BLOCK);
@@ -522,8 +522,8 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
-        // Whether chunking is allowed
-        const bool can_chunk = (m % BLOCK) == 0;
+        // Whether size is an exact multiple of blocksize
+        const bool exact_blocks = (m % BLOCK) == 0;
 
         // perf_status indicates whether optimal performance is obtainable with available memory
         rocblas_status perf_status = rocblas_status_success;
@@ -548,7 +548,7 @@ namespace
             c_temp_bytes = (m / BLOCK) * (sizeof(T) * (BLOCK / 2) * (BLOCK / 2));
 
             // For the TRTRI last diagonal block we need remainder space if m % BLOCK != 0
-            if(!can_chunk)
+            if(!exact_blocks)
             {
                 // TODO: Make this more accurate -- right now it's much larger than necessary
                 size_t remainder_bytes = sizeof(T) * ROCBLAS_TRTRI_NB * BLOCK * 2;
@@ -560,7 +560,7 @@ namespace
 
         // Temporary solution vector
         // If the special solver can be used, then only BLOCK words are needed instead of m words
-        size_t x_temp_bytes = can_chunk ? sizeof(T) * BLOCK : sizeof(T) * m;
+        size_t x_temp_bytes = exact_blocks ? sizeof(T) * BLOCK : sizeof(T) * m;
 
         // X and C temporaries can share space, so the maximum size is allocated
         size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
@@ -604,7 +604,7 @@ namespace
         if(incx < 0)
             flip_vector(handle, B, m, abs_incx);
 
-        if(can_chunk)
+        if(exact_blocks)
         {
             status = special_trsv_template<BLOCK>(
                 handle, uplo, transA, diag, m, A, lda, B, abs_incx, (const T*)invA, (T*)x_temp);

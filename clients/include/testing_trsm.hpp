@@ -21,13 +21,6 @@
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    static constexpr char ENV[] = "WORKBUF_TRSM_B_CHNK";
-
-    // restore the environment on return or exception
-    auto restore_env = [](auto env) { env ? setenv(ENV, env, 1) : unsetenv(ENV); };
-    auto env_p       = std::unique_ptr<char, decltype(restore_env)>(getenv(ENV), restore_env);
-    setenv(ENV, "32000", 1);
-
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
     rocblas_int lda = arg.lda;
