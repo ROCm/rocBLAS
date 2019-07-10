@@ -1059,7 +1059,7 @@ namespace
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
-            //            perf_status   = rocblas_status_perf_degraded;
+            perf_status   = rocblas_status_perf_degraded;
             supplied_invA = nullptr;
         }
 
