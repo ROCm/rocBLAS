@@ -24,17 +24,20 @@ constexpr double sqrthalf = 0.7071067811865475244;
 // Sum error tolerance for large sums. Multiplied by the number of items
 // in the sum to get an expected absolute error bound.
 
-// TODO: should the tolerances not be a function of magnitude
-//       as well as number of items in the sum?
 template <class T>
 static constexpr double sum_error_tolerance = 0.0;
 
 template <>
 static constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
+
+// The complex tolerances are used as a function of the magnitude of
+// the expected result
+// 0.01%
 template <>
-static constexpr double sum_error_tolerance<rocblas_float_complex> = 1 / 5000.0;
+static constexpr double sum_error_tolerance<rocblas_float_complex> = 1 / 10000.0;
+// 0.0001%
 template <>
-static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 10000.0;
+static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 1000000.0;
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)

@@ -228,8 +228,10 @@ void testing_gemv(const Arguments& arg)
             }
             else
             {
-                // tolerance calculated as a measurement of the expected result (?)
-                double tol = sum_error_tolerance<T>; // * M or N?
+                // tolerance calculated as a measurement of the expected result
+                // TODO: this isn't a great way to get a tolerance, should we
+                //       calculate a new tolerance for each element being compared?
+                double tol = sum_error_tolerance<T> * (dim_y > 0 ? hy_gold[0] : 0);
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
             }

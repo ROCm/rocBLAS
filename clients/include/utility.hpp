@@ -89,19 +89,19 @@ inline void rocblas_print_vector(std::vector<T>& A, size_t M, size_t N, size_t l
 /* ============================================================================================ */
 /*! \brief  Common infrastructure for unit/near testing for real and complex values */
 template <typename T>
-inline double getAbsError(T val)
+inline double getMagnitude(T val)
 {
     return std::abs(val);
 }
 
 template <>
-inline double getAbsError<rocblas_float_complex>(rocblas_float_complex val)
+inline double getMagnitude<rocblas_float_complex>(rocblas_float_complex val)
 {
     return (double)val.magnitude();
 }
 
 template <>
-inline double getAbsError<rocblas_double_complex>(rocblas_double_complex val)
+inline double getMagnitude<rocblas_double_complex>(rocblas_double_complex val)
 {
     return val.magnitude();
 }

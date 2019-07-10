@@ -119,8 +119,8 @@ void testing_asum(const Arguments& arg)
             }
             else
             {
-                // tolerance calculated as a measurement of the expected result (?)
-                double tol = sum_error_tolerance<T1> * N;
+                // tolerance calculated as a measurement of the expected result
+                double tol = sum_error_tolerance<T1> * getMagnitude(cpu_result);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
             }

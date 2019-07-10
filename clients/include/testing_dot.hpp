@@ -138,7 +138,7 @@ void testing_dot(const Arguments& arg)
             else
             {
                 // tolerance calculated as a measurement of the expected result (?)
-                double tol = sum_error_tolerance<rocblas_float_complex> * N;
+                double tol = sum_error_tolerance<T> * getMagnitude(cpu_result);
                 near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
                 near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
             }
@@ -149,8 +149,8 @@ void testing_dot(const Arguments& arg)
             std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
                       << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
 
-            rocblas_error_1 = getAbsError<T>((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = getAbsError<T>((cpu_result - rocblas_result_2) / cpu_result);
+            rocblas_error_1 = getMagnitude<T>((cpu_result - rocblas_result_1) / cpu_result);
+            rocblas_error_2 = getMagnitude<T>((cpu_result - rocblas_result_2) / cpu_result);
         }
     }
 
