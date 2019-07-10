@@ -1122,6 +1122,8 @@ namespace
             }
             if(!mem)
                 return rocblas_status_memory_error;
+
+            // Mark performance as degraded
             perf_status = rocblas_status_perf_degraded;
         }
 
