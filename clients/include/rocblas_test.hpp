@@ -153,7 +153,10 @@ public:
         std::replace(name.begin(), name.end(), '.', 'p'); // decimal point
 
         // Complex (A,B) is replaced with ArBi
+        // Complex 1+2i is replaced with 1a2i
+        // Complex 1-2i is replaced with 1n2i
         name.erase(std::remove(name.begin(), name.end(), '('), name.end());
+        std::replace(name.begin(), name.end(), '+', 'a');
         std::replace(name.begin(), name.end(), ',', 'r');
         std::replace(name.begin(), name.end(), ')', 'i');
 

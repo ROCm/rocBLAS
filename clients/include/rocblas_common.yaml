@@ -43,6 +43,12 @@ Real precisions: &real_precisions
   - &hpa_bf16_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
 
+Complex precisions: &complex_precisions
+  - &single_complex_precision
+    { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &double_complex_precision
+    { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+
 C precisions: &single_double_precisions
   - *single_precision
   - *double_precision
@@ -72,6 +78,23 @@ Simple precisions: &half_single_double_precisions
   - *single_precision
   - *double_precision
 
+Simple with complex precision: &half_single_double_complex_precisions
+  - *half_precision
+  - *single_precision
+  - *double_precision
+  - *single_complex_precision
+  - *double_complex_precision
+
+All precision: &all_precisions
+  - *half_precision
+  - *hpa_half_precision
+  - *single_precision
+  - *double_precision
+  - *int8_precision
+  - *hpa_bf16_precision
+  - *single_complex_precision
+  - *double_complex_precision
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes
@@ -93,8 +116,8 @@ Arguments:
   - incy: rocblas_int
   - incd: rocblas_int
   - incb: rocblas_int
-  - alpha: c_double
-  - beta: c_double
+  - alpha: c_char*32
+  - beta: c_char*32
   - transA: c_char
   - transB: c_char
   - side: c_char
@@ -159,8 +182,8 @@ Defaults:
   incy: 0
   incd: 0
   incb: 0
-  alpha: 1.0
-  beta: 0.0
+  alpha: "1.0"
+  beta: "0.0"
   transA: '*'
   transB: '*'
   side: '*'

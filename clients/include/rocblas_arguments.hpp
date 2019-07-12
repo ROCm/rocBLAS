@@ -43,8 +43,8 @@ struct Arguments
     rocblas_int incd;
     rocblas_int incb;
 
-    double alpha;
-    double beta;
+    char alpha[32];
+    char beta[32];
 
     char transA;
     char transB;

@@ -11,6 +11,7 @@
 #define _ROCBLAS_TYPES_H_
 
 #include "rocblas_bfloat16.h"
+#include "rocblas_complex.h"
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -40,16 +41,6 @@ typedef int64_t rocblas_long;
 // half types
 // TODO: should be replaced with a struct, to become a unique type
 typedef uint16_t rocblas_half;
-
-// complex types
-typedef struct
-{
-    float x, y;
-} rocblas_float_complex;
-typedef struct
-{
-    double x, y;
-} rocblas_double_complex;
 
 /* ============================================================================================ */
 

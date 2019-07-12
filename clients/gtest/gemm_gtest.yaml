@@ -150,10 +150,16 @@ Definitions:
     - { M:   256, N: 24001, K:   256, lda:   256, ldb: 24000, ldc: 24040, ldd: 24040 }
 
   - &alpha_beta_range
-    - { alpha:  5, beta:  0 }
-    - { alpha:  0, beta:  3 }
-    - { alpha:  1, beta:  3 }
-    - { alpha:  1, beta:  1 }
+    - { alpha:  "5", beta:  "0" }
+    - { alpha:  "0", beta:  "3" }
+    - { alpha:  "1", beta:  "3" }
+    - { alpha:  "1", beta:  "1" }
+
+  - &complex_alpha_beta_range
+    - { alpha:  "5+6i", beta:  "0+0i" }
+    - { alpha:  "0+0i", beta:  "3+4i" }
+    - { alpha:  "1-2i", beta:  "3-4i" }
+    - { alpha:  "1-2i", beta:  "1+2i" }
 
   - &transA_transB_range
     - { transA: N, transB: N }
@@ -162,8 +168,8 @@ Definitions:
     - { transA: T, transB: C }
 
   - &deepbench_alpha_beta_range
-    - { alpha: 1, beta: 0 }
-    - { alpha: 1, beta: 1 }
+    - { alpha: "1", beta: "0" }
+    - { alpha: "1", beta: "1" }
 
   - &deepbench_transA_transB_range
     - { transA: N, transB: N }
@@ -2341,7 +2347,7 @@ Tests:
     - gemm_bad_arg
     - gemm_ex_bad_arg
     - gemm_strided_batched_ex_bad_arg
-  precision: *half_single_double_precisions
+  precision: *half_single_double_complex_precisions
   transA: N
   transB: N
 
@@ -2352,8 +2358,8 @@ Tests:
     gemm_ex: *single_double_precisions
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha: [ 0.0, 1.0, -1.0, 2.0 ]
-  beta: .NaN  # converted to 0.0 in test code
+  alpha: [ "0.0", "1.0", "-1.0", "2.0" ]
+  beta: "NaN"  # converted to 0.0 in test code
 
 - name: gemm_small
   category: quick
@@ -2364,6 +2370,15 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_complex_small
+  category: quick
+  function:
+    gemm: *complex_precisions
+    gemm_ex: *complex_precisions
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+
 - name: gemm_medium
   category: pre_checkin
   function:
@@ -2372,6 +2387,15 @@ Tests:
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
+
+- name: gemm_complex_medium
+  category: pre_checkin
+  function:
+    gemm: *complex_precisions
+    gemm_ex: *complex_precisions
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
 
 - name: gemm_large
   category: nightly
@@ -2382,6 +2406,15 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_complex_large
+  category: nightly
+  function:
+    gemm: *complex_precisions
+    gemm_ex: *complex_precisions
+  matrix_size: *large_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+
 - name: gemm_chunk
   category: pre_checkin
   function:
@@ -2389,8 +2422,8 @@ Tests:
     gemm_ex: *half_single_precisions
   matrix_size: *chunk_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha: 2
-  beta: 3
+  alpha: "2"
+  beta: "3"
 
 - name: gemm_deepbench
   category: nightly
@@ -2418,8 +2451,8 @@ Tests:
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
 
 - name: resnet50_bwdwrw
   category: nightly
@@ -2429,8 +2462,8 @@ Tests:
   transA: T
   transB: N
   matrix_size: *resnet50_bwdwrw_sizes
-  alpha: 1
-  beta: 1
+  alpha: "1"
+  beta: "1"
 
 - name: resnet50_bwddata
   category: nightly
@@ -2440,8 +2473,8 @@ Tests:
   transA: N
   transB: T
   matrix_size: *resnet50_bwddata_sizes
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
 
 - name: inception4_fwd
   category: nightly
@@ -2450,8 +2483,8 @@ Tests:
   transA: N
   transB: N
   matrix_size: *inception4_fwd_sizes
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
 
 - name: inception4_bwdwrw
   category: nightly
@@ -2460,8 +2493,8 @@ Tests:
   transA: T
   transB: N
   matrix_size: *inception4_bwdwrw_sizes
-  alpha: 1
-  beta: 1
+  alpha: "1"
+  beta: "1"
 
 - name: inception4_bwddata
   category: nightly
@@ -2470,8 +2503,8 @@ Tests:
   transA: N
   transB: T
   matrix_size: *inception4_bwddata_sizes
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
 
 - name: ctest_bwddata
   category: nightly
@@ -2480,8 +2513,8 @@ Tests:
   transA: N
   transB: T
   matrix_size: *ctest_bwddata_sizes
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
 
 - name: ctest_bwdwrw
   category: nightly
@@ -2489,8 +2522,8 @@ Tests:
     gemm: *half_single_precisions
   transA: T
   transB: N
-  alpha: 1
-  beta: 1
+  alpha: "1"
+  beta: "1"
   matrix_size: *ctest_bwdwrw_sizes
 
 - name: ctest_fwd
@@ -2499,8 +2532,8 @@ Tests:
     gemm: *half_single_precisions
   transA: N
   transB: N
-  alpha: 1
-  beta: 0
+  alpha: "1"
+  beta: "0"
   matrix_size: *ctest_fwd_sizes
 
 - name: gemm_1_8
@@ -2781,8 +2814,8 @@ Tests:
   precision: *double_precision
   transA: [ N, T ]
   transB: [ N, T ]
-  alpha: -1
-  beta: 1
+  alpha: "-1"
+  beta: "1"
   K: 384
   matrix_size:
     - { M:  384, N:  384 }

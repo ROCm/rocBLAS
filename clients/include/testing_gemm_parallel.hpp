@@ -39,18 +39,8 @@ void testing_gemm_parallel(const Arguments& arg,
     rocblas_int ldb = arg.ldb;
     rocblas_int ldc = arg.ldc;
 
-    T h_alpha;
-    T h_beta;
-    if(std::is_same<T, rocblas_half>{})
-    {
-        h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(arg.beta);
-    }
-    else
-    {
-        h_alpha = arg.alpha;
-        h_beta  = arg.beta;
-    }
+    T h_alpha = string2rocblas_datavalue<T>(arg.alpha);
+    T h_beta  = string2rocblas_datavalue<T>(arg.beta);
 
     double rocblas_error = 0.0;
 

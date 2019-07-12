@@ -46,7 +46,7 @@ void testing_scal(const Arguments& arg)
 {
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
-    T           h_alpha = arg.alpha;
+    T           h_alpha = string2rocblas_datavalue<T>(arg.alpha);
 
     rocblas_local_handle handle;
 

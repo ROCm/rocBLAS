@@ -183,6 +183,29 @@ template <> static constexpr char rocblas_precision_string<rocblas_i32_complex  
 template <> static constexpr char rocblas_precision_string<rocblas_u32_complex   >[] = "u32_c";
 #endif
 
+/* ============================================================================================ */
+// Helper routine to convert rocblas_type into string
+template <typename T, typename std::enable_if<!(std::is_same<T, rocblas_float_complex>{} ||
+                                                std::is_same<T, rocblas_double_complex>{})>::type* = nullptr>
+inline std::string rocblas_value_to_string(const T& value)
+{
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
+
+template <typename T, typename std::enable_if<(std::is_same<T, rocblas_float_complex>{} ||
+                                               std::is_same<T, rocblas_double_complex>{})>::type* = nullptr>
+inline std::string rocblas_value_to_string(const T& value)
+{
+    std::stringstream ss;
+    if(value.y >= 0)
+        ss << value.x << '+' << value.y << 'i';
+    else
+        ss << value.x << value.y << 'i';
+    return ss.str();
+}
+
 // clang-format on
 
 /*******************************************************************************

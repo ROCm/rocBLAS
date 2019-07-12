@@ -93,9 +93,12 @@ void testing_gemv(const Arguments& arg)
     rocblas_int       lda     = arg.lda;
     rocblas_int       incx    = arg.incx;
     rocblas_int       incy    = arg.incy;
-    T                 h_alpha = static_cast<T>(arg.alpha);
-    T                 h_beta  = rocblas_isnan(arg.beta) ? 0 : static_cast<T>(arg.beta);
+    T                 h_alpha = string2rocblas_datavalue<T>(arg.alpha);
+    T                 h_beta  = string2rocblas_datavalue<T>(arg.beta);
     rocblas_operation transA  = char2rocblas_operation(arg.transA);
+
+    bool nantest = rocblas_isnan(h_beta);
+    h_beta       = nantest ? 0 : h_beta;
 
     rocblas_local_handle handle;
 
@@ -165,7 +168,7 @@ void testing_gemv(const Arguments& arg)
     rocblas_init<T>(hA, M, N, lda);
     rocblas_init<T>(hx, 1, dim_x, abs_incx);
 
-    if(rocblas_isnan(arg.beta))
+    if(nantest)
         rocblas_init_nan<T>(hy_1, 1, dim_y, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, dim_y, abs_incy);

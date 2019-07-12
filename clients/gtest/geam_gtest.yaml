@@ -21,21 +21,21 @@ Definitions:
     - { M:  4011, N:  4012, lda:  4012, ldb:  4013, ldc:  4014 }
 
   - &small_alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  0.0, beta:  1.0 }
-    - { alpha:  3.0, beta:  1.0 }
-    - { alpha: -1.0, beta: -1.0 }
-    - { alpha: -1.0, beta:  0.0 }
-    - { alpha:  0.0, beta: -1.0 }
+    - { alpha:  "1.0", beta:  "0.0" }
+    - { alpha:  "0.0", beta:  "1.0" }
+    - { alpha:  "3.0", beta:  "1.0" }
+    - { alpha: "-1.0", beta: "-1.0" }
+    - { alpha: "-1.0", beta:  "0.0" }
+    - { alpha:  "0.0", beta: "-1.0" }
 
   - &large_alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  1.0, beta:  3.0 }
-    - { alpha:  0.0, beta:  1.0 }
-    - { alpha:  0.0, beta:  0.0 }
+    - { alpha:  "1.0", beta:  "0.0" }
+    - { alpha:  "1.0", beta:  "3.0" }
+    - { alpha:  "0.0", beta:  "1.0" }
+    - { alpha:  "0.0", beta:  "0.0" }
 
   - &huge_alpha_beta_range
-    - { alpha:  1.0, beta:  3.0 }
+    - { alpha:  "1.0", beta:  "3.0" }
 
   - &transA_transB_range
     - { transA: N, transB: N }

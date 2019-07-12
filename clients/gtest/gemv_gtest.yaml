@@ -36,10 +36,10 @@ Definitions:
     - { incx:  10, incy: 100 }
 
   - &alpha_beta_range
-    - { alpha:  2.0, beta:  0.0 }
-    - { alpha: -1.0, beta: -1.0 }
-    - { alpha:  2.0, beta:  1.0 }
-    - { alpha:  0.0, beta:  1.0 }
+    - { alpha:  "2.0", beta:  "0.0" }
+    - { alpha: "-1.0", beta: "-1.0" }
+    - { alpha:  "2.0", beta:  "1.0" }
+    - { alpha:  "0.0", beta:  "1.0" }
 
 Tests:
 - name: gemv_bad_arg
@@ -55,8 +55,8 @@ Tests:
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha: [ -1.0, 0, 1.0, 2.0 ]
-  beta: .NaN  # converted to 0.0 in test code
+  alpha: [ "-1.0", "0", "1.0", "2.0" ]
+  beta: "NaN"  # converted to 0.0 in test code
 
 - name: gemv_small
   category: quick

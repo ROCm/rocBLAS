@@ -293,22 +293,23 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     int32_t           solution_index = arg.solution_index;
     uint32_t          flags          = arg.flags;
 
-    bool nantest = rocblas_isnan(arg.beta);
+    bool nantest = false;
     Tc   h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half>{})
+    if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{}
+       || std::is_same<Tc, rocblas_half>{} || is_complex<Tc>)
     {
-        h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = float_to_half(nantest ? 0 : arg.beta);
-    }
-    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
-    {
-        h_alpha_Tc = static_cast<Tc>(arg.alpha);
-        h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
+        h_alpha_Tc = string2rocblas_datavalue<Tc>(arg.alpha);
+        h_beta_Tc  = string2rocblas_datavalue<Tc>(arg.beta);
+
+        nantest   = rocblas_isnan(arg.beta);
+        h_beta_Tc = nantest ? 0 : h_beta_Tc;
     }
     else
     {
 #ifdef GOOGLE_TEST
         ADD_FAILURE() << "Unimplemented types";
+#else
+        fputs("Error: Unimplmented types\n", stderr);
 #endif
         return;
     }

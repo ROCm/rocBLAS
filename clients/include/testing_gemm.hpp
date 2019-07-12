@@ -89,22 +89,16 @@ void testing_gemm(const Arguments& arg)
     rocblas_int ldb = arg.ldb;
     rocblas_int ldc = arg.ldc;
 
-    T h_alpha;
-    T h_beta;
-    if(std::is_same<T, rocblas_half>{})
-    {
-        h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(rocblas_isnan(arg.beta) ? 0 : arg.beta);
-    }
-    else
-    {
-        h_alpha = arg.alpha;
-        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
-    }
+    T h_alpha = string2rocblas_datavalue<T>(arg.alpha);
+    T h_beta  = string2rocblas_datavalue<T>(arg.beta);
 
-    double               gpu_time_used, cpu_time_used;
-    double               rocblas_gflops, cblas_gflops;
-    double               rocblas_error = 0.0;
+    bool nantest = rocblas_isnan(h_beta);
+    h_beta       = nantest ? 0 : h_beta;
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_gflops, cblas_gflops;
+    double rocblas_error = 0.0;
+
     rocblas_local_handle handle;
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
@@ -163,7 +157,7 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init<T>(hA, A_row, A_col, lda);
         rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(nantest)
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init<T>(hC_1, M, N, ldc);
@@ -172,7 +166,7 @@ void testing_gemm(const Arguments& arg)
     {
         rocblas_init_sin<T>(hA, A_row, A_col, lda);
         rocblas_init_cos<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(nantest)
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_sin<T>(hC_1, M, N, ldc);
@@ -182,7 +176,7 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init_hpl<T>(hA, A_row, A_col, lda);
         rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(nantest)
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_hpl<T>(hC_1, M, N, ldc);
@@ -282,10 +276,8 @@ void testing_gemm(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
-                  << lda << "," << ldb << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
-                  << ldc << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+                  << arg.alpha << "," << lda << "," << ldb << "," << arg.beta << "," << ldc << ","
+                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

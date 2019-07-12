@@ -75,16 +75,34 @@ public:
     {
         return random_nan_data<rocblas_bfloat16, uint16_t, 7, 8>();
     }
+
+    explicit operator rocblas_float_complex()
+    {
+        return rocblas_float_complex{float(*this), float(*this)};
+    }
+
+    explicit operator rocblas_double_complex()
+    {
+        return rocblas_double_complex{double(*this), double(*this)};
+    }
 };
 
 /* ============================================================================================ */
 /* generate random number :*/
 
 /*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
-template <typename T>
+template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
 inline T random_generator()
 {
     return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+}
+
+template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+inline T random_generator()
+{
+    decltype(T::x) real = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    decltype(T::y) imag = std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return T{real, imag};
 }
 
 // for rocblas_half, generate float, and convert to rocblas_half
@@ -111,10 +129,32 @@ inline int8_t random_generator<int8_t>()
 };
 
 /*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
-template <typename T>
+template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
 inline T random_hpl_generator()
 {
     return std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng);
 }
+
+template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+inline T random_hpl_generator()
+{
+    decltype(T::x) real = std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng);
+    decltype(T::y) imag = std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng);
+    return T{real, imag};
+}
+
+template <>
+inline rocblas_half random_hpl_generator<rocblas_half>()
+{
+    return float_to_half(std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng));
+};
+
+// for rocblas_bfloat16, generate float, and convert to rocblas_bfloat16
+/*! \brief  generate a random number in range [-2,-1,0,1,2] */
+template <>
+inline rocblas_bfloat16 random_hpl_generator<rocblas_bfloat16>()
+{
+    return rocblas_bfloat16(std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng));
+};
 
 #endif

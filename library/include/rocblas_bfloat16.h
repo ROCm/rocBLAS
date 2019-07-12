@@ -70,6 +70,11 @@ struct rocblas_bfloat16
         return u.fp32;
     }
 
+    explicit __host__ __device__ constexpr operator double() const
+    {
+        return static_cast<double>(float(*this));
+    }
+
 private:
     static constexpr __host__ __device__ uint16_t float_to_bfloat16(float f)
     {

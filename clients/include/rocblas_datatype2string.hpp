@@ -6,6 +6,9 @@
 #define ROCBLAS_DATATYPE2CHAR_H_
 
 #include "rocblas.h"
+#include "rocblas_math.hpp"
+#include "rocblas_random.hpp"
+
 #include <string>
 
 typedef enum rocblas_initialization_
@@ -226,6 +229,85 @@ inline rocblas_datatype string2rocblas_datatype(const std::string& value)
         value == "u32_c"                 ? rocblas_datatype_u32_c :
         static_cast<rocblas_datatype>(-1);
     // clang-format on
+}
+
+template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
+inline T string2rocblas_datavalue(const std::string& value)
+{
+    if(value == "")
+        return 0;
+
+    if(value == "NaN")
+        return static_cast<T>(rocblas_nan_rng());
+
+    std::string::size_type sz;
+    T                      res = std::stod(value, &sz);
+
+    if(sz != value.size())
+        throw std::invalid_argument("Invalid Complex Value");
+
+    return res;
+}
+
+template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+inline T string2rocblas_datavalue(const std::string& value)
+{
+    std::string::size_type sz;
+    T                      res{};
+
+    if(value == "")
+        return res;
+
+    if(value == "NaN")
+        return static_cast<T>(rocblas_nan_rng());
+
+    decltype(res.x) tmp = std::stod(value, &sz);
+
+    if(value[sz] != 'i')
+    {
+        // real part
+        res.x = tmp;
+
+        // imagnary part
+        if(sz != value.size())
+        {
+            if(value[sz] != '+' && value[sz] != '-')
+                throw std::invalid_argument("Invalid Complex Value");
+
+            std::string::size_type sz2;
+            res.y = std::stod(value.substr(sz), &sz2);
+            sz += sz2;
+
+            if(value[sz] != 'i')
+                throw std::invalid_argument("Invalid Complex Value");
+            sz++;
+        }
+    }
+    else
+    {
+        // only imagnary case
+        res.y = tmp;
+        sz++;
+    }
+
+    if(sz != value.size())
+        throw std::invalid_argument("Invalid Complex Value");
+
+    return res;
+}
+
+template <>
+inline rocblas_half string2rocblas_datavalue(const std::string& value)
+{
+    if(value == "")
+        return float_to_half(0);
+
+    if(value == "NaN")
+        return static_cast<rocblas_half>(rocblas_nan_rng());
+
+    float tmp = string2rocblas_datavalue<float>(value);
+
+    return float_to_half(tmp);
 }
 
 #endif

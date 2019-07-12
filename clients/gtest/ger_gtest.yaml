@@ -50,7 +50,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha: [ "-0.5", "2.0", "0.0" ]
 
 - name: ger_medium
   category: pre_checkin
@@ -58,7 +58,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha: [ "-0.5", "2.0", "0.0" ]
 
 - name: ger_large
   category: nightly
@@ -66,5 +66,5 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0, 0.6 ]
+  alpha: [ "-0.5", "2.0", "0.0", "0.6" ]
 ...

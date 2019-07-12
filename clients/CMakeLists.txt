@@ -6,6 +6,7 @@
 cmake_minimum_required( VERSION 3.5 )
 
 add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
+add_definitions(-D_ROCBLAS_INTERNAL_COMPLEX_)
 
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE

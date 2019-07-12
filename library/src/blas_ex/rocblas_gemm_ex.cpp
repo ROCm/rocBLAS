@@ -60,27 +60,42 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
         {
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
-                double alpha_double;
-                double beta_double;
+                std::string alpha_str;
+                std::string beta_str;
+
                 if(compute_type == rocblas_datatype_f16_r)
                 {
-                    alpha_double = *static_cast<const _Float16*>(alpha);
-                    beta_double  = *static_cast<const _Float16*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const _Float16*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const _Float16*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_f32_r)
                 {
-                    alpha_double = *static_cast<const float*>(alpha);
-                    beta_double  = *static_cast<const float*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const float*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const float*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_f64_r)
                 {
-                    alpha_double = *static_cast<const double*>(alpha);
-                    beta_double  = *static_cast<const double*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const double*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const double*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_i32_r)
                 {
-                    alpha_double = *static_cast<const int32_t*>(alpha);
-                    beta_double  = *static_cast<const int32_t*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const int32_t*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const int32_t*>(beta));
+                }
+                else if(compute_type == rocblas_datatype_f32_c)
+                {
+                    alpha_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_float_complex*>(alpha));
+                    beta_str
+                        = rocblas_value_to_string(*static_cast<const rocblas_float_complex*>(beta));
+                }
+                else if(compute_type == rocblas_datatype_f64_c)
+                {
+                    alpha_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_double_complex*>(alpha));
+                    beta_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_double_complex*>(beta));
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_trace)
@@ -91,14 +106,14 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               m,
                               n,
                               k,
-                              alpha_double,
+                              alpha_str,
                               a,
                               a_type_string,
                               lda,
                               b,
                               b_type_string,
                               ldb,
-                              beta_double,
+                              beta_str,
                               c,
                               c_type_string,
                               ldc,
@@ -125,7 +140,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               "-k",
                               k,
                               "--alpha",
-                              alpha_double,
+                              alpha_str,
                               "--a_type",
                               a_type_string,
                               "--lda",
@@ -135,7 +150,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               "--ldb",
                               ldb,
                               "--beta",
-                              beta_double,
+                              beta_str,
                               "--c_type",
                               c_type_string,
                               "--ldc",
@@ -426,6 +441,62 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                                                                        batch_count);
         }
     }
+    else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
+            && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
+            && compute_type == rocblas_datatype_f32_c)
+    {
+        rb_status = gemm_ex_typecasting<rocblas_float_complex,
+                                        rocblas_float_complex,
+                                        rocblas_float_complex>(handle,
+                                                               trans_a,
+                                                               trans_b,
+                                                               m,
+                                                               n,
+                                                               k,
+                                                               alpha,
+                                                               a,
+                                                               lda,
+                                                               stride_a,
+                                                               b,
+                                                               ldb,
+                                                               stride_b,
+                                                               beta,
+                                                               c,
+                                                               ldc,
+                                                               stride_c,
+                                                               d,
+                                                               ldd,
+                                                               stride_d,
+                                                               batch_count);
+    }
+    else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
+            && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
+            && compute_type == rocblas_datatype_f64_c)
+    {
+        rb_status = gemm_ex_typecasting<rocblas_double_complex,
+                                        rocblas_double_complex,
+                                        rocblas_double_complex>(handle,
+                                                                trans_a,
+                                                                trans_b,
+                                                                m,
+                                                                n,
+                                                                k,
+                                                                alpha,
+                                                                a,
+                                                                lda,
+                                                                stride_a,
+                                                                b,
+                                                                ldb,
+                                                                stride_b,
+                                                                beta,
+                                                                c,
+                                                                ldc,
+                                                                stride_c,
+                                                                d,
+                                                                ldd,
+                                                                stride_d,
+                                                                batch_count);
+    }
     else
     {
         rb_status = rocblas_status_not_implemented;
@@ -494,28 +565,44 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
         {
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
-                double alpha_double;
-                double beta_double;
+                std::string alpha_str;
+                std::string beta_str;
+
                 if(compute_type == rocblas_datatype_f16_r)
                 {
-                    alpha_double = *static_cast<const _Float16*>(alpha);
-                    beta_double  = *static_cast<const _Float16*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const _Float16*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const _Float16*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_f32_r)
                 {
-                    alpha_double = *static_cast<const float*>(alpha);
-                    beta_double  = *static_cast<const float*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const float*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const float*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_f64_r)
                 {
-                    alpha_double = *static_cast<const double*>(alpha);
-                    beta_double  = *static_cast<const double*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const double*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const double*>(beta));
                 }
                 else if(compute_type == rocblas_datatype_i32_r)
                 {
-                    alpha_double = *static_cast<const int32_t*>(alpha);
-                    beta_double  = *static_cast<const int32_t*>(beta);
+                    alpha_str = rocblas_value_to_string(*static_cast<const int32_t*>(alpha));
+                    beta_str  = rocblas_value_to_string(*static_cast<const int32_t*>(beta));
                 }
+                else if(compute_type == rocblas_datatype_f32_c)
+                {
+                    alpha_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_float_complex*>(alpha));
+                    beta_str
+                        = rocblas_value_to_string(*static_cast<const rocblas_float_complex*>(beta));
+                }
+                else if(compute_type == rocblas_datatype_f64_c)
+                {
+                    alpha_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_double_complex*>(alpha));
+                    beta_str = rocblas_value_to_string(
+                        *static_cast<const rocblas_double_complex*>(beta));
+                }
+
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
                     log_trace(handle,
@@ -525,7 +612,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               m,
                               n,
                               k,
-                              alpha_double,
+                              alpha_str,
                               a,
                               a_type_string,
                               lda,
@@ -534,7 +621,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               b_type_string,
                               ldb,
                               stride_b,
-                              beta_double,
+                              beta_str,
                               c,
                               c_type_string,
                               ldc,
@@ -564,7 +651,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               "-k",
                               k,
                               "--alpha",
-                              alpha_double,
+                              alpha_str,
                               "--a_type",
                               a_type_string,
                               "--lda",
@@ -578,7 +665,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               "--stride_b",
                               stride_b,
                               "--beta",
-                              beta_double,
+                              beta_str,
                               "--c_type",
                               c_type_string,
                               "--ldc",
@@ -887,6 +974,62 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                                                        stride_d,
                                                                                        batch_count);
         }
+    }
+    else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
+            && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
+            && compute_type == rocblas_datatype_f32_c)
+    {
+        rb_status = gemm_ex_typecasting<rocblas_float_complex,
+                                        rocblas_float_complex,
+                                        rocblas_float_complex>(handle,
+                                                               trans_a,
+                                                               trans_b,
+                                                               m,
+                                                               n,
+                                                               k,
+                                                               alpha,
+                                                               a,
+                                                               lda,
+                                                               stride_a,
+                                                               b,
+                                                               ldb,
+                                                               stride_b,
+                                                               beta,
+                                                               c,
+                                                               ldc,
+                                                               stride_c,
+                                                               d,
+                                                               ldd,
+                                                               stride_d,
+                                                               batch_count);
+    }
+    else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
+            && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
+            && compute_type == rocblas_datatype_f64_c)
+    {
+        rb_status = gemm_ex_typecasting<rocblas_double_complex,
+                                        rocblas_double_complex,
+                                        rocblas_double_complex>(handle,
+                                                                trans_a,
+                                                                trans_b,
+                                                                m,
+                                                                n,
+                                                                k,
+                                                                alpha,
+                                                                a,
+                                                                lda,
+                                                                stride_a,
+                                                                b,
+                                                                ldb,
+                                                                stride_b,
+                                                                beta,
+                                                                c,
+                                                                ldc,
+                                                                stride_c,
+                                                                d,
+                                                                ldd,
+                                                                stride_d,
+                                                                batch_count);
     }
     else
     {

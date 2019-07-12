@@ -24,6 +24,7 @@ endfunction( )
 set( package_targets rocblas )
 
 add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
+add_definitions(-D_ROCBLAS_INTERNAL_COMPLEX_)
 
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
