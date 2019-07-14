@@ -9,6 +9,7 @@
 #include "trtri_trsm.hpp"
 #include "utility.h"
 #include <algorithm>
+#include <cstdio>
 #include <tuple>
 
 #define A(ii, jj) (A + (ii) + (jj)*lda)
@@ -1059,8 +1060,11 @@ namespace
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
-            perf_status   = rocblas_status_perf_degraded;
-            supplied_invA = nullptr;
+            static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
+                                   "is being ignored; TRSM performance is degraded\n",
+                                   stderr);
+            perf_status    = rocblas_status_perf_degraded;
+            supplied_invA  = nullptr;
         }
 
         if(!supplied_invA)
@@ -1125,6 +1129,11 @@ namespace
 
             // Mark performance as degraded
             perf_status = rocblas_status_perf_degraded;
+
+            // One-time warning about degraded performance
+            static int msg = fputs("WARNING: Device memory allocation size is too small for TRSM; "
+                                   "TRSM performance is degraded\n",
+                                   stderr);
         }
 
         // Get pointers to allocated device memory

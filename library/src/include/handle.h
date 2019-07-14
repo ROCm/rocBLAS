@@ -172,8 +172,9 @@ private:
     class _device_malloc
     {
         rocblas_handle       handle;
-        bool                 success;
-        std::array<void*, N> pointers; // Important: must come after handle and success
+        bool                 success = true;
+        size_t               total   = 0;
+        std::array<void*, N> pointers; // Important: must come after handle, success and total
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
@@ -182,7 +183,7 @@ private:
             // This creates a list of partial sums which are the offsets of each of the allocated
             // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // total contains the total of all sizes at the end of the calculation of offsets.
-            size_t total     = 0, old;
+            size_t old;
             size_t offsets[] = {(old = total, total += roundup_device_memory_size(sizes), old)...};
 
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
@@ -202,8 +203,8 @@ private:
 
             // An array of pointers to all of the allocated arrays is formed.
             // If a size is 0, the corresponding pointer is nullptr
-            total = 0;
-            return {(sizes ? (void*)((char*)ptr + offsets[total++]) : nullptr)...};
+            size_t i = 0;
+            return {!sizes ? i++, nullptr : (void*)((char*)ptr + offsets[i++])...};
         }
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
@@ -218,7 +219,6 @@ private:
         template <typename... Ss>
         _device_malloc(rocblas_handle handle, Ss... sizes)
             : handle(handle)
-            , success(true)
             , pointers(allocate_pointers(sizes...))
         {
         }
@@ -241,6 +241,12 @@ private:
         explicit operator T() const
         {
             return T(pointers[0]);
+        }
+
+        // Total size of allocation
+        size_t total_size() const
+        {
+            return total;
         }
 
         // The destructor marks the device memory as no longer in use
