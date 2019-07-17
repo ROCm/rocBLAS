@@ -7,7 +7,6 @@
 
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
-#include "utilty.hpp"
 #include "rocblas_math.hpp"
 #include <cinttypes>
 #include <cmath>
@@ -99,8 +98,10 @@ struct Arguments
         ifs >> arg;
         ifs.read(trailer, sizeof(trailer));
 
-        if(strcmp(header, "rocBLAS") || strcmp(trailer, "ROCblas"))
-            error();
+        if(strcmp(header, "rocBLAS"))
+            error("header");
+        else if(strcmp(trailer, "ROCblas"))
+            error("trailer");
 
         auto check_func = [&, sig = (unsigned char)0](const auto& elem, auto name) mutable {
             static_assert(sizeof(elem) <= 255,
@@ -157,33 +158,38 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(initialization);
     }
 
-    template<typename T>
-    T get_alpha()
+    template <typename T>
+    T get_alpha() const
     {
         return rocblas_isnan(alpha) ? T(0) : convert_alpha_beta<T>(alpha, alphai);
     }
 
-    template<typename T>
-    T get_beta()
+    template <typename T>
+    T get_beta() const
     {
         return rocblas_isnan(beta) ? T(0) : convert_alpha_beta<T>(beta, betai);
     }
 
 private:
-    template<typename T, typename U, typename = std::enable_if<!is_complex<T> && !is_same<T, rocblas_half>{}>::type>
-    T convert_alpha_beta(U r, U i)
+    template <typename T,
+              typename U,
+              typename std::enable_if<!is_complex<T> && !std::is_same<T, rocblas_half>{}, int>::type
+              = 0>
+    static T convert_alpha_beta(U r, U i)
     {
         return T(r);
-    };
+    }
 
-    template<typename T, typename U, typename = std::enable_if<is_complex<T>>::type>
-    T convert_alpha_beta(U r, U i)
+    template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
+    static T convert_alpha_beta(U r, U i)
     {
-        return { T::value_type(r), T::value_type(i) };
-    };
+        return T(r, i);
+    }
 
-    template<typename T, typename U, typename = std::enable_if<std::is_same<T, rocblas_half>{}>::type>
-    T convert_alpha_beta(U r, U i)
+    template <typename T,
+              typename U,
+              typename std::enable_if<std::is_same<T, rocblas_half>{}, int>::type = 0>
+    static T convert_alpha_beta(U r, U i)
     {
         return float_to_half(r);
     }

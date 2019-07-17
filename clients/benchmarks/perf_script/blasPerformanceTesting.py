@@ -237,7 +237,7 @@ def decode_parameter_problemsize(problemsize):
     return problemsize
 
 def blas_table_header():
-    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,alpha_imag,beta,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
+    return 'm,n,k,lda,ldb,ldc,offa,offb,offc,alpha,alphai,beta,betai,transa,transb,side,uplo,diag,function,device,library,numQueues,label,GFLOPS'
 
 class BlasTestCombination:
     def __init__(self,
@@ -259,7 +259,7 @@ class BlasTestCombination:
         self.offb = str(offb)
         self.offc = str(offc)
         self.alpha = str(alpha)
-        self.alpha_imag = str(alpha_imagi)
+        self.alphai = str(alphai)
         self.beta = str(beta)
         self.betai = str(betai)
         self.transa = transa

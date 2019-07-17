@@ -23,7 +23,7 @@ void testing_scal_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // allocate memory on device
     device_vector<U> dx(size_x);
@@ -46,7 +46,7 @@ void testing_scal(const Arguments& arg)
 {
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
-    T           h_alpha = arg.getAlphaBeta<T>();
+    T           h_alpha = arg.get_alpha<T>();
 
     rocblas_local_handle handle;
 
@@ -66,7 +66,7 @@ void testing_scal(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<U> hx_1(size_x);

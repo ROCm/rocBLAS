@@ -289,29 +289,13 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_strided_batched_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
-    int32_t           solution_index = arg.solution_index;
-    uint32_t          flags          = arg.flags;
+    rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
+    int32_t           solution_index(arg.solution_index);
+    uint32_t          flags(arg.flags);
 
-    bool nantest = rocblas_isnan(arg.beta);
-    Tc   h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half>{})
-    {
-        h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = float_to_half(nantest ? 0 : arg.beta);
-    }
-    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
-    {
-        h_alpha_Tc = static_cast<Tc>(arg.alpha);
-        h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
-    }
-    else
-    {
-#ifdef GOOGLE_TEST
-        ADD_FAILURE() << "Unimplemented types";
-#endif
-        return;
-    }
+    bool nantest    = rocblas_isnan(arg.beta);
+    Tc   h_alpha_Tc = arg.get_alpha<Tc>();
+    Tc   h_beta_Tc  = arg.get_beta<Tc>();
 
     double               gpu_time_used, cpu_time_used;
     double               rocblas_gflops, cblas_gflops;
@@ -385,12 +369,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         return;
     }
 
-    size_t size_one_a = transA == rocblas_operation_none
-                            ? static_cast<size_t>(K) * static_cast<size_t>(lda)
-                            : static_cast<size_t>(M) * static_cast<size_t>(lda);
-    size_t size_one_b = transB == rocblas_operation_none
-                            ? static_cast<size_t>(N) * static_cast<size_t>(ldb)
-                            : static_cast<size_t>(K) * static_cast<size_t>(ldb);
+    size_t size_one_a
+        = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
+    size_t size_one_b
+        = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
     size_t size_one_c = N * ldc;
     size_t size_one_d = N * ldd;
     size_t size_a     = size_one_a;
@@ -400,10 +382,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
     if(batch_count > 1)
     {
-        size_a += static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
-        size_b += static_cast<size_t>(stride_b) * static_cast<size_t>(batch_count - 1);
-        size_c += static_cast<size_t>(stride_c) * static_cast<size_t>(batch_count - 1);
-        size_d += static_cast<size_t>(stride_d) * static_cast<size_t>(batch_count - 1);
+        size_a += size_t(stride_a) * size_t(batch_count - 1);
+        size_b += size_t(stride_b) * size_t(batch_count - 1);
+        size_c += size_t(stride_c) * size_t(batch_count - 1);
+        size_d += size_t(stride_d) * size_t(batch_count - 1);
     }
 
     // allocate memory on device
@@ -741,9 +723,9 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 = fabs(
+            auto err1 = std::abs(
                 norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_1));
-            auto err2 = fabs(
+            auto err2 = std::abs(
                 norm_check_general<To>('F', M, N, ldd, stride_d, batch_count, hD_gold, hD_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }

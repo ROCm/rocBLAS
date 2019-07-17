@@ -182,7 +182,7 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
     }
 };
 
-template <typename T>
+template <typename T, typename U>
 struct perf_blas<T,
                  U,
                  typename std::enable_if<std::is_same<T, rocblas_double_complex>{}

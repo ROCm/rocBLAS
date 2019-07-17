@@ -5,7 +5,6 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
-#include <complex.h>
 
 namespace
 {
@@ -32,9 +31,9 @@ namespace
     constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
     template <>
     constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
-    template<>
+    template <>
     constexpr char rocblas_scal_name<rocblas_float_complex, float>[] = "rocblas_csscal";
-    template<>
+    template <>
     constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal";
 
     template <class T, class U>

@@ -244,35 +244,17 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
-    int32_t           solution_index = arg.solution_index;
-    uint32_t          flags          = arg.flags;
+    rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
+    int32_t           solution_index(arg.solution_index);
+    uint32_t          flags(arg.flags);
 
     bool nantest = rocblas_isnan(arg.beta);
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
        && !std::is_same<To, rocblas_half>{} && nantest)
         return; // Exclude integers or other types which don't support NaN
 
-    Tc h_alpha_Tc, h_beta_Tc;
-    if(std::is_same<Tc, rocblas_half>{})
-    {
-        h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = float_to_half(nantest ? 0 : arg.beta);
-    }
-    else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
-    {
-        h_alpha_Tc = static_cast<Tc>(arg.alpha);
-        h_beta_Tc  = nantest ? 0 : static_cast<Tc>(arg.beta);
-    }
-    else
-    {
-#ifdef GOOGLE_TEST
-        ADD_FAILURE() << "Unimplemented types";
-#else
-        fputs("Error: Unimplmented types\n", stderr);
-#endif
-        return;
-    }
+    Tc h_alpha_Tc = arg.get_alpha<Tc>();
+    Tc h_beta_Tc  = arg.get_beta<Tc>();
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -333,10 +315,10 @@ void testing_gemm_ex(const Arguments& arg)
         return;
     }
 
-    const size_t size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
-    const size_t size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
-    const size_t size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
-    const size_t size_D = static_cast<size_t>(ldd) * static_cast<size_t>(N);
+    const size_t size_A = size_t(lda) * size_t(A_col);
+    const size_t size_B = size_t(ldb) * size_t(B_col);
+    const size_t size_C = size_t(ldc) * size_t(N);
+    const size_t size_D = size_t(ldd) * size_t(N);
 
     // allocate memory on device
     device_vector<Ti> dA(size_A);
@@ -390,14 +372,14 @@ void testing_gemm_ex(const Arguments& arg)
         const rocblas_half negative_two       = float_to_half(-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
-            hA[0]       = static_cast<Ti>(ieee_half_near_max);
-            hA[1]       = static_cast<Ti>(ieee_half_near_max);
-            hA[lda]     = static_cast<Ti>(ieee_half_near_max);
-            hA[lda + 1] = static_cast<Ti>(ieee_half_near_max);
-            hB[0]       = static_cast<Ti>(positive_two);
-            hB[1]       = static_cast<Ti>(negative_two);
-            hB[ldb]     = static_cast<Ti>(negative_two);
-            hB[ldb + 1] = static_cast<Ti>(positive_two);
+            hA[0]       = Ti(ieee_half_near_max);
+            hA[1]       = Ti(ieee_half_near_max);
+            hA[lda]     = Ti(ieee_half_near_max);
+            hA[lda + 1] = Ti(ieee_half_near_max);
+            hB[0]       = Ti(positive_two);
+            hB[1]       = Ti(negative_two);
+            hB[ldb]     = Ti(negative_two);
+            hB[ldb + 1] = Ti(positive_two);
         }
     }
     else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
@@ -418,14 +400,14 @@ void testing_gemm_ex(const Arguments& arg)
         const float negative_two       = -2.0f;
         if(M >= 2 && N >= 2 && K >= 2)
         {
-            hA[0]       = static_cast<Ti>(ieee_half_near_max);
-            hA[1]       = static_cast<Ti>(ieee_half_near_max);
-            hA[lda]     = static_cast<Ti>(ieee_half_near_max);
-            hA[lda + 1] = static_cast<Ti>(ieee_half_near_max);
-            hB[0]       = static_cast<Ti>(positive_two);
-            hB[1]       = static_cast<Ti>(negative_two);
-            hB[ldb]     = static_cast<Ti>(negative_two);
-            hB[ldb + 1] = static_cast<Ti>(positive_two);
+            hA[0]       = Ti(ieee_half_near_max);
+            hA[1]       = Ti(ieee_half_near_max);
+            hA[lda]     = Ti(ieee_half_near_max);
+            hA[lda + 1] = Ti(ieee_half_near_max);
+            hB[0]       = Ti(positive_two);
+            hB[1]       = Ti(negative_two);
+            hB[ldb]     = Ti(negative_two);
+            hB[ldb + 1] = Ti(positive_two);
         }
     }
 
@@ -569,12 +551,12 @@ void testing_gemm_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
-            auto err2 = fabs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
+            auto err1 = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
+            auto err2 = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
             auto errD = err1 > err2 ? err1 : err2;
 
-            auto err3 = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
-            auto err4 = fabs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
+            auto err3 = std::abs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
+            auto err4 = std::abs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
             auto errC = err3 > err4 ? err3 : err4;
 
             rocblas_error = errD > errC ? errD : errC;

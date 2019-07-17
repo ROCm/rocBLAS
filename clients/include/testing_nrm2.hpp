@@ -73,7 +73,7 @@ void testing_nrm2(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // allocate memory on device
     device_vector<T1> dx(size_x);
@@ -132,8 +132,8 @@ void testing_nrm2(const Arguments& arg)
                    cpu_result,
                    rocblas_result_1,
                    rocblas_result_2);
-            rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);
+            rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
+            rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
         }
     }
 

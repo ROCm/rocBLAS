@@ -58,20 +58,12 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
 
 #define NEAR_ASSERT_HALF(a, b, err) ASSERT_NEAR(half_to_float(a), half_to_float(b), err)
 
-#define NEAR_ASSERT_FLOAT_COMPLEX(a, b, err) \
-    do                                       \
-    {                                        \
-        auto ta = (a), tb = (b);             \
-        ASSERT_NEAR(ta.x, tb.x, err);        \
-        ASSERT_NEAR(ta.y, tb.y, err);        \
-    } while(0)
-
-#define NEAR_ASSERT_DOUBLE_COMPLEX(a, b, err) \
-    do                                        \
-    {                                         \
-        auto ta = (a), tb = (b);              \
-        ASSERT_NEAR(ta.x, tb.x, err);         \
-        ASSERT_NEAR(ta.y, tb.y, err);         \
+#define NEAR_ASSERT_COMPLEX(a, b, err)                  \
+    do                                                  \
+    {                                                   \
+        auto ta = (a), tb = (b);                        \
+        ASSERT_NEAR(std::real(ta), std::real(tb), err); \
+        ASSERT_NEAR(std::imag(ta), std::imag(tb), err); \
     } while(0)
 
 template <typename T>
@@ -112,7 +104,7 @@ inline void near_check_general(rocblas_int            M,
                                double                 abs_error)
 {
     abs_error *= sqrthalf;
-    NEAR_CHECK(M, N, 1, lda, 0, hCPU, hGPU, abs_error, NEAR_ASSERT_FLOAT_COMPLEX);
+    NEAR_CHECK(M, N, 1, lda, 0, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
 }
 
 template <>
@@ -124,7 +116,7 @@ inline void near_check_general(rocblas_int             M,
                                double                  abs_error)
 {
     abs_error *= sqrthalf;
-    NEAR_CHECK(M, N, 1, lda, 0, hCPU, hGPU, abs_error, NEAR_ASSERT_DOUBLE_COMPLEX);
+    NEAR_CHECK(M, N, 1, lda, 0, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
 }
 
 template <typename T>
@@ -187,7 +179,7 @@ inline void near_check_general(rocblas_int            M,
                                double                 abs_error)
 {
     abs_error *= sqrthalf;
-    NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, NEAR_ASSERT_FLOAT_COMPLEX);
+    NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
 }
 
 template <>
@@ -201,7 +193,7 @@ inline void near_check_general(rocblas_int             M,
                                double                  abs_error)
 {
     abs_error *= sqrthalf;
-    NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, NEAR_ASSERT_DOUBLE_COMPLEX);
+    NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
 }
 
 #endif

@@ -53,9 +53,9 @@ namespace
                   "-n",
                   n,
                   "--alpha",
-                  alpha->x,
+                  real(*alpha),
                   "--alphai",
-                  alpha->y,
+                  imag(*alpha),
                   "--incx",
                   incx,
                   "--incy",
@@ -75,9 +75,9 @@ namespace
                   "-n",
                   n,
                   "--alpha",
-                  alpha->x,
+                  real(*alpha),
                   "--alphai",
-                  alpha->y,
+                  imag(*alpha),
                   "--incx",
                   incx,
                   "--incy",
@@ -110,7 +110,6 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
     }
->>>>>>> Removed c++17 references to if constexpr, other cleanup.
 
     template <typename T, typename U>
     __global__ void axpy_kernel(

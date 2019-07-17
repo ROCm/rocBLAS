@@ -33,9 +33,9 @@ void testing_gemv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t size_A = lda * static_cast<size_t>(N);
-    size_t size_x = N * static_cast<size_t>(incx);
-    size_t size_y = M * static_cast<size_t>(incy);
+    size_t size_A = lda * size_t(N);
+    size_t size_x = N * size_t(incx);
+    size_t size_y = M * size_t(incy);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
@@ -96,8 +96,8 @@ void testing_gemv(const Arguments& arg)
     rocblas_int       lda     = arg.lda;
     rocblas_int       incx    = arg.incx;
     rocblas_int       incy    = arg.incy;
-    T                 h_alpha = arg.getAlphaBeta<T>();
-    T                 h_beta  = arg.getAlphaBeta<T>(false);
+    T                 h_alpha = arg.get_alpha<T>();
+    T                 h_beta  = arg.get_beta<T>();
     rocblas_operation transA  = char2rocblas_operation(arg.transA);
 
     rocblas_local_handle handle;
@@ -123,7 +123,7 @@ void testing_gemv(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * static_cast<size_t>(N);
+    size_t size_A = lda * size_t(N);
     size_t size_x, dim_x, abs_incx;
     size_t size_y, dim_y, abs_incy;
 
@@ -231,7 +231,7 @@ void testing_gemv(const Arguments& arg)
                 // tolerance calculated as a measurement of the expected result
                 // TODO: this isn't a great way to get a tolerance, should we
                 //       calculate a new tolerance for each element being compared?
-                double tol = sum_error_tolerance<T> * (dim_y > 0 ? hy_gold[0] : 0);
+                double tol = sum_error_tolerance<T> * (dim_y > 0 ? std::abs(hy_gold[0]) : 0);
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
                 near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
             }

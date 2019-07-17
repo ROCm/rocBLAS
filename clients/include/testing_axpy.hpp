@@ -52,14 +52,10 @@ void testing_axpy_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
-    T           h_alpha = arg.get_alpha<T>();
-    rocblas_int N       = arg.N;
-    rocblas_int incx    = arg.incx;
-    rocblas_int incy    = arg.incy;
-
+    rocblas_int          N       = arg.N;
+    rocblas_int          incx    = arg.incx;
+    rocblas_int          incy    = arg.incy;
+    T                    h_alpha = arg.get_alpha<T>();
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
@@ -81,8 +77,8 @@ void testing_axpy(const Arguments& arg)
 
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
-    size_t      size_x   = N * static_cast<size_t>(abs_incx);
-    size_t      size_y   = N * static_cast<size_t>(abs_incy);
+    size_t      size_x   = N * size_t(abs_incx);
+    size_t      size_y   = N * size_t(abs_incy);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);

@@ -37,21 +37,13 @@ typedef int32_t rocblas_int;
 typedef int64_t rocblas_long;
 #endif
 
-// half types
-// TODO: should be replaced with a struct, to become a unique type
-typedef uint16_t rocblas_half;
+// floating point types
+typedef float    rocblas_float;
+typedef double   rocblas_double;
+typedef uint16_t rocblas_half; // TODO: should be replaced with a struct, to become a unique type
 
 // complex types
-// C++11 std::complex is guaranted to be layout-compatible with C99 _Complex
-#ifdef __cplusplus
-#include <complex>
-typedef std::complex<float> rocblas_float_complex;
-typedef std::complex<double> rocblas_double_complex;
-#else
-#include <complex.h>
-typedef float complex rocblas_float_complex;
-typedef double complex rocblas_double_complex;
-#endif
+#include "rocblas-complex-types.h"
 
 /* ============================================================================================ */
 

@@ -11,8 +11,7 @@ template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           typename T,
           typename U,
-          typename
-          = typename std::enable_if<!std::is_same<T, rocblas_double_complex>::value, bool>::type>
+          typename std::enable_if<!std::is_same<T, rocblas_double_complex>{}, int>::type = 0>
 __device__ void gemvn_kernel(rocblas_int m,
                              rocblas_int n,
                              U           alpha,
@@ -170,7 +169,7 @@ __device__ void gemvn_kernel(rocblas_int m,
     }
 }
 
-// Specialization for double precision complex numbers. We run out of registers
+// Overload for double precision complex numbers. We run out of registers
 // if we use the above algorithm.
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U>
 __device__ void gemvn_kernel(rocblas_int                   m,
@@ -198,7 +197,7 @@ __device__ void gemvn_kernel(rocblas_int                   m,
     rocblas_double_complex res_A;
     rocblas_double_complex res_x;
 
-    res_A = res_x = rocblas_double_complex(0.0, 0.0);
+    res_A = res_x = rocblas_double_complex{0, 0};
 
     rocblas_int n_tail = n % (DIM_Y);
     rocblas_int col    = ty;
@@ -219,7 +218,7 @@ __device__ void gemvn_kernel(rocblas_int                   m,
         if(col + 0 < n)
             res_x = x[(col)*incx];
         else
-            res_x = rocblas_double_complex(0.0, 0.0);
+            res_x = rocblas_double_complex{0, 0};
 
         if(ind < m)
         {
@@ -251,24 +250,6 @@ __device__ void gemvn_kernel(rocblas_int                   m,
     }
 }
 
-template <typename T>
-__device__ T conjugateVal(const T& val)
-{
-    return val;
-}
-
-template <>
-__device__ rocblas_float_complex conjugateVal(const rocblas_float_complex& val)
-{
-    return val.getConjugate();
-}
-
-template <>
-__device__ rocblas_double_complex conjugateVal(const rocblas_double_complex& val)
-{
-    return val.getConjugate();
-}
-
 template <rocblas_int NB_X, typename T, typename U>
 __device__ void gemvc_kernel(rocblas_int m,
                              rocblas_int n,
@@ -298,10 +279,10 @@ __device__ void gemvc_kernel(rocblas_int m,
     rocblas_int m_full = (m / NB_X) * NB_X;
 
     for(rocblas_int i = 0; i < m_full; i += NB_X)
-        res += conjugateVal(A[i]) * x[(tx + i) * incx];
+        res += conj(A[i]) * x[(tx + i) * incx];
 
     if(tx + m_full < m)
-        res += conjugateVal(A[m_full]) * x[(tx + m_full) * incx];
+        res += conj(A[m_full]) * x[(tx + m_full) * incx];
 
     sdata[tx] = res;
 

@@ -185,7 +185,7 @@ rocblas_status rocblas_cgemv(rocblas_handle               handle,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
 {
-    return rocblas_gemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 rocblas_status rocblas_zgemv(rocblas_handle                handle,
@@ -201,7 +201,7 @@ rocblas_status rocblas_zgemv(rocblas_handle                handle,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
 {
-    return rocblas_gemv(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+    return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 } // extern "C"

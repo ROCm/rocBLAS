@@ -24,9 +24,9 @@ namespace
 
         // bound
         if(tid < n)
-            tmp[tx] = y[tid * incy] * (CONJ ? conjugate(x[tid * incx]) : x[tid * incx]);
+            tmp[tx] = y[tid * incy] * (CONJ ? conj(x[tid * incx]) : x[tid * incx]);
         else
-            tmp[tx] = (T)0; // pad with zero
+            tmp[tx] = T(0); // pad with zero
 
         rocblas_sum_reduce<NB>(tx, tmp);
 
@@ -95,12 +95,14 @@ namespace
     constexpr char rocblas_dot_name<CONJ, float>[] = "rocblas_sdot";
     template <bool CONJ>
     constexpr char rocblas_dot_name<CONJ, double>[] = "rocblas_ddot";
-    template <bool CONJ>
-    constexpr char rocblas_dot_name<CONJ, rocblas_float_complex>[]
-        = CONJ ? "rocblas_cdotc" : "rocblas_cdotu";
-    template <bool CONJ>
-    constexpr char rocblas_dot_name<CONJ, rocblas_double_complex>[]
-        = CONJ ? "rocblas_zdotc" : "rocblas_zdotu";
+    template <>
+    constexpr char rocblas_dot_name<true, rocblas_float_complex>[] = "rocblas_cdotc";
+    template <>
+    constexpr char rocblas_dot_name<false, rocblas_float_complex>[] = "rocblas_cdotu";
+    template <>
+    constexpr char rocblas_dot_name<true, rocblas_double_complex>[] = "rocblas_zdotc";
+    template <>
+    constexpr char rocblas_dot_name<false, rocblas_double_complex>[] = "rocblas_zdotu";
 
     // allocate workspace inside this API
     template <bool CONJ, typename T>
@@ -127,7 +129,6 @@ namespace
                       n,
                       "--incx",
                       incx,
-
                       "--incy",
                       incy);
 
@@ -145,7 +146,7 @@ namespace
             else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
-                *result = (T)0;
+                *result = T(0);
             return rocblas_status_success;
         }
 

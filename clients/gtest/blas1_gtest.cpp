@@ -7,7 +7,6 @@
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
-#include "testing_dotc.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"

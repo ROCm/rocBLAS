@@ -98,20 +98,15 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     double rocblas_error = 0.0;
 
-    size_t size_one_a = transA == rocblas_operation_none
-                            ? static_cast<size_t>(K) * static_cast<size_t>(lda)
-                            : static_cast<size_t>(M) * static_cast<size_t>(lda);
-    size_t size_one_b = transB == rocblas_operation_none
-                            ? static_cast<size_t>(N) * static_cast<size_t>(ldb)
-                            : static_cast<size_t>(K) * static_cast<size_t>(ldb);
+    size_t size_one_a
+        = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
+    size_t size_one_b
+        = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
     size_t size_one_c = N * ldc;
 
-    size_t size_a
-        = size_one_a + static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
-    size_t size_b
-        = size_one_b + static_cast<size_t>(stride_b) * static_cast<size_t>(batch_count - 1);
-    size_t size_c
-        = size_one_c + static_cast<size_t>(stride_c) * static_cast<size_t>(batch_count - 1);
+    size_t size_a = size_one_a + size_t(stride_a) * size_t(batch_count - 1);
+    size_t size_b = size_one_b + size_t(stride_b) * size_t(batch_count - 1);
+    size_t size_c = size_one_c + size_t(stride_c) * size_t(batch_count - 1);
 
     // allocate memory on device
     device_vector<T> dA(size_a);
@@ -246,9 +241,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         if(arg.norm_check)
         {
             double error_hst_ptr
-                = fabs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1));
+                = std::abs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1));
             double error_dev_ptr
-                = fabs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2));
+                = std::abs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2));
             rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }

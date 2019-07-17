@@ -118,29 +118,7 @@ template <typename T>
 inline void rocblas_init_nan(T* A, size_t N)
 {
     for(size_t i = 0; i < N; ++i)
-        A[i] = static_cast<T>(rocblas_nan_rng());
-}
-
-template <>
-inline void rocblas_init_nan(rocblas_float_complex* A, size_t N)
-{
-    for(size_t i = 0; i < N; ++i)
-    {
-        float x = (float)rocblas_nan_rng();
-        float y = (float)rocblas_nan_rng();
-        A[i]    = rocblas_float_complex(x, y);
-    }
-}
-
-template <>
-inline void rocblas_init_nan(rocblas_double_complex* A, size_t N)
-{
-    for(size_t i = 0; i < N; ++i)
-    {
-        double x = (double)rocblas_nan_rng();
-        double y = (double)rocblas_nan_rng();
-        A[i]     = rocblas_double_complex(x, y);
-    }
+        A[i] = T(rocblas_nan_rng());
 }
 
 template <typename T>
@@ -150,7 +128,7 @@ inline void rocblas_init_nan(
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
             for(size_t j = 0; j < N; ++j)
-                A[i + j * lda + i_batch * stride] = static_cast<T>(rocblas_nan_rng());
+                A[i + j * lda + i_batch * stride] = T(rocblas_nan_rng());
 }
 
 /* ============================================================================================ */

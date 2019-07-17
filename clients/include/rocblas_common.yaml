@@ -194,19 +194,17 @@ Complex in real out: &complex_in_real_out_precisions
   - &double_precision_joined
     { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_r, compute_type: f64_r }
 
-Single double real and joined: &single_double_real_complex_in_real_out
+Single real and joined: &single_real_complex_in_real_out
   - *single_precision_joined
-  - *double_precision_joined
   - *single_precision
-  - *double_precision
 
 Double real and joined: &double_real_complex_in_real_out
   - *double_precision_joined
   - *double_precision
 
-Single real and joined: &single_real_complex_in_real_out
-  - *single_precision_joined
-  - *single_precision
+Single double real and joined: &single_double_real_complex_in_real_out
+  - <<: *single_real_complex_in_real_out
+  - <<: *double_real_complex_in_real_out
 
 #############################################
 #               Used for Scal               #
@@ -220,8 +218,6 @@ Joined precisions: &complex_real_in_complex_out
 Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
-
-
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
@@ -245,9 +241,9 @@ Arguments:
   - incd: rocblas_int
   - incb: rocblas_int
   - alpha: c_double
-  - alpha_imag: c_double
+  - alphai: c_double
   - beta: c_double
-  - beta_imag: c_double
+  - betai: c_double
   - transA: c_char
   - transB: c_char
   - side: c_char
@@ -292,6 +288,7 @@ Dictionary lists to expand:
   - arguments
   - transA_transB
   - alpha_beta
+  - alphai_betai
   - incx_incy
   - matrix_size
   - precision
@@ -313,15 +310,19 @@ Defaults:
   incd: 0
   incb: 0
   alpha: 1.0
-  alpha_imag: 0.0
+  alphai: 0.0
   beta: 0.0
-  beta_imag: 0.0
+  betai: 0.0
   transA: '*'
   transB: '*'
   side: '*'
   uplo: '*'
   diag: '*'
   batch_count: -1
+  stride_a: 0
+  stride_b: 0
+  stride_c: 0
+  stride_d: 0
   norm_check: 0
   unit_check: 1
   timing: 0

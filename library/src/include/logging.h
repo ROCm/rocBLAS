@@ -56,6 +56,17 @@ protected:
         }
     }
 
+    // Complex output
+    template<typename T>
+    static void print_value(std::ostream& os, const rocblas_complex_num<T>& x)
+    {
+        os << "'(";
+        print_value(os, std::real(x));
+        os << ",";
+        print_value(os, std::imag(x));
+        os << ")'";
+    }
+
     // Character output
     static void print_value(std::ostream& os, char c)
     {
@@ -122,15 +133,15 @@ protected:
      * Compute value hashes for (key1, value1, key2, value2, ...) tuples
      ************************************************************************************/
     // Workaround for compilers which don't implement C++14 enum hash (LWG 2148)
-    template <typename T>
-    static typename std::enable_if<std::is_enum<T>{}, size_t>::type hash(const T& x)
+    template <typename T, typename std::enable_if<std::is_enum<T>{}, int>::type = 0>
+    static size_t hash(const T& x)
     {
         return std::hash<typename std::underlying_type<T>::type>{}(x);
     }
 
     // Default hash for non-enum types
-    template <typename T>
-    static typename std::enable_if<!std::is_enum<T>{}, size_t>::type hash(const T& x)
+    template <typename T, typename std::enable_if<!std::is_enum<T>{}, int>::type = 0>
+    static size_t hash(const T& x)
     {
         return std::hash<T>{}(x);
     }

@@ -68,7 +68,7 @@ void testing_asum(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // allocate memory on device
     device_vector<T1> dx(size_x);
@@ -120,7 +120,7 @@ void testing_asum(const Arguments& arg)
             else
             {
                 // tolerance calculated as a measurement of the expected result
-                double tol = sum_error_tolerance<T1> * getMagnitude(cpu_result);
+                double tol = sum_error_tolerance<T1> * std::abs(cpu_result);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
                 near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
             }
@@ -132,8 +132,8 @@ void testing_asum(const Arguments& arg)
                       << ", gpu_host_ptr=" << rocblas_result_1
                       << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
 
-            rocblas_error_1 = fabs((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = fabs((cpu_result - rocblas_result_2) / cpu_result);
+            rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
+            rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
         }
     }
 
