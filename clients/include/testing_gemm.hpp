@@ -14,6 +14,7 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
+#include "blis_interface.hpp"
 
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
@@ -78,6 +79,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
+    setup_blis();
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
 
@@ -219,7 +221,20 @@ void testing_gemm(const Arguments& arg)
             cpu_time_used = get_time_us();
         }
 
-        cblas_gemm<T, T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
+        // cblas_gemm<T, T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
+        blis_gemm<T>(transA,
+                     transB,
+                     M,
+                     N,
+                     K,
+                     h_alpha,
+                     hA.data(),
+                     lda,
+                     hB.data(),
+                     ldb,
+                     h_beta,
+                     hC_gold.data(),
+                     ldc);
 
         if(arg.timing)
         {

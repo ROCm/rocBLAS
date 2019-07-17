@@ -312,6 +312,14 @@ if [[ "${install_dependencies}" == true ]]; then
     make -j$(nproc)
     elevate_if_not_root make install
   popd
+
+  if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+    git submodule update --init
+    cd extern/blis
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+    make install
+    cd ../..
+  fi
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
