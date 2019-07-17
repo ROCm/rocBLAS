@@ -21,6 +21,40 @@ namespace
             x[tid * incx] *= alpha;
     }
 
+    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
+    void scal_log_bench(rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx)
+    {
+        log_bench(handle,
+                  "./rocblas-bench -f scal --a_type",
+                  rocblas_precision_string<T>,
+                  "--b_type",
+                  rocblas_precision_string<U>,
+                  "-n",
+                  n,
+                  "--incx",
+                  incx,
+                  "--alpha",
+                  *alpha);
+    }
+
+    template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
+    void scal_log_bench(rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx)
+    {
+        log_bench(handle,
+                  "./rocblas-bench -f scal --a_type",
+                  rocblas_precision_string<T>,
+                  "--b_type",
+                  rocblas_precision_string<U>,
+                  "-n",
+                  n,
+                  "--incx",
+                  incx,
+                  "--alpha",
+                  std::real(*alpha),
+                  "--alphai",
+                  std::imag(*alpha));
+    }
+
     template <typename T, typename = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
@@ -36,9 +70,9 @@ namespace
     template <>
     constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal";
 
-    template <class T, class U>
+    template <typename T, typename U>
     rocblas_status
-        rocblas_scal(rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx)
+        rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, U* x, rocblas_int incx)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -56,21 +90,7 @@ namespace
             // with --a_type and --b_type (?)
             // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f scal --a_type",
-                          rocblas_precision_string<T>,
-                          "--b_type",
-                          rocblas_precision_string<U>,
-                          "--d_type",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          "--incx",
-                          incx,
-                          "--alpha",
-                          real(*alpha),
-                          "--alphai",
-                          imag(*alpha));
+                scal_log_bench<T, U>(handle, n, alpha, incx);
         }
         else
         {

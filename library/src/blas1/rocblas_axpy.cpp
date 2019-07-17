@@ -24,7 +24,7 @@ namespace
     constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
     template <typename T>
-    void axpy_log_bench(
+    typename std::enable_if<!is_complex<T>>::type axpy_log_bench(
         rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx, rocblas_int incy)
     {
         log_bench(handle,
@@ -40,44 +40,19 @@ namespace
                   incy);
     }
 
-    template <>
-    void axpy_log_bench<rocblas_float_complex>(rocblas_handle               handle,
-                                               rocblas_int                  n,
-                                               const rocblas_float_complex* alpha,
-                                               rocblas_int                  incx,
-                                               rocblas_int                  incy)
+    template <typename T>
+    typename std::enable_if<is_complex<T>>::type axpy_log_bench(
+        rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx, rocblas_int incy)
     {
         log_bench(handle,
                   "./rocblas-bench -f axpy -r",
-                  rocblas_precision_string<rocblas_float_complex>,
+                  rocblas_precision_string<T>,
                   "-n",
                   n,
                   "--alpha",
-                  real(*alpha),
+                  std::real(*alpha),
                   "--alphai",
-                  imag(*alpha),
-                  "--incx",
-                  incx,
-                  "--incy",
-                  incy);
-    }
-
-    template <>
-    void axpy_log_bench<rocblas_double_complex>(rocblas_handle                handle,
-                                                rocblas_int                   n,
-                                                const rocblas_double_complex* alpha,
-                                                rocblas_int                   incx,
-                                                rocblas_int                   incy)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f axpy -r",
-                  rocblas_precision_string<rocblas_double_complex>,
-                  "-n",
-                  n,
-                  "--alpha",
-                  real(*alpha),
-                  "--alphai",
-                  imag(*alpha),
+                  std::imag(*alpha),
                   "--incx",
                   incx,
                   "--incy",
@@ -100,9 +75,7 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
-            {
                 axpy_log_bench(handle, n, alpha, incx, incy);
-            }
         }
         else if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);

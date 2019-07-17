@@ -24,7 +24,7 @@ namespace
 
         // bound
         if(tid < n)
-            tmp[tx] = y[tid * incy] * (CONJ ? conj(x[tid * incx]) : x[tid * incx]);
+            tmp[tx] = y[tid * incy] * (CONJ ? std::conj(x[tid * incx]) : x[tid * incx]);
         else
             tmp[tx] = T(0); // pad with zero
 

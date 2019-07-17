@@ -3,7 +3,6 @@
  * ************************************************************************ */
 
 #include "../../library/src/include/handle.h"
-#include "../../library/src/include/utility.h"
 #include "cblas_interface.hpp"
 #include "rocblas.hpp"
 #include "rocblas_math.hpp"

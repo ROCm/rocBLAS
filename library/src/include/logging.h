@@ -57,7 +57,7 @@ protected:
     }
 
     // Complex output
-    template<typename T>
+    template <typename T>
     static void print_value(std::ostream& os, const rocblas_complex_num<T>& x)
     {
         os << "'(";

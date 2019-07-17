@@ -279,10 +279,10 @@ __device__ void gemvc_kernel(rocblas_int m,
     rocblas_int m_full = (m / NB_X) * NB_X;
 
     for(rocblas_int i = 0; i < m_full; i += NB_X)
-        res += conj(A[i]) * x[(tx + i) * incx];
+        res += std::conj(A[i]) * x[(tx + i) * incx];
 
     if(tx + m_full < m)
-        res += conj(A[m_full]) * x[(tx + m_full) * incx];
+        res += std::conj(A[m_full]) * x[(tx + m_full) * incx];
 
     sdata[tx] = res;
 

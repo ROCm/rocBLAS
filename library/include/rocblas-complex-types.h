@@ -45,9 +45,19 @@ class rocblas_complex_num
     T y; // The imaginary part of the number.
 
     // Internal real absolute function, to be sure we're on both device and host
-    static __forceinline__ __device__ __host__ T abs(T r)
+    static __forceinline__ __device__ __host__ T abs(T x)
     {
-        return r < 0 ? -r : r;
+        return x < 0 ? -x : x;
+    }
+
+    static __forceinline__ __device__ __host__ float sqrt(float x)
+    {
+        return ::sqrtf(x);
+    }
+
+    static __forceinline__ __device__ __host__ double sqrt(double x)
+    {
+        return ::sqrt(x);
     }
 
 public:
@@ -174,8 +184,7 @@ public:
 
     friend __device__ __host__ rocblas_complex_num std::conj(const rocblas_complex_num& z);
     friend __device__ __host__ T                   std::norm(const rocblas_complex_num& z);
-    friend __device__ T                            std::abs(const rocblas_complex_num& z);
-    friend __host__ T                              std::abs(const rocblas_complex_num& z);
+    friend __device__ __host__ T                   std::abs(const rocblas_complex_num<T>& z);
 
     // in-place complex-complex operations
     __device__ __host__ auto& operator*=(const rocblas_complex_num& rhs)
@@ -302,40 +311,36 @@ public:
 namespace std
 {
     template <typename T>
-    __device__ __host__ T real(const rocblas_complex_num<T>& z)
+    __device__ __host__ inline T real(const rocblas_complex_num<T>& z)
     {
         return z.x;
     }
 
     template <typename T>
-    __device__ __host__ T imag(const rocblas_complex_num<T>& z)
+    __device__ __host__ inline T imag(const rocblas_complex_num<T>& z)
     {
         return z.y;
     }
 
     template <typename T>
-    __device__ __host__ rocblas_complex_num<T> conj(const rocblas_complex_num<T>& z)
+    __device__ __host__ inline rocblas_complex_num<T> conj(const rocblas_complex_num<T>& z)
     {
         return {z.x, -z.y};
     }
 
     template <typename T>
-    __device__ __host__ T norm(const rocblas_complex_num<T>& z)
+    __device__ __host__ inline T norm(const rocblas_complex_num<T>& z)
     {
         return (z.x * z.x) + (z.y * z.y);
     }
 
-    // We must define abs twice separately in order to resolve sqrt() correctly
-#define ROCBLAS_COMPLEX_ABS(DEVICE_HOST)                                                          \
-    template <typename T>                                                                         \
-    DEVICE_HOST T abs(const rocblas_complex_num<T>& z)                                            \
-    {                                                                                             \
-        T tr = abs(z.x), ti = abs(z.y);                                                           \
-        return tr > ti ? (ti /= tr, tr * sqrt(ti * ti + 1)) : (tr /= ti, ti * sqrt(tr * tr + 1)); \
+    template <typename T>
+    __device__ __host__ inline T abs(const rocblas_complex_num<T>& z)
+    {
+        T tr = rocblas_complex_num<T>::abs(z.x), ti = rocblas_complex_num<T>::abs(z.y);
+        return tr > ti ? (ti /= tr, tr * rocblas_complex_num<T>::sqrt(ti * ti + 1))
+                       : (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1));
     }
-
-    ROCBLAS_COMPLEX_ABS(__device__)
-    ROCBLAS_COMPLEX_ABS(__host__)
 }
 
 // Test for C compatibility
@@ -360,6 +365,16 @@ template class rocblas_complex_num_check<double>;
 // rocBLAS complex data types
 using rocblas_float_complex  = rocblas_complex_num<float>;
 using rocblas_double_complex = rocblas_complex_num<double>;
+
+/*! \brief is_complex<T> returns true iff T is complex */
+template <typename T>
+static constexpr bool is_complex = false;
+
+template <>
+static constexpr bool is_complex<rocblas_float_complex> = true;
+
+template <>
+static constexpr bool is_complex<rocblas_double_complex> = true;
 
 #endif // __cplusplus < 201402L || !defined(__HCC__)
 

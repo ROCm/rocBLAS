@@ -240,10 +240,10 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            double error_hst_ptr
-                = std::abs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1));
-            double error_dev_ptr
-                = std::abs(norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2));
+            double error_hst_ptr = std::abs(
+                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1));
+            double error_dev_ptr = std::abs(
+                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2));
             rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }

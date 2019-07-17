@@ -52,14 +52,12 @@ namespace
             name << rocblas_datatype2string(arg.a_type);
 
             if(BLAS1 == blas1::scal && arg.a_type != arg.b_type)
-                name << rocblas_datatype2string(arg.b_type);
-            if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
-                name << rocblas_datatype2string(arg.d_type);
+                name << '_' << rocblas_datatype2string(arg.b_type);
 
             name << '_' << arg.N;
 
             if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
-                name << '_' << arg.alpha << "-" << arg.alphai;
+                name << '_' << arg.alpha << "_" << arg.alphai;
 
             name << '_' << arg.incx;
 

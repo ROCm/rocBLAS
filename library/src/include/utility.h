@@ -57,27 +57,6 @@ inline bool isAligned(const void* pointer, size_t byte_count)
     return reinterpret_cast<uintptr_t>(pointer) % byte_count == 0;
 }
 
-// conj(x) defaults to x. For complex, there are separate ADL definitions.
-template <typename T>
-__forceinline__ __device__ __host__ T conj(T x)
-{
-    return x;
-}
-
-// real(x) defaults to x. For complex, there are separate ADL definitions.
-template <typename T>
-__forceinline__ __device__ __host__ T real(T x)
-{
-    return x;
-}
-
-// imag(x) defaults to 0. For complex, there are separate ADL definitions.
-template <typename T>
-__forceinline__ __device__ __host__ T imag(T x)
-{
-    return 0;
-}
-
 // clang-format off
 // return letter N,T,C in place of rocblas_operation enum
 constexpr auto rocblas_transpose_letter(rocblas_operation trans)
