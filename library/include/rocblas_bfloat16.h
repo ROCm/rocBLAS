@@ -30,21 +30,24 @@
 #ifndef _ROCBLAS_BFLOAT16_H_
 #define _ROCBLAS_BFLOAT16_H_
 
-#ifndef _ROCBLAS_INTERNAL_BFLOAT16_
+#if __cplusplus < 201402L || !defined(__HCC__)
+
+// If this is a C compiler, C++ compiler below C++14, or a host-only compiler, we only
+// include a minimal definition of rocblas_bfloat16
 
 #include <stdint.h>
 typedef struct
 {
     uint16_t data;
-} rocblas_bloat16;
+} rocblas_bfloat16;
 
-#else
+#else // __cplusplus < 201402L || !defined(__HCC__)
 
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <hip/hip_runtime.h>
-#include <iostream>
+#include <ostream>
 #include <type_traits>
 
 struct rocblas_bfloat16
@@ -246,5 +249,6 @@ inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
     return rocblas_bfloat16(cosf(float(a)));
 }
 
-#endif // _ROCBLAS_INTERNAL_BFLOAT16_
+#endif // __cplusplus < 201402L || !defined(__HCC__)
+
 #endif // _ROCBLAS_BFLOAT16_H_
