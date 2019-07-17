@@ -19,6 +19,7 @@ function display_help()
   echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
   echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
   echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
+  echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
@@ -201,6 +202,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
+tensile_cov=V2
 tensile_fork=
 tensile_branch=
 tensile_test_local_path=
@@ -216,7 +218,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,fork:,branch:test_local_path: --options hicdgl:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path: --options hicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -249,6 +251,9 @@ while true; do
         shift ;;
     -l|--logic)
         tensile_logic=${2}
+        shift 2 ;;
+    -o|--cov)
+        tensile_cov=${2}
         shift 2 ;;
     -f|--fork)
         tensile_fork=${2}
@@ -324,7 +329,7 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic}"
+  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
