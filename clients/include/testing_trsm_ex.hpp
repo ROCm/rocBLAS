@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
@@ -256,11 +256,8 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            TRSM_BLOCK,
-                                            arg.compute_type,
-                                            rocblas_trsm_high_performance,
-                                            &x_temp_size,
-                                            dX_tmp));
+                                            TRSM_BLOCK * K,
+                                            arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
@@ -282,11 +279,8 @@ void testing_trsm_ex(const Arguments& arg)
                                             dXorB,
                                             ldb,
                                             dinvA,
-                                            TRSM_BLOCK,
-                                            arg.compute_type,
-                                            rocblas_trsm_high_performance,
-                                            &x_temp_size,
-                                            dX_tmp));
+                                            TRSM_BLOCK * K,
+                                            arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 

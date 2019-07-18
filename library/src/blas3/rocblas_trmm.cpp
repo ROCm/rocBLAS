@@ -1,17 +1,12 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "definitions.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-
 // do not use fma which is 50% slower than regular fmaf
 #define fmaf(a, b, c) (a) * (b) + (c)
 
@@ -180,11 +175,11 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_trmm_name[] = "unknown";
+    constexpr char rocblas_trmm_name[] = "unknown";
     template <>
-    static constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
+    constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
     template <>
-    static constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
+    constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
 
     /*! \brief BLAS Level 3 API
 
@@ -364,10 +359,7 @@ namespace
         if(ldc < M)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possible.
-     */
-
+        // Quick return if possible.
         if(!M || !N)
             return rocblas_status_success;
 
@@ -381,14 +373,11 @@ namespace
         dim3 grid(blocks_x, blocks_y);
         dim3 threads(NB, NB);
 
-        hipStream_t rocblas_stream;
-        RETURN_IF_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
-
         hipLaunchKernelGGL(trmm_Col_NN_B1_MX096_NX096_KX16,
                            grid,
                            threads,
                            0,
-                           rocblas_stream,
+                           handle->rocblas_stream,
                            M,
                            N,
                            K,

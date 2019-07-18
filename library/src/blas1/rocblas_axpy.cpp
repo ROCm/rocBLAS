@@ -1,14 +1,9 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace
@@ -16,17 +11,17 @@ namespace
     constexpr int NB = 256;
 
     template <typename>
-    static constexpr char rocblas_axpy_name[] = "unknown";
+    constexpr char rocblas_axpy_name[] = "unknown";
     template <>
-    static constexpr char rocblas_axpy_name<float>[] = "rocblas_saxpy";
+    constexpr char rocblas_axpy_name<float>[] = "rocblas_saxpy";
     template <>
-    static constexpr char rocblas_axpy_name<double>[] = "rocblas_daxpy";
+    constexpr char rocblas_axpy_name<double>[] = "rocblas_daxpy";
     template <>
-    static constexpr char rocblas_axpy_name<rocblas_half>[] = "rocblas_haxpy";
+    constexpr char rocblas_axpy_name<rocblas_half>[] = "rocblas_haxpy";
     template <>
-    static constexpr char rocblas_axpy_name<rocblas_float_complex>[] = "rocblas_caxpy";
+    constexpr char rocblas_axpy_name<rocblas_float_complex>[] = "rocblas_caxpy";
     template <>
-    static constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
+    constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
     template <typename T>
     void rocblas_axpy_log(rocblas_handle handle,
@@ -66,8 +61,8 @@ namespace
     __global__ void axpy_kernel(
         rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
-        auto    alpha = load_scalar(alpha_device_host);
-        ssize_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        auto      alpha = load_scalar(alpha_device_host);
+        ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
         // bound
         if(tid < n)
@@ -85,6 +80,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
         if(!alpha)
             return rocblas_status_invalid_pointer;
         rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
@@ -98,9 +94,9 @@ namespace
         hipStream_t rocblas_stream = handle->rocblas_stream;
 
         if(incx < 0)
-            x -= ssize_t(incx) * (n - 1);
+            x -= ptrdiff_t(incx) * (n - 1);
         if(incy < 0)
-            y -= ssize_t(incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
             hipLaunchKernelGGL(
@@ -178,9 +174,13 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
         rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
         if(!alpha || !x || !y)
             return rocblas_status_invalid_pointer;
+
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         if(n <= 0) // Quick return if possible. Not Argument error
             return rocblas_status_success;
 
@@ -191,9 +191,9 @@ namespace
             dim3 threads(NB);
 
             if(incx < 0)
-                x += incx * (1 - n);
+                x -= ptrdiff_t(incx) * (n - 1);
             if(incy < 0)
-                y += incy * (1 - n);
+                y -= ptrdiff_t(incy) * (n - 1);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
                 hipLaunchKernelGGL(axpy_kernel,

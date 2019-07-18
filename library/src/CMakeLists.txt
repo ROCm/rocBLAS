@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016 Advanced Micro Devices, Inc.
+# Copyright 2016-2019 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # ########################################################################
@@ -23,6 +23,8 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
+add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
+
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
@@ -38,9 +40,10 @@ if( BUILD_WITH_TENSILE )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
-  TensileCreateLibrary(
+  TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
+      ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
@@ -83,19 +86,13 @@ if( BUILD_WITH_TENSILE )
 endif( )
 
 set( rocblas_auxiliary_source
-  include/handle.h
-  include/definitions.h
-  include/status.h
-  include/rocblas_unique_ptr.hpp
   handle.cpp
   rocblas_auxiliary.cpp
-  status.cpp
   buildinfo.cpp
 )
 
 set( rocblas_ex_source
   blas_ex/rocblas_gemm_ex.cpp
-  blas_ex/rocblas_trsm_ex.cpp
 )
 
 set( rocblas_blas3_source
@@ -207,3 +204,12 @@ rocm_export_targets(
  )
 
 rocm_install_symlink_subdir( rocblas )
+
+# Compilation tests to ensure that header files work independently,
+# and that public header files work across several languages
+add_custom_command(
+  TARGET rocblas
+  POST_BUILD
+  COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+ )

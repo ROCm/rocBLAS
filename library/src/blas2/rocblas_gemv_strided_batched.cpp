@@ -1,27 +1,20 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
-#include "definitions.h"
+#include "gemv_device.hpp"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
-
-#include "gemv_device.hpp"
 
 namespace
 {
-
     template <typename>
-    static constexpr char rocblas_gemv_name[] = "unknown";
+    constexpr char rocblas_gemv_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_strided_batched";
+    constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv_strided_batched";
     template <>
-    static constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_strided_batched";
+    constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv_strided_batched";
 
     template <typename T>
     rocblas_status rocblas_gemv_strided_batched(rocblas_handle    handle,
@@ -43,6 +36,8 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         if(!alpha || !beta)
             return rocblas_status_invalid_pointer;
 
@@ -154,6 +149,7 @@ namespace
             return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
+
         // Quick return if possible. Not Argument error
         if(!m || !n)
             return rocblas_status_success;

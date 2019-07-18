@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_VECTOR_H_
@@ -25,7 +25,7 @@ class device_vector
 
     void device_vector_setup()
     {
-        if(hipMalloc(&data, bytes) != hipSuccess)
+        if((hipMalloc)(&data, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
             fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
@@ -69,7 +69,7 @@ class device_vector
             EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
 
             // Free device memory
-            CHECK_HIP_ERROR(hipFree(data));
+            CHECK_HIP_ERROR((hipFree)(data));
         }
     }
 
@@ -96,7 +96,7 @@ public:
         : size(size)
         , bytes(size ? size * sizeof(T) : sizeof(T))
     {
-        if(hipMalloc(&data, bytes) != hipSuccess)
+        if((hipMalloc)(&data, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
             fprintf(stderr, "Error allocating %'zu bytes (%'zu GB)\n", bytes, bytes >> 30);
@@ -107,7 +107,7 @@ public:
     ~device_vector()
     {
         if(data != nullptr)
-            CHECK_HIP_ERROR(hipFree(data));
+            CHECK_HIP_ERROR((hipFree)(data));
     }
 
 #endif // GOOGLE_TEST

@@ -1,19 +1,13 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-
     template <typename T, typename U>
     __global__ void ger_kernel(rocblas_int m,
                                rocblas_int n,
@@ -25,20 +19,20 @@ namespace
                                T*          A,
                                rocblas_int lda)
     {
-        auto    alpha = load_scalar(alpha_device_host);
-        ssize_t tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-        ssize_t ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+        auto      alpha = load_scalar(alpha_device_host);
+        ptrdiff_t tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        ptrdiff_t ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
         if(tx < m && ty < n)
             A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
     }
 
     template <typename>
-    static constexpr char rocblas_ger_name[] = "unknown";
+    constexpr char rocblas_ger_name[] = "unknown";
     template <>
-    static constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
+    constexpr char rocblas_ger_name<float>[] = "rocblas_sger";
     template <>
-    static constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
+    constexpr char rocblas_ger_name<double>[] = "rocblas_dger";
 
     template <typename T>
     rocblas_status rocblas_ger(rocblas_handle handle,
@@ -54,6 +48,7 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         if(!alpha)
             return rocblas_status_invalid_pointer;
@@ -107,9 +102,7 @@ namespace
         if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1)
             return rocblas_status_invalid_size;
 
-        /*
-     * Quick return if possible. Not Argument error
-     */
+        // Quick return if possible. Not Argument error
         if(!m || !n)
             return rocblas_status_success;
 
@@ -124,9 +117,9 @@ namespace
         dim3 ger_threads(GEMV_DIM_X, GEMV_DIM_Y);
 
         if(incx < 0)
-            x += size_t(-incx) * (m - 1);
+            x -= ptrdiff_t(incx) * (m - 1);
         if(incy < 0)
-            y += size_t(-incy) * (n - 1);
+            y -= ptrdiff_t(incy) * (n - 1);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
             hipLaunchKernelGGL(ger_kernel,

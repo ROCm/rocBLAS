@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_DATA_H_
@@ -56,7 +56,7 @@ public:
         if(!ifs)
         {
             // Allocate a std::ifstream and register it to be deleted during cleanup
-            ifs = test_cleanup::allocate<std::ifstream>(ifs, filename(), std::ifstream::binary);
+            ifs = test_cleanup::allocate(&ifs, filename(), std::ifstream::binary);
             if(!ifs || ifs->fail())
             {
                 std::cerr << "Cannot open " << filename() << ": " << strerror(errno) << std::endl;

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -403,6 +403,29 @@ static constexpr auto rocblas_gemm_strided_batched<float> = rocblas_sgemm_stride
 
 template <>
 static constexpr auto rocblas_gemm_strided_batched<double> = rocblas_dgemm_strided_batched;
+
+#if 0
+// trmm
+template <typename T>
+rocblas_status (*rocblas_trmm)(rocblas_handle    handle,
+                               rocblas_side      side,
+                               rocblas_fill      uplo,
+                               rocblas_operation transA,
+                               rocblas_diagonal  diag,
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               const T*          alpha,
+                               T*                A,
+                               rocblas_int       lda,
+                               T*                B,
+                               rocblas_int       ldb);
+
+template <>
+static constexpr auto rocblas_trmm<float> = rocblas_strmm;
+
+template <>
+static constexpr auto rocblas_trmm<double> = rocblas_dtrmm;
+#endif
 
 // trsm
 template <typename T>

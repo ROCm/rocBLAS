@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
@@ -55,8 +55,8 @@ void testing_trsv(const Arguments& arg)
         return;
     }
 
-    size_t size_A   = static_cast<size_t>(lda) * static_cast<size_t>(M);
-    size_t abs_incx = static_cast<size_t>(incx >= 0 ? incx : -incx);
+    size_t size_A   = size_t(lda) * size_t(M);
+    size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory

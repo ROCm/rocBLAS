@@ -1,21 +1,8 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "Tensile.h"
-#include "TensileTypes.h"
-#include "status.h"
-
-#include "definitions.h"
-#include "handle.h"
-#include "logging.h"
-#include "utility.h"
-#include <type_traits>
-
 #include "rocblas_gemm_ex.hpp"
+#include "logging.h"
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_operation trans_a,
@@ -40,13 +27,14 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                           rocblas_datatype  compute_type,
                                           rocblas_gemm_algo algo,
                                           int32_t           solution_index,
-                                          uint32_t          flags,
-                                          size_t*           workspace_size,
-                                          void*             workspace)
+                                          uint32_t          flags)
 {
     // handle, alpha, beta must not be null pointers for logging
     if(!handle)
         return rocblas_status_invalid_handle;
+
+    // TODO: Compute an optimum size of device memory which can be used as workspace.
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
     if(!alpha || !beta)
         return rocblas_status_invalid_pointer;
@@ -120,9 +108,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               compute_type_string,
                               algo,
                               solution_index,
-                              flags,
-                              workspace_size ? *workspace_size : 0,
-                              workspace);
+                              flags);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
@@ -165,9 +151,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               "--solution_index",
                               solution_index,
                               "--flags",
-                              flags,
-                              "--workspace_size",
-                              workspace_size ? *workspace_size : 0);
+                              flags);
                 }
             }
             else
@@ -197,9 +181,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                               compute_type_string,
                               algo,
                               solution_index,
-                              flags,
-                              "--workspace_size",
-                              workspace_size ? *workspace_size : 0);
+                              flags);
             }
         }
 
@@ -240,9 +222,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                         "solution_index",
                         solution_index,
                         "flags",
-                        flags,
-                        "workspace_size",
-                        workspace_size ? *workspace_size : 0);
+                        flags);
         }
     }
 
@@ -482,13 +462,13 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                           rocblas_datatype  compute_type,
                                                           rocblas_gemm_algo algo,
                                                           int32_t           solution_index,
-                                                          uint32_t          flags,
-                                                          size_t*           workspace_size,
-                                                          void*             workspace)
+                                                          uint32_t          flags)
 {
     // handle, alpha, beta must not be null pointers for logging
     if(!handle)
         return rocblas_status_invalid_handle;
+
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
     if(!alpha || !beta)
         return rocblas_status_invalid_pointer;
@@ -567,9 +547,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               compute_type_string,
                               algo,
                               solution_index,
-                              flags,
-                              workspace_size,
-                              workspace);
+                              flags);
                 }
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
@@ -622,9 +600,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               "--solution_index",
                               solution_index,
                               "--flags",
-                              flags,
-                              "--workspace_size",
-                              workspace_size ? *workspace_size : 0);
+                              flags);
                 }
             }
             else
@@ -660,9 +636,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                               compute_type,
                               algo,
                               solution_index,
-                              flags,
-                              "--workspace_size",
-                              workspace_size ? *workspace_size : 0);
+                              flags);
                 }
             }
         }
@@ -714,9 +688,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                         "solution_index",
                         solution_index,
                         "flags",
-                        flags,
-                        "workspace_size",
-                        workspace_size ? *workspace_size : 0);
+                        flags);
         }
     }
 

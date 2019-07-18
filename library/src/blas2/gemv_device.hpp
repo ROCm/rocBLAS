@@ -1,12 +1,11 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #ifndef __GEMV_DEVICE_HPP__
 #define __GEMV_DEVICE_HPP__
 
-#include <hip/hip_runtime.h>
-
 #include "../blas1/reduction.h"
+#include "utility.h"
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U>
 __device__ void gemvn_kernel(rocblas_int m,
@@ -245,9 +244,9 @@ __global__ void gemvn_kernel_strided(rocblas_int m,
     y = ya + hipBlockIdx_y * stridey;
 
     if(incx < 0)
-        x -= ssize_t(incx) * (n - 1);
+        x -= ptrdiff_t(incx) * (n - 1);
     if(incy < 0)
-        y -= ssize_t(incy) * (m - 1);
+        y -= ptrdiff_t(incy) * (m - 1);
 
     auto alpha = load_scalar(alpha_device_host);
     auto beta  = load_scalar(beta_device_host);
@@ -278,9 +277,9 @@ __global__ void gemvc_kernel_strided(rocblas_int m,
     y = ya + hipBlockIdx_y * stridey;
 
     if(incx < 0)
-        x -= ssize_t(incx) * (m - 1);
+        x -= ptrdiff_t(incx) * (m - 1);
     if(incy < 0)
-        y -= ssize_t(incy) * (n - 1);
+        y -= ptrdiff_t(incy) * (n - 1);
 
     auto alpha = load_scalar(alpha_device_host);
     auto beta  = load_scalar(beta_device_host);
@@ -312,9 +311,9 @@ __global__ void gemvn_kernel_batched(rocblas_int    m,
     y = ya[hipBlockIdx_y];
 
     if(incx < 0)
-        x -= ssize_t(incx) * (n - 1);
+        x -= ptrdiff_t(incx) * (n - 1);
     if(incy < 0)
-        y -= ssize_t(incy) * (m - 1);
+        y -= ptrdiff_t(incy) * (m - 1);
 
     auto alpha = load_scalar(alpha_device_host);
     auto beta  = load_scalar(beta_device_host);
@@ -342,9 +341,9 @@ __global__ void gemvc_kernel_batched(rocblas_int    m,
     y = ya[hipBlockIdx_y];
 
     if(incx < 0)
-        x -= ssize_t(incx) * (m - 1);
+        x -= ptrdiff_t(incx) * (m - 1);
     if(incy < 0)
-        y -= ssize_t(incy) * (n - 1);
+        y -= ptrdiff_t(incy) * (n - 1);
 
     auto alpha = load_scalar(alpha_device_host);
     auto beta  = load_scalar(beta_device_host);

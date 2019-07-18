@@ -1,12 +1,11 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 #ifndef _GEMM_HPP_
 #define _GEMM_HPP_
-
-#include <hip/hip_runtime.h>
+#include "rocblas.h"
 
 template <typename T>
 rocblas_status rocblas_gemm_template(rocblas_handle    handle,
@@ -44,7 +43,7 @@ rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle    handle,
                                                      rocblas_int       stride_c,
                                                      rocblas_int       batch_count);
 
-#define COMPLEX 0
+#undef COMPLEX
 
 /* ============================================================================================ */
 

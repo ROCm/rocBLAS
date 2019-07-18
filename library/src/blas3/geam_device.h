@@ -1,6 +1,7 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas.h"
 
 // general case for any alpha, beta, lda, ldb, ldc
 template <typename T>

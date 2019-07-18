@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -11,7 +11,6 @@
 
 namespace
 {
-
     // By default, this test does not apply to any types.
     // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>

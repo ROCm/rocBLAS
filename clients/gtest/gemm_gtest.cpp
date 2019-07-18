@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -15,7 +15,6 @@
 
 namespace
 {
-
     // Types of GEMM tests
     enum gemm_test_type
     {

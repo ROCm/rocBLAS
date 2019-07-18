@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -18,7 +18,6 @@
 
 namespace
 {
-
 #if 0 // TODO: Need to refactor into new framework; currently disabled because of HIP bug
 
 // Parallel GEMM testing class

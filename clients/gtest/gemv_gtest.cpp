@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -13,7 +13,6 @@
 
 namespace
 {
-
     // By default, arbitrary type combinations are invalid.
     // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>

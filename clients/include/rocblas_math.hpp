@@ -1,16 +1,14 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_MATH_H_
 #define ROCBLAS_MATH_H_
 
-#include <hip/hip_runtime.h>
-
-#include <cmath>
-#include <immintrin.h>
-
 #include "rocblas.h"
+#include <cmath>
+#include <hip/hip_runtime.h>
+#include <immintrin.h>
 
 /* ============================================================================================ */
 // Helper routine to convert floats into their half equivalent; uses F16C instructions
@@ -76,7 +74,7 @@ inline rocblas_half negate(rocblas_half x)
 template <>
 inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
 {
-    x.data = x.data ^ 0x8000;
+    x.data ^= 0x8000;
     return x;
 }
 #endif

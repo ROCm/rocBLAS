@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -20,8 +20,8 @@
     No special header is required. But need to declare
     function prototype
 
-    All the functions are fortran and should append underscore (_) while declaring prototype and
-   calling.
+    All the functions are fortran and should append underscore (_) while
+    declaring prototype and calling.
     xlange and xaxpy prototype are like following
     =================================================================== */
 

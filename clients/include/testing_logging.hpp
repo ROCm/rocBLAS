@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../../library/src/include/handle.h"
@@ -15,6 +15,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <sys/param.h>
+#include <unistd.h>
 
 template <typename T>
 static constexpr auto precision_letter = "*";
@@ -221,8 +222,6 @@ void testing_logging()
             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
             int32_t           solution_index = 0;
             uint32_t          flags          = 0;
-            size_t*           workspace_size = 0;
-            void*             workspace      = 0;
             rocblas_datatype  a_type;
             rocblas_datatype  b_type;
             rocblas_datatype  c_type;
@@ -283,9 +282,7 @@ void testing_logging()
                             compute_type,
                             algo,
                             solution_index,
-                            flags,
-                            workspace_size,
-                            workspace);
+                            flags);
 
             rocblas_gemm_strided_batched_ex(handle,
                                             transA,
@@ -315,9 +312,7 @@ void testing_logging()
                                             compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            workspace_size,
-                                            workspace);
+                                            flags);
         }
     }
 
@@ -602,8 +597,6 @@ void testing_logging()
             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
             int32_t           solution_index = 0;
             uint32_t          flags          = 0;
-            size_t*           workspace_size = 0;
-            void*             workspace      = 0;
 
             trace_ofs2 << "rocblas_gemm_ex"
                        << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
@@ -613,8 +606,7 @@ void testing_logging()
                        << rocblas_datatype_string(c_type) << "," << ldc << "," << (void*)dd << ","
                        << rocblas_datatype_string(d_type) << "," << ldd << ","
                        << rocblas_datatype_string(compute_type) << "," << algo << ","
-                       << solution_index << "," << flags << "," << workspace_size << ","
-                       << (void*)workspace << '\n';
+                       << solution_index << "," << flags << '\n';
 
             bench_ofs2 << "./rocblas-bench -f gemm_ex"
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
@@ -625,8 +617,7 @@ void testing_logging()
                        << " --ldc " << ldc << " --d_type " << rocblas_datatype_string(d_type)
                        << " --ldd " << ldd << " --compute_type "
                        << rocblas_datatype_string(compute_type) << " --algo " << algo
-                       << " --solution_index " << solution_index << " --flags " << flags
-                       << " --workspace_size " << workspace_size << '\n';
+                       << " --solution_index " << solution_index << " --flags " << flags << '\n';
 
             trace_ofs2 << "rocblas_gemm_strided_batched_ex"
                        << "," << transA << "," << transB << "," << m << "," << n << "," << k << ","
@@ -637,8 +628,7 @@ void testing_logging()
                        << ldc << "," << stride_c << "," << (void*)dd << ","
                        << rocblas_datatype_string(d_type) << "," << ldd << "," << stride_d << ","
                        << batch_count << "," << rocblas_datatype_string(compute_type) << "," << algo
-                       << "," << solution_index << "," << flags << "," << workspace_size << ","
-                       << (void*)workspace << '\n';
+                       << "," << solution_index << "," << flags << '\n';
 
             bench_ofs2 << "./rocblas-bench -f gemm_strided_batched_ex"
                        << " --transposeA " << transA_letter << " --transposeB " << transB_letter
@@ -652,7 +642,7 @@ void testing_logging()
                        << ldd << " --stride_d " << stride_d << " --batch " << batch_count
                        << " --compute_type " << rocblas_datatype_string(compute_type) << " --algo "
                        << algo << " --solution_index " << solution_index << " --flags " << flags
-                       << " --workspace_size " << workspace_size << '\n';
+                       << '\n';
         }
         else
         {

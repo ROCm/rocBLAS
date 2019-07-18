@@ -1,15 +1,15 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
 #include "rocblas.h"
 #include <cstdio>
 #include <cstdlib>
+#include <cstring>
+#include <hip/hip_runtime.h>
 #include <iostream>
 #include <limits>
 #include <string>
 #include <vector>
-using std::vector;
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \
@@ -356,13 +356,13 @@ bool bad_argument(rocblas_operation trans_a,
     return argument_error;
 }
 
-void initialize_a_b_c(vector<float>& ha,
-                      rocblas_int    size_a,
-                      vector<float>& hb,
-                      rocblas_int    size_b,
-                      vector<float>& hc,
-                      vector<float>& hc_gold,
-                      rocblas_int    size_c)
+void initialize_a_b_c(std::vector<float>& ha,
+                      rocblas_int         size_a,
+                      std::vector<float>& hb,
+                      rocblas_int         size_b,
+                      std::vector<float>& hc,
+                      std::vector<float>& hc_gold,
+                      rocblas_int         size_c)
 {
     srand(1);
     for(int i = 0; i < size_a; ++i)
@@ -509,10 +509,10 @@ int main(int argc, char* argv[])
     int size_c = batch_count == 0 ? size_c1 : size_c1 + stride_c * (batch_count - 1);
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
-    vector<float> ha(size_a);
-    vector<float> hb(size_b);
-    vector<float> hc(size_c);
-    vector<float> hc_gold(size_c);
+    std::vector<float> ha(size_a);
+    std::vector<float> hb(size_b);
+    std::vector<float> hc(size_c);
+    std::vector<float> hc_gold(size_c);
 
     // initial data on host
     initialize_a_b_c(ha, size_a, hb, size_b, hc, hc_gold, size_c);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -16,7 +16,6 @@
 
 namespace
 {
-
     enum class blas1
     {
         nrm2,

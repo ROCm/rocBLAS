@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_TEST_H_
@@ -114,13 +114,12 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 template <typename>
 class RocBLAS_TestName
 {
-    using table_t = std::unordered_map<std::string, size_t>;
     std::ostringstream str;
 
-    table_t& get_table()
+    static auto& get_table()
     {
         // Placed inside function to avoid dependency on initialization order
-        static table_t* table = test_cleanup::allocate<table_t>(table);
+        static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
         return *table;
     }
 
@@ -131,7 +130,7 @@ public:
     operator std::string() &&
     {
         // This table is private to each instantation of RocBLAS_TestName
-        table_t&    table = get_table();
+        auto&       table = get_table();
         std::string name(str.str());
 
         if(name == "")

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -19,15 +19,14 @@
            If users do not create streams explicitely like what I am doing here,
            all rocblas routine take the NULL (0) stream.
 */
-
+#include "rocblas.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
+#include <hip/hip_runtime.h>
 #include <iostream>
 #include <omp.h>
 #include <vector>
-
-#include "rocblas.hpp"
-#include "utility.hpp"
 
 #define NUM_THREADS 4
 
@@ -35,7 +34,6 @@
 
 int main()
 {
-
     rocblas_int N     = 102400;
     float       alpha = 10.0;
 

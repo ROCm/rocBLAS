@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2018 Advanced Micro Devices, Inc.
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -10,12 +10,10 @@
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
+#include "rocblas_bfloat16.h"
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
-
-#include <hip/hip_vector_types.h>
-
-#include "rocblas_bfloat16.h"
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
@@ -24,6 +22,9 @@
  * It should be destroyed at the end using rocblas_destroy_handle().
  */
 typedef struct _rocblas_handle* rocblas_handle;
+
+// Forward declaration of hipStream_t
+typedef struct ihipStream_t* hipStream_t;
 
 // integer types
 /*! \brief To specify whether int32 or int64 is used
@@ -35,12 +36,20 @@ typedef int64_t rocblas_long;
 typedef int32_t rocblas_int;
 typedef int64_t rocblas_long;
 #endif
-// complex types
-typedef float2  rocblas_float_complex;
-typedef double2 rocblas_double_complex;
+
 // half types
+// TODO: should be replaced with a struct, to become a unique type
 typedef uint16_t rocblas_half;
-typedef float2   rocblas_half_complex;
+
+// complex types
+typedef struct
+{
+    float x, y;
+} rocblas_float_complex;
+typedef struct
+{
+    double x, y;
+} rocblas_double_complex;
 
 /* ============================================================================================ */
 
@@ -103,6 +112,10 @@ typedef enum rocblas_status_
     rocblas_status_invalid_size    = 4, /**< invalid size parameter */
     rocblas_status_memory_error    = 5, /**< failed internal memory allocation, copy or dealloc */
     rocblas_status_internal_error  = 6, /**< other internal library failure */
+    rocblas_status_perf_degraded   = 7, /**< performance degraded due to low device memory */
+    rocblas_status_size_query_mismatch = 8, /**< unmatched start/stop size query */
+    rocblas_status_size_increased      = 9, /**< queried device memory size increased */
+    rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
@@ -147,13 +160,6 @@ typedef enum rocblas_gemm_algo_
 {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
-
-/*! \brief Indicates selected option to run trsm*/
-typedef enum rocblas_trsm_option_
-{
-    rocblas_trsm_high_performance = 0,
-    rocblas_trsm_low_memory       = 1
-} rocblas_trsm_option;
 
 #ifdef __cplusplus
 }

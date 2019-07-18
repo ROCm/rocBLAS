@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_ARGUMENTS_H_
@@ -15,9 +15,11 @@
 #include <iostream>
 #include <type_traits>
 
-/* ============================================================================================ */
+/* ============================================================================================
+ */
 /*! \brief Class used to parse command arguments in both client & gtest   */
-/* WARNING: If this data is changed, then rocblas_common.yaml must also be changed. */
+/* WARNING: If this data is changed, then rocblas_common.yaml must also be
+ * changed. */
 
 struct Arguments
 {
@@ -65,7 +67,6 @@ struct Arguments
     uint32_t algo;
     int32_t  solution_index;
     uint32_t flags;
-    size_t   workspace_size;
 
     char function[64];
     char name[64];
@@ -140,7 +141,6 @@ struct Arguments
         check(arg.algo);
         check(arg.solution_index);
         check(arg.flags);
-        check(arg.workspace_size);
         check(arg.function);
         check(arg.name);
         check(arg.category);
@@ -259,9 +259,11 @@ private:
 };
 
 static_assert(std::is_standard_layout<Arguments>{},
-              "Arguments is not a standard layout type, and thus is incompatible with C.");
+              "Arguments is not a standard layout type, and thus is "
+              "incompatible with C.");
 
 static_assert(std::is_trivially_copyable<Arguments>{},
-              "Arguments is not a trivially copyable type, and thus is incompatible with C.");
+              "Arguments is not a trivially copyable type, and thus is "
+              "incompatible with C.");
 
 #endif
