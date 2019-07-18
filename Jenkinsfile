@@ -134,6 +134,12 @@ rocBLASCI:
                     mv *.deb package/
                     mv clients/*.deb package/
                     dpkg -c package/*.deb
+                    cd package
+                    for f in *.deb
+                    do
+                      dpkg -c $f
+                    done
+
                 """
 
             platform.runCommand(this, command)
