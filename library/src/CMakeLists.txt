@@ -23,8 +23,6 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
-add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
-
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
