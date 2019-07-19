@@ -268,7 +268,7 @@ inline T string2rocblas_datavalue(const std::string& value)
         // real part
         res.x = tmp;
 
-        // imagnary part
+        // imaginary part
         if(sz != value.size())
         {
             if(value[sz] != '+' && value[sz] != '-')
@@ -285,7 +285,7 @@ inline T string2rocblas_datavalue(const std::string& value)
     }
     else
     {
-        // only imagnary case
+        // only imaginary case
         res.y = tmp;
         sz++;
     }
