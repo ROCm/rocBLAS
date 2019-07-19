@@ -19,7 +19,7 @@ void testing_scal_bad_arg(const Arguments& arg)
 {
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
-    U           alpha = (U)0.6;
+    T           alpha = (T)0.6;
 
     rocblas_local_handle handle;
 

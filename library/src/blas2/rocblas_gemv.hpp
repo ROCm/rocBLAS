@@ -21,6 +21,9 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
                                      T*                y,
                                      rocblas_int       incy)
 {
+    if(!m || !n)
+        return rocblas_status_success;
+
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(transA == rocblas_operation_none)

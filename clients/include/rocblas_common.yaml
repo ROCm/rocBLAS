@@ -211,9 +211,9 @@ Single double real and joined: &single_double_real_complex_in_real_out
 #############################################
 Joined precisions: &complex_real_in_complex_out
   - &single_precision_complex_real_in_complex_out
-    { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_r }
+    { a_type: f32_r, b_type: f32_c, c_type: f32_r, d_type: f32_c, compute_type: f32_r }
   - &double_precision_complex_real_in_complex_out
-    { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_r }
+    { a_type: f64_r, b_type: f64_c, c_type: f64_r, d_type: f64_c, compute_type: f64_r }
 
 Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out

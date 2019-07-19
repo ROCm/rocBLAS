@@ -111,33 +111,7 @@ namespace
         if(!alpha)
             return rocblas_status_invalid_pointer;
 
-        auto layer_mode = handle->layer_mode;
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f axpy -r",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          "--alpha",
-                          *alpha,
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incy);
-        }
-        else
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
-        }
-
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
-
+        rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
         if(!x || !y)
             return rocblas_status_invalid_pointer;
         if(n <= 0) // Quick return if possible. Not Argument error

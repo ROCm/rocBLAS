@@ -185,7 +185,7 @@ BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
-BLAS1_TESTING(scal,  ARG1)
+BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
 
     // clang-format on
