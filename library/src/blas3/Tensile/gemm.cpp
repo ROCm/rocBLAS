@@ -1,18 +1,13 @@
 /**************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  ************************************************************************** */
-#include <hip/hip_runtime.h>
-#include <sys/time.h>
-
-#include "rocblas.h"
-
-#include "Tensile.h"
 #include "gemm.h"
-
-#include "definitions.h"
+#include "Tensile.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
+#include <sys/time.h>
 
 /*******************************************************************************
  * Helper enumeration over different transpose combinations
@@ -26,7 +21,7 @@ typedef enum transpose_mode_
     TT
 } transpose_mode;
 
-transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
+constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
 {
     if(trans_a == rocblas_operation_none)
     {
@@ -276,6 +271,8 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
     // Perform logging
     if(!handle)
         return rocblas_status_invalid_handle;
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
     if(!alpha || !beta)
         return rocblas_status_invalid_pointer;
 
@@ -452,6 +449,7 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
     // clang-format off
     if(!handle)
         return rocblas_status_invalid_handle;
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
     auto layer_mode = handle->layer_mode;
 
@@ -639,6 +637,7 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
     // clang-format off
     if(!handle)
         return rocblas_status_invalid_handle;
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
     auto layer_mode = handle->layer_mode;
 

@@ -38,9 +38,10 @@ if( BUILD_WITH_TENSILE )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
-  TensileCreateLibrary(
+  TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
+      ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
@@ -83,19 +84,13 @@ if( BUILD_WITH_TENSILE )
 endif( )
 
 set( rocblas_auxiliary_source
-  include/handle.h
-  include/definitions.h
-  include/status.h
-  include/rocblas_unique_ptr.hpp
   handle.cpp
   rocblas_auxiliary.cpp
-  status.cpp
   buildinfo.cpp
 )
 
 set( rocblas_ex_source
   blas_ex/rocblas_gemm_ex.cpp
-  blas_ex/rocblas_trsm_ex.cpp
 )
 
 set( rocblas_blas3_source
@@ -207,3 +202,12 @@ rocm_export_targets(
  )
 
 rocm_install_symlink_subdir( rocblas )
+
+# Compilation tests to ensure that header files work independently,
+# and that public header files work across several languages
+add_custom_command(
+  TARGET rocblas
+  POST_BUILD
+  COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
+  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
+ )

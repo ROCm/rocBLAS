@@ -30,46 +30,40 @@
 #ifndef _ROCBLAS_BFLOAT16_H_
 #define _ROCBLAS_BFLOAT16_H_
 
-#ifndef __cplusplus
+#if __cplusplus < 201402L || !defined(__HCC__)
 
-#include <inttypes.h>
+// If this is a C compiler, C++ compiler below C++14, or a host-only compiler, we only
+// include a minimal definition of rocblas_bfloat16
 
-/** @struct rocblas_bfloat16
- * struct used for bfloat16
- * @var rocblas_bfloat16::data
- * struct member variable used to store bfloat16 data
- */
+#include <stdint.h>
 typedef struct
 {
     uint16_t data;
 } rocblas_bfloat16;
 
-#else // __cplusplus
+#else // __cplusplus < 201402L || !defined(__HCC__)
 
-#include <hip/hip_runtime_api.h>
-
-#include <cinttypes>
 #include <cmath>
-#include <iostream>
+#include <cstddef>
+#include <cstdint>
+#include <hip/hip_runtime.h>
+#include <ostream>
 #include <type_traits>
 
 struct rocblas_bfloat16
 {
     uint16_t data;
 
-    // Skip initializing `data` on purpose so that `bfloat16` could be used
-    // with `__share__`, which forbids any initializer, including the implicit
-    // one.
-    __host__ __device__ rocblas_bfloat16() {}
+    __host__ __device__ rocblas_bfloat16() = default;
 
     // round upper 16 bits of IEEE float to convert to bfloat16
-    explicit __host__ __device__ rocblas_bfloat16(float f)
+    explicit constexpr __host__ __device__ rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
     {
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
-    explicit __host__ __device__ operator float() const
+    explicit constexpr __host__ __device__ operator float() const
     {
         union
         {
@@ -80,7 +74,7 @@ struct rocblas_bfloat16
     }
 
 private:
-    static __host__ __device__ uint16_t float_to_bfloat16(float f)
+    static constexpr __host__ __device__ uint16_t float_to_bfloat16(float f)
     {
         union
         {
@@ -123,116 +117,125 @@ private:
     }
 };
 
+typedef struct
+{
+    uint16_t data;
+} rocblas_bfloat16_public;
+
 static_assert(std::is_standard_layout<rocblas_bfloat16>{},
               "rocblas_bfloat16 is not a standard layout type, and thus is "
               "incompatible with C.");
 
-static_assert(std::is_trivially_copyable<rocblas_bfloat16>{},
-              "rocblas_bfloat16 is not trivially copyable, and thus is "
+static_assert(std::is_trivial<rocblas_bfloat16>{},
+              "rocblas_bfloat16 is not a trivial type, and thus is "
               "incompatible with C.");
+
+static_assert(sizeof(rocblas_bfloat16) == sizeof(rocblas_bfloat16_public)
+                  && offsetof(rocblas_bfloat16, data) == offsetof(rocblas_bfloat16_public, data),
+              "internal rocblas_bfloat16 does not match public rocblas_bfloat16");
 
 inline std::ostream& operator<<(std::ostream& os, const rocblas_bfloat16& bf16)
 {
     return os << float(bf16);
 }
-inline __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a)
+constexpr __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a)
 {
     return a;
 }
-inline __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a)
+constexpr __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a)
 {
     a.data ^= 0x8000;
     return a;
 }
-inline __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16 operator+(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) + float(b));
 }
-inline __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16 operator-(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) - float(b));
 }
-inline __host__ __device__ rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16 operator*(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) * float(b));
 }
-inline __host__ __device__ rocblas_bfloat16 operator/(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16 operator/(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return rocblas_bfloat16(float(a) / float(b));
 }
-inline __host__ __device__ bool operator<(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator<(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return float(a) < float(b);
 }
-inline __host__ __device__ bool operator==(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator==(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return float(a) == float(b);
 }
-inline __host__ __device__ bool operator>(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator>(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return b < a;
 }
-inline __host__ __device__ bool operator<=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator<=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a > b);
 }
-inline __host__ __device__ bool operator!=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator!=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a == b);
 }
-inline __host__ __device__ bool operator>=(rocblas_bfloat16 a, rocblas_bfloat16 b)
+constexpr __host__ __device__ bool operator>=(rocblas_bfloat16 a, rocblas_bfloat16 b)
 {
     return !(a < b);
 }
-inline __host__ __device__ rocblas_bfloat16& operator+=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16& operator+=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a + b;
 }
-inline __host__ __device__ rocblas_bfloat16& operator-=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16& operator-=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a - b;
 }
-inline __host__ __device__ rocblas_bfloat16& operator*=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16& operator*=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a * b;
 }
-inline __host__ __device__ rocblas_bfloat16& operator/=(rocblas_bfloat16& a, rocblas_bfloat16 b)
+constexpr __host__ __device__ rocblas_bfloat16& operator/=(rocblas_bfloat16& a, rocblas_bfloat16 b)
 {
     return a = a / b;
 }
-inline __host__ __device__ rocblas_bfloat16& operator++(rocblas_bfloat16& a)
+constexpr __host__ __device__ rocblas_bfloat16& operator++(rocblas_bfloat16& a)
 {
     return a += rocblas_bfloat16(1.0f);
 }
-inline __host__ __device__ rocblas_bfloat16& operator--(rocblas_bfloat16& a)
+constexpr __host__ __device__ rocblas_bfloat16& operator--(rocblas_bfloat16& a)
 {
     return a -= rocblas_bfloat16(1.0f);
 }
-inline __host__ __device__ rocblas_bfloat16 operator++(rocblas_bfloat16& a, int)
+constexpr __host__ __device__ rocblas_bfloat16 operator++(rocblas_bfloat16& a, int)
 {
     rocblas_bfloat16 orig = a;
     ++a;
     return orig;
 }
-inline __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, int)
+constexpr __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, int)
 {
     rocblas_bfloat16 orig = a;
     --a;
     return orig;
 }
-inline __host__ __device__ bool isinf(rocblas_bfloat16 a)
+constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
 {
     return !(~a.data & 0x7f80) && !(a.data & 0x7f);
 }
-inline __host__ __device__ bool isnan(rocblas_bfloat16 a)
+constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
 {
     return !(~a.data & 0x7f80) && +(a.data & 0x7f);
 }
-inline __host__ __device__ bool iszero(rocblas_bfloat16 a)
+constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
 {
     return !(a.data & 0x7fff);
 }
-inline __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
+constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
 {
     a.data &= 0x7fff;
     return a;
@@ -246,6 +249,6 @@ inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
     return rocblas_bfloat16(cosf(float(a)));
 }
 
-#endif // __cplusplus
+#endif // __cplusplus < 201402L || !defined(__HCC__)
 
 #endif // _ROCBLAS_BFLOAT16_H_
