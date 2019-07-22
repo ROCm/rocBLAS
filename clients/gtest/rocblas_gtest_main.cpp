@@ -8,6 +8,7 @@
 #include "utility.hpp"
 #include <cstdlib>
 #include <gtest/gtest.h>
+#include "blis_interface.hpp"
 
 using namespace testing;
 
@@ -49,6 +50,7 @@ public:
 
     void OnEnvironmentsSetUpStart(const UnitTest& unit_test) override
     {
+        setup_blis();
         if(showEnvironment)
             eventListener->OnEnvironmentsSetUpStart(unit_test);
     }

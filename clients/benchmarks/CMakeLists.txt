@@ -7,6 +7,7 @@ set( Boost_USE_MULTITHREADED ON )
 set( Boost_DETAILED_FAILURE_MSG ON )
 set( Boost_ADDITIONAL_VERSIONS 1.65.1 1.65 )
 set( Boost_USE_STATIC_LIBS OFF )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp")
 
 find_package( Boost COMPONENTS program_options )
 
@@ -30,6 +31,7 @@ endif( )
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ../common/blis_interface.cpp
       ../common/norm.cpp
       ../common/rocblas_parse_data.cpp
     )
@@ -49,6 +51,9 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
+set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
+set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
+
 # External header includes included as system files
 target_include_directories( rocblas-bench
   SYSTEM PRIVATE
@@ -56,9 +61,10 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
 
-target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 

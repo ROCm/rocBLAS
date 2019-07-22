@@ -85,12 +85,8 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
-set( BLIS_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
-set( BLIS_LIBRARIES ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
-#BLIS_INCLUDE_DIRS="${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis"
-#BLIS_LIBRARIES="${CMAKE_SOURCE_DIR}/build/deps/blis/lib"
-message(STATUS "********include dir: ${BLIS_INCLUDE_DIRS}")
-message(STATUS "blis_LIBRARY: ${BLIS_LIBRARIES}*******")
+set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
+set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
 # External header includes included as system files
 target_include_directories( rocblas-test
@@ -100,10 +96,10 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
 
-target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${BLIS_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas Threads::Threads )
+target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${BLIS_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas Threads::Threads )
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 
