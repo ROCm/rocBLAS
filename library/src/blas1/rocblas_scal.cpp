@@ -21,40 +21,6 @@ namespace
             x[tid * incx] *= alpha;
     }
 
-    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
-    void scal_log_bench(rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f scal --a_type",
-                  rocblas_precision_string<T>,
-                  "--b_type",
-                  rocblas_precision_string<U>,
-                  "-n",
-                  n,
-                  "--incx",
-                  incx,
-                  "--alpha",
-                  *alpha);
-    }
-
-    template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
-    void scal_log_bench(rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f scal --a_type",
-                  rocblas_precision_string<T>,
-                  "--b_type",
-                  rocblas_precision_string<U>,
-                  "-n",
-                  n,
-                  "--incx",
-                  incx,
-                  "--alpha",
-                  std::real(*alpha),
-                  "--alphai",
-                  std::imag(*alpha));
-    }
-
     template <typename T, typename = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
@@ -90,7 +56,19 @@ namespace
             // with --a_type and --b_type (?)
             // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
-                scal_log_bench<T, U>(handle, n, alpha, incx);
+                log_bench(handle,
+                          "./rocblas-bench -f scal --a_type",
+                          rocblas_precision_string<T>,
+                          "--b_type",
+                          rocblas_precision_string<U>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          "--alpha",
+                          *alpha,
+                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
+                                                 : "");
         }
         else
         {

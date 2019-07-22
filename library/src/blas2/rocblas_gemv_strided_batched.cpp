@@ -85,6 +85,9 @@ namespace
                               n,
                               "--alpha",
                               *alpha,
+                              std::imag(*alpha) != 0
+                                  ? "--alphai " + std::to_string(std::imag(*alpha))
+                                  : "",
                               "--lda",
                               lda,
                               "--strideA",

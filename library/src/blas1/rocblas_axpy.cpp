@@ -23,67 +23,6 @@ namespace
     template <>
     constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
 
-    template <typename T>
-    typename std::enable_if<!is_complex<T>>::type axpy_log_bench(
-        rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx, rocblas_int incy)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f axpy -r",
-                  rocblas_precision_string<T>,
-                  "-n",
-                  n,
-                  "--alpha",
-                  *alpha,
-                  "--incx",
-                  incx,
-                  "--incy",
-                  incy);
-    }
-
-    template <typename T>
-    typename std::enable_if<is_complex<T>>::type axpy_log_bench(
-        rocblas_handle handle, rocblas_int n, const T* alpha, rocblas_int incx, rocblas_int incy)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f axpy -r",
-                  rocblas_precision_string<T>,
-                  "-n",
-                  n,
-                  "--alpha",
-                  std::real(*alpha),
-                  "--alphai",
-                  std::imag(*alpha),
-                  "--incx",
-                  incx,
-                  "--incy",
-                  incy);
-    }
-
-    template <typename T>
-    void rocblas_axpy_log(rocblas_handle handle,
-                          rocblas_int    n,
-                          const T*       alpha,
-                          const T*       x,
-                          rocblas_int    incx,
-                          T*             y,
-                          rocblas_int    incy)
-    {
-        auto layer_mode = handle->layer_mode;
-
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                axpy_log_bench(handle, n, alpha, incx, incy);
-        }
-        else if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
-
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
-    }
-
     template <typename T, typename U>
     __global__ void axpy_kernel(
         rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
@@ -111,7 +50,33 @@ namespace
         if(!alpha)
             return rocblas_status_invalid_pointer;
 
-        rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
+        auto layer_mode = handle->layer_mode;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f axpy -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--alpha",
+                          std::real(*alpha),
+                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
+                                                 : "",
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy);
+        }
+        else if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
+
         if(!x || !y)
             return rocblas_status_invalid_pointer;
         if(n <= 0) // Quick return if possible. Not Argument error
@@ -203,7 +168,34 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        rocblas_axpy_log(handle, n, alpha, x, incx, y, incy);
+        auto layer_mode = handle->layer_mode;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_axpy_name<rocblas_half>, n, *alpha, x, incx, y, incy);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f axpy -r",
+                          rocblas_precision_string<rocblas_half>,
+                          "-n",
+                          n,
+                          "--alpha",
+                          std::real(*alpha),
+                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
+                                                 : "",
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy);
+        }
+        else if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_axpy_name<rocblas_half>, n, alpha, x, incx, y, incy);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(
+                handle, rocblas_axpy_name<rocblas_half>, "N", n, "incx", incx, "incy", incy);
+
         if(!alpha || !x || !y)
             return rocblas_status_invalid_pointer;
 
