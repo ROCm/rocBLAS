@@ -45,10 +45,10 @@ template <>
 static constexpr auto rocblas_scal<rocblas_double_complex> = rocblas_zscal;
 
 template <>
-static constexpr auto rocblas_scal<float, rocblas_float_complex> = rocblas_csscal;
+static constexpr auto rocblas_scal<rocblas_float_complex, float> = rocblas_csscal;
 
 template <>
-static constexpr auto rocblas_scal<double, rocblas_double_complex> = rocblas_zdscal;
+static constexpr auto rocblas_scal<rocblas_double_complex, double> = rocblas_zdscal;
 
 // copy
 template <typename T>

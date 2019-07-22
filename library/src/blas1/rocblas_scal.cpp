@@ -11,7 +11,7 @@ namespace
     constexpr int NB = 256;
 
     template <typename T, typename U>
-    __global__ void scal_kernel(rocblas_int n, T alpha_device_host, U* x, rocblas_int incx)
+    __global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
     {
         auto      alpha = load_scalar(alpha_device_host);
         ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -38,7 +38,7 @@ namespace
 
     template <typename T, typename U>
     rocblas_status
-        rocblas_scal(rocblas_handle handle, rocblas_int n, const T* alpha, U* x, rocblas_int incx)
+        rocblas_scal(rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx)
     {
         if(!handle)
             return rocblas_status_invalid_handle;

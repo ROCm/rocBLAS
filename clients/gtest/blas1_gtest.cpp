@@ -101,8 +101,8 @@ namespace
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})
-                    || (std::is_same<Ti, float>{} && std::is_same<To, rocblas_float_complex>{})
-                    || (std::is_same<Ti, double>{} && std::is_same<To, rocblas_double_complex>{})))
+                    || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
 
             || (BLAS1 == blas1::iamax && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}

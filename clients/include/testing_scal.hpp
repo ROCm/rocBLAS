@@ -19,14 +19,14 @@ void testing_scal_bad_arg(const Arguments& arg)
 {
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
-    T           alpha = (T)0.6;
+    U           alpha = (U)0.6;
 
     rocblas_local_handle handle;
 
     size_t size_x = N * size_t(incx);
 
     // allocate memory on device
-    device_vector<U> dx(size_x);
+    device_vector<T> dx(size_x);
     if(!dx)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -46,7 +46,7 @@ void testing_scal(const Arguments& arg)
 {
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
-    T           h_alpha = arg.get_alpha<T>();
+    U           h_alpha = arg.get_alpha<U>();
 
     rocblas_local_handle handle;
 
@@ -54,7 +54,7 @@ void testing_scal(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<U>    dx(safe_size);
+        device_vector<T>    dx(safe_size);
         if(!dx)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -69,13 +69,13 @@ void testing_scal(const Arguments& arg)
     size_t size_x = N * size_t(incx);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<U> hx_1(size_x);
-    host_vector<U> hx_2(size_x);
-    host_vector<U> hy_gold(size_x);
+    host_vector<T> hx_1(size_x);
+    host_vector<T> hx_2(size_x);
+    host_vector<T> hy_gold(size_x);
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<U>(hx_1, 1, N, incx);
+    rocblas_init<T>(hx_1, 1, N, incx);
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
@@ -83,9 +83,9 @@ void testing_scal(const Arguments& arg)
     hy_gold = hx_1;
 
     // allocate memory on device
-    device_vector<U> dx_1(size_x);
-    device_vector<U> dx_2(size_x);
-    device_vector<T> d_alpha(1);
+    device_vector<T> dx_1(size_x);
+    device_vector<T> dx_2(size_x);
+    device_vector<U> d_alpha(1);
     if(!dx_1 || !dx_2 || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -93,19 +93,19 @@ void testing_scal(const Arguments& arg)
     }
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(U) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
-    CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(U) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dx_2, hx_2, sizeof(U) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dx_2, hx_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(U), hipMemcpyHostToDevice));
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -116,8 +116,8 @@ void testing_scal(const Arguments& arg)
         CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, d_alpha, dx_2, incx)));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(U) * N * incx, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hx_2, dx_2, sizeof(U) * N * incx, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(T) * N * incx, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hx_2, dx_2, sizeof(T) * N * incx, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -127,14 +127,14 @@ void testing_scal(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<U>(1, N, incx, hy_gold, hx_1);
-            unit_check_general<U>(1, N, incx, hy_gold, hx_2);
+            unit_check_general<T>(1, N, incx, hy_gold, hx_1);
+            unit_check_general<T>(1, N, incx, hy_gold, hx_2);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<U>('F', 1, N, incx, hy_gold, hx_1);
-            rocblas_error_2 = norm_check_general<U>('F', 1, N, incx, hy_gold, hx_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, N, incx, hy_gold, hx_1);
+            rocblas_error_2 = norm_check_general<T>('F', 1, N, incx, hy_gold, hx_2);
         }
 
     } // end of if unit/norm check
@@ -158,8 +158,8 @@ void testing_scal(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = axpy_gflop_count<U>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (2.0 * N) * sizeof(U) / gpu_time_used / 1e3;
+        rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 

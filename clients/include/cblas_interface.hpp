@@ -285,7 +285,7 @@ inline void
 
 // scal
 template <typename T, typename U>
-inline void cblas_scal(rocblas_int n, T alpha, U* x, rocblas_int incx);
+inline void cblas_scal(rocblas_int n, U alpha, T* x, rocblas_int incx);
 
 template <>
 inline void cblas_scal(rocblas_int n, float alpha, float* x, rocblas_int incx)
