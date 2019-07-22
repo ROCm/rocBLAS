@@ -194,7 +194,9 @@ struct perf_blas<T,
     }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "axpy"))
+        if(!strcmp(arg.function, "asum"))
+            testing_asum<T>(arg);
+        else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "copy"))
             testing_copy<T>(arg);
@@ -202,6 +204,8 @@ struct perf_blas<T,
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "dotc"))
             testing_dotc<T>(arg);
+        else if(!strcmp(arg.function, "nrm2"))
+            testing_nrm2<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
         else if(!strcmp(arg.function, "iamax"))
@@ -241,37 +245,6 @@ struct perf_blas_scal<
     {
         if(!strcmp(arg.function, "scal"))
             testing_scal<Ta, Tb>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
-    }
-};
-
-template <typename Ti, typename To = Ti, typename = void>
-struct perf_asum_nrm2 : rocblas_test_invalid
-{
-};
-
-template <typename Ti, typename To>
-struct perf_asum_nrm2<
-    Ti,
-    To,
-    typename std::enable_if<
-        (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
-        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
-        || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
-        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})>::type>
-{
-    explicit operator bool()
-    {
-        return true;
-    }
-    void operator()(const Arguments& arg)
-    {
-        if(!strcmp(arg.function, "asum"))
-            testing_asum<Ti, To>(arg);
-        else if(!strcmp(arg.function, "nrm2"))
-            testing_nrm2<Ti, To>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -437,9 +410,7 @@ int run_bench_test(Arguments& arg)
     else
 #endif
     {
-        if(!strcmp(function, "nrm2") || !strcmp(function, "asum"))
-            rocblas_blas1_dispatch<perf_asum_nrm2>(arg);
-        else if(!strcmp(function, "scal"))
+        if(!strcmp(function, "scal"))
             rocblas_blas1_dispatch<perf_blas_scal>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);

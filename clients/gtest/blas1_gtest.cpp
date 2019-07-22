@@ -73,11 +73,9 @@ namespace
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
     using blas1_enabled = std::integral_constant<
         bool,
-        (BLAS1 == blas1::asum && std::is_same<To, Tc>{}
-         && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
-             || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
-             || (std::is_same<Ti, To>{} && std::is_same<To, float>{})
-             || (std::is_same<Ti, To>{} && std::is_same<To, double>{})))
+        (BLAS1 == blas1::asum && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+         && (std::is_same<Ti, rocblas_float_complex>{} || std::is_same<Ti, rocblas_double_complex>{}
+             || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::axpy && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_float_complex>{}
@@ -93,11 +91,10 @@ namespace
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
-            || (BLAS1 == blas1::nrm2 && std::is_same<To, Tc>{}
-                && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
-                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})
-                    || (std::is_same<Ti, To>{} && std::is_same<To, float>{})
-                    || (std::is_same<Ti, To>{} && std::is_same<To, double>{})))
+            || (BLAS1 == blas1::nrm2 && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::scal && std::is_same<To, Tc>{}
                 && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<Ti, To>{})
@@ -177,8 +174,8 @@ INSTANTIATE_TEST_CATEGORIES(NAME)
 #define ARG2(Ti, To, Tc) Ti, To
 #define ARG3(Ti, To, Tc) Ti, To, Tc
 
-BLAS1_TESTING(asum,  ARG2)
-BLAS1_TESTING(nrm2,  ARG2)
+BLAS1_TESTING(asum,  ARG1)
+BLAS1_TESTING(nrm2,  ARG1)
 BLAS1_TESTING(iamax, ARG1)
 BLAS1_TESTING(iamin, ARG1)
 BLAS1_TESTING(axpy,  ARG1)

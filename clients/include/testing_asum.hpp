@@ -14,7 +14,7 @@
 #include "utility.hpp"
 
 template <typename T1, typename T2 = T1>
-void testing_asum_bad_arg(const Arguments& arg)
+void testing_asum_bad_arg_template(const Arguments& arg)
 {
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
@@ -39,7 +39,7 @@ void testing_asum_bad_arg(const Arguments& arg)
 }
 
 template <typename T1, typename T2 = T1>
-void testing_asum(const Arguments& arg)
+void testing_asum_template(const Arguments& arg)
 {
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -170,4 +170,40 @@ void testing_asum(const Arguments& arg)
 
         std::cout << std::endl;
     }
+}
+
+template <typename T>
+void testing_asum_bad_arg(const Arguments& arg)
+{
+    testing_asum_bad_arg_template<T>(arg);
+}
+
+template <>
+void testing_asum_bad_arg<rocblas_float_complex>(const Arguments& arg)
+{
+    testing_asum_bad_arg_template<rocblas_float_complex, float>(arg);
+}
+
+template <>
+void testing_asum_bad_arg<rocblas_double_complex>(const Arguments& arg)
+{
+    testing_asum_bad_arg_template<rocblas_double_complex, double>(arg);
+}
+
+template <typename T>
+void testing_asum(const Arguments& arg)
+{
+    return testing_asum_template<T>(arg);
+}
+
+template <>
+void testing_asum<rocblas_float_complex>(const Arguments& arg)
+{
+    return testing_asum_template<rocblas_float_complex, float>(arg);
+}
+
+template <>
+void testing_asum<rocblas_double_complex>(const Arguments& arg)
+{
+    return testing_asum_template<rocblas_double_complex, double>(arg);
 }

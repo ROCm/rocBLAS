@@ -114,31 +114,6 @@ C precisions complex: &single_double_precisions_complex
   - *single_precision_complex
   - *double_precision_complex
 
-Short simple precisions complex: &half_single_precisions_complex
-  - *half_precision_complex
-  - *single_precision_complex
-
-Short precisions complex: &int8_half_single_precisions_complex
-  - *int8_precision_complex
-  - *half_precision_complex
-  - *single_precision_complex
-
-ML precisions complex: &hpa_half_single_precisions_complex
-  - *hpa_half_precision_complex
-  - *half_precision_complex
-  - *single_precision_complex
-
-Non-int precisions complex: &hpa_half_single_double_precisions_complex
-  - *hpa_half_precision_complex
-  - *half_precision_complex
-  - *single_precision_complex
-  - *double_precision_complex
-
-Simple precisions complex: &half_single_double_precisions_complex
-  - *half_precision_complex
-  - *single_precision_complex
-  - *double_precision_complex
-
 C precisions complex and real: &single_double_precisions_complex_real
   - *single_precision
   - *double_precision
@@ -184,27 +159,6 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *half_precision_complex
   - *single_precision_complex
   - *double_precision_complex
-
-###########################################
-#          Used for asum and nrm2         #
-###########################################
-Complex in real out: &complex_in_real_out_precisions
-  - &single_precision_joined
-    { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_r, compute_type: f32_r }
-  - &double_precision_joined
-    { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_r, compute_type: f64_r }
-
-Single real and joined: &single_real_complex_in_real_out
-  - *single_precision_joined
-  - *single_precision
-
-Double real and joined: &double_real_complex_in_real_out
-  - *double_precision_joined
-  - *double_precision
-
-Single double real and joined: &single_double_real_complex_in_real_out
-  - <<: *single_real_complex_in_real_out
-  - <<: *double_real_complex_in_real_out
 
 #############################################
 #               Used for Scal               #

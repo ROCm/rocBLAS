@@ -54,12 +54,12 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
                 return TEST<double, rocblas_double_complex>{}(arg);
         }
     }
+    else if(Ti == rocblas_datatype_f32_r && Tb == rocblas_datatype_f32_c)
+        return TEST<float, rocblas_float_complex>{}(arg);
+    else if(Ti == rocblas_datatype_f64_r && Tb == rocblas_datatype_f64_c)
+        return TEST<double, rocblas_double_complex>{}(arg);
     //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
     //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
-    else if(Ti == rocblas_datatype_f32_r && To == rocblas_datatype_f32_c)
-        return TEST<float, rocblas_float_complex>{}(arg);
-    else if(Ti == rocblas_datatype_f64_r && To == rocblas_datatype_f64_c)
-        return TEST<double, rocblas_double_complex>{}(arg);
 
     return TEST<void>{}(arg);
 }

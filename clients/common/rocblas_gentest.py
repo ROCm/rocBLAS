@@ -292,9 +292,9 @@ def instantiate(test):
         for typename in enum_args:
             if COMPLEX_RE.match(test[typename]):
                 break
-        else:
-            test['alphai'] = 0.0
-            test['betai'] = 0.0
+            else:
+                test['alphai'] = 0.0
+                test['betai'] = 0.0
 
         # For enum arguments, replace name with value
         for typename in enum_args:
