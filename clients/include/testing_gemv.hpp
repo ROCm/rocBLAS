@@ -220,21 +220,8 @@ void testing_gemv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            // Do unit checks if not concerned about error propogation for complex numbers, always for real numbers
-            if(!is_complex<T>)
-            {
-                unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
-                unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
-            }
-            else
-            {
-                // tolerance calculated as a measurement of the expected result
-                // TODO: this isn't a great way to get a tolerance, should we
-                //       calculate a new tolerance for each element being compared?
-                double tol = sum_error_tolerance<T> * (dim_y > 0 ? std::abs(hy_gold[0]) : 0);
-                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1, tol);
-                near_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2, tol);
-            }
+            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
+            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

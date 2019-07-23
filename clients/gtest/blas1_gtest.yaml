@@ -17,8 +17,8 @@ Definitions:
 
   - &alphai_betai_range
     - { alphai: 0.0 }
-    - { alphai: 0.5 }
-    - { alphai: 1.5 }
+    - { alphai: 1.0}
+    - { alphai: 2.0 }
 
 Tests:
 - name: blas1
@@ -47,14 +47,14 @@ Tests:
   alpha_beta: *alpha_beta_range
   alphai_betai: *alphai_betai_range
   function:
-    - nrm2:  *single_double_precisions_complex_real
-    - asum:  *single_double_precisions_complex_real
+    - nrm2:  *double_precision_complex_real
+    - asum:  *double_precision_complex_real
     - iamax: *single_double_precisions_complex_real
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
     - dot:   *double_precision_complex_real
-    - dotc:  *single_double_precisions_complex
+    - dotc:  *double_precision_complex_real
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real

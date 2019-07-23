@@ -102,7 +102,7 @@ void testing_asum_template(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, d_rocblas_result_2)));
         CHECK_HIP_ERROR(
-            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T1), hipMemcpyDeviceToHost));
+            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T2), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -111,19 +111,8 @@ void testing_asum_template(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            // Do unit checks if not concerned about error propogation for complex numbers, always for real numbers
-            if(!is_complex<T1>)
-            {
-                unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1);
-                unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2);
-            }
-            else
-            {
-                // tolerance calculated as a measurement of the expected result
-                double tol = sum_error_tolerance<T1> * std::abs(cpu_result);
-                near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
-                near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
-            }
+            unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1);
+            unit_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2);
         }
 
         if(arg.norm_check)

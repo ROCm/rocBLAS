@@ -147,20 +147,8 @@ void testing_dot(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            // Do unit checks if not concerned about error propogation for complex numbers, always for real numbers
-            if(!is_complex<T>)
-            {
-                unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
-                unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
-            }
-            else
-            {
-                // tolerance calculated as a measurement of the expected result (?)
-                double tol = sum_error_tolerance<T> * std::abs(cpu_result);
-
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1, tol);
-                near_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2, tol);
-            }
+            unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
+            unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
         }
 
         if(arg.norm_check)

@@ -97,20 +97,20 @@ inline T random_generator()
     return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
 }
 
-// for rocblas_float_complex, generate two floats
+// for rocblas_float_complex, generate two random ints (same behaviour as for floats)
 template <>
 inline rocblas_float_complex random_generator<rocblas_float_complex>()
 {
-    return {std::uniform_real_distribution<float>(-1, 1)(rocblas_rng),
-            std::uniform_real_distribution<float>(-1, 1)(rocblas_rng)};
+    return {float(std::uniform_int_distribution<int>(1, 10)(rocblas_rng)),
+            float(std::uniform_int_distribution<int>(1, 10)(rocblas_rng))};
 };
 
-// for rocblas_double_complex, generate two doubles
+// for rocblas_double_complex, generate two random ints (same behaviour as for doubles)
 template <>
 inline rocblas_double_complex random_generator<rocblas_double_complex>()
 {
-    return {std::uniform_real_distribution<double>(-2, 2)(rocblas_rng),
-            std::uniform_real_distribution<double>(-2, 2)(rocblas_rng)};
+    return {double(std::uniform_int_distribution<int>(1, 10)(rocblas_rng)),
+            double(std::uniform_int_distribution<int>(1, 10)(rocblas_rng))};
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
