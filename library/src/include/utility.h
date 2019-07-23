@@ -25,6 +25,26 @@ __device__ inline rocblas_half2
     return llvm_fma_v2f16(multiplier, multiplicand, addend);
 }
 
+// Conjugate a value. For most types, simply call std::conj, for floats and doubles
+// do nothing and return themselves
+template <typename T>
+__device__ __host__ inline T conj(const T& z)
+{
+    return std::conj(z);
+}
+
+template <>
+__device__ __host__ inline float conj(const float& z)
+{
+    return z;
+}
+
+template <>
+__device__ __host__ inline double conj(const double& z)
+{
+    return z;
+}
+
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
 // it. Allows the same kernels to be used for host and device scalars.
 
