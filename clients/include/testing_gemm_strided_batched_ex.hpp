@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -50,8 +49,6 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
     rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
     int32_t           solution_index = 0;
     rocblas_int       flags          = 0;
-    size_t            workspace_size = 0;
-    void*             workspace      = nullptr;
 
     const size_t safe_size = 100;
 
@@ -99,9 +96,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
@@ -132,9 +127,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
@@ -165,9 +158,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
@@ -198,9 +189,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
@@ -231,9 +220,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
@@ -264,9 +251,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(nullptr,
@@ -297,9 +282,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
                                                           compute_type,
                                                           algo,
                                                           solution_index,
-                                                          flags,
-                                                          &workspace_size,
-                                                          workspace),
+                                                          flags),
                           rocblas_status_invalid_handle);
 }
 
@@ -309,15 +292,13 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     rocblas_gemm_algo algo           = static_cast<rocblas_gemm_algo>(arg.algo);
     int32_t           solution_index = arg.solution_index;
     uint32_t          flags          = arg.flags;
-    size_t            workspace_size = arg.workspace_size;
-    void*             workspace      = nullptr;
 
     bool nantest = rocblas_isnan(arg.beta);
     Tc   h_alpha_Tc, h_beta_Tc;
     if(std::is_same<Tc, rocblas_half>{})
     {
         h_alpha_Tc = float_to_half(arg.alpha);
-        h_beta_Tc  = nantest ? 0 : float_to_half(arg.beta);
+        h_beta_Tc  = float_to_half(nantest ? 0 : arg.beta);
     }
     else if(std::is_same<Tc, float>{} || std::is_same<Tc, double>{} || std::is_same<Tc, int32_t>{})
     {
@@ -399,9 +380,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                               arg.compute_type,
                                                               algo,
                                                               solution_index,
-                                                              flags,
-                                                              &workspace_size,
-                                                              workspace),
+                                                              flags),
                               rocblas_status_invalid_size);
         return;
     }
@@ -608,9 +587,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                             arg.compute_type,
                                                             algo,
                                                             solution_index,
-                                                            flags,
-                                                            &workspace_size,
-                                                            workspace));
+                                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
@@ -658,9 +635,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                             arg.compute_type,
                                                             algo,
                                                             solution_index,
-                                                            flags,
-                                                            &workspace_size,
-                                                            workspace));
+                                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
@@ -810,9 +785,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                 arg.compute_type,
                                                                 algo,
                                                                 solution_index,
-                                                                flags,
-                                                                &workspace_size,
-                                                                workspace));
+                                                                flags));
         }
 
         int number_hot_calls = arg.iters;
@@ -847,9 +820,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                             arg.compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            &workspace_size,
-                                            workspace);
+                                            flags);
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops

@@ -112,7 +112,6 @@ Arguments:
   - algo: c_uint
   - solution_index: c_int
   - flags: c_uint
-  - workspace_size: c_size_t
   - function: c_char*64
   - name: c_char*64
   - category: c_char*32

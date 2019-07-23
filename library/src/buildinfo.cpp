@@ -2,27 +2,16 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include <stdio.h>
-#include <string.h>
-
-#include <sstream>
-
-#include "definitions.h"
-#include "rocblas-types.h"
-
-#include "rocblas-functions.h"
 #include "rocblas-version.h"
+#include "rocblas.h"
+#include <cstring>
 
 #define TO_STR2(x) #x
 #define TO_STR(x) TO_STR2(x)
-// clang-format off
-#define VERSION_STRING                 \
-    (TO_STR(ROCBLAS_VERSION_MAJOR) "." \
-     TO_STR(ROCBLAS_VERSION_MINOR) "." \
-     TO_STR(ROCBLAS_VERSION_PATCH) "." \
-     TO_STR(ROCBLAS_VERSION_TWEAK) "-" \
-     TO_STR(ROCBLAS_VERSION_COMMIT_ID))
-// clang-format on
+#define VERSION_STRING                                                           \
+    (TO_STR(ROCBLAS_VERSION_MAJOR) "." TO_STR(ROCBLAS_VERSION_MINOR) "." TO_STR( \
+        ROCBLAS_VERSION_PATCH) "." TO_STR(ROCBLAS_VERSION_TWEAK))
+
 /*******************************************************************************
  *! \brief   loads char* buf with the rocblas library version. size_t len
      is the maximum length of char* buf.

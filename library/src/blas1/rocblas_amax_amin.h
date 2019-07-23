@@ -1,20 +1,20 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-#include "status.h"
-
-#include "definitions.h"
 #include "fetch_template.h"
-#include "reduction.h"
-#include "rocblas_unique_ptr.hpp"
-
 #include "handle.h"
 #include "logging.h"
+#include "reduction.h"
+#include "rocblas.h"
 #include "utility.h"
+
+#ifndef MAX_MIN
+#define MAX_MIN max
+#endif
+
+#ifndef AMAX_AMIN_REDUCTION
+#define AMAX_AMIN_REDUCTION rocblas_reduce_amax
+#endif
 
 #define QUOTE2(S) #S
 #define QUOTE(S) QUOTE2(S)
@@ -116,11 +116,13 @@ template <typename To, typename Ti>
 static rocblas_status rocblas_iamaxmin(
     rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, rocblas_int* result)
 {
+    // HIP support up to 1024 threads/work itmes per thread block/work group
+    static constexpr int NB = 1024;
+
     if(!handle)
         return rocblas_status_invalid_handle;
 
     auto layer_mode = handle->layer_mode;
-
     if(layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, rocblas_iamaxmin_name<Ti>, n, x, incx);
 
@@ -138,34 +140,32 @@ static rocblas_status rocblas_iamaxmin(
 
     if(!x || !result)
         return rocblas_status_invalid_pointer;
-    /*
-     * Quick return if possible.
-     */
+
+    // Quick return if possible.
     if(n <= 0 || incx <= 0)
     {
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(handle->is_device_memory_size_query())
+            return rocblas_status_size_unchanged;
+        else if(handle->pointer_mode == rocblas_pointer_mode_device)
             RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
         else
             *result = 0;
         return rocblas_status_success;
     }
 
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    static constexpr int NB     = 1024;
-    rocblas_int          blocks = (n - 1) / NB + 1;
+    auto blocks = (n - 1) / NB + 1;
+    if(handle->is_device_memory_size_query())
+        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
 
-    auto workspace = rocblas_unique_ptr{rocblas::device_malloc(sizeof(index_value_t<To>) * blocks),
-                                        rocblas::device_free};
-    if(!workspace)
+    auto mem = handle->device_malloc(sizeof(index_value_t<To>) * blocks);
+    if(!mem)
         return rocblas_status_memory_error;
 
-    auto status = rocblas_reduction_kernel<NB,
-                                           rocblas_fetch_amax_amin<To>,
-                                           AMAX_AMIN_REDUCTION,
-                                           rocblas_finalize_amax_amin>(
-        handle, n, x, incx, result, (index_value_t<To>*)workspace.get(), blocks);
-
-    return status;
+    return rocblas_reduction_kernel<NB,
+                                    rocblas_fetch_amax_amin<To>,
+                                    AMAX_AMIN_REDUCTION,
+                                    rocblas_finalize_amax_amin>(
+        handle, n, x, incx, result, (index_value_t<To>*)mem, blocks);
 }
 
 /*
