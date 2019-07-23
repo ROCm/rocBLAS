@@ -35,6 +35,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include "blis_interface.hpp"
 
 using namespace std::literals;
 
@@ -185,6 +186,7 @@ struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::ty
 
 int run_bench_test(Arguments& arg)
 {
+    setup_blis();
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 

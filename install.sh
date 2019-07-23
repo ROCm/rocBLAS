@@ -129,9 +129,9 @@ install_packages( )
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
   fi
 
-  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
-  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" )
-  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" )
+  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev" )
+  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp" )
+  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp" )
 
   case "${ID}" in
     ubuntu)
