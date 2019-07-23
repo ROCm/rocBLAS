@@ -1,15 +1,11 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include <complex.h>
-#include <hip/hip_runtime.h>
-
-#include "rocblas.h"
-
-#include "definitions.h"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
+#include <complex.h>
 
 namespace
 {
@@ -18,8 +14,8 @@ namespace
     template <typename T, typename U>
     __global__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
     {
-        auto    alpha = load_scalar(alpha_device_host);
-        ssize_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        auto      alpha = load_scalar(alpha_device_host);
+        ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
         // bound
         if(tid < n)
@@ -27,15 +23,15 @@ namespace
     }
 
     template <typename>
-    static constexpr char rocblas_scal_name[] = "unknown";
+    constexpr char rocblas_scal_name[] = "unknown";
     template <>
-    static constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
+    constexpr char rocblas_scal_name<float>[] = "rocblas_sscal";
     template <>
-    static constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
+    constexpr char rocblas_scal_name<double>[] = "rocblas_dscal";
     template <>
-    static constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
+    constexpr char rocblas_scal_name<rocblas_float_complex>[] = "rocblas_cscal";
     template <>
-    static constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
+    constexpr char rocblas_scal_name<rocblas_double_complex>[] = "rocblas_zscal";
 
     template <class T>
     rocblas_status
@@ -45,6 +41,7 @@ namespace
             return rocblas_status_invalid_handle;
         if(!alpha)
             return rocblas_status_invalid_pointer;
+
         auto layer_mode = handle->layer_mode;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
@@ -72,6 +69,8 @@ namespace
 
         if(!x)
             return rocblas_status_invalid_pointer;
+
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         // Quick return if possible. Not Argument error
         if(n <= 0 || incx <= 0)

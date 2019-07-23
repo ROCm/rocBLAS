@@ -13,7 +13,6 @@
 
 namespace
 {
-
     template <typename = void>
     struct testing_set_get_pointer_mode
     {

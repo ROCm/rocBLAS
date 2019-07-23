@@ -1,4 +1,3 @@
-
 /*
  * ===========================================================================
  *    This file provide common device function used in various BLAS routines

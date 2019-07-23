@@ -27,7 +27,7 @@ import java.nio.file.Path;
 rocBLASCI:
 {
 
-    def rocblas = new rocProject('rocblas')
+    def rocblas = new rocProject('rocBLAS')
     // customize for project
     rocblas.paths.build_command = './install.sh -c'
 

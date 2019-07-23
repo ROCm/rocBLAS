@@ -22,8 +22,13 @@
  */
 
 #include "rocblas.h"
+#include <cstdio>
+#include <cstring>
+#include <hip/hip_runtime.h>
 #include <iomanip>
+#include <iostream>
 #include <random>
+#include <vector>
 
 #ifndef CHECK_HIP_ERROR
 #define CHECK_HIP_ERROR(error)                    \
@@ -356,8 +361,6 @@ int main(int argc, char* argv[])
     rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
     int32_t           solution_index = 0;
     uint32_t          flags          = 0;
-    size_t*           workspace_size = 0;
-    void*             workspace      = 0;
 
     bool verbose = false;
     bool header  = true;
@@ -495,9 +498,7 @@ int main(int argc, char* argv[])
                                         compute_type,
                                         algo,
                                         solution_index,
-                                        flags,
-                                        workspace_size,
-                                        workspace));
+                                        flags));
 
     // copy output from device to CPU
     CHECK_HIP_ERROR(

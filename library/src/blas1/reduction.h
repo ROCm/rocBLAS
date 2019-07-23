@@ -1,15 +1,10 @@
 #ifndef REDUCTION_H_
 #define REDUCTION_H_
-
-#include <cstddef>
-#include <type_traits>
-
-#include "definitions.h"
-#include "rocblas.h"
-
 #include "handle.h"
-
-#include <hip/hip_runtime.h>
+#include "rocblas.h"
+#include "utility.h"
+#include <type_traits>
+#include <utility>
 
 /*
  * ===========================================================================
@@ -162,8 +157,8 @@ template <rocblas_int NB,
 __global__ void
     rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
-    ssize_t       tx  = hipThreadIdx_x;
-    ssize_t       tid = hipBlockIdx_x * hipBlockDim_x + tx;
+    ptrdiff_t     tx  = hipThreadIdx_x;
+    ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
     // bound
