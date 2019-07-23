@@ -6,7 +6,6 @@
 #ifndef _BLIS_INTERFACE_
 #define _BLIS_INTERFACE_
 
-
 #include "rocblas.h"
 
 void setup_blis();

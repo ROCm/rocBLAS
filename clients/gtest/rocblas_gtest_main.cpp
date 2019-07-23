@@ -2,13 +2,13 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "blis_interface.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_parse_data.hpp"
 #include "test_cleanup.hpp"
 #include "utility.hpp"
 #include <cstdlib>
 #include <gtest/gtest.h>
-#include "blis_interface.hpp"
 
 using namespace testing;
 

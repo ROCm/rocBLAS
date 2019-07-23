@@ -27,6 +27,7 @@
 #include "utility.hpp"
 #include <algorithm>
 #undef I
+#include "blis_interface.hpp"
 #include <boost/program_options.hpp>
 #include <cctype>
 #include <cstdio>
@@ -35,7 +36,6 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include "blis_interface.hpp"
 
 using namespace std::literals;
 
