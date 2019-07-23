@@ -399,8 +399,10 @@ void testing_logging()
     {
         trace_ofs2 << replaceX<T>("rocblas_Xscal") << "," << n << "," << alpha << "," << (void*)dx
                    << "," << incx << '\n';
-        bench_ofs2 << "./rocblas-bench -f scal -r " << rocblas_precision_string<T> << " -n " << n
-                   << " --incx " << incx << " --alpha " << alpha << '\n';
+        bench_ofs2 << "./rocblas-bench -f scal --a_type "
+                   << rocblas_precision_string<T> << " --b_type "
+                   << rocblas_precision_string<T> << " -n " << n << " --incx " << incx
+                   << " --alpha " << alpha << '\n';
     }
     else
     {

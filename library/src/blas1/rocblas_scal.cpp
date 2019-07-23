@@ -56,6 +56,12 @@ namespace
             // with --a_type and --b_type (?)
             // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                std::stringstream alphass;
+                alphass << "--alpha " << std::real(*alpha)
+                        << (std::imag(*alpha) != 0
+                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
+                                : "");
                 log_bench(handle,
                           "./rocblas-bench -f scal --a_type",
                           rocblas_precision_string<T>,
@@ -65,10 +71,8 @@ namespace
                           n,
                           "--incx",
                           incx,
-                          "--alpha",
-                          *alpha,
-                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
-                                                 : "");
+                          alphass.str());
+            }
         }
         else
         {

@@ -67,6 +67,12 @@ namespace
                               incy);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    std::stringstream alphass;
+                    alphass << "--alpha " << std::real(*alpha)
+                            << (std::imag(*alpha) != 0
+                                    ? (" --alphai " + std::to_string(std::imag(*alpha)))
+                                    : "");
                     log_bench(handle,
                               "./rocblas-bench -f gemv -r",
                               rocblas_precision_string<T>,
@@ -76,11 +82,7 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
-                              *alpha,
-                              std::imag(*alpha) != 0
-                                  ? "--alphai " + std::to_string(std::imag(*alpha))
-                                  : "",
+                              alphass.str(),
                               "--lda",
                               lda,
                               "--incx",
@@ -89,6 +91,7 @@ namespace
                               *beta,
                               "--incy",
                               incy);
+                }
             }
             else
             {

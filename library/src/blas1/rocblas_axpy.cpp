@@ -57,19 +57,23 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                std::stringstream alphass;
+                alphass << "--alpha " << std::real(*alpha)
+                        << (std::imag(*alpha) != 0
+                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
+                                : "");
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<T>,
                           "-n",
                           n,
-                          "--alpha",
-                          std::real(*alpha),
-                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
-                                                 : "",
+                          alphass.str(),
                           "--incx",
                           incx,
                           "--incy",
                           incy);
+            }
         }
         else if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_axpy_name<T>, n, alpha, x, incx, y, incy);
@@ -175,19 +179,23 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle, rocblas_axpy_name<rocblas_half>, n, *alpha, x, incx, y, incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                std::stringstream alphass;
+                alphass << "--alpha " << std::real(*alpha)
+                        << (std::imag(*alpha) != 0
+                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
+                                : "");
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<rocblas_half>,
                           "-n",
                           n,
-                          "--alpha",
-                          std::real(*alpha),
-                          std::imag(*alpha) != 0 ? "--alphai " + std::to_string(std::imag(*alpha))
-                                                 : "",
+                          alphass.str(),
                           "--incx",
                           incx,
                           "--incy",
                           incy);
+            }
         }
         else if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_axpy_name<rocblas_half>, n, alpha, x, incx, y, incy);
