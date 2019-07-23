@@ -116,5 +116,5 @@ rocm_create_package_clients(LIB_NAME rocblas
                             DESCRIPTION "Radeon Open Compute BLAS library"
                             MAINTAINER "rocblas-maintainer@amd.com>"
                             SECTION "dev"
-                            VERSION ${BUILD_VERSION})
+                            VERSION ${rocblas_VERSION})
 endif()
