@@ -35,6 +35,7 @@ RUN yum install -y \
     numactl-libs \
     rpm-build \ 
     mesa* \
+    libgomp \
     deltarpm
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
