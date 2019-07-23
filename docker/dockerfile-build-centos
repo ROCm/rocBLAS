@@ -34,6 +34,7 @@ RUN yum install -y \
     boost-devel \
     numactl-libs \
     rpm-build \ 
+    mesa* \
     deltarpm
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
