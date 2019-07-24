@@ -32,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx906 && centos7'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx900 && centos 7', 'gfx906 && centos7', 'gfx900 && hip-clang', 'gfx906 && hip-clang'], rocblas)
 
     boolean formatCheck = true
 
@@ -49,7 +49,15 @@ rocBLASCI:
             command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/hip/bin/hipcc ${project.paths.build_command} --hip-clang
+                    """
+        }
+        else if(platform.jenkinsLabel.contains('centos'))
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc sudo ${project.paths.build_command}
                     """
         }
         else
@@ -95,24 +103,6 @@ rocBLASCI:
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
         }
-        else if(platform.jenkinsLabel.contains('hip-clang'))
-        {
-            if(auxiliary.isJobStartedByTimer())
-            {
-                command = """#!/usr/bin/env bash
-                        set -x
-                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*quick*-*known_bug* #--gtest_filter=*quick*
-                    """
-        
-                platform.runCommand(this, command)
-                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
-            }
-            else
-            {
-                testCommand = null
-            }
-        }
         else
         {
             if(auxiliary.isJobStartedByTimer())
@@ -152,10 +142,10 @@ rocBLASCI:
             command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
-                    make package
-                    rm -rf package && mkdir -p package
-                    mv *.rpm package/
-                    rpm -qlp package/*.rpm
+                    sudo make package
+                    sudo rm -rf package && sudo mkdir -p package
+                    sudo mv *.rpm package/
+                    sudo rpm -qlp package/*.rpm
                 """
 
             platform.runCommand(this, command)
