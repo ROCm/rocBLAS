@@ -319,7 +319,7 @@ if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
   git submodule update --init
   cd extern/blis
   sudo ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-  make install
+  sudo make install
   cd ../..
 fi
 
