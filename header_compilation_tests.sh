@@ -19,9 +19,10 @@ script=$(realpath "$0")
 out_uptodate()
 {
     local file="$1_$2"
-    local out=$(realpath "build/compilation_tests/$file.o")
+    local filename="build/compilation_tests/$file.o"
+    mkdir -p $(dirname "$filename")
+    local out=$(realpath -m "$filename")
     echo "$out"
-    mkdir -p $(dirname "$out")
     [[ -n "$3" && "$out" -nt "$script" ]] || return
     find library clients \( -iname \*.hpp -o -iname \*.h \) -print0 \
         | while read -r -d $'\0' file; do
