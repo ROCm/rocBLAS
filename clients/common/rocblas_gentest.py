@@ -22,6 +22,9 @@ INT_RANGE_RE = re.compile(r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?
 # Regex for include: YAML extension
 INCLUDE_RE = re.compile(r'include\s*:\s*(.*)')
 
+# Regex for complex types
+COMPLEX_RE = re.compile(r'f\d+_c$')
+
 args = {}
 testcases = set()
 datatypes = {}
@@ -189,6 +192,8 @@ def get_arguments(doc):
 
 def setdefaults(test):
     """Set default values for parameters"""
+    # Do not put constant defaults here -- use rocblas_common.yaml for that.
+    # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)
@@ -252,15 +257,19 @@ def write_test(test):
     # scalars, we coerce the string/numeric value into ctype.
     arg = []
     for name, ctype in param['Arguments']._fields_:
-        if issubclass(ctype, ctypes.Array):
-            if issubclass(ctype._type_, ctypes.c_char):
+        try:
+            if issubclass(ctype, ctypes.Array):
+                if issubclass(ctype._type_, ctypes.c_char):
+                    arg.append(bytes(test[name], 'utf_8'))
+                else:
+                    arg.append(ctype(*test[name]))
+            elif issubclass(ctype, ctypes.c_char):
                 arg.append(bytes(test[name], 'utf_8'))
             else:
-                arg.append(ctype(*test[name]))
-        elif issubclass(ctype, ctypes.c_char):
-            arg.append(bytes(test[name], 'utf_8'))
-        else:
-            arg.append(ctype(test[name]))
+                arg.append(ctype(test[name]))
+        except TypeError as err:
+            sys.exit("TypeError: " + str(err) + " for " + name +
+                     ", which has type " + str(type(test[name])) + "\n")
 
     byt = bytes(param['Arguments'](*arg))
     if byt not in testcases:
@@ -273,11 +282,21 @@ def instantiate(test):
     """Instantiate a given test case"""
     test = test.copy()
 
-    # Any Arguments fields declared as enums
+    # Any Arguments fields declared as enums (a_type, b_type, etc.)
     enum_args = [decl[0] for decl in param['Arguments']._fields_
                  if decl[1].__module__ == '__main__']
     try:
         setdefaults(test)
+
+        # If no enum arguments are complex, clear alphai and betai
+        for typename in enum_args:
+            if COMPLEX_RE.match(test[typename]):
+                break
+        else:
+            for name in ('alphai', 'betai'):
+                if name in test:
+                    test[name] = 0.0
+
         # For enum arguments, replace name with value
         for typename in enum_args:
             test[typename] = datatypes[test[typename]]
@@ -330,9 +349,15 @@ def generate(test, function):
 
             # For a bare dictionary, wrap it in a list and apply it once
             for item in [ilist] if type(ilist) == dict else ilist:
-                case = test.copy()
-                case.update(item)
-                generate(case, function)  # original test merged with each item
+                try:
+                    case = test.copy()
+                    case.update(item)  # original test merged with each item
+                    generate(case, function)
+                except TypeError as err:
+                    sys.exit("TypeError: " + str(err) + " for " + argname +
+                             ", which has type " + str(type(item)) +
+                             "\nA name listed in \"Dictionary lists to expand\" "
+                             "must be a defined as a dictionary.\n")
             return
 
     for key in sorted(list(test)):

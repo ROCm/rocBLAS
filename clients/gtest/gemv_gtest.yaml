@@ -36,10 +36,10 @@ Definitions:
     - { incx:  10, incy: 100 }
 
   - &alpha_beta_range
-    - { alpha:  2.0, beta:  0.0 }
-    - { alpha: -1.0, beta: -1.0 }
-    - { alpha:  2.0, beta:  1.0 }
-    - { alpha:  0.0, beta:  1.0 }
+    - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
+    - { alpha: -1.0, beta: -1.0, alphai: 0.5, betai: 1.5 }
+    - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
+    - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
 
 Tests:
 - name: gemv_bad_arg
@@ -61,7 +61,7 @@ Tests:
 - name: gemv_small
   category: quick
   function: gemv
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -70,7 +70,7 @@ Tests:
 - name: gemv_medium
   category: pre_checkin
   function: gemv
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   transA: [ N, T, C ]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -79,8 +79,8 @@ Tests:
 - name: gemv_large
   category: nightly
   function: gemv
-  precision: *single_double_precisions
-  transA: [ N, T, C ]
+  precision: *single_double_precisions_complex_real
+  transA: [  N, T, C ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range

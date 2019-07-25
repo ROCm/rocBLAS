@@ -13,7 +13,7 @@ namespace
     // setting to 512 for gfx803.
     constexpr int NB = 512;
 
-    template <typename T>
+    template <bool CONJ, typename T>
     __global__ void dot_kernel_part1(
         rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* workspace)
     {
@@ -24,9 +24,9 @@ namespace
 
         // bound
         if(tid < n)
-            tmp[tx] = y[tid * incy] * x[tid * incx];
+            tmp[tx] = y[tid * incy] * (CONJ ? conj(x[tid * incx]) : x[tid * incx]);
         else
-            tmp[tx] = 0; // pad with zero
+            tmp[tx] = T(0); // pad with zero
 
         rocblas_sum_reduce<NB>(tx, tmp);
 
@@ -36,7 +36,7 @@ namespace
 
     // assume workspace has already been allocated, recommened for repeated calling of dot product
     // routine
-    template <typename T>
+    template <bool CONJ, typename T>
     rocblas_status rocblas_dot_workspace(rocblas_handle __restrict__ handle,
                                          rocblas_int n,
                                          const T*    x,
@@ -61,7 +61,7 @@ namespace
         if(incy < 0)
             y -= ptrdiff_t(incy) * (n - 1);
 
-        hipLaunchKernelGGL(dot_kernel_part1,
+        hipLaunchKernelGGL(dot_kernel_part1<CONJ>,
                            grid,
                            threads,
                            0,
@@ -73,7 +73,7 @@ namespace
                            incy,
                            workspace);
 
-        hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB>),
+        hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
                            1,
                            threads,
                            0,
@@ -89,19 +89,23 @@ namespace
         return rocblas_status_success;
     }
 
-    template <typename>
+    template <bool, typename>
     constexpr char rocblas_dot_name[] = "unknown";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, float>[] = "rocblas_sdot";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, double>[] = "rocblas_ddot";
     template <>
-    constexpr char rocblas_dot_name<float>[] = "rocblas_sdot";
+    constexpr char rocblas_dot_name<true, rocblas_float_complex>[] = "rocblas_cdotc";
     template <>
-    constexpr char rocblas_dot_name<double>[] = "rocblas_ddot";
+    constexpr char rocblas_dot_name<false, rocblas_float_complex>[] = "rocblas_cdotu";
     template <>
-    constexpr char rocblas_dot_name<rocblas_float_complex>[] = "rocblas_cdot";
+    constexpr char rocblas_dot_name<true, rocblas_double_complex>[] = "rocblas_zdotc";
     template <>
-    constexpr char rocblas_dot_name<rocblas_double_complex>[] = "rocblas_zdot";
+    constexpr char rocblas_dot_name<false, rocblas_double_complex>[] = "rocblas_zdotu";
 
     // allocate workspace inside this API
-    template <typename T>
+    template <bool CONJ, typename T>
     rocblas_status rocblas_dot(rocblas_handle handle,
                                rocblas_int    n,
                                const T*       x,
@@ -115,7 +119,7 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_dot_name<T>, n, x, incx, y, incy);
+            log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
@@ -129,7 +133,7 @@ namespace
                       incy);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_dot_name<T>, "N", n, "incx", incx, "incy", incy);
+            log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
 
         if(!x || !y || !result)
             return rocblas_status_invalid_pointer;
@@ -142,7 +146,7 @@ namespace
             else if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
-                *result = 0;
+                *result = T(0);
             return rocblas_status_success;
         }
 
@@ -154,7 +158,7 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_dot_workspace<T>(handle, n, x, incx, y, incy, result, (T*)mem, blocks);
+        return rocblas_dot_workspace<CONJ>(handle, n, x, incx, y, incy, result, (T*)mem, blocks);
     }
 
 } // namespace
@@ -175,7 +179,7 @@ rocblas_status rocblas_sdot(rocblas_handle handle,
                             rocblas_int    incy,
                             float*         result)
 {
-    return rocblas_dot(handle, n, x, incx, y, incy, result);
+    return rocblas_dot<false>(handle, n, x, incx, y, incy, result);
 }
 
 rocblas_status rocblas_ddot(rocblas_handle handle,
@@ -186,33 +190,51 @@ rocblas_status rocblas_ddot(rocblas_handle handle,
                             rocblas_int    incy,
                             double*        result)
 {
-    return rocblas_dot(handle, n, x, incx, y, incy, result);
+    return rocblas_dot<false>(handle, n, x, incx, y, incy, result);
 }
 
-#if 0 //  complex not supported
-
-rocblas_status rocblas_cdotu(rocblas_handle handle,
-                             rocblas_int n,
+rocblas_status rocblas_cdotu(rocblas_handle               handle,
+                             rocblas_int                  n,
                              const rocblas_float_complex* x,
-                             rocblas_int incx,
+                             rocblas_int                  incx,
                              const rocblas_float_complex* y,
-                             rocblas_int incy,
-                             rocblas_float_complex* result)
+                             rocblas_int                  incy,
+                             rocblas_float_complex*       result)
 {
-    return rocblas_dot(handle, n, x, incx, y, incy, result);
+    return rocblas_dot<false>(handle, n, x, incx, y, incy, result);
 }
 
-rocblas_status rocblas_zdotu(rocblas_handle handle,
-                             rocblas_int n,
+rocblas_status rocblas_zdotu(rocblas_handle                handle,
+                             rocblas_int                   n,
                              const rocblas_double_complex* x,
-                             rocblas_int incx,
+                             rocblas_int                   incx,
                              const rocblas_double_complex* y,
-                             rocblas_int incy,
-                             rocblas_double_complex* result)
+                             rocblas_int                   incy,
+                             rocblas_double_complex*       result)
 {
-    return rocblas_dot(handle, n, x, incx, y, incy, result);
+    return rocblas_dot<false>(handle, n, x, incx, y, incy, result);
 }
 
-#endif
+rocblas_status rocblas_cdotc(rocblas_handle               handle,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* x,
+                             rocblas_int                  incx,
+                             const rocblas_float_complex* y,
+                             rocblas_int                  incy,
+                             rocblas_float_complex*       result)
+{
+    return rocblas_dot<true>(handle, n, x, incx, y, incy, result);
+}
+
+rocblas_status rocblas_zdotc(rocblas_handle                handle,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* x,
+                             rocblas_int                   incx,
+                             const rocblas_double_complex* y,
+                             rocblas_int                   incy,
+                             rocblas_double_complex*       result)
+{
+    return rocblas_dot<true>(handle, n, x, incx, y, incy, result);
+}
 
 } // extern "C"

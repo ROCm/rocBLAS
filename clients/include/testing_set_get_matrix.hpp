@@ -49,17 +49,17 @@ void testing_set_get_matrix(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> ha(cols * static_cast<size_t>(lda));
-    host_vector<T> hb(cols * static_cast<size_t>(ldb));
-    host_vector<T> hc(cols * static_cast<size_t>(ldc));
-    host_vector<T> hb_gold(cols * static_cast<size_t>(ldb));
+    host_vector<T> ha(cols * size_t(lda));
+    host_vector<T> hb(cols * size_t(ldb));
+    host_vector<T> hc(cols * size_t(ldc));
+    host_vector<T> hb_gold(cols * size_t(ldb));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
     // allocate memory on device
-    device_vector<T> dc(cols * static_cast<size_t>(ldc));
+    device_vector<T> dc(cols * size_t(ldc));
     if(!dc)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

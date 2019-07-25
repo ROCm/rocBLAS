@@ -134,9 +134,9 @@ void testing_gemm(const Arguments& arg)
         return;
     }
 
-    const auto size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
-    const auto size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
-    const auto size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
+    const auto size_A = size_t(lda) * size_t(A_col);
+    const auto size_B = size_t(ldb) * size_t(B_col);
+    const auto size_C = size_t(ldc) * size_t(N);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -246,8 +246,8 @@ void testing_gemm(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1     = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
-            auto err2     = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2));
+            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            auto err2     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }

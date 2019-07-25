@@ -34,9 +34,9 @@ void testing_geam_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t size_A = N * static_cast<size_t>(lda);
-    size_t size_B = N * static_cast<size_t>(ldb);
-    size_t size_C = N * static_cast<size_t>(ldc);
+    size_t size_A = N * size_t(lda);
+    size_t size_B = N * size_t(ldb);
+    size_t size_C = N * size_t(ldc);
 
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
@@ -150,9 +150,9 @@ void testing_geam(const Arguments& arg)
         inc2_B = 1;
     }
 
-    size_t size_A = lda * static_cast<size_t>(A_col);
-    size_t size_B = ldb * static_cast<size_t>(B_col);
-    size_t size_C = ldc * static_cast<size_t>(N);
+    size_t size_A = lda * size_t(A_col);
+    size_t size_B = ldb * size_t(B_col);
+    size_t size_C = ldc * size_t(N);
 
     // check here to prevent undefined memory allocation error
     if(M <= 0 || N <= 0 || lda < A_row || ldb < B_row || ldc < M)

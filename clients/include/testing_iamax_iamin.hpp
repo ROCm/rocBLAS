@@ -84,7 +84,7 @@ void testing_iamax_iamin(const Arguments& arg)
         return;
     }
 
-    size_t size_x = static_cast<size_t>(N) * incx;
+    size_t size_x = size_t(N) * incx;
 
     // allocate memory on device
     device_vector<T>           dx(size_x);
@@ -179,26 +179,15 @@ void testing_iamax_iamin(const Arguments& arg)
 // CBLAS does not have a cblas_iamin function, so we write our own version of it
 namespace rocblas_cblas
 {
-
     template <typename T>
-    T aabs(T x)
+    T asum(T x)
     {
-        return std::abs(x);
+        return x < 0 ? -x : x;
     }
 
-    rocblas_half aabs(rocblas_half x)
+    rocblas_half asum(rocblas_half x)
     {
         return x & 0x7fff;
-    }
-
-    double aabs(rocblas_double_complex x)
-    {
-        return aabs(x.x) + aabs(x.y);
-    }
-
-    float aabs(rocblas_float_complex x)
-    {
-        return aabs(x.x) + aabs(x.y);
     }
 
     template <typename T>
@@ -218,11 +207,11 @@ namespace rocblas_cblas
         rocblas_int minpos = -1;
         if(N > 0 && incx > 0)
         {
-            auto min = aabs(X[0]);
+            auto min = asum(X[0]);
             minpos   = 0;
             for(size_t i = 1; i < N; ++i)
             {
-                auto a = aabs(X[i * incx]);
+                auto a = asum(X[i * incx]);
                 if(lessthan(a, min))
                 {
                     min    = a;

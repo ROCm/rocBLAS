@@ -21,7 +21,7 @@ void testing_bandwidth(const Arguments& arg)
 {
     rocblas_int N      = 25 * 1e7;
     rocblas_int incx   = 1;
-    size_t      size_X = N * static_cast<size_t>(incx);
+    size_t      size_X = N * size_t(incx);
     T           alpha  = 2.0;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
@@ -87,7 +87,7 @@ void testing_bandwidth(const Arguments& arg)
         // check error with CPU result
         for(size_t i = 0; i < size; i++)
         {
-            T error = fabs(hz[i] - hx[i]);
+            T error = std::abs(hz[i] - hx[i]);
             if(error > 0)
             {
                 printf("error is %f, CPU=%f, GPU=%f, at elment %zu", error, hz[i], hx[i], i);
