@@ -15,49 +15,62 @@ Definitions:
     - { alpha:  1.0, beta:  0.0 }
     - { alpha:  2.0, beta: -1.0 }
 
+  - &alphai_betai_range
+    - { alphai: 0.0 }
+    - { alphai: 1.0}
+    - { alphai: 2.0 }
+
 Tests:
 - name: blas1
   category: quick
   N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
   function:
-    - nrm2:  *single_double_precisions
-    - asum:  *single_double_precisions
-    - iamax: *single_double_precisions
-#   - iamin: *single_double_precisions
-    - axpy:  *half_single_double_precisions
-    - copy:  *single_double_precisions
-    - dot:   *single_double_precisions
-    - scal:  *single_double_precisions
-    - swap:  *single_double_precisions
+    - nrm2:  *single_double_precisions_complex_real
+    - asum:  *single_double_precisions_complex_real
+    - iamax: *single_double_precisions_complex_real
+#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - axpy:  *half_single_precisions_complex_real
+    - copy:  *single_double_precisions_complex_real
+    - dot:   *single_double_precisions_complex_real
+    - dotc:  *single_double_precisions_complex
+    - scal:  *single_double_precisions_complex_real
+    - scal:  *single_double_complex_real_in_complex_out
+    - swap:  *single_double_precisions_complex_real
 
 - name: blas1
   category: pre_checkin
   N: [ 1048576, 1049600, 4000000, 8000000 ]
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
   function:
-    - nrm2:  *double_precision
-    - asum:  *double_precision
-    - iamax: *single_double_precisions
-#   - iamin: *single_double_precisions
-    - axpy:  *half_single_double_precisions
-    - copy:  *single_double_precisions
-    - dot:   *double_precision
-    - scal:  *single_double_precisions
-    - swap:  *single_double_precisions
+    - nrm2:  *double_precision_complex_real
+    - asum:  *double_precision_complex_real
+    - iamax: *single_double_precisions_complex_real
+#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - axpy:  *half_single_precisions_complex_real
+    - copy:  *single_double_precisions_complex_real
+    - dot:   *double_precision_complex_real
+    - dotc:  *double_precision_complex_real
+    - scal:  *single_double_precisions_complex_real
+    - scal:  *single_double_complex_real_in_complex_out
+    - swap:  *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin
   function:
-    - nrm2_bad_arg:  *single_double_precisions
-    - asum_bad_arg:  *single_double_precisions
-    - iamax_bad_arg: *single_double_precisions
-    - iamin_bad_arg: *single_double_precisions
-    - axpy_bad_arg:  *half_single_double_precisions
-    - copy_bad_arg:  *single_double_precisions
-    - dot_bad_arg:   *single_double_precisions
-    - scal_bad_arg:  *single_double_precisions
-    - swap_bad_arg:  *single_double_precisions
+    - nrm2_bad_arg:  *single_double_precisions_complex_real
+    - asum_bad_arg:  *single_double_precisions_complex_real
+    - iamax_bad_arg: *single_double_precisions_complex_real
+    - iamin_bad_arg: *single_double_precisions_complex_real
+    - axpy_bad_arg:  *half_single_precisions_complex_real
+    - copy_bad_arg:  *single_double_precisions_complex_real
+    - dot_bad_arg:   *single_double_precisions_complex_real
+    - dotc_bad_arg:  *single_double_precisions_complex
+    - scal_bad_arg:  *single_double_precisions_complex_real
+    - scal_bad_arg:  *single_double_complex_real_in_complex_out
+    - swap_bad_arg:  *single_double_precisions_complex_real
 ...
