@@ -6,7 +6,9 @@
 #define UTILITY_H
 #include "definitions.h"
 #include "rocblas.h"
+#include <complex>
 #include <hip/hip_runtime.h>
+#include <type_traits>
 
 #pragma STDC CX_LIMITED_RANGE ON
 
@@ -25,24 +27,18 @@ __device__ inline rocblas_half2
     return llvm_fma_v2f16(multiplier, multiplicand, addend);
 }
 
-// Conjugate a value. For most types, simply call std::conj, for floats and doubles
-// do nothing and return themselves
-template <typename T>
-__device__ __host__ inline T conj(const T& z)
+// Conjugate a value. For most types, simply return argument; for
+// rocblas_float_complex and rocblas_double_complex, return std::conj(z)
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto conj(const T& z)
+{
+    return z;
+}
+
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto conj(const T& z)
 {
     return std::conj(z);
-}
-
-template <>
-__device__ __host__ inline float conj(const float& z)
-{
-    return z;
-}
-
-template <>
-__device__ __host__ inline double conj(const double& z)
-{
-    return z;
 }
 
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy
