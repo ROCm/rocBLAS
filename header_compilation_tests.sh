@@ -77,7 +77,7 @@ xargs_coproc
 find library clients \( -iname \*.hpp -o -iname \*.h \) \
      \! -name testing_trmm.hpp -print0 | while read -r -d $'\0' file; do
     out=$(out_uptodate "$file" cpp14 true) || \
-        echo "$CPP14 -c -o \"$out\" $HCC_OPTS $GPU_OPTS \"$file\" || (rm -f \"$out\"; echo \"$file\" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP14 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -106,7 +106,7 @@ if [[ -x "$CLANG" ]]; then
     xargs_coproc
     for file in library/include/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
-             echo "$CLANG $CLANG_OPTS -c -o \"$out\" $HCC_OPTS \"$file\" || (rm -f \"$out\"; echo \"$file\" >&4; exit 255)" >&$XARGS_IN
+             echo "$CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
 
     if ! xargs_wait; then
@@ -127,7 +127,7 @@ fi
 xargs_coproc
 for file in library/include/*.{h,in}; do
     out=$(out_uptodate $file c99) || \
-        echo "$C99 -c -o \"$out\" $HCC_OPTS $GPU_OPTS \"$file\" || (rm -f \"$out\"; echo \"$file\" >&4; exit 255)" >&$XARGS_IN
+        echo "$C99 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -146,7 +146,7 @@ fi
 xargs_coproc
 for file in library/include/*.{h,in}; do
     out=$(out_uptodate $file cpp11) ||
-        echo "$CPP11 -c -o \"$out\" $HCC_OPTS $GPU_OPTS \"$file\" || (rm -f \"$out\"; echo \"$file\" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
