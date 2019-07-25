@@ -9,39 +9,8 @@ ARG user_uid
 # Install dependent packages
 RUN yum install -y \
     sudo \
-    rock-dkms \
-    centos-release-scl \
-    devtoolset-7 \
-    ca-certificates \
-    git \
-    make \
-    clang \
-    clang-devel \
-    gcc-c++ \
-    gcc-gfortran \
-    gtest-devel \ 
-    gtest \
-    pkgconfig \
-    python27 \
-    python36 \
-    python36-devel \
-    python36-pip \
-    python36-pytest \
-    python36-setuptools \
-    PyYAML \
-    libcxx-devel \
-    boost-devel \
-    numactl-libs \
-    rpm-build \ 
-    mesa* \
-    libgomp \
-    deltarpm
+    rock-dkms 
 
-RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
-    'source scl_source enable devtoolset-7' >>/etc/profile.d/devtoolset7.sh
-
-RUN pip3 install wheel && pip3 install tox pyyaml
-    
 # docker pipeline runs containers with particular uid
 # create a jenkins user with this specific uid so it can use sudo priviledges
 # Grant any member of sudo group password-less sudo privileges
