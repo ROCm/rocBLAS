@@ -1,5 +1,6 @@
 #!/bin/bash
 
+EXPORT LOCALE=C
 set -e
 
 exec 2>&1
