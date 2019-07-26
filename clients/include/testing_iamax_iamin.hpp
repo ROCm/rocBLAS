@@ -239,11 +239,11 @@ namespace rocblas_cblas
         rocblas_int maxpos = -1;
         if(N > 0 && incx > 0)
         {
-            auto max = aabs(X[0]);
+            auto max = asum(X[0]);
             maxpos   = 0;
             for(size_t i = 1; i < N; ++i)
             {
-                auto a = aabs(X[i * incx]);
+                auto a = asum(X[i * incx]);
                 if(greatherthan(a, max))
                 {
                     max    = a;
