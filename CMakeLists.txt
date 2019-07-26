@@ -33,11 +33,6 @@ endif()
 
 project( rocblas LANGUAGES CXX )
 
-#trying to fix threads issue for CentOS
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-target_link_libraries(rocblas Threads::Threads)
-
 # ########################################################################
 # NOTE:  CUDA compiling path
 # ########################################################################
