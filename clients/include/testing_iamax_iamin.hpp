@@ -278,4 +278,3 @@ void testing_iamin(const Arguments& arg)
 {
     testing_iamax_iamin<T, rocblas_iamin<T>, rocblas_cblas::cblas_iamin<T>>(arg);
 }
-
