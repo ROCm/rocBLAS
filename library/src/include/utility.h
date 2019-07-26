@@ -6,7 +6,11 @@
 #define UTILITY_H
 #include "definitions.h"
 #include "rocblas.h"
+#include <complex>
 #include <hip/hip_runtime.h>
+#include <type_traits>
+
+#pragma STDC CX_LIMITED_RANGE ON
 
 // half vectors
 typedef _Float16 rocblas_half8 __attribute__((ext_vector_type(8)));
@@ -21,6 +25,20 @@ __device__ inline rocblas_half2
     rocblas_fmadd_half2(rocblas_half2 multiplier, rocblas_half2 multiplicand, rocblas_half2 addend)
 {
     return llvm_fma_v2f16(multiplier, multiplicand, addend);
+}
+
+// Conjugate a value. For most types, simply return argument; for
+// rocblas_float_complex and rocblas_double_complex, return std::conj(z)
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto conj(const T& z)
+{
+    return z;
+}
+
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto conj(const T& z)
+{
+    return std::conj(z);
 }
 
 // Load a scalar. If the argument is a pointer, dereference it; otherwise copy

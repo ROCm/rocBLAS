@@ -96,14 +96,15 @@ struct perf_gemm_strided_batched_ex<
 
 #endif
 
-template <typename T, typename = void>
+template <typename T, typename U = T, typename = void>
 struct perf_blas : rocblas_test_invalid
 {
 };
 
-template <typename T>
+template <typename T, typename U>
 struct perf_blas<
     T,
+    U,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
 {
     explicit operator bool()
@@ -138,8 +139,6 @@ struct perf_blas<
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
-        else if(!strcmp(arg.function, "scal"))
-            testing_scal<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "ger"))
@@ -162,8 +161,8 @@ struct perf_blas<
     }
 };
 
-template <typename T>
-struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+template <typename T, typename U>
+struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
     explicit operator bool()
     {
@@ -177,6 +176,75 @@ struct perf_blas<T, typename std::enable_if<std::is_same<T, rocblas_half>{}>::ty
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename T, typename U>
+struct perf_blas<T,
+                 U,
+                 typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
+                                         || std::is_same<T, rocblas_float_complex>{}>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "asum"))
+            testing_asum<T>(arg);
+        else if(!strcmp(arg.function, "axpy"))
+            testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "copy"))
+            testing_copy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
+        else if(!strcmp(arg.function, "dotc"))
+            testing_dotc<T>(arg);
+        else if(!strcmp(arg.function, "nrm2"))
+            testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "swap"))
+            testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "iamax"))
+            testing_iamax<T>(arg);
+        else if(!strcmp(arg.function, "iamin"))
+            testing_iamin<T>(arg);
+        else if(!strcmp(arg.function, "gemv"))
+            testing_gemv<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename Ta, typename Tb = Ta, typename = void>
+struct perf_blas_scal : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tb>
+struct perf_blas_scal<
+    Ta,
+    Tb,
+    typename std::enable_if<
+        (std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tb, rocblas_float_complex>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "scal"))
+            testing_scal<Ta, Tb>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -342,7 +410,10 @@ int run_bench_test(Arguments& arg)
     else
 #endif
     {
-        rocblas_simple_dispatch<perf_blas>(arg);
+        if(!strcmp(function, "scal"))
+            rocblas_blas1_dispatch<perf_blas_scal>(arg);
+        else
+            rocblas_simple_dispatch<perf_blas>(arg);
     }
     return 0;
 }
@@ -440,8 +511,14 @@ try
         ("alpha",
           value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")
 
+        ("alphai",
+         value<double>(&arg.alphai)->default_value(0.0), "specifies the imaginary part of the scalar alpha")
+
         ("beta",
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
+
+        ("betai",
+         value<double>(&arg.beta)->default_value(0.0), "specifies the imaginary part of the scalar beta")
 
         ("function,f",
          value<std::string>(&function),
