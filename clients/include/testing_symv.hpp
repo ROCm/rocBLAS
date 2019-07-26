@@ -22,8 +22,8 @@ void testing_symv(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
 
-    T alpha = static_cast<T>(arg.alpha);
-    T beta  = static_cast<T>(arg.beta);
+    T alpha(arg.alpha);
+    T beta(arg.beta);
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
 

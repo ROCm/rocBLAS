@@ -13,17 +13,23 @@ Functions:
   rocblas_ddot:  { function: dot, <<: *double_precision  }
   rocblas_sasum: { function: asum, <<: *single_precision }
   rocblas_dasum: { function: asum, <<: *double_precision }
+  rocblas_scasum: { function: asum, <<: *single_precision_complex }
+  rocblas_dzasum: { funciton: asum, <<: *double_precision_complex }
   rocblas_snrm2: { function: nrm2, <<: *single_precision }
   rocblas_dnrm2: { function: nrm2, <<: *double_precision }
   rocblas_haxpy: { function: axpy, <<: *half_precision   }
   rocblas_saxpy: { function: axpy, <<: *single_precision }
   rocblas_daxpy: { function: axpy, <<: *double_precision }
+  rocblas_caxpy: { function: axpy, <<: *single_precision_complex }
+  rocblas_zaxpy: { function: axpy, <<: *double_precision_complex }
   rocblas_sger:  { function: ger, <<: *single_precision  }
   rocblas_dger:  { function: ger, <<: *double_precision  }
   rocblas_ssyr:  { function: syr, <<: *single_precision  }
   rocblas_dsyr:  { function: syr, <<: *double_precision  }
   rocblas_sgemv: { function: gemv, <<: *single_precision }
   rocblas_dgemv: { function: gemv, <<: *double_precision }
+  rocblas_cgemv: { function: gemv, <<: *single_precision_complex }
+  rocblas_zgemv: { function: gemv, <<: *double_precision_complex } 
   rocblas_strsv: { function: trsv, <<: *single_precision }
   rocblas_dtrsv: { function: trsv, <<: *double_precision }
   rocblas_ssymv: { function: symv, <<: *single_precision }
