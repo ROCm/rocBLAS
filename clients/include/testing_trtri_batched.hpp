@@ -23,7 +23,7 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_int batch_count = arg.batch_count;
 
     rocblas_int bsa    = lda * N;
-    size_t      size_A = static_cast<size_t>(bsa) * batch_count;
+    size_t      size_A = size_t(bsa) * batch_count;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;

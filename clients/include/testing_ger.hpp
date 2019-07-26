@@ -28,9 +28,9 @@ void testing_ger_bad_arg(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_A   = lda * static_cast<size_t>(N);
-    size_t      size_x   = M * static_cast<size_t>(abs_incx);
-    size_t      size_y   = N * static_cast<size_t>(abs_incy);
+    size_t      size_A   = lda * size_t(N);
+    size_t      size_x   = M * size_t(abs_incx);
+    size_t      size_y   = N * size_t(abs_incy);
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);

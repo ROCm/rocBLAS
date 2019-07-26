@@ -82,9 +82,9 @@ void testing_gemm_parallel(const Arguments& arg,
         return;
     }
 
-    const auto size_A = static_cast<size_t>(lda) * static_cast<size_t>(A_col);
-    const auto size_B = static_cast<size_t>(ldb) * static_cast<size_t>(B_col);
-    const auto size_C = static_cast<size_t>(ldc) * static_cast<size_t>(N);
+    const auto size_A = size_t(lda) * size_t(A_col);
+    const auto size_B = size_t(ldb) * size_t(B_col);
+    const auto size_C = size_t(ldc) * size_t(N);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -166,9 +166,9 @@ void testing_gemm_parallel(const Arguments& arg,
     if(arg.norm_check)
     {
         double error_hst_ptr
-            = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data()));
+            = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_1.data()));
         double error_dev_ptr
-            = fabs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data()));
+            = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold.data(), hC_2.data()));
         rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
     }
 }

@@ -78,7 +78,7 @@ namespace
                                                               T*                C,
                                                               rocblas_int       ldc)
     {
-        T rC[6][6] = {{(T)0}};
+        T rC[6][6] = {{T(0)}};
         T rA[1][6];
         T rB[1][6];
 
