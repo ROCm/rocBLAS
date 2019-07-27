@@ -32,8 +32,9 @@ RUN yum install -y \
     PyYAML \
     libcxx-devel \
     boost-devel \
+    libgomp \
     numactl-libs \
-    rpm-build \ 
+    rpm-build \
     deltarpm 
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
