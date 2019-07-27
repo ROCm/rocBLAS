@@ -24,9 +24,6 @@ endif()
 # The superbuild does not build anything itself; all compiling is done in external projects
 project( rocblas-dependencies NONE )
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 option( BUILD_BOOST "Download and build boost library" ON )
 option( BUILD_GTEST "Download and build googletest library" ON )
 option( BUILD_LAPACK "Download and build lapack library" ON )
