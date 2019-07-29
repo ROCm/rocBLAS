@@ -526,27 +526,27 @@ try
 
         ("precision,r",
          value<std::string>(&precision)->default_value("f32_r"), "Precision. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("a_type",
          value<std::string>(&a_type), "Precision of matrix A. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("b_type",
          value<std::string>(&b_type), "Precision of matrix B. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("c_type",
          value<std::string>(&c_type), "Precision of matrix C. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("d_type",
          value<std::string>(&d_type), "Precision of matrix D. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("compute_type",
          value<std::string>(&compute_type), "Precision of computation. "
-         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,f32_c,f64_c,i8_r,i32_r")
+         "Options: h,s,d,c,z,f16_r,f32_r,f64_r,bf16_r,f32_c,f64_c,i8_r,i32_r")
 
         ("initialization",
          value<std::string>(&initialization)->default_value("rand_int"),

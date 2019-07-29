@@ -213,9 +213,11 @@ inline rocblas_datatype string2rocblas_datatype(const std::string& value)
         value == "f16_r" || value == "h" ? rocblas_datatype_f16_r :
         value == "f32_r" || value == "s" ? rocblas_datatype_f32_r :
         value == "f64_r" || value == "d" ? rocblas_datatype_f64_r :
+        value == "bf16_r"                ? rocblas_datatype_bf16_r :
         value == "f16_c"                 ? rocblas_datatype_f16_c :
         value == "f32_c" || value == "c" ? rocblas_datatype_f32_c :
         value == "f64_c" || value == "z" ? rocblas_datatype_f64_c :
+        value == "bf16_c"                ? rocblas_datatype_bf16_c :
         value == "i8_r"                  ? rocblas_datatype_i8_r  :
         value == "i32_r"                 ? rocblas_datatype_i32_r :
         value == "i8_c"                  ? rocblas_datatype_i8_c  :
