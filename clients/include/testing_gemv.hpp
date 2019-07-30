@@ -168,7 +168,7 @@ void testing_gemv(const Arguments& arg)
     rocblas_init<T>(hA, M, N, lda);
     rocblas_init<T>(hx, 1, dim_x, abs_incx);
 
-    if(rocblas_isnan(arg.beta))
+    if(rocblas_isnan(arg.get_beta<T>()))
         rocblas_init_nan<T>(hy_1, 1, dim_y, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, dim_y, abs_incy);

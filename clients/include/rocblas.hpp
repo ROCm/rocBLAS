@@ -425,6 +425,12 @@ static constexpr auto rocblas_gemm<float> = rocblas_sgemm;
 template <>
 static constexpr auto rocblas_gemm<double> = rocblas_dgemm;
 
+template <>
+static constexpr auto rocblas_gemm<rocblas_float_complex> = rocblas_cgemm;
+
+template <>
+static constexpr auto rocblas_gemm<rocblas_double_complex> = rocblas_zgemm;
+
 // gemm_strided_batched
 template <typename T>
 rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle    handle,
@@ -454,6 +460,14 @@ static constexpr auto rocblas_gemm_strided_batched<float> = rocblas_sgemm_stride
 
 template <>
 static constexpr auto rocblas_gemm_strided_batched<double> = rocblas_dgemm_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_gemm_strided_batched<rocblas_float_complex> = rocblas_cgemm_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_gemm_strided_batched<rocblas_double_complex> = rocblas_zgemm_strided_batched;
 
 #if 0
 // trmm
