@@ -85,9 +85,6 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
-set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
-set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
-
 # External header includes included as system files
 target_include_directories( rocblas-test
   SYSTEM PRIVATE
@@ -99,7 +96,40 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
 
-target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${BLIS_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas Threads::Threads )
+set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
+set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
+
+if( EXISTS /etc/redhat-release)
+    set( OPENMP_INCLUDE_DIR /usr/lib/gcc/x86_64-redhat-linux/4.8.2/include )
+    set( OPENMP_LIBRARY /usr/lib/gcc/x86_64-redhat-linux/4.8.2/lib/libgomp.so ) 
+
+    # External header includes included as system files
+    target_include_directories( rocblas-test
+      SYSTEM PRIVATE
+        $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
+        )
+
+    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+else()
+    # External header includes included as system files
+    target_include_directories( rocblas-test
+      SYSTEM PRIVATE
+        $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    )
+    
+    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
+endif()
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 
