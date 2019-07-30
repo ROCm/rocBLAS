@@ -156,6 +156,7 @@ auto rocblas_simple_dispatch(const Arguments& arg)
       case rocblas_datatype_f16_r: return TEST<rocblas_half>{}(arg);
       case rocblas_datatype_f32_r: return TEST<float>{}(arg);
       case rocblas_datatype_f64_r: return TEST<double>{}(arg);
+      case rocblas_datatype_bf16_r: return TEST<rocblas_bfloat16>{}(arg);
       case rocblas_datatype_f16_c: return TEST<rocblas_half_complex>{}(arg);
       case rocblas_datatype_f32_c: return TEST<rocblas_float_complex>{}(arg);
       case rocblas_datatype_f64_c: return TEST<rocblas_double_complex>{}(arg);
