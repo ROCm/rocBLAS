@@ -18,7 +18,7 @@ typedef enum transpose_mode_
     CN,
     TC,
     CT,
-    CC
+    CC,
 } transpose_mode;
 
 constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)

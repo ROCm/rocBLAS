@@ -584,7 +584,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     const To* c_in;
     unsigned int ldi, stride_i;
 
-    if(!arch_lt906 && (std::is_same<Ti, float>::value || std::is_same<Ti, double>::value) &&
+    if(!arch_lt906 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}) &&
        ((ldc >= ldd && stride_c >= stride_d && m == ldd) || (ldc == ldd && stride_c == stride_d)))
     {
         c_in     = c;
@@ -605,14 +605,14 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                          static_cast<const Ti*>(a),
                                          static_cast<const Ti*>(b),
                                          alpha, beta,
-                                         static_cast<unsigned int>(ldd), stride_d,
-                                         static_cast<unsigned int>(ldi), stride_i,
-                                         static_cast<unsigned int>(lda), stride_a,
-                                         static_cast<unsigned int>(ldb), stride_b,
-                                         static_cast<unsigned int>(m),
-                                         static_cast<unsigned int>(n),
-                                         static_cast<unsigned int>(batch_count),
-                                         static_cast<unsigned int>(k),
+                                         unsigned(ldd), stride_d,
+                                         unsigned(ldi), stride_i,
+                                         unsigned(lda), stride_a,
+                                         unsigned(ldb), stride_b,
+                                         unsigned(m),
+                                         unsigned(n),
+                                         unsigned(batch_count),
+                                         unsigned(k),
                                          handle->rocblas_stream, GetTransposeMode(trans_a, trans_b));
 
     rb_status = (t_status == tensileStatusSuccess) ? rocblas_status_success : rocblas_status_internal_error;
@@ -786,24 +786,24 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     return gemm_ex_chunking<Ti, To, Tc>(handle,
                                         trans_a,
                                         trans_b,
-                                        static_cast<unsigned int>(m),
-                                        static_cast<unsigned int>(n),
-                                        static_cast<unsigned int>(k),
+                                        unsigned(m),
+                                        unsigned(n),
+                                        unsigned(k),
                                         h_alpha,
                                         static_cast<const Ti*>(a),
-                                        static_cast<unsigned int>(lda),
-                                        static_cast<unsigned int>(stride_a),
+                                        unsigned(lda),
+                                        unsigned(stride_a),
                                         static_cast<const Ti*>(b),
-                                        static_cast<unsigned int>(ldb),
-                                        static_cast<unsigned int>(stride_b),
+                                        unsigned(ldb),
+                                        unsigned(stride_b),
                                         h_beta,
                                         static_cast<const To*>(c),
-                                        static_cast<unsigned int>(ldc),
-                                        static_cast<unsigned int>(stride_c),
+                                        unsigned(ldc),
+                                        unsigned(stride_c),
                                         static_cast<To*>(d),
-                                        static_cast<unsigned int>(ldd),
-                                        static_cast<unsigned int>(stride_d),
-                                        static_cast<unsigned int>(batch_count));
+                                        unsigned(ldd),
+                                        unsigned(stride_d),
+                                        unsigned(batch_count));
 }
 
 #endif

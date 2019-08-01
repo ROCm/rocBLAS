@@ -112,8 +112,8 @@ inline double norm_check_general(
 
     for(rocblas_int i = 0; i < N * lda; i++)
     {
-        hCPU_double[i] = static_cast<double>(hCPU[i]);
-        hGPU_double[i] = static_cast<double>(hGPU[i]);
+        hCPU_double[i] = double(hCPU[i]);
+        hGPU_double[i] = double(hGPU[i]);
     }
 
     double      work[1];
@@ -168,8 +168,8 @@ inline double norm_check_general<rocblas_half, nullptr>(char          norm_type,
 
     for(rocblas_int i = 0; i < N * lda; i++)
     {
-        hCPU_double[i] = static_cast<double>(half_to_float(hCPU[i]));
-        hGPU_double[i] = static_cast<double>(half_to_float(hGPU[i]));
+        hCPU_double[i] = double(half_to_float(hCPU[i]));
+        hGPU_double[i] = double(half_to_float(hGPU[i]));
     }
 
     return norm_check_general(norm_type, M, N, lda, hCPU_double.data(), hGPU_double.data());
@@ -233,8 +233,8 @@ inline double norm_check_symmetric(
 
     for(rocblas_int i = 0; i < N * lda; i++)
     {
-        hCPU_double[i] = static_cast<double>(hCPU[i]);
-        hGPU_double[i] = static_cast<double>(hGPU[i]);
+        hCPU_double[i] = double(hCPU[i]);
+        hGPU_double[i] = double(hGPU[i]);
     }
 
     double cpu_norm = dlansy_(&norm_type, &uplo, &N, hCPU_double, &lda, work);
@@ -277,8 +277,8 @@ inline double norm_check_symmetric<rocblas_half, nullptr>(char          norm_typ
 
     for(rocblas_int i = 0; i < N * lda; i++)
     {
-        hCPU_double[i] = static_cast<double>(half_to_float(hCPU[i]));
-        hGPU_double[i] = static_cast<double>(half_to_float(hGPU[i]));
+        hCPU_double[i] = double(half_to_float(hCPU[i]));
+        hGPU_double[i] = double(half_to_float(hGPU[i]));
     }
 
     return norm_check_symmetric(norm_type, uplo, N, lda, hCPU_double.data(), hGPU_double.data());

@@ -23,7 +23,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int K = arg.K;
 
     T h_alpha = arg.get_alpha<T>();
-    T h_beta  = rocblas_isnan(arg.get_beta<T>()) ? 0.0 : arg.get_beta<T>();
+    T h_beta  = arg.get_beta<T>();
 
     rocblas_int lda = arg.lda;
     rocblas_int ldb = arg.ldb;
@@ -122,7 +122,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    if(rocblas_isnan(arg.get_beta<T>()))
+    if(rocblas_isnan(arg.beta))
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
