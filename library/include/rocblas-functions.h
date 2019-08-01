@@ -585,7 +585,37 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(
 /*! \brief BLAS Level 1 API
 
     \details
-    TODO
+    rotm applies the modified Givens rotation matrix defined by param to vectors x and y.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[in]
+    n       rocblas_int
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       pointer storing vector x on the GPU.
+    @param[in]
+    incx    rocblas_int
+            specifies the increment between elements of x.
+    @param[inout]
+    y       pointer storing vector y on the GPU.
+    @param[in]
+    incy    rocblas_int
+            specifies the increment between elements of y.
+    @param[in]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
     ********************************************************************/
 
@@ -598,7 +628,35 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(
 /*! \brief BLAS Level 1 API
 
     \details
-    TODO
+    rotmg creates the modified Givens rotation matrix for the vector (d1 * x1, d2 * y1).
+          Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    d1      input scalar that is overwritten.
+    @param[inout]
+    d2      input scalar that is overwritten.
+    @param[inout]
+    x1      input scalar that is overwritten.
+    @param[in]
+    y1      input scalar.
+    @param[out]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
     ********************************************************************/
 

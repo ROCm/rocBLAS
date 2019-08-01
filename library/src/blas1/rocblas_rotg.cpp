@@ -9,7 +9,7 @@
 namespace
 {
     template <typename T, typename U>
-    __device__ __host__ rotg_calc(T& a, T& b, U& c, T& s)
+    __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
         T scale = abs(a) + abs(b);
         if (scale == 0.0)
@@ -67,7 +67,7 @@ namespace
         if (layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
                       "./rocblas-bench -f rotg -r",
-                      rocblas_presision_string<T>);
+                      rocblas_precision_string<T>);
         if (layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_rotg_name<T>);
 
