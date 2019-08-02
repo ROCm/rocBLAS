@@ -46,7 +46,7 @@ class rocblas_nan_rng
 
 public:
     // Random integer
-    template <typename T, typename = typename std::enable_if<std::is_integral<T>{}>::type>
+    template <typename T, typename std::enable_if<std::is_integral<T>{}, int>::type = 0>
     explicit operator T()
     {
         return std::uniform_int_distribution<T>{}(rocblas_rng);

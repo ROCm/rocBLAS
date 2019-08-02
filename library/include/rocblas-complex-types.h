@@ -115,7 +115,7 @@ public:
         return (x += T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}>::type* = 0>
+    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
     __device__ __host__ auto& operator-=(const U& rhs)
     {
         return (x -= T(rhs)), *this;
