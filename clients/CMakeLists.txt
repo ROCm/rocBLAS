@@ -24,6 +24,12 @@ endif()
 # This project may compile dependencies for clients
 project( rocblas-clients LANGUAGES CXX )
 
+if(EXISTS /etc/redhat-release)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+endif()
+
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
