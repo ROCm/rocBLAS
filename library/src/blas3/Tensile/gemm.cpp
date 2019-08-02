@@ -230,12 +230,10 @@ hipError_t tensile_helper(T&                alpha_h,
                           rocblas_int       sizeL,
                           rocblas_handle    handle);
 
-#define TENSILE_ARGS(T)                                                                      \
-    reinterpret_cast<T*>(C), reinterpret_cast<const T*>(C), reinterpret_cast<const T*>(A),   \
-        reinterpret_cast<const T*>(B), *reinterpret_cast<T*>(&alpha_h),                      \
-        *reinterpret_cast<T*>(&beta_h), strideC1, strideC2, strideC1, strideC2, strideA1,    \
-        strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, \
-        nullptr, nullptr
+#define TENSILE_ARGS(T)                                                                            \
+    (T*)C, (const T*)C, (const T*)A, (const T*)B, *((T*)&alpha_h), *((T*)&beta_h), strideC1,       \
+        strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, \
+        sizeL, handle->rocblas_stream, 0, nullptr, nullptr
 
 template <>
 hipError_t tensile_helper(rocblas_half&       alpha_h,
@@ -750,16 +748,16 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
     if(validArgs != rocblas_status_success)
         return validArgs;
 
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);
-    unsigned int strideC2 = static_cast<unsigned int>(stride_c);
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);
-    unsigned int strideA2 = static_cast<unsigned int>(stride_a);
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);
-    unsigned int strideB2 = static_cast<unsigned int>(stride_b);
-    unsigned int sizeI    = static_cast<unsigned int>(m);
-    unsigned int sizeJ    = static_cast<unsigned int>(n);
-    unsigned int sizeK    = b_c;
-    unsigned int sizeL    = static_cast<unsigned int>(k);
+    unsigned int strideC1 = unsigned(ld_c);
+    unsigned int strideC2 = unsigned(stride_c);
+    unsigned int strideA1 = unsigned(ld_a);
+    unsigned int strideA2 = unsigned(stride_a);
+    unsigned int strideB1 = unsigned(ld_b);
+    unsigned int strideB2 = unsigned(stride_b);
+    unsigned int sizeI    = unsigned(m);
+    unsigned int sizeJ    = unsigned(n);
+    unsigned int sizeK    = unsigned(b_c);
+    unsigned int sizeL    = unsigned(k);
 
     hipError_t status = call_tensile<T>(alpha, beta, A, B, C,
                                         trans_a, trans_b,
@@ -960,16 +958,16 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
     if(validArgs != rocblas_status_success)
         return validArgs;
 
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);
-    unsigned int strideC2 = static_cast<unsigned int>(stride_c);
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);
-    unsigned int strideA2 = static_cast<unsigned int>(stride_a);
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);
-    unsigned int strideB2 = static_cast<unsigned int>(stride_b);
-    unsigned int sizeI    = static_cast<unsigned int>(m);
-    unsigned int sizeJ    = static_cast<unsigned int>(n);
-    unsigned int sizeK    = static_cast<unsigned int>(b_c);
-    unsigned int sizeL    = static_cast<unsigned int>(k);
+    unsigned int strideC1 = unsigned(ld_c);
+    unsigned int strideC2 = unsigned(stride_c);
+    unsigned int strideA1 = unsigned(ld_a);
+    unsigned int strideA2 = unsigned(stride_a);
+    unsigned int strideB1 = unsigned(ld_b);
+    unsigned int strideB2 = unsigned(stride_b);
+    unsigned int sizeI    = unsigned(m);
+    unsigned int sizeJ    = unsigned(n);
+    unsigned int sizeK    = unsigned(b_c);
+    unsigned int sizeL    = unsigned(k);
 
     hipError_t status = call_tensile<T>(alpha, beta, A, B, C,
                                         trans_a, trans_b,
@@ -1137,16 +1135,16 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
     if(validArgs != rocblas_status_success)
         return validArgs;
 
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);
-    unsigned int strideC2 = static_cast<unsigned int>(stride_c);
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);
-    unsigned int strideA2 = static_cast<unsigned int>(stride_a);
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);
-    unsigned int strideB2 = static_cast<unsigned int>(stride_b);
-    unsigned int sizeI    = static_cast<unsigned int>(m);
-    unsigned int sizeJ    = static_cast<unsigned int>(n);
-    unsigned int sizeK    = static_cast<unsigned int>(b_c);
-    unsigned int sizeL    = static_cast<unsigned int>(k);
+    unsigned int strideC1 = unsigned(ld_c);
+    unsigned int strideC2 = unsigned(stride_c);
+    unsigned int strideA1 = unsigned(ld_a);
+    unsigned int strideA2 = unsigned(stride_a);
+    unsigned int strideB1 = unsigned(ld_b);
+    unsigned int strideB2 = unsigned(stride_b);
+    unsigned int sizeI    = unsigned(m);
+    unsigned int sizeJ    = unsigned(n);
+    unsigned int sizeK    = unsigned(b_c);
+    unsigned int sizeL    = unsigned(k);
 
     std::cout << "gemm kernel Name: ";
 

@@ -75,7 +75,7 @@ struct rocblas_bfloat16
 
     explicit constexpr __host__ __device__ operator double() const
     {
-        return static_cast<double>(float(*this));
+        return double(float(*this));
     }
 
 private:

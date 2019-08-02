@@ -67,40 +67,40 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
 
                 if(compute_type == rocblas_datatype_f16_r)
                 {
-                    alphass << *static_cast<const _Float16*>(alpha);
-                    betass << *static_cast<const _Float16*>(beta);
+                    alphass << *((const _Float16*)alpha);
+                    betass << *((const _Float16*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const _Float16*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const _Float16*>(beta);
+                    bench_alphass << "--alpha " << *((const _Float16*)alpha);
+                    bench_betass << "--beta " << *((const _Float16*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f32_r)
                 {
-                    alphass << *static_cast<const float*>(alpha);
-                    betass << *static_cast<const float*>(beta);
+                    alphass << *((const float*)alpha);
+                    betass << *((const float*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const float*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const float*>(beta);
+                    bench_alphass << "--alpha " << *((const float*)alpha);
+                    bench_betass << "--beta " << *((const float*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f64_r)
                 {
-                    alphass << *static_cast<const double*>(alpha);
-                    betass << *static_cast<const double*>(beta);
+                    alphass << *((const double*)alpha);
+                    betass << *((const double*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const double*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const double*>(beta);
+                    bench_alphass << "--alpha " << *((const double*)alpha);
+                    bench_betass << "--beta " << *((const double*)beta);
                 }
                 else if(compute_type == rocblas_datatype_i32_r)
                 {
-                    alphass << *static_cast<const int32_t*>(alpha);
-                    betass << *static_cast<const int32_t*>(beta);
+                    alphass << *((const int32_t*)alpha);
+                    betass << *((const int32_t*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const int32_t*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const int32_t*>(beta);
+                    bench_alphass << "--alpha " << *((const int32_t*)alpha);
+                    bench_betass << "--beta " << *((const int32_t*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f32_c)
                 {
-                    rocblas_float_complex tmpa = *static_cast<const rocblas_float_complex*>(alpha);
-                    rocblas_float_complex tmpb = *static_cast<const rocblas_float_complex*>(beta);
+                    rocblas_float_complex tmpa = *((const rocblas_float_complex*)alpha);
+                    rocblas_float_complex tmpb = *((const rocblas_float_complex*)beta);
 
                     alphass << tmpa;
                     betass << tmpb;
@@ -116,9 +116,8 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                 }
                 else if(compute_type == rocblas_datatype_f64_c)
                 {
-                    rocblas_double_complex tmpa
-                        = *static_cast<const rocblas_double_complex*>(alpha);
-                    rocblas_double_complex tmpb = *static_cast<const rocblas_double_complex*>(beta);
+                    rocblas_double_complex tmpa = *((const rocblas_double_complex*)alpha);
+                    rocblas_double_complex tmpb = *((const rocblas_double_complex*)beta);
 
                     alphass << tmpa;
                     betass << tmpb;
@@ -454,40 +453,40 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
 
                 if(compute_type == rocblas_datatype_f16_r)
                 {
-                    alphass << *static_cast<const _Float16*>(alpha);
-                    betass << *static_cast<const _Float16*>(beta);
+                    alphass << *((const _Float16*)alpha);
+                    betass << *((const _Float16*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const _Float16*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const _Float16*>(beta);
+                    bench_alphass << "--alpha " << *((const _Float16*)alpha);
+                    bench_betass << "--beta " << *((const _Float16*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f32_r)
                 {
-                    alphass << *static_cast<const float*>(alpha);
-                    betass << *static_cast<const float*>(beta);
+                    alphass << *((const float*)alpha);
+                    betass << *((const float*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const float*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const float*>(beta);
+                    bench_alphass << "--alpha " << *((const float*)alpha);
+                    bench_betass << "--beta " << *((const float*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f64_r)
                 {
-                    alphass << *static_cast<const double*>(alpha);
-                    betass << *static_cast<const double*>(beta);
+                    alphass << *((const double*)alpha);
+                    betass << *((const double*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const double*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const double*>(beta);
+                    bench_alphass << "--alpha " << *((const double*)alpha);
+                    bench_betass << "--beta " << *((const double*)beta);
                 }
                 else if(compute_type == rocblas_datatype_i32_r)
                 {
-                    alphass << *static_cast<const int32_t*>(alpha);
-                    betass << *static_cast<const int32_t*>(beta);
+                    alphass << *((const int32_t*)alpha);
+                    betass << *((const int32_t*)beta);
 
-                    bench_alphass << "--alpha " << *static_cast<const int32_t*>(alpha);
-                    bench_betass << "--beta " << *static_cast<const int32_t*>(beta);
+                    bench_alphass << "--alpha " << *((const int32_t*)alpha);
+                    bench_betass << "--beta " << *((const int32_t*)beta);
                 }
                 else if(compute_type == rocblas_datatype_f32_c)
                 {
-                    rocblas_float_complex tmpa = *static_cast<const rocblas_float_complex*>(alpha);
-                    rocblas_float_complex tmpb = *static_cast<const rocblas_float_complex*>(beta);
+                    rocblas_float_complex tmpa = *((const rocblas_float_complex*)alpha);
+                    rocblas_float_complex tmpb = *((const rocblas_float_complex*)beta);
 
                     alphass << tmpa;
                     betass << tmpb;
@@ -503,9 +502,8 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                 }
                 else if(compute_type == rocblas_datatype_f64_c)
                 {
-                    rocblas_double_complex tmpa
-                        = *static_cast<const rocblas_double_complex*>(alpha);
-                    rocblas_double_complex tmpb = *static_cast<const rocblas_double_complex*>(beta);
+                    rocblas_double_complex tmpa = *((const rocblas_double_complex*)alpha);
+                    rocblas_double_complex tmpb = *((const rocblas_double_complex*)beta);
 
                     alphass << tmpa;
                     betass << tmpb;

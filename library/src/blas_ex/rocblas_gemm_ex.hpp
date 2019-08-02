@@ -362,9 +362,8 @@ inline TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4, TensileInt32, Tensi
 
 //----- typename_data=rocblas_float_complex ---------- typename_compute = rocblas_float_complex --------------------------
 #define TENSILE_COPMLEX_OUT_ARGS(Ti, To, Tc)                                        \
-    reinterpret_cast<To*>(dataD), reinterpret_cast<const To*>(dataC),               \
-        reinterpret_cast<const Ti*>(dataA), reinterpret_cast<const Ti*>(dataB),     \
-        *reinterpret_cast<Tc*>(&alpha), *reinterpret_cast<Tc*>(&beta),              \
+    (To*)dataD, (const To*)dataC, (const Ti*)dataA, (const Ti*)dataB,               \
+        *((Tc*)&alpha), *((Tc*)&beta),                                              \
         strideD1J, strideD2K, strideC1J, strideC2K,                                 \
         strideA1L, strideA2K, strideB1J, strideB2K,                                 \
         sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
@@ -600,10 +599,10 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
         stride_i = stride_d;
     }
 
-    t_status = call_tensile_ex<Ti,To,Tc>(static_cast<To*>(d),
-                                         static_cast<const To*>(c_in),
-                                         static_cast<const Ti*>(a),
-                                         static_cast<const Ti*>(b),
+    t_status = call_tensile_ex<Ti,To,Tc>((To*)d,
+                                         (const To*)c_in,
+                                         (const Ti*)a,
+                                         (const Ti*)b,
                                          alpha, beta,
                                          unsigned(ldd), stride_d,
                                          unsigned(ldi), stride_i,
@@ -772,8 +771,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     }
     else
     {
-        h_alpha = *(static_cast<const Tc*>(alpha));
-        h_beta  = *(static_cast<const Tc*>(beta));
+        h_alpha = *((const Tc*)alpha);
+        h_beta  = *((const Tc*)beta);
     }
 
     // check alignment of pointers before casting
@@ -790,17 +789,17 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         unsigned(n),
                                         unsigned(k),
                                         h_alpha,
-                                        static_cast<const Ti*>(a),
+                                        (const Ti*)a,
                                         unsigned(lda),
                                         unsigned(stride_a),
-                                        static_cast<const Ti*>(b),
+                                        (const Ti*)b,
                                         unsigned(ldb),
                                         unsigned(stride_b),
                                         h_beta,
-                                        static_cast<const To*>(c),
+                                        (const To*)c,
                                         unsigned(ldc),
                                         unsigned(stride_c),
-                                        static_cast<To*>(d),
+                                        (To*)d,
                                         unsigned(ldd),
                                         unsigned(stride_d),
                                         unsigned(batch_count));
