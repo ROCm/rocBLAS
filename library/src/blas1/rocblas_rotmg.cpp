@@ -34,7 +34,7 @@ namespace
             T p1 = d1 * x1;
             T q2 = p2 * y1;
             T q1 = p1 * x1;
-            if (abs(q1) > abs(q2))
+            if (fabs(q1) > fabs(q2))
             {
                 h21 = -y1 / x1;
                 h12 = p2 / p1;
@@ -62,7 +62,7 @@ namespace
                     T temp = d2 / u;
                     d2 = d1 / u;
                     d1 = temp;
-                    x1 / y1 * u;
+                    x1 = y1 * u;
                 }
             }
 
@@ -97,9 +97,10 @@ namespace
                     }
                 }
             }
+            
             if (d2 != 0)
             {
-                while ((abs(d2) <= rgamsq) || (abs(d2) >= gamsq))
+                while ((fabs(d2) <= rgamsq) || (fabs(d2) >= gamsq))
                 {
                     if (flag == 0)
                     {
@@ -112,7 +113,7 @@ namespace
                         h12 = 1;
                         flag = -1;
                     }
-                    if (abs(d2) <= rgamsq)
+                    if (fabs(d2) <= rgamsq)
                     {
                         d2 *= gamsq;
                         h21 /= gam;
@@ -162,10 +163,10 @@ namespace
     constexpr char rocblas_rotmg_name<double>[] = "rocblas_drotmg";
 
     template <class T>
-    rocblas_status, rocblas_rotmg(rocblas_handle handle, T* d1, T* d2, T* x1, const T* y1, T* param)
+    rocblas_status rocblas_rotmg(rocblas_handle handle, T* d1, T* d2, T* x1, const T* y1, T* param)
     {
         if (!handle)
-            return rocblas_statuc_invalid_handle;
+            return rocblas_status_invalid_handle;
         
         auto layer_mode = handle->layer_mode;
         if (layer_mode & rocblas_layer_mode_log_trace)

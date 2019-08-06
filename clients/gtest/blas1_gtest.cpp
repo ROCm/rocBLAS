@@ -11,6 +11,10 @@
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
+#include "testing_rot.hpp"
+#include "testing_rotg.hpp"
+#include "testing_rotm.hpp"
+#include "testing_rotmg.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 
@@ -27,6 +31,10 @@ namespace
         dot,
         scal,
         swap,
+        rot,
+        rotg,
+        rotm,
+        rotmg,
     };
 
     // ----------------------------------------------------------------------------
@@ -136,6 +144,10 @@ BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(scal,  ARG1)
 BLAS1_TESTING(swap,  ARG1)
+BLAS1_TESTING(rot,   ARG1)
+BLAS1_TESTING(rotg,  ARG1)
+BLAS1_TESTING(rotm,  ARG1)
+BLAS1_TESTING(rotmg, ARG1)
 
     // clang-format on
 

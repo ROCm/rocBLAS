@@ -16,6 +16,10 @@
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_rot.hpp"
+#include "testing_rotg.hpp"
+#include "testing_rotm.hpp"
+#include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_vector.hpp"
@@ -156,6 +160,14 @@ struct perf_blas<
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
+        else if (!strcmp(arg.function, "rot"))
+            testing_rot<T>(arg);
+        else if (!strcmp(arg.function, "rotg"))
+            testing_rotg<T>(arg);
+        else if (!strcmp(arg.function, "rotm"))
+            testing_rotm<T>(arg);
+        else if (!strcmp(arg.function, "rotmg"))
+            testing_rotmg<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));

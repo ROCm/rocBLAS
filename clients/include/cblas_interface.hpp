@@ -326,6 +326,74 @@ inline void cblas_swap(rocblas_int             n,
     cblas_zswap(n, x, incx, y, incy);
 }
 
+// rot
+
+template <typename T>
+inline void cblas_rot(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const T* c, const T* s);
+
+template <>
+inline void cblas_rot(rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy, const float* c, const float* s)
+{
+    cblas_srot(n, x, incx, y, incy, *c, *s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy, const double* c, const double* s)
+{
+    cblas_drot(n, x, incx, y, incy, *c, *s);
+}
+
+// rotg
+
+template <typename T>
+inline void cblas_rotg(T* a, T* b, T* c, T* s);
+
+template <>
+inline void cblas_rotg(float* a, float* b, float* c, float* s)
+{
+    cblas_srotg(a, b, c, s);
+}
+
+template <>
+inline void cblas_rotg(double* a, double* b, double* c, double* s)
+{
+    cblas_drotg(a, b, c, s);
+}
+
+// rotm
+
+template <typename T>
+inline void cblas_rotm(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const T* p);
+
+template <>
+inline void cblas_rotm(rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy, const float* p)
+{
+    cblas_srotm(n, x, incx, y, incy, p);
+}
+
+template <>
+inline void cblas_rotm(rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy, const double* p)
+{
+    cblas_drotm(n, x, incx, y, incy, p);
+}
+
+// rotmg
+
+template <typename T>
+inline void cblas_rotmg(T* d1, T* d2, T* b1, const T* b2, T* p);
+
+template <>
+inline void cblas_rotmg(float* d1, float* d2, float* b1, const float* b2, float* p)
+{
+    cblas_srotmg(d1, d2, b1, *b2, p);
+}
+
+template <>
+inline void cblas_rotmg(double* d1, double* d2, double* b1, const double* b2, double* p)
+{
+    cblas_drotmg(d1, d2, b1, *b2, p)
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
