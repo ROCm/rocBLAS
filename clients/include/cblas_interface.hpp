@@ -391,7 +391,7 @@ inline void cblas_rotmg(float* d1, float* d2, float* b1, const float* b2, float*
 template <>
 inline void cblas_rotmg(double* d1, double* d2, double* b1, const double* b2, double* p)
 {
-    cblas_drotmg(d1, d2, b1, *b2, p)
+    cblas_drotmg(d1, d2, b1, *b2, p);
 }
 
 /*
