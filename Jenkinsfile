@@ -29,10 +29,10 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = './install.sh -c'
+    rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx900 && centos7', 'gfx906 && centos7', 'gfx900 && hip-clang', 'gfx906 && hip-clang'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && centos7'], rocblas)
 
     boolean formatCheck = true
 
@@ -49,15 +49,7 @@ rocBLASCI:
             command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/hip/bin/hipcc sudo ${project.paths.build_command} --hip-clang
-                    """
-        }
-        else if(platform.jenkinsLabel.contains('centos'))
-        {
-            command = """#!/usr/bin/env bash
-                    set -x
-                    cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc sudo ${project.paths.build_command}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
         }
         else
@@ -79,25 +71,55 @@ rocBLASCI:
 
         if(platform.jenkinsLabel.contains('centos'))
         {
-            command = """#!/usr/bin/env bash
-                    set -x
-                    cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes #--gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
-                """
-            
-            platform.runCommand(this, command)
-            junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            if(auxiliary.isJobStartedByTimer())
+            {
+                command = """#!/usr/bin/env bash
+                        set -x
+                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                    """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
+            else
+            {
+                command = """#!/usr/bin/env bash
+                        set -x
+                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                    """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
         }
         else
         {
-            command = """#!/usr/bin/env bash
-                    set -x
-                    cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes #--gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
-                """
-            
-            platform.runCommand(this, command)
-            junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            if(auxiliary.isJobStartedByTimer())
+            {
+                command = """#!/usr/bin/env bash
+                        set -x
+                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                    """
+                
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
+            else
+            {
+                command = """#!/usr/bin/env bash
+                        set -x
+                        cd ${project.paths.project_build_prefix}/build/release/clients/staging
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
+                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                    """
+        
+                platform.runCommand(this, command)
+                junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+            }
         }
     }
 
@@ -112,10 +134,10 @@ rocBLASCI:
             command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
-                    sudo make package
-                    sudo rm -rf package && sudo mkdir -p package
-                    sudo mv *.rpm package/
-                    sudo rpm -qlp package/*.rpm
+                    make package
+                    rm -rf package && mkdir -p package
+                    mv *.rpm package/
+                    rpm -qlp package/*.rpm
                 """
 
             platform.runCommand(this, command)
