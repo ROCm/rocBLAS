@@ -226,6 +226,33 @@ inline void cblas_dot(rocblas_int                   n,
     cblas_zdotu_sub(n, x, incx, y, incy, result);
 }
 
+// dotc
+template <typename T>
+void cblas_dotc(
+    rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* result);
+
+template <>
+inline void cblas_dotc(rocblas_int                  n,
+                       const rocblas_float_complex* x,
+                       rocblas_int                  incx,
+                       const rocblas_float_complex* y,
+                       rocblas_int                  incy,
+                       rocblas_float_complex*       result)
+{
+    cblas_cdotc_sub(n, x, incx, y, incy, result);
+}
+
+template <>
+inline void cblas_dotc(rocblas_int                   n,
+                       const rocblas_double_complex* x,
+                       rocblas_int                   incx,
+                       const rocblas_double_complex* y,
+                       rocblas_int                   incy,
+                       rocblas_double_complex*       result)
+{
+    cblas_zdotc_sub(n, x, incx, y, incy, result);
+}
+
 // nrm2
 template <typename T1, typename T2>
 void cblas_nrm2(rocblas_int n, const T1* x, rocblas_int incx, T2* result);
@@ -257,8 +284,8 @@ inline void
 }
 
 // scal
-template <typename T>
-inline void cblas_scal(rocblas_int n, T alpha, T* x, rocblas_int incx);
+template <typename T, typename U>
+inline void cblas_scal(rocblas_int n, U alpha, T* x, rocblas_int incx);
 
 template <>
 inline void cblas_scal(rocblas_int n, float alpha, float* x, rocblas_int incx)
@@ -288,6 +315,18 @@ inline void cblas_scal(rocblas_int             n,
                        rocblas_int             incx)
 {
     cblas_zscal(n, &alpha, x, incx);
+}
+
+template <>
+inline void cblas_scal(rocblas_int n, float alpha, rocblas_float_complex* x, rocblas_int incx)
+{
+    cblas_csscal(n, alpha, x, incx);
+}
+
+template <>
+inline void cblas_scal(rocblas_int n, double alpha, rocblas_double_complex* x, rocblas_int incx)
+{
+    cblas_zdscal(n, alpha, x, incx);
 }
 
 // swap
@@ -427,18 +466,8 @@ inline void cblas_gemv(rocblas_operation transA,
                        float*            y,
                        rocblas_int       incy)
 {
-    cblas_sgemv(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                m,
-                n,
-                alpha,
-                A,
-                lda,
-                x,
-                incx,
-                beta,
-                y,
-                incy);
+    cblas_sgemv(
+        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <>
@@ -454,18 +483,8 @@ inline void cblas_gemv(rocblas_operation transA,
                        double*           y,
                        rocblas_int       incy)
 {
-    cblas_dgemv(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                m,
-                n,
-                alpha,
-                A,
-                lda,
-                x,
-                incx,
-                beta,
-                y,
-                incy);
+    cblas_dgemv(
+        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <>
@@ -481,18 +500,8 @@ inline void cblas_gemv(rocblas_operation      transA,
                        rocblas_float_complex* y,
                        rocblas_int            incy)
 {
-    cblas_cgemv(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                m,
-                n,
-                &alpha,
-                A,
-                lda,
-                x,
-                incx,
-                &beta,
-                y,
-                incy);
+    cblas_cgemv(
+        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
 template <>
@@ -508,18 +517,8 @@ inline void cblas_gemv(rocblas_operation       transA,
                        rocblas_double_complex* y,
                        rocblas_int             incy)
 {
-    cblas_zgemv(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                m,
-                n,
-                &alpha,
-                A,
-                lda,
-                x,
-                incx,
-                &beta,
-                y,
-                incy);
+    cblas_zgemv(
+        CblasColMajor, CBLAS_TRANSPOSE(transA), m, n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
 // trsv
@@ -544,9 +543,9 @@ inline void cblas_trsv(rocblas_fill      uplo,
                        rocblas_int       incx)
 {
     cblas_strsv(CblasColMajor,
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 A,
                 lda,
@@ -565,9 +564,9 @@ inline void cblas_trsv(rocblas_fill      uplo,
                        rocblas_int       incx)
 {
     cblas_dtrsv(CblasColMajor,
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 A,
                 lda,
@@ -597,9 +596,9 @@ inline void cblas_trmv(rocblas_fill      uplo,
                        rocblas_int       incx)
 {
     cblas_strmv(CblasColMajor,
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 A,
                 lda,
@@ -618,9 +617,9 @@ inline void cblas_trmv(rocblas_fill      uplo,
                        rocblas_int       incx)
 {
     cblas_dtrmv(CblasColMajor,
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 A,
                 lda,
@@ -653,8 +652,7 @@ inline void cblas_symv(rocblas_fill uplo,
                        float*       y,
                        rocblas_int  incy)
 {
-    cblas_ssymv(
-        CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, alpha, A, lda, x, incx, beta, y, incy);
+    cblas_ssymv(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <>
@@ -669,8 +667,7 @@ inline void cblas_symv(rocblas_fill uplo,
                        double*      y,
                        rocblas_int  incy)
 {
-    cblas_dsymv(
-        CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, alpha, A, lda, x, incx, beta, y, incy);
+    cblas_dsymv(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 // ger
@@ -727,7 +724,7 @@ inline void cblas_syr(rocblas_fill uplo,
                       float*       A,
                       rocblas_int  lda)
 {
-    cblas_ssyr(CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, alpha, x, incx, A, lda);
+    cblas_ssyr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
 }
 
 template <>
@@ -739,7 +736,7 @@ inline void cblas_syr(rocblas_fill uplo,
                       double*      A,
                       rocblas_int  lda)
 {
-    cblas_dsyr(CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, alpha, x, incx, A, lda);
+    cblas_dsyr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
 }
 
 // hemv
@@ -767,8 +764,7 @@ inline void cblas_hemv(rocblas_fill           uplo,
                        rocblas_float_complex* y,
                        rocblas_int            incy)
 {
-    cblas_chemv(
-        CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
+    cblas_chemv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
 template <>
@@ -783,8 +779,7 @@ inline void cblas_hemv(rocblas_fill            uplo,
                        rocblas_double_complex* y,
                        rocblas_int             incy)
 {
-    cblas_zhemv(
-        CblasColMajor, static_cast<CBLAS_UPLO>(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
+    cblas_zhemv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
 /*
@@ -827,8 +822,8 @@ inline void cblas_gemm(rocblas_operation transA,
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
     cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
                 m,
                 n,
                 k,
@@ -860,17 +855,17 @@ inline void cblas_gemm(rocblas_operation transA,
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
     cblas_sgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
                 m,
                 n,
                 k,
-                static_cast<float>(alpha),
+                float(alpha),
                 A,
                 lda,
                 B,
                 ldb,
-                static_cast<float>(beta),
+                float(beta),
                 C,
                 ldc);
 }
@@ -891,8 +886,8 @@ inline void cblas_gemm(rocblas_operation transA,
                        rocblas_int       ldc)
 {
     cblas_dgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
                 m,
                 n,
                 k,
@@ -923,8 +918,8 @@ inline void cblas_gemm(rocblas_operation      transA,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_cgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
                 m,
                 n,
                 k,
@@ -954,8 +949,8 @@ inline void cblas_gemm(rocblas_operation       transA,
                        rocblas_int             ldc)
 {
     cblas_zgemm(CblasColMajor,
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_TRANSPOSE>(transB),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_TRANSPOSE(transB),
                 m,
                 n,
                 k,
@@ -998,10 +993,10 @@ inline void cblas_trsm(rocblas_side      side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_strsm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 alpha,
@@ -1026,10 +1021,10 @@ inline void cblas_trsm(rocblas_side      side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_dtrsm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 alpha,
@@ -1054,10 +1049,10 @@ inline void cblas_trsm(rocblas_side                 side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_ctrsm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 &alpha,
@@ -1082,10 +1077,10 @@ inline void cblas_trsm(rocblas_side                  side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_ztrsm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 &alpha,
@@ -1148,10 +1143,10 @@ inline void cblas_trmm(rocblas_side      side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_strmm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 alpha,
@@ -1176,10 +1171,10 @@ inline void cblas_trmm(rocblas_side      side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_dtrmm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 alpha,
@@ -1204,10 +1199,10 @@ inline void cblas_trmm(rocblas_side                 side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_ctrmm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 &alpha,
@@ -1232,10 +1227,10 @@ inline void cblas_trmm(rocblas_side                  side,
 {
     // just directly cast, since transA, transB are integers in the enum
     cblas_ztrmm(CblasColMajor,
-                static_cast<CBLAS_SIDE>(side),
-                static_cast<CBLAS_UPLO>(uplo),
-                static_cast<CBLAS_TRANSPOSE>(transA),
-                static_cast<CBLAS_DIAG>(diag),
+                CBLAS_SIDE(side),
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
                 m,
                 n,
                 &alpha,

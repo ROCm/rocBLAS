@@ -22,7 +22,7 @@ void testing_trtri(const Arguments& arg)
     rocblas_int ldinvA;
     ldinvA = lda = arg.lda;
 
-    size_t size_A = static_cast<size_t>(lda) * N;
+    size_t size_A = size_t(lda) * N;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;

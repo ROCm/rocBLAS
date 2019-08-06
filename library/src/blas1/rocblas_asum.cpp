@@ -107,26 +107,22 @@ rocblas_status rocblas_dasum(
     return rocblas_asum(handle, n, x, incx, result);
 }
 
-#if 0 // complex not supported
-
-rocblas_status rocblas_scasum(rocblas_handle handle,
-                              rocblas_int n,
+rocblas_status rocblas_scasum(rocblas_handle               handle,
+                              rocblas_int                  n,
                               const rocblas_float_complex* x,
-                              rocblas_int incx,
-                              float* result)
+                              rocblas_int                  incx,
+                              float*                       result)
 {
     return rocblas_asum(handle, n, x, incx, result);
 }
 
-rocblas_status rocblas_dzasum(rocblas_handle handle,
-                              rocblas_int n,
+rocblas_status rocblas_dzasum(rocblas_handle                handle,
+                              rocblas_int                   n,
                               const rocblas_double_complex* x,
-                              rocblas_int incx,
-                              double* result)
+                              rocblas_int                   incx,
+                              double*                       result)
 {
     return rocblas_asum(handle, n, x, incx, result);
 }
-
-#endif
 
 } // extern "C"

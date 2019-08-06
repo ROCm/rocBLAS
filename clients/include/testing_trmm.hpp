@@ -35,8 +35,8 @@ void testing_trmm(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_int K      = (side == rocblas_side_left ? M : N);
-    size_t      size_A = lda * static_cast<size_t>(K);
-    size_t      size_B = ldb * static_cast<size_t>(N);
+    size_t      size_A = lda * size_t(K);
+    size_t      size_B = ldb * size_t(N);
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < 0 || ldb < 0)

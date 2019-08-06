@@ -28,9 +28,9 @@
  */
 
 // scal
-template <typename T>
+template <typename T, typename U = T>
 rocblas_status (*rocblas_scal)(
-    rocblas_handle handle, rocblas_int n, const T* alpha, T* x, rocblas_int incx);
+    rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx);
 
 template <>
 static constexpr auto rocblas_scal<float> = rocblas_sscal;
@@ -38,13 +38,17 @@ static constexpr auto rocblas_scal<float> = rocblas_sscal;
 template <>
 static constexpr auto rocblas_scal<double> = rocblas_dscal;
 
-/* not implemented
 template <>
 static constexpr auto rocblas_scal<rocblas_float_complex> = rocblas_cscal;
 
 template <>
 static constexpr auto rocblas_scal<rocblas_double_complex> = rocblas_zscal;
-*/
+
+template <>
+static constexpr auto rocblas_scal<rocblas_float_complex, float> = rocblas_csscal;
+
+template <>
+static constexpr auto rocblas_scal<rocblas_double_complex, double> = rocblas_zdscal;
 
 // copy
 template <typename T>
@@ -57,14 +61,11 @@ static constexpr auto rocblas_copy<float> = rocblas_scopy;
 template <>
 static constexpr auto rocblas_copy<double> = rocblas_dcopy;
 
-/* not implemented
 template <>
 static constexpr auto rocblas_copy<rocblas_float_complex> = rocblas_ccopy;
 
 template <>
 static constexpr auto rocblas_copy<rocblas_double_complex> = rocblas_zcopy;
-}
-*/
 
 // swap
 template <typename T>
@@ -77,15 +78,11 @@ static constexpr auto rocblas_swap<float> = rocblas_sswap;
 template <>
 static constexpr auto rocblas_swap<double> = rocblas_dswap;
 
-/* not implemented
-
 template <>
 static constexpr auto rocblas_swap<rocblas_float_complex> = rocblas_cswap;
 
 template <>
 static constexpr auto rocblas_swap<rocblas_double_complex> = rocblas_zswap;
-
-*/
 
 // dot
 template <typename T>
@@ -103,13 +100,27 @@ static constexpr auto rocblas_dot<float> = rocblas_sdot;
 template <>
 static constexpr auto rocblas_dot<double> = rocblas_ddot;
 
-/* not implemented
 template <>
 static constexpr auto rocblas_dot<rocblas_float_complex> = rocblas_cdotu;
 
 template <>
 static constexpr auto rocblas_dot<rocblas_double_complex> = rocblas_zdotu;
-*/
+
+// dotc
+template <typename T>
+rocblas_status (*rocblas_dotc)(rocblas_handle handle,
+                               rocblas_int    n,
+                               const T*       x,
+                               rocblas_int    incx,
+                               const T*       y,
+                               rocblas_int    incy,
+                               T*             result);
+
+template <>
+static constexpr auto rocblas_dotc<rocblas_float_complex> = rocblas_cdotc;
+
+template <>
+static constexpr auto rocblas_dotc<rocblas_double_complex> = rocblas_zdotc;
 
 // asum
 template <typename T1, typename T2>
@@ -122,13 +133,11 @@ static constexpr auto rocblas_asum<float, float> = rocblas_sasum;
 template <>
 static constexpr auto rocblas_asum<double, double> = rocblas_dasum;
 
-/* not implemented
-template<>
+template <>
 static constexpr auto rocblas_asum<rocblas_float_complex, float> = rocblas_scasum;
 
-template<>
+template <>
 static constexpr auto rocblas_asum<rocblas_double_complex, double> = rocblas_dzasum;
-*/
 
 // nrm2
 template <typename T1, typename T2>
@@ -141,13 +150,11 @@ static constexpr auto rocblas_nrm2<float, float> = rocblas_snrm2;
 template <>
 static constexpr auto rocblas_nrm2<double, double> = rocblas_dnrm2;
 
-/* not implemented
 template <>
 static constexpr auto rocblas_nrm2<rocblas_float_complex, float> = rocblas_scnrm2;
 
 template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
-*/
 
 // iamax and iamin need to be full functions rather than references, in order
 // to allow them to be passed as template arguments
@@ -171,6 +178,26 @@ inline rocblas_status rocblas_iamax(
     return rocblas_idamax(handle, n, x, incx, result);
 }
 
+template <>
+inline rocblas_status rocblas_iamax(rocblas_handle               handle,
+                                    rocblas_int                  n,
+                                    const rocblas_float_complex* x,
+                                    rocblas_int                  incx,
+                                    rocblas_int*                 result)
+{
+    return rocblas_icamax(handle, n, x, incx, result);
+}
+
+template <>
+inline rocblas_status rocblas_iamax(rocblas_handle                handle,
+                                    rocblas_int                   n,
+                                    const rocblas_double_complex* x,
+                                    rocblas_int                   incx,
+                                    rocblas_int*                  result)
+{
+    return rocblas_izamax(handle, n, x, incx, result);
+}
+
 // iamin
 template <typename T>
 rocblas_status rocblas_iamin(
@@ -188,6 +215,26 @@ inline rocblas_status rocblas_iamin(
     rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result)
 {
     return rocblas_idamin(handle, n, x, incx, result);
+}
+
+template <>
+inline rocblas_status rocblas_iamin(rocblas_handle               handle,
+                                    rocblas_int                  n,
+                                    const rocblas_float_complex* x,
+                                    rocblas_int                  incx,
+                                    rocblas_int*                 result)
+{
+    return rocblas_icamin(handle, n, x, incx, result);
+}
+
+template <>
+inline rocblas_status rocblas_iamin(rocblas_handle                handle,
+                                    rocblas_int                   n,
+                                    const rocblas_double_complex* x,
+                                    rocblas_int                   incx,
+                                    rocblas_int*                  result)
+{
+    return rocblas_izamin(handle, n, x, incx, result);
 }
 
 // axpy
@@ -209,13 +256,11 @@ static constexpr auto rocblas_axpy<float> = rocblas_saxpy;
 template <>
 static constexpr auto rocblas_axpy<double> = rocblas_daxpy;
 
-/* not implemented
 template <>
 static constexpr auto rocblas_axpy<rocblas_float_complex> = rocblas_caxpy;
 
 template <>
 static constexpr auto rocblas_axpy<rocblas_double_complex> = rocblas_zaxpy;
-*/
 
 // rot
 template <typename T>
@@ -341,6 +386,12 @@ static constexpr auto rocblas_gemv<float> = rocblas_sgemv;
 
 template <>
 static constexpr auto rocblas_gemv<double> = rocblas_dgemv;
+
+template <>
+static constexpr auto rocblas_gemv<rocblas_float_complex> = rocblas_cgemv;
+
+template <>
+static constexpr auto rocblas_gemv<rocblas_double_complex> = rocblas_zgemv;
 
 // trsv
 template <typename T>

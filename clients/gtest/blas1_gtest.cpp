@@ -29,6 +29,7 @@ namespace
         axpy,
         copy,
         dot,
+        dotc,
         scal,
         swap,
         rot,
@@ -58,13 +59,13 @@ namespace
             RocBLAS_TestName<blas1_test_template> name;
             name << rocblas_datatype2string(arg.a_type);
 
-            if((BLAS1 == blas1::nrm2 || BLAS1 == blas1::asum) && arg.a_type != arg.d_type)
-                name << rocblas_datatype2string(arg.d_type);
+            if(BLAS1 == blas1::scal && arg.a_type != arg.b_type)
+                name << '_' << rocblas_datatype2string(arg.b_type);
 
             name << '_' << arg.N;
 
             if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
-                name << '_' << arg.alpha;
+                name << '_' << arg.alpha << "_" << arg.alphai;
 
             name << '_' << arg.incx;
 
@@ -78,12 +79,58 @@ namespace
 
     // This tells whether the BLAS1 tests are enabled
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
-    using blas1_enabled
-        = std::integral_constant<bool,
-                                 std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
-                                     && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
-                                         || (std::is_same<Ti, rocblas_half>{}
-                                             && BLAS1 == blas1::axpy))>;
+    using blas1_enabled = std::integral_constant<
+        bool,
+        (BLAS1 == blas1::asum && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+         && (std::is_same<Ti, rocblas_float_complex>{} || std::is_same<Ti, rocblas_double_complex>{}
+             || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::axpy && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::dot && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::dotc && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{}))
+
+            || (BLAS1 == blas1::nrm2 && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::scal && std::is_same<To, Tc>{}
+                && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
+
+            || (BLAS1 == blas1::iamax && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::iamin && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::copy && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                    || std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{}))
+
+            || (BLAS1 == blas1::swap && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
+                    || std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -135,14 +182,15 @@ INSTANTIATE_TEST_CATEGORIES(NAME)
 #define ARG2(Ti, To, Tc) Ti, To
 #define ARG3(Ti, To, Tc) Ti, To, Tc
 
-BLAS1_TESTING(asum,  ARG2)
-BLAS1_TESTING(nrm2,  ARG2)
+BLAS1_TESTING(asum,  ARG1)
+BLAS1_TESTING(nrm2,  ARG1)
 BLAS1_TESTING(iamax, ARG1)
 BLAS1_TESTING(iamin, ARG1)
 BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
-BLAS1_TESTING(scal,  ARG1)
+BLAS1_TESTING(dotc,  ARG1)
+BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
 BLAS1_TESTING(rot,   ARG1)
 BLAS1_TESTING(rotg,  ARG1)
