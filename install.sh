@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-#set -x #echo on
+set -x #echo on
 
 # #################################################
 # helper functions
