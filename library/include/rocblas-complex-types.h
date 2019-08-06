@@ -10,7 +10,7 @@
 #ifndef _ROCBLAS_COMPLEX_TYPES_H_
 #define _ROCBLAS_COMPLEX_TYPES_H_
 
-#if __cplusplus < 201402L || !defined(__HCC__)
+#if __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 // If this is a C compiler, C++ compiler below C++14, or a host-only compiler, we only
 // include minimal definitions of rocblas_float_complex and rocblas_double_complex
@@ -24,7 +24,7 @@ typedef struct
     double x, y;
 } rocblas_double_complex;
 
-#else // __cplusplus < 201402L || !defined(__HCC__)
+#else // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 // If this a full internal build, we need full support of complex arithmetic
 // and classes. We need __host__ and __device__ so we use <hip/hip_runtime.h>.
@@ -115,7 +115,7 @@ public:
         return (x += T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}>::type* = 0>
+    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
     __device__ __host__ auto& operator-=(const U& rhs)
     {
         return (x -= T(rhs)), *this;
@@ -376,6 +376,6 @@ static constexpr bool is_complex<rocblas_float_complex> = true;
 template <>
 static constexpr bool is_complex<rocblas_double_complex> = true;
 
-#endif // __cplusplus < 201402L || !defined(__HCC__)
+#endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 #endif
