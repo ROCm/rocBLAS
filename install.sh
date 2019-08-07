@@ -323,7 +323,11 @@ fi
 if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
   git submodule update --init
   cd extern/blis
-  ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp intel64
+  if [[ -z "uname -a | grep 16.04.*Ubuntu" ]]; then
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp zen
+  else
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+  fi
   make install
   cd ../..
 fi
