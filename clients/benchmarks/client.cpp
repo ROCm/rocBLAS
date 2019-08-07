@@ -143,6 +143,10 @@ struct perf_blas<
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "ger"))
             testing_ger<T>(arg);
+        else if(!strcmp(arg.function, "ger_batched"))
+            testing_ger_batched<T>(arg);
+        else if(!strcmp(arg.function, "ger_strided_batched"))
+            testing_ger_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "syr"))
             testing_syr<T>(arg);
         else if(!strcmp(arg.function, "trtri"))
@@ -499,6 +503,16 @@ try
          value<rocblas_int>(&arg.stride_d)->default_value(128*128),
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
+
+        ("stride_x",
+         value<rocblas_int>(&arg.stride_x)->default_value(128*128),
+         "Specific stride of strided_batched vector x, is only applicable to strided batched"
+         "BLAS_2: second dimension.")
+
+         ("stride_y",
+         value<rocblas_int>(&arg.stride_y)->default_value(128*128),
+         "Specific stride of strided_batched vector y, is only applicable to strided batched"
+         "BLAS_2: leading dimension.")
 
         ("incx",
          value<rocblas_int>(&arg.incx)->default_value(1),
