@@ -394,15 +394,15 @@ hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
                           rocblas_handle               handle)
 {
     static_assert(std::is_standard_layout<TensileComplexFloat>{},
-                  "rocblas_float_complex is not a standard layout type, and thus is "
+                  "TensileComplexFloat is not a standard layout type, and thus is "
                   "incompatible with C.");
 
     static_assert(std::is_trivial<TensileComplexFloat>{},
-                  "rocblas_float_complex is not a trivial type, and thus is "
+                  "TensileComplexFloat is not a trivial type, and thus is "
                   "incompatible with C.");
 
     static_assert(sizeof(rocblas_float_complex) == sizeof(TensileComplexFloat),
-                  "internal rocblas_float_complex does not match public rocblas_float_complex");
+                  "TensileComplexFloat does not match rocblas_float_complex");
 
     hipError_t status = hipErrorInvalidValue;
 
@@ -461,15 +461,15 @@ hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
                           rocblas_handle                handle)
 {
     static_assert(std::is_standard_layout<TensileComplexDouble>{},
-                  "rocblas_float_complex is not a standard layout type, and thus is "
+                  "TensileComplexDouble is not a standard layout type, and thus is "
                   "incompatible with C.");
 
     static_assert(std::is_trivial<TensileComplexDouble>{},
-                  "rocblas_float_complex is not a trivial type, and thus is "
+                  "TensileComplexDouble is not a trivial type, and thus is "
                   "incompatible with C.");
 
     static_assert(sizeof(rocblas_double_complex) == sizeof(TensileComplexDouble),
-                  "internal rocblas_float_complex does not match public rocblas_double_complex");
+                  "TensileComplexDouble does not match rocblas_double_complex");
 
     hipError_t status = hipErrorInvalidValue;
 
@@ -658,10 +658,15 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha)
-                        << (std::imag(*alpha) != 0
-                            ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                            : "");
+                alphass << "--alpha " << std::real(*alpha);
+                if (std::imag(*alpha) != 0)
+                    alphass << " --alphai " << std::imag(*alpha);
+
+                std::stringstream betass;
+                betass << "--beta " << std::real(*beta);
+                if (std::imag(*beta) != 0)
+                    betass << " --betai " << std::imag(*beta);
+
                 log_bench(handle,
                           "./rocblas-bench -f gemm -r",
                           rocblas_precision_string<T>,
@@ -680,8 +685,7 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                           ld_a,
                           "--ldb",
                           ld_b,
-                          "--beta",
-                          *beta,
+                          betass.str(),
                           "--ldc",
                           ld_c);
             }
@@ -850,10 +854,14 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha)
-                        << (std::imag(*alpha) != 0
-                            ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                            : "");
+                alphass << "--alpha " << std::real(*alpha);
+                if (std::imag(*alpha) != 0)
+                    alphass << " --alphai " << std::imag(*alpha);
+
+                std::stringstream betass;
+                betass << "--beta " << std::real(*beta);
+                if (std::imag(*beta) != 0)
+                    betass << " --betai " << std::imag(*beta);
 
                 log_bench(handle,
                           "./rocblas-bench -f gemm_strided_batched -r",
@@ -877,8 +885,7 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
                           ld_b,
                           "--stride_b",
                           stride_b,
-                          "--beta",
-                          *beta,
+                          betass.str(),
                           "--ldc",
                           ld_c,
                           "--stride_c",

@@ -153,7 +153,7 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init<T>(hA, A_row, A_col, lda);
         rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init<T>(hC_1, M, N, ldc);
@@ -162,7 +162,7 @@ void testing_gemm(const Arguments& arg)
     {
         rocblas_init_sin<T>(hA, A_row, A_col, lda);
         rocblas_init_cos<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_sin<T>(hC_1, M, N, ldc);
@@ -172,7 +172,7 @@ void testing_gemm(const Arguments& arg)
         rocblas_seedrand();
         rocblas_init_hpl<T>(hA, A_row, A_col, lda);
         rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta))
+        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_hpl<T>(hC_1, M, N, ldc);

@@ -219,9 +219,24 @@ Definitions:
     - { transA: T, transB: C }
 
   - &alpha_beta_range
-    - { alpha:  1.0, beta:  0.0, alphai:  1.0, betai:  0.0 }
-    - { alpha: -2.0, beta: -3.0, alphai: -1.0, betai: -1.0 }
-    - { alpha:  0.0, beta:  1.0, alphai:  1.0, betai:  2.0 }
+    - { alpha:  1.0, beta:  0.0 }
+    - { alpha: -2.0, beta: -3.0 }
+    - { alpha:  0.0, beta:  1.0 }
+
+  - &complex_alpha_beta_range
+    - { alpha:  5, beta:  0, alphai:  5, betai:  0 }
+    - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
+    - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
+    - { alpha: -5, beta:  0, alphai:  0, betai: -5 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  3 }
+    - { alpha:  0, beta:  3, alphai:  3, betai:  0 }
+    - { alpha:  0, beta: -3, alphai:  0, betai: -3 }
+    - { alpha:  0, beta: -3, alphai: -3, betai:  0 }
+    - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
+    - { alpha:  1, beta:  3, alphai: -3, betai: -1 }
+    - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
+    - { alpha: -1, beta: -3, alphai: -3, betai: -1 }
+    - { alpha:  0, beta:  0, alphai:  0, betai:  0 }
 
 Tests:
 - name: gemm_strided_batched_bad_arg
@@ -246,7 +261,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ -1.0, 0.0, 1.0, 2.0 ]
-  alphai: [ -1.0, 1.0 ]
+  alphai: [ -1.0, 0.0, 1.0 ]
   beta: .NaN  # converted to 0.0 in test code
   betai: .NaN
   batch_count: [ 1, 3 ]
@@ -269,7 +284,7 @@ Tests:
     gemm_strided_batched: *single_double_precisions_complex
     gemm_strided_batched_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
 
@@ -318,7 +333,7 @@ Tests:
     gemm_strided_batched_ex: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
   batch_count: [ -1, 0, 1, 3, 63..65 ]
 
 - name: gemm_strided_batched_medium_stride_zero
@@ -366,7 +381,7 @@ Tests:
     gemm_strided_batched_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
 
 - name: gemm_strided_batched_large_stride_zero

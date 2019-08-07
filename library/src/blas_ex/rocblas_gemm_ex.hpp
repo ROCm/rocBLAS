@@ -361,7 +361,7 @@ inline TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4, TensileInt32, Tensi
 }
 
 //----- typename_data=rocblas_float_complex ---------- typename_compute = rocblas_float_complex --------------------------
-#define TENSILE_COPMLEX_OUT_ARGS(Ti, To, Tc)                                        \
+#define TENSILE_COMPLEX_OUT_ARGS(Ti, To, Tc)                                        \
     (To*)dataD, (const To*)dataC, (const Ti*)dataA, (const Ti*)dataB,               \
         *((Tc*)&alpha), *((Tc*)&beta),                                              \
         strideD1J, strideD2K, strideC1J, strideC2K,                                 \
@@ -369,136 +369,136 @@ inline TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4, TensileInt32, Tensi
         sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
 
 static_assert(std::is_standard_layout<TensileComplexFloat>{},
-          "rocblas_float_complex is not a standard layout type, and thus is "
+          "TensileComplexFloat is not a standard layout type, and thus is "
           "incompatible with C.");
 
 static_assert(std::is_trivial<TensileComplexFloat>{},
-          "rocblas_float_complex is not a trivial type, and thus is "
+          "TensileComplexFloat is not a trivial type, and thus is "
           "incompatible with C.");
 
 static_assert(sizeof(rocblas_float_complex) == sizeof(TensileComplexFloat),
-          "internal rocblas_float_complex does not match public rocblas_float_complex");
+          "TensileComplexFloat does not match public rocblas_float_complex");
 template <>
 inline TensileStatus tensile_Cijk_Ailk_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Ailk_Bljk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Ailk_Bljk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_Ailk_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Ailk_Bjlk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Ailk_Bjlk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Alik_Bljk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Alik_Bljk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Alik_Bjlk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Alik_Bjlk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 // Complex Conjugate
 template <>
 inline TensileStatus tensile_Cijk_Ailk_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Ailk_BjlkC_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Ailk_BjlkC_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_Bljk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_AlikC_Bljk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_AlikC_Bljk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_Alik_BjlkC_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_Alik_BjlkC_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_Bjlk_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_AlikC_Bjlk_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_AlikC_Bjlk_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_BjlkC_B<rocblas_float_complex,rocblas_float_complex,rocblas_float_complex>(
     TENSILE_IN_ARGS(rocblas_float_complex, rocblas_float_complex, rocblas_float_complex))
 {
-    return tensile_Cijk_AlikC_BjlkC_CB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
+    return tensile_Cijk_AlikC_BjlkC_CB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexFloat, TensileComplexFloat, TensileComplexFloat));
 }
 
 //----- typename_data = rocblas_double_complex ---------- typename_compute = rocblas_double_complex --------------------------
 static_assert(std::is_standard_layout<TensileComplexDouble>{},
-              "rocblas_float_complex is not a standard layout type, and thus is "
+              "TensileComplexDouble is not a standard layout type, and thus is "
               "incompatible with C.");
 
 static_assert(std::is_trivial<TensileComplexDouble>{},
-              "rocblas_float_complex is not a trivial type, and thus is "
+              "TensileComplexDouble is not a trivial type, and thus is "
               "incompatible with C.");
 
 static_assert(sizeof(rocblas_double_complex) == sizeof(TensileComplexDouble),
-              "internal rocblas_float_complex does not match public rocblas_double_complex");
+              "TensileComplexDouble does not match rocblas_double_complex");
 template <>
 inline TensileStatus tensile_Cijk_Ailk_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Ailk_Bljk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Ailk_Bljk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_Ailk_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Ailk_Bjlk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Ailk_Bjlk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Alik_Bljk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Alik_Bljk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Alik_Bjlk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Alik_Bjlk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 // Complex Conjugate
 template <>
 inline TensileStatus tensile_Cijk_Ailk_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Ailk_BjlkC_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Ailk_BjlkC_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_Bljk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_AlikC_Bljk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_AlikC_Bljk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_Alik_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_Alik_BjlkC_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_Alik_BjlkC_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_Bjlk_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_AlikC_Bjlk_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_AlikC_Bjlk_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 template <>
 inline TensileStatus tensile_Cijk_AlikC_BjlkC_B<rocblas_double_complex,rocblas_double_complex,rocblas_double_complex>(
     TENSILE_IN_ARGS(rocblas_double_complex, rocblas_double_complex, rocblas_double_complex))
 {
-    return tensile_Cijk_AlikC_BjlkC_ZB(TENSILE_COPMLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
+    return tensile_Cijk_AlikC_BjlkC_ZB(TENSILE_COMPLEX_OUT_ARGS(TensileComplexDouble, TensileComplexDouble, TensileComplexDouble));
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -547,7 +547,7 @@ inline TensileStatus call_tensile_ex(To* dataD,
     return tensileStatusFailure;
 }
 
-#undef TENSILE_COPMLEX_OUT_ARGS
+#undef TENSILE_COMPLEX_OUT_ARGS
 #undef TENSILE_IN_ARGS
 #undef TENSILE_OUT_ARGS
 

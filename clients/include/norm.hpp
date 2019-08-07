@@ -26,11 +26,7 @@
 /* ========================================Norm Check
  * ==================================================== */
 
-/*! \brief  Template: norm check for general Matrix: half/float/doubel/complex  */
-
-// use auto as the return type is only allowed in c++14
-// convert float/float to double
-
+/* LAPACK fortran library functionality */
 extern "C" {
 float  slange_(char* norm_type, int* m, int* n, float* A, int* lda, float* work);
 double dlange_(char* norm_type, int* m, int* n, double* A, int* lda, double* work);
@@ -55,15 +51,37 @@ void zaxpy_(int*                    n,
             int*                    incy);
 }
 
-inline float xlang(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work)
+/*! \brief  Overloading: norm check for general Matrix: half/float/doubel/complex */
+inline float xlange(char* norm_type, int* m, int* n, float* A, int* lda, float* work)
+{
+    return slange_(norm_type, m, n, A, lda, work);
+}
+
+inline double xlange(char* norm_type, int* m, int* n, double* A, int* lda, double* work)
+{
+    return dlange_(norm_type, m, n, A, lda, work);
+}
+
+inline float
+    xlange(char* norm_type, int* m, int* n, rocblas_float_complex* A, int* lda, float* work)
 {
     return clange_(norm_type, m, n, A, lda, work);
 }
 
 inline double
-    xlang(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work)
+    xlange(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* lda, double* work)
 {
     return zlange_(norm_type, m, n, A, lda, work);
+}
+
+inline float xlanhe(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work)
+{
+    return slansy_(norm_type, uplo, n, A, lda, work);
+}
+
+inline double xlanhe(char* norm_type, char* uplo, int* n, double* A, int* lda, double* work)
+{
+    return dlansy_(norm_type, uplo, n, A, lda, work);
 }
 
 inline float
@@ -72,10 +90,20 @@ inline float
     return clanhe_(norm_type, uplo, n, A, lda, work);
 }
 
-inline float
+inline double
     xlanhe(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work)
 {
     return zlanhe_(norm_type, uplo, n, A, lda, work);
+}
+
+inline void xaxpy(int* n, float* alpha, float* x, int* incx, float* y, int* incy)
+{
+    return saxpy_(n, alpha, x, incx, y, incy);
+}
+
+inline void xaxpy(int* n, double* alpha, double* x, int* incx, double* y, int* incy)
+{
+    return daxpy_(n, alpha, x, incx, y, incy);
 }
 
 inline void xaxpy(
@@ -96,7 +124,7 @@ inline void xaxpy(int*                    n,
 
 /* ============== Norm Check for General Matrix ============= */
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
-template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
 inline double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -104,8 +132,6 @@ inline double norm_check_general(
     // one norm is max column sum
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
-
-    double error_double = std::numeric_limits<double>::quiet_NaN();
 
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
@@ -121,15 +147,14 @@ inline double norm_check_general(
     double      alpha = -1.0;
     rocblas_int size  = lda * N;
 
-    double cpu_norm = dlange_(&norm_type, &M, &N, hCPU_double.data(), &lda, work);
-    daxpy_(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
-
-    double error = dlange_(&norm_type, &M, &N, hGPU_double.data(), &lda, work) / cpu_norm;
+    double cpu_norm = xlange(&norm_type, &M, &N, hCPU_double.data(), &lda, work);
+    xaxpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
+    double error = xlange(&norm_type, &M, &N, hGPU_double.data(), &lda, work) / cpu_norm;
 
     return error;
 }
 
-template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
 inline double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -143,21 +168,20 @@ inline double norm_check_general(
     decltype(std::real(*hCPU)) alpha = -1.0f;
     rocblas_int                size  = lda * N;
 
-    double cpu_norm = xlang(&norm_type, &M, &N, hCPU, &lda, work);
+    double cpu_norm = xlange(&norm_type, &M, &N, hCPU, &lda, work);
     xaxpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
-
-    double error = xlang(&norm_type, &M, &N, hGPU, &lda, work) / cpu_norm;
+    double error = xlange(&norm_type, &M, &N, hGPU, &lda, work) / cpu_norm;
 
     return error;
 }
 
 template <>
-inline double norm_check_general<rocblas_half, nullptr>(char          norm_type,
-                                                        rocblas_int   M,
-                                                        rocblas_int   N,
-                                                        rocblas_int   lda,
-                                                        rocblas_half* hCPU,
-                                                        rocblas_half* hGPU)
+inline double norm_check_general<rocblas_half, 0>(char          norm_type,
+                                                  rocblas_int   M,
+                                                  rocblas_int   N,
+                                                  rocblas_int   lda,
+                                                  rocblas_half* hCPU,
+                                                  rocblas_half* hGPU)
 {
     // norm type can be 'O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -217,7 +241,7 @@ inline double norm_check_general(char        norm_type,
 /* ============== Norm Check for Symmetric Matrix ============= */
 /*! \brief compare the norm error of two hermitian/symmetric matrices hCPU & hGPU */
 
-template <typename T, typename std::enable_if<!is_complex<T>>::type* = nullptr>
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
 inline double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -237,15 +261,14 @@ inline double norm_check_symmetric(
         hGPU_double[i] = double(hGPU[i]);
     }
 
-    double cpu_norm = dlansy_(&norm_type, &uplo, &N, hCPU_double, &lda, work);
-    daxpy_(&size, &alpha, hCPU_double, &incx, hGPU_double, &incx);
-
-    double error = dlansy_(&norm_type, &uplo, &N, hGPU_double, &lda, work) / cpu_norm;
+    double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU_double, &lda, work);
+    xaxpy(&size, &alpha, hCPU_double, &incx, hGPU_double, &incx);
+    double error = xlanhe(&norm_type, &uplo, &N, hGPU_double, &lda, work) / cpu_norm;
 
     return error;
 }
 
-template <typename T, typename std::enable_if<is_complex<T>>::type* = nullptr>
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
 inline double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
 {
@@ -258,19 +281,18 @@ inline double norm_check_symmetric(
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU, &lda, work);
     xaxpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
-
     double error = xlanhe(&norm_type, &uplo, &N, hGPU, &lda, work) / cpu_norm;
 
     return error;
 }
 
 template <>
-inline double norm_check_symmetric<rocblas_half, nullptr>(char          norm_type,
-                                                          char          uplo,
-                                                          rocblas_int   N,
-                                                          rocblas_int   lda,
-                                                          rocblas_half* hCPU,
-                                                          rocblas_half* hGPU)
+inline double norm_check_symmetric<rocblas_half, 0>(char          norm_type,
+                                                    char          uplo,
+                                                    rocblas_int   N,
+                                                    rocblas_int   lda,
+                                                    rocblas_half* hCPU,
+                                                    rocblas_half* hGPU)
 {
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);

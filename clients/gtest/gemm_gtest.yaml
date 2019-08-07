@@ -150,10 +150,25 @@ Definitions:
     - { M:   256, N: 24001, K:   256, lda:   256, ldb: 24000, ldc: 24040, ldd: 24040 }
 
   - &alpha_beta_range
-    - { alpha:  5, beta:  0, alphai:  0, betai: -3 }
-    - { alpha:  0, beta:  3, alphai: -3, betai:  0 }
-    - { alpha:  1, beta:  3, alphai:  0, betai:  4 }
-    - { alpha:  1, beta:  1, alphai:  4, betai:  0 }
+    - { alpha:  5, beta:  0 }
+    - { alpha:  0, beta:  3 }
+    - { alpha:  1, beta:  3 }
+    - { alpha:  1, beta:  1 }
+
+  - &complex_alpha_beta_range
+    - { alpha:  5, beta:  0, alphai:  5, betai:  0 }
+    - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
+    - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
+    - { alpha: -5, beta:  0, alphai:  0, betai: -5 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  3 }
+    - { alpha:  0, beta:  3, alphai:  3, betai:  0 }
+    - { alpha:  0, beta: -3, alphai:  0, betai: -3 }
+    - { alpha:  0, beta: -3, alphai: -3, betai:  0 }
+    - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
+    - { alpha:  1, beta:  3, alphai: -3, betai: -1 }
+    - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
+    - { alpha: -1, beta: -3, alphai: -3, betai: -1 }
+    - { alpha:  0, beta:  0, alphai:  0, betai:  0 }
 
   - &transA_transB_range
     - { transA: N, transB: N }
@@ -162,8 +177,8 @@ Definitions:
     - { transA: T, transB: C }
 
   - &deepbench_alpha_beta_range
-    - { alpha: 1, beta: 0, alphai: -1, betai:  0 }
-    - { alpha: 1, beta: 1, alphai:  0, betai: -1 }
+    - { alpha: 1, beta: 0 }
+    - { alpha: 1, beta: 1 }
 
   - &deepbench_transA_transB_range
     - { transA: N, transB: N }
@@ -2363,7 +2378,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ 0.0, 1.0, -1.0, 2.0 ]
-  alphai: [ -1.0, 1.0]
+  alphai: [ -1.0, 0.0, 1.0]
   beta: .NaN  # converted to 0.0 in test code
   betai: .NaN
 
@@ -2383,7 +2398,7 @@ Tests:
     gemm_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
 
 - name: gemm_medium
   category: pre_checkin
@@ -2401,7 +2416,7 @@ Tests:
     gemm_ex: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
 
 - name: gemm_large
   category: nightly
@@ -2419,7 +2434,7 @@ Tests:
     gemm_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *complex_alpha_beta_range
 
 - name: gemm_chunk
   category: pre_checkin
