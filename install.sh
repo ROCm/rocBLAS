@@ -323,7 +323,7 @@ fi
 if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
   git submodule update --init
   cd extern/blis
-  if grep -q 16.04 /etc/os-release; then
+  if grep -q 'Ubuntu 16.04' /etc/os-release; then
     echo "Choosing Zen"
     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp zen
   else
