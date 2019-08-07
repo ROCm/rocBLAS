@@ -72,6 +72,107 @@ Simple precisions: &half_single_double_precisions
   - *single_precision
   - *double_precision
 
+Complex precisions: &complex_precisions
+  - &half_precision_complex
+    { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f16_c }
+  - &hpa_half_precision_complex
+    { a_type: f16_c, b_type: f16_c, c_type: f16_c, d_type: f16_c, compute_type: f32_c }
+  - &single_precision_complex
+    { a_type: f32_c, b_type: f32_c, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &double_precision_complex
+    { a_type: f64_c, b_type: f64_c, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+  - &int8_precision_complex
+    { a_type:  i8_c, b_type:  i8_c, c_type: i32_c, d_type: i32_c, compute_type: i32_c }
+  - &hpa_bf16_precision_complex
+    { a_type:  bf16_c, b_type:  bf16_c, c_type: bf16_c, d_type: bf16_c, compute_type: f32_c }
+
+Half Precision complex and real: &half_precision_complex_real
+  - *half_precision
+  - *half_precision_complex
+
+Hpa Half Precision complex and real: &hpa_half_precision_complex_real
+  - *hpa_half_precision
+  - *hpa_half_precision_complex
+
+Single Precision complex and real: &single_precision_complex_real
+  - *single_precision
+  - *single_precision_complex
+
+Double Precision complex and real: &double_precision_complex_real
+  - *double_precision
+  - *double_precision_complex
+
+int8 Precision complex and real: &int8_precision_complex_real
+  - *int8_precision
+  - *int8_precision_complex
+
+hpabf16 Precision complex and real: &hpa_bf16_precision_complex_real
+  - *hpa_bf16_precision
+  - *hpa_bf16_precision_complex
+
+C precisions complex: &single_double_precisions_complex
+  - *single_precision_complex
+  - *double_precision_complex
+
+C precisions complex and real: &single_double_precisions_complex_real
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+
+Short simple precisions complex and real: &half_single_precisions_complex_real
+  - *half_precision
+  - *single_precision
+  - *half_precision_complex
+  - *single_precision_complex
+
+Short precisions complex and real: &int8_half_single_precisions_complex_real
+  - *int8_precision
+  - *half_precision
+  - *single_precision
+  - *int8_precision_complex
+  - *half_precision_complex
+  - *single_precision_complex
+
+ML precisions complex and real: &hpa_half_single_precisions_complex_real
+  - *hpa_half_precision
+  - *half_precision
+  - *single_precision
+  - *hpa_half_precision_complex
+  - *half_precision_complex
+  - *single_precision_complex
+
+Non-int precisions complex and real: &hpa_half_single_double_precisions_complex_real
+  - *hpa_half_precision
+  - *half_precision
+  - *single_precision
+  - *double_precision
+  - *hpa_half_precision_complex
+  - *half_precision_complex
+  - *single_precision_complex
+  - *double_precision_complex
+
+Simple precisions complex and real: &half_single_double_precisions_complex_real
+  - *half_precision
+  - *single_precision
+  - *double_precision
+  - *half_precision_complex
+  - *single_precision_complex
+  - *double_precision_complex
+
+#############################################
+#               Used for Scal               #
+#############################################
+Joined precisions: &complex_real_in_complex_out
+  - &single_precision_complex_real_in_complex_out
+    { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_r }
+  - &double_precision_complex_real_in_complex_out
+    { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_r }
+
+Single double joined: &single_double_complex_real_in_complex_out
+  - *single_precision_complex_real_in_complex_out
+  - *double_precision_complex_real_in_complex_out
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes
@@ -94,7 +195,9 @@ Arguments:
   - incd: rocblas_int
   - incb: rocblas_int
   - alpha: c_double
+  - alphai: c_double
   - beta: c_double
+  - betai: c_double
   - transA: c_char
   - transB: c_char
   - side: c_char
@@ -139,6 +242,7 @@ Dictionary lists to expand:
   - arguments
   - transA_transB
   - alpha_beta
+  - alphai_betai
   - incx_incy
   - matrix_size
   - precision
@@ -160,13 +264,19 @@ Defaults:
   incd: 0
   incb: 0
   alpha: 1.0
+  alphai: 0.0
   beta: 0.0
+  betai: 0.0
   transA: '*'
   transB: '*'
   side: '*'
   uplo: '*'
   diag: '*'
   batch_count: -1
+  stride_a: 0
+  stride_b: 0
+  stride_c: 0
+  stride_d: 0
   norm_check: 0
   unit_check: 1
   timing: 0

@@ -14,16 +14,16 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
+template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
-    T           alpha = 0.6;
+    U           alpha = (U)0.6;
 
     rocblas_local_handle handle;
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // allocate memory on device
     device_vector<T> dx(size_x);
@@ -33,20 +33,20 @@ void testing_scal_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_scal<T>(handle, N, &alpha, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(handle, N, &alpha, nullptr, incx)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_scal<T>(handle, N, nullptr, dx, incx),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(handle, N, nullptr, dx, incx)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_scal<T>(nullptr, N, &alpha, dx, incx),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(nullptr, N, &alpha, dx, incx)),
                           rocblas_status_invalid_handle);
 }
 
-template <typename T>
+template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
-    T           h_alpha = arg.alpha;
+    U           h_alpha = arg.get_alpha<U>();
 
     rocblas_local_handle handle;
 
@@ -62,11 +62,11 @@ void testing_scal(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, &h_alpha, dx, incx));
+        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx, incx)));
         return;
     }
 
-    size_t size_x = N * static_cast<size_t>(incx);
+    size_t size_x = N * size_t(incx);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx_1(size_x);
@@ -85,7 +85,7 @@ void testing_scal(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx_1(size_x);
     device_vector<T> dx_2(size_x);
-    device_vector<T> d_alpha(1);
+    device_vector<U> d_alpha(1);
     if(!dx_1 || !dx_2 || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -105,15 +105,15 @@ void testing_scal(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_HIP_ERROR(hipMemcpy(dx_2, hx_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(U), hipMemcpyHostToDevice));
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, &h_alpha, dx_1, incx));
+        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_scal<T>(handle, N, d_alpha, dx_2, incx));
+        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, d_alpha, dx_2, incx)));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(T) * N * incx, hipMemcpyDeviceToHost));
@@ -121,7 +121,7 @@ void testing_scal(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_scal<T>(N, h_alpha, hy_gold, incx);
+        cblas_scal<T, U>(N, h_alpha, hy_gold, incx);
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
 
@@ -147,14 +147,14 @@ void testing_scal(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_scal<T>(handle, N, &h_alpha, dx_1, incx);
+            rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_scal<T>(handle, N, &h_alpha, dx_1, incx);
+            rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

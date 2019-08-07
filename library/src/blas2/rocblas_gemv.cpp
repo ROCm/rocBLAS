@@ -16,6 +16,10 @@ namespace
     constexpr char rocblas_gemv_name<float>[] = "rocblas_sgemv";
     template <>
     constexpr char rocblas_gemv_name<double>[] = "rocblas_dgemv";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_float_complex>[] = "rocblas_cgemv";
+    template <>
+    constexpr char rocblas_gemv_name<rocblas_double_complex>[] = "rocblas_zgemv";
 
     template <typename T>
     rocblas_status rocblas_gemv_impl(rocblas_handle    handle,
@@ -63,6 +67,12 @@ namespace
                               incy);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    std::stringstream alphass;
+                    alphass << "--alpha " << std::real(*alpha)
+                            << (std::imag(*alpha) != 0
+                                    ? (" --alphai " + std::to_string(std::imag(*alpha)))
+                                    : "");
                     log_bench(handle,
                               "./rocblas-bench -f gemv -r",
                               rocblas_precision_string<T>,
@@ -72,8 +82,7 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
-                              *alpha,
+                              alphass.str(),
                               "--lda",
                               lda,
                               "--incx",
@@ -82,6 +91,7 @@ namespace
                               *beta,
                               "--incy",
                               incy);
+                }
             }
             else
             {
@@ -164,6 +174,38 @@ rocblas_status rocblas_dgemv(rocblas_handle    handle,
                              const double*     beta,
                              double*           y,
                              rocblas_int       incy)
+{
+    return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+rocblas_status rocblas_cgemv(rocblas_handle               handle,
+                             rocblas_operation            transA,
+                             rocblas_int                  m,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* alpha,
+                             const rocblas_float_complex* A,
+                             rocblas_int                  lda,
+                             const rocblas_float_complex* x,
+                             rocblas_int                  incx,
+                             const rocblas_float_complex* beta,
+                             rocblas_float_complex*       y,
+                             rocblas_int                  incy)
+{
+    return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+rocblas_status rocblas_zgemv(rocblas_handle                handle,
+                             rocblas_operation             transA,
+                             rocblas_int                   m,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             const rocblas_double_complex* x,
+                             rocblas_int                   incx,
+                             const rocblas_double_complex* beta,
+                             rocblas_double_complex*       y,
+                             rocblas_int                   incy)
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
 }

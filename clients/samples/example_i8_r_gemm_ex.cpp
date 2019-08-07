@@ -65,7 +65,7 @@ void print_matrix(
     {
         for(int j = 0; j < n && j < max_size; j++)
         {
-            std::cout << std::setw(4) << static_cast<int>(A[i + j * lda]) << " ";
+            std::cout << std::setw(4) << int(A[i + j * lda]) << " ";
         }
         std::cout << "\n";
     }
@@ -96,8 +96,7 @@ void mat_mat_mult(int32_t               alpha,
             int32_t t = 0.0;
             for(int i3 = 0; i3 < K; i3++)
             {
-                t += static_cast<int32_t>(A[i1 * As1 + i3 * As2])
-                     * static_cast<int32_t>(B[i3 * Bs1 + i2 * Bs2]);
+                t += int32_t(A[i1 * As1 + i3 * As2]) * int32_t(B[i3 * Bs1 + i2 * Bs2]);
             }
             D[i1 * Ds1 + i2 * Ds2] = beta * C[i1 * Cs1 + i2 * Cs2] + alpha * t;
         }
