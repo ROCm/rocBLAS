@@ -106,10 +106,10 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                     betass << tmpb;
 
                     bench_alphass << "--alpha " << std::real(tmpa);
-                    if (std::imag(tmpa) == 0)
+                    if(std::imag(tmpa) == 0)
                         bench_alphass << " --alphai " << std::imag(tmpa);
                     bench_betass << "--beta " << std::real(tmpb);
-                    if (std::imag(tmpb) == 0)
+                    if(std::imag(tmpb) == 0)
                         bench_betass << " --betai " << std::imag(tmpb);
                 }
                 else if(compute_type == rocblas_datatype_f64_c)
@@ -121,10 +121,10 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                     betass << tmpb;
 
                     bench_alphass << "--alpha " << std::real(tmpa);
-                    if (std::imag(tmpa) == 0)
+                    if(std::imag(tmpa) == 0)
                         bench_alphass << " --alphai " << std::imag(tmpa);
                     bench_betass << "--beta " << std::real(tmpb);
-                    if (std::imag(tmpb) == 0)
+                    if(std::imag(tmpb) == 0)
                         bench_betass << " --betai " << std::imag(tmpb);
                 }
 
@@ -488,11 +488,11 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                     betass << tmpb;
 
                     bench_alphass << "--alpha " << std::real(tmpa);
-                    if (std::imag(tmpa) == 0)
+                    if(std::imag(tmpa) == 0)
                         bench_alphass << " --alphai " << std::imag(tmpa);
 
                     bench_betass << "--beta " << std::real(tmpb);
-                    if (std::imag(tmpb) == 0)
+                    if(std::imag(tmpb) == 0)
                         bench_betass << " --betai " << std::imag(tmpb);
                 }
                 else if(compute_type == rocblas_datatype_f64_c)
@@ -504,10 +504,10 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                     betass << tmpb;
 
                     bench_alphass << "--alpha " << std::real(tmpa);
-                    if (std::imag(tmpa) == 0)
+                    if(std::imag(tmpa) == 0)
                         bench_alphass << " --alphai " << std::imag(tmpa);
                     bench_betass << "--beta " << std::real(tmpb);
-                    if (std::imag(tmpb) == 0)
+                    if(std::imag(tmpb) == 0)
                         bench_betass << " --betai " << std::imag(tmpb);
                 }
 
