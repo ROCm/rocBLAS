@@ -37,22 +37,22 @@
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(half_to_float(a), half_to_float(b))
 
-#define ASSERT_BFLOAT16_EQ(a, b) ASSERT_FLOAT_EQ(static_cast<float>(a), static_cast<float>(b))
+#define ASSERT_BFLOAT16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
-#define ASSERT_FLOAT_COMPLEX_EQ(a, b) \
-    do                                \
-    {                                 \
-        auto ta = (a), tb = (b);      \
-        ASSERT_FLOAT_EQ(ta.x, tb.x);  \
-        ASSERT_FLOAT_EQ(ta.y, tb.y);  \
+#define ASSERT_FLOAT_COMPLEX_EQ(a, b)                  \
+    do                                                 \
+    {                                                  \
+        auto ta = (a), tb = (b);                       \
+        ASSERT_FLOAT_EQ(std::real(ta), std::real(tb)); \
+        ASSERT_FLOAT_EQ(std::imag(ta), std::imag(tb)); \
     } while(0)
 
-#define ASSERT_DOUBLE_COMPLEX_EQ(a, b) \
-    do                                 \
-    {                                  \
-        auto ta = (a), tb = (b);       \
-        ASSERT_DOUBLE_EQ(ta.x, tb.x);  \
-        ASSERT_DOUBLE_EQ(ta.y, tb.y);  \
+#define ASSERT_DOUBLE_COMPLEX_EQ(a, b)                  \
+    do                                                  \
+    {                                                   \
+        auto ta = (a), tb = (b);                        \
+        ASSERT_DOUBLE_EQ(std::real(ta), std::real(tb)); \
+        ASSERT_DOUBLE_EQ(std::imag(ta), std::imag(tb)); \
     } while(0)
 
 template <typename T>

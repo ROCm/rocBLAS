@@ -86,7 +86,7 @@ void print_matrix(
     {
         for(int j = 0; j < n && j < max_size; j++)
         {
-            std::cout << std::setw(4) << static_cast<float>(A[i + j * lda]) << " ";
+            std::cout << std::setw(4) << float(A[i + j * lda]) << " ";
         }
         std::cout << "\n";
     }
@@ -117,11 +117,10 @@ void mat_mat_mult(float                          alpha,
             float t = 0.0;
             for(int i3 = 0; i3 < K; i3++)
             {
-                t += static_cast<float>(A[i1 * As1 + i3 * As2])
-                     * static_cast<float>(B[i3 * Bs1 + i2 * Bs2]);
+                t += float(A[i1 * As1 + i3 * As2]) * float(B[i3 * Bs1 + i2 * Bs2]);
             }
-            D[i1 * Ds1 + i2 * Ds2] = static_cast<rocblas_bfloat16>(
-                beta * static_cast<float>(C[i1 * Cs1 + i2 * Cs2]) + alpha * t);
+            D[i1 * Ds1 + i2 * Ds2]
+                = rocblas_bfloat16(beta * float(C[i1 * Cs1 + i2 * Cs2]) + alpha * t);
         }
     }
 }
@@ -325,18 +324,15 @@ void initialize_a_b_c(std::vector<rocblas_bfloat16>& ha,
 {
     for(int i = 0; i < size_a; ++i)
     {
-        ha[i]
-            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        ha[i] = rocblas_bfloat16(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
     for(int i = 0; i < size_b; ++i)
     {
-        hb[i]
-            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        hb[i] = rocblas_bfloat16(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
     for(int i = 0; i < size_c; ++i)
     {
-        hc[i]
-            = static_cast<rocblas_bfloat16>(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
+        hc[i] = rocblas_bfloat16(std::uniform_int_distribution<int>(-3, 3)(rocblas_rng));
     }
 }
 
@@ -535,8 +531,7 @@ int main(int argc, char* argv[])
     {
         for(int i_n = 0; i_n < n; i_n++)
         {
-            float error = static_cast<float>(hd_gold[i_m + i_n * ldd])
-                          - static_cast<float>(hd[i_m + i_n * ldd]);
+            float error = float(hd_gold[i_m + i_n * ldd]) - float(hd[i_m + i_n * ldd]);
 
             error = error >= 0 ? error : -error;
 

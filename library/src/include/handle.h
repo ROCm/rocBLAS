@@ -130,8 +130,10 @@ public:
 
     // Allocate one or more sizes
     template <typename... Ss,
-              typename = typename std::enable_if<
-                  sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{}>::type>
+              typename std::enable_if<sizeof...(Ss)
+                                          && conjunction<std::is_constructible<size_t, Ss>...>{},
+                                      int>::type
+              = 0>
     auto device_malloc(Ss... sizes)
     {
         return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
