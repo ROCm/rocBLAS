@@ -71,8 +71,8 @@ double norm_check_general<rocblas_bfloat16>(char              norm_type,
     host_vector<float> hCPU_float(N * lda), hGPU_float(N * lda);
     for(rocblas_int i = 0; i < N * lda; i++)
     {
-        hCPU_float[i] = static_cast<float>(hCPU[i]);
-        hGPU_float[i] = static_cast<float>(hGPU[i]);
+        hCPU_float[i] = float(hCPU[i]);
+        hGPU_float[i] = float(hGPU[i]);
     }
 
     float       work;
@@ -84,7 +84,7 @@ double norm_check_general<rocblas_bfloat16>(char              norm_type,
     saxpy_(&size, &alpha, hCPU_float, &incx, hGPU_float, &incx);
 
     float error_float = slange_(&norm_type, &M, &N, hGPU_float, &lda, &work) / cpu_norm;
-    error_double      = static_cast<double>(error_float);
+    error_double      = double(error_float);
 
     return error_double;
 }
@@ -120,7 +120,7 @@ double norm_check_general<rocblas_half>(char          norm_type,
     saxpy_(&size, &alpha, hCPU_float, &incx, hGPU_float, &incx);
 
     float error_float = slange_(&norm_type, &M, &N, hGPU_float, &lda, &work) / cpu_norm;
-    error_double      = static_cast<double>(error_float);
+    error_double      = double(error_float);
 
     return error_double;
 }
@@ -178,8 +178,8 @@ double norm_check_general<int32_t>(
 
     for(int i = 0; i < M * N; i++)
     {
-        hCPU_double[i] = static_cast<double>(hCPU[i]);
-        hGPU_double[i] = static_cast<double>(hGPU[i]);
+        hCPU_double[i] = double(hCPU[i]);
+        hGPU_double[i] = double(hGPU[i]);
     }
     return norm_check_general<double>(norm_type, M, N, lda, hCPU_double, hGPU_double);
 }
@@ -262,8 +262,8 @@ double norm_check_general<rocblas_bfloat16>(char              norm_type,
         for(rocblas_int i = 0; i < N * lda; i++)
         {
             auto index        = i + i_batch * stride_a;
-            hCPU_float[index] = static_cast<float>(hCPU[index]);
-            hGPU_float[index] = static_cast<float>(hGPU[index]);
+            hCPU_float[index] = float(hCPU[index]);
+            hGPU_float[index] = float(hGPU[index]);
         }
     }
 

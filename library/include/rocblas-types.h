@@ -37,19 +37,13 @@ typedef int32_t rocblas_int;
 typedef int64_t rocblas_long;
 #endif
 
-// half types
-// TODO: should be replaced with a struct, to become a unique type
-typedef uint16_t rocblas_half;
+// floating point types
+typedef float    rocblas_float;
+typedef double   rocblas_double;
+typedef uint16_t rocblas_half; // TODO: should be replaced with a struct, to become a unique type
 
 // complex types
-typedef struct
-{
-    float x, y;
-} rocblas_float_complex;
-typedef struct
-{
-    double x, y;
-} rocblas_double_complex;
+#include "rocblas-complex-types.h"
 
 /* ============================================================================================ */
 

@@ -69,9 +69,9 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
     // cblas does not support rocblas_bfloat16, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * static_cast<size_t>(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * static_cast<size_t>(ldb);
-    size_t sizeC = n * static_cast<size_t>(ldc);
+    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
+    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
+    size_t sizeC = n * size_t(ldc);
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
@@ -121,9 +121,9 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * static_cast<size_t>(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * static_cast<size_t>(ldb);
-    size_t sizeC = n * static_cast<size_t>(ldc);
+    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
+    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
+    size_t sizeC = n * size_t(ldc);
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
@@ -175,9 +175,9 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
     float alpha_float = half_to_float(alpha);
     float beta_float  = half_to_float(beta);
 
-    size_t sizeA = (transA == rocblas_operation_none ? k : m) * static_cast<size_t>(lda);
-    size_t sizeB = (transB == rocblas_operation_none ? n : k) * static_cast<size_t>(ldb);
-    size_t sizeC = n * static_cast<size_t>(ldc);
+    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
+    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
+    size_t sizeC = n * size_t(ldc);
 
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
@@ -230,9 +230,9 @@ void cblas_gemm<int8_t, int32_t, int32_t>(rocblas_operation transA,
     // NOTE: This will not properly account for 32-bit integer overflow, however
     //       the result should be acceptable for testing.
 
-    size_t const sizeA = ((transA == rocblas_operation_none) ? k : m) * static_cast<size_t>(lda);
-    size_t const sizeB = ((transB == rocblas_operation_none) ? n : k) * static_cast<size_t>(ldb);
-    size_t const sizeC = n * static_cast<size_t>(ldc);
+    size_t const sizeA = ((transA == rocblas_operation_none) ? k : m) * size_t(lda);
+    size_t const sizeB = ((transB == rocblas_operation_none) ? n : k) * size_t(ldb);
+    size_t const sizeC = n * size_t(ldc);
 
     host_vector<double> A_double(sizeA);
     host_vector<double> B_double(sizeB);
