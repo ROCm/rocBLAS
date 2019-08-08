@@ -37,15 +37,15 @@ if( BUILD_WITH_TENSILE )
   #include( ${Tensile_TensileConfig} )
   execute_process(COMMAND "${VIRTUALENV_HOME_DIR}/bin/TensileGetPath" OUTPUT_VARIABLE INSTALLED_TENSILE_PATH)
   message(STATUS "TENSILE_PATH: ${INSTALLED_TENSILE_PATH}")
-  find_package(Tensile 4.10.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.11.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
-      ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_COMPILER}
+      ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
