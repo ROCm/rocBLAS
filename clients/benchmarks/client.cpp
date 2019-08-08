@@ -22,6 +22,8 @@
 #include "testing_rotg.hpp"
 #include "testing_rotm.hpp"
 #include "testing_rotmg.hpp"
+#include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_strided_batched.hpp"
 #include "testing_scal.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_vector.hpp"
@@ -149,6 +151,10 @@ struct perf_blas<
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "gemv_batched"))
@@ -251,6 +257,10 @@ struct perf_blas<T,
             testing_dotc<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
         else if(!strcmp(arg.function, "iamax"))

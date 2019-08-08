@@ -62,6 +62,8 @@ struct Arguments
     rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
     rocblas_int stride_c; //  stride_c > ldc * N
     rocblas_int stride_d; //  stride_d > ldd * N
+    rocblas_int stride_x; 
+    rocblas_int stride_y;
 
     rocblas_int stride_x;
     rocblas_int stride_y;
