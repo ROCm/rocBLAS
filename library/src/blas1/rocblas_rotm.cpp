@@ -79,7 +79,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         // Quick return if possible
-        if (n <= 0)
+        if (n <= 0 || incx <= 0 || incy <= 0)
             return rocblas_status_success;
         if (rocblas_pointer_mode_host == handle->pointer_mode && param[0] == -2)
             return rocblas_status_success;

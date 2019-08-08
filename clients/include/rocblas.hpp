@@ -288,10 +288,10 @@ rocblas_status (*rocblas_rotg)(rocblas_handle handle,
                                T*             s);
 
 template <>
-static constexpr auto rocblas_rotg<float> = rocblas_srot;
+static constexpr auto rocblas_rotg<float> = rocblas_srotg;
 
 template <>
-static constexpr auto rocblas_rotg<double> = rocblas_drot;
+static constexpr auto rocblas_rotg<double> = rocblas_drotg;
 
 //rotm
 template <typename T>

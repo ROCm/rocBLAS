@@ -39,6 +39,8 @@ Tests:
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real
+    - rot:   *single_double_precisions_complex_real
+    - rotm:   *single_double_precisions_complex_real
 
 - name: blas1
   category: pre_checkin
@@ -58,6 +60,8 @@ Tests:
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real
+    - rot:   *single_double_precisions_complex_real
+    - rotm:   *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin
@@ -73,4 +77,14 @@ Tests:
     - scal_bad_arg:  *single_double_precisions_complex_real
     - scal_bad_arg:  *single_double_complex_real_in_complex_out
     - swap_bad_arg:  *single_double_precisions_complex_real
+    - rot_bad_arg:   *single_double_precisions_complex_real
+    - rotg_bad_arg:  *single_double_precisions_complex_real
+    - rotm_bad_arg:  *single_double_precisions_complex_real
+    - rotmg_bad_arg: *single_double_precisions_complex_real
+
+- name: blas1
+  category: quick
+  function:
+    - rotg:  *single_double_precisions_complex_real
+    - rotmg: *single_double_precisions_complex_real
 ...

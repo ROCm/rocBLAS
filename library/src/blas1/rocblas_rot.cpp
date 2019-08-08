@@ -66,7 +66,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         // Quick return if possible
-        if (n <= 0)
+        if (n <= 0 || incx <= 0 || incy <= 0)
             return rocblas_status_success;
 
         dim3        blocks((n - 1) / NB + 1);
