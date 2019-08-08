@@ -17,6 +17,10 @@ Functions:
   rocblas_dzasum: { funciton: asum, <<: *double_precision_complex }
   rocblas_snrm2: { function: nrm2, <<: *single_precision }
   rocblas_dnrm2: { function: nrm2, <<: *double_precision }
+  rocblas_snrm2_batched: { function: nrm2_batched, <<: *single_precision }
+  rocblas_dnrm2_batched: { function: nrm2_batched, <<: *double_precision }
+  rocblas_snrm2_strided_batched: { function: nrm2_strided_batched, <<: *single_precision }
+  rocblas_dnrm2_strided_batched: { function: nrm2_strided_batched, <<: *double_precision }
   rocblas_haxpy: { function: axpy, <<: *half_precision   }
   rocblas_saxpy: { function: axpy, <<: *single_precision }
   rocblas_daxpy: { function: axpy, <<: *double_precision }

@@ -162,6 +162,42 @@ static constexpr auto rocblas_nrm2<rocblas_float_complex, float> = rocblas_scnrm
 template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
 
+// nrm2_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_nrm2_batched)(
+    rocblas_handle handle, rocblas_int n, const T1* const x[], rocblas_int incx, T2* results, rocblas_int batch_count);
+
+template <>
+static constexpr auto rocblas_nrm2_batched<float, float> = rocblas_snrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<double, double> = rocblas_dnrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<rocblas_float_complex, float> = rocblas_scnrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<rocblas_double_complex, double> = rocblas_dznrm2_batched;
+
+// nrm2_strided_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_nrm2_strided_batched)(
+    rocblas_handle handle, rocblas_int n, const T1* x, rocblas_int incx, rocblas_int stridex, T2* results, rocblas_int batch_count);
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<float, float> = rocblas_snrm2_strided_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<double, double> = rocblas_dnrm2_strided_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<rocblas_float_complex, float> = rocblas_scnrm2_strided_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<rocblas_double_complex, double> = rocblas_dznrm2_strided_batched;
+
+// iamax and iamin need to be full functions rather than references, in order
+// to allow them to be passed as template arguments
 //
 // iamax and iamin.
 //

@@ -63,6 +63,23 @@ Tests:
     - rot:   *rot_precisions
     - rotm:   *single_double_precisions_complex_real
 
+- name: blas1_nrm2_batched
+  category: quick
+  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+  incx: [-1, 1, 2]
+  batch_count: [1, 10]
+  function: 
+    - nrm2_batched: *single_double_precisions_complex_real
+
+- name: blas1_nrm2_strided_batched
+  category: quick
+  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+  incx: [-1, 1, 2]
+  stride_x: [-1, 68000]
+  batch_count: [1, 10]
+  function: 
+    - nrm2_strided_batched: *single_double_precisions_complex_real
+
 - name: blas1_bad_arg
   category: pre_checkin
   function:
