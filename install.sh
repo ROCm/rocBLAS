@@ -323,12 +323,12 @@ fi
 if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
   git submodule update --init
   cd extern/blis
-  if grep -q 'Ubuntu 16.04' /etc/os-release; then
-    echo "Choosing Zen"
-    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp zen
-  else
-    echo "Choosing Auto"
+  if [[ -e "/etc/redhat-release" ]]; then  
+    echo 'CentOS detected'
     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+  else
+    echo 'Ubuntu detected'
+     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
   fi
   make install
   cd ../..
