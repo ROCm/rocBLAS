@@ -433,34 +433,44 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
                                              rocblas_int                   incx,
                                              double*                       result);
 
-/*! \brief BLAS Level 1 API
+  
+  /*! \brief BLAS Level 1 API
 
     \details
-    amax finds the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
-   vector
+    amax finds the index of the first element having maximum absolute value.
 
     @param[in]
     handle    rocblas_handle.
               handle to the rocblas library context queue.
+
     @param[in]
     n         rocblas_int.
+              specifies the size of the vector x.
+
     @param[in]
     x         pointer storing vector x on the GPU.
+
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              storage spacing between elements of x.
+
     @param[inout]
     result
-              store the amax index. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              stores the amax index, either on the host CPU or device GPU.
+              returns 0 if n, incx <= 0.
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_isamax(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
+ROCBLAS_EXPORT rocblas_status rocblas_isamax(rocblas_handle handle,
+					     rocblas_int    n,
+					     const float*   x,
+					     rocblas_int    incx,
+					     rocblas_int*   result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_idamax(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+ROCBLAS_EXPORT rocblas_status rocblas_idamax(rocblas_handle handle,
+					     rocblas_int    n,
+					     const double*  x,
+					     rocblas_int    incx,
+					     rocblas_int*   result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_icamax(rocblas_handle               handle,
                                              rocblas_int                  n,
@@ -474,34 +484,44 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
 
-/*! \brief BLAS Level 1 API
 
+
+  /*! \brief BLAS Level 1 API
+    
     \details
-    amin finds the first index of the element of minimum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
-   vector
-
+    amin finds the index of the first element having minimum absolute value.
+    
     @param[in]
     handle    rocblas_handle.
               handle to the rocblas library context queue.
+
     @param[in]
     n         rocblas_int.
+              specifies the size of the vector x.
+
     @param[in]
     x         pointer storing vector x on the GPU.
+
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              storage spacing between elements of x.
+
     @param[inout]
     result
-              store the amin index. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              stores the amin index, either on the host CPU or device GPU.
+              returns 0 if n, incx <= 0.
     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_isamin(rocblas_handle handle,
+					     rocblas_int    n,
+					     const float*   x,
+					     rocblas_int    incx,
+					     rocblas_int*   result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_isamin(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamin(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+ROCBLAS_EXPORT rocblas_status rocblas_idamin(rocblas_handle handle,
+					     rocblas_int    n,
+					     const double*  x,
+					     rocblas_int    incx,
+					     rocblas_int*   result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_icamin(rocblas_handle               handle,
                                              rocblas_int                  n,
