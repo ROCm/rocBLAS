@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-#set -x #echo on
+set -x #echo on
 
 # #################################################
 # helper functions
@@ -119,9 +119,19 @@ install_packages( )
   fi
 
   # dependencies needed for rocblas and clients to build
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python3" "python-yaml" "python3-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
-  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "llvm-6.0-dev"
+                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
+  local library_dependencies_centos=( "epel-release"
+                                      "make" "cmake3" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
+  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "libcxx-devel"
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -331,6 +341,7 @@ pushd .
   cmake_client_options=""
   cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
+
   # build type
   if [[ "${build_release}" == true ]]; then
     mkdir -p ${build_dir}/release/clients && cd ${build_dir}/release
@@ -351,6 +362,13 @@ pushd .
   if [[ -n "${tensile_test_local_path}" ]]; then
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
+
+
+case "${ID}" in
+  centos|rhel)
+  cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
+  ;;
+esac
 
   # clients
   if [[ "${build_clients}" == true ]]; then
