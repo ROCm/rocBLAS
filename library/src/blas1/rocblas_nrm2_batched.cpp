@@ -101,6 +101,8 @@ namespace
         }
 
         auto blocks = (n - 1) / NB + 1;
+
+        // below blocks+1 the +1 is for results when rocblas_pointer_mode_host
         size_t devBytes = sizeof(To) * (blocks+1) * batch_count;
 
         if(handle->is_device_memory_size_query())
