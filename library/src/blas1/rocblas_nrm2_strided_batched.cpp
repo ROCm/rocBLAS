@@ -118,7 +118,7 @@ namespace
         auto blocks = (n - 1) / NB + 1;
 
         // below blocks+1 the +1 is for results when rocblas_pointer_mode_host
-        size_t devBytes = sizeof(To) * (blocks+1) * batch_count;
+        size_t devBytes = sizeof(To) * (blocks + 1) * batch_count;
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(devBytes);
@@ -127,22 +127,10 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        rocblas_status bstatus;
-        // for(int i = 0; i < batch_count; i++)
-        // {
-        //     bstatus = rocblas_reduction_kernel<NB,
-        //                                        rocblas_fetch_nrm2_strided_batched<To>,
-        //                                        rocblas_reduce_sum,
-        //                                        rocblas_finalize_nrm2_strided_batched>(
-        //         handle, n, x + i * stridex, incx, results + i, (To*)mem, blocks);
-        //     if(bstatus != rocblas_status_success)
-        //         return bstatus;
-        // }
-
-        bstatus = rocblas_reduction_strided_batched_kernel<NB,
-                                        rocblas_fetch_nrm2_strided_batched<To>,
-                                        rocblas_reduce_sum_batched,
-                                        rocblas_finalize_nrm2_strided_batched>(
+        rocblas_status bstatus = rocblas_reduction_strided_batched_kernel<NB,
+                                                           rocblas_fetch_nrm2_strided_batched<To>,
+                                                           rocblas_reduce_sum,
+                                                           rocblas_finalize_nrm2_strided_batched>(
             handle, n, x, incx, stridex, results, (To*)mem, blocks, batch_count);
 
         return bstatus;
