@@ -67,7 +67,7 @@ Tests:
   category: quick
   N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
   incx: [-1, 1, 2]
-  batch_count: [1, 10]
+  batch_count: [1, 2, 10, 1025]
   function: 
     - nrm2_batched: *single_double_precisions_complex_real
 
