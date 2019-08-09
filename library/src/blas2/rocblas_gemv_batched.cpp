@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_gemv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemv.hpp"
 #include "utility.h"
 
 namespace
@@ -22,18 +22,18 @@ namespace
 
     template <typename T>
     rocblas_status rocblas_gemv_batched_impl(rocblas_handle    handle,
-                                        rocblas_operation transA,
-                                        rocblas_int       m,
-                                        rocblas_int       n,
-                                        const T*          alpha,
-                                        const T* const    A[],
-                                        rocblas_int       lda,
-                                        const T* const    x[],
-                                        rocblas_int       incx,
-                                        const T*          beta,
-                                        T* const          y[],
-                                        rocblas_int       incy,
-                                        rocblas_int       batch_count)
+                                             rocblas_operation transA,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             const T*          alpha,
+                                             const T* const    A[],
+                                             rocblas_int       lda,
+                                             const T* const    x[],
+                                             rocblas_int       incx,
+                                             const T*          beta,
+                                             T* const          y[],
+                                             rocblas_int       incy,
+                                             rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -138,10 +138,10 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        return rocblas_gemv_batched_template(handle,transA,m,n,alpha,A,lda,x,incx,beta,y,incy,batch_count);
+        return rocblas_gemv_batched_template(
+            handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
     }
 } // namespace
-
 
 /*
  * ===========================================================================

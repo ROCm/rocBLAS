@@ -33,10 +33,10 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle;
 
     // allocate memory on device
-    device_vector<T*,0,T> dA(batch_count);
-    device_vector<T*,0,T> dx(batch_count);
-    device_vector<T*,0,T> dy(batch_count);
-    
+    device_vector<T*, 0, T> dA(batch_count);
+    device_vector<T*, 0, T> dx(batch_count);
+    device_vector<T*, 0, T> dy(batch_count);
+
     if(!dA || !dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -92,9 +92,9 @@ void testing_gemv_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
     {
-        device_vector<T*,0,T> dAA1(1);
-        device_vector<T*,0,T> dxA1(1);
-        device_vector<T*,0,T> dy_1A1(1);
+        device_vector<T*, 0, T> dAA1(1);
+        device_vector<T*, 0, T> dxA1(1);
+        device_vector<T*, 0, T> dy_1A1(1);
 
         if(!dAA1 || !dxA1 || !dy_1A1)
         {
@@ -125,10 +125,10 @@ void testing_gemv_batched(const Arguments& arg)
         return;
 
     //Device-arrays of pointers to device memory
-    device_vector<T*,0,T> dAA(batch_count);
-    device_vector<T*,0,T> dxA(batch_count);
-    device_vector<T*,0,T> dy_1A(batch_count);
-    device_vector<T*,0,T> dy_2A(batch_count);
+    device_vector<T*, 0, T> dAA(batch_count);
+    device_vector<T*, 0, T> dxA(batch_count);
+    device_vector<T*, 0, T> dy_1A(batch_count);
+    device_vector<T*, 0, T> dy_2A(batch_count);
 
     if(!dAA || !dxA || !dy_1A || !dy_2A)
     {
@@ -174,10 +174,10 @@ void testing_gemv_batched(const Arguments& arg)
 
     // Host-arrays of pointers to device memory
     // (intermediate arrays used for the transfers)
-    device_batch_vector<T> AA(batch_count,size_A);
-    device_batch_vector<T> xA(batch_count,size_x);
-    device_batch_vector<T> y_1A(batch_count,size_y);
-    device_batch_vector<T> y_2A(batch_count,size_y);
+    device_batch_vector<T> AA(batch_count, size_A);
+    device_batch_vector<T> xA(batch_count, size_x);
+    device_batch_vector<T> y_1A(batch_count, size_y);
+    device_batch_vector<T> y_2A(batch_count, size_y);
 
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
@@ -356,5 +356,4 @@ void testing_gemv_batched(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
 }

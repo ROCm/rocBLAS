@@ -357,10 +357,12 @@ template <>
 static constexpr auto rocblas_gemv_strided_batched<double> = rocblas_dgemv_strided_batched;
 
 template <>
-static constexpr auto rocblas_gemv_strided_batched<rocblas_float_complex> = rocblas_cgemv_strided_batched;
+static constexpr auto
+    rocblas_gemv_strided_batched<rocblas_float_complex> = rocblas_cgemv_strided_batched;
 
 template <>
-static constexpr auto rocblas_gemv_strided_batched<rocblas_double_complex> = rocblas_zgemv_strided_batched;
+static constexpr auto
+    rocblas_gemv_strided_batched<rocblas_double_complex> = rocblas_zgemv_strided_batched;
 
 // gemv_batched
 template <typename T>

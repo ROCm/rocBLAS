@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_gemv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemv.hpp"
 #include "utility.h"
 
 namespace
@@ -22,21 +22,21 @@ namespace
 
     template <typename T>
     rocblas_status rocblas_gemv_strided_batched_impl(rocblas_handle    handle,
-                                                rocblas_operation transA,
-                                                rocblas_int       m,
-                                                rocblas_int       n,
-                                                const T*          alpha,
-                                                const T*          A,
-                                                rocblas_int       lda,
-                                                rocblas_int       strideA,
-                                                const T*          x,
-                                                rocblas_int       incx,
-                                                rocblas_int       stridex,
-                                                const T*          beta,
-                                                T*                y,
-                                                rocblas_int       incy,
-                                                rocblas_int       stridey,
-                                                rocblas_int       batch_count)
+                                                     rocblas_operation transA,
+                                                     rocblas_int       m,
+                                                     rocblas_int       n,
+                                                     const T*          alpha,
+                                                     const T*          A,
+                                                     rocblas_int       lda,
+                                                     rocblas_int       strideA,
+                                                     const T*          x,
+                                                     rocblas_int       incx,
+                                                     rocblas_int       stridex,
+                                                     const T*          beta,
+                                                     T*                y,
+                                                     rocblas_int       incy,
+                                                     rocblas_int       stridey,
+                                                     rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -185,16 +185,23 @@ namespace
             return rocblas_status_invalid_size;
 
         return rocblas_gemv_strided_batched_template(handle,
-                                                    transA,
-                                                    m, n, alpha,
-                                                    A, lda, strideA,
-                                                    x, incx, stridex,
-                                                    beta,
-                                                    y, incy, stridey,
-                                                    batch_count);
+                                                     transA,
+                                                     m,
+                                                     n,
+                                                     alpha,
+                                                     A,
+                                                     lda,
+                                                     strideA,
+                                                     x,
+                                                     incx,
+                                                     stridex,
+                                                     beta,
+                                                     y,
+                                                     incy,
+                                                     stridey,
+                                                     batch_count);
     }
 } //namespace
-
 
 /*
 * ===========================================================================
@@ -222,21 +229,21 @@ rocblas_status rocblas_sgemv_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 {
     return rocblas_gemv_strided_batched_impl(handle,
-                                        transA,
-                                        m,
-                                        n,
-                                        alpha,
-                                        A,
-                                        lda,
-                                        strideA,
-                                        x,
-                                        incx,
-                                        stridex,
-                                        beta,
-                                        y,
-                                        incy,
-                                        stridey,
-                                        batch_count);
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             incx,
+                                             stridex,
+                                             beta,
+                                             y,
+                                             incy,
+                                             stridey,
+                                             batch_count);
 }
 
 rocblas_status rocblas_dgemv_strided_batched(rocblas_handle    handle,
@@ -257,21 +264,21 @@ rocblas_status rocblas_dgemv_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 {
     return rocblas_gemv_strided_batched_impl(handle,
-                                        transA,
-                                        m,
-                                        n,
-                                        alpha,
-                                        A,
-                                        lda,
-                                        strideA,
-                                        x,
-                                        incx,
-                                        stridex,
-                                        beta,
-                                        y,
-                                        incy,
-                                        stridey,
-                                        batch_count);
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             incx,
+                                             stridex,
+                                             beta,
+                                             y,
+                                             incy,
+                                             stridey,
+                                             batch_count);
 }
 
 rocblas_status rocblas_cgemv_strided_batched(rocblas_handle               handle,
@@ -292,21 +299,21 @@ rocblas_status rocblas_cgemv_strided_batched(rocblas_handle               handle
                                              rocblas_int                  batch_count)
 {
     return rocblas_gemv_strided_batched_impl(handle,
-                                        transA,
-                                        m,
-                                        n,
-                                        alpha,
-                                        A,
-                                        lda,
-                                        strideA,
-                                        x,
-                                        incx,
-                                        stridex,
-                                        beta,
-                                        y,
-                                        incy,
-                                        stridey,
-                                        batch_count);
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             incx,
+                                             stridex,
+                                             beta,
+                                             y,
+                                             incy,
+                                             stridey,
+                                             batch_count);
 }
 
 rocblas_status rocblas_zgemv_strided_batched(rocblas_handle                handle,
@@ -327,21 +334,21 @@ rocblas_status rocblas_zgemv_strided_batched(rocblas_handle                handl
                                              rocblas_int                   batch_count)
 {
     return rocblas_gemv_strided_batched_impl(handle,
-                                        transA,
-                                        m,
-                                        n,
-                                        alpha,
-                                        A,
-                                        lda,
-                                        strideA,
-                                        x,
-                                        incx,
-                                        stridex,
-                                        beta,
-                                        y,
-                                        incy,
-                                        stridey,
-                                        batch_count);
+                                             transA,
+                                             m,
+                                             n,
+                                             alpha,
+                                             A,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             incx,
+                                             stridex,
+                                             beta,
+                                             y,
+                                             incy,
+                                             stridey,
+                                             batch_count);
 }
 
 } // extern "C"

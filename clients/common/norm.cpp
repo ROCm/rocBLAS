@@ -506,14 +506,14 @@ double norm_check_general<double>(char        norm_type,
 }
 
 template <>
-double norm_check_general<rocblas_float_complex>(char        norm_type,
-                                  rocblas_int M,
-                                  rocblas_int N,
-                                  rocblas_int lda,
-                                  rocblas_int stride_a,
-                                  rocblas_int batch_count,
-                                  rocblas_float_complex*     hCPU,
-                                  rocblas_float_complex*     hGPU)
+double norm_check_general<rocblas_float_complex>(char                   norm_type,
+                                                 rocblas_int            M,
+                                                 rocblas_int            N,
+                                                 rocblas_int            lda,
+                                                 rocblas_int            stride_a,
+                                                 rocblas_int            batch_count,
+                                                 rocblas_float_complex* hCPU,
+                                                 rocblas_float_complex* hGPU)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -523,9 +523,9 @@ double norm_check_general<rocblas_float_complex>(char        norm_type,
     // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
     // of strided batched matrix
 
-    float      work;
+    float       work;
     rocblas_int incx  = 1;
-    float      alpha = -1.0f;
+    float       alpha = -1.0f;
     rocblas_int size  = lda * N;
 
     double cumulative_error = 0.0;
@@ -552,14 +552,14 @@ double norm_check_general<rocblas_float_complex>(char        norm_type,
 }
 
 template <>
-double norm_check_general<rocblas_double_complex>(char        norm_type,
-                                  rocblas_int M,
-                                  rocblas_int N,
-                                  rocblas_int lda,
-                                  rocblas_int stride_a,
-                                  rocblas_int batch_count,
-                                  rocblas_double_complex*     hCPU,
-                                  rocblas_double_complex*     hGPU)
+double norm_check_general<rocblas_double_complex>(char                    norm_type,
+                                                  rocblas_int             M,
+                                                  rocblas_int             N,
+                                                  rocblas_int             lda,
+                                                  rocblas_int             stride_a,
+                                                  rocblas_int             batch_count,
+                                                  rocblas_double_complex* hCPU,
+                                                  rocblas_double_complex* hGPU)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -689,13 +689,13 @@ double norm_check_general<double>(char                norm_type,
 }
 
 template <>
-double norm_check_general<rocblas_float_complex>(char               norm_type,
-                                 rocblas_int        M,
-                                 rocblas_int        N,
-                                 rocblas_int        lda,
-                                 rocblas_int        batch_count,
-                                 host_vector<rocblas_float_complex> hCPU[],
-                                 host_vector<rocblas_float_complex> hGPU[])
+double norm_check_general<rocblas_float_complex>(char                               norm_type,
+                                                 rocblas_int                        M,
+                                                 rocblas_int                        N,
+                                                 rocblas_int                        lda,
+                                                 rocblas_int                        batch_count,
+                                                 host_vector<rocblas_float_complex> hCPU[],
+                                                 host_vector<rocblas_float_complex> hGPU[])
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -734,13 +734,13 @@ double norm_check_general<rocblas_float_complex>(char               norm_type,
 }
 
 template <>
-double norm_check_general<rocblas_double_complex>(char                norm_type,
-                                  rocblas_int         M,
-                                  rocblas_int         N,
-                                  rocblas_int         lda,
-                                  rocblas_int         batch_count,
-                                  host_vector<rocblas_double_complex> hCPU[],
-                                  host_vector<rocblas_double_complex> hGPU[])
+double norm_check_general<rocblas_double_complex>(char                                norm_type,
+                                                  rocblas_int                         M,
+                                                  rocblas_int                         N,
+                                                  rocblas_int                         lda,
+                                                  rocblas_int                         batch_count,
+                                                  host_vector<rocblas_double_complex> hCPU[],
+                                                  host_vector<rocblas_double_complex> hGPU[])
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum

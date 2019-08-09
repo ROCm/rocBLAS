@@ -261,8 +261,8 @@ void testing_gemv(const Arguments& arg)
         }
         std::cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta << "," << incy
-                  << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta
+                  << "," << incy << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

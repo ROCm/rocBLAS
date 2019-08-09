@@ -50,7 +50,6 @@ double norm_check_general(char           norm_type,
                           host_vector<T> hCPU[],
                           host_vector<T> hGPU[]);
 
-
 /*! \brief  Template: norm check for hermitian/symmetric Matrix: half/float/double/complex */
 template <typename T>
 double norm_check_symmetric(
