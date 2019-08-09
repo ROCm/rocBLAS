@@ -122,16 +122,16 @@ install_packages( )
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
                                       "llvm-6.0-dev"
-                                      "hip_hcc" "rocm_smi64" )
+                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "hip_hcc" "rocm_smi64" )
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel"
-                                      "hip_hcc" "rocm_smi64" )
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
