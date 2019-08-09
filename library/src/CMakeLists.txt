@@ -34,7 +34,10 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   # HACK: We include the config file directly because find_package(Tensile) is broken
-  include( ${Tensile_TensileConfig} )
+  #include( ${Tensile_TensileConfig} )
+  execute_process(COMMAND "${VIRTUALENV_HOME_DIR}/bin/TensileGetPath" OUTPUT_VARIABLE INSTALLED_TENSILE_PATH)
+  message(STATUS "TENSILE_PATH: ${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.11.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
