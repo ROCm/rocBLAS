@@ -14,110 +14,147 @@
 #include <vector>
 
 /* ============================================================================================ */
-/*! \brief  pseudo-vector class which uses device memory */
-
-template <typename T, size_t PAD = 4096>
-class device_vector
+/*! \brief  base-class to allocate/deallocate device memory */
+template<typename T, size_t PAD, typename U>
+class d_vector
 {
-#ifdef GOOGLE_TEST
+protected:
+    size_t size, bytes;
 
-    T guard[PAD];
+    #ifdef GOOGLE_TEST
+    U guard[PAD];
+    d_vector(size_t s) : size(s), bytes((s + PAD*2) * sizeof(T)) {
+        // Initialize guard with random data
+        if (PAD > 0) {
+            rocblas_init_nan(guard, PAD);
+        }
+    }
+    #else
+    d_vector(size_t s) : size(s), bytes(s ? s * sizeof(T) : sizeof(T)) {}
+    #endif
 
-    void device_vector_setup()
+    T* device_vector_setup()
     {
-        if((hipMalloc)(&data, bytes) != hipSuccess)
+        T* d;
+        if((hipMalloc)(&d, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
             fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
-            data = nullptr;
+            d = nullptr;
         }
+        #ifdef GOOGLE_TEST
         else
         {
-            // Initialize guard with random data
-            rocblas_init_nan(guard, PAD);
+            if (PAD > 0) {
+                // Copy guard to device memory before allocated memory
+                hipMemcpy(d, guard, sizeof(guard), hipMemcpyHostToDevice);
 
-            // Copy guard to device memory before allocated memory
-            CHECK_HIP_ERROR(hipMemcpy(data, guard, sizeof(guard), hipMemcpyHostToDevice));
+                // Point to allocated block
+                d += PAD;
 
-            // Point to allocated block
-            data += PAD;
-
-            // Copy guard to device memory after allocated memory
-            CHECK_HIP_ERROR(hipMemcpy(data + size, guard, sizeof(guard), hipMemcpyHostToDevice));
+                // Copy guard to device memory after allocated memory
+                hipMemcpy(d + size, guard, sizeof(guard), hipMemcpyHostToDevice);
+            }
         }
+        #endif
+        return d;
     }
 
-    void device_vector_teardown()
+    void device_vector_teardown(T* d)
     {
-        if(data != nullptr)
+        if(d != nullptr)
         {
-            T host[PAD];
+            #ifdef GOOGLE_TEST
+            if (PAD > 0) {
+                U host[PAD];
 
-            // Copy device memory after allocated memory to host
-            CHECK_HIP_ERROR(hipMemcpy(host, data + size, sizeof(guard), hipMemcpyDeviceToHost));
+                // Copy device memory after allocated memory to host
+                hipMemcpy(host, d + size, sizeof(guard), hipMemcpyDeviceToHost);
 
-            // Make sure no corruption has occurred
-            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+                // Make sure no corruption has occurred
+                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
 
-            // Point to guard before allocated memory
-            data -= PAD;
+                // Point to guard before allocated memory
+                d -= PAD;
 
-            // Copy device memory after allocated memory to host
-            CHECK_HIP_ERROR(hipMemcpy(host, data, sizeof(guard), hipMemcpyDeviceToHost));
+                // Copy device memory after allocated memory to host
+                hipMemcpy(host, d, sizeof(guard), hipMemcpyDeviceToHost);
 
-            // Make sure no corruption has occurred
-            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
-
+                // Make sure no corruption has occurred
+                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+            }
+            #endif
             // Free device memory
-            CHECK_HIP_ERROR((hipFree)(data));
+            CHECK_HIP_ERROR((hipFree)(d));
         }
     }
+};
 
+/* ============================================================================================ */
+/*! \brief  pseudo-vector subclass which uses a batch of device memory pointers and 
+            an array of pointers in host memory*/
+template<typename T, size_t PAD = 4096, typename U = T>
+class device_batch_vector : private d_vector<T,PAD,U>
+{
+public:
+    explicit device_batch_vector(size_t b, size_t s) : batch(b), d_vector<T,PAD,U>(s) 
+    {
+        data = (T**) malloc(batch*sizeof(T*));
+        for(int b=0;b<batch;++b)
+            data[b] = this->device_vector_setup();
+    }
+    
+    ~device_batch_vector()
+    {
+        if(data != nullptr) {
+            for(int b=0;b<batch;++b)
+                this->device_vector_teardown(data[b]);
+            free(data);
+        }
+    }
+    
+    T* operator [](int n)
+    {
+        return data[n];
+    }
+    
+    operator T**()
+    {
+        return data;
+    }
+    
+    // Disallow copying or assigning
+    device_batch_vector(const device_batch_vector&) = delete;
+    device_batch_vector& operator=(const device_batch_vector&) = delete;
+
+private:
+    T** data;
+    size_t batch;
+};
+
+/* ============================================================================================ */
+/*! \brief  pseudo-vector subclass which uses device memory */
+template <typename T, size_t PAD = 4096, typename U = T>
+class device_vector : private d_vector<T,PAD,U>
+{
 public:
     // Must wrap constructor and destructor in functions to allow Google Test macros to work
-    explicit device_vector(size_t size)
-        : size(size)
-        , bytes((size + PAD * 2) * sizeof(T))
+    explicit device_vector(size_t s) : d_vector<T,PAD,U>(s) 
     {
-        device_vector_setup();
+        data = this->device_vector_setup();
     }
 
     ~device_vector()
     {
-        device_vector_teardown();
+        this->device_vector_teardown(data);
     }
 
-#else // GOOGLE_TEST
-
-    // Code without memory guards
-
-public:
-    explicit device_vector(size_t size)
-        : size(size)
-        , bytes(size ? size * sizeof(T) : sizeof(T))
-    {
-        if((hipMalloc)(&data, bytes) != hipSuccess)
-        {
-            static char* lc = setlocale(LC_NUMERIC, "");
-            fprintf(stderr, "Error allocating %'zu bytes (%'zu GB)\n", bytes, bytes >> 30);
-            data = nullptr;
-        }
-    }
-
-    ~device_vector()
-    {
-        if(data != nullptr)
-            CHECK_HIP_ERROR((hipFree)(data));
-    }
-
-#endif // GOOGLE_TEST
-
-public:
     // Decay into pointer wherever pointer is expected
     operator T*()
     {
         return data;
     }
+    
     operator const T*() const
     {
         return data;
@@ -135,11 +172,10 @@ public:
 
 private:
     T*           data;
-    const size_t size, bytes;
 };
 
 /* ============================================================================================ */
-/*! \brief  pseudo-vector class which uses host memory */
+/*! \brief  pseudo-vector subclass which uses host memory */
 template <typename T>
 struct host_vector : std::vector<T>
 {
