@@ -35,6 +35,7 @@ RUN yum install -y \
     boost-devel \
     numactl-libs \
     rpm-build \
+    libgomp \
     zlib-devel \ 
     deltarpm
 
