@@ -84,6 +84,8 @@ Tests:
   category: pre_checkin
   function:
     - nrm2_bad_arg:  *single_double_precisions_complex_real
+    - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
+    - nrm2_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - asum_bad_arg:  *single_double_precisions_complex_real
     - iamax_bad_arg: *single_double_precisions_complex_real
     - iamin_bad_arg: *single_double_precisions_complex_real
