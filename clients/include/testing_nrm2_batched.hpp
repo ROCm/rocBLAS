@@ -17,15 +17,15 @@
 template <typename T1, typename T2 = T1>
 void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
 {
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
+    rocblas_int         N           = 100;
+    rocblas_int         incx        = 1;
     rocblas_int         batch_count = 1;
-    static const size_t safe_size = 100;
+    static const size_t safe_size   = 100;
 
     rocblas_local_handle handle;
 
     T1** dx;
-    hipMalloc(&dx, safe_size*sizeof(T1*));
+    hipMalloc(&dx, safe_size * sizeof(T1*));
     device_vector<T2> d_rocblas_result(1);
     if(!dx || !d_rocblas_result)
     {
@@ -35,12 +35,14 @@ void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS((rocblas_nrm2_batched<T1, T2>(handle, N, nullptr, incx, d_rocblas_result, batch_count)),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_nrm2_batched<T1, T2>(handle, N, nullptr, incx, d_rocblas_result, batch_count)),
+        rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, nullptr, batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_nrm2_batched<T1, T2>(nullptr, N, dx, incx, d_rocblas_result, batch_count)),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_nrm2_batched<T1, T2>(nullptr, N, dx, incx, d_rocblas_result, batch_count)),
+        rocblas_status_invalid_handle);
 
     hipFree(dx);
 }
@@ -48,8 +50,8 @@ void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
 template <typename T1, typename T2 = T1>
 void testing_nrm2_batched_template(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
+    rocblas_int N           = arg.N;
+    rocblas_int incx        = arg.incx;
     rocblas_int batch_count = arg.batch_count;
 
     T2 rocblas_result_1[batch_count];
@@ -64,9 +66,9 @@ void testing_nrm2_batched_template(const Arguments& arg)
     if(batch_count <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
-        T1** dx;
-        hipMalloc(&dx, safe_size*sizeof(T1*));
-        device_vector<T2>   d_rocblas_result(batch_count);
+        T1**                dx;
+        hipMalloc(&dx, safe_size * sizeof(T1*));
+        device_vector<T2> d_rocblas_result(batch_count);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -74,19 +76,20 @@ void testing_nrm2_batched_template(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS((rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)),
+            rocblas_status_invalid_size);
         CHECK_HIP_ERROR(hipFree(dx));
-        return; 
+        return;
     }
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
-        T1** dx;
-        hipMalloc(&dx, safe_size*sizeof(T1*));
-        device_vector<T2>   d_rocblas_result(batch_count);
+        T1**                dx;
+        hipMalloc(&dx, safe_size * sizeof(T1*));
+        device_vector<T2> d_rocblas_result(batch_count);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -94,7 +97,8 @@ void testing_nrm2_batched_template(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)));
         CHECK_HIP_ERROR(hipFree(dx));
         return;
     }
@@ -116,19 +120,19 @@ void testing_nrm2_batched_template(const Arguments& arg)
     rocblas_seedrand();
     for(int i = 0; i < batch_count; i++)
     {
-        hx[i]    = host_vector<T1>(size_x);
+        hx[i] = host_vector<T1>(size_x);
         rocblas_init<T1>(hx[i], 1, N, incx);
     }
 
     T1** hdx = new T1*[batch_count]; // must create device ptr array on host
     for(int i = 0; i < batch_count; i++)
     {
-        hipMalloc(&hdx[i], size_x*sizeof(T1));
-        CHECK_HIP_ERROR(hipMemcpy(hdx[i], hx[i], size_x*sizeof(T1), hipMemcpyHostToDevice));
+        hipMalloc(&hdx[i], size_x * sizeof(T1));
+        CHECK_HIP_ERROR(hipMemcpy(hdx[i], hx[i], size_x * sizeof(T1), hipMemcpyHostToDevice));
     }
 
     // vector pointers on gpu
-    T1** dx_pvec;   
+    T1** dx_pvec;
     CHECK_HIP_ERROR(hipMalloc(&dx_pvec, batch_count * sizeof(T1*)));
     if(!dx_pvec)
     {
@@ -138,25 +142,32 @@ void testing_nrm2_batched_template(const Arguments& arg)
     // copy gpu vector pointers from host to device pointer array
     CHECK_HIP_ERROR(hipMemcpy(dx_pvec, &hdx[0], sizeof(T1*) * batch_count, hipMemcpyHostToDevice));
 
-
     double gpu_time_used, cpu_time_used;
 
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_nrm2_batched<T1, T2>(handle, N, const_cast<const T1* const*>(dx_pvec), incx, rocblas_result_1, batch_count)));
+        CHECK_ROCBLAS_ERROR((rocblas_nrm2_batched<T1, T2>(
+            handle, N, dx_pvec, incx, rocblas_result_1, batch_count)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_nrm2_batched<T1, T2>(handle, N, const_cast<const T1* const*>(dx_pvec), incx, d_rocblas_result_2, batch_count)));
-        CHECK_HIP_ERROR(
-            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, batch_count*sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR((rocblas_nrm2_batched<T1, T2>(handle,
+                                                          N,
+                                                          dx_pvec,
+                                                          incx,
+                                                          d_rocblas_result_2,
+                                                          batch_count)));
+        CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2,
+                                  d_rocblas_result_2,
+                                  batch_count * sizeof(T2),
+                                  hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        for (int i = 0; i < batch_count; i++)
-            cblas_nrm2<T1, T2>(N, hx[i], incx, cpu_result+i);
+        for(int i = 0; i < batch_count; i++)
+            cblas_nrm2<T1, T2>(N, hx[i], incx, cpu_result + i);
         cpu_time_used = get_time_us() - cpu_time_used;
 
         //      allowable error is sqrt of precision. This is based on nrm2 calculating the
@@ -219,11 +230,10 @@ void testing_nrm2_batched_template(const Arguments& arg)
 
     for(int i = 0; i < batch_count; i++)
     {
-        CHECK_HIP_ERROR(hipFree(hdx[i]));// gpu pointers on cpu
+        CHECK_HIP_ERROR(hipFree(hdx[i])); // gpu pointers on cpu
     }
-    delete [] hdx;
+    delete[] hdx;
     CHECK_HIP_ERROR(hipFree(dx_pvec));
-
 }
 
 template <typename T>
@@ -246,7 +256,7 @@ void testing_nrm2_batched_bad_arg<rocblas_double_complex>(const Arguments& arg)
 
 template <typename T>
 void testing_nrm2_batched(const Arguments& arg)
-{  
+{
     testing_nrm2_batched_template<T>(arg);
 }
 

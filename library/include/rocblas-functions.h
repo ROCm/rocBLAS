@@ -515,11 +515,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle        handl
     incx      rocblas_int
               specifies the increment for the elements of each x_i.
     @param[in]
-    stridex   specifies the pointer increment between batches for x.
+    stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
     @param[out]
     results
-              pointer to array storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx <= 0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
