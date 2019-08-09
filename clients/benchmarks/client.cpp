@@ -55,10 +55,7 @@ struct perf_gemm_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_ex<Ti,
-                    To,
-                    Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_ex<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -78,11 +75,10 @@ struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<
-    Ti,
-    To,
-    Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+struct perf_gemm_strided_batched_ex<Ti,
+                                    To,
+                                    Tc,
+                                    typename std::enable_if<!std::is_same<Ti, void>{}>::type>
 {
     explicit operator bool()
     {
@@ -194,7 +190,11 @@ struct perf_blas<T,
     }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "asum"))
+        if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
         else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
@@ -518,7 +518,7 @@ try
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
 
         ("betai",
-         value<double>(&arg.beta)->default_value(0.0), "specifies the imaginary part of the scalar beta")
+         value<double>(&arg.betai)->default_value(0.0), "specifies the imaginary part of the scalar beta")
 
         ("function,f",
          value<std::string>(&function),
