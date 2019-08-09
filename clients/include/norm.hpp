@@ -10,10 +10,6 @@
 #include "norm.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
-#include "utility.hpp"
-#include <cstdio>
-#include <limits>
-#include <memory>
 
 /* =====================================================================
         Norm check: norm(A-B)/norm(A), evaluate relative error
@@ -240,7 +236,7 @@ inline double norm_check_general(char        norm_type,
     return cumulative_error;
 }
 
-/* ============== Norm Check for batched case ============= */
+/*! \brief  Template: norm check for hermitian/symmetric Matrix: half/float/double/complex */
 template <typename T>
 inline double norm_check_general(char           norm_type,
                                  rocblas_int    M,
