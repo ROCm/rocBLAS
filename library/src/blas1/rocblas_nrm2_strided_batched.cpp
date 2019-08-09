@@ -4,7 +4,7 @@
 #include "fetch_template.h"
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
+#include "reduction_strided_batched.h"
 #include "rocblas.h"
 #include "utility.h"
 
@@ -55,7 +55,7 @@ namespace
                                                 const Ti*      x,
                                                 rocblas_int    incx,
                                                 rocblas_int    stridex,
-                                                To*            result,
+                                                To*            results,
                                                 rocblas_int    batch_count)
     {
         if(!handle)
@@ -91,7 +91,7 @@ namespace
                         "batch",
                         batch_count);
 
-        if(!x || !result)
+        if(!x || !results)
             return rocblas_status_invalid_pointer;
 
         if(stridex < 0 || stridex < n * incx) // negative n or incx rejected later
@@ -106,34 +106,45 @@ namespace
             if(handle->is_device_memory_size_query())
                 return rocblas_status_size_unchanged;
             else if(rocblas_pointer_mode_device == handle->pointer_mode)
-                RETURN_IF_HIP_ERROR(hipMemset(result, 0, batch_count * sizeof(To)));
+                RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(To)));
             else
             {
                 for(int i = 0; i < batch_count; i++)
-                    result[i] = 0;
+                    results[i] = 0;
             }
             return rocblas_status_success;
         }
 
         auto blocks = (n - 1) / NB + 1;
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
 
-        auto mem = handle->device_malloc(sizeof(To) * blocks);
+        // below blocks+1 the +1 is for results when rocblas_pointer_mode_host
+        size_t devBytes = sizeof(To) * (blocks+1) * batch_count;
+
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(devBytes);
+
+        auto mem = handle->device_malloc(devBytes);
         if(!mem)
             return rocblas_status_memory_error;
 
         rocblas_status bstatus;
-        for(int i = 0; i < batch_count; i++)
-        {
-            bstatus = rocblas_reduction_kernel<NB,
-                                               rocblas_fetch_nrm2_strided_batched<To>,
-                                               rocblas_reduce_sum,
-                                               rocblas_finalize_nrm2_strided_batched>(
-                handle, n, x + i * stridex, incx, result + i, (To*)mem, blocks);
-            if(bstatus != rocblas_status_success)
-                return bstatus;
-        }
+        // for(int i = 0; i < batch_count; i++)
+        // {
+        //     bstatus = rocblas_reduction_kernel<NB,
+        //                                        rocblas_fetch_nrm2_strided_batched<To>,
+        //                                        rocblas_reduce_sum,
+        //                                        rocblas_finalize_nrm2_strided_batched>(
+        //         handle, n, x + i * stridex, incx, results + i, (To*)mem, blocks);
+        //     if(bstatus != rocblas_status_success)
+        //         return bstatus;
+        // }
+
+        bstatus = rocblas_reduction_strided_batched_kernel<NB,
+                                        rocblas_fetch_nrm2_strided_batched<To>,
+                                        rocblas_reduce_sum_batched,
+                                        rocblas_finalize_nrm2_strided_batched>(
+            handle, n, x, incx, stridex, results, (To*)mem, blocks, batch_count);
+
         return bstatus;
     }
 
