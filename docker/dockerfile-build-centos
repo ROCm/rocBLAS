@@ -31,6 +31,8 @@ RUN yum install -y \
     python36-pytest \
     python36-setuptools \
     PyYAML \
+    llvm7.0-devel \
+    llvm7.0-static \
     libcxx-devel \
     boost-devel \
     numactl-libs \
