@@ -7,6 +7,8 @@ Functions:
   rocblas_dscal: { function: scal, <<: *double_precision }
   rocblas_scopy: { function: copy, <<: *single_precision }
   rocblas_dcopy: { function: copy, <<: *double_precision }
+  rocblas_scopy_strided_batched: { function: copy_strided_batched, <<: *single_precision }
+  rocblas_dcopy_strided_batched: { function: copy_strided_batched, <<: *double_precision }
   rocblas_sswap: { function: swap, <<: *single_precision }
   rocblas_dswap: { function: swap, <<: *double_precision }
   rocblas_sdot:  { function: dot, <<: *single_precision  }

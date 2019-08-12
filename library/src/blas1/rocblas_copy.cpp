@@ -4,6 +4,7 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_copy_strided_batched.hpp"
 #include "utility.h"
 
 namespace
@@ -66,20 +67,8 @@ namespace
         if(n <= 0)
             return rocblas_status_success;
 
-        int  blocks = (n - 1) / NB + 1;
-        dim3 grid(blocks);
-        dim3 threads(NB);
-
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-
-        if(incx < 0)
-            x -= ptrdiff_t(incx) * (n - 1);
-        if(incy < 0)
-            y -= ptrdiff_t(incy) * (n - 1);
-
-        hipLaunchKernelGGL(copy_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
-
-        return rocblas_status_success;
+        return rocblas_copy_strided_batched_template(
+            handle, n, x, incx, incx * n, y, incy, incy * n, 1);
     }
 
 } // namespace

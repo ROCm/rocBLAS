@@ -168,6 +168,148 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
 /*! \brief BLAS Level 1 API
 
     \details
+    copy_batched performs a batch of the copies from vectors of x into the vectors of y, for  i = 1 , … , n
+
+        y_i := x_i,
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         array of pointers storing the different vectors x_i on the GPU.
+    @param[in]
+    incx      specifies the increment for the elements of vectors x_i.
+    @param[out]
+    y         array of pointesr storing the different vectors y_i on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of vectors y_i.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    copy_strided_batched copies the vectors x into the vectors y, for  i = 1 , … , n
+
+        y_i := x_i,
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increments for the elements of vectors x_i.
+    @param[in]
+    stridex     rocblas_int
+                stride form the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    y         pointer to the first vector (y_0) in the batch stored on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of vectors y_i.
+    @param[in]
+    stridey     rocblas_int
+                stride from the start of one vector (y_i) and the next one (y_i+1)
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_int    stridex,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_int    stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_int    stridex,
+                                                            double*        y,
+                                                            rocblas_int    incy,
+                                                            rocblas_int    stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_int                  stridex,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_int                  stridey,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handle,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_int                   stridex,
+                                                            rocblas_double_complex*       y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_int                   stridey,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
     dot(u)  perform dot product of vector x and y
 
         result = x * y;

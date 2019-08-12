@@ -73,4 +73,37 @@ Tests:
     - scal_bad_arg:  *single_double_precisions_complex_real
     - scal_bad_arg:  *single_double_complex_real_in_complex_out
     - swap_bad_arg:  *single_double_precisions_complex_real
+
+- name: blas1
+  category: quick
+  N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [1, 25]
+  stride_x: [-1, 10, 10000000]
+  function:
+    - copy_batched:  *single_double_precisions_complex_real
+    - copy_strided_batched:  *single_double_precisions_complex_real
+
+- name: blas1
+  category: pre_checkin
+  N: [ 1048576, 1049600, 4000000, 8000000 ]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [1, 25]
+  stride_x: [-1, 0, 1, 5]
+  function:
+    - copy_batched:  *single_double_precisions_complex_real
+    - copy_strided_batched:  *single_double_precisions_complex_real
+
+- name: blas1_bad_arg
+  category: pre_checkin
+  batch_count: [1, 25]
+  stride_x: [-1, 1, 10]
+  function:
+    - copy_batched_bad_arg:  *single_double_precisions_complex_real
+    - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
+
 ...
