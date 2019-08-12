@@ -16,6 +16,7 @@ ARG user_uid
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     rock-dkms \
     sudo \
+    rocm_smi64 \
     ca-certificates \
     git \
     make \
@@ -27,8 +28,12 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     python-yaml \
     python3-yaml \
     gfortran \
+    llvm-6.0-dev \
     libboost-program-options-dev \
     libnuma1 \
+    libpthread-stubs0-dev \
+    libomp-dev \
+    zlib1g-dev \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
