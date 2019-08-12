@@ -23,6 +23,9 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas

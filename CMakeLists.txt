@@ -35,6 +35,9 @@ endif()
 
 project( rocblas LANGUAGES CXX )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # ########################################################################
 # NOTE:  CUDA compiling path
 # ########################################################################
