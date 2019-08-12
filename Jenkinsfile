@@ -32,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx900 && centos7', 'gfx906 && centos7'], rocblas)
 
     boolean formatCheck = true
 
