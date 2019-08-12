@@ -198,6 +198,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
     {
         if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
