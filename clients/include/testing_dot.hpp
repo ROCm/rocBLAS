@@ -156,8 +156,8 @@ void testing_dot(const Arguments& arg)
             std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
                       << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
 
-            rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
-            rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
+            rocblas_error_1 = double(std::abs((cpu_result - rocblas_result_1) / cpu_result));
+            rocblas_error_2 = double(std::abs((cpu_result - rocblas_result_2) / cpu_result));
         }
     }
 
