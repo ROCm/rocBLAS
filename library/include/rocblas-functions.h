@@ -1086,7 +1086,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
     alpha
               specifies the scalar alpha.
     @param[in]
-    x         array of pointesr storing the different vectors x_i on the GPU.
+    x         array of pointers storing the different vectors x_i on the GPU.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of vectors x_i.
@@ -1137,7 +1137,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
 
         A_i := A_i + alpha*x_i*y_i**T
 
-    where alpha is a scalars, x and y are vectors, and A is an
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha is a scalar, x_i and y_i are vectors and A_i is an
     m by n matrix.
 
     @param[in]

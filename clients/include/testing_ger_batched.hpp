@@ -27,20 +27,11 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_A   = lda * size_t(N);
-    size_t      size_x   = M * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-
     // allocate memory on device
-    T** dA_1;
-    T** dx;
-    T** dy;
-    hipMalloc(&dA_1, batch_count * sizeof(T*));
-    hipMalloc(&dx, batch_count * sizeof(T*));
-    hipMalloc(&dy, batch_count * sizeof(T*));
-    if(!dA_1 || !dx || !dy)
+    device_vector<T*, 0, T> dA(batch_count);
+    device_vector<T*, 0, T> dx(batch_count);
+    device_vector<T*, 0, T> dy(batch_count);
+    if(!dA || !dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -48,17 +39,17 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_ger_batched<T>(
-            handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda, batch_count),
+            handle, M, N, &alpha, nullptr, incx, dy, incy, dA, lda, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_ger_batched<T>(
-            handle, M, N, &alpha, dx, incx, nullptr, incy, dA_1, lda, batch_count),
+            handle, M, N, &alpha, dx, incx, nullptr, incy, dA, lda, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_ger_batched<T>(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_ger_batched<T>(nullptr, M, N, &alpha, dx, incx, dy, incy, dA_1, lda, batch_count),
+        rocblas_ger_batched<T>(nullptr, M, N, &alpha, dx, incx, dy, incy, dA, lda, batch_count),
         rocblas_status_invalid_handle);
 }
 
@@ -71,7 +62,7 @@ void testing_ger_batched(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int lda         = arg.lda;
     T           h_alpha     = (T)arg.alpha;
-    rocblas_int batch_count = 1; //arg.batch_count;
+    rocblas_int batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
 
@@ -79,12 +70,9 @@ void testing_ger_batched(const Arguments& arg)
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        T**                 dA;
-        T**                 dx;
-        T**                 dy;
-        hipMalloc(&dA, safe_size * sizeof(T*));
-        hipMalloc(&dx, safe_size * sizeof(T*));
-        hipMalloc(&dy, safe_size * sizeof(T*));
+        device_vector<T*, 0, T> dA(batch_count);
+        device_vector<T*, 0, T> dx(batch_count);
+        device_vector<T*, 0, T> dy(batch_count);
         if(!dA || !dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -109,15 +97,10 @@ void testing_ger_batched(const Arguments& arg)
     size_t size_y   = N * abs_incy;
 
     //Device-arrays of pointers to device memory
-    T**              dy;
-    T**              dx;
-    T**              dA_1;
-    T**              dA_2;
-    device_vector<T> d_alpha(1);
-    hipMalloc(&dy, batch_count * sizeof(T*));
-    hipMalloc(&dx, batch_count * sizeof(T*));
-    hipMalloc(&dA_1, batch_count * sizeof(T*));
-    hipMalloc(&dA_2, batch_count * sizeof(T*));
+    device_vector<T*, 0, T> dy(batch_count);
+    device_vector<T*, 0, T> dx(batch_count);
+    device_vector<T*, 0, T> dA_1(batch_count);
+    device_vector<T*, 0, T> dA_2(batch_count);
     if(!dA_1 || !dA_2 || !dx || !dy || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -138,12 +121,6 @@ void testing_ger_batched(const Arguments& arg)
     T* x[batch_count];
     T* A_1[batch_count];
     T* A_2[batch_count];
-
-    // allocate memory on device
-    // device_vector<T> dA_1(size_A);
-    // device_vector<T> dA_2(size_A);
-    // device_vector<T> dx(size_x);
-    // device_vector<T> dy(size_y);
 
     for(int b = 0; b < batch_count; ++b)
     {
@@ -288,16 +265,4 @@ void testing_ger_batched(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
-    for(int b = 0; b < batch_count; ++b)
-    {
-        CHECK_HIP_ERROR(hipFree(y[b]));
-        CHECK_HIP_ERROR(hipFree(x[b]));
-        CHECK_HIP_ERROR(hipFree(A_1[b]));
-        CHECK_HIP_ERROR(hipFree(A_2[b]));
-    }
-    CHECK_HIP_ERROR(hipFree(dy));
-    CHECK_HIP_ERROR(hipFree(dx));
-    CHECK_HIP_ERROR(hipFree(dA_1));
-    CHECK_HIP_ERROR(hipFree(dA_2));
 }

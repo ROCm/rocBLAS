@@ -143,7 +143,7 @@ void testing_ger_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        std::cout << "GOT HERE " << std::endl;
+
         EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
                                                              M,
                                                              N,
@@ -167,9 +167,9 @@ void testing_ger_strided_batched(const Arguments& arg)
     if(!batch_count)
         return;
 
-    size_A += size_t(stride_a - size_A) * (batch_count - 1);
-    size_x += size_t(stride_a - size_x) * (batch_count - 1);
-    size_y += size_t(stride_a - size_y) * (batch_count - 1);
+    size_A += size_A * (batch_count - 1) + size_t(stride_a - size_A) * (batch_count - 1);
+    size_x += size_x * (batch_count - 1) + size_t(stride_x - size_x) * (batch_count - 1);
+    size_y += size_y * (batch_count - 1) + size_t(stride_y - size_y) * (batch_count - 1);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);
