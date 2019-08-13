@@ -15,6 +15,14 @@ Functions:
   rocblas_dasum: { function: asum, <<: *double_precision }
   rocblas_scasum: { function: asum, <<: *single_precision_complex }
   rocblas_dzasum: { funciton: asum, <<: *double_precision_complex }
+  rocblas_sasum_batched: { function: asum_batched, <<: *single_precision }
+  rocblas_dasum_batched: { function: asum_batched, <<: *double_precision }
+  rocblas_scasum_batched: { function: asum_batched, <<: *single_precision_complex }
+  rocblas_dzasum_batched: { funciton: asum_batched, <<: *double_precision_complex }
+  rocblas_sasum_strided_batched: { function: asum_strided_batched, <<: *single_precision }
+  rocblas_dasum_strided_batched: { function: asum_strided_batched, <<: *double_precision }
+  rocblas_scasum_strided_batched: { function: asum_strided_batched, <<: *single_precision_complex }
+  rocblas_dzasum_strided_batched: { funciton: asum_strided_batched, <<: *double_precision_complex }
   rocblas_snrm2: { function: nrm2, <<: *single_precision }
   rocblas_dnrm2: { function: nrm2, <<: *double_precision }
   rocblas_snrm2_batched: { function: nrm2_batched, <<: *single_precision }

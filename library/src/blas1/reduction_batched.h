@@ -2,9 +2,9 @@
 #define REDUCTION_BATCHED_H_
 
 #include "handle.h"
+#include "reduction.h"
 #include "rocblas.h"
 #include "utility.h"
-#include "reduction.h"
 #include <type_traits>
 #include <utility>
 
@@ -53,7 +53,6 @@
 // Kernel 2's computation can be merged into Kernel 1. One such mechanism is called
 // atomic operation. However, atomic operation is new and is not used in rocBLAS
 // yet. rocBLAS still use the classic standard parallel reduction right now.
-
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
@@ -132,9 +131,42 @@ __global__ void
         result[hipBlockIdx_y] = FINALIZE{}(tmp[0]);
 }
 
-// At least two kernels are needed to finish the reduction
-// kennel 1 write partial result per thread block in workspace, blocks partial results
-// kernel 2 gathers all the partial result in workspace and finishes the final reduction.
+/*! \brief
+
+    \details
+    rocblas_reduction_batched_kernel computes a reduction over multiple vectors x_i
+              Template parameters allow threads per block, data, and specific phase kernel overrides
+              At least two kernels are needed to finish the reduction
+              kernel 1 write partial result per thread block in workspace, blocks partial results
+              kernel 2 gathers all the partial result in workspace and finishes the final reduction.
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         array of pointers to the different vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i.
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+
+    @param[out]
+    workspace To*  
+              temporary GPU buffer for inidividual block results for each batch
+              and results buffer in case result pointer is to host memory
+              Size must be (blocks+1)*batch_count*sizeof(To)
+    @param[in]
+    blocks    rocblas_int
+              number of thread blocks 
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    ********************************************************************/
 template <rocblas_int NB,
           typename FETCH,
           typename REDUCE   = rocblas_reduce_sum,
@@ -180,7 +212,8 @@ rocblas_status rocblas_reduction_batched_kernel(rocblas_handle __restrict__ hand
         // it must be a standard layout type and its first member must be of type Tr.
         static_assert(std::is_standard_layout<To>{}, "To must be a standard layout type");
 
-        if(blocks > 1 || batch_count > 1)
+        bool reduceKernel = blocks > 1 || batch_count > 1;
+        if(reduceKernel)
         {
             hipLaunchKernelGGL((rocblas_reduction_batched_kernel_part2<NB, REDUCE, FINALIZE>),
                                dim3(1, batch_count),
@@ -192,15 +225,13 @@ rocblas_status rocblas_reduction_batched_kernel(rocblas_handle __restrict__ hand
                                (Tr*)(workspace + batch_count * blocks));
         }
 
-        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || blocks > 1
-           || batch_count > 1)
+        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0]+offset, and can be copied directly.
-            RETURN_IF_HIP_ERROR(hipMemcpy(result,
-                                          workspace + batch_count * blocks,
-                                          batch_count * sizeof(Tr),
-                                          hipMemcpyDeviceToHost));
+            size_t offset = reduceKernel ? batch_count * blocks : 0;
+            RETURN_IF_HIP_ERROR(hipMemcpy(
+                result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
         }
         else
         {
