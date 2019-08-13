@@ -223,6 +223,21 @@ Definitions:
     - { alpha: -2.0, beta: -3.0 }
     - { alpha:  0.0, beta:  1.0 }
 
+  - &complex_alpha_beta_range
+    - { alpha:  5, beta:  0, alphai:  5, betai:  0 }
+    - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
+    - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
+    - { alpha: -5, beta:  0, alphai:  0, betai: -5 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  3 }
+    - { alpha:  0, beta:  3, alphai:  3, betai:  0 }
+    - { alpha:  0, beta: -3, alphai:  0, betai: -3 }
+    - { alpha:  0, beta: -3, alphai: -3, betai:  0 }
+    - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
+    - { alpha:  1, beta:  3, alphai: -3, betai: -1 }
+    - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
+    - { alpha: -1, beta: -3, alphai: -3, betai: -1 }
+    - { alpha:  0, beta:  0, alphai:  0, betai:  0 }
+
 Tests:
 - name: gemm_strided_batched_bad_arg
   category: pre_checkin
@@ -231,15 +246,24 @@ Tests:
   transA: N
   transB: N
 
+- name: gemm_strided_batched_bad_arg
+  category: pre_checkin
+  function:
+    - gemm_strided_batched_ex_bad_arg: *single_double_precisions_complex
+  transA: N
+  transB: N
+
 - name: gemm_strided_batched_NaN
   category: pre_checkin
   function:
-    - gemm_strided_batched: *single_double_precisions
-    - gemm_strided_batched_ex: *single_double_precisions
+    - gemm_strided_batched: *single_double_precisions_complex_real
+    - gemm_strided_batched_ex: *single_double_precisions_complex_real
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ -1.0, 0.0, 1.0, 2.0 ]
+  alphai: [ -1.0, 0.0, 1.0 ]
   beta: .NaN  # converted to 0.0 in test code
+  betai: .NaN
   batch_count: [ 1, 3 ]
 
 # TODO: Add int8 precisions by replacing *hpa_half_single_double_precisions with *real_precisions
@@ -254,6 +278,16 @@ Tests:
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
 
+- name: gemm_strided_batched_small_complex
+  category: quick
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_beta_range
+  transA_transB: *transA_transB_range
+  batch_count: [ -1, 0, 1, 3 ]
+
 - name: gemm_strided_batched_small_stride_zero
   category: quick
   function:
@@ -261,7 +295,23 @@ Tests:
     gemm_strided_batched_ex: *real_precisions
   matrix_size: *small_matrix_size_stride_a_range
   alpha: 2.0
+  alphai: 1.0
   beta: 3.0
+  betai: -1.0
+  transA: N
+  transB: N
+  batch_count: [ 1, 3 ]
+
+- name: gemm_strided_batched_small_stride_zero_complex
+  category: quick
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_stride_a_range
+  alpha: 2.0
+  alphai: 1.0
+  beta: 3.0
+  betai: -1.0
   transA: N
   transB: N
   batch_count: [ 1, 3 ]
@@ -276,6 +326,16 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3, 63..65 ]
 
+- name: gemm_strided_batched_medium_complex
+  category: pre_checkin
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+  batch_count: [ -1, 0, 1, 3, 63..65 ]
+
 - name: gemm_strided_batched_medium_stride_zero
   category: nightly
   function:
@@ -283,7 +343,23 @@ Tests:
     gemm_strided_batched_ex: *hpa_half_single_precisions
   matrix_size: *medium_matrix_size_stride_a_range
   alpha: 2.0
+  alphai: 1.0
   beta: 3.0
+  betai: -1.0
+  transA: N
+  transB: N
+  batch_count: 31..33
+
+- name: gemm_strided_batched_medium_stride_zero_complex
+  category: nightly
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *medium_matrix_size_stride_a_range
+  alpha: 2.0
+  alphai: 1.0
+  beta: 3.0
+  betai: -1.0
   transA: N
   transB: N
   batch_count: 31..33
@@ -298,6 +374,16 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
 
+- name: gemm_strided_batched_large_complex
+  category: pre_checkin
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *large_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+  batch_count: [ -1, 0, 1, 3 ]
+
 - name: gemm_strided_batched_large_stride_zero
   category: pre_checkin
   function:
@@ -305,7 +391,23 @@ Tests:
     gemm_strided_batched_ex: *real_precisions
   matrix_size: *large_matrix_size_stride_a_range
   alpha: 2.0
+  alphai: 1.0
   beta: 3.0
+  betai: -1.0
+  transA: N
+  transB: N
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemm_strided_batched_large_stride_zero_complex
+  category: pre_checkin
+  function:
+    gemm_strided_batched: *single_double_precisions_complex
+    gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *large_matrix_size_stride_a_range
+  alpha: 2.0
+  alphai: 1.0
+  beta: 3.0
+  betai: -1.0
   transA: N
   transB: N
   batch_count: [ -1, 0, 1, 3 ]
