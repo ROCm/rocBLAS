@@ -297,7 +297,7 @@ public:
     template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
     friend __device__ __host__ bool operator==(const U& lhs, const rocblas_complex_num& rhs)
     {
-        return T(lhs) == rhs.x && 00 == rhs.y;
+        return T(lhs) == rhs.x && 0 == rhs.y;
     }
 
     template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
