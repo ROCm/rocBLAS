@@ -24,16 +24,9 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
-
     // allocate memory on device
-    T** dx;
-    T** dy;
-    hipMalloc(&dx, batch_count * sizeof(T*));
-    hipMalloc(&dy, batch_count * sizeof(T*));
+    device_vector<T*, 0, T> dx(batch_count);
+    device_vector<T*, 0, T> dy(batch_count);
     if(!dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -61,10 +54,8 @@ void testing_copy_batched(const Arguments& arg)
     if(N < 0 || !incx || !incy || batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
-        T**                 dx;
-        T**                 dy;
-        hipMalloc(&dx, safe_size * sizeof(T*));
-        hipMalloc(&dy, safe_size * sizeof(T*));
+        device_vector<T*, 0, T> dx(batch_count);
+        device_vector<T*, 0, T> dy(batch_count);
         if(!dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
