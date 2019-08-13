@@ -145,6 +145,51 @@ static constexpr auto rocblas_asum<rocblas_float_complex, float> = rocblas_scasu
 template <>
 static constexpr auto rocblas_asum<rocblas_double_complex, double> = rocblas_dzasum;
 
+// asum_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_asum_batched)(rocblas_handle  handle,
+                                       rocblas_int     n,
+                                       const T1* const x[],
+                                       rocblas_int     incx,
+                                       T2*             result,
+                                       rocblas_int     batch_count);
+
+template <>
+static constexpr auto rocblas_asum_batched<float, float> = rocblas_sasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<double, double> = rocblas_dasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<rocblas_float_complex, float> = rocblas_scasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<rocblas_double_complex, double> = rocblas_dzasum_batched;
+
+// asum_strided_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const T1*      x,
+                                               rocblas_int    incx,
+                                               rocblas_int    stridex,
+                                               T2*            result,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_asum_strided_batched<float, float> = rocblas_sasum_strided_batched;
+
+template <>
+static constexpr auto rocblas_asum_strided_batched<double, double> = rocblas_dasum_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_asum_strided_batched<rocblas_float_complex, float> = rocblas_scasum_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_asum_strided_batched<rocblas_double_complex, double> = rocblas_dzasum_strided_batched;
+
 // nrm2
 template <typename T1, typename T2>
 rocblas_status (*rocblas_nrm2)(

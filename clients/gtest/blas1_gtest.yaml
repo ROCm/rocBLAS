@@ -67,7 +67,7 @@ Tests:
   category: quick
   N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
   incx: [-1, 1, 2]
-  batch_count: [1, 2, 10, 1025]
+  batch_count: [-1, 1, 2, 10, 1025]
   function: 
     - nrm2_batched: *single_double_precisions_complex_real
 
@@ -76,9 +76,26 @@ Tests:
   N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
   incx: [-1, 1, 2]
   stride_x: [-1, 68000]
-  batch_count: [1, 2, 10, 1025]
+  batch_count: [-1, 1, 2, 10, 1025]
   function: 
     - nrm2_strided_batched: *single_double_precisions_complex_real
+
+- name: blas1_asum_batched
+  category: quick
+  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+  incx: [-1, 1, 2]
+  batch_count: [-1, 1, 2, 10, 1025]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
+
+- name: blas1_asum_strided_batched
+  category: quick
+  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+  incx: [-1, 1, 2]
+  stride_x: [-1, 68000]
+  batch_count: [-1, 1, 2, 10, 1025]
+  function: 
+    - asum_strided_batched: *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin
@@ -87,6 +104,8 @@ Tests:
     - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
     - nrm2_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - asum_bad_arg:  *single_double_precisions_complex_real
+    - asum_batched_bad_arg:  *single_double_precisions_complex_real
+    - asum_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - iamax_bad_arg: *single_double_precisions_complex_real
     - iamin_bad_arg: *single_double_precisions_complex_real
     - axpy_bad_arg:  *half_single_precisions_complex_real

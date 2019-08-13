@@ -4,52 +4,39 @@
 #include "fetch_template.h"
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
 #include "reduction_batched.h"
 #include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    constexpr int NB = 512;
-
-    // same as non-batched for now
     template <class To>
-    struct rocblas_fetch_nrm2_batched
+    struct rocblas_fetch_asum_batched
     {
-        template <class Ti>
-        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
+        template <typename Ti>
+        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t)
         {
-            return {fetch_abs2(x)};
-        }
-    };
-
-    struct rocblas_finalize_nrm2_batched
-    {
-        template <class To>
-        __forceinline__ __host__ __device__ To operator()(To x)
-        {
-            return sqrt(x);
+            return {fetch_asum(x)};
         }
     };
 
     template <typename>
-    constexpr char rocblas_nrm2_batched_name[] = "unknown";
+    constexpr char rocblas_asum_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_nrm2_batched_name<float>[] = "rocblas_snrm2_batched";
+    constexpr char rocblas_asum_batched_name<float>[] = "rocblas_sasum_batched";
     template <>
-    constexpr char rocblas_nrm2_batched_name<double>[] = "rocblas_dnrm2_batched";
+    constexpr char rocblas_asum_batched_name<double>[] = "rocblas_dasum_batched";
     template <>
-    constexpr char rocblas_nrm2_batched_name<rocblas_half>[] = "rocblas_hnrm2_batched";
+    constexpr char rocblas_asum_batched_name<rocblas_float_complex>[] = "rocblas_scasum_batched";
     template <>
-    constexpr char rocblas_nrm2_batched_name<rocblas_float_complex>[] = "rocblas_scnrm2_batched";
-    template <>
-    constexpr char rocblas_nrm2_batched_name<rocblas_double_complex>[] = "rocblas_dznrm2_batched";
+    constexpr char rocblas_asum_batched_name<rocblas_double_complex>[] = "rocblas_dzasum_batched";
+
+    // HIP support up to 1024 threads/work itmes per thread block/work group
+    constexpr int NB = 512;
 
     // allocate workspace inside this API
     template <typename Ti, typename To>
-    rocblas_status rocblas_nrm2_batched(rocblas_handle  handle,
+    rocblas_status rocblas_asum_batched(rocblas_handle  handle,
                                         rocblas_int     n,
                                         const Ti* const x[],
                                         rocblas_int     incx,
@@ -61,11 +48,11 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_nrm2_batched_name<Ti>, n, x, incx, batch_count);
+            log_trace(handle, rocblas_asum_batched_name<Ti>, n, x, incx, batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
-                      "./rocblas-bench -f nrm2_batched -r",
+                      "./rocblas-bench -f asum_batched -r",
                       rocblas_precision_string<Ti>,
                       "-n",
                       n,
@@ -76,7 +63,7 @@ namespace
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(
-                handle, rocblas_nrm2_batched_name<Ti>, "N", n, "incx", incx, "batch", batch_count);
+                handle, rocblas_asum_batched_name<Ti>, "N", n, "incx", incx, "batch", batch_count);
 
         if(!x || !results)
             return rocblas_status_invalid_pointer;
@@ -98,7 +85,6 @@ namespace
                     results[i] = 0;
                 }
             }
-
             return rocblas_status_success;
         }
 
@@ -114,18 +100,11 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        rocblas_status bstatus = rocblas_reduction_batched_kernel<NB,
-                                                                  rocblas_fetch_nrm2_batched<To>,
-                                                                  rocblas_reduce_sum,
-                                                                  rocblas_finalize_nrm2_batched>(
+        return rocblas_reduction_batched_kernel<NB, rocblas_fetch_asum_batched<To>>(
             handle, n, x, incx, results, (To*)mem, blocks, batch_count);
-
-        return bstatus;
     }
 
 } // namespace
-
-/* ============================================================================================ */
 
 /*
  * ===========================================================================
@@ -135,44 +114,44 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_snrm2_batched(rocblas_handle     handle,
+rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
                                      rocblas_int        n,
                                      const float* const x[],
                                      rocblas_int        incx,
                                      float*             results,
                                      rocblas_int        batch_count)
 {
-    return rocblas_nrm2_batched(handle, n, x, incx, results, batch_count);
+    return rocblas_asum_batched(handle, n, x, incx, results, batch_count);
 }
 
-rocblas_status rocblas_dnrm2_batched(rocblas_handle      handle,
+rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
                                      rocblas_int         n,
                                      const double* const x[],
                                      rocblas_int         incx,
                                      double*             results,
                                      rocblas_int         batch_count)
 {
-    return rocblas_nrm2_batched(handle, n, x, incx, results, batch_count);
+    return rocblas_asum_batched(handle, n, x, incx, results, batch_count);
 }
 
-rocblas_status rocblas_scnrm2_batched(rocblas_handle                     handle,
+rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
                                       rocblas_int                        n,
                                       const rocblas_float_complex* const x[],
                                       rocblas_int                        incx,
                                       float*                             results,
                                       rocblas_int                        batch_count)
 {
-    return rocblas_nrm2_batched(handle, n, x, incx, results, batch_count);
+    return rocblas_asum_batched(handle, n, x, incx, results, batch_count);
 }
 
-rocblas_status rocblas_dznrm2_batched(rocblas_handle                      handle,
+rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
                                       rocblas_int                         n,
                                       const rocblas_double_complex* const x[],
                                       rocblas_int                         incx,
                                       double*                             results,
                                       rocblas_int                         batch_count)
 {
-    return rocblas_nrm2_batched(handle, n, x, incx, results, batch_count);
+    return rocblas_asum_batched(handle, n, x, incx, results, batch_count);
 }
 
 } // extern "C"
