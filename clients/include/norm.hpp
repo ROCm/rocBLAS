@@ -264,7 +264,7 @@ inline double norm_check_general(char           norm_type,
     {
         auto index = i;
 
-        auto error = norm_check_general(norm_type, M, N, lda, hCPU[index], hGPU[index]);
+        auto error = norm_check_general<T>(norm_type, M, N, lda, hCPU[index], hGPU[index]);
 
         if(norm_type == 'F' || norm_type == 'f')
         {

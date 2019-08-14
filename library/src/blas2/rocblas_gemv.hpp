@@ -222,6 +222,8 @@ rocblas_status rocblas_gemv_batched_template(rocblas_handle    handle,
         static constexpr int GEMVN_DIM_X = 64;
         static constexpr int GEMVN_DIM_Y = 16;
         rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+        if(std::is_same<T, rocblas_double_complex>{})
+            blocks = (m - 1) / (GEMVN_DIM_X) + 1;
 
         dim3 gemvn_grid(blocks, batch_count);
         dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
@@ -319,7 +321,7 @@ rocblas_status rocblas_gemv_batched_template(rocblas_handle    handle,
         // conjugate transpose
         // number of columns on the y-dim of the grid
         static constexpr int NB = 256;
-        dim3                 gemvc_grid(n, 1);
+        dim3                 gemvc_grid(n, batch_count);
         dim3                 gemvc_threads(NB);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -396,6 +398,8 @@ rocblas_status rocblas_gemv_strided_batched_template(rocblas_handle    handle,
         static constexpr int GEMVN_DIM_X = 64;
         static constexpr int GEMVN_DIM_Y = 16;
         rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+        if(std::is_same<T, rocblas_double_complex>{})
+            blocks = (m - 1) / (GEMVN_DIM_X) + 1;
 
         dim3 gemvn_grid(blocks, batch_count);
         dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
@@ -505,7 +509,7 @@ rocblas_status rocblas_gemv_strided_batched_template(rocblas_handle    handle,
         // conjugate transpose
         // number of columns on the y-dim of the grid
         static constexpr int NB = 256;
-        dim3                 gemvc_grid(n, 1);
+        dim3                 gemvc_grid(n, batch_count);
         dim3                 gemvc_threads(NB);
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
