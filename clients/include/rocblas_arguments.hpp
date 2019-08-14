@@ -166,13 +166,16 @@ struct Arguments
     template <typename T>
     T get_alpha() const
     {
-        return rocblas_isnan(alpha) ? T(0) : convert_alpha_beta<T>(alpha, alphai);
+        return (rocblas_isnan(alpha) || rocblas_isnan(alphai))
+                   ? T(0)
+                   : convert_alpha_beta<T>(alpha, alphai);
     }
 
     template <typename T>
     T get_beta() const
     {
-        return rocblas_isnan(beta) ? T(0) : convert_alpha_beta<T>(beta, betai);
+        return (rocblas_isnan(beta) || rocblas_isnan(betai)) ? T(0)
+                                                             : convert_alpha_beta<T>(beta, betai);
     }
 
 private:
