@@ -36,7 +36,8 @@ double zlange_(char* norm_type, int* m, int* n, rocblas_double_complex* A, int* 
 float  slansy_(char* norm_type, char* uplo, int* n, float* A, int* lda, float* work);
 double dlansy_(char* norm_type, char* uplo, int* n, double* A, int* lda, double* work);
 float clanhe_(char* norm_type, char* uplo, int* n, rocblas_float_complex* A, int* lda, float* work);
-double zlanhe_(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work);
+double
+    zlanhe_(char* norm_type, char* uplo, int* n, rocblas_double_complex* A, int* lda, double* work);
 
 void saxpy_(int* n, float* alpha, float* x, int* incx, float* y, int* incy);
 void daxpy_(int* n, double* alpha, double* x, int* incx, double* y, int* incy);
@@ -120,7 +121,6 @@ inline void xaxpy(int*                    n,
 {
     return zaxpy_(n, alpha, x, incx, y, incy);
 }
-
 
 /* ============== Norm Check for General Matrix ============= */
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
@@ -242,13 +242,13 @@ inline double norm_check_general(char        norm_type,
 
 /* ============== Norm Check for batched case ============= */
 template <typename T>
-inline double norm_check_general(char        norm_type,
-                                 rocblas_int M,
-                                 rocblas_int N,
-                                 rocblas_int lda,
-                                 rocblas_int batch_count,
-                                 host_vector<T>   hCPU[],
-                                 host_vector<T>   hGPU[])
+inline double norm_check_general(char           norm_type,
+                                 rocblas_int    M,
+                                 rocblas_int    N,
+                                 rocblas_int    lda,
+                                 rocblas_int    batch_count,
+                                 host_vector<T> hCPU[],
+                                 host_vector<T> hGPU[])
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
