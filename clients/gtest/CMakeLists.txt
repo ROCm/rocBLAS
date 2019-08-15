@@ -66,7 +66,6 @@ set(rocblas_test_source
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/norm.cpp
       ../common/rocblas_parse_data.cpp
     )
 
