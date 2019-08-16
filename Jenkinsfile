@@ -157,8 +157,6 @@ rocBLASCI:
                     mkdir -p package
                     mv *.deb package/
                     mv clients/*.deb package/
-                    dpkg -c package/*.deb
-                    cd package
                 """
 
             platform.runCommand(this, command)
