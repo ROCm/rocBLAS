@@ -41,7 +41,7 @@ rocBLASCI:
         platform, project->
 
         project.paths.construct_build_prefix()
-        
+
         def command
 
         if(platform.jenkinsLabel.contains('hip-clang'))
@@ -78,7 +78,7 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
-                
+
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
@@ -90,7 +90,7 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
-        
+
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
@@ -104,7 +104,7 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
-                
+
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
@@ -116,7 +116,7 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
-        
+
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
@@ -127,21 +127,21 @@ rocBLASCI:
     {
         platform, project->
 
-        def command 
-        
+        def command
+
         if(platform.jenkinsLabel.contains('centos'))
         {
             command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
                     make package
-                    rm -rf package && mkdir -p package
+                    mkdir -p package
                     mv *.rpm package/
                     rpm -qlp package/*.rpm
                 """
 
             platform.runCommand(this, command)
-            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")        
+            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")
         }
         else if(platform.jenkinsLabel.contains('hip-clang'))
         {
@@ -153,9 +153,10 @@ rocBLASCI:
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
                     make package
-                    rm -rf package && mkdir -p package
+                    make package_clients
+                    mkdir -p package
                     mv *.deb package/
-                    dpkg -c package/*.deb
+                    mv clients/*.deb package/
                 """
 
             platform.runCommand(this, command)
