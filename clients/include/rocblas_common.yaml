@@ -208,6 +208,8 @@ Arguments:
   - stride_b: rocblas_int
   - stride_c: rocblas_int
   - stride_d: rocblas_int
+  - stride_x: rocblas_int
+  - stride_y: rocblas_int
   - norm_check: rocblas_int
   - unit_check: rocblas_int
   - timing: rocblas_int
@@ -277,6 +279,8 @@ Defaults:
   stride_b: 0
   stride_c: 0
   stride_d: 0
+  stride_x: 0
+  stride_y: 0
   norm_check: 0
   unit_check: 1
   timing: 0

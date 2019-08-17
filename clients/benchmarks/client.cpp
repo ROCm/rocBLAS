@@ -13,6 +13,8 @@
 #include "testing_dot.hpp"
 #include "testing_geam.hpp"
 #include "testing_gemv.hpp"
+#include "testing_gemv_batched.hpp"
+#include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
@@ -137,6 +139,10 @@ struct perf_blas<
             testing_nrm2<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
+        else if(!strcmp(arg.function, "gemv_batched"))
+            testing_gemv_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemv_strided_batched"))
+            testing_gemv_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "ger"))
             testing_ger<T>(arg);
         else if(!strcmp(arg.function, "syr"))
@@ -499,6 +505,16 @@ try
          value<rocblas_int>(&arg.stride_d)->default_value(128*128),
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
+
+        ("stride_x",
+         value<rocblas_int>(&arg.stride_x)->default_value(128*128),
+         "Specific stride of strided_batched vector x, is only applicable to strided batched"
+         "BLAS_2: second dimension.")
+
+        ("stride_y",
+         value<rocblas_int>(&arg.stride_y)->default_value(128*128),
+         "Specific stride of strided_batched vector y, is only applicable to strided batched"
+         "BLAS_2: leading dimension.")
 
         ("incx",
          value<rocblas_int>(&arg.incx)->default_value(1),
