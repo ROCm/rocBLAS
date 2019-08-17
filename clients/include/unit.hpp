@@ -14,9 +14,11 @@
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 
 #ifndef GOOGLE_TEST
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)
+#define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)
 #else
 // clang-format off
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)      \
@@ -30,6 +32,19 @@
                     } else {                                                         \
                         UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],              \
                                        hGPU[i + j * lda + k * strideA]);             \
+                    }                                                                \
+    } while(0)
+#define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)             \
+    do                                                                               \
+    {                                                                                \
+        for(size_t k = 0; k < batch_count; k++)                                      \
+            for(size_t j = 0; j < N; j++)                                            \
+                for(size_t i = 0; i < M; i++)                                        \
+                    if (rocblas_isnan(hCPU[k][i + j * lda])) {                       \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));            \
+                    } else {                                                         \
+                        UNIT_ASSERT_EQ(hCPU[k][i + j * lda],                         \
+                                       hGPU[k][i + j * lda]);                        \
                     }                                                                \
     } while(0)
 // clang-format on
@@ -204,6 +219,80 @@ inline void unit_check_general(rocblas_int  M,
                                rocblas_int* hGPU)
 {
     UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_EQ);
+}
+
+template <typename T>
+void unit_check_general(rocblas_int    M,
+                        rocblas_int    N,
+                        rocblas_int    batch_count,
+                        rocblas_int    lda,
+                        host_vector<T> hCPU[],
+                        host_vector<T> hGPU[]);
+
+template <>
+inline void unit_check_general(rocblas_int                   M,
+                               rocblas_int                   N,
+                               rocblas_int                   batch_count,
+                               rocblas_int                   lda,
+                               host_vector<rocblas_bfloat16> hCPU[],
+                               host_vector<rocblas_bfloat16> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int               M,
+                               rocblas_int               N,
+                               rocblas_int               batch_count,
+                               rocblas_int               lda,
+                               host_vector<rocblas_half> hCPU[],
+                               host_vector<rocblas_half> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_HALF_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int        M,
+                               rocblas_int        N,
+                               rocblas_int        batch_count,
+                               rocblas_int        lda,
+                               host_vector<float> hCPU[],
+                               host_vector<float> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int         M,
+                               rocblas_int         N,
+                               rocblas_int         batch_count,
+                               rocblas_int         lda,
+                               host_vector<double> hCPU[],
+                               host_vector<double> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int                        M,
+                               rocblas_int                        N,
+                               rocblas_int                        batch_count,
+                               rocblas_int                        lda,
+                               host_vector<rocblas_float_complex> hCPU[],
+                               host_vector<rocblas_float_complex> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_COMPLEX_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int                         M,
+                               rocblas_int                         N,
+                               rocblas_int                         batch_count,
+                               rocblas_int                         lda,
+                               host_vector<rocblas_double_complex> hCPU[],
+                               host_vector<rocblas_double_complex> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
 template <typename T>
