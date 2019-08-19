@@ -23,6 +23,9 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
@@ -34,13 +37,17 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   # HACK: We include the config file directly because find_package(Tensile) is broken
-  include( ${Tensile_TensileConfig} )
+  #include( ${Tensile_TensileConfig} )
+  execute_process(COMMAND "${VIRTUALENV_HOME_DIR}/bin/TensileGetPath" OUTPUT_VARIABLE INSTALLED_TENSILE_PATH)
+  message(STATUS "TENSILE_PATH: ${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.11.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
+      ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
@@ -171,7 +178,8 @@ if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
 endif()
 
-set_target_properties( rocblas PROPERTIES VERSION ${rocblas_VERSION} SOVERSION ${rocblas_SOVERSION} CXX_EXTENSIONS NO )
+rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
+set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
 # Package that helps me set visibility for function names exported from shared library

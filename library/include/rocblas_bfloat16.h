@@ -30,7 +30,7 @@
 #ifndef _ROCBLAS_BFLOAT16_H_
 #define _ROCBLAS_BFLOAT16_H_
 
-#if __cplusplus < 201402L || !defined(__HCC__)
+#if __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 // If this is a C compiler, C++ compiler below C++14, or a host-only compiler, we only
 // include a minimal definition of rocblas_bfloat16
@@ -41,7 +41,7 @@ typedef struct
     uint16_t data;
 } rocblas_bfloat16;
 
-#else // __cplusplus < 201402L || !defined(__HCC__)
+#else // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 #include <cmath>
 #include <cstddef>
@@ -71,6 +71,11 @@ struct rocblas_bfloat16
             float    fp32;
         } u = {uint32_t(data) << 16};
         return u.fp32;
+    }
+
+    explicit constexpr __host__ __device__ operator double() const
+    {
+        return double(float(*this));
     }
 
 private:
@@ -249,6 +254,6 @@ inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
     return rocblas_bfloat16(cosf(float(a)));
 }
 
-#endif // __cplusplus < 201402L || !defined(__HCC__)
+#endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 #endif // _ROCBLAS_BFLOAT16_H_

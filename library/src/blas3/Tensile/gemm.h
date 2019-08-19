@@ -5,6 +5,51 @@
 #include "rocblas-types.h"
 
 /*******************************************************************************
+ * Helper enumeration over different transpose combinations
+ ******************************************************************************/
+typedef enum transpose_mode_
+{
+    // First letter refers to A, second letter refers to B
+    NN,
+    NT,
+    TN,
+    TT,
+    NC,
+    CN,
+    TC,
+    CT,
+    CC,
+} transpose_mode;
+
+constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
+{
+    if(trans_a == rocblas_operation_none)
+    {
+        if(trans_b == rocblas_operation_none)
+            return NN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return NC;
+        return NT;
+    }
+    else if(trans_a == rocblas_operation_conjugate_transpose)
+    {
+        if(trans_b == rocblas_operation_none)
+            return CN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return CC;
+        return CT;
+    }
+    else
+    {
+        if(trans_b == rocblas_operation_none)
+            return TN;
+        if(trans_b == rocblas_operation_conjugate_transpose)
+            return TC;
+        return TT;
+    }
+}
+
+/*******************************************************************************
  * Infer Batch Strides
  ******************************************************************************/
 inline void infer_batch_strides(rocblas_operation trans_a,
