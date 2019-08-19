@@ -8,10 +8,10 @@
 
 namespace
 {
-    template <typename T, typename U>
+    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
     __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
-        T scale = abs(a) + abs(b);
+        T scale = std::abs(a) + std::abs(b);
         if (scale == 0.0)
         {
             c = 1.0;
@@ -24,17 +24,39 @@ namespace
             T sa = a / scale;
             T sb = b / scale;
             T r = scale * sqrt(sa * sa + sb * sb);
-            T roe = (abs(a) > abs(b)) ? a : b;
+            T roe = (std::abs(a) > std::abs(b)) ? a : b;
             r = copysign(r, roe);
             c = a / r;
             s = b / r;
             T z = 1.0;
-            if (abs(a) > abs(b))
+            if (std::abs(a) > std::abs(b))
                 z = s;
-            if (abs(b) >= abs(a) && c != 0.0)
+            if (std::abs(b) >= std::abs(a) && c != 0.0)
                 z = 1.0 / c;
             a = r;
             b = z;
+        }
+    }
+
+    template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
+    __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
+    {
+        if (std::abs(a) == 0.0)
+        {
+            c = 0;
+            s = {1, 0};
+            a = b;
+        }
+        else
+        {
+            auto scale = std::abs(a) + std::abs(b);
+            auto sa = std::abs(a / scale);
+            auto sb = std::abs(b / scale);
+            auto norm = scale * sqrt(sa * sa + sb * sb);
+            auto alpha = a / std::abs(a);
+            c = std::abs(a) / norm;
+            s = alpha * conj(b) / norm;
+            a = alpha * norm;
         }
     }
 
@@ -114,8 +136,6 @@ rocblas_status rocblas_drotg(
     return rocblas_rotg(handle, a, b, c, s);
 }
 
-#if 0 // complex not supported
-
 rocblas_status rocblas_crotg(
     rocblas_handle handle, rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s)
 {
@@ -127,7 +147,5 @@ rocblas_status rocblas_zrotg(
 {
     return rocblas_rotg(handle, a, b, c, s);
 }
-
-#endif
 
 } // extern "C"
