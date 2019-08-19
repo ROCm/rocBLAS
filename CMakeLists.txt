@@ -7,6 +7,8 @@ cmake_minimum_required( VERSION 3.5 )
 
 # We use C++14 features, this will add compile option: -std=c++14
 set( CMAKE_CXX_STANDARD 14 )
+# Without this line, it will add -std=gnu++14 instead, which has some issues.
+set( CMAKE_CXX_EXTENSIONS OFF )
 
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
@@ -32,6 +34,9 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
 endif()
 
 project( rocblas LANGUAGES CXX )
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 # ########################################################################
 # NOTE:  CUDA compiling path
@@ -135,7 +140,7 @@ include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.5.0" )
+set ( VERSION_STRING "2.7.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -178,7 +183,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag develop CACHE STRING "Tensile tag to download" )
+    set( tensile_tag a472399c5e97ac13b171092c2eb61d87d3a08d53 CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()

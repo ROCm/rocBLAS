@@ -6,6 +6,9 @@ get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 
 set( rocblas_samples_common ../common/utility.cpp )
 
+set( THREADS_PREFER_PTHREAD_FLAG ON )
+find_package( Threads REQUIRED )
+
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
 add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )

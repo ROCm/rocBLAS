@@ -275,6 +275,80 @@ inline void unit_check_general(rocblas_int  M,
 }
 
 template <typename T>
+void unit_check_general(rocblas_int    M,
+                        rocblas_int    N,
+                        rocblas_int    batch_count,
+                        rocblas_int    lda,
+                        host_vector<T> hCPU[],
+                        host_vector<T> hGPU[]);
+
+template <>
+inline void unit_check_general(rocblas_int                   M,
+                               rocblas_int                   N,
+                               rocblas_int                   batch_count,
+                               rocblas_int                   lda,
+                               host_vector<rocblas_bfloat16> hCPU[],
+                               host_vector<rocblas_bfloat16> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int               M,
+                               rocblas_int               N,
+                               rocblas_int               batch_count,
+                               rocblas_int               lda,
+                               host_vector<rocblas_half> hCPU[],
+                               host_vector<rocblas_half> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_HALF_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int        M,
+                               rocblas_int        N,
+                               rocblas_int        batch_count,
+                               rocblas_int        lda,
+                               host_vector<float> hCPU[],
+                               host_vector<float> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int         M,
+                               rocblas_int         N,
+                               rocblas_int         batch_count,
+                               rocblas_int         lda,
+                               host_vector<double> hCPU[],
+                               host_vector<double> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int                        M,
+                               rocblas_int                        N,
+                               rocblas_int                        batch_count,
+                               rocblas_int                        lda,
+                               host_vector<rocblas_float_complex> hCPU[],
+                               host_vector<rocblas_float_complex> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_COMPLEX_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int                         M,
+                               rocblas_int                         N,
+                               rocblas_int                         batch_count,
+                               rocblas_int                         lda,
+                               host_vector<rocblas_double_complex> hCPU[],
+                               host_vector<rocblas_double_complex> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
+}
+
+template <typename T>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
 #ifdef GOOGLE_TEST
