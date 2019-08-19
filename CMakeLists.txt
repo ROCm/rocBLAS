@@ -7,6 +7,8 @@ cmake_minimum_required( VERSION 3.5 )
 
 # We use C++14 features, this will add compile option: -std=c++14
 set( CMAKE_CXX_STANDARD 14 )
+# Without this line, it will add -std=gnu++14 instead, which has some issues.
+set( CMAKE_CXX_EXTENSIONS OFF )
 
 # Consider removing this in the future
 # This should appear before the project command, because it does not use FORCE
@@ -135,7 +137,7 @@ include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.5.0" )
+set ( VERSION_STRING "2.7.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -158,6 +160,7 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
   set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
+  set( Tensile_COMPILER "hcc" CACHE STRING "Tensile compiler")
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
@@ -167,6 +170,7 @@ if( BUILD_WITH_TENSILE )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
+  set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
 
   include(virtualenv)
 
