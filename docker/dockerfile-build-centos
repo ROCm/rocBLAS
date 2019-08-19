@@ -10,6 +10,7 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
+    rocm_smi64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
@@ -30,12 +31,15 @@ RUN yum install -y \
     python36-pytest \
     python36-setuptools \
     PyYAML \
+    llvm7.0-devel \
+    llvm7.0-static \
     libcxx-devel \
     boost-devel \
+    zlib-devel \ 
     libgomp \
     numactl-libs \
     rpm-build \
-    deltarpm 
+    deltarpm
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
     'source scl_source enable devtoolset-7' >>/etc/profile.d/devtoolset7.sh

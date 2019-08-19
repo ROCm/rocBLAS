@@ -40,7 +40,6 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/blis_interface.cpp
-      ../common/norm.cpp
       ../common/rocblas_parse_data.cpp
     )
 
