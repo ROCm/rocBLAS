@@ -23,14 +23,13 @@ void testing_rotg_bad_arg(const Arguments& arg)
     device_vector<T>     b(safe_size);
     device_vector<U>     c(safe_size);
     device_vector<T>     s(safe_size);
-    if (!a || !b || !c || !s)
+    if(!a || !b || !c || !s)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(nullptr, a, b, c, s)),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(nullptr, a, b, c, s)), rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, nullptr, b, c, s)),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, a, nullptr, c, s)),
@@ -45,16 +44,16 @@ template <typename T, typename U = T>
 void testing_rotg(const Arguments& arg)
 {
     const int TEST_COUNT = 100;
-    
-    rocblas_local_handle handle;
-    double gpu_time_used, cpu_time_used;
-    double error_host, error_device;
-    host_vector<T> a(1);
-    host_vector<T> b(1);
-    host_vector<U> c(1);
-    host_vector<T> s(1);
 
-    for (int i = 0; i < TEST_COUNT; ++i)
+    rocblas_local_handle handle;
+    double               gpu_time_used, cpu_time_used;
+    double               error_host, error_device;
+    host_vector<T>       a(1);
+    host_vector<T>       b(1);
+    host_vector<U>       c(1);
+    host_vector<T>       s(1);
+
+    for(int i = 0; i < TEST_COUNT; ++i)
     {
         // Initial data on CPU
         rocblas_seedrand();
@@ -68,7 +67,7 @@ void testing_rotg(const Arguments& arg)
         host_vector<T> cb = b;
         host_vector<U> cc = c;
         host_vector<T> cs = s;
-        cpu_time_used = get_time_us();
+        cpu_time_used     = get_time_us();
         cblas_rotg<T, U>(ca, cb, cc, cs);
         cpu_time_used = get_time_us() - cpu_time_used;
 
@@ -81,7 +80,7 @@ void testing_rotg(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR((rocblas_rotg<T, U>(handle, ha, hb, hc, hs)));
 
-            if (arg.unit_check)
+            if(arg.unit_check)
             {
                 unit_check_general<T>(1, 1, 1, ca, ha);
                 unit_check_general<T>(1, 1, 1, cb, hb);
@@ -89,7 +88,7 @@ void testing_rotg(const Arguments& arg)
                 unit_check_general<T>(1, 1, 1, cs, hs);
             }
 
-            if (arg.norm_check)
+            if(arg.norm_check)
             {
                 error_host = norm_check_general<T>('F', 1, 1, 1, ca, ha);
                 error_host += norm_check_general<T>('F', 1, 1, 1, cb, hb);
@@ -118,8 +117,8 @@ void testing_rotg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(hb, db, sizeof(T), hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(hc, dc, sizeof(U), hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(hs, ds, sizeof(T), hipMemcpyDeviceToHost));
-            
-            if (arg.unit_check)
+
+            if(arg.unit_check)
             {
                 // unit_check_general<T>(1, 1, 1, ca, ha);
                 // unit_check_general<T>(1, 1, 1, cb, hb);
@@ -127,7 +126,7 @@ void testing_rotg(const Arguments& arg)
                 // unit_check_general<T>(1, 1, 1, cs, hs);
             }
 
-            if (arg.norm_check)
+            if(arg.norm_check)
             {
                 error_device = norm_check_general<T>('F', 1, 1, 1, ca, ha);
                 error_device += norm_check_general<T>('F', 1, 1, 1, cb, hb);
@@ -137,7 +136,7 @@ void testing_rotg(const Arguments& arg)
         }
     }
 
-    if (arg.timing)
+    if(arg.timing)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = 100;
@@ -147,13 +146,13 @@ void testing_rotg(const Arguments& arg)
         host_vector<T> hb = b;
         host_vector<U> hc = c;
         host_vector<T> hs = s;
-        for (int iter = 0; iter < number_cold_calls; ++iter)
+        for(int iter = 0; iter < number_cold_calls; ++iter)
         {
             rocblas_rotg<T, U>(handle, ha, hb, hc, hs);
         }
 
         gpu_time_used = get_time_us();
-        for (int iter = 0; iter < number_hot_calls; ++iter)
+        for(int iter = 0; iter < number_hot_calls; ++iter)
         {
             ha = a;
             hb = b;

@@ -280,24 +280,22 @@ template <>
 static constexpr auto rocblas_rot<double> = rocblas_drot;
 
 template <>
-static constexpr auto rocblas_rot<rocblas_float_complex, float, rocblas_float_complex> = rocblas_crot;
+static constexpr auto
+    rocblas_rot<rocblas_float_complex, float, rocblas_float_complex> = rocblas_crot;
 
 template <>
 static constexpr auto rocblas_rot<rocblas_float_complex, float, float> = rocblas_csrot;
 
 template <>
-static constexpr auto rocblas_rot<rocblas_double_complex, double, rocblas_double_complex> = rocblas_zrot;
+static constexpr auto
+    rocblas_rot<rocblas_double_complex, double, rocblas_double_complex> = rocblas_zrot;
 
 template <>
 static constexpr auto rocblas_rot<rocblas_double_complex, double, double> = rocblas_zdrot;
 
 // rotg
 template <typename T, typename U = T>
-rocblas_status (*rocblas_rotg)(rocblas_handle handle,
-                               T*             a,
-                               T*             b,
-                               U*             c,
-                               T*             s);
+rocblas_status (*rocblas_rotg)(rocblas_handle handle, T* a, T* b, U* c, T* s);
 
 template <>
 static constexpr auto rocblas_rotg<float> = rocblas_srotg;
@@ -329,12 +327,7 @@ static constexpr auto rocblas_rotm<double> = rocblas_drotm;
 
 //rotmg
 template <typename T>
-rocblas_status (*rocblas_rotmg)(rocblas_handle handle,
-                                T*             d1,
-                                T*             d2,
-                                T*             x1,
-                                const T*       y1,
-                                T*             param);
+rocblas_status (*rocblas_rotmg)(rocblas_handle handle, T* d1, T* d2, T* x1, const T* y1, T* param);
 
 template <>
 static constexpr auto rocblas_rotmg<float> = rocblas_srotmg;

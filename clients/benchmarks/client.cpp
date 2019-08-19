@@ -161,13 +161,13 @@ struct perf_blas<
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
-        else if (!strcmp(arg.function, "rot"))
+        else if(!strcmp(arg.function, "rot"))
             testing_rot<T>(arg);
-        else if (!strcmp(arg.function, "rotg"))
+        else if(!strcmp(arg.function, "rotg"))
             testing_rotg<T>(arg);
-        else if (!strcmp(arg.function, "rotm"))
+        else if(!strcmp(arg.function, "rotm"))
             testing_rotm<T>(arg);
-        else if (!strcmp(arg.function, "rotmg"))
+        else if(!strcmp(arg.function, "rotmg"))
             testing_rotmg<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function

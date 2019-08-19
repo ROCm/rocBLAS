@@ -13,7 +13,6 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-
 template <typename T, typename U = T, typename V = T>
 void testing_rot_bad_arg(const Arguments& arg)
 {
@@ -27,7 +26,7 @@ void testing_rot_bad_arg(const Arguments& arg)
     device_vector<T>     dy(safe_size);
     device_vector<U>     dc(1);
     device_vector<V>     ds(1);
-    if (!dx || !dy || !dc || !ds)
+    if(!dx || !dy || !dc || !ds)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -53,8 +52,9 @@ void testing_rot(const Arguments& arg)
     rocblas_int incy = arg.incy;
 
     rocblas_local_handle handle;
-    double gpu_time_used, cpu_time_used;
-    double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0, norm_error_device_y = 0.0;
+    double               gpu_time_used, cpu_time_used;
+    double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
+           norm_error_device_y = 0.0;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || incy <= 0)
@@ -82,7 +82,7 @@ void testing_rot(const Arguments& arg)
     device_vector<T> dy(size_y);
     device_vector<U> dc(1);
     device_vector<V> ds(1);
-    if (!dx || !dy || !dc || !ds)
+    if(!dx || !dy || !dc || !ds)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -109,7 +109,7 @@ void testing_rot(const Arguments& arg)
     cblas_rot<T, U, V>(N, cx, incx, cy, incy, hc, hs);
     cpu_time_used = get_time_us() - cpu_time_used;
 
-    if (arg.unit_check || arg.norm_check)
+    if(arg.unit_check || arg.norm_check)
     {
         // Test rocblas_pointer_mode_host
         {
@@ -121,12 +121,12 @@ void testing_rot(const Arguments& arg)
             host_vector<T> ry(size_y);
             CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-            if (arg.unit_check)
+            if(arg.unit_check)
             {
                 unit_check_general<T>(1, N, incx, cx, rx);
                 unit_check_general<T>(1, N, incy, cy, ry);
             }
-            if (arg.norm_check)
+            if(arg.norm_check)
             {
                 norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
                 norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
@@ -145,12 +145,12 @@ void testing_rot(const Arguments& arg)
             host_vector<T> ry(size_y);
             CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-            if (arg.unit_check)
+            if(arg.unit_check)
             {
                 unit_check_general<T>(1, N, incx, cx, rx);
                 unit_check_general<T>(1, N, incy, cy, ry);
             }
-            if (arg.norm_check)
+            if(arg.norm_check)
             {
                 norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
                 norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
@@ -179,11 +179,14 @@ void testing_rot(const Arguments& arg)
 
         std::cout << "N,incx,incy,rocblas(us),cpu(us)";
         if(arg.norm_check)
-            std::cout << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
+            std::cout
+                << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
         std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << "," << cpu_time_used;
+        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
+                  << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << "," << norm_error_device_x << "," << norm_error_device_y;
+            std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
+                      << norm_error_device_x << "," << norm_error_device_y;
         std::cout << std::endl;
     }
 }

@@ -368,29 +368,47 @@ inline void cblas_swap(rocblas_int             n,
 // rot
 
 // LAPACK fortran library functionality
-extern "C"
-{
-void crot_(const int* n, rocblas_float_complex* cx, const int* incx, rocblas_float_complex* cy, const int* incy, const float* c, const rocblas_float_complex* s);
-void csrot_(const int* n, rocblas_float_complex* cx, const int* incx, rocblas_float_complex* cy, const int* incy, const float* c, const float* s);
-void zrot_(const int* n, rocblas_double_complex* cx, const int* incx, rocblas_double_complex* cy, const int* incy, const double* c, const rocblas_double_complex* s);
-void zdrot_(const int* n, rocblas_double_complex* cx, const int* incx, rocblas_double_complex* cy, const int* incy, const double* c, const double* s);
+extern "C" {
+void crot_(const int*                   n,
+           rocblas_float_complex*       cx,
+           const int*                   incx,
+           rocblas_float_complex*       cy,
+           const int*                   incy,
+           const float*                 c,
+           const rocblas_float_complex* s);
+void csrot_(const int*             n,
+            rocblas_float_complex* cx,
+            const int*             incx,
+            rocblas_float_complex* cy,
+            const int*             incy,
+            const float*           c,
+            const float*           s);
+void zrot_(const int*                    n,
+           rocblas_double_complex*       cx,
+           const int*                    incx,
+           rocblas_double_complex*       cy,
+           const int*                    incy,
+           const double*                 c,
+           const rocblas_double_complex* s);
+void zdrot_(const int*              n,
+            rocblas_double_complex* cx,
+            const int*              incx,
+            rocblas_double_complex* cy,
+            const int*              incy,
+            const double*           c,
+            const double*           s);
 }
 
 template <typename T, typename U, typename V>
-inline void cblas_rot(rocblas_int n,
-                      T* x,
-                      rocblas_int incx,
-                      T* y,
-                      rocblas_int incy,
-                      const U* c,
-                      const V* s);
+inline void cblas_rot(
+    rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const U* c, const V* s);
 
 template <>
-inline void cblas_rot(rocblas_int n,
-                      float* x,
-                      rocblas_int incx,
-                      float* y,
-                      rocblas_int incy,
+inline void cblas_rot(rocblas_int  n,
+                      float*       x,
+                      rocblas_int  incx,
+                      float*       y,
+                      rocblas_int  incy,
                       const float* c,
                       const float* s)
 {
@@ -398,11 +416,11 @@ inline void cblas_rot(rocblas_int n,
 }
 
 template <>
-inline void cblas_rot(rocblas_int n,
-                      double* x,
-                      rocblas_int incx,
-                      double* y,
-                      rocblas_int incy,
+inline void cblas_rot(rocblas_int   n,
+                      double*       x,
+                      rocblas_int   incx,
+                      double*       y,
+                      rocblas_int   incy,
                       const double* c,
                       const double* s)
 {
@@ -410,49 +428,49 @@ inline void cblas_rot(rocblas_int n,
 }
 
 template <>
-inline void cblas_rot(rocblas_int n,
-                      rocblas_float_complex* x,
-                      rocblas_int incx,
-                      rocblas_float_complex* y,
-                      rocblas_int incy,
-                      const float* c,
+inline void cblas_rot(rocblas_int                  n,
+                      rocblas_float_complex*       x,
+                      rocblas_int                  incx,
+                      rocblas_float_complex*       y,
+                      rocblas_int                  incy,
+                      const float*                 c,
                       const rocblas_float_complex* s)
 {
     crot_(&n, x, &incx, y, &incx, c, s);
 }
 
 template <>
-inline void cblas_rot(rocblas_int n,
+inline void cblas_rot(rocblas_int            n,
                       rocblas_float_complex* x,
-                      rocblas_int incx,
+                      rocblas_int            incx,
                       rocblas_float_complex* y,
-                      rocblas_int incy,
-                      const float* c,
-                      const float* s)
+                      rocblas_int            incy,
+                      const float*           c,
+                      const float*           s)
 {
     csrot_(&n, x, &incx, y, &incy, c, s);
 }
 
 template <>
-inline void cblas_rot(rocblas_int n,
-                      rocblas_double_complex* x,
-                      rocblas_int incx,
-                      rocblas_double_complex* y,
-                      rocblas_int incy,
-                      const double* c,
+inline void cblas_rot(rocblas_int                   n,
+                      rocblas_double_complex*       x,
+                      rocblas_int                   incx,
+                      rocblas_double_complex*       y,
+                      rocblas_int                   incy,
+                      const double*                 c,
                       const rocblas_double_complex* s)
 {
     zrot_(&n, x, &incx, y, &incy, c, s);
 }
 
 template <>
-inline void cblas_rot(rocblas_int n,
+inline void cblas_rot(rocblas_int             n,
                       rocblas_double_complex* x,
-                      rocblas_int incx,
+                      rocblas_int             incx,
                       rocblas_double_complex* y,
-                      rocblas_int incy,
-                      const double* c,
-                      const double* s)
+                      rocblas_int             incy,
+                      const double*           c,
+                      const double*           s)
 {
     zdrot_(&n, x, &incx, y, &incy, c, s);
 }
@@ -460,10 +478,12 @@ inline void cblas_rot(rocblas_int n,
 // rotg
 
 // LAPACK fortran library functionality
-extern "C"
-{
+extern "C" {
 void crotg_(rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s);
-void zrotg_(rocblas_double_complex* a, rocblas_double_complex* b, double* c, rocblas_double_complex* s);
+void zrotg_(rocblas_double_complex* a,
+            rocblas_double_complex* b,
+            double*                 c,
+            rocblas_double_complex* s);
 }
 
 template <typename T, typename U>
@@ -482,13 +502,19 @@ inline void cblas_rotg(double* a, double* b, double* c, double* s)
 }
 
 template <>
-inline void cblas_rotg(rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s)
+inline void cblas_rotg(rocblas_float_complex* a,
+                       rocblas_float_complex* b,
+                       float*                 c,
+                       rocblas_float_complex* s)
 {
     crotg_(a, b, c, s);
 }
 
 template <>
-inline void cblas_rotg(rocblas_double_complex* a, rocblas_double_complex* b, double* c, rocblas_double_complex* s)
+inline void cblas_rotg(rocblas_double_complex* a,
+                       rocblas_double_complex* b,
+                       double*                 c,
+                       rocblas_double_complex* s)
 {
     zrotg_(a, b, c, s);
 }
@@ -499,13 +525,15 @@ template <typename T>
 inline void cblas_rotm(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const T* p);
 
 template <>
-inline void cblas_rotm(rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy, const float* p)
+inline void cblas_rotm(
+    rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy, const float* p)
 {
     cblas_srotm(n, x, incx, y, incy, p);
 }
 
 template <>
-inline void cblas_rotm(rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy, const double* p)
+inline void cblas_rotm(
+    rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy, const double* p)
 {
     cblas_drotm(n, x, incx, y, incy, p);
 }

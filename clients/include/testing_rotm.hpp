@@ -25,7 +25,7 @@ void testing_rotm_bad_arg(const Arguments& arg)
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<T>     dparam(5);
-    if (!dx || !dy || !dparam)
+    if(!dx || !dy || !dparam)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -49,8 +49,9 @@ void testing_rotm(const Arguments& arg)
     rocblas_int incy = arg.incy;
 
     rocblas_local_handle handle;
-    double gpu_time_used, cpu_time_used;
-    double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0, norm_error_device_y = 0.0;
+    double               gpu_time_used, cpu_time_used;
+    double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
+           norm_error_device_y = 0.0;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || incy <= 0)
@@ -76,7 +77,7 @@ void testing_rotm(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> dparam(5);
-    if (!dx || !dy || !dparam)
+    if(!dx || !dy || !dparam)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -94,18 +95,18 @@ void testing_rotm(const Arguments& arg)
 
     // CPU BLAS reference data
     cblas_rotmg<T>(&hdata[0], &hdata[1], &hdata[2], &hdata[3], hparam);
-    const int FLAG_COUNT = 4;
-    const T FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
-    for (int i = 0; i < FLAG_COUNT; ++i)
+    const int FLAG_COUNT        = 4;
+    const T   FLAGS[FLAG_COUNT] = {-1, 0, 1, -2};
+    for(int i = 0; i < FLAG_COUNT; ++i)
     {
-        hparam[0] = FLAGS[i];
+        hparam[0]         = FLAGS[i];
         host_vector<T> cx = hx;
         host_vector<T> cy = hy;
-        cpu_time_used = get_time_us();
+        cpu_time_used     = get_time_us();
         cblas_rotm<T>(N, cx, incx, cy, incy, hparam);
         cpu_time_used = get_time_us() - cpu_time_used;
 
-        if (arg.unit_check || arg.norm_check)
+        if(arg.unit_check || arg.norm_check)
         {
             // Test rocblas_pointer_mode_host
             {
@@ -117,12 +118,12 @@ void testing_rotm(const Arguments& arg)
                 host_vector<T> ry(size_y);
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-                if (arg.unit_check)
+                if(arg.unit_check)
                 {
                     unit_check_general<T>(1, N, incx, cx, rx);
                     unit_check_general<T>(1, N, incy, cy, ry);
                 }
-                if (arg.norm_check)
+                if(arg.norm_check)
                 {
                     norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
                     norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
@@ -140,12 +141,12 @@ void testing_rotm(const Arguments& arg)
                 host_vector<T> ry(size_y);
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-                if (arg.unit_check)
+                if(arg.unit_check)
                 {
                     unit_check_general<T>(1, N, incx, cx, rx);
                     unit_check_general<T>(1, N, incy, cy, ry);
                 }
-                if (arg.norm_check)
+                if(arg.norm_check)
                 {
                     norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
                     norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
@@ -175,11 +176,14 @@ void testing_rotm(const Arguments& arg)
 
         std::cout << "N,incx,incy,rocblas(us),cpu(us)";
         if(arg.norm_check)
-            std::cout << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
+            std::cout
+                << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
         std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << "," << cpu_time_used;
+        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
+                  << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << "," << norm_error_device_x << "," << norm_error_device_y;
+            std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
+                      << norm_error_device_x << "," << norm_error_device_y;
         std::cout << std::endl;
     }
 }

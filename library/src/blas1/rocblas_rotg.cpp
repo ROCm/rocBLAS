@@ -12,7 +12,7 @@ namespace
     __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
         T scale = std::abs(a) + std::abs(b);
-        if (scale == 0.0)
+        if(scale == 0.0)
         {
             c = 1.0;
             s = 0.0;
@@ -21,17 +21,17 @@ namespace
         }
         else
         {
-            T sa = a / scale;
-            T sb = b / scale;
-            T r = scale * sqrt(sa * sa + sb * sb);
+            T sa  = a / scale;
+            T sb  = b / scale;
+            T r   = scale * sqrt(sa * sa + sb * sb);
             T roe = (std::abs(a) > std::abs(b)) ? a : b;
-            r = copysign(r, roe);
-            c = a / r;
-            s = b / r;
-            T z = 1.0;
-            if (std::abs(a) > std::abs(b))
+            r     = copysign(r, roe);
+            c     = a / r;
+            s     = b / r;
+            T z   = 1.0;
+            if(std::abs(a) > std::abs(b))
                 z = s;
-            if (std::abs(b) >= std::abs(a) && c != 0.0)
+            if(std::abs(b) >= std::abs(a) && c != 0.0)
                 z = 1.0 / c;
             a = r;
             b = z;
@@ -41,7 +41,7 @@ namespace
     template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
     __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
-        if (std::abs(a) == 0.0)
+        if(std::abs(a) == 0.0)
         {
             c = 0;
             s = {1, 0};
@@ -50,13 +50,13 @@ namespace
         else
         {
             auto scale = std::abs(a) + std::abs(b);
-            auto sa = std::abs(a / scale);
-            auto sb = std::abs(b / scale);
-            auto norm = scale * sqrt(sa * sa + sb * sb);
+            auto sa    = std::abs(a / scale);
+            auto sb    = std::abs(b / scale);
+            auto norm  = scale * sqrt(sa * sa + sb * sb);
             auto alpha = a / std::abs(a);
-            c = std::abs(a) / norm;
-            s = alpha * conj(b) / norm;
-            a = alpha * norm;
+            c          = std::abs(a) / norm;
+            s          = alpha * conj(b) / norm;
+            a          = alpha * norm;
         }
     }
 
@@ -80,27 +80,25 @@ namespace
     template <class T, class U>
     rocblas_status rocblas_rotg(rocblas_handle handle, T* a, T* b, U* c, T* s)
     {
-        if (!handle)
+        if(!handle)
             return rocblas_status_invalid_handle;
 
         auto layer_mode = handle->layer_mode;
-        if (layer_mode & rocblas_layer_mode_log_trace)
+        if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_rotg_name<T>, a, b, c, s);
-        if (layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f rotg -r",
-                      rocblas_precision_string<T>);
-        if (layer_mode & rocblas_layer_mode_log_profile)
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle, "./rocblas-bench -f rotg -r", rocblas_precision_string<T>);
+        if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_rotg_name<T>);
 
-        if (!a || !b || !c || !s)
+        if(!a || !b || !c || !s)
             return rocblas_status_invalid_pointer;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         hipStream_t rocblas_stream = handle->rocblas_stream;
 
-        if (rocblas_pointer_mode_device == handle->pointer_mode)
+        if(rocblas_pointer_mode_device == handle->pointer_mode)
         {
             hipLaunchKernelGGL(rotg_kernel, 1, 1, 0, rocblas_stream, a, b, c, s);
         }
@@ -109,10 +107,10 @@ namespace
             RETURN_IF_HIP_ERROR(hipStreamSynchronize(rocblas_stream));
             rotg_calc(*a, *b, *c, *s);
         }
-        
+
         return rocblas_status_success;
     }
-    
+
 } // namespace
 
 /*
@@ -121,29 +119,32 @@ namespace
  * ===========================================================================
  */
 
-extern "C"
-{
+extern "C" {
 
-rocblas_status rocblas_srotg(
-    rocblas_handle handle, float* a, float* b, float* c, float* s)
+rocblas_status rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s)
 {
     return rocblas_rotg(handle, a, b, c, s);
 }
 
-rocblas_status rocblas_drotg(
-    rocblas_handle handle, double* a, double* b, double* c, double* s)
+rocblas_status rocblas_drotg(rocblas_handle handle, double* a, double* b, double* c, double* s)
 {
     return rocblas_rotg(handle, a, b, c, s);
 }
 
-rocblas_status rocblas_crotg(
-    rocblas_handle handle, rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s)
+rocblas_status rocblas_crotg(rocblas_handle         handle,
+                             rocblas_float_complex* a,
+                             rocblas_float_complex* b,
+                             float*                 c,
+                             rocblas_float_complex* s)
 {
     return rocblas_rotg(handle, a, b, c, s);
 }
 
-rocblas_status rocblas_zrotg(
-    rocblas_handle handle, rocblas_double_complex* a, rocblas_double_complex* b, double* c, rocblas_double_complex* s)
+rocblas_status rocblas_zrotg(rocblas_handle          handle,
+                             rocblas_double_complex* a,
+                             rocblas_double_complex* b,
+                             double*                 c,
+                             rocblas_double_complex* s)
 {
     return rocblas_rotg(handle, a, b, c, s);
 }
