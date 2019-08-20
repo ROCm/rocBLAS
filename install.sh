@@ -214,7 +214,7 @@ install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_cov=V2
 tensile_fork=
-tensile_branch=
+tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
@@ -269,7 +269,7 @@ while true; do
         tensile_fork=${2}
         shift 2 ;;
     -b|--branch)
-        tensile_branch=${2}
+        tensile_tag=${2}
         shift 2 ;;
     -t|--test_local_path)
         tensile_test_local_path=${2}
@@ -355,8 +355,8 @@ pushd .
     cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
   fi
 
-  if [[ -n "${tensile_branch}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_branch=${tensile_branch}"
+  if [[ -n "${tensile_tag}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_tag=${tensile_tag}"
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
