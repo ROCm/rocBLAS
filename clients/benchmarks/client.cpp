@@ -48,7 +48,7 @@ using namespace std::literals;
 #include "testing_trsv.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
-// When Ti == void or complex or Ti == To == Tc == bfloat16, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_ex : rocblas_test_invalid
 {
@@ -73,7 +73,7 @@ struct perf_gemm_ex<Ti,
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
-// When Ti == void or complex or Ti == To == Tc == bfloat16, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 {
