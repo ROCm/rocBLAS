@@ -187,11 +187,7 @@ if( BUILD_WITH_TENSILE )
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-#  set( Tensile_ROOT "${VIRTUALENV_HOME_DIR}/lib/python3.5/site-packages/Tensile" CACHE STRING "Local path of Tensile" )
   find_package(Tensile REQUIRED)
-
-#  set( Tensile_TensileConfig ${VIRTUALENV_HOME_DIR}/cmake/TensileConfig.cmake)
-
 endif()
 
 # Find HCC/HIP dependencies
