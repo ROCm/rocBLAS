@@ -36,12 +36,6 @@ if( BUILD_WITH_TENSILE )
     list( APPEND package_targets Tensile )
   endif( )
 
-  # HACK: We include the config file directly because find_package(Tensile) is broken
-  #include( ${Tensile_TensileConfig} )
-  execute_process(COMMAND "${VIRTUALENV_HOME_DIR}/bin/TensileGetPath" OUTPUT_VARIABLE INSTALLED_TENSILE_PATH)
-  message(STATUS "TENSILE_PATH: ${INSTALLED_TENSILE_PATH}")
-  find_package(Tensile 4.11.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
-
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   TensileCreateLibraryCmake(
@@ -52,8 +46,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
-      Tensile_ROOT ${Tensile_ROOT}
-  )
+   )
 
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
