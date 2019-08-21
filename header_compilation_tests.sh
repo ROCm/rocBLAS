@@ -3,7 +3,10 @@
 set -e
 exec >&2
 
-if [[ ! -e build/release/include/rocblas-export.h ]]; then
+BUILD_DIR=$(pwd)
+SOURCE_DIR=$(grep CMAKE_HOME_DIRECTORY CMakeCache.txt | sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g')
+
+if [[ ! -e $BUILD_DIR/include/rocblas-export.h ]]; then
     echo "Please run this script after at least one build of rocBLAS."
     exit 1
 fi
@@ -38,7 +41,7 @@ EOF
 out_uptodate()
 {
     local file="$1_$2"
-    local out="build/compilation_tests/$file.o"
+    local out="$BUILD_DIR/compilation_tests/$file.o"
     mkdir -p $(dirname "$out")
     realpath "$out"
     [[ -n "$3" && "$out" -nt "$script" ]] || return
@@ -50,7 +53,7 @@ out_uptodate()
 
 HCC=/opt/rocm/hcc/bin/hcc
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath build/release/include) -I$(realpath library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath build/release/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
+HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath $SOURCE_DIR/library/include) -I$(realpath $SOURCE_DIR/library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
 
 GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
@@ -91,10 +94,10 @@ EOF
     fi
 done
 
-# The headers in library/include must compile with clang host, C99 or C++11,
+# The headers in $SOURCE_DIR/library/include must compile with clang host, C99 or C++11,
 # for client code.
 #
-for file in library/include/*.{h,in}; do
+for file in $SOURCE_DIR/library/include/*.{h,in}; do
     if [[ -x "$CLANG" ]]; then
         if ! out=$(out_uptodate $file clang) && \
                 ! echocmd $CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS $file; then
