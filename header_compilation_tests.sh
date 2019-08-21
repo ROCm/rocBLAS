@@ -1,7 +1,9 @@
 #!/bin/bash
 
+export LOCALE=C
 set -e
-exec >&2
+
+exec 2>&1
 
 if [[ ! -e build/release/include/rocblas-export.h ]]; then
     echo "Please run this script after at least one build of rocBLAS."
@@ -9,26 +11,6 @@ if [[ ! -e build/release/include/rocblas-export.h ]]; then
 fi
 
 script=$(realpath "$0")
-
-echocmd()
-{
-    cat <<EOF
--------------------------------------------------------------------------------
-$@
-EOF
-    "$@"
-}
-
-hip_warning()
-{
-    cat <<EOF
-
-<hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
-incompatible with C, so they should only be included in the rocBLAS internal
-C++ implemenation, not in the public headers, which must be compatible with C.
-
-EOF
-}
 
 # Returns whether the output file is up to date.
 # Prints the output file.
@@ -38,9 +20,10 @@ EOF
 out_uptodate()
 {
     local file="$1_$2"
-    local out="build/compilation_tests/$file.o"
-    mkdir -p $(dirname "$out")
-    realpath "$out"
+    local filename="build/compilation_tests/$file.o"
+    mkdir -p $(dirname "$filename")
+    local out=$(realpath -m "$filename")
+    echo "$out"
     [[ -n "$3" && "$out" -nt "$script" ]] || return
     find library clients \( -iname \*.hpp -o -iname \*.h \) -print0 \
         | while read -r -d $'\0' file; do
@@ -61,24 +44,50 @@ C99="$HCC -xc-header -std=c99"
 CPP11="$HCC -xc++-header -std=c++11"
 CPP14="$HCC -xc++-header -std=c++14"
 
+if [[ -e /.dockerenv ]]; then
+    NP=4   # limit parallelism to 4
+else
+    NP=0   # unlimited
+fi
+
+# xargs commands to perform parallel builds
+xargs_coproc()
+{
+    { coproc { xargs "-P$NP" -d "\n" -n1 /bin/bash -xc --; } 4>&1 >&3 2>&1; } 3>&1
+    XARGS_PID=$!
+    exec {XARGS_OUT}<&${COPROC[0]}- {XARGS_IN}>&${COPROC[1]}-
+    echo true >&$XARGS_IN  # At least one command is necessary
+}
+
+xargs_wait()
+{
+    XARGS_OUTPUT=""
+    exec {XARGS_IN}<&-
+    if ! wait $XARGS_PID; then
+        read -t 0.1 -u $XARGS_OUT XARGS_OUTPUT
+        return 1
+    fi
+}
+
 # Every header file must compile on its own, by including all of its
 # dependencies. This avoids creating dependencies on the order of
-# included files. We define _ROCBLAS_INTERNAL_BFLOAT16_ to enable the
-# internal rocblas_bfloat16 code. testing_trmm.hpp is excluded for now.
+# included files. testing_trmm.hpp is excluded for now.
 #
+xargs_coproc
 find library clients \( -iname \*.hpp -o -iname \*.h \) \
      \! -name testing_trmm.hpp -print0 | while read -r -d $'\0' file; do
-    if ! out=$(out_uptodate $file cpp14 true) && \
-            ! echocmd $CPP14 -c -o "$out" -D_ROCBLAS_INTERNAL_BFLOAT16_ \
-              $HCC_OPTS $GPU_OPTS "$file"; then
-        rm -f "$out"
+    out=$(out_uptodate "$file" cpp14 true) || \
+        echo "$CPP14 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+done
+
+if ! xargs_wait; then
         cat <<EOF
 
-The header file $file cannot be compiled by itself,
+The header file $XARGS_OUTPUT cannot be compiled by itself,
 probably because of unmet dependencies on other header files.
 
-Add the necessary #include files at the top of $file
-so that $file can be used in any context, without
+Add the necessary #include files at the top of $XARGS_OUTPUT
+so that $XARGS_OUTPUT can be used in any context, without
 depending on other files being #included before it is #included.
 
 This allows clang-format to reorder #include directives in a canonical order
@@ -88,58 +97,75 @@ file will not matter.
 
 EOF
         exit 1
-    fi
-done
+fi
 
 # The headers in library/include must compile with clang host, C99 or C++11,
 # for client code.
 #
+if [[ -x "$CLANG" ]]; then
+    xargs_coproc
+    for file in library/include/*.{h,in}; do
+        out=$(out_uptodate $file clang) || \
+             echo "$CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+    done
+
+    if ! xargs_wait; then
+        cat <<EOF
+
+The public header file $XARGS_OUTPUT cannot be compiled with
+clang host-only compiler. rocBLAS public header files need to be compatible
+with host-only compilers.
+
+<hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
+incompatible with C, so they should only be included in the rocBLAS internal
+C++ implemenation, not in the public headers, which must be compatible with C.
+EOF
+        exit 1
+    fi
+fi
+
+xargs_coproc
 for file in library/include/*.{h,in}; do
-    if [[ -x "$CLANG" ]]; then
-        if ! out=$(out_uptodate $file clang) && \
-                ! echocmd $CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS $file; then
-            rm -f "$out"
-            cat <<EOF
-
-The public header $file cannot be compiled with clang host-only
-compiler. rocBLAS public headers need to be compatible with host-only
-compilers.
-EOF
-            hip_warning
-            exit 1
-        fi
-    fi
-    if ! out=$(out_uptodate $file c99) && \
-            ! echocmd $C99 -c -o "$out" $HCC_OPTS $GPU_OPTS $file; then
-        rm -f "$out"
-        cat <<EOF
-
-The public header $file cannot be compiled with a C compiler.
-rocBLAS public headers need to be compatible with C99.
-EOF
-        hip_warning
-        exit 1
-    elif ! out=$(out_uptodate $file cpp11) && \
-            ! echocmd $CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS $file; then
-        rm -f "$out"
-        cat <<EOF
-
-The public header $file cannot be compiled with -std=c++11.
-rocBLAS public headers need to be compatible with C++11.
-
-EOF
-        exit 1
-    fi
+    out=$(out_uptodate $file c99) || \
+        echo "$C99 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
+
+if ! xargs_wait; then
+    cat <<EOF
+
+The public header file $XARGS_OUTPUT cannot be compiled with a C compiler.
+rocBLAS public headers need to be compatible with C99.
+
+<hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
+incompatible with C, so they should only be included in the rocBLAS internal
+C++ implemenation, not in the public headers, which must be compatible with C.
+EOF
+        exit 1
+fi
+
+xargs_coproc
+for file in library/include/*.{h,in}; do
+    out=$(out_uptodate $file cpp11) ||
+        echo "$CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+done
+
+if ! xargs_wait; then
+        cat <<EOF
+
+The public header file $XARGS_OUTPUT cannot be compiled with
+-std=c++11. rocBLAS public headers need to be compatible with C++11.
+
+EOF
+        exit 1
+fi
 
 cat <<EOF
 -------------------------------------------------------------------------------
-All header compilation tests passed.
+All header file compilation tests passed.
 
-Public headers can compile with host-only Clang, -std=c99, and -std=c++11.
+Public header files can compile with host-only Clang, -std=c99, and -std=c++11.
 
 All public and internal implementation header files can compile on their own,
 without depending on #include file order.
 
 EOF
-exit 0
