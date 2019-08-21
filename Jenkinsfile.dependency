@@ -12,7 +12,7 @@ import com.amd.docker.*
 // Mostly generated from snippet generator 'properties; set job properties'
 // Time-based triggers added to execute nightly tests, eg '30 2 * * *' means 2:30 AM
 properties([
-    pipelineTriggers([cron('0 1 * * *'), [$class: 'PeriodicFolderTrigger', interval: '5m']]),
+    pipelineTriggers([cron('H 1 * * *')]),
     buildDiscarder(logRotator(
       artifactDaysToKeepStr: '',
       artifactNumToKeepStr: '',
@@ -47,7 +47,7 @@ rocBLASCI:
         if(platform.jenkinsLabel.contains('hip-clang'))
         {
             command = """#!/usr/bin/env bash
-                    set -ex
+                    set -x
                     cd ${project.paths.project_build_prefix}
                     LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
@@ -55,7 +55,7 @@ rocBLASCI:
         else
         {
             command = """#!/usr/bin/env bash
-                    set -ex
+                    set -x
                     cd ${project.paths.project_build_prefix}
                     LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command}
                     """
