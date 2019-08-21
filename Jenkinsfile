@@ -29,7 +29,7 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c --hip-clang'
+    rocblas.paths.build_command = 'sudo ./install.sh -lasm_ci -c --hip-clang'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['gfx900 && ubuntu && hip-clang', 'gfx906 && ubuntu && hip-clang'], rocblas)
@@ -62,7 +62,7 @@ rocBLASCI:
 	    command = """#!/usr/bin/env bash
 		    set -x
 		    cd ${project.paths.project_build_prefix}/build/release/clients/staging
-		    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+		    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
 		    """
 		
 		platform.runCommand(this, command)
@@ -74,7 +74,7 @@ rocBLASCI:
 		    set -x
 		    cd ${project.paths.project_build_prefix}/build/release/clients/staging
 		    LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
-		    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+		    LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
 		    """
         
                 platform.runCommand(this, command)
