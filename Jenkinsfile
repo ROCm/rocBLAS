@@ -44,7 +44,6 @@ rocBLASCI:
         
         def command = """#!/usr/bin/env bash
                     set -ex
-		    git checkout master
                     cd ${project.paths.project_build_prefix}
                     LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
                     """
