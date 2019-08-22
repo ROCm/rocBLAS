@@ -135,7 +135,7 @@ include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.6.1" )
+set ( VERSION_STRING "2.6.3" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
