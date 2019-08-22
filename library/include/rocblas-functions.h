@@ -209,6 +209,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_ddot(rocblas_handle handle,
                                            rocblas_int    incy,
                                            double*        result);
 
+ROCBLAS_EXPORT rocblas_status rocblas_hdot(rocblas_handle      handle,
+                                           rocblas_int         n,
+                                           const rocblas_half* x,
+                                           rocblas_int         incx,
+                                           const rocblas_half* y,
+                                           rocblas_int         incy,
+                                           rocblas_half*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_bfdot(rocblas_handle          handle,
+                                            rocblas_int             n,
+                                            const rocblas_bfloat16* x,
+                                            rocblas_int             incx,
+                                            const rocblas_bfloat16* y,
+                                            rocblas_int             incy,
+                                            rocblas_bfloat16*       result);
+
 ROCBLAS_EXPORT rocblas_status rocblas_cdotu(rocblas_handle               handle,
                                             rocblas_int                  n,
                                             const rocblas_float_complex* x,

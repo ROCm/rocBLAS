@@ -39,6 +39,50 @@ void cblas_axpy<rocblas_half>(rocblas_int   n,
     }
 }
 
+template <>
+void cblas_dot<rocblas_half>(rocblas_int         n,
+                             const rocblas_half* x,
+                             rocblas_int         incx,
+                             const rocblas_half* y,
+                             rocblas_int         incy,
+                             rocblas_half*       result)
+{
+    size_t             abs_incx = incx >= 0 ? incx : -incx;
+    size_t             abs_incy = incy >= 0 ? incy : -incy;
+    host_vector<float> x_float(n * abs_incx);
+    host_vector<float> y_float(n * abs_incy);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = half_to_float(x[i * abs_incx]);
+        y_float[i * abs_incy] = half_to_float(y[i * abs_incy]);
+    }
+
+    *result = float_to_half(cblas_sdot(n, x_float, incx, y_float, incy));
+}
+
+template <>
+void cblas_dot<rocblas_bfloat16>(rocblas_int             n,
+                                 const rocblas_bfloat16* x,
+                                 rocblas_int             incx,
+                                 const rocblas_bfloat16* y,
+                                 rocblas_int             incy,
+                                 rocblas_bfloat16*       result)
+{
+    size_t             abs_incx = incx >= 0 ? incx : -incx;
+    size_t             abs_incy = incy >= 0 ? incy : -incy;
+    host_vector<float> x_float(n * abs_incx);
+    host_vector<float> y_float(n * abs_incy);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = float(x[i * abs_incx]);
+        y_float[i * abs_incy] = float(y[i * abs_incy]);
+    }
+
+    *result = rocblas_bfloat16(cblas_sdot(n, x_float, incx, y_float, incy));
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS

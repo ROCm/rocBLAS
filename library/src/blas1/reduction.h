@@ -215,7 +215,7 @@ __global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspac
 
     // Store result on device or in workspace
     if(tx == 0)
-        *result = FINALIZE{}(tmp[0]);
+        *result = Tr(FINALIZE{}(tmp[0]));
 }
 
 // At least two kernels are needed to finish the reduction

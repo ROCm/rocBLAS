@@ -34,7 +34,7 @@ Tests:
 #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
-    - dot:   *single_double_precisions_complex_real
+    - dot:   *half_bfloat_single_double_complex_real_precisions
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
@@ -68,7 +68,7 @@ Tests:
     - iamin_bad_arg: *single_double_precisions_complex_real
     - axpy_bad_arg:  *half_single_precisions_complex_real
     - copy_bad_arg:  *single_double_precisions_complex_real
-    - dot_bad_arg:   *single_double_precisions_complex_real
+    - dot_bad_arg:   *half_bfloat_single_double_complex_real_precisions
     - dotc_bad_arg:  *single_double_precisions_complex
     - scal_bad_arg:  *single_double_precisions_complex_real
     - scal_bad_arg:  *single_double_complex_real_in_complex_out

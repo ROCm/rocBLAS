@@ -101,6 +101,12 @@ template <>
 static constexpr auto rocblas_dot<double> = rocblas_ddot;
 
 template <>
+static constexpr auto rocblas_dot<rocblas_half> = rocblas_hdot;
+
+template <>
+static constexpr auto rocblas_dot<rocblas_bfloat16> = rocblas_bfdot;
+
+template <>
 static constexpr auto rocblas_dot<rocblas_float_complex> = rocblas_cdotu;
 
 template <>

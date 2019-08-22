@@ -83,7 +83,8 @@ namespace
                     || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::dot && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
-                && (std::is_same<Ti, rocblas_float_complex>{}
+                && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_bfloat16>{}
+                    || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
