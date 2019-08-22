@@ -29,7 +29,6 @@
 #include "utility.hpp"
 #include <algorithm>
 #undef I
-#include "blis_interface.hpp"
 #include <boost/program_options.hpp>
 #include <cctype>
 #include <cstdio>
@@ -260,7 +259,6 @@ struct perf_blas_scal<
 
 int run_bench_test(Arguments& arg)
 {
-    setup_blis();
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
