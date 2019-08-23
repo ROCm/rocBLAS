@@ -156,19 +156,14 @@ Definitions:
     - { alpha:  1, beta:  1 }
 
   - &complex_alpha_beta_range
-    - { alpha:  5, beta:  0, alphai:  5, betai:  0 }
+    - { alpha:  2, beta:  0, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  0 }
     - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
     - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
-    - { alpha: -5, beta:  0, alphai:  0, betai: -5 }
-    - { alpha:  0, beta:  3, alphai:  0, betai:  3 }
-    - { alpha:  0, beta:  3, alphai:  3, betai:  0 }
-    - { alpha:  0, beta: -3, alphai:  0, betai: -3 }
-    - { alpha:  0, beta: -3, alphai: -3, betai:  0 }
+    - { alpha:  0, beta:  5, alphai:  0, betai: -5 }
     - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
-    - { alpha:  1, beta:  3, alphai: -3, betai: -1 }
     - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
-    - { alpha: -1, beta: -3, alphai: -3, betai: -1 }
-    - { alpha:  0, beta:  0, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  0, alphai:  2, betai:  1 }
 
   - &transA_transB_range
     - { transA: N, transB: N }
@@ -2416,7 +2411,7 @@ Tests:
     gemm_ex: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *complex_alpha_beta_range
+  alpha_beta: *alpha_beta_range
 
 - name: gemm_large
   category: nightly
@@ -2434,7 +2429,7 @@ Tests:
     gemm_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
-  alpha_beta: *complex_alpha_beta_range
+  alpha_beta: *alpha_beta_range
 
 - name: gemm_chunk
   category: pre_checkin
@@ -2500,7 +2495,7 @@ Tests:
 - name: inception4_fwd
   category: nightly
   function:
-    gemmn: *half_single_double_precisions
+    gemm: *half_single_double_precisions
   transA: N
   transB: N
   matrix_size: *inception4_fwd_sizes
