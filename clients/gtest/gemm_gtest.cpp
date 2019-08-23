@@ -113,7 +113,11 @@ namespace
     // When Ti = To = Tc != void, this test applies.
     // When converted to bool, this functor returns true.
     template <typename T>
-    struct gemm_testing<T, T, T, typename std::enable_if<!std::is_same<T, void>{}>::type>
+    struct gemm_testing<T,
+                        T,
+                        T,
+                        typename std::enable_if<!std::is_same<T, void>{}
+                                                && !std::is_same<T, rocblas_bfloat16>{}>::type>
     {
         explicit operator bool()
         {
@@ -162,7 +166,13 @@ namespace
     // When Ti != void, this test applies.
     // When converted to bool, this functor returns true.
     template <typename Ti, typename To, typename Tc>
-    struct gemm_ex_testing<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{}>::type>
+    struct gemm_ex_testing<
+        Ti,
+        To,
+        Tc,
+        typename std::enable_if<!std::is_same<Ti, void>{}
+                                && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                     && std::is_same<Ti, rocblas_bfloat16>{})>::type>
     {
         explicit operator bool()
         {
