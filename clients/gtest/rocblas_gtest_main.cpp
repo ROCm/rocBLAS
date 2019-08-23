@@ -2,7 +2,6 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "blis_interface.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_parse_data.hpp"
 #include "test_cleanup.hpp"
@@ -50,7 +49,6 @@ public:
 
     void OnEnvironmentsSetUpStart(const UnitTest& unit_test) override
     {
-        setup_blis();
         if(showEnvironment)
             eventListener->OnEnvironmentsSetUpStart(unit_test);
     }
