@@ -39,11 +39,12 @@ endif( )
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ../common/blis_interface.cpp
       ../common/rocblas_parse_data.cpp
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
-target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
+target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type)
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=1 )
@@ -57,23 +58,27 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
+set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
+set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
+
 if( EXISTS /etc/redhat-release)
     set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
     set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so ) 
-    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
- 
+    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include ) 
+
     # External header includes included as system files
     target_include_directories( rocblas-bench
       SYSTEM PRIVATE
-        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}> 
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
-      )
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}> 
+	)
 
-    target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
 else()
     # External header includes included as system files
     target_include_directories( rocblas-bench
@@ -82,9 +87,10 @@ else()
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-      )
-
-    target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    )
+    
+    target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
 endif()
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
