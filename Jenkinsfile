@@ -1,6 +1,6 @@
 #!/usr/bin/env groovy
 // This shared library is available at https://github.com/ROCmSoftwarePlatform/rocJENKINS/
-@Library('rocJenkins') _
+@Library('rocJenkins@hyperthread2') _
 
 // This is file for internal AMD use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
@@ -90,7 +90,7 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
-
+                
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }
