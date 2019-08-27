@@ -62,11 +62,14 @@ set(rocblas_test_source
     trtri_gtest.cpp
     )
 
+if(LINK_BLIS)
+  set( BLIS_CPP ../common/blis_interface.cpp )
+endif()
 
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
-      ../common/blis_interface.cpp
+      ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
 
@@ -116,7 +119,11 @@ if( EXISTS /etc/redhat-release)
         $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}> 
         )
 
-    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    else()
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    endif()
 else()
     # External header includes included as system files
     target_include_directories( rocblas-test
@@ -129,7 +136,11 @@ else()
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
     
-    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
+    else()
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+    endif()
 endif()
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
