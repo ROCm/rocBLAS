@@ -98,10 +98,9 @@ void testing_ger_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(rocblas_ger_batched<T>(
                                   handle, M, N, &h_alpha, dx, incx, dy, incy, dA, lda, batch_count),
                               rocblas_status_success);
-        
+
         return;
     }
-
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -114,7 +113,7 @@ void testing_ger_batched(const Arguments& arg)
     device_vector<T*, 0, T> dx(batch_count);
     device_vector<T*, 0, T> dA_1(batch_count);
     device_vector<T*, 0, T> dA_2(batch_count);
-    device_vector<T> d_alpha(1);
+    device_vector<T>        d_alpha(1);
     if(!dA_1 || !dA_2 || !dx || !dy || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

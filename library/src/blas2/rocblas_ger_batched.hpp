@@ -7,27 +7,6 @@
 #include "utility.h"
 
 template <typename T, typename U>
-__global__ void ger_kernel(rocblas_int m,
-                           rocblas_int n,
-                           U           alpha_device_host,
-                           const T* __restrict__ x,
-                           rocblas_int incx,
-                           const T* __restrict__ y,
-                           rocblas_int incy,
-                           T*          A,
-                           rocblas_int lda)
-{
-    ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
-
-    if(tx < m && ty < n)
-    {
-        auto alpha = load_scalar(alpha_device_host);
-        A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
-    }
-}
-
-template <typename T, typename U>
 __global__ void ger_batched_kernel(rocblas_int m,
                                    rocblas_int n,
                                    U           alpha_device_host,

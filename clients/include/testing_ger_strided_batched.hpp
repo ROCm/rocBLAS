@@ -191,7 +191,7 @@ void testing_ger_strided_batched(const Arguments& arg)
                                                              stride_a,
                                                              batch_count),
                               rocblas_status_success);
-        
+
         return;
     }
 
