@@ -164,8 +164,36 @@ void testing_ger_strided_batched(const Arguments& arg)
     }
 
     //quick return
-    if(!batch_count)
+    if(!M || !N || !batch_count)
+    {
+        static const size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T>    dA_1(safe_size);
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
+        if(!dA_1 || !dx || !dy)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
+                                                             M,
+                                                             N,
+                                                             &h_alpha,
+                                                             dx,
+                                                             incx,
+                                                             stride_x,
+                                                             dy,
+                                                             incy,
+                                                             stride_y,
+                                                             dA_1,
+                                                             lda,
+                                                             stride_a,
+                                                             batch_count),
+                              rocblas_status_success);
+        
         return;
+    }
 
     size_A += size_A * (batch_count - 1) + size_t(stride_a - size_A) * (batch_count - 1);
     size_x += size_x * (batch_count - 1) + size_t(stride_x - size_x) * (batch_count - 1);

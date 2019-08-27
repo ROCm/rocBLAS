@@ -38,12 +38,10 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
     }
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_ger_batched<T>(
-            handle, M, N, &alpha, nullptr, incx, dy, incy, dA, lda, batch_count),
+        rocblas_ger_batched<T>(handle, M, N, &alpha, nullptr, incx, dy, incy, dA, lda, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_ger_batched<T>(
-            handle, M, N, &alpha, dx, incx, nullptr, incy, dA, lda, batch_count),
+        rocblas_ger_batched<T>(handle, M, N, &alpha, dx, incx, nullptr, incy, dA, lda, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         rocblas_ger_batched<T>(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda, batch_count),
@@ -69,10 +67,9 @@ void testing_ger_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T*, 0, T> dA(batch_count);
-        device_vector<T*, 0, T> dx(batch_count);
-        device_vector<T*, 0, T> dy(batch_count);
+        device_vector<T*, 0, T> dA(1);
+        device_vector<T*, 0, T> dx(1);
+        device_vector<T*, 0, T> dy(1);
         if(!dA || !dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -87,8 +84,24 @@ void testing_ger_batched(const Arguments& arg)
     }
 
     //quick return
-    if(!batch_count)
+    if(!M || !N || !batch_count)
+    {
+        device_vector<T*, 0, T> dA(1);
+        device_vector<T*, 0, T> dx(1);
+        device_vector<T*, 0, T> dy(1);
+        if(!dA || !dx || !dy)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_ger_batched<T>(
+                                  handle, M, N, &h_alpha, dx, incx, dy, incy, dA, lda, batch_count),
+                              rocblas_status_success);
+        
         return;
+    }
+
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -101,6 +114,7 @@ void testing_ger_batched(const Arguments& arg)
     device_vector<T*, 0, T> dx(batch_count);
     device_vector<T*, 0, T> dA_1(batch_count);
     device_vector<T*, 0, T> dA_2(batch_count);
+    device_vector<T> d_alpha(1);
     if(!dA_1 || !dA_2 || !dx || !dy || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -115,13 +129,6 @@ void testing_ger_batched(const Arguments& arg)
     host_vector<T> hA_2[batch_count];
     host_vector<T> hA_gold[batch_count];
 
-    // Host-arrays of pointers to device memory
-    // (intermediate arrays used for the transfers)
-    T* y[batch_count];
-    T* x[batch_count];
-    T* A_1[batch_count];
-    T* A_2[batch_count];
-
     for(int b = 0; b < batch_count; ++b)
     {
         hy[b]      = host_vector<T>(size_y);
@@ -129,11 +136,14 @@ void testing_ger_batched(const Arguments& arg)
         hA_1[b]    = host_vector<T>(size_A);
         hA_2[b]    = host_vector<T>(size_A);
         hA_gold[b] = host_vector<T>(size_A);
-        hipMalloc(&y[b], size_y * sizeof(T));
-        hipMalloc(&x[b], size_x * sizeof(T));
-        hipMalloc(&A_1[b], size_A * sizeof(T));
-        hipMalloc(&A_2[b], size_A * sizeof(T));
     }
+
+    // Host-arrays of pointers to device memory
+    // (intermediate arrays used for the transfers)
+    device_batch_vector<T> A_1(batch_count, size_A);
+    device_batch_vector<T> A_2(batch_count, size_A);
+    device_batch_vector<T> y(batch_count, size_y);
+    device_batch_vector<T> x(batch_count, size_x);
 
     int last = batch_count - 1;
     if((!y[last] && size_y) || (!x[last] && size_x) || ((!A_1[last] || !A_2[last]) && size_A)
