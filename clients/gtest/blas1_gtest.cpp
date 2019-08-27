@@ -8,6 +8,7 @@
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
 #include "testing_iamax_iamin.hpp"
+#include "testing_iamax_iamin_batched.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
@@ -22,6 +23,8 @@ namespace
         asum,
         iamax,
         iamin,
+        iamax_batched,
+        iamin_batched,
         axpy,
         copy,
         dot,
@@ -65,6 +68,11 @@ namespace
                || BLAS1 == blas1::swap)
                 name << '_' << arg.incy;
 
+	    if (BLAS1 == blas1::iamax_batched || BLAS1 == blas1::iamin_batched)
+	      {
+		name << "_" << arg.batch_count;
+	      }
+
             return std::move(name);
         }
     };
@@ -104,12 +112,12 @@ namespace
                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
 
-            || (BLAS1 == blas1::iamax && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+      || ( (BLAS1 == blas1::iamax || BLAS1 == blas1::iamax_batched) && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::iamin && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+      || ( (BLAS1 == blas1::iamin || BLAS1 == blas1::iamin_batched) && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
@@ -184,6 +192,9 @@ BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
+
+BLAS1_TESTING(iamax_batched, ARG1)
+BLAS1_TESTING(iamin_batched, ARG1)
 
     // clang-format on
 

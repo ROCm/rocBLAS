@@ -3,4 +3,4 @@
  * ************************************************************************ */
 #define MAX_MIN min
 #define AMAX_AMIN_REDUCTION rocblas_reduce_amin
-#include "rocblas_amaxmin_batched.h"
+#include "rocblas_amax_amin_batched.h"

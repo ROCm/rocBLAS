@@ -112,10 +112,22 @@ void testing_dot(const Arguments& arg)
     host_vector<T> hy(size_y);
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    // rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
+    for (int i=0;i<N;++i)
+      {
+	hx[i] += 1;
+	//	std::cout << "hx[" << i << "] = " << hx[i]  << std::endl;
+      }
+
+    for (int i=0;i<N;++i)
+      {
+	hy[i] += 1;
+	//	std::cout << "hy[" << i << "] = " << hy[i]  << std::endl;
+      }
+    
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));

@@ -156,6 +156,136 @@ static constexpr auto rocblas_nrm2<rocblas_float_complex, float> = rocblas_scnrm
 template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
 
+
+
+
+
+
+template <typename T>
+rocblas_status rocblas_iamax_batched(rocblas_handle handle,
+				     rocblas_int    n,
+				     const T*       const x[],
+				     rocblas_int    incx,
+				     rocblas_int    batch_count,
+				     rocblas_int*   result);
+
+
+
+template <>
+inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const rocblas_float_complex*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_icamax_batched(handle,n,x,incx,batch_count,result);
+}
+
+template <>
+inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const rocblas_double_complex*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_izamax_batched(handle,n,x,incx,batch_count,result);
+}
+
+
+template <>
+inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const float*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_isamax_batched(handle,n,x,incx,batch_count,result);
+}
+
+template <>
+inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const double*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_idamax_batched(handle,n,x,incx,batch_count,result);
+}
+
+
+
+
+
+
+
+
+
+template <typename T>
+rocblas_status rocblas_iamin_batched(rocblas_handle handle,
+				     rocblas_int    n,
+				     const T*       const x[],
+				     rocblas_int    incx,
+				     rocblas_int    batch_count,
+				     rocblas_int*   result);
+
+
+
+template <>
+inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const rocblas_float_complex*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_icamin_batched(handle,n,x,incx,batch_count,result);
+}
+
+template <>
+inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const rocblas_double_complex*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_izamin_batched(handle,n,x,incx,batch_count,result);
+}
+
+
+template <>
+inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const float*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_isamin_batched(handle,n,x,incx,batch_count,result);
+}
+
+template <>
+inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
+					    rocblas_int    n,
+					    const double*   const x[],
+					    rocblas_int    incx,
+					    rocblas_int    batch_count,
+					    rocblas_int*   result)
+{
+  return rocblas_idamin_batched(handle,n,x,incx,batch_count,result);
+}
+
+
+
+
+
+
+
+
 // iamax and iamin need to be full functions rather than references, in order
 // to allow them to be passed as template arguments
 //

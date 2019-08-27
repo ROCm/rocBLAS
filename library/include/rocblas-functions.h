@@ -486,6 +486,70 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
 
 
 
+
+
+
+  ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle handle,
+						       rocblas_int    n,
+						       const float* const  x[],
+						       rocblas_int    incx,
+						       rocblas_int batch_count,
+						       rocblas_int*   result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_idamin_batched(rocblas_handle handle,
+						       rocblas_int    n,
+						       const double*  const x[],
+						       rocblas_int    incx,
+						       rocblas_int batch_count,
+						       rocblas_int*   result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_icamin_batched(rocblas_handle               handle,
+						       rocblas_int                  n,
+						       const rocblas_float_complex* const x[],
+						       rocblas_int                  incx,
+						       rocblas_int 		batch_count,
+						       rocblas_int*                 result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle                handle,
+						       rocblas_int                   n,
+						       const rocblas_double_complex* const x[],
+						       rocblas_int                   incx,
+						       rocblas_int batch_count,
+						       rocblas_int*                  result);
+  
+
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle handle,
+						       rocblas_int    n,
+						       const float*   const x[],
+						       rocblas_int    incx,
+						       rocblas_int batch_count,
+						       rocblas_int*   result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_idamax_batched(rocblas_handle handle,
+						       rocblas_int    n,
+						       const double*  const x[],
+						       rocblas_int    incx,
+						       rocblas_int batch_count,
+						       rocblas_int*   result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_icamax_batched(rocblas_handle               handle,
+						       rocblas_int                  n,
+						       const rocblas_float_complex* const x[],
+						       rocblas_int                  incx,
+						       rocblas_int 		batch_count,
+						       rocblas_int*                 result);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle                handle,
+						       rocblas_int                   n,
+						       const rocblas_double_complex* const x[],
+						       rocblas_int                   incx,
+						       rocblas_int batch_count,
+						       rocblas_int*                  result);
+  
+  
+  
+
   /*! \brief BLAS Level 1 API
     
     \details

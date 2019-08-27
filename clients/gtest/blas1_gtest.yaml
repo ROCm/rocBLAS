@@ -21,6 +21,7 @@ Definitions:
     - { alphai: 2.0 }
 
 Tests:
+
 - name: blas1
   category: quick
   N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -31,7 +32,7 @@ Tests:
     - nrm2:  *single_double_precisions_complex_real
     - asum:  *single_double_precisions_complex_real
     - iamax: *single_double_precisions_complex_real
-#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
     - dot:   *single_double_precisions_complex_real
@@ -40,9 +41,35 @@ Tests:
     - scal:  *single_double_complex_real_in_complex_out
     - swap:  *single_double_precisions_complex_real
 
+
+- name: blas1_batched
+  category: quick
+  N: [-1, 0, 5, 10, 1025, 7111, 10000, 33792]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [1, 25]
+  function:
+    - iamax_batched: *single_double_precisions_complex_real
+    - iamin_batched: *single_double_precisions_complex_real
+
+
+- name: blas1_batched
+  category: pre_checkin
+  N: [1048576, 4000000]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [-1, 0, 1, 5]
+  function:
+    - iamax_batched: *single_double_precisions_complex_real
+    - iamin_batched: *single_double_precisions_complex_real
+
+
 - name: blas1
   category: pre_checkin
-  N: [ 1048576, 1049600, 4000000, 8000000 ]
+  N: [1048576, 7048576, 6048576, 5048576, 4048576, 3048576, 2048576, 4000000, 8000000, 5048576, 4048576, 3048576, 2048576, 4000000, 8000000]
+#  N: [ 1048576, 1049600, 4000000, 8000000 ]
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   alphai_betai: *alphai_betai_range
@@ -50,7 +77,7 @@ Tests:
     - nrm2:  *double_precision_complex_real
     - asum:  *double_precision_complex_real
     - iamax: *single_double_precisions_complex_real
-#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
     - dot:   *double_precision_complex_real

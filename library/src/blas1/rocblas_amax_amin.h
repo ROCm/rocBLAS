@@ -37,7 +37,36 @@ struct index_value_t
 {
     rocblas_int index;
     T           value;
+
+#if 0
+  __forceinline__ __host__ __device__ index_value_t() noexcept
+  {
+    index = -9999;
+  };
+  
+  __forceinline__ __host__ __device__ index_value_t(rocblas_int i,T v) noexcept
+  {
+    index = i;
+    value = v;
+  };
+
+
+  __forceinline__ __host__ __device__ index_value_t(const index_value_t<T>&u) noexcept
+  {
+    index = u.index;
+    value = u.value;
+  };
+#endif  
 };
+
+
+template <typename T>
+std::ostream& operator<<(std::ostream& out,const index_value_t<T>& h)
+{
+  out << "(" << h.index << "," << h.value << ")" << std::endl;
+  return out;
+}
+
 
 //
 // Specialization of default_value for index_value_t<T>.
@@ -61,8 +90,15 @@ struct rocblas_fetch_amax_amin
 {
     template <typename Ti>
     __forceinline__ __host__ __device__ index_value_t<To> operator()(Ti x, rocblas_int index)
-    {
-        return {index, fetch_asum(x)};
+  {
+      
+//      index_value_t<To> h;
+//      h.index = index;
+//      h.value = fetch_asum(x);
+//      return h;
+      
+//    return index_value_t<To>{index, fetch_asum(x)};
+    return {index, fetch_asum(x)};
     }
 };
 
@@ -75,6 +111,7 @@ struct rocblas_reduce_amax
     __forceinline__ __host__ __device__ void operator()(index_value_t<To>& __restrict__ x,
                                                         const index_value_t<To>& __restrict__ y)
     {
+
         //
         // If y.index == -1 then y.value is invalid and should not be compared.
         //
@@ -216,6 +253,7 @@ static rocblas_status rocblas_iamaxmin(
         return rocblas_status_memory_error;
     }
 
+    
     return rocblas_reduction_kernel<NB,
                                     rocblas_fetch_amax_amin<To>,
                                     AMAX_AMIN_REDUCTION,

@@ -100,9 +100,14 @@ void testing_iamax_iamin(const Arguments& arg)
     host_vector<T> hx(size_x);
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    //    rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, incx);
 
+    for (int i = 0; i < 8; ++i)
+      {
+	std::cout << "==[" << i << "]=" << hx[incx*i] << std::endl;
+      }
+    
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
@@ -115,22 +120,38 @@ void testing_iamax_iamin(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(FUNC(handle, N, dx, incx, &h_rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
+#if 1
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(FUNC(handle, N, dx, incx, d_rocblas_result));
         CHECK_HIP_ERROR(hipMemcpy(
             &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
-
+#endif
         // CPU BLAS
         cpu_time_used = get_time_us();
         rocblas_int cpu_result;
         CBLAS_FUNC(N, hx, incx, &cpu_result);
         cpu_time_used = get_time_us() - cpu_time_used;
-        cpu_result += 1; // make index 1 based as in Fortran BLAS, not 0 based as in CBLAS
+	cpu_result += 1; // make index 1 based as in Fortran BLAS, not 0 based as in CBLAS
+#if 0
+	{
+	  if(arg.unit_check)
+	    {
+	      if (cpu_result != h_rocblas_result_1)
+		{
+		  printf("diff N %d incx %d cpu_result %d hresult = %d\n",
+			 N,
+			 incx,
+			 cpu_result,
+			 h_rocblas_result_1);
+		}
+	    }	  
+	}
 
+#endif	
         if(arg.unit_check)
         {
             unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_1);
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_2);
+	    unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_2);
         }
 
         if(arg.norm_check)
@@ -224,10 +245,12 @@ namespace rocblas_cblas
 
 } // namespace rocblas_cblas
 
+
+
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_iamax<T>, cblas_iamax<T>>(arg);
+    testing_iamax_iamin<T, rocblas_iamax<T>, cblas_iamax<T> >(arg);
 }
 
 template <typename T>
@@ -235,3 +258,7 @@ void testing_iamin(const Arguments& arg)
 {
     testing_iamax_iamin<T, rocblas_iamin<T>, rocblas_cblas::cblas_iamin<T>>(arg);
 }
+
+
+
+

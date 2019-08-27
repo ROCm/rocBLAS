@@ -9,9 +9,11 @@
 
 namespace
 {
+  
     // HIP support up to 1024 threads/work itemes per thread block/work group
     // setting to 512 for gfx803.
-    constexpr int NB = 512;
+  //    constexpr int NB = 512;
+     constexpr int NB = 1024;
 
     template <bool CONJ, typename T>
     __global__ void dot_kernel_part1(
@@ -26,7 +28,7 @@ namespace
         if(tid < n)
             tmp[tx] = y[tid * incy] * (CONJ ? conj(x[tid * incx]) : x[tid * incx]);
         else
-            tmp[tx] = T(0); // pad with zero
+            tmp[tx] = T(1); // pad with zero
 
         rocblas_sum_reduce<NB>(tx, tmp);
 
