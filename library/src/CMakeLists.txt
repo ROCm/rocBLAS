@@ -23,6 +23,9 @@ endfunction( )
 # package_targets is used as a list of install target
 set( package_targets rocblas )
 
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
@@ -32,9 +35,6 @@ if( BUILD_WITH_TENSILE )
   else( )
     list( APPEND package_targets Tensile )
   endif( )
-
-  # HACK: We include the config file directly because find_package(Tensile) is broken
-  include( ${Tensile_TensileConfig} )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
@@ -46,8 +46,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
-      Tensile_ROOT ${Tensile_ROOT}
-  )
+   )
 
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )

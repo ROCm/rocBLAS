@@ -13,6 +13,8 @@
 #include "testing_dot.hpp"
 #include "testing_geam.hpp"
 #include "testing_gemv.hpp"
+#include "testing_gemv_batched.hpp"
+#include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
@@ -48,7 +50,7 @@ using namespace std::literals;
 #include "testing_trsv.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_ex : rocblas_test_invalid
 {
@@ -58,7 +60,9 @@ template <typename Ti, typename To, typename Tc>
 struct perf_gemm_ex<Ti,
                     To,
                     Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+                    typename std::enable_if<!std::is_same<Ti, void>{}
+                                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
 {
     explicit operator bool()
     {
@@ -71,7 +75,7 @@ struct perf_gemm_ex<Ti,
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 {
@@ -82,7 +86,9 @@ struct perf_gemm_strided_batched_ex<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+    typename std::enable_if<!std::is_same<Ti, void>{}
+                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
 {
     explicit operator bool()
     {
@@ -141,6 +147,10 @@ struct perf_blas<
             testing_nrm2<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
+        else if(!strcmp(arg.function, "gemv_batched"))
+            testing_gemv_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemv_strided_batched"))
+            testing_gemv_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "ger"))
             testing_ger<T>(arg);
         else if(!strcmp(arg.function, "syr"))
@@ -162,6 +172,23 @@ struct perf_blas<
 };
 
 template <typename T, typename U>
+struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>{}>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename T, typename U>
 struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
 {
     explicit operator bool()
@@ -172,6 +199,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
     {
         if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
@@ -194,7 +223,11 @@ struct perf_blas<T,
     }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "asum"))
+        if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
         else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
@@ -500,6 +533,16 @@ try
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
 
+        ("stride_x",
+         value<rocblas_int>(&arg.stride_x)->default_value(128*128),
+         "Specific stride of strided_batched vector x, is only applicable to strided batched"
+         "BLAS_2: second dimension.")
+
+        ("stride_y",
+         value<rocblas_int>(&arg.stride_y)->default_value(128*128),
+         "Specific stride of strided_batched vector y, is only applicable to strided batched"
+         "BLAS_2: leading dimension.")
+
         ("incx",
          value<rocblas_int>(&arg.incx)->default_value(1),
          "increment between values in x vector")
@@ -518,7 +561,7 @@ try
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
 
         ("betai",
-         value<double>(&arg.beta)->default_value(0.0), "specifies the imaginary part of the scalar beta")
+         value<double>(&arg.betai)->default_value(0.0), "specifies the imaginary part of the scalar beta")
 
         ("function,f",
          value<std::string>(&function),

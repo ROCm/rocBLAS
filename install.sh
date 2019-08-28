@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-#set -x #echo on
+set -x #echo on
 
 # #################################################
 # helper functions
@@ -119,9 +119,19 @@ install_packages( )
   fi
 
   # dependencies needed for rocblas and clients to build
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python3" "python-yaml" "python3-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
-  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "llvm-6.0-dev" "libomp-dev"
+                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
+  local library_dependencies_centos=( "epel-release"
+                                      "make" "cmake3" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
+                                      "hip_hcc" "rocm_smi64" "libgomp" "zlib-devel" )
+  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "libcxx-devel" "libgomp"
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -130,9 +140,9 @@ install_packages( )
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
   fi
 
-  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
-  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" )
-  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" )
+  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev")
+  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp")
+  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp")
 
   case "${ID}" in
     ubuntu)
@@ -204,7 +214,7 @@ install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_cov=V2
 tensile_fork=
-tensile_branch=
+tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
@@ -259,7 +269,7 @@ while true; do
         tensile_fork=${2}
         shift 2 ;;
     -b|--branch)
-        tensile_branch=${2}
+        tensile_tag=${2}
         shift 2 ;;
     -t|--test_local_path)
         tensile_test_local_path=${2}
@@ -313,10 +323,25 @@ if [[ "${install_dependencies}" == true ]]; then
   pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    ${cmake_executable} -DBUILD_BOOST=OFF ../../deps
+    ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
   popd
+
+fi
+
+if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+  git submodule update --init
+  cd extern/blis
+  if [[ -e "/etc/redhat-release" ]]; then  
+    echo 'CentOS detected'
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+  else
+    echo 'Ubuntu detected'
+     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+  fi
+  make install
+  cd ../..
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
@@ -329,7 +354,8 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+
+  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -344,13 +370,20 @@ pushd .
     cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
   fi
 
-  if [[ -n "${tensile_branch}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_branch=${tensile_branch}"
+  if [[ -n "${tensile_tag}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_tag=${tensile_tag}"
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
+
+
+case "${ID}" in
+  centos|rhel)
+  cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
+  ;;
+esac
 
   # clients
   if [[ "${build_clients}" == true ]]; then
