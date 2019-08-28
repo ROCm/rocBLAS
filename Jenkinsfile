@@ -32,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx900 && centos7', 'gfx906 && centos7'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && ubuntu', 'gfx900 && centos7', 'gfx906 && centos7', 'gfx906 && sles'], rocblas)
 
     boolean formatCheck = true
 
@@ -92,7 +92,7 @@ rocBLASCI:
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
                         LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
-                
+
                 platform.runCommand(this, command)
                 junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
             }

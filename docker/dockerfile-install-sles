@@ -1,0 +1,21 @@
+# Parameters related to building rocfft
+ARG base_image
+
+FROM ${base_image}
+LABEL maintainer="saad.rahim@amd"
+
+# Copy the rpm package of rocfft into the container from host
+COPY *.rpm /tmp/
+
+# Install the rpm package, and print out contents of expected changed locations
+RUN zypper -n update && zypper install -n\
+    /tmp/rocfft-*.rpm \
+  && rm -f /tmp/*.rpm \
+  && zypper -n clean -all \
+  && rm -rf /var/lib/apt/lists/* \
+  && printf "ls -la /etc/ld.so.conf.d/\n" && ls -la /etc/ld.so.conf.d/ \
+  && printf "ls -la /opt/rocm/include\n" && ls -la /opt/rocm/include \
+  && printf "ls -la /opt/rocm/lib\n" && ls -la /opt/rocm/lib \
+  && printf "ls -la /opt/rocm/lib/cmake\n" && ls -la /opt/rocm/lib/cmake \
+  && printf "ls -la /opt/rocm/rocfft/include\n" && ls -la /opt/rocm/rocfft/include \
+  && printf "ls -la /opt/rocm/rocfft/lib\n" && ls -la /opt/rocm/rocfft/lib
