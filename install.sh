@@ -327,6 +327,21 @@ if [[ "${install_dependencies}" == true ]]; then
     make -j$(nproc)
     elevate_if_not_root make install
   popd
+
+fi
+
+if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+  git submodule update --init
+  cd extern/blis
+  if [[ -e "/etc/redhat-release" ]]; then  
+    echo 'CentOS detected'
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+  else
+    echo 'Ubuntu detected'
+     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+  fi
+  make install
+  cd ../..
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
@@ -339,8 +354,8 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
+  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
   # build type
   if [[ "${build_release}" == true ]]; then

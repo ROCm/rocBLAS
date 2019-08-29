@@ -254,6 +254,15 @@ inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
     return rocblas_bfloat16(cosf(float(a)));
 }
 
+// Inject standard functions into namespace std
+namespace std
+{
+    __device__ __host__ inline rocblas_bfloat16 abs(const rocblas_bfloat16& z)
+    {
+        return rocblas_bfloat16(z.data & 0x7fff);
+    }
+}
+
 #endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
 
 #endif // _ROCBLAS_BFLOAT16_H_

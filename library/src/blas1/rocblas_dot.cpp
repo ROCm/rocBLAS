@@ -13,20 +13,20 @@ namespace
     // setting to 512 for gfx803.
     constexpr int NB = 512;
 
-    template <bool CONJ, typename T>
+    template <bool CONJ, typename T, typename T2 = T>
     __global__ void dot_kernel_part1(
-        rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T* workspace)
+        rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T2* workspace)
     {
         ptrdiff_t tx  = hipThreadIdx_x;
         ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
 
-        __shared__ T tmp[NB];
+        __shared__ T2 tmp[NB];
 
         // bound
         if(tid < n)
-            tmp[tx] = y[tid * incy] * (CONJ ? conj(x[tid * incx]) : x[tid * incx]);
+            tmp[tx] = T2(y[tid * incy]) * T2(CONJ ? conj(x[tid * incx]) : x[tid * incx]);
         else
-            tmp[tx] = T(0); // pad with zero
+            tmp[tx] = T2(0); // pad with zero
 
         rocblas_sum_reduce<NB>(tx, tmp);
 
@@ -36,7 +36,7 @@ namespace
 
     // assume workspace has already been allocated, recommened for repeated calling of dot product
     // routine
-    template <bool CONJ, typename T>
+    template <bool CONJ, typename T, typename T2 = T>
     rocblas_status rocblas_dot_workspace(rocblas_handle __restrict__ handle,
                                          rocblas_int n,
                                          const T*    x,
@@ -44,7 +44,7 @@ namespace
                                          const T*    y,
                                          rocblas_int incy,
                                          T*          result,
-                                         T*          workspace,
+                                         T2*         workspace,
                                          rocblas_int blocks)
     {
         // At least two kernels are needed to finish the reduction
@@ -73,18 +73,33 @@ namespace
                            incy,
                            workspace);
 
-        hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
-                           1,
-                           threads,
-                           0,
-                           handle->rocblas_stream,
-                           blocks,
-                           workspace,
-                           handle->pointer_mode != rocblas_pointer_mode_device ? workspace
-                                                                               : result);
-        if(handle->pointer_mode != rocblas_pointer_mode_device)
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
+                               1,
+                               threads,
+                               0,
+                               handle->rocblas_stream,
+                               blocks,
+                               workspace,
+                               result);
+        }
+        else
+        {
+            hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
+                               1,
+                               threads,
+                               0,
+                               handle->rocblas_stream,
+                               blocks,
+                               workspace,
+                               workspace);
+
+            T2 res_T2;
             RETURN_IF_HIP_ERROR(
-                hipMemcpy(result, workspace, sizeof(*result), hipMemcpyDeviceToHost));
+                hipMemcpy(&res_T2, workspace, sizeof(res_T2), hipMemcpyDeviceToHost));
+            *result = T(res_T2);
+        }
 
         return rocblas_status_success;
     }
@@ -95,6 +110,10 @@ namespace
     constexpr char rocblas_dot_name<CONJ, float>[] = "rocblas_sdot";
     template <bool CONJ>
     constexpr char rocblas_dot_name<CONJ, double>[] = "rocblas_ddot";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, rocblas_half>[] = "rocblas_hdot";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, rocblas_bfloat16>[] = "rocblas_bfdot";
     template <>
     constexpr char rocblas_dot_name<true, rocblas_float_complex>[] = "rocblas_cdotc";
     template <>
@@ -105,7 +124,7 @@ namespace
     constexpr char rocblas_dot_name<false, rocblas_double_complex>[] = "rocblas_zdotu";
 
     // allocate workspace inside this API
-    template <bool CONJ, typename T>
+    template <bool CONJ, typename T, typename T2 = T>
     rocblas_status rocblas_dot(rocblas_handle handle,
                                rocblas_int    n,
                                const T*       x,
@@ -152,13 +171,13 @@ namespace
 
         auto blocks = (n - 1) / NB + 1;
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T) * blocks);
+            return handle->set_optimal_device_memory_size(sizeof(T2) * blocks);
 
-        auto mem = handle->device_malloc(sizeof(T) * blocks);
+        auto mem = handle->device_malloc(sizeof(T2) * blocks);
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_dot_workspace<CONJ>(handle, n, x, incx, y, incy, result, (T*)mem, blocks);
+        return rocblas_dot_workspace<CONJ>(handle, n, x, incx, y, incy, result, (T2*)mem, blocks);
     }
 
 } // namespace
@@ -191,6 +210,29 @@ rocblas_status rocblas_ddot(rocblas_handle handle,
                             double*        result)
 {
     return rocblas_dot<false>(handle, n, x, incx, y, incy, result);
+}
+
+rocblas_status rocblas_hdot(rocblas_handle      handle,
+                            rocblas_int         n,
+                            const rocblas_half* x,
+                            rocblas_int         incx,
+                            const rocblas_half* y,
+                            rocblas_int         incy,
+                            rocblas_half*       result)
+{
+    return rocblas_dot<false>(
+        handle, n, (const _Float16*)x, incx, (const _Float16*)y, incy, (_Float16*)result);
+}
+
+rocblas_status rocblas_bfdot(rocblas_handle          handle,
+                             rocblas_int             n,
+                             const rocblas_bfloat16* x,
+                             rocblas_int             incx,
+                             const rocblas_bfloat16* y,
+                             rocblas_int             incy,
+                             rocblas_bfloat16*       result)
+{
+    return rocblas_dot<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
 }
 
 rocblas_status rocblas_cdotu(rocblas_handle               handle,

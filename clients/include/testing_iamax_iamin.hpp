@@ -202,6 +202,17 @@ namespace rocblas_cblas
     }
 
     template <typename T>
+    bool greatherthan(T x, T y)
+    {
+        return x > y;
+    }
+
+    bool greatherthan(rocblas_half x, rocblas_half y)
+    {
+        return half_to_float(x) > half_to_float(y);
+    }
+
+    template <typename T>
     void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
     {
         rocblas_int minpos = -1;
@@ -222,12 +233,33 @@ namespace rocblas_cblas
         *result = minpos;
     }
 
+    template <typename T>
+    void cblas_iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    {
+        rocblas_int maxpos = -1;
+        if(N > 0 && incx > 0)
+        {
+            auto max = asum(X[0]);
+            maxpos   = 0;
+            for(size_t i = 1; i < N; ++i)
+            {
+                auto a = asum(X[i * incx]);
+                if(greatherthan(a, max))
+                {
+                    max    = a;
+                    maxpos = i;
+                }
+            }
+        }
+        *result = maxpos;
+    }
+
 } // namespace rocblas_cblas
 
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_iamax<T>, cblas_iamax<T>>(arg);
+    testing_iamax_iamin<T, rocblas_iamax<T>, rocblas_cblas::cblas_iamax<T>>(arg);
 }
 
 template <typename T>
