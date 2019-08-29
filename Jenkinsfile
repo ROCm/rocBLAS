@@ -63,6 +63,8 @@ rocBLASCI:
         platform.runCommand(this, command)
     }
 
+    rocblas.timeout.test = 10
+
     def testCommand =
     {
         platform, project->

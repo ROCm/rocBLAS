@@ -531,6 +531,223 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    rot applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[in]
+    n       rocblas_int
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       pointer storing vector x on the GPU.
+    @param[in]
+    incx    rocblas_int
+            specifies the increment between elements of x.
+    @param[inout]
+    y       pointer storing vector y on the GPU.
+    @param[in]
+    incy    rocblas_int
+            specifies the increment between elements of y.
+    @param[in]
+    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    @param[in]
+    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srot(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           float*         x,
+                                           rocblas_int    incx,
+                                           float*         y,
+                                           rocblas_int    incy,
+                                           const float*   c,
+                                           const float*   s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drot(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           double*        x,
+                                           rocblas_int    incx,
+                                           double*        y,
+                                           rocblas_int    incy,
+                                           const double*  c,
+                                           const double*  s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crot(rocblas_handle               handle,
+                                           rocblas_int                  n,
+                                           rocblas_float_complex*       x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       y,
+                                           rocblas_int                  incy,
+                                           const float*                 c,
+                                           const rocblas_float_complex* s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csrot(rocblas_handle         handle,
+                                            rocblas_int            n,
+                                            rocblas_float_complex* x,
+                                            rocblas_int            incx,
+                                            rocblas_float_complex* y,
+                                            rocblas_int            incy,
+                                            const float*           c,
+                                            const float*           s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrot(rocblas_handle                handle,
+                                           rocblas_int                   n,
+                                           rocblas_double_complex*       x,
+                                           rocblas_int                   incx,
+                                           rocblas_double_complex*       y,
+                                           rocblas_int                   incy,
+                                           const double*                 c,
+                                           const rocblas_double_complex* s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
+                                            rocblas_int             n,
+                                            rocblas_double_complex* x,
+                                            rocblas_int             incx,
+                                            rocblas_double_complex* y,
+                                            rocblas_int             incy,
+                                            const double*           c,
+                                            const double*           s);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotg creates the Givens rotation matrix for the vector (a b).
+         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+         If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+         If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    a       input vector element, overwritten with r.
+    @param[inout]
+    b       input vector element, overwritten with z.
+    @param[inout]
+    c       cosine element of Givens rotation.
+    @param[inout]
+    s       sine element of Givens rotation.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status
+    rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s);
+
+ROCBLAS_EXPORT rocblas_status
+    rocblas_drotg(rocblas_handle handle, double* a, double* b, double* c, double* s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg(rocblas_handle         handle,
+                                            rocblas_float_complex* a,
+                                            rocblas_float_complex* b,
+                                            float*                 c,
+                                            rocblas_float_complex* s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
+                                            rocblas_double_complex* a,
+                                            rocblas_double_complex* b,
+                                            double*                 c,
+                                            rocblas_double_complex* s);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotm applies the modified Givens rotation matrix defined by param to vectors x and y.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[in]
+    n       rocblas_int
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       pointer storing vector x on the GPU.
+    @param[in]
+    incx    rocblas_int
+            specifies the increment between elements of x.
+    @param[inout]
+    y       pointer storing vector y on the GPU.
+    @param[in]
+    incy    rocblas_int
+            specifies the increment between elements of y.
+    @param[in]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotm(rocblas_handle handle,
+                                            rocblas_int    n,
+                                            float*         x,
+                                            rocblas_int    incx,
+                                            float*         y,
+                                            rocblas_int    incy,
+                                            const float*   param);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
+                                            rocblas_int    n,
+                                            double*        x,
+                                            rocblas_int    incx,
+                                            double*        y,
+                                            rocblas_int    incy,
+                                            const double*  param);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotmg creates the modified Givens rotation matrix for the vector (d1 * x1, d2 * y1).
+          Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    d1      input scalar that is overwritten.
+    @param[inout]
+    d2      input scalar that is overwritten.
+    @param[inout]
+    x1      input scalar that is overwritten.
+    @param[in]
+    y1      input scalar.
+    @param[out]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
+    rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
+    rocblas_handle handle, double* d1, double* d2, double* x1, const double* y1, double* param);
+
 /*
  * ===========================================================================
  *    level 2 BLAS

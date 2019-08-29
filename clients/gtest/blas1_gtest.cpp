@@ -9,6 +9,10 @@
 #include "testing_dot.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_rot.hpp"
+#include "testing_rotg.hpp"
+#include "testing_rotm.hpp"
+#include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
 #include "type_dispatch.hpp"
@@ -28,6 +32,10 @@ namespace
         dotc,
         scal,
         swap,
+        rot,
+        rotg,
+        rotm,
+        rotmg,
     };
 
     // ----------------------------------------------------------------------------
@@ -51,19 +59,29 @@ namespace
             RocBLAS_TestName<blas1_test_template> name;
             name << rocblas_datatype2string(arg.a_type);
 
-            if(BLAS1 == blas1::scal && arg.a_type != arg.b_type)
-                name << '_' << rocblas_datatype2string(arg.b_type);
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                if((BLAS1 == blas1::scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
+                   && arg.a_type != arg.b_type)
+                    name << '_' << rocblas_datatype2string(arg.b_type);
+                if(BLAS1 == blas1::rot && arg.compute_type != arg.a_type)
+                    name << '_' << rocblas_datatype2string(arg.compute_type);
 
-            name << '_' << arg.N;
+                name << '_' << arg.N;
 
-            if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
-                name << '_' << arg.alpha << "_" << arg.alphai;
+                if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+                    name << '_' << arg.alpha << "_" << arg.alphai;
 
-            name << '_' << arg.incx;
+                name << '_' << arg.incx;
 
-            if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
-               || BLAS1 == blas1::swap)
-                name << '_' << arg.incy;
+                if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
+                   || BLAS1 == blas1::swap || BLAS1 == blas1::rot || BLAS1 == blas1::rotm)
+                    name << '_' << arg.incy;
+            }
 
             return std::move(name);
         }
@@ -123,7 +141,32 @@ namespace
             || (BLAS1 == blas1::swap && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
                     || std::is_same<Ti, rocblas_float_complex>{}
-                    || std::is_same<Ti, rocblas_double_complex>{}))>;
+                    || std::is_same<Ti, rocblas_double_complex>{}))
+
+            || (BLAS1 == blas1::rot
+                && ((std::is_same<Ti, float>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
+                    || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{}
+                        && std::is_same<To, Tc>{})
+                    || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+                        && std::is_same<Tc, rocblas_float_complex>{})
+                    || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+                        && std::is_same<Tc, float>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+                        && std::is_same<Tc, rocblas_double_complex>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+                        && std::is_same<Tc, double>{})))
+
+            || (BLAS1 == blas1::rotg && std::is_same<To, Tc>{}
+                && ((std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})
+                    || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
+                    || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
+
+            || (BLAS1 == blas1::rotm && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::rotmg && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -185,6 +228,10 @@ BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
+BLAS1_TESTING(rot,   ARG3)
+BLAS1_TESTING(rotg,  ARG2)
+BLAS1_TESTING(rotm,  ARG1)
+BLAS1_TESTING(rotmg, ARG1)
 
     // clang-format on
 
