@@ -268,6 +268,79 @@ static constexpr auto rocblas_axpy<rocblas_float_complex> = rocblas_caxpy;
 template <>
 static constexpr auto rocblas_axpy<rocblas_double_complex> = rocblas_zaxpy;
 
+// rot
+template <typename T, typename U = T, typename V = T>
+rocblas_status (*rocblas_rot)(rocblas_handle handle,
+                              rocblas_int    n,
+                              T*             x,
+                              rocblas_int    incx,
+                              T*             y,
+                              rocblas_int    incy,
+                              const U*       c,
+                              const V*       s);
+
+template <>
+static constexpr auto rocblas_rot<float> = rocblas_srot;
+
+template <>
+static constexpr auto rocblas_rot<double> = rocblas_drot;
+
+template <>
+static constexpr auto
+    rocblas_rot<rocblas_float_complex, float, rocblas_float_complex> = rocblas_crot;
+
+template <>
+static constexpr auto rocblas_rot<rocblas_float_complex, float, float> = rocblas_csrot;
+
+template <>
+static constexpr auto
+    rocblas_rot<rocblas_double_complex, double, rocblas_double_complex> = rocblas_zrot;
+
+template <>
+static constexpr auto rocblas_rot<rocblas_double_complex, double, double> = rocblas_zdrot;
+
+// rotg
+template <typename T, typename U = T>
+rocblas_status (*rocblas_rotg)(rocblas_handle handle, T* a, T* b, U* c, T* s);
+
+template <>
+static constexpr auto rocblas_rotg<float> = rocblas_srotg;
+
+template <>
+static constexpr auto rocblas_rotg<double> = rocblas_drotg;
+
+template <>
+static constexpr auto rocblas_rotg<rocblas_float_complex, float> = rocblas_crotg;
+
+template <>
+static constexpr auto rocblas_rotg<rocblas_double_complex, double> = rocblas_zrotg;
+
+//rotm
+template <typename T>
+rocblas_status (*rocblas_rotm)(rocblas_handle handle,
+                               rocblas_int    n,
+                               T*             x,
+                               rocblas_int    incx,
+                               T*             y,
+                               rocblas_int    incy,
+                               const T*       param);
+
+template <>
+static constexpr auto rocblas_rotm<float> = rocblas_srotm;
+
+template <>
+static constexpr auto rocblas_rotm<double> = rocblas_drotm;
+
+//rotmg
+template <typename T>
+rocblas_status (*rocblas_rotmg)(rocblas_handle handle, T* d1, T* d2, T* x1, const T* y1, T* param);
+
+template <>
+static constexpr auto rocblas_rotmg<float> = rocblas_srotmg;
+
+template <>
+static constexpr auto rocblas_rotmg<double> = rocblas_drotmg;
+
 /*
  * ===========================================================================
  *    level 2 BLAS

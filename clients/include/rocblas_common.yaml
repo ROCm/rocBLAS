@@ -176,6 +176,33 @@ Single double joined: &single_double_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
 
 #############################################
+#               Used for rot*               #
+#############################################
+Complex real mixed: &complex_real_mixed
+  - &single_precision_complex_real_in_complex_compute
+    { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &double_precision_complex_real_in_complex_compute
+    { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+  - &single_precision_complex_real_in_real_compute
+    { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_r }
+  - &double_precision_complex_real_in_real_compute
+    { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_r }
+
+rot precisions: &rot_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_complex_compute
+  - *single_precision_complex_real_in_real_compute
+  - *double_precision_complex_real_in_complex_compute
+  - *double_precision_complex_real_in_real_compute
+
+rotg precisions: &rotg_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_complex_compute
+  - *double_precision_complex_real_in_complex_compute
+
+#############################################
 #           Used for Dot (quick)            #
 #############################################
 Half bfloat single double complex real: &half_bfloat_single_double_complex_real_precisions

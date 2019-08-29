@@ -365,6 +365,196 @@ inline void cblas_swap(rocblas_int             n,
     cblas_zswap(n, x, incx, y, incy);
 }
 
+// rot
+
+// LAPACK fortran library functionality
+extern "C" {
+void crot_(const int*                   n,
+           rocblas_float_complex*       cx,
+           const int*                   incx,
+           rocblas_float_complex*       cy,
+           const int*                   incy,
+           const float*                 c,
+           const rocblas_float_complex* s);
+void csrot_(const int*             n,
+            rocblas_float_complex* cx,
+            const int*             incx,
+            rocblas_float_complex* cy,
+            const int*             incy,
+            const float*           c,
+            const float*           s);
+void zrot_(const int*                    n,
+           rocblas_double_complex*       cx,
+           const int*                    incx,
+           rocblas_double_complex*       cy,
+           const int*                    incy,
+           const double*                 c,
+           const rocblas_double_complex* s);
+void zdrot_(const int*              n,
+            rocblas_double_complex* cx,
+            const int*              incx,
+            rocblas_double_complex* cy,
+            const int*              incy,
+            const double*           c,
+            const double*           s);
+}
+
+template <typename T, typename U, typename V>
+inline void cblas_rot(
+    rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const U* c, const V* s);
+
+template <>
+inline void cblas_rot(rocblas_int  n,
+                      float*       x,
+                      rocblas_int  incx,
+                      float*       y,
+                      rocblas_int  incy,
+                      const float* c,
+                      const float* s)
+{
+    cblas_srot(n, x, incx, y, incy, *c, *s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int   n,
+                      double*       x,
+                      rocblas_int   incx,
+                      double*       y,
+                      rocblas_int   incy,
+                      const double* c,
+                      const double* s)
+{
+    cblas_drot(n, x, incx, y, incy, *c, *s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int                  n,
+                      rocblas_float_complex*       x,
+                      rocblas_int                  incx,
+                      rocblas_float_complex*       y,
+                      rocblas_int                  incy,
+                      const float*                 c,
+                      const rocblas_float_complex* s)
+{
+    crot_(&n, x, &incx, y, &incx, c, s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int            n,
+                      rocblas_float_complex* x,
+                      rocblas_int            incx,
+                      rocblas_float_complex* y,
+                      rocblas_int            incy,
+                      const float*           c,
+                      const float*           s)
+{
+    csrot_(&n, x, &incx, y, &incy, c, s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int                   n,
+                      rocblas_double_complex*       x,
+                      rocblas_int                   incx,
+                      rocblas_double_complex*       y,
+                      rocblas_int                   incy,
+                      const double*                 c,
+                      const rocblas_double_complex* s)
+{
+    zrot_(&n, x, &incx, y, &incy, c, s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int             n,
+                      rocblas_double_complex* x,
+                      rocblas_int             incx,
+                      rocblas_double_complex* y,
+                      rocblas_int             incy,
+                      const double*           c,
+                      const double*           s)
+{
+    zdrot_(&n, x, &incx, y, &incy, c, s);
+}
+
+// rotg
+
+// LAPACK fortran library functionality
+extern "C" {
+void crotg_(rocblas_float_complex* a, rocblas_float_complex* b, float* c, rocblas_float_complex* s);
+void zrotg_(rocblas_double_complex* a,
+            rocblas_double_complex* b,
+            double*                 c,
+            rocblas_double_complex* s);
+}
+
+template <typename T, typename U>
+inline void cblas_rotg(T* a, T* b, U* c, T* s);
+
+template <>
+inline void cblas_rotg(float* a, float* b, float* c, float* s)
+{
+    cblas_srotg(a, b, c, s);
+}
+
+template <>
+inline void cblas_rotg(double* a, double* b, double* c, double* s)
+{
+    cblas_drotg(a, b, c, s);
+}
+
+template <>
+inline void cblas_rotg(rocblas_float_complex* a,
+                       rocblas_float_complex* b,
+                       float*                 c,
+                       rocblas_float_complex* s)
+{
+    crotg_(a, b, c, s);
+}
+
+template <>
+inline void cblas_rotg(rocblas_double_complex* a,
+                       rocblas_double_complex* b,
+                       double*                 c,
+                       rocblas_double_complex* s)
+{
+    zrotg_(a, b, c, s);
+}
+
+// rotm
+
+template <typename T>
+inline void cblas_rotm(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const T* p);
+
+template <>
+inline void cblas_rotm(
+    rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy, const float* p)
+{
+    cblas_srotm(n, x, incx, y, incy, p);
+}
+
+template <>
+inline void cblas_rotm(
+    rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy, const double* p)
+{
+    cblas_drotm(n, x, incx, y, incy, p);
+}
+
+// rotmg
+
+template <typename T>
+inline void cblas_rotmg(T* d1, T* d2, T* b1, const T* b2, T* p);
+
+template <>
+inline void cblas_rotmg(float* d1, float* d2, float* b1, const float* b2, float* p)
+{
+    cblas_srotmg(d1, d2, b1, *b2, p);
+}
+
+template <>
+inline void cblas_rotmg(double* d1, double* d2, double* b1, const double* b2, double* p)
+{
+    cblas_drotmg(d1, d2, b1, *b2, p);
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
