@@ -252,9 +252,10 @@ inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
 // Inject standard functions into namespace std
 namespace std
 {
-    __device__ __host__ inline rocblas_bfloat16 abs(const rocblas_bfloat16& z)
+    constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
     {
-        return rocblas_bfloat16(z.data & 0x7fff);
+        a.data &= 0x7fff;
+        return a;
     }
 }
 
