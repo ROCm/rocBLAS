@@ -63,7 +63,7 @@ struct rocblas_bfloat16
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
-    explicit constexpr __host__ __device__ operator float() const
+    constexpr __host__ __device__ operator float() const
     {
         union
         {
@@ -71,11 +71,6 @@ struct rocblas_bfloat16
             float    fp32;
         } u = {uint32_t(data) << 16};
         return u.fp32;
-    }
-
-    explicit constexpr __host__ __device__ operator double() const
-    {
-        return double(float(*this));
     }
 
 private:
