@@ -121,6 +121,10 @@ set( rocblas_blas1_source
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_scal.cpp
   blas1/rocblas_swap.cpp
+  blas1/rocblas_rot.cpp
+  blas1/rocblas_rotg.cpp
+  blas1/rocblas_rotm.cpp
+  blas1/rocblas_rotmg.cpp
 )
 
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
