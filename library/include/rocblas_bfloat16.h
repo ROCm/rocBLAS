@@ -235,11 +235,6 @@ constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
 {
     return !(a.data & 0x7fff);
 }
-constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
-{
-    a.data &= 0x7fff;
-    return a;
-}
 inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(sinf(float(a)));
@@ -247,16 +242,6 @@ inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
 inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
 {
     return rocblas_bfloat16(cosf(float(a)));
-}
-
-// Inject standard functions into namespace std
-namespace std
-{
-    constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
-    {
-        a.data &= 0x7fff;
-        return a;
-    }
 }
 
 #endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))
