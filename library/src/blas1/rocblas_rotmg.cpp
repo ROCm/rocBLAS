@@ -34,7 +34,7 @@ namespace
             T p1 = d1 * x1;
             T q2 = p2 * y1;
             T q1 = p1 * x1;
-            if(fabs(q1) > fabs(q2))
+            if(rocblas_abs(q1) > rocblas_abs(q2))
             {
                 h21 = -y1 / x1;
                 h12 = p2 / p1;
@@ -100,7 +100,7 @@ namespace
 
             if(d2 != 0)
             {
-                while((fabs(d2) <= rgamsq) || (fabs(d2) >= gamsq))
+                while((rocblas_abs(d2) <= rgamsq) || (rocblas_abs(d2) >= gamsq))
                 {
                     if(flag == 0)
                     {
@@ -113,7 +113,7 @@ namespace
                         h12  = 1;
                         flag = -1;
                     }
-                    if(fabs(d2) <= rgamsq)
+                    if(rocblas_abs(d2) <= rgamsq)
                     {
                         d2 *= gamsq;
                         h21 /= gam;
