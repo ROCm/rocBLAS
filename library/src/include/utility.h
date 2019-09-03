@@ -6,6 +6,7 @@
 #define UTILITY_H
 #include "definitions.h"
 #include "rocblas.h"
+#include <cmath>
 #include <complex>
 #include <hip/hip_runtime.h>
 #include <type_traits>
@@ -240,4 +241,26 @@ constexpr auto get_rocblas_status_for_hip_status(hipError_t status)
         return rocblas_status_internal_error;
     }
 }
+
+// Absolute value
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto rocblas_abs(T x)
+{
+    return x < 0 ? -x : x;
+}
+
+// For complex, we have defined a __device__ __host__ compatible std::abs
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto rocblas_abs(T x)
+{
+    return std::abs(x);
+}
+
+// rocblas_bfloat16 is handled specially
+__device__ __host__ inline auto rocblas_abs(rocblas_bfloat16 x)
+{
+    x.data &= 0x7fff;
+    return x;
+}
+
 #endif

@@ -11,7 +11,7 @@ namespace
     template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
     __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
-        T scale = std::abs(a) + std::abs(b);
+        T scale = rocblas_abs(a) + rocblas_abs(b);
         if(scale == 0.0)
         {
             c = 1.0;
@@ -24,14 +24,14 @@ namespace
             T sa  = a / scale;
             T sb  = b / scale;
             T r   = scale * sqrt(sa * sa + sb * sb);
-            T roe = (std::abs(a) > std::abs(b)) ? a : b;
+            T roe = rocblas_abs(a) > rocblas_abs(b) ? a : b;
             r     = copysign(r, roe);
             c     = a / r;
             s     = b / r;
             T z   = 1.0;
-            if(std::abs(a) > std::abs(b))
+            if(rocblas_abs(a) > rocblas_abs(b))
                 z = s;
-            if(std::abs(b) >= std::abs(a) && c != 0.0)
+            if(rocblas_abs(b) >= rocblas_abs(a) && c != 0.0)
                 z = 1.0 / c;
             a = r;
             b = z;
@@ -41,7 +41,7 @@ namespace
     template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
     __device__ __host__ void rotg_calc(T& a, T& b, U& c, T& s)
     {
-        if(std::abs(a) == 0.0)
+        if(!rocblas_abs(a))
         {
             c = 0;
             s = {1, 0};
@@ -49,12 +49,12 @@ namespace
         }
         else
         {
-            auto scale = std::abs(a) + std::abs(b);
-            auto sa    = std::abs(a / scale);
-            auto sb    = std::abs(b / scale);
+            auto scale = rocblas_abs(a) + rocblas_abs(b);
+            auto sa    = rocblas_abs(a / scale);
+            auto sb    = rocblas_abs(b / scale);
             auto norm  = scale * sqrt(sa * sa + sb * sb);
-            auto alpha = a / std::abs(a);
-            c          = std::abs(a) / norm;
+            auto alpha = a / rocblas_abs(a);
+            c          = rocblas_abs(a) / norm;
             s          = alpha * conj(b) / norm;
             a          = alpha * norm;
         }
