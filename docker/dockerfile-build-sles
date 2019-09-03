@@ -2,7 +2,7 @@
 ARG base_image
 
 FROM ${base_image}
-LABEL maintainer="fei.zheng@amd.com"
+LABEL maintainer="rocblas-maintainer@amd.com"
 
 ARG user_uid
 
@@ -28,7 +28,10 @@ RUN zypper -n update && zypper -n install\
     python2-PyYAML \
     libboost_program_options1_66_0-devel\
     libcxxtools9 \
-    libnuma1
+    libnuma1 \
+    llvm7-devel
+
+RUN pip3 install wheel && pip3 install tox pyyaml
 
 # docker pipeline runs containers with particular uid
 # create a jenkins user with this specific uid so it can use sudo priviledges
