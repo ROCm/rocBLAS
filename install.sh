@@ -22,6 +22,7 @@ function display_help()
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
+  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
 }
 
@@ -218,6 +219,7 @@ tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
+cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
 
@@ -228,7 +230,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path: --options hicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options hicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -277,6 +279,9 @@ while true; do
     --cuda)
         build_cuda=true
         shift ;;
+    --cpu_ref_lib)
+        cpu_ref_lib=${2}
+        shift 2 ;;
     --hip-clang)
         build_hip_clang=true
         shift ;;
@@ -289,6 +294,15 @@ while true; do
         ;;
   esac
 done
+
+if [[ "${cpu_ref_lib}" == blis ]]; then
+  LINK_BLIS=true
+elif [[ "${cpu_ref_lib}" == lapack ]]; then
+  LINK_BLIS=false
+else
+  echo "Currently the only CPU library options are blis and lapack"
+      exit 2
+fi
 
 build_dir=./build
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
@@ -330,7 +344,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
 fi
 
-if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
+if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
   git submodule update --init
   cd extern/blis
   if [[ -e "/etc/redhat-release" ]]; then  
@@ -356,6 +370,7 @@ pushd .
   cmake_client_options=""
 
   cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
