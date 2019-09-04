@@ -29,7 +29,8 @@ RUN zypper -n update && zypper -n install\
     libboost_program_options1_66_0-devel\
     libcxxtools9 \
     libnuma1 \
-    llvm7-devel
+    llvm7-devel \
+    python3-pip
 
 RUN pip3 install wheel && pip3 install tox pyyaml
 
