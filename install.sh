@@ -356,13 +356,18 @@ fi
 if [[ ! -f "${build_dir}/deps/blis/lib/libblis.a" ]]; then
   git submodule update --init
   cd extern/blis
-  if [[ -e "/etc/redhat-release" ]]; then
-    echo 'CentOS detected'
-    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-  else
-    echo 'Ubuntu detected'
-     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
-  fi
+  case "${ID}" in
+      centos|rhel|sles)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+      ubuntu)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+          ;;
+      *)
+          echo "Unsupported OS for this script"
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+  esac
   make install
   cd ../..
 fi
