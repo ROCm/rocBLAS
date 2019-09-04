@@ -22,7 +22,7 @@ function display_help()
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
-  echo "    [--cpu_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
+  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
 }
 
@@ -219,7 +219,7 @@ tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
-cpu_lib=blis
+cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
 
@@ -230,7 +230,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_lib: --options hicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options hicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -279,8 +279,8 @@ while true; do
     --cuda)
         build_cuda=true
         shift ;;
-    --cpu_lib)
-        cpu_lib=${2}
+    --cpu_ref_lib)
+        cpu_ref_lib=${2}
         shift 2 ;;
     --hip-clang)
         build_hip_clang=true
@@ -295,9 +295,9 @@ while true; do
   esac
 done
 
-if [[ "${cpu_lib}" == blis ]]; then
+if [[ "${cpu_ref_lib}" == blis ]]; then
   LINK_BLIS=true
-elif [[ "${cpu_lib}" == lapack ]]; then
+elif [[ "${cpu_ref_lib}" == lapack ]]; then
   LINK_BLIS=false
 else
   echo "Currently the only CPU library options are blis and lapack"
@@ -344,7 +344,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
 fi
 
-if [[ "${cpu_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
   git submodule update --init
   cd extern/blis
   if [[ -e "/etc/redhat-release" ]]; then  
