@@ -9,7 +9,7 @@
 #pragma once
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
-
+sdfasd
 #include "rocblas_bfloat16.h"
 #include <stdbool.h>
 #include <stddef.h>
