@@ -44,23 +44,23 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+    N: [ -1, 0, 5, 33792 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [1, 25]
+    batch_count: [-1, 5]
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched: *single_double_complex_real_in_complex_out
 
   - name: blas1_strided_batched
     category: quick
-    N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
+    N: [ -1, 0, 5, 33792 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [1, 25]
-    stride_x: [1, 100000]
+    batch_count: [-1, 5]
+    strideScale: [ 0.5, 1.5 ]
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
@@ -68,7 +68,7 @@ Tests:
 
   - name: blas1
     category: pre_checkin
-    N: [ 1048576, 1049600, 8000000 ]
+    N: [ 50000, 1049600 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -89,23 +89,23 @@ Tests:
 
   - name: blas1_batched
     category: pre_checkin
-    N: [ 1048576, 4000000 ]
+    N: [ 1048576 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [-1, 0, 1, 5]
+    batch_count: [2]
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched:  *single_double_complex_real_in_complex_out
 
   - name: blas1_strided_batched
     category: pre_checkin
-    N: [ 1048576, 4000000 ]
+    N: [ 1048576 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [-1, 0, 1, 5]
-    stride_x: [-1, 10, 10000000]
+    batch_count: [2]
+    strideScale: [ 1.5 ]
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched:  *single_double_complex_real_in_complex_out

@@ -196,7 +196,7 @@ def setdefaults(test):
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
 
-    if all([x in test for x in ('M', 'incx', 'strideScale')]) and test['function']=='ger_strided_batched':
+    if all([x in test for x in ('M', 'incx', 'strideScale')]) and (test['function']=='ger_strided_batched' or test['function']=='scal_strided_batched'):
         test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
                                     test['strideScale']))
     else:
