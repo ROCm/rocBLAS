@@ -102,7 +102,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         return rocblas_scal_strided_batched_template(
-            handle, n, alpha, x, incx, stridex, batch_count);
+            handle, n, alpha, x, 0, incx, stridex, batch_count);
     }
 
 } // namespace

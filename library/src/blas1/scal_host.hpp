@@ -11,6 +11,7 @@ rocblas_status rocblas_scal_batched_template(rocblas_handle handle,
                                              rocblas_int    n,
                                              const U*       alpha,
                                              T*             x[],
+                                             rocblas_int    offsetx,
                                              rocblas_int    incx,
                                              rocblas_int    batch_count)
 {
@@ -25,10 +26,10 @@ rocblas_status rocblas_scal_batched_template(rocblas_handle handle,
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         hipLaunchKernelGGL(
-            scal_kernel_batched, blocks, threads, 0, rocblas_stream, n, alpha, x, incx);
+            scal_kernel_batched, blocks, threads, 0, rocblas_stream, n, alpha, x, offsetx, incx);
     else // alpha is on host
         hipLaunchKernelGGL(
-            scal_kernel_batched, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx);
+            scal_kernel_batched, blocks, threads, 0, rocblas_stream, n, *alpha, x, offsetx, incx);
 
     return rocblas_status_success;
 }
@@ -38,6 +39,7 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const U*       alpha,
                                                      T*             x,
+                                                     rocblas_int    offsetx,
                                                      rocblas_int    incx,
                                                      rocblas_int    stridex,
                                                      rocblas_int    batch_count)
@@ -60,6 +62,7 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                            n,
                            alpha,
                            x,
+                           offsetx,
                            incx,
                            stridex);
     else // alpha is on host
@@ -71,6 +74,7 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                            n,
                            *alpha,
                            x,
+                           offsetx,
                            incx,
                            stridex);
 
