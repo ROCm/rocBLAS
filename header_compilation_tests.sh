@@ -2,15 +2,22 @@
 
 export LOCALE=C
 set -e
-
 exec 2>&1
 
-if [[ ! -e build/release/include/rocblas-export.h ]]; then
+script=$(realpath "$0")
+
+build_first()
+{
     echo "Please run this script after at least one build of rocBLAS."
     exit 1
-fi
+}
 
-script=$(realpath "$0")
+[[ ! -e CMakeCache.txt ]] && build_first
+
+BUILD_DIR=$(realpath "$(pwd)")
+SOURCE_DIR=$(realpath -m "$(grep CMAKE_HOME_DIRECTORY CMakeCache.txt | sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g')")
+
+[[ ! -e $BUILD_DIR/include/rocblas-export.h ]] && build_first
 
 # Returns whether the output file is up to date.
 # Prints the output file.
@@ -20,7 +27,7 @@ script=$(realpath "$0")
 out_uptodate()
 {
     local file="$1_$2"
-    local filename="build/compilation_tests/$file.o"
+    local filename="$BUILD_DIR/compilation_tests/$file.o"
     mkdir -p $(dirname "$filename")
     local out=$(realpath -m "$filename")
     echo "$out"
@@ -33,7 +40,7 @@ out_uptodate()
 
 HCC=/opt/rocm/hcc/bin/hcc
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath build/release/include) -I$(realpath library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath build/release/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
+HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
 
 GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
@@ -99,12 +106,12 @@ EOF
         exit 1
 fi
 
-# The headers in library/include must compile with clang host, C99 or C++11,
+# The headers in $SOURCE_DIR/library/include must compile with clang host, C99 or C++11,
 # for client code.
 #
 if [[ -x "$CLANG" ]]; then
     xargs_coproc
-    for file in library/include/*.{h,in}; do
+    for file in $SOURCE_DIR/library/include/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
              echo "$CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
@@ -116,7 +123,7 @@ The public header file $XARGS_OUTPUT cannot be compiled with
 clang host-only compiler. rocBLAS public header files need to be compatible
 with host-only compilers.
 
-<hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
+<hip/hip_runtime.h> (and, sometimes due to bugs, <hip/hip_runtime_api.h>) are
 incompatible with C, so they should only be included in the rocBLAS internal
 C++ implemenation, not in the public headers, which must be compatible with C.
 EOF
@@ -125,7 +132,7 @@ EOF
 fi
 
 xargs_coproc
-for file in library/include/*.{h,in}; do
+for file in $SOURCE_DIR/library/include/*.{h,in}; do
     out=$(out_uptodate $file c99) || \
         echo "$C99 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
@@ -144,7 +151,7 @@ EOF
 fi
 
 xargs_coproc
-for file in library/include/*.{h,in}; do
+for file in $SOURCE_DIR/library/include/*.{h,in}; do
     out=$(out_uptodate $file cpp11) ||
         echo "$CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
