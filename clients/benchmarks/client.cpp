@@ -18,6 +18,10 @@
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_rot.hpp"
+#include "testing_rotg.hpp"
+#include "testing_rotm.hpp"
+#include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_vector.hpp"
@@ -50,14 +54,19 @@ using namespace std::literals;
 #include "testing_trsv.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_ex : rocblas_test_invalid
 {
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_ex<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{}>::type>
+struct perf_gemm_ex<Ti,
+                    To,
+                    Tc,
+                    typename std::enable_if<!std::is_same<Ti, void>{}
+                                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
 {
     explicit operator bool()
     {
@@ -70,17 +79,20 @@ struct perf_gemm_ex<Ti, To, Tc, typename std::enable_if<!std::is_same<Ti, void>{
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 {
 };
 
 template <typename Ti, typename To, typename Tc>
-struct perf_gemm_strided_batched_ex<Ti,
-                                    To,
-                                    Tc,
-                                    typename std::enable_if<!std::is_same<Ti, void>{}>::type>
+struct perf_gemm_strided_batched_ex<
+    Ti,
+    To,
+    Tc,
+    typename std::enable_if<!std::is_same<Ti, void>{}
+                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
 {
     explicit operator bool()
     {
@@ -157,6 +169,31 @@ struct perf_blas<
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
+        else if(!strcmp(arg.function, "rot"))
+            testing_rot<T>(arg);
+        else if(!strcmp(arg.function, "rotg"))
+            testing_rotg<T>(arg);
+        else if(!strcmp(arg.function, "rotm"))
+            testing_rotm<T>(arg);
+        else if(!strcmp(arg.function, "rotmg"))
+            testing_rotmg<T>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+    }
+};
+
+template <typename T, typename U>
+struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>{}>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -174,6 +211,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
     {
         if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
+        else if(!strcmp(arg.function, "dot"))
+            testing_dot<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
