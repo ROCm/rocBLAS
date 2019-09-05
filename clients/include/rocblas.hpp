@@ -84,6 +84,40 @@ static constexpr auto rocblas_swap<rocblas_float_complex> = rocblas_cswap;
 template <>
 static constexpr auto rocblas_swap<rocblas_double_complex> = rocblas_zswap;
 
+// swap_batched
+template <typename T>
+rocblas_status (*rocblas_swap_batched)(
+    rocblas_handle handle, rocblas_int n, T* x[], rocblas_int incx, T* y[], rocblas_int incy, rocblas_int batch_count);
+
+template <>
+static constexpr auto rocblas_swap_batched<float> = rocblas_sswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<double> = rocblas_dswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<rocblas_float_complex> = rocblas_cswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<rocblas_double_complex> = rocblas_zswap_batched;
+
+// swap_strided_batched
+template <typename T>
+rocblas_status (*rocblas_swap_strided_batched)(
+    rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, rocblas_int stridex, T* y, rocblas_int incy, rocblas_int stridey, rocblas_int batch_count);
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<float> = rocblas_sswap_strided_batched;
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<double> = rocblas_dswap_strided_batched;
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<rocblas_float_complex> = rocblas_cswap_strided_batched;
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<rocblas_double_complex> = rocblas_zswap_strided_batched;
+
 // dot
 template <typename T>
 rocblas_status (*rocblas_dot)(rocblas_handle handle,
