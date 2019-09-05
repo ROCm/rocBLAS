@@ -304,6 +304,100 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
 /*! \brief BLAS Level 1 API
 
     \details
+    swap_batched performs a batch of interchange vector x_i[j] and y_i[j], for  j = 1 , … , n
+
+        y_i[j] := x_i[j]; x_i[j] := y_i[j]
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[inout]
+    x         array of pointers storing the different vector x_i on the GPU.
+    @param[in]
+    incx      specifies the increment for the elements of x.
+    @param[inout]
+    y         array of pointers storing the different vector y_i on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sswap_batched(
+    rocblas_handle handle, rocblas_int n, float* x[], rocblas_int incx, float* y[], rocblas_int incy, rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dswap_batched(
+    rocblas_handle handle, rocblas_int n, double* x[], rocblas_int incx, double* y[], rocblas_int incy, rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(
+    rocblas_handle handle, rocblas_int n, rocblas_float_complex* x[], rocblas_int incx, rocblas_float_complex* y[], rocblas_int incy, rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(
+    rocblas_handle handle, rocblas_int n, rocblas_double_complex* x[], rocblas_int incx, rocblas_double_complex* y[], rocblas_int incy, rocblas_int batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    swap_strided_batched performs a batch of interchange vector x_i[j] and y_i[j], for  j = 1 , … , n
+
+        y_i[j] := x_i[j]; x_i[j] := y_i[j]
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int.
+    @param[inout]
+    x         a pointer to the first vector x_i on the GPU.
+    @param[in]
+    incx      specifies the increment for the elements of x.
+    @param[in]
+    stridex      specifies the pointer increment between batches for x.
+    @param[inout]
+    y         a pointer to the first vector y_i on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+    @param[in]
+    stridey      specifies the pointer increment between batches for y.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(
+    rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, rocblas_int stridex, 
+    float* y, rocblas_int incy, rocblas_int stridey, rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dswap_strided_batched(
+    rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, rocblas_int stridex,
+    double* y, rocblas_int incy, rocblas_int stridey, rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
+                                            rocblas_int            n,
+                                            rocblas_float_complex* x,
+                                            rocblas_int            incx, rocblas_int stridex,
+                                            rocblas_float_complex* y,
+                                            rocblas_int            incy, rocblas_int stridey, 
+                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
+                                            rocblas_int             n,
+                                            rocblas_double_complex* x,
+                                            rocblas_int             incx, rocblas_int stridex,
+                                            rocblas_double_complex* y,
+                                            rocblas_int             incy, rocblas_int stridey, 
+                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
     axpy   compute y := alpha * x + y
 
     @param[in]

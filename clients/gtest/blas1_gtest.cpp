@@ -15,6 +15,8 @@
 #include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
 #include "testing_swap.hpp"
+#include "testing_swap_batched.hpp"
+#include "testing_swap_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 
@@ -32,6 +34,8 @@ namespace
         dotc,
         scal,
         swap,
+        swap_batched,
+        swap_strided_batched,
         rot,
         rotg,
         rotm,
@@ -79,8 +83,19 @@ namespace
                 name << '_' << arg.incx;
 
                 if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
-                   || BLAS1 == blas1::swap || BLAS1 == blas1::rot || BLAS1 == blas1::rotm)
+                   || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched
+                   || BLAS1 == blas1::rot || BLAS1 == blas1::rotm)
                     name << '_' << arg.incy;
+            
+                if(BLAS1 == blas1::swap_strided_batched)
+                {
+                    name << '_' << arg.stride_x << "_" << arg.stride_y;
+                }
+
+                if(BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched)
+                {
+                    name << "_" << arg.batch_count;
+                }
             }
 
             return std::move(name);
@@ -138,7 +153,8 @@ namespace
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
-            || (BLAS1 == blas1::swap && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched) 
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
@@ -228,10 +244,13 @@ BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
+BLAS1_TESTING(swap_batched, ARG1)
+BLAS1_TESTING(swap_strided_batched, ARG1)
 BLAS1_TESTING(rot,   ARG3)
 BLAS1_TESTING(rotg,  ARG2)
 BLAS1_TESTING(rotm,  ARG1)
 BLAS1_TESTING(rotmg, ARG1)
+
 
     // clang-format on
 
