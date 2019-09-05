@@ -11,10 +11,13 @@ __global__ void ger_batched_kernel(rocblas_int m,
                                    rocblas_int n,
                                    U           alpha_device_host,
                                    const T* const __restrict__ xa[],
+                                   rocblas_int    shiftx,
                                    rocblas_int incx,
                                    const T* const __restrict__ ya[],
+                                   rocblas_int    shifty,
                                    rocblas_int incy,
                                    T* const    Aa[],
+                                   rocblas_int    shiftA,
                                    rocblas_int lda)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -26,9 +29,9 @@ __global__ void ger_batched_kernel(rocblas_int m,
         T*   A;
         const T* __restrict__ x;
         const T* __restrict__ y;
-        A = Aa[hipBlockIdx_z];
-        x = xa[hipBlockIdx_z];
-        y = ya[hipBlockIdx_z];
+        A = Aa[hipBlockIdx_z] + shiftA;
+        x = xa[hipBlockIdx_z] + shiftx;
+        y = ya[hipBlockIdx_z] + shifty;
 
         if(incx < 0)
             x -= ssize_t(incx) * (m - 1);
@@ -45,10 +48,13 @@ rocblas_status rocblas_ger_batched_template(rocblas_handle handle,
                                             rocblas_int    n,
                                             const T*       alpha,
                                             const T* const x[],
+                                            rocblas_int    shiftx,
                                             rocblas_int    incx,
                                             const T* const y[],
+                                            rocblas_int    shifty,
                                             rocblas_int    incy,
                                             T* const       A[],
+                                            rocblas_int    shiftA,
                                             rocblas_int    lda,
                                             rocblas_int    batch_count)
 {
@@ -72,10 +78,13 @@ rocblas_status rocblas_ger_batched_template(rocblas_handle handle,
                            n,
                            alpha,
                            x,
+                           shiftx,
                            incx,
                            y,
+                           shifty,
                            incy,
                            A,
+                           shiftA,
                            lda);
     else
         hipLaunchKernelGGL(ger_batched_kernel,
@@ -87,10 +96,13 @@ rocblas_status rocblas_ger_batched_template(rocblas_handle handle,
                            n,
                            *alpha,
                            x,
+                           shiftx,
                            incx,
                            y,
+                           shifty,
                            incy,
                            A,
+                           shiftA,
                            lda);
     return rocblas_status_success;
 }

@@ -89,7 +89,7 @@ namespace
             return rocblas_status_success;
 
         rocblas_ger_strided_batched_template(
-            handle, m, n, alpha, x, incx, incx * m, y, incy, incy * n, A, lda, lda * n, 1);
+            handle, m, n, alpha, x, 0, incx, incx * m, y, 0, incy, incy * n, A, 0, lda, lda * n, 1);
 
         return rocblas_status_success;
     }

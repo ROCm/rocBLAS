@@ -11,12 +11,15 @@ __global__ void ger_strided_batched_kernel(rocblas_int m,
                                            rocblas_int n,
                                            U           alpha_device_host,
                                            const T* const __restrict__ xa,
+                                           rocblas_int    shiftx,
                                            rocblas_int incx,
                                            rocblas_int stridex,
                                            const T* const __restrict__ ya,
+                                           rocblas_int    shifty,
                                            rocblas_int incy,
                                            rocblas_int stridey,
                                            T* const    Aa,
+                                           rocblas_int    shiftA,
                                            rocblas_int lda,
                                            rocblas_int strideA)
 {
@@ -30,9 +33,9 @@ __global__ void ger_strided_batched_kernel(rocblas_int m,
         T*   A;
         const T* __restrict__ x;
         const T* __restrict__ y;
-        A = Aa + hipBlockIdx_z * strideA;
-        x = xa + hipBlockIdx_z * stridex;
-        y = ya + hipBlockIdx_z * stridey;
+        A = Aa + hipBlockIdx_z * strideA + shiftA;
+        x = xa + hipBlockIdx_z * stridex + shiftx;
+        y = ya + hipBlockIdx_z * stridey + shifty;
 
         A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
     }
@@ -44,12 +47,15 @@ rocblas_status rocblas_ger_strided_batched_template(rocblas_handle handle,
                                                     rocblas_int    n,
                                                     const T*       alpha,
                                                     const T*       x,
+                                                    rocblas_int    shiftx,
                                                     rocblas_int    incx,
                                                     rocblas_int    stridex,
                                                     const T*       y,
+                                                    rocblas_int    shifty,
                                                     rocblas_int    incy,
                                                     rocblas_int    stridey,
                                                     T*             A,
+                                                    rocblas_int    shiftA,
                                                     rocblas_int    lda,
                                                     rocblas_int    strideA,
                                                     rocblas_int    batch_count)
@@ -79,12 +85,15 @@ rocblas_status rocblas_ger_strided_batched_template(rocblas_handle handle,
                            n,
                            alpha,
                            x,
+                           shiftx,
                            incx,
                            stridex,
                            y,
+                           shifty,
                            incy,
                            stridey,
                            A,
+                           shiftA,
                            lda,
                            strideA);
     else
@@ -97,12 +106,15 @@ rocblas_status rocblas_ger_strided_batched_template(rocblas_handle handle,
                            n,
                            *alpha,
                            x,
+                           shiftx,
                            incx,
                            stridex,
                            y,
+                           shifty,
                            incy,
                            stridey,
                            A,
+                           shiftA,
                            lda,
                            strideA);
     return rocblas_status_success;

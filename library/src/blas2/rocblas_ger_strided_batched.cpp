@@ -138,7 +138,7 @@ namespace
             return rocblas_status_success;
 
         rocblas_ger_strided_batched_template(
-            handle, m, n, alpha, x, incx, stridex, y, incy, stridey, A, lda, strideA, batch_count);
+            handle, m, n, alpha, x, 0, incx, stridex, y, 0, incy, stridey, A, 0, lda, strideA, batch_count);
 
         return rocblas_status_success;
     }

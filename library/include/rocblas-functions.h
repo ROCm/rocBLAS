@@ -1072,7 +1072,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
         A_i := A_i + alpha*x_i*y_i**T
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
-    alpha and beta are scalars, x_i and y_i are vectors and A_i is an
+    alpha is a scalar, x_i and y_i are vectors and A_i is an
     m by n matrix.
 
     @param[in]
