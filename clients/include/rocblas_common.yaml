@@ -252,6 +252,7 @@ Arguments:
   - stride_d: rocblas_int
   - stride_x: rocblas_int
   - stride_y: rocblas_int
+  - stride_scale: rocblas_int
   - norm_check: rocblas_int
   - unit_check: rocblas_int
   - timing: rocblas_int
@@ -321,6 +322,7 @@ Defaults:
   stride_b: 0
   stride_c: 0
   stride_d: 0
+  stride_scale: 1
   norm_check: 0
   unit_check: 1
   timing: 0

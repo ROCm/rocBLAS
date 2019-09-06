@@ -64,6 +64,7 @@ struct Arguments
     rocblas_int stride_d; //  stride_d > ldd * N
     rocblas_int stride_x; 
     rocblas_int stride_y;
+    rocblas_int stride_scale;
 
     rocblas_int norm_check;
     rocblas_int unit_check;
@@ -149,6 +150,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(stride_d);
         ROCBLAS_FORMAT_CHECK(stride_x);
         ROCBLAS_FORMAT_CHECK(stride_y);
+        ROCBLAS_FORMAT_CHECK(stride_scale);
         ROCBLAS_FORMAT_CHECK(norm_check);
         ROCBLAS_FORMAT_CHECK(unit_check);
         ROCBLAS_FORMAT_CHECK(timing);
@@ -300,6 +302,7 @@ private:
         print("stride_d", arg.stride_d);
         print("stride_x", arg.stride_x);
         print("stride_y", arg.stride_y);
+        print("stride_scale", arg.stride_scale);
         print("algo", arg.algo);
         print("solution_index", arg.solution_index);
         print("flags", arg.flags);

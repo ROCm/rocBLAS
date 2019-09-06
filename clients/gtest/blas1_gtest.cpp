@@ -90,6 +90,7 @@ namespace
                 if(BLAS1 == blas1::swap_strided_batched)
                 {
                     name << '_' << arg.stride_x << "_" << arg.stride_y;
+                    name << '_' << arg.stride_scale;
                 }
 
                 if(BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched)
