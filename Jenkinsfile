@@ -52,6 +52,15 @@ rocBLASCI:
                     LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
         }
+        else if(platform.jenkinsLabel.contains('sles'))
+        {
+            command = """#!/usr/bin/env bash
+                    set -x
+                    cd ${project.paths.project_build_prefix}
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --cpu_ref_lib=lapack
+                    """
+        }
+
         else
         {
             command = """#!/usr/bin/env bash
