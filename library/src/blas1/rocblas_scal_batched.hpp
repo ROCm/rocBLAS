@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#ifndef __SCAL_BATCHED_HPP__
+#define __SCAL_BATCHED_HPP__
+
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -85,3 +88,5 @@ rocblas_status rocblas_scal_batched_impl(rocblas_handle handle,
 
     return rocblas_scal_batched_template(handle, n, alpha, x, offsetx, incx, batch_count);
 }
+
+#endif
