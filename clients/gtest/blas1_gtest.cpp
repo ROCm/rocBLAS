@@ -69,7 +69,8 @@ namespace
             }
             else
             {
-                if((BLAS1 == blas1::scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
+                bool isScal = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched || BLAS1 == blas1::scal_strided_batched);
+                if((isScal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
                 if(BLAS1 == blas1::rot && arg.compute_type != arg.a_type)
@@ -77,7 +78,7 @@ namespace
 
                 name << '_' << arg.N;
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+                if(BLAS1 == blas1::axpy || isScal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
