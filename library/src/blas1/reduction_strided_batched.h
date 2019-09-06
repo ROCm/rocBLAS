@@ -26,6 +26,7 @@ template <rocblas_int NB,
 __global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int n,
                                                                rocblas_int nblocks,
                                                                const Ti*   xvec,
+                                                               rocblas_int shiftx,
                                                                rocblas_int incx,
                                                                rocblas_int stridex,
                                                                To*         workspace)
@@ -34,7 +35,7 @@ __global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int n,
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
-    const Ti* x = xvec + hipBlockIdx_y * stridex;
+    const Ti* x = xvec + hipBlockIdx_y * stridex + shiftx;
 
     // bound
     if(tid < n)
@@ -66,6 +67,9 @@ __global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int n,
               number of elements in each vector x_i
     @param[in]
     x         pointer to the first vector x_i on the GPU.
+    @param[in]
+    shiftx    rocblas_int
+              specifies a base offset increment for the start of each x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i.
@@ -99,6 +103,7 @@ template <rocblas_int NB,
 rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restrict__ handle,
                                                         rocblas_int n,
                                                         const Ti*   x,
+                                                        rocblas_int shiftx,
                                                         rocblas_int incx,
                                                         rocblas_int stridex,
                                                         Tr*         result,
@@ -114,6 +119,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                        n,
                        blocks,
                        x,
+                       shiftx,
                        incx,
                        stridex,
                        workspace);

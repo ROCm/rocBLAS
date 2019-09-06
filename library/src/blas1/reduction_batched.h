@@ -62,13 +62,13 @@ template <rocblas_int NB,
           typename Ti,
           typename To>
 __global__ void rocblas_reduction_batched_kernel_part1(
-    rocblas_int n, rocblas_int nblocks, const Ti* const xvec[], rocblas_int incx, To* workspace)
+    rocblas_int n, rocblas_int nblocks, const Ti* const xvec[], rocblas_int shiftx, rocblas_int incx, To* workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
-    const Ti* x = xvec[hipBlockIdx_y];
+    const Ti* x = xvec[hipBlockIdx_y] + shiftx;
 
     // bound
     if(tid < n)
@@ -148,6 +148,9 @@ __global__ void
     @param[in]
     x         array of pointers to the different vector x_i on the GPU.
     @param[in]
+    shiftx    rocblas_int
+              specifies a base offset increment for the start of each x_i.
+    @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i.
     @param[out]
@@ -177,6 +180,7 @@ template <rocblas_int NB,
 rocblas_status rocblas_reduction_batched_kernel(rocblas_handle __restrict__ handle,
                                                 rocblas_int     n,
                                                 const Ti* const x[],
+                                                rocblas_int     shiftx,
                                                 rocblas_int     incx,
                                                 Tr*             result,
                                                 To*             workspace,
@@ -191,6 +195,7 @@ rocblas_status rocblas_reduction_batched_kernel(rocblas_handle __restrict__ hand
                        n,
                        blocks,
                        x,
+                       shiftx,
                        incx,
                        workspace);
 

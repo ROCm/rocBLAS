@@ -66,9 +66,6 @@ struct Arguments
     rocblas_int stride_x;
     rocblas_int stride_y;
 
-    rocblas_int stride_x;
-    rocblas_int stride_y;
-
     rocblas_int norm_check;
     rocblas_int unit_check;
     rocblas_int timing;
