@@ -8,6 +8,8 @@ include: symv_gtest.yaml
 include: syr_gtest.yaml
 include: ger_gtest.yaml
 include: trsm_gtest.yaml
+include: trsm_batched_gtest.yaml
+include: trsm_strided_batched_gtest.yaml
 include: trtri_gtest.yaml
 include: geam_gtest.yaml
 include: set_get_matrix_gtest.yaml
