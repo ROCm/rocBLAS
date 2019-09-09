@@ -122,7 +122,34 @@ void testing_gemv_batched(const Arguments& arg)
 
     //quick return
     if(!M || !N || !batch_count)
+    {
+        device_vector<T*, 0, T> dAA1(1);
+        device_vector<T*, 0, T> dxA1(1);
+        device_vector<T*, 0, T> dy_1A1(1);
+
+        if(!dAA1 || !dxA1 || !dy_1A1)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                      transA,
+                                                      M,
+                                                      N,
+                                                      &h_alpha,
+                                                      dAA1,
+                                                      lda,
+                                                      dxA1,
+                                                      incx,
+                                                      &h_beta,
+                                                      dy_1A1,
+                                                      incy,
+                                                      batch_count),
+                              rocblas_status_success);
+
         return;
+    }
 
     //Device-arrays of pointers to device memory
     device_vector<T*, 0, T> dAA(batch_count);
