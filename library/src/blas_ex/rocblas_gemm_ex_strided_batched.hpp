@@ -2,8 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef __ROCBLAS_GEMM_EX_HPP__
-#define __ROCBLAS_GEMM_EX_HPP__
+#ifndef __ROCBLAS_GEMM_EX_STRIDED_BATCHED_HPP__
+#define __ROCBLAS_GEMM_EX_STRIDED_BATCHED_HPP__
 #include "Tensile.h"
 #include "TensileTypes.h"
 #include "gemm_ex_host.hpp"
@@ -13,38 +13,40 @@
 #include "rocblas.h"
 #include "utility.h"
 
-
-
-rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
-                                    rocblas_operation trans_a,
-                                    rocblas_operation trans_b,
-                                    rocblas_int       m,
-                                    rocblas_int       n,
-                                    rocblas_int       k,
-                                    const void*       alpha,
-                                    const void*       a,
-                                    rocblas_datatype  a_type,
-                                    rocblas_int       lda,
-                                    const void*       b,
-                                    rocblas_datatype  b_type,
-                                    rocblas_int       ldb,
-                                    const void*       beta,
-                                    const void*       c,
-                                    rocblas_datatype  c_type,
-                                    rocblas_int       ldc,
-                                    void*             d,
-                                    rocblas_datatype  d_type,
-                                    rocblas_int       ldd,
-                                    rocblas_datatype  compute_type,
-                                    rocblas_gemm_algo algo,
-                                    int32_t           solution_index,
-                                    uint32_t          flags)
+rocblas_status rocblas_gemm_strided_batched_ex_impl(rocblas_handle    handle,
+                                                    rocblas_operation trans_a,
+                                                    rocblas_operation trans_b,
+                                                    rocblas_int       m,
+                                                    rocblas_int       n,
+                                                    rocblas_int       k,
+                                                    const void*       alpha,
+                                                    const void*       a,
+                                                    rocblas_datatype  a_type,
+                                                    rocblas_int       lda,
+                                                    rocblas_long      stride_a,
+                                                    const void*       b,
+                                                    rocblas_datatype  b_type,
+                                                    rocblas_int       ldb,
+                                                    rocblas_long      stride_b,
+                                                    const void*       beta,
+                                                    const void*       c,
+                                                    rocblas_datatype  c_type,
+                                                    rocblas_int       ldc,
+                                                    rocblas_long      stride_c,
+                                                    void*             d,
+                                                    rocblas_datatype  d_type,
+                                                    rocblas_int       ldd,
+                                                    rocblas_long      stride_d,
+                                                    rocblas_int       batch_count,
+                                                    rocblas_datatype  compute_type,
+                                                    rocblas_gemm_algo algo,
+                                                    int32_t           solution_index,
+                                                    uint32_t          flags)
 {
     // handle, alpha, beta must not be null pointers for logging
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    // TODO: Compute an optimum size of device memory which can be used as workspace.
     RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
     if(!alpha || !beta)
@@ -67,7 +69,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
         auto d_type_string       = rocblas_datatype_string(d_type);
         auto compute_type_string = rocblas_datatype_string(compute_type);
 
-        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_trace))
+        if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench))
         {
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
@@ -119,6 +121,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                     bench_alphass << "--alpha " << std::real(tmpa);
                     if(std::imag(tmpa) != 0)
                         bench_alphass << " --alphai " << std::imag(tmpa);
+
                     bench_betass << "--beta " << std::real(tmpb);
                     if(std::imag(tmpb) != 0)
                         bench_betass << " --betai " << std::imag(tmpb);
@@ -142,7 +145,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
                     log_trace(handle,
-                              "rocblas_gemm_ex",
+                              "rocblas_gemm_strided_batched_ex",
                               trans_a,
                               trans_b,
                               m,
@@ -152,26 +155,30 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                               a,
                               a_type_string,
                               lda,
+                              stride_a,
                               b,
                               b_type_string,
                               ldb,
+                              stride_b,
                               betass.str(),
                               c,
                               c_type_string,
                               ldc,
+                              stride_c,
                               d,
                               d_type_string,
                               ldd,
+                              stride_d,
+                              batch_count,
                               compute_type_string,
                               algo,
                               solution_index,
                               flags);
                 }
-
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     log_bench(handle,
-                              "./rocblas-bench -f gemm_ex",
+                              "./rocblas-bench -f gemm_strided_batched_ex",
                               "--transposeA",
                               trans_a_letter,
                               "--transposeB",
@@ -187,19 +194,29 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                               a_type_string,
                               "--lda",
                               lda,
+                              "--stride_a",
+                              stride_a,
                               "--b_type",
                               b_type_string,
                               "--ldb",
                               ldb,
+                              "--stride_b",
+                              stride_b,
                               bench_betass.str(),
                               "--c_type",
                               c_type_string,
                               "--ldc",
                               ldc,
+                              "--stride_c",
+                              stride_c,
                               "--d_type",
                               d_type_string,
                               "--ldd",
                               ldd,
+                              "--stride_d",
+                              stride_d,
+                              "--batch",
+                              batch_count,
                               "--compute_type",
                               compute_type_string,
                               "--algo",
@@ -213,8 +230,9 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
             else
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
+                {
                     log_trace(handle,
-                              "rocblas_gemm_ex",
+                              "rocblas_gemm_strided_batched_ex",
                               trans_a,
                               trans_b,
                               m,
@@ -222,29 +240,35 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                               k,
                               alpha,
                               a,
-                              a_type_string,
+                              a_type,
                               lda,
+                              stride_a,
                               b,
-                              b_type_string,
+                              b_type,
                               ldb,
+                              stride_b,
                               beta,
                               c,
-                              c_type_string,
+                              c_type,
                               ldc,
+                              stride_c,
                               d,
-                              d_type_string,
+                              d_type,
                               ldd,
-                              compute_type_string,
+                              stride_d,
+                              batch_count,
+                              compute_type,
                               algo,
                               solution_index,
                               flags);
+                }
             }
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
         {
             log_profile(handle,
-                        "rocblas_gemm_ex",
+                        "rocblas_gemm_strided_batched_ex",
                         "a_type",
                         a_type_string,
                         "b_type",
@@ -267,12 +291,22 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                         k,
                         "lda",
                         lda,
+                        "stride_a",
+                        stride_a,
                         "ldb",
                         ldb,
+                        "stride_b",
+                        stride_b,
                         "ldc",
                         ldc,
+                        "stride_c",
+                        stride_c,
                         "ldd",
                         ldd,
+                        "stride_d",
+                        stride_d,
+                        "batch_count",
+                        batch_count,
                         "algo",
                         algo,
                         "solution_index",
@@ -283,11 +317,11 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
     }
 
     // quick return m,n,k equal to 0 is valid in BLAS
-    if(!m || !n || !k)
+    if(!m || !n || !k || !batch_count)
         return rocblas_status_success;
 
     // sizes must not be negative
-    if(m < 0 || n < 0 || k < 0)
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
 
     // pointers must be valid
@@ -303,12 +337,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
     if(num_rows_a > lda || num_rows_b > ldb || num_rows_c > ldc || num_rows_d > ldd)
         return rocblas_status_invalid_size;
 
-    rocblas_status rb_status   = rocblas_status_internal_error;
-    rocblas_int    batch_count = 1;
-    rocblas_int    stride_a    = trans_a == rocblas_operation_none ? lda * k : lda * m;
-    rocblas_int    stride_b    = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
-    rocblas_int    stride_c    = ldc * n;
-    rocblas_int    stride_d    = ldd * n;
+    rocblas_status rb_status = rocblas_status_internal_error;
 
 #define EX_TYPECASTING_PARM                                                                     \
     handle, trans_a, trans_b, m, n, k, alpha, a, lda, stride_a, b, ldb, stride_b, beta, c, ldc, \
@@ -349,9 +378,10 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
             && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
             && compute_type == rocblas_datatype_i32_r)
     {
-        // For now, K must be a multiple of 4, and/or LDA/LDB based on transpose mode
-        if(k % 4 != 0 || (trans_a == rocblas_operation_transpose && lda % 4 != 0)
-           || (trans_b == rocblas_operation_none && ldb % 4 != 0))
+        // For now, K must be a multiple of 4
+        if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
+           || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) || stride_a % 4 != 0
+           || stride_b % 4 != 0)
         {
             rb_status = rocblas_status_invalid_size;
         }

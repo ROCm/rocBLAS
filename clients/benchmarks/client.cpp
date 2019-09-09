@@ -47,6 +47,8 @@ using namespace std::literals;
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
 #include "testing_gemm_ex.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trsm.hpp"
@@ -74,7 +76,10 @@ struct perf_gemm_ex<Ti,
     }
     void operator()(const Arguments& arg)
     {
-        testing_gemm_ex<Ti, To, Tc>(arg);
+        if(!strcmp(arg.function, "gemm_ex"))
+            testing_gemm_ex<Ti, To, Tc>(arg);
+        else if(!strcmp(arg.function, "gemm_batched_ex"))
+            testing_gemm_batched_ex<Ti, To, Tc>(arg);
     }
 };
 
@@ -125,6 +130,8 @@ struct perf_blas<
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "trsm"))
@@ -215,6 +222,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else
@@ -237,6 +246,8 @@ struct perf_blas<T,
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "asum"))
@@ -311,7 +322,7 @@ int run_bench_test(Arguments& arg)
         function += sizeof(prefix) - 1;
 
 #if BUILD_WITH_TENSILE
-    if(!strcmp(function, "gemm"))
+    if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -385,7 +396,7 @@ int run_bench_test(Arguments& arg)
         }
     }
 
-    if(!strcmp(function, "gemm_ex"))
+    if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
