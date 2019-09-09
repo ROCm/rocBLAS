@@ -144,7 +144,6 @@ include( ROCMInstallSymlinks )
 include (cmake/os-detection.cmake)
 get_os_name(OS_NAME)
 message (STATUS "OS detected is ${OS_NAME}")
-message (STATUS "Value is ${OS_NAME_Ubuntu}")
 
 # Versioning via rocm-cmake
 set ( VERSION_STRING "2.7.0" )
