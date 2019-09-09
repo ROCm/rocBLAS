@@ -24,7 +24,7 @@ endif()
 # This project may compile dependencies for clients
 project( rocblas-clients LANGUAGES CXX )
 
-if(OS_NAME == "rhel" || OS_NAME == "centos" || OS_NAME=="sles")
+if(${OS_NAME_rhel} OR ${OS_NAME_centos} OR $OS_NAME_sles})
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
