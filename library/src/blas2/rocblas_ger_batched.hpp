@@ -11,13 +11,13 @@ __global__ void ger_batched_kernel(rocblas_int m,
                                    rocblas_int n,
                                    U           alpha_device_host,
                                    const T* const __restrict__ xa[],
-                                   rocblas_int    shiftx,
+                                   rocblas_int shiftx,
                                    rocblas_int incx,
                                    const T* const __restrict__ ya[],
-                                   rocblas_int    shifty,
+                                   rocblas_int shifty,
                                    rocblas_int incy,
                                    T* const    Aa[],
-                                   rocblas_int    shiftA,
+                                   rocblas_int shiftA,
                                    rocblas_int lda)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
