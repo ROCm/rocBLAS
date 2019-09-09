@@ -75,6 +75,8 @@ if( BUILD_WITH_TENSILE )
   #rocblas_gemm and rocblas_trsm require tensile
   set( Tensile_SRC
     blas3/Tensile/gemm.cpp
+    blas3/Tensile/gemm_batched.cpp
+    blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_trsm.cpp
     blas3/rocblas_trsm_batched.cpp
     blas3/rocblas_trsm_strided_batched.cpp
@@ -93,6 +95,8 @@ set( rocblas_auxiliary_source
 
 set( rocblas_ex_source
   blas_ex/rocblas_gemm_ex.cpp
+  blas_ex/rocblas_gemm_ex_batched.cpp
+  blas_ex/rocblas_gemm_ex_strided_batched.cpp
 )
 
 set( rocblas_blas3_source
@@ -217,5 +221,5 @@ add_custom_command(
   TARGET rocblas
   POST_BUILD
   COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
-  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
- )
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)

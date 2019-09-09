@@ -7,6 +7,8 @@
 #include "logging.h"
 #include "utility.h"
 
+#include "gemm_host.hpp"
+#include "handle.h"
 
 template <typename>
 constexpr char rocblas_trtri_name[] = "unknown";

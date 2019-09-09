@@ -1,8 +1,9 @@
-/**************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
- ************************************************************************** */
- #ifndef __GEMM_HPP__
- #define __GEMM_HPP__
+/* ************************************************************************
+ * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
+#ifndef __GEMM_BATCHED_HPP__
+#define __GEMM_BATCHED_HPP__
 
 #include "gemm_host.hpp"
 #include "Tensile.h"
@@ -12,38 +13,41 @@
 #include "utility.h"
 #include <sys/time.h>
 
-
 template <typename>
-static constexpr char rocblas_gemm_name[] = "unknown";
+static constexpr char rocblas_gemm_batched_name[] = "unknown";
 template <>
-static constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
+static constexpr char rocblas_gemm_batched_name<rocblas_half>[] = "rocblas_hgemm_batched";
 template <>
-static constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
+static constexpr char rocblas_gemm_batched_name<float>[] = "rocblas_sgemm_batched";
 template <>
-static constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
+static constexpr char rocblas_gemm_batched_name<double>[] = "rocblas_dgemm_batched";
 template <>
-static constexpr char rocblas_gemm_name<rocblas_float_complex>[] = "rocblas_cgemm";
+static constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[] = "rocblas_cgemm_batched";
 template <>
-static constexpr char rocblas_gemm_name<rocblas_double_complex>[] = "rocblas_zgemm";
+static constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[] = "rocblas_zgemm_batched";
 
 /*******************************************************************************
-* GEMM implementation
+* Batched GEMM implementation
 ******************************************************************************/
 template <typename T>
-rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
-                                rocblas_operation trans_a,
-                                rocblas_operation trans_b,
-                                rocblas_int       m,
-                                rocblas_int       n,
-                                rocblas_int       k,
-                                const T*          alpha,
-                                const T*          A,
-                                rocblas_int       ld_a,
-                                const T*          B,
-                                rocblas_int       ld_b,
-                                const T*          beta,
-                                T*                C,
-                                rocblas_int       ld_c)
+rocblas_status rocblas_gemm_batched_impl(rocblas_handle    handle,
+                                         rocblas_operation trans_a,
+                                         rocblas_operation trans_b,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const T*          alpha,
+                                         const T* const    A[],
+                                         rocblas_int       offsetA,
+                                         rocblas_int       ld_a,
+                                         const T* const    B[],
+                                         rocblas_int       offsetB,
+                                         rocblas_int       ld_b,
+                                         const T*          beta,
+                                         T* const          C[],
+                                         rocblas_int       offsetC,
+                                         rocblas_int       ld_c,
+                                         rocblas_int       b_c)
 {
     // clang-format off
     // Perform logging
@@ -65,7 +69,7 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         trans_a,
                         trans_b,
                         m,
@@ -78,22 +82,12 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                         ld_b,
                         *beta,
                         C,
-                        ld_c);
+                        ld_c,
+                        b_c);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha);
-                if (std::imag(*alpha) != 0)
-                    alphass << " --alphai " << std::imag(*alpha);
-
-                std::stringstream betass;
-                betass << "--beta " << std::real(*beta);
-                if (std::imag(*beta) != 0)
-                    betass << " --betai " << std::imag(*beta);
-
                 log_bench(handle,
-                        "./rocblas-bench -f gemm -r",
+                        "./rocblas-bench -f gemm_batched -r",
                         rocblas_precision_string<T>,
                         "--transposeA",
                         trans_a_letter,
@@ -105,21 +99,24 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                         n,
                         "-k",
                         k,
-                        alphass.str(),
+                        "--alpha",
+                        *alpha,
                         "--lda",
                         ld_a,
                         "--ldb",
                         ld_b,
-                        betass.str(),
+                        "--beta",
+                        *beta,
                         "--ldc",
-                        ld_c);
-            }
+                        ld_c,
+                        "--batch",
+                        b_c);
         }
         else
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         trans_a,
                         trans_b,
                         m,
@@ -132,12 +129,13 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                         ld_b,
                         beta,
                         C,
-                        ld_c);
+                        ld_c,
+                        b_c);
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         "transA",
                         trans_a_letter,
                         "transB",
@@ -153,52 +151,48 @@ rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
                         "ldb",
                         ld_b,
                         "ldc",
-                        ld_c);
+                        ld_c,
+                        "batch",
+                        b_c);
     }
 
-    rocblas_int b_c = 1;
     if(m == 0 || n == 0 || k == 0 || b_c == 0)
     {
         return rocblas_status_success;
     }
 
-    rocblas_int stride_a;
-    rocblas_int stride_b;
-    rocblas_int stride_c;
-    infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
-                        &stride_a, ld_b, &stride_b, ld_c, &stride_c);
-
     rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                         m, n, k, alpha,
-                                        A, ld_a, stride_a,
-                                        B, ld_b, stride_b, beta,
-                                        C, ld_c, stride_c, b_c);
+                                        A, ld_a,
+                                        B, ld_b, beta,
+                                        C, ld_c, b_c);
 
     if(validArgs != rocblas_status_success)
         return validArgs;
 
-    return rocblas_gemm_strided_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, stride_a, B, ld_b, stride_b, beta, C, ld_c, stride_c, 1);
+    return rocblas_gemm_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a, B, offsetB, ld_b, beta, C, offsetC, ld_c, b_c);
 }
 
+
+/**
+  * Kernel Name Function.
+  */
 template <typename T>
-rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
-                                            rocblas_operation trans_a,
-                                            rocblas_operation trans_b,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const T*          alpha,
-                                            const T*          A,
-                                            rocblas_int       ld_a,
-                                            rocblas_int       stride_a,
-                                            const T*          B,
-                                            rocblas_int       ld_b,
-                                            rocblas_int       stride_b,
-                                            const T*          beta,
-                                            T*                C,
-                                            rocblas_int       ld_c,
-                                            rocblas_int       stride_c,
-                                            rocblas_int       b_c)
+rocblas_status rocblas_gemm_batched_kernel_name_impl(rocblas_handle    handle,
+                                                     rocblas_operation trans_a,
+                                                     rocblas_operation trans_b,
+                                                     rocblas_int       m,
+                                                     rocblas_int       n,
+                                                     rocblas_int       k,
+                                                     const T*          alpha,
+                                                     const T*          A[],
+                                                     rocblas_int       ld_a,
+                                                     const T*          B[],
+                                                     rocblas_int       ld_b,
+                                                     const T*          beta,
+                                                     T*                C[],
+                                                     rocblas_int       ld_c,
+                                                     rocblas_int       b_c)
 {
     // clang-format off
     if(!handle)
@@ -216,7 +210,7 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         trans_a,
                         trans_b,
                         m,
@@ -229,22 +223,12 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                         ld_b,
                         *beta,
                         C,
-                        ld_c);
+                        ld_c,
+                        b_c);
 
             if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha);
-                if (std::imag(*alpha) != 0)
-                    alphass << " --alphai " << std::imag(*alpha);
-
-                std::stringstream betass;
-                betass << "--beta " << std::real(*beta);
-                if (std::imag(*beta) != 0)
-                    betass << " --betai " << std::imag(*beta);
-
                 log_bench(handle,
-                        "./rocblas-bench -f gemm -r",
+                        "./rocblas-bench -f gemm_batched -r",
                         rocblas_precision_string<T>,
                         "--transposeA",
                         trans_a_letter,
@@ -256,21 +240,24 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                         n,
                         "-k",
                         k,
-                        alphass.str(),
+                        "--alpha",
+                        *alpha,
                         "--lda",
                         ld_a,
                         "--ldb",
                         ld_b,
-                        betass.str(),
+                        "--beta",
+                        *beta,
                         "--ldc",
-                        ld_c);
-            }
+                        ld_c,
+                        "--batch",
+                        b_c);
         }
         else
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
                 log_trace(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         trans_a,
                         trans_b,
                         m,
@@ -283,12 +270,13 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                         ld_b,
                         beta,
                         C,
-                        ld_c);
+                        ld_c,
+                        b_c);
         }
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
-                        rocblas_gemm_name<T>,
+                        rocblas_gemm_batched_name<T>,
                         "transA",
                         trans_a_letter,
                         "transB",
@@ -304,8 +292,18 @@ rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                         "ldb",
                         ld_b,
                         "ldc",
-                        ld_c);
+                        ld_c,
+                        "batch",
+                        b_c);
     }
+
+    
+    rocblas_int stride_a;
+    rocblas_int stride_b;
+    rocblas_int stride_c;
+
+    infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
+                        &stride_a, ld_b, &stride_b, ld_c, &stride_c);
 
     rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                             m, n, k, alpha,
