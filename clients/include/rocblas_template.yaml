@@ -52,5 +52,7 @@ Functions:
   rocblas_dtrtri: { function: trtri, <<: *double_precision }
   rocblas_strtri_batched: { function: trtri_batched, <<: *single_precision }
   rocblas_dtrtri_batched: { function: trtri_batched, <<: *double_precision }
+  rocblas_strtri_strided_batched: { function: trtri_strided_batched, <<: *single_precision }
+  rocblas_dtrtri_strided_batched: { function: trtri_strided_batched, <<: *double_precision }
 
 Tests:
