@@ -80,27 +80,27 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
 }
 
 template <typename Ti, typename To, typename Tc>
-rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
-                                        rocblas_operation trans_a,
-                                        rocblas_operation trans_b,
-                                        unsigned int      m,
-                                        unsigned int      n,
-                                        unsigned int      k,
-                                        const Tc          alpha,
-                                        const Ti*         a[],
-                                        unsigned int      lda,
-                                        const Ti*         b[],
-                                        unsigned int      ldb,
-                                        const Tc          beta,
-                                        const To*         c[],
-                                        unsigned int      ldc,
-                                        To*               d[],
-                                        unsigned int      ldd,
-                                        unsigned int      batch_count,
-                                        rocblas_int       offset_a,
-                                        rocblas_int       offset_b,
-                                        rocblas_int       offset_c,
-                                        rocblas_int       offset_d)
+rocblas_status gemm_ex_handle_transpose_batched(rocblas_handle    handle,
+                                                rocblas_operation trans_a,
+                                                rocblas_operation trans_b,
+                                                unsigned int      m,
+                                                unsigned int      n,
+                                                unsigned int      k,
+                                                const Tc          alpha,
+                                                const Ti*         a[],
+                                                rocblas_int       offset_a,
+                                                unsigned int      lda,
+                                                const Ti*         b[],
+                                                rocblas_int       offset_b,
+                                                unsigned int      ldb,
+                                                const Tc          beta,
+                                                const To*         c[],
+                                                rocblas_int       offset_c,
+                                                unsigned int      ldc,
+                                                To*               d[],
+                                                rocblas_int       offset_d,
+                                                unsigned int      ldd,
+                                                unsigned int      batch_count)
 {
     // Host arrays of device pointers.
     Ti* hostA[batch_count];
@@ -359,27 +359,27 @@ rocblas_status gemm_ex_chunking_batched(rocblas_handle    handle,
             if(trans_a != rocblas_operation_none)
                 a_offset *= lda;
 
-            status = gemm_ex_handle_transpose<Ti, To, Tc>(handle,
-                                                          trans_a,
-                                                          trans_b,
-                                                          m_chunk_size_corrected,
-                                                          n_chunk_size_corrected,
-                                                          k,
-                                                          alpha,
-                                                          a,
-                                                          lda,
-                                                          b,
-                                                          ldb,
-                                                          beta,
-                                                          c,
-                                                          ldc,
-                                                          d,
-                                                          ldd,
-                                                          batch_count,
-                                                          a_offset + offsetAin,
-                                                          b_offset + offsetBin,
-                                                          c_offset + offsetCin,
-                                                          d_offset + offsetDin);
+            status = gemm_ex_handle_transpose_batched<Ti, To, Tc>(handle,
+                                                                  trans_a,
+                                                                  trans_b,
+                                                                  m_chunk_size_corrected,
+                                                                  n_chunk_size_corrected,
+                                                                  k,
+                                                                  alpha,
+                                                                  a,
+                                                                  a_offset + offsetAin,
+                                                                  lda,
+                                                                  b,
+                                                                  b_offset + offsetBin,
+                                                                  ldb,
+                                                                  beta,
+                                                                  c,
+                                                                  c_offset + offsetCin,
+                                                                  ldc,
+                                                                  d,
+                                                                  d_offset + offsetDin,
+                                                                  ldd,
+                                                                  batch_count);
 
             if(status != rocblas_status_success)
                 return_status = status;
@@ -389,6 +389,7 @@ rocblas_status gemm_ex_chunking_batched(rocblas_handle    handle,
 }
 #else
 #define gemm_ex_chunking gemm_ex_handle_transpose
+#define gemm_ex_chunking_batched gemm_ex_handle_transpose_batched
 #endif // defined(USE_CHUNKING)
 
 template <typename Ti, typename To, typename Tc>

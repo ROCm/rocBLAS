@@ -589,14 +589,20 @@ rocblas_status (*rocblas_gemm_batched)(rocblas_handle    handle,
                                        rocblas_int       ldc,
                                        rocblas_int       batch_count);
 
- template <>
+template <>
 static constexpr auto rocblas_gemm_batched<rocblas_half> = rocblas_hgemm_batched;
 
- template <>
+template <>
 static constexpr auto rocblas_gemm_batched<float> = rocblas_sgemm_batched;
 
- template <>
+template <>
 static constexpr auto rocblas_gemm_batched<double> = rocblas_dgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<rocblas_float_complex> = rocblas_cgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<rocblas_double_complex> = rocblas_zgemm_batched;
 
 // gemm_strided_batched
 template <typename T>

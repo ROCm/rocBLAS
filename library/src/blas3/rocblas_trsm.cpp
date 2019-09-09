@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #include "gemm.hpp"
-#include "rocblas_gemm_ex.hpp"
+// #include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"

@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "gemm_strided_batched.hpp"
+#include "../gemm_strided_batched.hpp"
 
 extern "C" {
 

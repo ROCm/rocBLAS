@@ -87,8 +87,11 @@ namespace
         {
             RocBLAS_TestName<gemm_test_template> name;
             name << rocblas_datatype2string(arg.a_type);
+            bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
+            bool isBatched = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
+                           || GEMM_TYPE == GEMM_BATCHED         || GEMM_TYPE == GEMM_BATCHED_EX);
 
-            if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            if(isEx)
                 name << rocblas_datatype2string(arg.b_type) << rocblas_datatype2string(arg.c_type)
                      << rocblas_datatype2string(arg.d_type)
                      << rocblas_datatype2string(arg.compute_type);
@@ -97,11 +100,10 @@ namespace
                  << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda
                  << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
-            if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            if(isEx)
                 name << '_' << arg.ldd;
 
-            if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
-               || GEMM_TYPE == GEMM_BATCHED)
+            if(isBatched)
                 name << '_' << arg.batch_count;
 
             if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
