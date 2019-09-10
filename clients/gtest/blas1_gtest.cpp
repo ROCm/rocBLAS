@@ -69,7 +69,8 @@ namespace
             }
             else
             {
-                bool isScal = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched || BLAS1 == blas1::scal_strided_batched);
+                bool isScal = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                               || BLAS1 == blas1::scal_strided_batched);
                 if((isScal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);

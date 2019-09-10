@@ -9,7 +9,8 @@
 #include "rocblas_scal.hpp"
 #include "utility.h"
 
-namespace {
+namespace
+{
     template <typename T, typename = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
@@ -27,12 +28,12 @@ namespace {
 
     template <rocblas_int NB, typename T, typename U>
     rocblas_status rocblas_scal_batched_impl(rocblas_handle handle,
-                                                rocblas_int    n,
-                                                const U*       alpha,
-                                                T*             x[],
-                                                rocblas_int    offsetx,
-                                                rocblas_int    incx,
-                                                rocblas_int    batch_count)
+                                             rocblas_int    n,
+                                             const U*       alpha,
+                                             T*             x[],
+                                             rocblas_int    offsetx,
+                                             rocblas_int    incx,
+                                             rocblas_int    batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -57,17 +58,17 @@ namespace {
                                 ? (" --alphai " + std::to_string(std::imag(*alpha)))
                                 : "");
                 log_bench(handle,
-                            "./rocblas-bench -f scal_batched --a_type",
-                            rocblas_precision_string<T>,
-                            "--b_type",
-                            rocblas_precision_string<U>,
-                            "-n",
-                            n,
-                            "--incx",
-                            incx,
-                            alphass.str(),
-                            "--batch",
-                            batch_count);
+                          "./rocblas-bench -f scal_batched --a_type",
+                          rocblas_precision_string<T>,
+                          "--b_type",
+                          rocblas_precision_string<U>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          alphass.str(),
+                          "--batch",
+                          batch_count);
             }
         }
         else

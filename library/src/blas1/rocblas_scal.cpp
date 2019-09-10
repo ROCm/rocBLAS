@@ -1,13 +1,14 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_scal.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_scal.hpp"
 #include "utility.h"
 
-namespace {
+namespace
+{
     template <typename T, typename = T>
     constexpr char rocblas_scal_name[] = "unknown";
     template <>
@@ -50,15 +51,15 @@ namespace {
                                 ? (" --alphai " + std::to_string(std::imag(*alpha)))
                                 : "");
                 log_bench(handle,
-                            "./rocblas-bench -f scal --a_type",
-                            rocblas_precision_string<T>,
-                            "--b_type",
-                            rocblas_precision_string<U>,
-                            "-n",
-                            n,
-                            "--incx",
-                            incx,
-                            alphass.str());
+                          "./rocblas-bench -f scal --a_type",
+                          rocblas_precision_string<T>,
+                          "--b_type",
+                          rocblas_precision_string<U>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          alphass.str());
             }
         }
         else
