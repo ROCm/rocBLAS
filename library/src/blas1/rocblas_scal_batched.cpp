@@ -25,7 +25,7 @@ namespace {
     template <>
     constexpr char rocblas_scal_name<rocblas_double_complex, double>[] = "rocblas_zdscal_batched";
 
-    template <typename T, typename U>
+    template <rocblas_int NB, typename T, typename U>
     rocblas_status rocblas_scal_batched_impl(rocblas_handle handle,
                                                 rocblas_int    n,
                                                 const U*       alpha,
@@ -86,7 +86,7 @@ namespace {
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_scal_template<T>(handle, n, alpha, x, offsetx, incx, 0, batch_count);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, x, offsetx, incx, 0, batch_count);
     }
 }
 
@@ -105,7 +105,8 @@ rocblas_status rocblas_sscal_batched(rocblas_handle handle,
                                      rocblas_int    incx,
                                      rocblas_int    batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 rocblas_status rocblas_dscal_batched(rocblas_handle handle,
@@ -115,7 +116,8 @@ rocblas_status rocblas_dscal_batched(rocblas_handle handle,
                                      rocblas_int    incx,
                                      rocblas_int    batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 rocblas_status rocblas_cscal_batched(rocblas_handle               handle,
@@ -125,7 +127,8 @@ rocblas_status rocblas_cscal_batched(rocblas_handle               handle,
                                      rocblas_int                  incx,
                                      rocblas_int                  batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 rocblas_status rocblas_zscal_batched(rocblas_handle                handle,
@@ -135,7 +138,8 @@ rocblas_status rocblas_zscal_batched(rocblas_handle                handle,
                                      rocblas_int                   incx,
                                      rocblas_int                   batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 // Scal with a real alpha & complex vector
@@ -146,7 +150,8 @@ rocblas_status rocblas_csscal_batched(rocblas_handle         handle,
                                       rocblas_int            incx,
                                       rocblas_int            batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 rocblas_status rocblas_zdscal_batched(rocblas_handle          handle,
@@ -156,7 +161,8 @@ rocblas_status rocblas_zdscal_batched(rocblas_handle          handle,
                                       rocblas_int             incx,
                                       rocblas_int             batch_count)
 {
-    return rocblas_scal_batched_impl(handle, n, alpha, x, 0, incx, batch_count);
+    constexpr rocblas_int NB = 256;
+    return rocblas_scal_batched_impl<NB>(handle, n, alpha, x, 0, incx, batch_count);
 }
 
 } // extern "C"

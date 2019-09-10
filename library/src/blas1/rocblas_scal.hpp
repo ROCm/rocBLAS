@@ -27,7 +27,7 @@ __global__ void scal_kernel(rocblas_int n,
         x[tid * incx] *= alpha;
 }
 
-template <typename T, typename U, typename V>
+template <rocblas_int NB, typename T, typename U, typename V>
 rocblas_status rocblas_scal_template(rocblas_handle  handle,
                                      rocblas_int     n,
                                      const V*        alpha,
@@ -37,7 +37,6 @@ rocblas_status rocblas_scal_template(rocblas_handle  handle,
                                      rocblas_int     stridex,
                                      rocblas_int     batch_count)
 {
-    static constexpr int NB = 256;
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0 || batch_count <= 0)
         return rocblas_status_success;
