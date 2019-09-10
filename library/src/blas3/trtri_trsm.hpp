@@ -7,7 +7,7 @@
 #ifndef __TRTRI_TRSM_HPP__
 #define __TRTRI_TRSM_HPP__
 
-#include "gemm_host.hpp"
+#include "gemm.hpp"
 #include "handle.h"
 #include "rocblas_trtri_batched.hpp"
 

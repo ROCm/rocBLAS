@@ -6,7 +6,7 @@
 #ifndef _ROCBLAS_TRTRI_BATCHED_HPP_
 #define _ROCBLAS_TRTRI_BATCHED_HPP_
 
-#include "gemm_host.hpp"
+#include "Tensile/gemm.hpp"
 #include "handle.h"
 
 // return the number of elements in a NxN matrix that do not belong to the triangular region

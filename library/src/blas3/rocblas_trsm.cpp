@@ -2,7 +2,7 @@
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "gemm.hpp"
+#include "Tensile/gemm.hpp"
 // #include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
@@ -62,11 +62,11 @@ namespace
             {
                 // left, lower no-transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_impl(
+                rocblas_gemm_template(
                     handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero<T>, X, m);
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transA,
                                           transB,
                                           m - BLOCK,
@@ -85,7 +85,7 @@ namespace
                     {
                         jb = min(m - i, BLOCK);
 
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               jb,
@@ -104,7 +104,7 @@ namespace
                             // as if (i+BLOCK<m)
                             break;
 
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               m - i - BLOCK,
@@ -125,9 +125,9 @@ namespace
             for( i=0; i < m; i += BLOCK ) {
                 jb = min(m-i, BLOCK);
                 T *tmp = (i == 0) ? alpha : one;
-                rocblas_gemm_impl(handle, transA, transB, jb, n, jb, tmp, invA(i), BLOCK, B(i,0), ldb, &zero<T>, X(i,0), ldb);
+                rocblas_gemm_template(handle, transA, transB, jb, n, jb, tmp, invA(i), BLOCK, B(i,0), ldb, &zero<T>, X(i,0), ldb);
                 if(i + BLOCK < m){
-                    rocblas_gemm_impl(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negative_one<T>, A(i+BLOCK,i), lda, X(i,0), ldb, tmp, B(i+BLOCK,0), ldb);
+                    rocblas_gemm_template(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negative_one<T>, A(i+BLOCK,i), lda, X(i,0), ldb, tmp, B(i+BLOCK,0), ldb);
                 }
             }
 
@@ -140,7 +140,7 @@ namespace
                 i  = m - jb;
 
                 // if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35}
-                rocblas_gemm_impl(handle,
+                rocblas_gemm_template(handle,
                                       transA,
                                       transB,
                                       jb,
@@ -157,7 +157,7 @@ namespace
                 if(i - BLOCK >= 0)
                 {
 
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transA,
                                           transB,
                                           i,
@@ -176,7 +176,7 @@ namespace
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
                         //{32, 35, 32, 32, 35, 35}
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               BLOCK,
@@ -192,7 +192,7 @@ namespace
                                               m);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               i,
@@ -217,7 +217,7 @@ namespace
                 // left, lower transpose
                 jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
                 i  = m - jb;
-                rocblas_gemm_impl(handle,
+                rocblas_gemm_template(handle,
                                       transA,
                                       transB,
                                       jb,
@@ -233,7 +233,7 @@ namespace
                                       m);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transA,
                                           transB,
                                           i,
@@ -251,7 +251,7 @@ namespace
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               BLOCK,
@@ -267,7 +267,7 @@ namespace
                                               m);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               i,
@@ -288,11 +288,11 @@ namespace
             {
                 // left, upper transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_impl(
+                rocblas_gemm_template(
                     handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero<T>, X, m);
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transA,
                                           transB,
                                           m - BLOCK,
@@ -311,7 +311,7 @@ namespace
                     for(i = BLOCK; i < m; i += BLOCK)
                     {
                         jb = min(m - i, BLOCK);
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               jb,
@@ -327,7 +327,7 @@ namespace
                                               m);
                         if(i + BLOCK >= m)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transA,
                                               transB,
                                               m - i - BLOCK,
@@ -377,7 +377,7 @@ namespace
                 // right, lower no-transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_impl(handle,
+                rocblas_gemm_template(handle,
                                       transB,
                                       transA,
                                       m,
@@ -393,7 +393,7 @@ namespace
                                       m);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transB,
                                           transA,
                                           m,
@@ -411,7 +411,7 @@ namespace
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -427,7 +427,7 @@ namespace
                                               m);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -448,11 +448,11 @@ namespace
             {
                 // right, upper no-transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_impl(
+                rocblas_gemm_template(
                     handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero<T>, X, m);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transB,
                                           transA,
                                           m,
@@ -471,7 +471,7 @@ namespace
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -487,7 +487,7 @@ namespace
                                               m);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -511,11 +511,11 @@ namespace
             {
                 // right, lower transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_impl(
+                rocblas_gemm_template(
                     handle, transB, transA, m, jb, jb, alpha, B, ldb, invA, BLOCK, &zero<T>, X, m);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transB,
                                           transA,
                                           m,
@@ -534,7 +534,7 @@ namespace
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -550,7 +550,7 @@ namespace
                                               m);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -572,7 +572,7 @@ namespace
                 // right, upper transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_impl(handle,
+                rocblas_gemm_template(handle,
                                       transB,
                                       transA,
                                       m,
@@ -588,7 +588,7 @@ namespace
                                       m);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transB,
                                           transA,
                                           m,
@@ -606,7 +606,7 @@ namespace
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -622,7 +622,7 @@ namespace
                                               m);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_impl(handle,
+                        rocblas_gemm_template(handle,
                                               transB,
                                               transA,
                                               m,
@@ -742,7 +742,7 @@ namespace
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_impl(handle,
+                            rocblas_gemm_template(handle,
                                                   transA,
                                                   rocblas_operation_none,
                                                   BLOCK,
@@ -791,7 +791,7 @@ namespace
                         }
                     }
 
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           transA,
                                           rocblas_operation_none,
                                           BLOCK,
@@ -832,7 +832,7 @@ namespace
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_impl(handle,
+                            rocblas_gemm_template(handle,
                                                   rocblas_operation_none,
                                                   transA,
                                                   width,
@@ -881,7 +881,7 @@ namespace
                         }
                     }
 
-                    rocblas_gemm_impl(handle,
+                    rocblas_gemm_template(handle,
                                           rocblas_operation_none,
                                           transA,
                                           width,
