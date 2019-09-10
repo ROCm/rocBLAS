@@ -4,7 +4,7 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "scal_host.hpp"
+#include "rocblas_scal.hpp"
 #include "utility.h"
 
 namespace {
@@ -101,8 +101,8 @@ namespace {
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_scal_strided_batched_template(
-            handle, n, alpha, x, incx, stridex, batch_count);
+        return rocblas_scal_template<T>(
+            handle, n, alpha, x, 0, incx, stridex, batch_count);
     }
 }
 
