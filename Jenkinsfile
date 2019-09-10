@@ -57,7 +57,7 @@ rocBLASCI:
             command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc sudo ${project.paths.build_command} --cpu_ref_lib=lapack
+                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc sudo ${project.paths.build_command}
                     """
         }
 

@@ -1,7 +1,7 @@
 
 # Modified from https://github.com/OPM/opm-common/blob/master/cmake/Modules/UseSystemInfo.cmake based on GNU General Public License v3.0 from https://github.com/OPM/opm-common/blob/master/LICENSE
 
-function (get_os_name OS_NAME)
+function (get_os_name OS_ID)
   set(_os_name)
   file (GLOB open_os_release /etc/os-release)
   if (NOT open_os_release STREQUAL "")
@@ -14,13 +14,13 @@ function (get_os_name OS_NAME)
  endfunction()
 
 function (read_value_from_os_release KEYVALUE OUTPUT)
-  file (STRINGS /etc/os-release _os_name_line
+  file (STRINGS /etc/os-release _os_keyvalue_line
     REGEX "^${KEYVALUE}="
     )
 
   set(_output)
   string (REGEX REPLACE
-    "^${KEYVALUE}=\"?\(.*\)" "\\1" _output "${_os_name_line}"
+    "^${KEYVALUE}=\"?\(.*\)" "\\1" _output "${_os_keyvalue_line}"
     )
 
   #remove tailing quote
