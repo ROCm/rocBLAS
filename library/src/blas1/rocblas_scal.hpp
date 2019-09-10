@@ -6,8 +6,12 @@
 #include "utility.h"
 
 template <typename T, typename U, typename V>
-__global__ void scal_kernel(
-    rocblas_int n, V alpha_device_host, U xa, rocblas_int offsetx, rocblas_int incx, rocblas_int stridex)
+__global__ void scal_kernel(rocblas_int n,
+                            V           alpha_device_host,
+                            U           xa,
+                            rocblas_int offsetx,
+                            rocblas_int incx,
+                            rocblas_int stridex)
 {
     T*        x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
     auto      alpha = load_scalar(alpha_device_host);
@@ -37,11 +41,29 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(
-            scal_kernel<T>, blocks, threads, 0, rocblas_stream, n, alpha, x, offsetx, incx, stridex);
+        hipLaunchKernelGGL(scal_kernel<T>,
+                           blocks,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           n,
+                           alpha,
+                           x,
+                           offsetx,
+                           incx,
+                           stridex);
     else // alpha is on host
-        hipLaunchKernelGGL(
-            scal_kernel<T>, blocks, threads, 0, rocblas_stream, n, *alpha, x, offsetx, incx, stridex);
+        hipLaunchKernelGGL(scal_kernel<T>,
+                           blocks,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           n,
+                           *alpha,
+                           x,
+                           offsetx,
+                           incx,
+                           stridex);
 
     return rocblas_status_success;
 }

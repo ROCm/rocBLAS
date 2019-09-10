@@ -72,21 +72,19 @@ __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half
 
 // For device pointers
 template <typename T>
-__forceinline__ __device__ __host__ T* load_ptr_batch(T* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
 {
     return p + block * stride + offset;
 }
 
 // For device array of device pointers
 template <typename T>
-__forceinline__ __device__ __host__ T* load_ptr_batch(T** p, rocblas_int block, rocblas_int offset, rocblas_int stride)
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T** p, rocblas_int block, rocblas_int offset, rocblas_int stride)
 {
     return p[block] + offset;
 }
-
-
-
-
 
 #endif // GOOGLE_TEST
 
