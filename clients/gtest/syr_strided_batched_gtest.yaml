@@ -27,27 +27,27 @@ Definitions:
     - { N:  8000, lda:  8000 }
 
 Tests:
-- name: syr_small
+- name: syr_strided_batched_small
   category: quick
-  function: syr
+  function: syr_strided_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
   alpha: [ -0.5, 2.0, 0.0 ]
 
-- name: syr_medium
+- name: syr_strided_batched_medium
   category: pre_checkin
-  function: syr
+  function: syr_strided_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 0, 2, -2 ]
   alpha: [ -0.5, 2.0 ]
 
-- name: syr_large
+- name: syr_strided_large
   category: nightly
-  function: syr
+  function: syr_strided_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
