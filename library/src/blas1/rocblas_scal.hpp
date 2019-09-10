@@ -6,19 +6,10 @@
 #include "utility.h"
 
 template <typename T, typename U, typename V>
-__global__ void scal_kernel(rocblas_int n,
-                            V           alpha_device_host,
-                            U           xa,
-                            rocblas_int offsetx,
-                            rocblas_int incx,
-                            rocblas_int stridex)
+__global__ void scal_kernel(
+    rocblas_int n, V alpha_device_host, U xa, rocblas_int incx, rocblas_int offset_stride)
 {
-#ifdef scal_batched
-    T* x = xa[hipBlockIdx_y] + offsetx;
-#else
-    T* x = xa + hipBlockIdx_y * stridex;
-#endif
-
+    T*        x     = load_ptr_batch(xa, hipBlockIdx_y, offset_stride);
     auto      alpha = load_scalar(alpha_device_host);
     ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
@@ -32,9 +23,8 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      const V*       alpha,
                                      U              x,
-                                     rocblas_int    batched_offsetx,
                                      rocblas_int    incx,
-                                     rocblas_int    stridex,
+                                     rocblas_int    offset_stride,
                                      rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
@@ -46,29 +36,11 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(scal_kernel<T>,
-                           blocks,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           n,
-                           alpha,
-                           x,
-                           batched_offsetx,
-                           incx,
-                           stridex);
+        hipLaunchKernelGGL(
+            scal_kernel<T>, blocks, threads, 0, rocblas_stream, n, alpha, x, incx, offset_stride);
     else // alpha is on host
-        hipLaunchKernelGGL(scal_kernel<T>,
-                           blocks,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           n,
-                           *alpha,
-                           x,
-                           batched_offsetx,
-                           incx,
-                           stridex);
+        hipLaunchKernelGGL(
+            scal_kernel<T>, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx, offset_stride);
 
     return rocblas_status_success;
 }

@@ -1,8 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#define scal_batched
-
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -87,7 +85,7 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_scal_template<NB, T>(handle, n, alpha, x, offsetx, incx, 0, batch_count);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, x, incx, offsetx, batch_count);
     }
 }
 
@@ -167,5 +165,3 @@ rocblas_status rocblas_zdscal_batched(rocblas_handle          handle,
 }
 
 } // extern "C"
-
-#undef scal_batched
