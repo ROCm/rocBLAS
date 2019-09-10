@@ -2,7 +2,6 @@
 # Copyright 2019 Advanced Micro Devices, Inc.
 # ########################################################################
 
-
 function (get_os_id OS_ID)
   set(_os_id "unknown")
   if (EXISTS "/etc/os-release")
