@@ -93,7 +93,7 @@ void testing_scal_batched(const Arguments& arg)
         hx_gold[i] = hx_1[i];
     }
 
-    // copy data from CPU to device, does not work for incx != 1
+    // copy data from CPU to device
     // 1. User intermediate arrays to access device memory from host
     for(int i = 0; i < batch_count; i++)
     {

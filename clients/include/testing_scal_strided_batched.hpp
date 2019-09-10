@@ -107,7 +107,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         return;
     }
 
-    // copy data from CPU to device, does not work for incx != 1
+    // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;

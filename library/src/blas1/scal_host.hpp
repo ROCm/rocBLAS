@@ -3,9 +3,45 @@
  * ************************************************************************ */
 #include "handle.h"
 #include "rocblas.h"
-#include "scal_device.hpp"
 #include "utility.h"
 
+///////////
+// DEVICE//
+///////////
+template <typename T, typename U>
+__device__ void scal_kernel(rocblas_int n, U alpha_device_host, T* x, rocblas_int incx)
+{
+    auto      alpha = load_scalar(alpha_device_host);
+    ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+
+    // bound
+    if(tid < n)
+        x[tid * incx] *= alpha;
+}
+
+template <typename T, typename U>
+__global__ void scal_kernel_batched(
+    rocblas_int n, U alpha_device_host, T* xa[], rocblas_int offsetx, rocblas_int incx)
+{
+    T* x = xa[hipBlockIdx_y] + offsetx;
+    scal_kernel<T, U>(n, alpha_device_host, x, incx);
+}
+
+template <typename T, typename U>
+__global__ void scal_kernel_strided_batched(rocblas_int n,
+                                            U           alpha_device_host,
+                                            T*          xa,
+                                            rocblas_int incx,
+                                            rocblas_int stridex)
+{
+    T* x = xa + hipBlockIdx_y * stridex;
+    scal_kernel<T, U>(n, alpha_device_host, x, incx);
+}
+
+
+///////////
+/// HOST///
+///////////
 template <typename T, typename U>
 rocblas_status rocblas_scal_batched_template(rocblas_handle handle,
                                              rocblas_int    n,
@@ -39,7 +75,6 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const U*       alpha,
                                                      T*             x,
-                                                     rocblas_int    offsetx,
                                                      rocblas_int    incx,
                                                      rocblas_int    stridex,
                                                      rocblas_int    batch_count)
@@ -62,7 +97,6 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                            n,
                            alpha,
                            x,
-                           offsetx,
                            incx,
                            stridex);
     else // alpha is on host
@@ -74,7 +108,6 @@ rocblas_status rocblas_scal_strided_batched_template(rocblas_handle handle,
                            n,
                            *alpha,
                            x,
-                           offsetx,
                            incx,
                            stridex);
 
