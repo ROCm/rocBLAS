@@ -19,7 +19,6 @@ function (read_key KEYVALUE OUTPUT)
   string (REGEX REPLACE "^${KEYVALUE}=\"?(.*)" "\\1" _output "${_keyvalue_line}")
 
   #remove trailing quote
-  string (REGEX REPLACE "\"$"  _output "${_output}"
-    )
+  string (REGEX REPLACE "\"$" "" _output "${_output}")
   set(${OUTPUT} ${_output} PARENT_SCOPE)
 endfunction ()
