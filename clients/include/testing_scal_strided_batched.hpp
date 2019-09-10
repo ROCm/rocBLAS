@@ -80,8 +80,8 @@ void testing_scal_strided_batched(const Arguments& arg)
     }
 
     size_t size_x = N * size_t(incx) * batch_count
-                    + (static_cast<size_t>(stridex) - N * size_t(incx))
-                          * static_cast<size_t>(batch_count - 1);
+                    + size_t(stridex) - N * size_t(incx)
+                          * size_t(batch_count - 1);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx_1(size_x);
@@ -144,7 +144,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = batch_count * scal_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -183,7 +183,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = batch_count * scal_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
