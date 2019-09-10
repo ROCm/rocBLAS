@@ -142,8 +142,8 @@ include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
 include (cmake/os-detection.cmake)
-get_os_name(OS_NAME)
-message (STATUS "OS detected is ${OS_NAME}")
+get_os_id(OS_ID)
+message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
 set ( VERSION_STRING "2.7.0" )

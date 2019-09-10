@@ -1,31 +1,27 @@
+# ########################################################################
+# Copyright 2019 Advanced Micro Devices, Inc.
+# ########################################################################
 
-# Modified from https://github.com/OPM/opm-common/blob/master/cmake/Modules/UseSystemInfo.cmake based on GNU General Public License v3.0 from https://github.com/OPM/opm-common/blob/master/LICENSE
 
-function (get_os_name OS_ID)
-  set(_os_name)
-  file (GLOB open_os_release /etc/os-release)
-  if (NOT open_os_release STREQUAL "")
-    read_value_from_os_release("ID" _os_name)
-  else()
-     set( _os_name "unknown" )
-   endif()
-   set(${OS_NAME} ${_os_name} PARENT_SCOPE)
-   set(${OS_NAME}_${_os_name} TRUE PARENT_SCOPE)
- endfunction()
+function (get_os_id OS_ID)
+  set(_os_id "unknown")
+  if (EXISTS "/etc/os-release")
+    read_key("ID" _os_id)
+  endif()
+  set(${OS_ID} ${_os_id} PARENT_SCOPE)
+  set(${OS_ID}_${_os_id} TRUE PARENT_SCOPE)
+endfunction()
 
-function (read_value_from_os_release KEYVALUE OUTPUT)
-  file (STRINGS /etc/os-release _os_keyvalue_line
-    REGEX "^${KEYVALUE}="
+function (read_key KEYVALUE OUTPUT)
+  #finds the line with the keyvalue
+  file (STRINGS /etc/os-release _keyvalue_line REGEX "^${KEYVALUE}=")
+
+  #remove keyvalue=
+  string (REGEX REPLACE "^{KEYVALUE}=\"?(.*)" "\\1" _output "${_keyvalue_line}"
     )
 
-  set(_output)
-  string (REGEX REPLACE
-    "^${KEYVALUE}=\"?\(.*\)" "\\1" _output "${_os_keyvalue_line}"
-    )
-
-  #remove tailing quote
-  string (REGEX REPLACE
-    "\"$" "" _output "${_output}"
+  #remove trailing quote
+  string (REGEX REPLACE "\"$" "\\1" _output "${_output}"
     )
   set(${OUTPUT} ${_output} PARENT_SCOPE)
 endfunction ()
