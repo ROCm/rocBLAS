@@ -2,8 +2,7 @@
  * Copyright 2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "Tensile/gemm.hpp"
-// #include "rocblas_gemm_ex.hpp"
+#include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
