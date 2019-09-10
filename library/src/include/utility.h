@@ -68,21 +68,25 @@ __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half
 }
 
 // Load a pointer from a batch. If the argument is a T**, use block to index it and
-// add the offset, if the argument is a T*, add block * stride to pointer and return.
+// add the offset, if the argument is a T*, add block * stride to pointer and add offset.
 
 // For device pointers
 template <typename T>
-__forceinline__ __device__ T* load_ptr_batch(T* p, rocblas_int block, rocblas_int stride)
+__forceinline__ __device__ __host__ T* load_ptr_batch(T* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
 {
-    return p + block * stride;
+    return p + block * stride + offset;
 }
 
 // For device array of device pointers
 template <typename T>
-__forceinline__ __device__ T* load_ptr_batch(T** p, rocblas_int block, rocblas_int offset)
+__forceinline__ __device__ __host__ T* load_ptr_batch(T** p, rocblas_int block, rocblas_int offset, rocblas_int stride)
 {
     return p[block] + offset;
 }
+
+
+
+
 
 #endif // GOOGLE_TEST
 

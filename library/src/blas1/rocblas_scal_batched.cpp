@@ -85,7 +85,7 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_scal_template<NB, T>(handle, n, alpha, x, incx, offsetx, batch_count);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, x, offsetx, incx, 0, batch_count);
     }
 }
 
