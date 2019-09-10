@@ -60,10 +60,8 @@ void testing_swap_batched(const Arguments& arg)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
 
-        T** dxt;
-        hipMalloc(&dxt, sizeof(T*));
-        T** dyt;
-        hipMalloc(&dyt, sizeof(T*));
+        device_vector<T*, 0, T> dxt(1);
+        device_vector<T*, 0, T> dyt(1);
         if(!dxt || !dyt)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -73,8 +71,6 @@ void testing_swap_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(handle, N, dxt, incx, dyt, incy, batch_count),
                               rocblas_status_invalid_size);
-        CHECK_HIP_ERROR(hipFree(dxt));
-        CHECK_HIP_ERROR(hipFree(dyt));
         return;
     }
 
@@ -82,10 +78,8 @@ void testing_swap_batched(const Arguments& arg)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
 
-        T** dxt;
-        hipMalloc(&dxt, sizeof(T*));
-        T** dyt;
-        hipMalloc(&dyt, sizeof(T*));
+        device_vector<T*, 0, T> dxt(1);
+        device_vector<T*, 0, T> dyt(1);
         if(!dxt || !dyt)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -94,8 +88,6 @@ void testing_swap_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_swap_batched<T>(handle, N, dxt, incx, dyt, incy, batch_count));
-        CHECK_HIP_ERROR(hipFree(dxt));
-        CHECK_HIP_ERROR(hipFree(dyt));
         return;
     }
 
@@ -106,17 +98,17 @@ void testing_swap_batched(const Arguments& arg)
     size_t size_y = N * abs_incy;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx[batch_count]; 
-    host_vector<T> hy[batch_count]; 
-    host_vector<T> hx_gold[batch_count]; 
-    host_vector<T> hy_gold[batch_count]; 
+    host_vector<T> hx[batch_count];
+    host_vector<T> hy[batch_count];
+    host_vector<T> hx_gold[batch_count];
+    host_vector<T> hy_gold[batch_count];
 
     for(int i = 0; i < batch_count; i++)
     {
         hx[i]      = host_vector<T>(size_x);
         hy[i]      = host_vector<T>(size_y);
         hx_gold[i] = host_vector<T>(size_x);
-        hy_gold[i] = host_vector<T>(size_y); 
+        hy_gold[i] = host_vector<T>(size_y);
     }
 
     // Initial Data on CPU
@@ -130,9 +122,8 @@ void testing_swap_batched(const Arguments& arg)
             hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
         }
         hx_gold[i] = hx[i]; // swapped later by cblas_swap
-        hy_gold[i] = hy[i];   
+        hy_gold[i] = hy[i];
     }
-
 
     device_batch_vector<T> dxvec(batch_count, size_x);
     device_batch_vector<T> dyvec(batch_count, size_y);
@@ -145,11 +136,8 @@ void testing_swap_batched(const Arguments& arg)
     }
 
     // vector pointers on gpu
-    
-    T** dx_pvec;
-    T** dy_pvec;
-    CHECK_HIP_ERROR(hipMalloc(&dx_pvec, batch_count * sizeof(T*)));
-    CHECK_HIP_ERROR(hipMalloc(&dy_pvec, batch_count * sizeof(T*)));
+    device_vector<T*, 0, T> dx_pvec(batch_count);
+    device_vector<T*, 0, T> dy_pvec(batch_count);
     if(!dx_pvec || !dy_pvec)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -227,7 +215,4 @@ void testing_swap_batched(const Arguments& arg)
         std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << gpu_time_used
                   << std::endl;
     }
-
-    CHECK_HIP_ERROR(hipFree(dx_pvec));
-    CHECK_HIP_ERROR(hipFree(dy_pvec));
 }

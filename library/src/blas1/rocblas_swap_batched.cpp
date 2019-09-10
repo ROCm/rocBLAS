@@ -1,35 +1,12 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "handle.h"
+#include "rocblas_swap_batched.hpp"
 #include "logging.h"
-#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-    constexpr int NB = 256;
-
-    template <typename T>
-    __global__ void
-        swap_kernel_batched(rocblas_int n, T* x[], rocblas_int incx, T* y[], rocblas_int incy)
-    {
-        ssize_t tid = blockIdx.x * blockDim.x + threadIdx.x; // only dim1
-
-        if(tid < n)
-        {
-            T* xb = x[blockIdx.y];
-            T* yb = y[blockIdx.y];
-            // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-            xb -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
-            yb -= (incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0;
-
-            auto tmp       = yb[tid * incy];
-            yb[tid * incy] = xb[tid * incx];
-            xb[tid * incx] = tmp;
-        }
-    }
-
     template <typename>
     constexpr char rocblas_swap_batched_name[] = "unknown";
     template <>
@@ -42,13 +19,13 @@ namespace
     constexpr char rocblas_swap_batched_name<rocblas_double_complex>[] = "rocblas_zswap_batched";
 
     template <class T>
-    rocblas_status rocblas_swap_batched(rocblas_handle handle,
-                                        rocblas_int    n,
-                                        T*             x[],
-                                        rocblas_int    incx,
-                                        T*             y[],
-                                        rocblas_int    incy,
-                                        rocblas_int    batch_count)
+    rocblas_status rocblas_swap_batched_impl(rocblas_handle handle,
+                                             rocblas_int    n,
+                                             T*             x[],
+                                             rocblas_int    incx,
+                                             T*             y[],
+                                             rocblas_int    incy,
+                                             rocblas_int    batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -88,19 +65,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // Quick return if possible.
-        if(n <= 0 || batch_count == 0)
-            return rocblas_status_success;
-
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-        rocblas_int blocks         = (n - 1) / NB + 1;
-        dim3        grid(blocks, batch_count);
-        dim3        threads(NB);
-
-        hipLaunchKernelGGL(
-            swap_kernel_batched, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
-
-        return rocblas_status_success;
+        constexpr rocblas_int NB = 256;
+        return rocblas_swap_batched_template<NB>(handle, n, x, 0, incx, y, 0, incy, batch_count);
     }
 
 } // namespace
@@ -123,7 +89,7 @@ rocblas_status rocblas_sswap_batched(rocblas_handle handle,
                                      rocblas_int    incy,
                                      rocblas_int    batch_count)
 {
-    return rocblas_swap_batched(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
 }
 
 rocblas_status rocblas_dswap_batched(rocblas_handle handle,
@@ -134,7 +100,7 @@ rocblas_status rocblas_dswap_batched(rocblas_handle handle,
                                      rocblas_int    incy,
                                      rocblas_int    batch_count)
 {
-    return rocblas_swap_batched(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
 }
 
 rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
@@ -145,7 +111,7 @@ rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
                                      rocblas_int            incy,
                                      rocblas_int            batch_count)
 {
-    return rocblas_swap_batched(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
 }
 
 rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
@@ -156,7 +122,7 @@ rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
                                      rocblas_int             incy,
                                      rocblas_int             batch_count)
 {
-    return rocblas_swap_batched(handle, n, x, incx, y, incy, batch_count);
+    return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
 }
 
 } // extern "C"
