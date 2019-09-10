@@ -16,7 +16,7 @@ function (read_key KEYVALUE OUTPUT)
   file (STRINGS /etc/os-release _keyvalue_line REGEX "^${KEYVALUE}=")
 
   #remove keyvalue=
-  string (REGEX REPLACE "^{KEYVALUE}=\"?(.*)" "\\1" _output "${_keyvalue_line}")
+  string (REGEX REPLACE "^${KEYVALUE}=\"?(.*)" "\\1" _output "${_keyvalue_line}")
 
   #remove trailing quote
   string (REGEX REPLACE "\"$" "\\1" _output "${_output}"
