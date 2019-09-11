@@ -136,44 +136,44 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle          handle,
 ROCBLAS_EXPORT rocblas_status rocblas_sscal_batched(rocblas_handle handle,
                                                     rocblas_int    n,
                                                     const float*   alpha,
-                                                    float*         x[],
+                                                    float* const   x[],
                                                     rocblas_int    incx,
                                                     rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dscal_batched(rocblas_handle handle,
                                                     rocblas_int    n,
                                                     const double*  alpha,
-                                                    double*        x[],
+                                                    double* const  x[],
                                                     rocblas_int    incx,
                                                     rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cscal_batched(rocblas_handle               handle,
                                                     rocblas_int                  n,
                                                     const rocblas_float_complex* alpha,
-                                                    rocblas_float_complex*       x[],
+                                                    rocblas_float_complex* const x[],
                                                     rocblas_int                  incx,
                                                     rocblas_int                  batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zscal_batched(rocblas_handle                handle,
                                                     rocblas_int                   n,
                                                     const rocblas_double_complex* alpha,
-                                                    rocblas_double_complex*       x[],
+                                                    rocblas_double_complex* const x[],
                                                     rocblas_int                   incx,
                                                     rocblas_int                   batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_csscal_batched(rocblas_handle         handle,
-                                                     rocblas_int            n,
-                                                     const float*           alpha,
-                                                     rocblas_float_complex* x[],
-                                                     rocblas_int            incx,
-                                                     rocblas_int            batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_csscal_batched(rocblas_handle               handle,
+                                                     rocblas_int                  n,
+                                                     const float*                 alpha,
+                                                     rocblas_float_complex* const x[],
+                                                     rocblas_int                  incx,
+                                                     rocblas_int                  batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle          handle,
-                                                     rocblas_int             n,
-                                                     const double*           alpha,
-                                                     rocblas_double_complex* x[],
-                                                     rocblas_int             incx,
-                                                     rocblas_int             batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle                handle,
+                                                     rocblas_int                   n,
+                                                     const double*                 alpha,
+                                                     rocblas_double_complex* const x[],
+                                                     rocblas_int                   incx,
+                                                     rocblas_int                   batch_count);
 
 /*! \brief BLAS Level 1 API
      \details
