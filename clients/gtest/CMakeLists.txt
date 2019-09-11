@@ -101,7 +101,7 @@ target_include_directories( rocblas-test
 set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
 set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
-if( OS_ID_rhel OR OS_ID_centos OR OS_ID_SLES)
+if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
     if(OS_ID_rhel OR OS_ID_centos)
       set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
       set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
