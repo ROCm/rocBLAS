@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -120,8 +121,9 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(1, N, incx, cx, rx);
-                    unit_check_general<T>(1, N, incy, cy, ry);
+                    T rel_error = std::numeric_limits<T>::epsilon() * 1000;
+                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {
@@ -143,8 +145,9 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(1, N, incx, cx, rx);
-                    unit_check_general<T>(1, N, incy, cy, ry);
+                    T rel_error = std::numeric_limits<T>::epsilon() * 1000;
+                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {
