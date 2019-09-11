@@ -53,9 +53,8 @@ void testing_copy_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N < 0 || !incx || !incy || batch_count < 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-        device_vector<T*, 0, T> dx(batch_count);
-        device_vector<T*, 0, T> dy(batch_count);
+        device_vector<T*, 0, T> dx(1);
+        device_vector<T*, 0, T> dy(1);
         if(!dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -67,6 +66,23 @@ void testing_copy_batched(const Arguments& arg)
         return;
     }
 
+    //quick return
+    if(!N || !batch_count)
+    {
+        device_vector<T*, 0, T> dx(1);
+        device_vector<T*, 0, T> dy(1);
+        if(!dx || !dy)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
+                              rocblas_status_success);
+
+        return;
+    }
+
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx);
@@ -75,6 +91,7 @@ void testing_copy_batched(const Arguments& arg)
     //Device-arrays of pointers to device memory
     device_vector<T*, 0, T> dx(batch_count);
     device_vector<T*, 0, T> dy(batch_count);
+
     if(!dx || !dy)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -99,7 +116,7 @@ void testing_copy_batched(const Arguments& arg)
     }
 
     int last = batch_count - 1;
-    if((!y[last] && size_y) || (!x[last] && size_x))
+    if(batch_count && ((!y[last] && size_y) || (!x[last] && size_x)))
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;

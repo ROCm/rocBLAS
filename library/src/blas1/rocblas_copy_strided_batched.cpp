@@ -94,12 +94,8 @@ namespace
            || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible.
-        if(!n || !batch_count)
-            return rocblas_status_success;
-
         return rocblas_copy_strided_batched_template(
-            handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+            handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 
 } // namespace

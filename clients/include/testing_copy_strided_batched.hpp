@@ -64,7 +64,7 @@ void testing_copy_strided_batched(const Arguments& arg)
     size_t               size_y   = N * size_t(abs_incy);
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || stride_x < size_x || stride_y < size_y || batch_count < 0)
+    if(N < 0 || !incx || !incy ||  stride_x < (int)size_x || stride_y < (int) size_y || batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
@@ -75,15 +75,36 @@ void testing_copy_strided_batched(const Arguments& arg)
             return;
         }
 
-        // CHECK_ROCBLAS_ERROR(rocblas_copy_strided_batched<T>(handle, N, dx, incx, dy, incy));
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count),
+                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count),
+                            rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                            rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                            rocblas_status_invalid_size);
         return;
     }
 
-    // //quick return do we actually want
-    // if(!batch_count)
-    //     return;
-    size_x += size_x * (batch_count - 1) + size_t(stride_x - size_x) * (batch_count - 1);
-    size_y += size_y * (batch_count - 1) + size_t(stride_y - size_y) * (batch_count - 1);
+    //quick return 
+    if(!N || !batch_count)
+    {
+        static const size_t safe_size = 100; //  arbitrarily set to 100
+        device_vector<T>    dx(safe_size);
+        device_vector<T>    dy(safe_size);
+        if(!dx || !dy)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                              rocblas_status_success);
+
+        return;
+    }
+    size_x += + size_t(stride_x) * size_t(batch_count - 1);
+    size_y += + size_t(stride_y) * size_t(batch_count - 1);
 
     // allocate memory on device
     device_vector<T> dx(size_x);

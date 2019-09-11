@@ -68,7 +68,7 @@ namespace
             return rocblas_status_success;
 
         return rocblas_copy_strided_batched_template(
-            handle, n, x, incx, incx * n, y, incy, incy * n, 1);
+            handle, n, x, 0, incx, incx * n, y, 0, incy, incy * n, 1);
     }
 
 } // namespace

@@ -71,13 +71,7 @@ namespace
         if(n < 0 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible.
-        if(!n || !batch_count)
-            return rocblas_status_success;
-
-        std::cout << "GOT HERE 1" << std::endl;
-
-        return rocblas_copy_batched_template(handle, n, x, incx, y, incy, batch_count);
+        return rocblas_copy_batched_template(handle, n, x, 0, incx, y, 0, incy, batch_count);
     }
 
 } // namespace

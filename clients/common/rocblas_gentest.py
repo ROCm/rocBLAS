@@ -195,6 +195,25 @@ def setdefaults(test):
     # Do not put constant defaults here -- use rocblas_common.yaml for that.
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
+
+    if all([x in test for x in ('M', 'incx', 'strideScale')]) and test['function']=='ger_strided_batched':
+        test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
+                                    test['strideScale']))
+    elif all([x in test for x in ('N', 'incx', 'strideScale')]) and test['function']=='copy_strided_batched':
+        test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
+                                    test['strideScale']))
+    else:
+       test.setdefault('stride_x', 0)
+
+    if all([x in test for x in ('N', 'incy', 'strideScale')]) and test['function']=='ger_strided_batched':
+        test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
+                                        test['strideScale']))
+    elif all([x in test for x in ('N', 'incy', 'strideScale')]) and test['function']=='copy_strided_batched':
+        test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
+                                        test['strideScale']))
+    else:
+        test.setdefault('stride_y', 0)
+
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)
         test.setdefault('ldb', 0)
