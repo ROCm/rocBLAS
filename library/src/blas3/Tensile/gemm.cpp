@@ -164,7 +164,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+        return rocblas_gemm_template<false, false>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, 0, B, 0, ld_b, 0, beta, C, 0, ld_c, 0, 1);
     }
 
     template <typename T>
@@ -303,7 +303,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        rocblas_gemm_strided_batched_kernel_name_template<T>(trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
+        rocblas_gemm_kernel_name_template<false, T>(trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
 
         return validArgs;
     }

@@ -166,8 +166,8 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a,
-                                                B, offsetB, ld_b, beta, C, offsetC, ld_c, b_c);
+        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a, 0,
+                                                B, offsetB, ld_b, 0, beta, C, offsetC, ld_c, 0, b_c);
     }
 
 
@@ -311,7 +311,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        rocblas_gemm_strided_batched_kernel_name_template<T>(trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
+        rocblas_gemm_kernel_name_template<true, T>(trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
 
         return validArgs;
     }

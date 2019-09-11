@@ -350,31 +350,32 @@ namespace
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
            && compute_type == rocblas_datatype_f64_r)
         {
-            rb_status = gemm_ex_typecasting<double, double, double>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<false, double, double, double>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
                 && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting<float, float, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<false, float, float, float>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
                 && compute_type == rocblas_datatype_f16_r)
         {
-            rb_status = gemm_ex_typecasting<_Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
+            rb_status
+                = gemm_ex_typecasting<false, _Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting<_Float16, _Float16, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<false, _Float16, _Float16, float>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
                 && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting<tensile_bfloat16, tensile_bfloat16, float>(
+            rb_status = gemm_ex_typecasting<false, tensile_bfloat16, tensile_bfloat16, float>(
                 EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
@@ -397,7 +398,7 @@ namespace
                 stride_b = stride_b / 4;
                 k        = k / 4;
 
-                rb_status = gemm_ex_typecasting<TensileInt8x4, TensileInt32, TensileInt32>(
+                rb_status = gemm_ex_typecasting<false, TensileInt8x4, TensileInt32, TensileInt32>(
                     EX_TYPECASTING_PARM);
             }
         }
@@ -405,7 +406,8 @@ namespace
                 && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
                 && compute_type == rocblas_datatype_f32_c)
         {
-            rb_status = gemm_ex_typecasting<rocblas_float_complex,
+            rb_status = gemm_ex_typecasting<false,
+                                            rocblas_float_complex,
                                             rocblas_float_complex,
                                             rocblas_float_complex>(EX_TYPECASTING_PARM);
         }
@@ -413,7 +415,8 @@ namespace
                 && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
                 && compute_type == rocblas_datatype_f64_c)
         {
-            rb_status = gemm_ex_typecasting<rocblas_double_complex,
+            rb_status = gemm_ex_typecasting<false,
+                                            rocblas_double_complex,
                                             rocblas_double_complex,
                                             rocblas_double_complex>(EX_TYPECASTING_PARM);
         }

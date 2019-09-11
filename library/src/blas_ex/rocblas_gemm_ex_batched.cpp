@@ -313,40 +313,40 @@ namespace
 
         rocblas_status rb_status = rocblas_status_internal_error;
 
-#define EX_TYPECASTING_PARM                                                                \
-    handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, b, offset_b, ldb, beta, c, \
-        offset_c, ldc, d, offset_d, ldd, batch_count
+#define EX_TYPECASTING_PARM                                                                      \
+    handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, 0, b, offset_b, ldb, 0, beta, c, \
+        offset_c, ldc, 0, d, offset_d, ldd, 0, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
            && compute_type == rocblas_datatype_f64_r)
         {
-            rb_status = gemm_ex_typecasting_batched<double, double, double>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<true, double, double, double>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
                 && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting_batched<float, float, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<true, float, float, float>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
                 && compute_type == rocblas_datatype_f16_r)
         {
             rb_status
-                = gemm_ex_typecasting_batched<_Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
+                = gemm_ex_typecasting<true, _Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting_batched<_Float16, _Float16, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<true, _Float16, _Float16, float>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
                 && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status = gemm_ex_typecasting_batched<tensile_bfloat16, tensile_bfloat16, float>(
+            rb_status = gemm_ex_typecasting<true, tensile_bfloat16, tensile_bfloat16, float>(
                 EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
@@ -366,7 +366,7 @@ namespace
                 ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
                 k   = k / 4;
 
-                rb_status = gemm_ex_typecasting_batched<TensileInt8x4, TensileInt32, TensileInt32>(
+                rb_status = gemm_ex_typecasting<true, TensileInt8x4, TensileInt32, TensileInt32>(
                     EX_TYPECASTING_PARM);
             }
         }
@@ -374,17 +374,19 @@ namespace
                 && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
                 && compute_type == rocblas_datatype_f32_c)
         {
-            rb_status = gemm_ex_typecasting_batched<rocblas_float_complex,
-                                                    rocblas_float_complex,
-                                                    rocblas_float_complex>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<true,
+                                            rocblas_float_complex,
+                                            rocblas_float_complex,
+                                            rocblas_float_complex>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
                 && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
                 && compute_type == rocblas_datatype_f64_c)
         {
-            rb_status = gemm_ex_typecasting_batched<rocblas_double_complex,
-                                                    rocblas_double_complex,
-                                                    rocblas_double_complex>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<true,
+                                            rocblas_double_complex,
+                                            rocblas_double_complex,
+                                            rocblas_double_complex>(EX_TYPECASTING_PARM);
         }
         else
         {
