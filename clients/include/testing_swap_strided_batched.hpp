@@ -108,20 +108,12 @@ void testing_swap_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    // make all batches hx
-    rocblas_init<T>(hx, 1, size_x * batch_count, 1);
-    // make hy different to hx
-    for(int i = 0; i < batch_count; i++)
-    {
-        for(size_t j = 0; j < N; j++)
-        {
-            hy[i * stridex + j * abs_incy] = hx[i * stridex + j * abs_incx] + 1.0;
-        }
-    }
+    rocblas_init<T>(hx, 1, N, abs_incx, size_x, batch_count);
+    rocblas_init<T>(hy, 1, N, abs_incy, size_y, batch_count);
 
     hx_gold = hx;
     hy_gold = hy;
-    // use cpu BLAS to swap gold
+    // using cpu BLAS to compute swap gold later on
 
     // allocate memory on device
     device_vector<T> dx(size_x * batch_count);

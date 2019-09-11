@@ -4,6 +4,7 @@
 #pragma once
 #include "handle.h"
 #include "rocblas.h"
+#include "rocblas_swap.hpp"
 
 template <typename T>
 __global__ void rocblas_swap_kernel_batched(rocblas_int n,
@@ -11,7 +12,7 @@ __global__ void rocblas_swap_kernel_batched(rocblas_int n,
                                             rocblas_int shiftx,
                                             rocblas_int incx,
                                             T*          y[],
-                                            rocblas_int shiftx,
+                                            rocblas_int shifty,
                                             rocblas_int incy)
 {
     ssize_t tid = blockIdx.x * blockDim.x + threadIdx.x; // only dim1
@@ -24,9 +25,7 @@ __global__ void rocblas_swap_kernel_batched(rocblas_int n,
         xb -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
         yb -= (incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0;
 
-        auto tmp       = yb[tid * incy];
-        yb[tid * incy] = xb[tid * incx];
-        xb[tid * incx] = tmp;
+        rocblas_swap_vals(xb + tid * incx, yb + tid * incy);
     }
 }
 
@@ -58,7 +57,8 @@ rocblas_status rocblas_swap_batched_template(rocblas_handle handle,
                        rocblas_stream,
                        n,
                        x,
-                       shiftx incx,
+                       shiftx,
+                       incx,
                        y,
                        shifty,
                        incy);
