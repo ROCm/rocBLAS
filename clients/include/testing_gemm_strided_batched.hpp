@@ -22,18 +22,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int N = arg.N;
     rocblas_int K = arg.K;
 
-    T h_alpha;
-    T h_beta;
-    if(std::is_same<T, rocblas_half>{})
-    {
-        h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(rocblas_isnan(arg.beta) ? 0 : arg.beta);
-    }
-    else
-    {
-        h_alpha = arg.alpha;
-        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
-    }
+    T h_alpha = arg.get_alpha<T>();
+    T h_beta  = arg.get_beta<T>();
 
     rocblas_int lda = arg.lda;
     rocblas_int ldb = arg.ldb;
@@ -132,7 +122,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    if(rocblas_isnan(arg.beta))
+    if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
@@ -315,11 +305,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
-                  << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
-                  << ldc << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used;
+                  << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
+                  << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
+                  << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

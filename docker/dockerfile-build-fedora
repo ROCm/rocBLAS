@@ -28,6 +28,7 @@ RUN dnf -y update && dnf install -y \
     libcxx-devel \
     rpm-build \
     boost-devel \
+    zlib-devel \
     && \
     dnf -y clean all
 

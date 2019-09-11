@@ -190,7 +190,6 @@ __device__ void gemvn_kernel(rocblas_int                   m,
     rocblas_int ty = thread_id / DIM_X;
 
     rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
-    ;
 
     __shared__ rocblas_double_complex sdata[DIM_X * DIM_Y];
 

@@ -293,7 +293,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     int32_t           solution_index(arg.solution_index);
     uint32_t          flags(arg.flags);
 
-    bool nantest    = rocblas_isnan(arg.beta);
+    bool nantest    = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
     Tc   h_alpha_Tc = arg.get_alpha<Tc>();
     Tc   h_beta_Tc  = arg.get_beta<Tc>();
 
@@ -759,10 +759,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                 arg.c_type,
                                                                 ldc,
                                                                 stride_c,
-                                                                dC,
-                                                                arg.c_type,
-                                                                ldc,
-                                                                stride_c,
+                                                                dD,
+                                                                arg.d_type,
+                                                                ldd,
+                                                                stride_d,
                                                                 batch_count,
                                                                 arg.compute_type,
                                                                 algo,
@@ -794,10 +794,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                             arg.c_type,
                                             ldc,
                                             stride_c,
-                                            dC,
-                                            arg.c_type,
-                                            ldc,
-                                            stride_c,
+                                            dD,
+                                            arg.d_type,
+                                            ldd,
+                                            stride_d,
                                             batch_count,
                                             arg.compute_type,
                                             algo,

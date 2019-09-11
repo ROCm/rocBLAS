@@ -15,6 +15,8 @@ ARG user_uid
 # * libhsakmt.so: libnuma1
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     sudo \
+    rock-dkms \
+    rocm_smi64 \
     ca-certificates \
     git \
     make \

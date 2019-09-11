@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-#set -x #echo on
+set -x #echo on
 
 # #################################################
 # helper functions
@@ -22,6 +22,7 @@ function display_help()
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
+  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
 }
 
@@ -48,8 +49,8 @@ supported_distro( )
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
 check_exit_code( )
 {
-  if (( $? != 0 )); then
-    exit $?
+  if (( $1 != 0 )); then
+    exit $1
   fi
 }
 
@@ -60,10 +61,10 @@ elevate_if_not_root( )
 
   if (( ${uid} )); then
     sudo $@
-    check_exit_code
+    check_exit_code "$?"
   else
     $@
-    check_exit_code
+    check_exit_code "$?"
   fi
 }
 
@@ -119,9 +120,19 @@ install_packages( )
   fi
 
   # dependencies needed for rocblas and clients to build
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python3" "python-yaml" "python3-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
-  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "llvm-6.0-dev" "libomp-dev"
+                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
+  local library_dependencies_centos=( "epel-release"
+                                      "make" "cmake3" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
+                                      "hip_hcc" "rocm_smi64" "libgomp" "zlib-devel" )
+  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "libcxx-devel" "libgomp"
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -130,9 +141,9 @@ install_packages( )
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
   fi
 
-  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" )
-  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" )
-  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" )
+  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev")
+  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp")
+  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp")
 
   case "${ID}" in
     ubuntu)
@@ -204,10 +215,11 @@ install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_cov=V2
 tensile_fork=
-tensile_branch=
+tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
+cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
 
@@ -218,7 +230,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path: --options hicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options hicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -259,7 +271,7 @@ while true; do
         tensile_fork=${2}
         shift 2 ;;
     -b|--branch)
-        tensile_branch=${2}
+        tensile_tag=${2}
         shift 2 ;;
     -t|--test_local_path)
         tensile_test_local_path=${2}
@@ -267,6 +279,9 @@ while true; do
     --cuda)
         build_cuda=true
         shift ;;
+    --cpu_ref_lib)
+        cpu_ref_lib=${2}
+        shift 2 ;;
     --hip-clang)
         build_hip_clang=true
         shift ;;
@@ -279,6 +294,15 @@ while true; do
         ;;
   esac
 done
+
+if [[ "${cpu_ref_lib}" == blis ]]; then
+  LINK_BLIS=true
+elif [[ "${cpu_ref_lib}" == lapack ]]; then
+  LINK_BLIS=false
+else
+  echo "Currently the only CPU library options are blis and lapack"
+      exit 2
+fi
 
 build_dir=./build
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
@@ -313,10 +337,25 @@ if [[ "${install_dependencies}" == true ]]; then
   pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    ${cmake_executable} -DBUILD_BOOST=OFF ../../deps
+    ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
   popd
+
+fi
+
+if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+  git submodule update --init
+  cd extern/blis
+  if [[ -e "/etc/redhat-release" ]]; then  
+    echo 'CentOS detected'
+    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+  else
+    echo 'Ubuntu detected'
+     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+  fi
+  make install
+  cd ../..
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
@@ -329,7 +368,9 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+
+  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -344,13 +385,20 @@ pushd .
     cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
   fi
 
-  if [[ -n "${tensile_branch}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_branch=${tensile_branch}"
+  if [[ -n "${tensile_tag}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_tag=${tensile_tag}"
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
+
+
+case "${ID}" in
+  centos|rhel)
+  cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
+  ;;
+esac
 
   # clients
   if [[ "${build_clients}" == true ]]; then
@@ -371,10 +419,10 @@ pushd .
   else
     CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   fi
-  check_exit_code
+  check_exit_code "$?"
 
   make -j$(nproc) install
-  check_exit_code
+  check_exit_code "$?"
 
   # #################################################
   # install
@@ -382,7 +430,7 @@ pushd .
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    check_exit_code
+    check_exit_code "$?"
 
     case "${ID}" in
       ubuntu)

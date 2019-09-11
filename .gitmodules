@@ -1,0 +1,4 @@
+[submodule "extern/blis"]
+	path = extern/blis
+	url = https://github.com/amd/blis.git
+	branch = 1.3
