@@ -140,7 +140,7 @@ include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.7.0" )
+set ( VERSION_STRING "2.8.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -182,7 +182,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 9c63a0bf1c0acdb44376ddc80b867beb3386981a CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 015477ad8c8ea0ef6f59b8d49a65015b46b8a48e CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
