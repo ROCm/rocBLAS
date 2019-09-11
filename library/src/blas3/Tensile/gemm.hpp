@@ -899,24 +899,24 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
     }
     else
     {
-        hipError_t status = call_tensile<T>(alpha,
-                                            beta,
-                                            A + offset_a,
-                                            B + offset_b,
-                                            C + offset_c,
-                                            trans_a,
-                                            trans_b,
-                                            strideC1,
-                                            strideC2,
-                                            strideA1,
-                                            strideA2,
-                                            strideB1,
-                                            strideB2,
-                                            sizeI,
-                                            sizeJ,
-                                            sizeK,
-                                            sizeL,
-                                            handle);
+        status = call_tensile<T>(alpha,
+                                 beta,
+                                 A + offset_a,
+                                 B + offset_b,
+                                 C + offset_c,
+                                 trans_a,
+                                 trans_b,
+                                 strideC1,
+                                 strideC2,
+                                 strideA1,
+                                 strideA2,
+                                 strideB1,
+                                 strideB2,
+                                 sizeI,
+                                 sizeJ,
+                                 sizeK,
+                                 sizeL,
+                                 handle);
     }
 
     return get_rocblas_status_for_hip_status(status);

@@ -721,7 +721,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     rb_status = (t_status == tensileStatusSuccess) ? rocblas_status_success : rocblas_status_internal_error;
     return rb_status;
 }
-#define USE_CHUNKING 1
+
 #if defined(USE_CHUNKING)
 
 template <typename Ti, typename To, typename To2, typename Tc>
@@ -849,7 +849,6 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
 #else
 #define gemm_ex_chunking gemm_ex_handle_transpose
 #endif // defined(USE_CHUNKING)
-#undef USE_CHUNKING
 
 template <bool BATCHED, typename Ti, typename To, typename Tc>
 rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
@@ -901,30 +900,30 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
             return rocblas_status_invalid_size;
 
         return gemm_ex_chunking(handle,
-                                        trans_a,
-                                        trans_b,
-                                        unsigned(m),
-                                        unsigned(n),
-                                        unsigned(k),
-                                        h_alpha,
-                                        (const Ti**)a,
-                                        unsigned(offsetAin),
-                                        unsigned(lda),
-                                        unsigned(stride_a),
-                                        (const Ti**)b,
-                                        unsigned(offsetBin),
-                                        unsigned(ldb),
-                                        unsigned(stride_b),
-                                        h_beta,
-                                        (const To**)c,
-                                        unsigned(offsetCin),
-                                        unsigned(ldc),
-                                        unsigned(stride_c),
-                                        (To**)d,
-                                        unsigned(offsetDin),
-                                        unsigned(ldd),
-                                        unsigned(stride_d),
-                                        unsigned(batch_count));
+                                trans_a,
+                                trans_b,
+                                unsigned(m),
+                                unsigned(n),
+                                unsigned(k),
+                                h_alpha,
+                                (const Ti**)a,
+                                unsigned(offsetAin),
+                                unsigned(lda),
+                                unsigned(stride_a),
+                                (const Ti**)b,
+                                unsigned(offsetBin),
+                                unsigned(ldb),
+                                unsigned(stride_b),
+                                h_beta,
+                                (const To**)c,
+                                unsigned(offsetCin),
+                                unsigned(ldc),
+                                unsigned(stride_c),
+                                (To**)d,
+                                unsigned(offsetDin),
+                                unsigned(ldd),
+                                unsigned(stride_d),
+                                unsigned(batch_count));
     }
     else
     {
@@ -933,30 +932,30 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
             return rocblas_status_invalid_size;
 
         return gemm_ex_chunking(handle,
-                                        trans_a,
-                                        trans_b,
-                                        unsigned(m),
-                                        unsigned(n),
-                                        unsigned(k),
-                                        h_alpha,
-                                        (const Ti*)a,
-                                        unsigned(offsetAin),
-                                        unsigned(lda),
-                                        unsigned(stride_a),
-                                        (const Ti*)b,
-                                        unsigned(offsetBin),
-                                        unsigned(ldb),
-                                        unsigned(stride_b),
-                                        h_beta,
-                                        (const To*)c,
-                                        unsigned(offsetCin),
-                                        unsigned(ldc),
-                                        unsigned(stride_c),
-                                        (To*)d,
-                                        unsigned(offsetDin),
-                                        unsigned(ldd),
-                                        unsigned(stride_d),
-                                        unsigned(batch_count));
+                                trans_a,
+                                trans_b,
+                                unsigned(m),
+                                unsigned(n),
+                                unsigned(k),
+                                h_alpha,
+                                (const Ti*)a,
+                                unsigned(offsetAin),
+                                unsigned(lda),
+                                unsigned(stride_a),
+                                (const Ti*)b,
+                                unsigned(offsetBin),
+                                unsigned(ldb),
+                                unsigned(stride_b),
+                                h_beta,
+                                (const To*)c,
+                                unsigned(offsetCin),
+                                unsigned(ldc),
+                                unsigned(stride_c),
+                                (To*)d,
+                                unsigned(offsetDin),
+                                unsigned(ldd),
+                                unsigned(stride_d),
+                                unsigned(batch_count));
     }
 
     
