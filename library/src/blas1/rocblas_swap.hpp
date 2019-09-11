@@ -6,14 +6,21 @@
 #include "rocblas.h"
 
 template <typename T>
+__forceinline__ __device__ __host__ void
+    rocblas_swap_vals(T* x, T* y)
+{
+    T tmp   = *y;
+    *y = *x;
+    *x = tmp;
+}
+
+template <typename T>
 __global__ void rocblas_swap_kernel(rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n)
     {
-        auto tmp      = y[tid * incy];
-        y[tid * incy] = x[tid * incx];
-        x[tid * incx] = tmp;
+        rocblas_swap_vals(x + tid * incx, y + tid * incy);
     }
 }
 

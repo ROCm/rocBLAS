@@ -200,9 +200,13 @@ def setdefaults(test):
         if all([x in test for x in ('N', 'incx', 'stride_scale')]):
             test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
                                             test['stride_scale']))
+        else:
+            test.setdefault('stride_x', 0)
         if all([x in test for x in ('N', 'incy', 'stride_scale')]):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['stride_scale']))
+        else:
+            test.setdefault('stride_y', 0)
     else:
         if all([x in test for x in ('M', 'incx', 'strideScale')]) and test['function']=='ger_strided_batched':
             test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *

@@ -49,7 +49,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         constexpr rocblas_int NB = 256;
-        return rocblas_swap_template<NB>(n, x, incx, y, incy);
+        return rocblas_swap_template<NB>(handle, n, x, incx, y, incy);
     }
 
 } // namespace

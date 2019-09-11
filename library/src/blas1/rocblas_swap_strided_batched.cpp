@@ -85,15 +85,15 @@ namespace
 
         size_t abs_incx = incx >= 0 ? incx : -incx;
         size_t abs_incy = incy >= 0 ? incy : -incy;
-        if(!incx || !incy || (stridex < n * abs_incx) || (stridey < n * abs_incy)
-           || (batch_count < 0))
+        if(!incx || !incy || (stridex < n * abs_incx) || (stridey < n * abs_incy) || stridex < 0
+           || stridey < 0 || batch_count < 0)
             return rocblas_status_invalid_size;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         constexpr rocblas_int NB = 256;
         return rocblas_swap_strided_batched_template<NB>(
-            n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
+            handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 }
 
