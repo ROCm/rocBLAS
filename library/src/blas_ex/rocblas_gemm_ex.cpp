@@ -307,9 +307,9 @@ namespace
         rocblas_int    stride_c    = ldc * n;
         rocblas_int    stride_d    = ldd * n;
 
-#define EX_TYPECASTING_PARM                                                                     \
-    handle, trans_a, trans_b, m, n, k, alpha, a, lda, stride_a, b, ldb, stride_b, beta, c, ldc, \
-        stride_c, d, ldd, stride_d, batch_count
+#define EX_TYPECASTING_PARM                                                                      \
+    handle, trans_a, trans_b, m, n, k, alpha, a, 0, lda, stride_a, b, 0, ldb, stride_b, beta, c, \
+        0, ldc, stride_c, d, 0, ldd, stride_d, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
