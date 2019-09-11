@@ -40,17 +40,16 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 template <typename T>
 void testing_iamax_bad_arg(const Arguments& arg)
 {
-  testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax<T>);
+    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax<T>);
 }
 
 template <typename T>
 void testing_iamin_bad_arg(const Arguments& arg)
 {
-  testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin<T>);
+    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin<T>);
 }
 
-template <typename T,
-          void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
+template <typename T, void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
 void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 {
     rocblas_int N    = arg.N;
@@ -257,11 +256,11 @@ namespace rocblas_cblas
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-  testing_iamax_iamin<T, rocblas_cblas::cblas_iamax<T>>(arg, rocblas_iamax<T>);
+    testing_iamax_iamin<T, rocblas_cblas::cblas_iamax<T>>(arg, rocblas_iamax<T>);
 }
 
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
-  testing_iamax_iamin<T, rocblas_cblas::cblas_iamin<T>>(arg, rocblas_iamin<T>);
+    testing_iamax_iamin<T, rocblas_cblas::cblas_iamin<T>>(arg, rocblas_iamin<T>);
 }
