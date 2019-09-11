@@ -1,15 +1,16 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "gemm.hpp"
 #include "Tensile.h"
+#include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
 #include <sys/time.h>
 
-namespace {
+namespace
+{
 
     template <typename>
     static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
@@ -19,10 +20,12 @@ namespace {
         = "rocblas_hgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
+    static constexpr char rocblas_gemm_strided_batched_name<float>[]
+        = "rocblas_sgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
+    static constexpr char rocblas_gemm_strided_batched_name<double>[]
+        = "rocblas_dgemm_strided_batched";
 
     template <>
     static constexpr char rocblas_gemm_strided_batched_name<rocblas_float_complex>[]
@@ -37,23 +40,26 @@ namespace {
     ******************************************************************************/
     template <typename T>
     rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
-                                                    rocblas_operation trans_a,
-                                                    rocblas_operation trans_b,
-                                                    rocblas_int       m,
-                                                    rocblas_int       n,
-                                                    rocblas_int       k,
-                                                    const T*          alpha,
-                                                    const T*          A,
-                                                    rocblas_int       ld_a,
-                                                    rocblas_int       stride_a,
-                                                    const T*          B,
-                                                    rocblas_int       ld_b,
-                                                    rocblas_int       stride_b,
-                                                    const T*          beta,
-                                                    T*                C,
-                                                    rocblas_int       ld_c,
-                                                    rocblas_int       stride_c,
-                                                    rocblas_int       b_c)
+                                                     rocblas_operation trans_a,
+                                                     rocblas_operation trans_b,
+                                                     rocblas_int       m,
+                                                     rocblas_int       n,
+                                                     rocblas_int       k,
+                                                     const T*          alpha,
+                                                     const T*          A,
+                                                     rocblas_int       offset_a,
+                                                     rocblas_int       ld_a,
+                                                     rocblas_int       stride_a,
+                                                     const T*          B,
+                                                     rocblas_int       offset_b,
+                                                     rocblas_int       ld_b,
+                                                     rocblas_int       stride_b,
+                                                     const T*          beta,
+                                                     T*                C,
+                                                     rocblas_int       offset_c,
+                                                     rocblas_int       ld_c,
+                                                     rocblas_int       stride_c,
+                                                     rocblas_int       b_c)
 
     {
         // clang-format off
@@ -192,11 +198,6 @@ namespace {
             }
         }
 
-        if(m == 0 || n == 0 || k == 0 || b_c == 0)
-        {
-            return rocblas_status_success;
-        }
-
         rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                         m, n, k, alpha,
                                         A, ld_a, stride_a,
@@ -206,34 +207,33 @@ namespace {
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_strided_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, stride_a, B, ld_b, stride_b, beta, C, ld_c, stride_c, b_c);
+        return rocblas_gemm_strided_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, offset_a, ld_a, stride_a, B, offset_b, ld_b, stride_b, beta, C, offset_c, ld_c, stride_c, b_c);
 
         // clang-format on
     }
-
 
     /*******************************************************************************
     * Batched / Strided GEMM Kernel name implementation
     ******************************************************************************/
     template <typename T>
     rocblas_status rocblas_gemm_strided_batched_kernel_name_impl(rocblas_handle    handle,
-                                                                rocblas_operation trans_a,
-                                                                rocblas_operation trans_b,
-                                                                rocblas_int       m,
-                                                                rocblas_int       n,
-                                                                rocblas_int       k,
-                                                                const T*          alpha,
-                                                                const T*          A,
-                                                                rocblas_int       ld_a,
-                                                                rocblas_int       stride_a,
-                                                                const T*          B,
-                                                                rocblas_int       ld_b,
-                                                                rocblas_int       stride_b,
-                                                                const T*          beta,
-                                                                T*                C,
-                                                                rocblas_int       ld_c,
-                                                                rocblas_int       stride_c,
-                                                                rocblas_int       b_c)
+                                                                 rocblas_operation trans_a,
+                                                                 rocblas_operation trans_b,
+                                                                 rocblas_int       m,
+                                                                 rocblas_int       n,
+                                                                 rocblas_int       k,
+                                                                 const T*          alpha,
+                                                                 const T*          A,
+                                                                 rocblas_int       ld_a,
+                                                                 rocblas_int       stride_a,
+                                                                 const T*          B,
+                                                                 rocblas_int       ld_b,
+                                                                 rocblas_int       stride_b,
+                                                                 const T*          beta,
+                                                                 T*                C,
+                                                                 rocblas_int       ld_c,
+                                                                 rocblas_int       stride_c,
+                                                                 rocblas_int       b_c)
     {
         // clang-format off
         if(!handle)
@@ -402,10 +402,10 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, ld_a, stride_a,
-        B, ld_b, stride_b,
+        A, 0, ld_a, stride_a,
+        B, 0, ld_b, stride_b,
         beta,
-        C, ld_c, stride_c, b_c);
+        C, 0, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
@@ -431,10 +431,10 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, ld_a, stride_a,
-        B, ld_b, stride_b,
+        A, 0, ld_a, stride_a,
+        B, 0, ld_b, stride_b,
         beta,
-        C, ld_c, stride_c, b_c);
+        C, 0, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
@@ -460,10 +460,10 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, ld_a, stride_a,
-        B, ld_b, stride_b,
+        A, 0, ld_a, stride_a,
+        B, 0, ld_b, stride_b,
         beta,
-        C, ld_c, stride_c, b_c);
+        C, 0, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
@@ -489,10 +489,10 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, ld_a, stride_a,
-        B, ld_b, stride_b,
+        A, 0, ld_a, stride_a,
+        B, 0, ld_b, stride_b,
         beta,
-        C, ld_c, stride_c, b_c);
+        C, 0, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
@@ -518,10 +518,10 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, ld_a, stride_a,
-        B, ld_b, stride_b,
+        A, 0, ld_a, stride_a,
+        B, 0, ld_b, stride_b,
         beta,
-        C, ld_c, stride_c, b_c);
+        C, 0, ld_c, stride_c, b_c);
 }
 
 /*******************************************************************************

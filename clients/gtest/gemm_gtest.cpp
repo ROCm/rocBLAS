@@ -5,9 +5,9 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_gemm.hpp"
-#include "testing_gemm_ex.hpp"
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
+#include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
@@ -69,7 +69,8 @@ namespace
                        || !strcmp(arg.function, "gemm_batched_bad_arg");
 
             case GEMM_BATCHED_EX:
-                return !strcmp(arg.function, "gemm_batched_ex") || !strcmp(arg.function, "gemm_batched_ex_bad_arg");
+                return !strcmp(arg.function, "gemm_batched_ex")
+                       || !strcmp(arg.function, "gemm_batched_ex_bad_arg");
 
             case GEMM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "gemm_strided_batched");
@@ -87,9 +88,11 @@ namespace
         {
             RocBLAS_TestName<gemm_test_template> name;
             name << rocblas_datatype2string(arg.a_type);
-            bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
-            bool isBatched = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
-                           || GEMM_TYPE == GEMM_BATCHED         || GEMM_TYPE == GEMM_BATCHED_EX);
+            bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
+                         || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
+            bool isBatched
+                = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
+                   || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
 
             if(isEx)
                 name << rocblas_datatype2string(arg.b_type) << rocblas_datatype2string(arg.c_type)

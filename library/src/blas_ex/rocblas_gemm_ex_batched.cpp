@@ -9,7 +9,8 @@
 #include "rocblas.h"
 #include "utility.h"
 
-namespace {
+namespace
+{
 
     rocblas_status rocblas_gemm_batched_ex_impl(rocblas_handle    handle,
                                                 rocblas_operation trans_a,
@@ -52,8 +53,8 @@ namespace {
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
-        & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-            | rocblas_layer_mode_log_profile))
+           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+              | rocblas_layer_mode_log_profile))
         {
             char trans_a_letter, trans_b_letter;
             if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
@@ -143,73 +144,73 @@ namespace {
                     if(layer_mode & rocblas_layer_mode_log_trace)
                     {
                         log_trace(handle,
-                                "rocblas_gemm_batched_ex",
-                                trans_a,
-                                trans_b,
-                                m,
-                                n,
-                                k,
-                                alphass.str(),
-                                a,
-                                a_type_string,
-                                lda,
-                                b,
-                                b_type_string,
-                                ldb,
-                                betass.str(),
-                                c,
-                                c_type_string,
-                                ldc,
-                                d,
-                                d_type_string,
-                                ldd,
-                                batch_count,
-                                compute_type_string,
-                                algo,
-                                solution_index,
-                                flags);
+                                  "rocblas_gemm_batched_ex",
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alphass.str(),
+                                  a,
+                                  a_type_string,
+                                  lda,
+                                  b,
+                                  b_type_string,
+                                  ldb,
+                                  betass.str(),
+                                  c,
+                                  c_type_string,
+                                  ldc,
+                                  d,
+                                  d_type_string,
+                                  ldd,
+                                  batch_count,
+                                  compute_type_string,
+                                  algo,
+                                  solution_index,
+                                  flags);
                     }
                     if(layer_mode & rocblas_layer_mode_log_bench)
                     {
                         log_bench(handle,
-                                "./rocblas-bench -f gemm_batched_ex",
-                                "--transposeA",
-                                trans_a_letter,
-                                "--transposeB",
-                                trans_b_letter,
-                                "-m",
-                                m,
-                                "-n",
-                                n,
-                                "-k",
-                                k,
-                                bench_alphass.str(),
-                                "--a_type",
-                                a_type_string,
-                                "--lda",
-                                lda,
-                                "--b_type",
-                                b_type_string,
-                                "--ldb",
-                                ldb,
-                                bench_betass.str(),
-                                "--c_type",
-                                c_type_string,
-                                "--ldc",
-                                "--d_type",
-                                d_type_string,
-                                "--ldd",
-                                ldd,
-                                "--batch",
-                                batch_count,
-                                "--compute_type",
-                                compute_type_string,
-                                "--algo",
-                                algo,
-                                "--solution_index",
-                                solution_index,
-                                "--flags",
-                                flags);
+                                  "./rocblas-bench -f gemm_batched_ex",
+                                  "--transposeA",
+                                  trans_a_letter,
+                                  "--transposeB",
+                                  trans_b_letter,
+                                  "-m",
+                                  m,
+                                  "-n",
+                                  n,
+                                  "-k",
+                                  k,
+                                  bench_alphass.str(),
+                                  "--a_type",
+                                  a_type_string,
+                                  "--lda",
+                                  lda,
+                                  "--b_type",
+                                  b_type_string,
+                                  "--ldb",
+                                  ldb,
+                                  bench_betass.str(),
+                                  "--c_type",
+                                  c_type_string,
+                                  "--ldc",
+                                  "--d_type",
+                                  d_type_string,
+                                  "--ldd",
+                                  ldd,
+                                  "--batch",
+                                  batch_count,
+                                  "--compute_type",
+                                  compute_type_string,
+                                  "--algo",
+                                  algo,
+                                  "--solution_index",
+                                  solution_index,
+                                  "--flags",
+                                  flags);
                     }
                 }
                 else
@@ -217,31 +218,31 @@ namespace {
                     if(layer_mode & rocblas_layer_mode_log_trace)
                     {
                         log_trace(handle,
-                                "rocblas_gemm_batched_ex",
-                                trans_a,
-                                trans_b,
-                                m,
-                                n,
-                                k,
-                                alpha,
-                                a,
-                                a_type,
-                                lda,
-                                b,
-                                b_type,
-                                ldb,
-                                beta,
-                                c,
-                                c_type,
-                                ldc,
-                                d,
-                                d_type,
-                                ldd,
-                                batch_count,
-                                compute_type,
-                                algo,
-                                solution_index,
-                                flags);
+                                  "rocblas_gemm_batched_ex",
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alpha,
+                                  a,
+                                  a_type,
+                                  lda,
+                                  b,
+                                  b_type,
+                                  ldb,
+                                  beta,
+                                  c,
+                                  c_type,
+                                  ldc,
+                                  d,
+                                  d_type,
+                                  ldd,
+                                  batch_count,
+                                  compute_type,
+                                  algo,
+                                  solution_index,
+                                  flags);
                     }
                 }
             }
@@ -312,13 +313,13 @@ namespace {
 
         rocblas_status rb_status = rocblas_status_internal_error;
 
-    #define EX_TYPECASTING_PARM                                                 \
-        handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, b, offset_b, ldb, beta, c, offset_c, ldc, \
-            d, offset_d, ldd, batch_count
+#define EX_TYPECASTING_PARM                                                                \
+    handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, b, offset_b, ldb, beta, c, \
+        offset_c, ldc, d, offset_d, ldd, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
-        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
-        && compute_type == rocblas_datatype_f64_r)
+           && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
+           && compute_type == rocblas_datatype_f64_r)
         {
             rb_status = gemm_ex_typecasting_batched<double, double, double>(EX_TYPECASTING_PARM);
         }
@@ -332,7 +333,8 @@ namespace {
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
                 && compute_type == rocblas_datatype_f16_r)
         {
-            rb_status = gemm_ex_typecasting_batched<_Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
+            rb_status
+                = gemm_ex_typecasting_batched<_Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
                 && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
@@ -344,8 +346,8 @@ namespace {
                 && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status
-                = gemm_ex_typecasting_batched<tensile_bfloat16, tensile_bfloat16, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting_batched<tensile_bfloat16, tensile_bfloat16, float>(
+                EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
                 && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
@@ -353,16 +355,16 @@ namespace {
         {
             // For now, K must be a multiple of 4
             if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
-            || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)))
+               || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)))
             {
                 rb_status = rocblas_status_invalid_size;
             }
             else
             {
                 // adjust by 4 for Tensile
-                lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
-                ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-                k        = k / 4;
+                lda = (trans_a == rocblas_operation_none) ? lda : lda / 4;
+                ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
+                k   = k / 4;
 
                 rb_status = gemm_ex_typecasting_batched<TensileInt8x4, TensileInt32, TensileInt32>(
                     EX_TYPECASTING_PARM);
@@ -373,30 +375,29 @@ namespace {
                 && compute_type == rocblas_datatype_f32_c)
         {
             rb_status = gemm_ex_typecasting_batched<rocblas_float_complex,
-                                            rocblas_float_complex,
-                                            rocblas_float_complex>(EX_TYPECASTING_PARM);
+                                                    rocblas_float_complex,
+                                                    rocblas_float_complex>(EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
                 && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
                 && compute_type == rocblas_datatype_f64_c)
         {
             rb_status = gemm_ex_typecasting_batched<rocblas_double_complex,
-                                            rocblas_double_complex,
-                                            rocblas_double_complex>(EX_TYPECASTING_PARM);
+                                                    rocblas_double_complex,
+                                                    rocblas_double_complex>(EX_TYPECASTING_PARM);
         }
         else
         {
             rb_status = rocblas_status_not_implemented;
         }
-    #undef EX_TYPECASTING_PARM
+#undef EX_TYPECASTING_PARM
 
         return rb_status;
     }
 
 }
 
-
-extern "C" rocblas_status rocblas_gemm_batched_ex(rocblas_handle handle,
+extern "C" rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
                                                   rocblas_operation trans_a,
                                                   rocblas_operation trans_b,
                                                   rocblas_int       m,
@@ -422,7 +423,33 @@ extern "C" rocblas_status rocblas_gemm_batched_ex(rocblas_handle handle,
                                                   int32_t           solution_index,
                                                   uint32_t          flags)
 {
-    return rocblas_gemm_batched_ex_impl(handle, trans_a, trans_b, m, n, k, alpha, a, a_type, 0, lda,
-                                   b, b_type, 0, ldb, beta, c, c_type, 0, ldc, d, d_type, 0, ldd,
-                                   batch_count, compute_type, algo, solution_index, flags);
+    return rocblas_gemm_batched_ex_impl(handle,
+                                        trans_a,
+                                        trans_b,
+                                        m,
+                                        n,
+                                        k,
+                                        alpha,
+                                        a,
+                                        a_type,
+                                        0,
+                                        lda,
+                                        b,
+                                        b_type,
+                                        0,
+                                        ldb,
+                                        beta,
+                                        c,
+                                        c_type,
+                                        0,
+                                        ldc,
+                                        d,
+                                        d_type,
+                                        0,
+                                        ldd,
+                                        batch_count,
+                                        compute_type,
+                                        algo,
+                                        solution_index,
+                                        flags);
 }

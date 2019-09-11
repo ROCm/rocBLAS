@@ -5,13 +5,12 @@
 #pragma once
 #ifndef _GEMM_HOST_HPP_
 #define _GEMM_HOST_HPP_
-#include "rocblas.h"
-#include "handle.h"
 #include "Tensile.h"
+#include "handle.h"
 #include "rocblas-types.h"
+#include "rocblas.h"
 #include "utility.h"
 #include <sys/time.h>
-
 
 /*******************************************************************************
  * Helper enumeration over different transpose combinations
@@ -541,36 +540,35 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!m || !n || !k || !batch_count)
         return rocblas_status_success;
 
-     // sizes must not be negative
+    // sizes must not be negative
     if(m < 0 || n < 0 || k < 0 || batch_count < 0)
         return rocblas_status_invalid_size;
 
-     // handle must be valid
+    // handle must be valid
     if(!handle)
         return rocblas_status_invalid_handle;
 
-     // pointers must be valid
+    // pointers must be valid
     if(!c || !a || !b || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-     // for(int i = 0; i < batch_count; i++)
+    // for(int i = 0; i < batch_count; i++)
     //     if(!a[i] || !b[i] || !c[i])
     //         return rocblas_status_invalid_pointer;
 
-     rocblas_int num_cols_c = n;
+    rocblas_int num_cols_c = n;
     rocblas_int num_rows_c = m;
     rocblas_int num_cols_a = trans_a == rocblas_operation_none ? k : m;
     rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
     rocblas_int num_cols_b = trans_b == rocblas_operation_none ? n : k;
     rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
 
-     // leading dimensions must be valid
+    // leading dimensions must be valid
     if(num_rows_a > ld_a || num_rows_b > ld_b || num_rows_c > ld_c)
         return rocblas_status_invalid_size;
 
-     return rocblas_status_success;
+    return rocblas_status_success;
 } // validate parameters
-
 
 /*******************************************************************************
  * Tensile Solution Name (debug only)
@@ -770,7 +768,6 @@ const char* tensileGetSolutionName<rocblas_double_complex>(rocblas_operation tra
 
 #undef TENSILE_ARG_NAMES
 
-
 /* ============================================================================================ */
 
 /*
@@ -780,7 +777,6 @@ const char* tensileGetSolutionName<rocblas_double_complex>(rocblas_operation tra
  *    call GEMM C interfaces (see gemm.cpp in the same dir)
  * ===========================================================================
  */
-
 
 /* ============================================================================================ */
 
@@ -800,60 +796,58 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                             T*                C,
                                             rocblas_int       ld_c)
 {
-    rocblas_int b_c = 1;
-    if(m == 0 || n == 0 || k == 0)
-    {
-        return rocblas_status_success;
-    }
-
     rocblas_int stride_a;
     rocblas_int stride_b;
     rocblas_int stride_c;
 
-    infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
-                        &stride_a, ld_b, &stride_b, ld_c, &stride_c);
+    infer_batch_strides(
+        trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c);
 
-    unsigned int strideC1 = static_cast<unsigned int>(ld_c);
-    unsigned int strideC2 = static_cast<unsigned int>(stride_c);
-    unsigned int strideA1 = static_cast<unsigned int>(ld_a);
-    unsigned int strideA2 = static_cast<unsigned int>(stride_a);
-    unsigned int strideB1 = static_cast<unsigned int>(ld_b);
-    unsigned int strideB2 = static_cast<unsigned int>(stride_b);
-    unsigned int sizeI    = static_cast<unsigned int>(m);
-    unsigned int sizeJ    = static_cast<unsigned int>(n);
-    unsigned int sizeK    = 1;
-    unsigned int sizeL    = static_cast<unsigned int>(k);
-
-    hipError_t status = call_tensile<T>(alpha, beta, A, B, C,
-                                        trans_a, trans_b,
-                                        strideC1, strideC2,
-                                        strideA1, strideA2,
-                                        strideB1, strideB2,
-                                        sizeI, sizeJ, sizeK, sizeL,
-                                        handle);
-
-    return get_rocblas_status_for_hip_status(status);
+    return rocblas_gemm_strided_batched_template(handle,
+                                                 trans_a,
+                                                 trans_b,
+                                                 m,
+                                                 n,
+                                                 k,
+                                                 alpha,
+                                                 A,
+                                                 0,
+                                                 ld_a,
+                                                 stride_a,
+                                                 B,
+                                                 0,
+                                                 ld_b,
+                                                 stride_b,
+                                                 beta,
+                                                 C,
+                                                 0,
+                                                 ld_c,
+                                                 stride_c,
+                                                 1);
 }
 
 template <typename T>
-inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle      handle,
-                                                            rocblas_operation   trans_a,
-                                                            rocblas_operation   trans_b,
-                                                            rocblas_int         m,
-                                                            rocblas_int         n,
-                                                            rocblas_int         k,
-                                                            const T*            alpha,
-                                                            const T*            A,
-                                                            rocblas_int         ld_a,
-                                                            rocblas_int         stride_a,
-                                                            const T*            B,
-                                                            rocblas_int         ld_b,
-                                                            rocblas_int         stride_b,
-                                                            const T*            beta,
-                                                            T*                  C,
-                                                            rocblas_int         ld_c,
-                                                            rocblas_int         stride_c,
-                                                            rocblas_int         b_c)
+inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle    handle,
+                                                            rocblas_operation trans_a,
+                                                            rocblas_operation trans_b,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const T*          alpha,
+                                                            const T*          A,
+                                                            rocblas_int       offset_a,
+                                                            rocblas_int       ld_a,
+                                                            rocblas_int       stride_a,
+                                                            const T*          B,
+                                                            rocblas_int       offset_b,
+                                                            rocblas_int       ld_b,
+                                                            rocblas_int       stride_b,
+                                                            const T*          beta,
+                                                            T*                C,
+                                                            rocblas_int       offset_c,
+                                                            rocblas_int       ld_c,
+                                                            rocblas_int       stride_c,
+                                                            rocblas_int       b_c)
 {
     if(m == 0 || n == 0 || k == 0 || b_c == 0)
     {
@@ -871,12 +865,23 @@ inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle      
     unsigned int sizeK    = unsigned(b_c);
     unsigned int sizeL    = unsigned(k);
 
-    hipError_t status = call_tensile<T>(alpha, beta, A, B, C,
-                                        trans_a, trans_b,
-                                        strideC1, strideC2,
-                                        strideA1, strideA2,
-                                        strideB1, strideB2,
-                                        sizeI, sizeJ, sizeK, sizeL,
+    hipError_t status = call_tensile<T>(alpha,
+                                        beta,
+                                        A + offset_a,
+                                        B + offset_b,
+                                        C + offset_c,
+                                        trans_a,
+                                        trans_b,
+                                        strideC1,
+                                        strideC2,
+                                        strideA1,
+                                        strideA2,
+                                        strideB1,
+                                        strideB2,
+                                        sizeI,
+                                        sizeJ,
+                                        sizeK,
+                                        sizeL,
                                         handle);
 
     return get_rocblas_status_for_hip_status(status);
@@ -885,24 +890,24 @@ inline rocblas_status rocblas_gemm_strided_batched_template(rocblas_handle      
 /* ============================================================================================ */
 
 template <typename T>
-inline rocblas_status rocblas_gemm_batched_template(rocblas_handle            handle,
-                                                    rocblas_operation         trans_a,
-                                                    rocblas_operation         trans_b,
-                                                    rocblas_int               m,
-                                                    rocblas_int               n,
-                                                    rocblas_int               k,
-                                                    const T*                  alpha,
-                                                    const T* const            A[],
-                                                    rocblas_int               offsetA,
-                                                    rocblas_int               ld_a,
-                                                    const T* const            B[],
-                                                    rocblas_int               offsetB,
-                                                    rocblas_int               ld_b,
-                                                    const T*                  beta,
-                                                    T* const                  C[],
-                                                    rocblas_int               offsetC,
-                                                    rocblas_int               ld_c,
-                                                    rocblas_int               b_c)
+inline rocblas_status rocblas_gemm_batched_template(rocblas_handle    handle,
+                                                    rocblas_operation trans_a,
+                                                    rocblas_operation trans_b,
+                                                    rocblas_int       m,
+                                                    rocblas_int       n,
+                                                    rocblas_int       k,
+                                                    const T*          alpha,
+                                                    const T* const    A[],
+                                                    rocblas_int       offsetA,
+                                                    rocblas_int       ld_a,
+                                                    const T* const    B[],
+                                                    rocblas_int       offsetB,
+                                                    rocblas_int       ld_b,
+                                                    const T*          beta,
+                                                    T* const          C[],
+                                                    rocblas_int       offsetC,
+                                                    rocblas_int       ld_c,
+                                                    rocblas_int       b_c)
 {
     if(m == 0 || n == 0 || k == 0 || b_c == 0)
     {
@@ -913,8 +918,8 @@ inline rocblas_status rocblas_gemm_batched_template(rocblas_handle            ha
     rocblas_int stride_b;
     rocblas_int stride_c;
 
-    infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
-                        &stride_a, ld_b, &stride_b, ld_c, &stride_c);
+    infer_batch_strides(
+        trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c);
 
     unsigned int strideC1 = static_cast<unsigned int>(ld_c);
     unsigned int strideC2 = static_cast<unsigned int>(stride_c);
@@ -949,14 +954,24 @@ inline rocblas_status rocblas_gemm_batched_template(rocblas_handle            ha
     {
         // We cannot do this with a device array, so array of pointers
         // must be on host for now
-        status = call_tensile<T>(alpha, beta, hostA[i] + offsetA, hostB[i] + offsetB, hostC[i] + offsetC,
-                                trans_a, trans_b,
-                                strideC1, strideC2,
-                                strideA1, strideA2,
-                                strideB1, strideB2,
-                                sizeI, sizeJ, sizeK, sizeL,
-                                handle);
-                
+        status = call_tensile<T>(alpha,
+                                 beta,
+                                 hostA[i] + offsetA,
+                                 hostB[i] + offsetB,
+                                 hostC[i] + offsetC,
+                                 trans_a,
+                                 trans_b,
+                                 strideC1,
+                                 strideC2,
+                                 strideA1,
+                                 strideA2,
+                                 strideB1,
+                                 strideB2,
+                                 sizeI,
+                                 sizeJ,
+                                 sizeK,
+                                 sizeL,
+                                 handle);
 
         if(get_rocblas_status_for_hip_status(status) != rocblas_status_success)
             break;
@@ -994,12 +1009,18 @@ inline void rocblas_gemm_strided_batched_kernel_name_template(rocblas_operation 
 
     std::cout << "gemm kernel Name: ";
 
-
-    const char* solution_name = tensileGetSolutionName<T>(trans_a, trans_b,
-                                                          strideC1, strideC2,
-                                                          strideA1, strideA2,
-                                                          strideB1, strideB2,
-                                                          sizeI, sizeJ, sizeK, sizeL);
+    const char* solution_name = tensileGetSolutionName<T>(trans_a,
+                                                          trans_b,
+                                                          strideC1,
+                                                          strideC2,
+                                                          strideA1,
+                                                          strideA2,
+                                                          strideB1,
+                                                          strideB2,
+                                                          sizeI,
+                                                          sizeJ,
+                                                          sizeK,
+                                                          sizeL);
 
     std::cout << solution_name << std::endl;
 }
@@ -1019,9 +1040,5 @@ inline void rocblas_gemm_batched_kernel_name_template(rocblas_operation trans_a,
     std::cout << "gemm kernel Name: ";
     std::cout << "batched kernels have not yet been implemented" << std::endl;
 }
-
-
-
-
 
 #endif // _GEMM_HOST_HPP_

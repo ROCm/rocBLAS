@@ -1,15 +1,16 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "gemm.hpp"
 #include "Tensile.h"
+#include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
 #include <sys/time.h>
 
-namespace {
+namespace
+{
 
     template <typename>
     static constexpr char rocblas_gemm_batched_name[] = "unknown";
@@ -20,32 +21,34 @@ namespace {
     template <>
     static constexpr char rocblas_gemm_batched_name<double>[] = "rocblas_dgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[] = "rocblas_cgemm_batched";
+    static constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[]
+        = "rocblas_cgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[] = "rocblas_zgemm_batched";
+    static constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[]
+        = "rocblas_zgemm_batched";
 
     /*******************************************************************************
     * Batched GEMM implementation
     ******************************************************************************/
     template <typename T>
     rocblas_status rocblas_gemm_batched_impl(rocblas_handle    handle,
-                                            rocblas_operation trans_a,
-                                            rocblas_operation trans_b,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const T*          alpha,
-                                            const T* const    A[],
-                                            rocblas_int       offsetA,
-                                            rocblas_int       ld_a,
-                                            const T* const    B[],
-                                            rocblas_int       offsetB,
-                                            rocblas_int       ld_b,
-                                            const T*          beta,
-                                            T* const          C[],
-                                            rocblas_int       offsetC,
-                                            rocblas_int       ld_c,
-                                            rocblas_int       b_c)
+                                             rocblas_operation trans_a,
+                                             rocblas_operation trans_b,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const T*          alpha,
+                                             const T* const    A[],
+                                             rocblas_int       offsetA,
+                                             rocblas_int       ld_a,
+                                             const T* const    B[],
+                                             rocblas_int       offsetB,
+                                             rocblas_int       ld_b,
+                                             const T*          beta,
+                                             T* const          C[],
+                                             rocblas_int       offsetC,
+                                             rocblas_int       ld_c,
+                                             rocblas_int       b_c)
     {
         // clang-format off
         // Perform logging
@@ -154,11 +157,6 @@ namespace {
                             b_c);
         }
 
-        if(m == 0 || n == 0 || k == 0 || b_c == 0)
-        {
-            return rocblas_status_success;
-        }
-
         rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                             m, n, k, alpha,
                                             A, ld_a,
@@ -168,7 +166,8 @@ namespace {
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a, B, offsetB, ld_b, beta, C, offsetC, ld_c, b_c);
+        return rocblas_gemm_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a,
+                                                B, offsetB, ld_b, beta, C, offsetC, ld_c, b_c);
     }
 
 

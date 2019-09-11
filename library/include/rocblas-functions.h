@@ -1838,7 +1838,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            ha
                                                     rocblas_int               ldc,
                                                     rocblas_int               batch_count);
 
- ROCBLAS_EXPORT rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
+ROCBLAS_EXPORT rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                                     rocblas_operation  transa,
                                                     rocblas_operation  transb,
                                                     rocblas_int        m,
@@ -1854,7 +1854,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            ha
                                                     rocblas_int        ldc,
                                                     rocblas_int        batch_count);
 
- ROCBLAS_EXPORT rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
+ROCBLAS_EXPORT rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                                     rocblas_operation   transa,
                                                     rocblas_operation   transb,
                                                     rocblas_int         m,
@@ -1870,7 +1870,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            ha
                                                     rocblas_int         ldc,
                                                     rocblas_int         batch_count);
 
- ROCBLAS_EXPORT rocblas_status rocblas_cgemm_batched(rocblas_handle                    handle,
+ROCBLAS_EXPORT rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                                     rocblas_operation                  transa,
                                                     rocblas_operation                  transb,
                                                     rocblas_int                        m,
@@ -1886,7 +1886,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            ha
                                                     rocblas_int                        ldc,
                                                     rocblas_int                        batch_count);
 
- ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle                     handle,
+ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
                                                     rocblas_operation                   transa,
                                                     rocblas_operation                   transb,
                                                     rocblas_int                         m,
@@ -1900,7 +1900,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            ha
                                                     const rocblas_double_complex*       beta,
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
-                                                    rocblas_int                         batch_count);
+                                                    rocblas_int batch_count);
 
 /***************************************************************************
  * batched
@@ -2819,30 +2819,30 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
-                                                              rocblas_operation transA,
-                                                              rocblas_operation trans_b,
-                                                              rocblas_int       m,
-                                                              rocblas_int       n,
-                                                              rocblas_int       k,
-                                                              const void*       alpha,
-                                                              const void*       a,
-                                                              rocblas_datatype  a_type,
-                                                              rocblas_int       lda,
-                                                              const void*       b,
-                                                              rocblas_datatype  b_type,
-                                                              rocblas_int       ldb,
-                                                              const void*       beta,
-                                                              const void*       c,
-                                                              rocblas_datatype  c_type,
-                                                              rocblas_int       ldc,
-                                                              void*             d,
-                                                              rocblas_datatype  d_type,
-                                                              rocblas_int       ldd,
-                                                              rocblas_int       batch_count,
-                                                              rocblas_datatype  compute_type,
-                                                              rocblas_gemm_algo algo,
-                                                              int32_t           solution_index,
-                                                              uint32_t          flags);
+                                                      rocblas_operation transA,
+                                                      rocblas_operation trans_b,
+                                                      rocblas_int       m,
+                                                      rocblas_int       n,
+                                                      rocblas_int       k,
+                                                      const void*       alpha,
+                                                      const void*       a,
+                                                      rocblas_datatype  a_type,
+                                                      rocblas_int       lda,
+                                                      const void*       b,
+                                                      rocblas_datatype  b_type,
+                                                      rocblas_int       ldb,
+                                                      const void*       beta,
+                                                      const void*       c,
+                                                      rocblas_datatype  c_type,
+                                                      rocblas_int       ldc,
+                                                      void*             d,
+                                                      rocblas_datatype  d_type,
+                                                      rocblas_int       ldd,
+                                                      rocblas_int       batch_count,
+                                                      rocblas_datatype  compute_type,
+                                                      rocblas_gemm_algo algo,
+                                                      int32_t           solution_index,
+                                                      uint32_t          flags);
 
 /* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
 // clang-format off

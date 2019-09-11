@@ -288,11 +288,11 @@ void testing_gemm_batched_ex(const Arguments& arg)
        || (std::is_same<Ti, int8_t>{}
            && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0))))
     {
-        static const size_t safe_size = 100;
-        device_vector<Ti*, 0, Ti>   dA(1);
-        device_vector<Ti*, 0, Ti>   dB(1);
-        device_vector<To*, 0, To>   dC(1);
-        device_vector<To*, 0, To>   dD(1);
+        static const size_t       safe_size = 100;
+        device_vector<Ti*, 0, Ti> dA(1);
+        device_vector<Ti*, 0, Ti> dB(1);
+        device_vector<To*, 0, To> dC(1);
+        device_vector<To*, 0, To> dD(1);
         if(!dA || !dB || !dC || !dD)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -344,8 +344,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
     device_vector<Ti*, 0, Ti> dB(batch_count);
     device_vector<To*, 0, To> dC(batch_count);
     device_vector<To*, 0, To> dD(batch_count);
-    device_vector<Tc> d_alpha_Tc(1);
-    device_vector<Tc> d_beta_Tc(1);
+    device_vector<Tc>         d_alpha_Tc(1);
+    device_vector<Tc>         d_beta_Tc(1);
     if(!dA || !dB || !dC || !dD)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -375,8 +375,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
     device_batch_vector<To> bD(batch_count, size_d);
 
     int last = batch_count - 1;
-    if((!bA[last] && size_a) || (!bB[last] && size_b) || (!bC[last] && size_c) || (!bD[last] && size_d)
-        || !d_alpha_Tc || !d_beta_Tc)
+    if((!bA[last] && size_a) || (!bB[last] && size_b) || (!bC[last] && size_c)
+       || (!bD[last] && size_d) || !d_alpha_Tc || !d_beta_Tc)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -393,7 +393,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
         else
             rocblas_init<To>(hC[b], M, N, ldc);
         rocblas_init<To>(hD_1[b], M, N, ldd);
-        hD_2[b] = hD_1[b];
+        hD_2[b]    = hD_1[b];
         hD_gold[b] = hD_1[b];
     }
 
@@ -428,7 +428,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
     }
 #endif
 
-    
     // copy data from CPU to device
     // 1. Use intermediate arrays to access device memory from host
     for(int b = 0; b < batch_count; b++)
@@ -438,7 +437,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
         {
             host_vector<Ti> hA_packed(hA[b]);
             rocblas_packInt8(hA_packed, M, K, lda);
-            CHECK_HIP_ERROR(hipMemcpy(bA[b], hA_packed, sizeof(Ti) * size_a, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(
+                hipMemcpy(bA[b], hA_packed, sizeof(Ti) * size_a, hipMemcpyHostToDevice));
         }
         else
         {
@@ -450,7 +450,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
             host_vector<Ti> hB_packed(hB[b]);
 
             rocblas_packInt8(hB_packed, N, K, ldb);
-            CHECK_HIP_ERROR(hipMemcpy(bB[b], hB_packed, sizeof(Ti) * size_b, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(
+                hipMemcpy(bB[b], hB_packed, sizeof(Ti) * size_b, hipMemcpyHostToDevice));
         }
         else
         {
@@ -559,8 +560,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
                 for(int i2 = 0; i2 < N; i2++)
                     for(int i1 = 0; i1 < M; i1++)
                     {
-                        hD_gold[b][i1 + (i2 * ldd)]
-                            = hC[b][i1 + (i2 * ldc)];
+                        hD_gold[b][i1 + (i2 * ldd)] = hC[b][i1 + (i2 * ldc)];
                     }
         cpu_time_used = get_time_us();
 
@@ -603,10 +603,10 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(
-                norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_1));
-            auto err2 = std::abs(
-                norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_2));
+            auto err1
+                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_1));
+            auto err2
+                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
@@ -680,9 +680,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
         rocblas_gflops
             = gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout
-            << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,ldd,"
-               "batch_count,rocblas-Gflops,us";
+        std::cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,ldd,"
+                     "batch_count,rocblas-Gflops,us";
 
         if(arg.unit_check || arg.norm_check)
             std::cout << ",CPU-Gflops(us),norm-error";
@@ -690,9 +689,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
-                  << M << "," << N << "," << K << "," << arg.alpha << "," << lda
-                  << "," << ldb << "," << arg.beta << "," << ldc << ","
-                  << ldd << "," << batch_count << ","
+                  << M << "," << N << "," << K << "," << arg.alpha << "," << lda << "," << ldb
+                  << "," << arg.beta << "," << ldc << "," << ldd << "," << batch_count << ","
                   << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)

@@ -9,7 +9,8 @@
 #include "rocblas.h"
 #include "utility.h"
 
-namespace {
+namespace
+{
 
     rocblas_status rocblas_gemm_strided_batched_ex_impl(rocblas_handle    handle,
                                                         rocblas_operation trans_a,
@@ -52,8 +53,8 @@ namespace {
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
-        & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-            | rocblas_layer_mode_log_profile))
+           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+              | rocblas_layer_mode_log_profile))
         {
             char trans_a_letter, trans_b_letter;
             if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
@@ -143,86 +144,86 @@ namespace {
                     if(layer_mode & rocblas_layer_mode_log_trace)
                     {
                         log_trace(handle,
-                                "rocblas_gemm_strided_batched_ex",
-                                trans_a,
-                                trans_b,
-                                m,
-                                n,
-                                k,
-                                alphass.str(),
-                                a,
-                                a_type_string,
-                                lda,
-                                stride_a,
-                                b,
-                                b_type_string,
-                                ldb,
-                                stride_b,
-                                betass.str(),
-                                c,
-                                c_type_string,
-                                ldc,
-                                stride_c,
-                                d,
-                                d_type_string,
-                                ldd,
-                                stride_d,
-                                batch_count,
-                                compute_type_string,
-                                algo,
-                                solution_index,
-                                flags);
+                                  "rocblas_gemm_strided_batched_ex",
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alphass.str(),
+                                  a,
+                                  a_type_string,
+                                  lda,
+                                  stride_a,
+                                  b,
+                                  b_type_string,
+                                  ldb,
+                                  stride_b,
+                                  betass.str(),
+                                  c,
+                                  c_type_string,
+                                  ldc,
+                                  stride_c,
+                                  d,
+                                  d_type_string,
+                                  ldd,
+                                  stride_d,
+                                  batch_count,
+                                  compute_type_string,
+                                  algo,
+                                  solution_index,
+                                  flags);
                     }
                     if(layer_mode & rocblas_layer_mode_log_bench)
                     {
                         log_bench(handle,
-                                "./rocblas-bench -f gemm_strided_batched_ex",
-                                "--transposeA",
-                                trans_a_letter,
-                                "--transposeB",
-                                trans_b_letter,
-                                "-m",
-                                m,
-                                "-n",
-                                n,
-                                "-k",
-                                k,
-                                bench_alphass.str(),
-                                "--a_type",
-                                a_type_string,
-                                "--lda",
-                                lda,
-                                "--stride_a",
-                                stride_a,
-                                "--b_type",
-                                b_type_string,
-                                "--ldb",
-                                ldb,
-                                "--stride_b",
-                                stride_b,
-                                bench_betass.str(),
-                                "--c_type",
-                                c_type_string,
-                                "--ldc",
-                                ldc,
-                                "--stride_c",
-                                stride_c,
-                                "--d_type",
-                                d_type_string,
-                                "--ldd",
-                                ldd,
-                                "--stride_d",
-                                stride_d,
-                                "--batch",
-                                batch_count,
-                                "--compute_type",
-                                compute_type_string,
-                                "--algo",
-                                algo,
-                                "--solution_index",
-                                solution_index,
-                                "--flags",
-                                flags);
+                                  "./rocblas-bench -f gemm_strided_batched_ex",
+                                  "--transposeA",
+                                  trans_a_letter,
+                                  "--transposeB",
+                                  trans_b_letter,
+                                  "-m",
+                                  m,
+                                  "-n",
+                                  n,
+                                  "-k",
+                                  k,
+                                  bench_alphass.str(),
+                                  "--a_type",
+                                  a_type_string,
+                                  "--lda",
+                                  lda,
+                                  "--stride_a",
+                                  stride_a,
+                                  "--b_type",
+                                  b_type_string,
+                                  "--ldb",
+                                  ldb,
+                                  "--stride_b",
+                                  stride_b,
+                                  bench_betass.str(),
+                                  "--c_type",
+                                  c_type_string,
+                                  "--ldc",
+                                  ldc,
+                                  "--stride_c",
+                                  stride_c,
+                                  "--d_type",
+                                  d_type_string,
+                                  "--ldd",
+                                  ldd,
+                                  "--stride_d",
+                                  stride_d,
+                                  "--batch",
+                                  batch_count,
+                                  "--compute_type",
+                                  compute_type_string,
+                                  "--algo",
+                                  algo,
+                                  "--solution_index",
+                                  solution_index,
+                                  "--flags",
+                                  flags);
                     }
                 }
                 else
@@ -230,35 +231,35 @@ namespace {
                     if(layer_mode & rocblas_layer_mode_log_trace)
                     {
                         log_trace(handle,
-                                "rocblas_gemm_strided_batched_ex",
-                                trans_a,
-                                trans_b,
-                                m,
-                                n,
-                                k,
-                                alpha,
-                                a,
-                                a_type,
-                                lda,
-                                stride_a,
-                                b,
-                                b_type,
-                                ldb,
-                                stride_b,
-                                beta,
-                                c,
-                                c_type,
-                                ldc,
-                                stride_c,
-                                d,
-                                d_type,
-                                ldd,
-                                stride_d,
-                                batch_count,
-                                compute_type,
-                                algo,
-                                solution_index,
-                                flags);
+                                  "rocblas_gemm_strided_batched_ex",
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alpha,
+                                  a,
+                                  a_type,
+                                  lda,
+                                  stride_a,
+                                  b,
+                                  b_type,
+                                  ldb,
+                                  stride_b,
+                                  beta,
+                                  c,
+                                  c_type,
+                                  ldc,
+                                  stride_c,
+                                  d,
+                                  d_type,
+                                  ldd,
+                                  stride_d,
+                                  batch_count,
+                                  compute_type,
+                                  algo,
+                                  solution_index,
+                                  flags);
                     }
                 }
             }
@@ -337,13 +338,13 @@ namespace {
 
         rocblas_status rb_status = rocblas_status_internal_error;
 
-    #define EX_TYPECASTING_PARM                                                                     \
-        handle, trans_a, trans_b, m, n, k, alpha, a, lda, stride_a, b, ldb, stride_b, beta, c, ldc, \
-            stride_c, d, ldd, stride_d, batch_count
+#define EX_TYPECASTING_PARM                                                                     \
+    handle, trans_a, trans_b, m, n, k, alpha, a, lda, stride_a, b, ldb, stride_b, beta, c, ldc, \
+        stride_c, d, ldd, stride_d, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
-        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
-        && compute_type == rocblas_datatype_f64_r)
+           && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
+           && compute_type == rocblas_datatype_f64_r)
         {
             rb_status = gemm_ex_typecasting<double, double, double>(EX_TYPECASTING_PARM);
         }
@@ -369,8 +370,8 @@ namespace {
                 && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
                 && compute_type == rocblas_datatype_f32_r)
         {
-            rb_status
-                = gemm_ex_typecasting<tensile_bfloat16, tensile_bfloat16, float>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<tensile_bfloat16, tensile_bfloat16, float>(
+                EX_TYPECASTING_PARM);
         }
         else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
                 && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
@@ -378,8 +379,8 @@ namespace {
         {
             // For now, K must be a multiple of 4
             if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
-            || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) || stride_a % 4 != 0
-            || stride_b % 4 != 0)
+               || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) || stride_a % 4 != 0
+               || stride_b % 4 != 0)
             {
                 rb_status = rocblas_status_invalid_size;
             }
@@ -416,13 +417,12 @@ namespace {
         {
             rb_status = rocblas_status_not_implemented;
         }
-    #undef EX_TYPECASTING_PARM
+#undef EX_TYPECASTING_PARM
 
         return rb_status;
     }
 
 }
-
 
 extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
                                                           rocblas_operation trans_a,
@@ -454,7 +454,33 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                           int32_t           solution_index,
                                                           uint32_t          flags)
 {
-    return rocblas_gemm_strided_batched_ex_impl(handle, trans_a, trans_b, m, n, k, alpha, a, a_type, lda, stride_a, b, b_type,
-                                                ldb, stride_b, beta, c, c_type, ldc, stride_c, d, d_type, ldd, stride_d,
-                                                batch_count, compute_type, algo, solution_index, flags);
+    return rocblas_gemm_strided_batched_ex_impl(handle,
+                                                trans_a,
+                                                trans_b,
+                                                m,
+                                                n,
+                                                k,
+                                                alpha,
+                                                a,
+                                                a_type,
+                                                lda,
+                                                stride_a,
+                                                b,
+                                                b_type,
+                                                ldb,
+                                                stride_b,
+                                                beta,
+                                                c,
+                                                c_type,
+                                                ldc,
+                                                stride_c,
+                                                d,
+                                                d_type,
+                                                ldd,
+                                                stride_d,
+                                                batch_count,
+                                                compute_type,
+                                                algo,
+                                                solution_index,
+                                                flags);
 }

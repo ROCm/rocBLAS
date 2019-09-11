@@ -9,7 +9,8 @@
 #include "utility.h"
 #include <sys/time.h>
 
-namespace {
+namespace
+{
 
     template <typename>
     static constexpr char rocblas_gemm_name[] = "unknown";
@@ -29,19 +30,19 @@ namespace {
     ******************************************************************************/
     template <typename T>
     rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
-                                    rocblas_operation trans_a,
-                                    rocblas_operation trans_b,
-                                    rocblas_int       m,
-                                    rocblas_int       n,
-                                    rocblas_int       k,
-                                    const T*          alpha,
-                                    const T*          A,
-                                    rocblas_int       ld_a,
-                                    const T*          B,
-                                    rocblas_int       ld_b,
-                                    const T*          beta,
-                                    T*                C,
-                                    rocblas_int       ld_c)
+                                     rocblas_operation trans_a,
+                                     rocblas_operation trans_b,
+                                     rocblas_int       m,
+                                     rocblas_int       n,
+                                     rocblas_int       k,
+                                     const T*          alpha,
+                                     const T*          A,
+                                     rocblas_int       ld_a,
+                                     const T*          B,
+                                     rocblas_int       ld_b,
+                                     const T*          beta,
+                                     T*                C,
+                                     rocblas_int       ld_c)
     {
         // clang-format off
         // Perform logging
@@ -154,28 +155,16 @@ namespace {
                             ld_c);
         }
 
-        rocblas_int b_c = 1;
-        if(m == 0 || n == 0 || k == 0 || b_c == 0)
-        {
-            return rocblas_status_success;
-        }
-
-        rocblas_int stride_a;
-        rocblas_int stride_b;
-        rocblas_int stride_c;
-        infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
-                            &stride_a, ld_b, &stride_b, ld_c, &stride_c);
-
         rocblas_status validArgs = validateArgs(handle, trans_a, trans_b,
                                             m, n, k, alpha,
-                                            A, ld_a, stride_a,
-                                            B, ld_b, stride_b, beta,
-                                            C, ld_c, stride_c, b_c);
+                                            A, ld_a, 0,
+                                            B, ld_b, 0, beta,
+                                            C, ld_c, 0, 1);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_strided_batched_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, stride_a, B, ld_b, stride_b, beta, C, ld_c, stride_c, 1);
+        return rocblas_gemm_template<T>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
     }
 
     template <typename T>

@@ -123,8 +123,8 @@ void testing_gemm_batched(const Arguments& arg)
     device_vector<T*, 0, T> dA(batch_count);
     device_vector<T*, 0, T> dB(batch_count);
     device_vector<T*, 0, T> dC(batch_count);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    device_vector<T>        d_alpha(1);
+    device_vector<T>        d_beta(1);
 
     if(!dA || !dB || !dC || !d_alpha || !d_beta)
     {
