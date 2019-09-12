@@ -16,6 +16,34 @@
  * ===========================================================================
  */
 
+size_t rocblas_reduction_batched_kernel_block_count(rocblas_int n, rocblas_int NB)
+{
+    if (n <= 0)
+        n = 1; // avoid sign loss issues
+    return size_t(n - 1) / NB + 1;
+}
+
+/*! \brief rocblas_reduction_batched_kernel_workspace_size 
+    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
+
+    @param[in]
+    outputType To* 
+        Type of output values
+    @param[in]
+    batch_count rocblas_int 
+        Number of batches
+    ********************************************************************/
+template <rocblas_int NB, typename To>
+size_t rocblas_reduction_batched_kernel_workspace_size(rocblas_int n,
+                                                       rocblas_int batch_count,
+                                                       To*         output_type)
+{
+    if (n <= 0) 
+        n = 1; // allow for return value of empty set
+    auto blocks = rocblas_reduction_batched_kernel_block_count(n, NB);
+    return sizeof(To) * (blocks + 1) * batch_count;
+}
+
 // BLAS Level 1 includes routines and functions performing vector-vector
 // operations. Most BLAS 1 routines are about reduction: compute the norm,
 // calculate the dot production of two vectors, find the maximum/minimum index
@@ -61,8 +89,12 @@ template <rocblas_int NB,
           typename REDUCE = rocblas_reduce_sum,
           typename Ti,
           typename To>
-__global__ void rocblas_reduction_batched_kernel_part1(
-    rocblas_int n, rocblas_int nblocks, const Ti* const xvec[], rocblas_int shiftx, rocblas_int incx, To* workspace)
+__global__ void rocblas_reduction_batched_kernel_part1(rocblas_int     n,
+                                                       rocblas_int     nblocks,
+                                                       const Ti* const xvec[],
+                                                       rocblas_int     shiftx,
+                                                       rocblas_int     incx,
+                                                       To*             workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
@@ -153,22 +185,19 @@ __global__ void
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i.
-    @param[out]
-    result
-              pointers to array of batch_count size for results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
-
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
     @param[out]
     workspace To*  
               temporary GPU buffer for inidividual block results for each batch
               and results buffer in case result pointer is to host memory
               Size must be (blocks+1)*batch_count*sizeof(To)
-    @param[in]
-    blocks    rocblas_int
-              number of thread blocks 
-    @param[in]
-    batch_count rocblas_int
-              number of instances in the batch
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+
     ********************************************************************/
 template <rocblas_int NB,
           typename FETCH,
@@ -182,11 +211,12 @@ rocblas_status rocblas_reduction_batched_kernel(rocblas_handle __restrict__ hand
                                                 const Ti* const x[],
                                                 rocblas_int     shiftx,
                                                 rocblas_int     incx,
-                                                Tr*             result,
+                                                rocblas_int     batch_count,
                                                 To*             workspace,
-                                                rocblas_int     blocks,
-                                                rocblas_int     batch_count)
+                                                Tr*             result)
 {
+    rocblas_int blocks = rocblas_reduction_batched_kernel_block_count(n, NB);
+
     hipLaunchKernelGGL((rocblas_reduction_batched_kernel_part1<NB, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,

@@ -61,7 +61,7 @@ void testing_asum_strided_batched_template(const Arguments& arg)
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
 
-    if(batch_count <= 0 || stridex < 0 || stridex < abs_incx * N)
+    if(batch_count < 0 || incx <= 0 || stridex < 0 || stridex < abs_incx * N)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);
@@ -79,16 +79,13 @@ void testing_asum_strided_batched_template(const Arguments& arg)
         return;
     }
 
-    T2 rocblas_result_1[batch_count];
-    T2 rocblas_result_2[batch_count];
-    T2 cpu_result[batch_count];
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0)
+    if(N <= 0 || batch_count == 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T1>   dx(safe_size);
-        device_vector<T2>   d_rocblas_result(batch_count);
+        device_vector<T2>   d_rocblas_result(safe_size);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -100,6 +97,10 @@ void testing_asum_strided_batched_template(const Arguments& arg)
             handle, N, dx, incx, stridex, d_rocblas_result, batch_count)));
         return;
     }
+
+    T2 rocblas_result_1[batch_count];
+    T2 rocblas_result_2[batch_count];
+    T2 cpu_result[batch_count];
 
     size_t size_x = (size_t)stridex;
 

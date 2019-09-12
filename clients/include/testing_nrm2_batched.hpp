@@ -24,8 +24,7 @@ void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    T1** dx;
-    hipMalloc(&dx, safe_size * sizeof(T1*));
+    device_vector<T1*, 0, T1> dx(safe_size);
     device_vector<T2> d_rocblas_result(1);
     if(!dx || !d_rocblas_result)
     {
@@ -43,8 +42,6 @@ void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         (rocblas_nrm2_batched<T1, T2>(nullptr, N, dx, incx, d_rocblas_result, batch_count)),
         rocblas_status_invalid_handle);
-
-    hipFree(dx);
 }
 
 template <typename T1, typename T2 = T1>
@@ -59,12 +56,12 @@ void testing_nrm2_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(batch_count <= 0)
+    if(batch_count < 0 || incx <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
-        T1**                dx;
-        hipMalloc(&dx, safe_size * sizeof(T1*));
-        device_vector<T2> d_rocblas_result(std::max(batch_count, 1));
+
+        device_vector<T1*, 0, T1> dx(safe_size);
+        device_vector<T2> d_rocblas_result(safe_size);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -75,21 +72,15 @@ void testing_nrm2_batched_template(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(
             (rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)),
             rocblas_status_invalid_size);
-        CHECK_HIP_ERROR(hipFree(dx));
         return;
     }
 
-    T2 rocblas_result_1[batch_count];
-    T2 rocblas_result_2[batch_count];
-    T2 cpu_result[batch_count];
-
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0)
+    if(N <= 0 || batch_count == 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
-        T1**                dx;
-        hipMalloc(&dx, safe_size * sizeof(T1*));
-        device_vector<T2> d_rocblas_result(batch_count);
+        device_vector<T1*, 0, T1> dx(safe_size);
+        device_vector<T2> d_rocblas_result(safe_size);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -99,9 +90,12 @@ void testing_nrm2_batched_template(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
             (rocblas_nrm2_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)));
-        CHECK_HIP_ERROR(hipFree(dx));
         return;
     }
+
+    T2 rocblas_result_1[batch_count];
+    T2 rocblas_result_2[batch_count];
+    T2 cpu_result[batch_count];
 
     size_t size_x = N * size_t(incx);
 
@@ -124,23 +118,23 @@ void testing_nrm2_batched_template(const Arguments& arg)
         rocblas_init<T1>(hx[i], 1, N, incx);
     }
 
-    T1** hdx = new T1*[batch_count]; // must create device ptr array on host
+    device_batch_vector<T1> hdx(batch_count, size_x);
+
+    // copy data from host to device
     for(int i = 0; i < batch_count; i++)
     {
-        hipMalloc(&hdx[i], size_x * sizeof(T1));
         CHECK_HIP_ERROR(hipMemcpy(hdx[i], hx[i], size_x * sizeof(T1), hipMemcpyHostToDevice));
     }
 
     // vector pointers on gpu
-    T1** dx_pvec;
-    CHECK_HIP_ERROR(hipMalloc(&dx_pvec, batch_count * sizeof(T1*)));
+    device_vector<T1*, 0, T1> dx_pvec(batch_count);
     if(!dx_pvec)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
     // copy gpu vector pointers from host to device pointer array
-    CHECK_HIP_ERROR(hipMemcpy(dx_pvec, &hdx[0], sizeof(T1*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx_pvec, hdx, sizeof(T1*) * batch_count, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
 
@@ -223,13 +217,6 @@ void testing_nrm2_batched_template(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
-    for(int i = 0; i < batch_count; i++)
-    {
-        CHECK_HIP_ERROR(hipFree(hdx[i])); // gpu pointers on cpu
-    }
-    delete[] hdx;
-    CHECK_HIP_ERROR(hipFree(dx_pvec));
 }
 
 template <typename T>

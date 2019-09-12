@@ -74,24 +74,20 @@ __global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int n,
     incx      rocblas_int
               specifies the increment for the elements of each x_i.
     @param[in]
-    stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
-
-    @param[out]
-    result
-              pointer to array of batch_count size for results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
-
-    @param[out]
-    workspace *To  
-              temporary GPU buffer for inidividual block results per batch
-              and results buffer in case result pointer is to host memory
-              Size must be (blocks+1)*batch_count*sizeof(To)
-    @param[in]
-    blocks    rocblas_int
-              number of thread blocks 
+    stridex   rocblas_int
+              specifies the pointer increment between batches for x. stridex must be >= n*incx
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
+    @param[out]
+    workspace To*  
+              temporary GPU buffer for inidividual block results for each batch
+              and results buffer in case result pointer is to host memory
+              Size must be (blocks+1)*batch_count*sizeof(To)
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
     ********************************************************************/
 template <rocblas_int NB,
           typename FETCH,
@@ -106,11 +102,12 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                                                         rocblas_int shiftx,
                                                         rocblas_int incx,
                                                         rocblas_int stridex,
-                                                        Tr*         result,
+                                                        rocblas_int batch_count,
                                                         To*         workspace,
-                                                        rocblas_int blocks,
-                                                        rocblas_int batch_count)
+                                                        Tr*         result)
 {
+    rocblas_int blocks = rocblas_reduction_batched_kernel_block_count(n, NB);
+
     hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,
