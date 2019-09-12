@@ -215,6 +215,7 @@ def setdefaults(test):
                                         test['strideScale']))
         else:
             test.setdefault('stride_x', 0)
+
         if all([x in test for x in ('N', 'incy', 'strideScale')]) and test['function']=='ger_strided_batched':
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['strideScale']))
