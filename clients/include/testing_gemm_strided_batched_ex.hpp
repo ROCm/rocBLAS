@@ -540,7 +540,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To) * size_d, hipMemcpyHostToDevice));
-
+        std::cout << "calling strided_batched_ex\n";
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex(handle,
                                                             transA,
                                                             transB,

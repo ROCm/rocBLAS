@@ -218,7 +218,7 @@ namespace
             else if(!strcmp(arg.function, "gemm_ex_bad_arg"))
                 testing_gemm_ex_bad_arg<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_batched_ex"))
-                testing_gemm_ex<Ti, To, Tc>(arg);
+                testing_gemm_batched_ex<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_batched_ex_bad_arg"))
                 testing_gemm_batched_ex_bad_arg<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched_ex"))

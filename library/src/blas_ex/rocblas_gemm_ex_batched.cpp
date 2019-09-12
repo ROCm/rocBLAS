@@ -306,6 +306,10 @@ namespace
         rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
         rocblas_int num_rows_c = m;
         rocblas_int num_rows_d = m;
+        rocblas_int stride_a   = trans_a == rocblas_operation_none ? lda * k : lda * m;
+        rocblas_int stride_b   = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
+        rocblas_int stride_c   = ldc * n;
+        rocblas_int stride_d   = ldd * n;
 
         // leading dimensions must be valid
         if(num_rows_a > lda || num_rows_b > ldb || num_rows_c > ldc || num_rows_d > ldd)
@@ -313,9 +317,9 @@ namespace
 
         rocblas_status rb_status = rocblas_status_internal_error;
 
-#define EX_TYPECASTING_PARM                                                                      \
-    handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, 0, b, offset_b, ldb, 0, beta, c, \
-        offset_c, ldc, 0, d, offset_d, ldd, 0, batch_count
+#define EX_TYPECASTING_PARM                                                                 \
+    handle, trans_a, trans_b, m, n, k, alpha, a, offset_a, lda, stride_a, b, offset_b, ldb, \
+        stride_b, beta, c, offset_c, ldc, stride_c, d, offset_d, ldd, stride_d, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r

@@ -130,7 +130,7 @@ struct perf_blas<
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
-        if(!strcmp(arg.function, "gemm_batched"))
+        else if(!strcmp(arg.function, "gemm_batched"))
             testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);

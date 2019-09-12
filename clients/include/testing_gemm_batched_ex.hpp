@@ -353,12 +353,12 @@ void testing_gemm_batched_ex(const Arguments& arg)
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<Ti> hA[batch_count]; //(size_a);
-    host_vector<Ti> hB[batch_count]; //(size_b);
-    host_vector<To> hC[batch_count]; //(size_c);
-    host_vector<To> hD_1[batch_count]; //(size_d);
-    host_vector<To> hD_2[batch_count]; //(size_d);
-    host_vector<To> hD_gold[batch_count]; //(size_d);
+    host_vector<Ti> hA[batch_count];
+    host_vector<Ti> hB[batch_count];
+    host_vector<To> hC[batch_count];
+    host_vector<To> hD_1[batch_count];
+    host_vector<To> hD_2[batch_count];
+    host_vector<To> hD_gold[batch_count];
     for(int b = 0; b < batch_count; b++)
     {
         hA[b]      = host_vector<Ti>(size_a);
@@ -474,7 +474,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
         {
             CHECK_HIP_ERROR(hipMemcpy(bD[b], hD_1[b], sizeof(To) * size_d, hipMemcpyHostToDevice));
         }
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_1, sizeof(To*) * size_d, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, bD, sizeof(To*) * batch_count, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex(handle,
                                                     transA,
@@ -516,10 +516,11 @@ void testing_gemm_batched_ex(const Arguments& arg)
         {
             CHECK_HIP_ERROR(hipMemcpy(bD[b], hD_2[b], sizeof(To) * size_d, hipMemcpyHostToDevice));
         }
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(To*) * size_d, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, bD, sizeof(To*) * batch_count, hipMemcpyHostToDevice));
 
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
+
         CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex(handle,
                                                     transA,
                                                     transB,

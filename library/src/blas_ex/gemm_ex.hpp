@@ -608,7 +608,6 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
         return get_rocblas_status_for_hip_status(errC);
     else if(get_rocblas_status_for_hip_status(errD) != rocblas_status_success)
         return get_rocblas_status_for_hip_status(errD);
-
     stride_a    = trans_a == rocblas_operation_none ? lda * k : lda * m;
     stride_b    = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
     stride_c    = ldc * n;
