@@ -617,7 +617,11 @@ void testing_gemm_batched_ex(const Arguments& arg)
         int number_cold_calls = 2;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        for(int b = 0; b < batch_count; b++)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(bD[b], hD_1[b], sizeof(To) * size_d, hipMemcpyHostToDevice));
+        }
+        CHECK_HIP_ERROR(hipMemcpy(dD, bD, sizeof(To*) * batch_count, hipMemcpyHostToDevice));
         for(int i = 0; i < number_cold_calls; i++)
         {
             CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex(handle,
