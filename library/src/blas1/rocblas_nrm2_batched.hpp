@@ -3,11 +3,8 @@
  * ************************************************************************ */
 #include "fetch_template.h"
 #include "handle.h"
-#include "logging.h"
-#include "reduction.h"
 #include "reduction_batched.h"
 #include "rocblas.h"
-#include "utility.h"
 
 // same as non-batched for now
 template <class To>
@@ -29,63 +26,30 @@ struct rocblas_finalize_nrm2_batched
     }
 };
 
-template <typename>
-constexpr char rocblas_nrm2_batched_name[] = "unknown";
-template <>
-constexpr char rocblas_nrm2_batched_name<float>[] = "rocblas_snrm2_batched";
-template <>
-constexpr char rocblas_nrm2_batched_name<double>[] = "rocblas_dnrm2_batched";
-template <>
-constexpr char rocblas_nrm2_batched_name<rocblas_half>[] = "rocblas_hnrm2_batched";
-template <>
-constexpr char rocblas_nrm2_batched_name<rocblas_float_complex>[] = "rocblas_scnrm2_batched";
-template <>
-constexpr char rocblas_nrm2_batched_name<rocblas_double_complex>[] = "rocblas_dznrm2_batched";
-
-// allocate workspace inside this API
-template <typename Ti, typename To>
-rocblas_status rocblas_nrm2_batched(rocblas_handle  handle,
-                                    rocblas_int     n,
-                                    const Ti* const x[],
-                                    rocblas_int     shiftx,
-                                    rocblas_int     incx,
-                                    To*             results,
-                                    rocblas_int     batch_count)
+template <rocblas_int NB, typename To>
+size_t rocblas_nrm2_batched_template_workspace_size(rocblas_int n,
+                                                    rocblas_int batch_count,
+                                                    To*         output_type)
 {
-    if(!handle)
-        return rocblas_status_invalid_handle;
+    return rocblas_reduction_batched_kernel_workspace_size<NB>(n, batch_count, output_type);
+}
 
-    auto layer_mode = handle->layer_mode;
-    if(layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, rocblas_nrm2_batched_name<Ti>, n, x, incx, batch_count);
-
-    if(layer_mode & rocblas_layer_mode_log_bench)
-        log_bench(handle,
-                    "./rocblas-bench -f nrm2_batched -r",
-                    rocblas_precision_string<Ti>,
-                    "-n",
-                    n,
-                    "--incx",
-                    incx,
-                    "--batch",
-                    batch_count);
-
-    if(layer_mode & rocblas_layer_mode_log_profile)
-        log_profile(
-            handle, rocblas_nrm2_batched_name<Ti>, "N", n, "incx", incx, "batch", batch_count);
-
-    if(!x || !results)
-        return rocblas_status_invalid_pointer;
-
-    if(batch_count <= 0)
-        return rocblas_status_invalid_size;
-
+template <rocblas_int NB, typename Ti, typename To>
+rocblas_status rocblas_nrm2_batched_template(rocblas_handle  handle,
+                                             rocblas_int     n,
+                                             const Ti* const x[],
+                                             rocblas_int     shiftx,
+                                             rocblas_int     incx,
+                                             rocblas_int     batch_count,
+                                             To*             workspace,
+                                             To*             results)
+{
     // Quick return if possible.
-    if(n <= 0 || incx <= 0)
+    if(n <= 0 || incx <= 0 || batch_count == 0)
     {
         if(handle->is_device_memory_size_query())
             return rocblas_status_size_unchanged;
-        else if(rocblas_pointer_mode_device == handle->pointer_mode)
+        else if(rocblas_pointer_mode_device == handle->pointer_mode && batch_count > 0)
             RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(To)));
         else
         {
@@ -98,27 +62,9 @@ rocblas_status rocblas_nrm2_batched(rocblas_handle  handle,
         return rocblas_status_success;
     }
 
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    constexpr int NB = 512;
-    auto blocks = (n - 1) / NB + 1;
-
-    // below blocks+1 the +1 is for results when rocblas_pointer_mode_host
-    size_t dev_bytes = sizeof(To) * (blocks + 1) * batch_count;
-
-    if(handle->is_device_memory_size_query())
-        return handle->set_optimal_device_memory_size(dev_bytes);
-
-    auto mem = handle->device_malloc(dev_bytes);
-    if(!mem)
-        return rocblas_status_memory_error;
-
-    rocblas_status bstatus = rocblas_reduction_batched_kernel<NB,
-                                                                rocblas_fetch_nrm2_batched<To>,
-                                                                rocblas_reduce_sum,
-                                                                rocblas_finalize_nrm2_batched>(
-        handle, n, x, shiftx, incx, results, (To*)mem, blocks, batch_count);
-
-    return bstatus;
+    return rocblas_reduction_batched_kernel<NB,
+                                            rocblas_fetch_nrm2_batched<To>,
+                                            rocblas_reduce_sum,
+                                            rocblas_finalize_nrm2_batched>(
+        handle, n, x, shiftx, incx, batch_count, workspace, results);
 }
-
-

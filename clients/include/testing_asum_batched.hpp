@@ -25,8 +25,7 @@ void testing_asum_batched_bad_arg_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    T1** dx;
-    hipMalloc(&dx, safe_size * sizeof(T1*));
+    device_vector<T1*, 0, T1> dx(safe_size);
     if(!dx)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -57,11 +56,10 @@ void testing_asum_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(batch_count <= 0)
+    if(batch_count < 0 || incx <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
-        T1**                dx;
-        hipMalloc(&dx, safe_size * sizeof(T1*));
+        device_vector<T1*, 0, T1> dx(safe_size);
         device_vector<T2> d_rocblas_result(std::max(batch_count, 1));
         if(!dx || !d_rocblas_result)
         {
@@ -73,20 +71,14 @@ void testing_asum_batched_template(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(
             (rocblas_asum_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result, batch_count)),
             rocblas_status_invalid_size);
-        CHECK_HIP_ERROR(hipFree(dx));
         return;
     }
 
-    T2 rocblas_result_1[batch_count];
-    T2 rocblas_result_2[batch_count];
-    T2 cpu_result[batch_count];
-
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0)
+    if(N <= 0 || batch_count == 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        T1**                dx;
-        hipMalloc(&dx, safe_size * sizeof(T1*));
+        device_vector<T1*, 0, T1> dx(safe_size);
         device_vector<T2> d_rocblas_result_2(batch_count);
         if(!dx || !d_rocblas_result_2)
         {
@@ -97,14 +89,16 @@ void testing_asum_batched_template(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
             (rocblas_asum_batched<T1, T2>(handle, N, dx, incx, d_rocblas_result_2, batch_count)));
-        CHECK_HIP_ERROR(hipFree(dx));
         return;
     }
+
+    T2 rocblas_result_1[batch_count];
+    T2 rocblas_result_2[batch_count];
+    T2 cpu_result[batch_count];
 
     size_t size_x = N * size_t(incx);
 
     // allocate memory on device
-    //device_vector<T1> dx(size_x);
     device_vector<T2> d_rocblas_result_2(batch_count);
     if(!d_rocblas_result_2)
     {
@@ -122,31 +116,23 @@ void testing_asum_batched_template(const Arguments& arg)
         hx[i] = host_vector<T1>(size_x);
         rocblas_init<T1>(hx[i], 1, N, incx);
     }
-    //rocblas_init<T1>(hx, 1, N, incx);
 
     device_batch_vector<T1> dxvec(batch_count, size_x);
-    /*
-    T1** hdx = new T1*[batch_count]; // must create device ptr array on host
-    */
     for(int i = 0; i < batch_count; i++)
     {
-        //hipMalloc(&hdx[i], size_x * sizeof(T1));
         CHECK_HIP_ERROR(hipMemcpy(dxvec[i], hx[i], size_x * sizeof(T1), hipMemcpyHostToDevice));
     }
 
     // vector pointers on gpu
-    T1** dx_pvec;
-    CHECK_HIP_ERROR(hipMalloc(&dx_pvec, batch_count * sizeof(T1*)));
+    device_vector<T1*, 0, T1> dx_pvec(batch_count);
     if(!dx_pvec)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
+
     // copy gpu vector pointers from host to device pointer array
     CHECK_HIP_ERROR(hipMemcpy(dx_pvec, dxvec, sizeof(T1*) * batch_count, hipMemcpyHostToDevice));
-
-    // copy data from CPU to device, does not work for incx != 1
-    //CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
 
@@ -158,7 +144,6 @@ void testing_asum_batched_template(const Arguments& arg)
             rocblas_asum_batched<T1, T2>(handle, N, dx_pvec, incx, rocblas_result_1, batch_count)));
 
         // GPU BLAS rocblas_pointer_mode_device
-        //CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * size_x, hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_asum_batched<T1, T2>(
             handle, N, dx_pvec, incx, d_rocblas_result_2, batch_count)));
@@ -223,8 +208,6 @@ void testing_asum_batched_template(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
-    CHECK_HIP_ERROR(hipFree(dx_pvec));
 }
 
 template <typename T>

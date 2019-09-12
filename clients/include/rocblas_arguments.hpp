@@ -65,6 +65,7 @@ struct Arguments
 
     rocblas_int stride_x;
     rocblas_int stride_y;
+    rocblas_int stride_scale;
 
     rocblas_int norm_check;
     rocblas_int unit_check;
@@ -150,6 +151,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(stride_d);
         ROCBLAS_FORMAT_CHECK(stride_x);
         ROCBLAS_FORMAT_CHECK(stride_y);
+        ROCBLAS_FORMAT_CHECK(stride_scale);
         ROCBLAS_FORMAT_CHECK(norm_check);
         ROCBLAS_FORMAT_CHECK(unit_check);
         ROCBLAS_FORMAT_CHECK(timing);

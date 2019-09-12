@@ -63,60 +63,57 @@ Tests:
     - rot:   *rot_precisions
     - rotm:   *single_double_precisions_complex_real
 
-- name: blas1_nrm2_batched
+- name: blas1_batched
   category: quick
-  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
-  incx: [-1, 1, 2]
-  batch_count: [-1, 1, 2, 10, 1025]
+  N: [ -1, 0, 1025 ]
+  batch_count: [-1, 0, 1]
   function: 
+    - asum_batched: *single_double_precisions_complex_real
+    - nrm2_batched: *single_double_precisions_complex_real
+- name: blas1_batched
+  category: pre_checkin
+  N: [ 1025, 33792 ]
+  incx: [1, 2]
+  batch_count: [ 2, 33 ]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
+    - nrm2_batched: *single_double_precisions_complex_real
+- name: blas1_batched 
+  category: nightly
+  N: [ 300001 ]
+  incx: [-1, 1, 2]
+  batch_count: [ 65 ]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
     - nrm2_batched: *single_double_precisions_complex_real
 
-- name: blas1_nrm2_strided_batched
+- name: blas1_strided_batched
   category: quick
-  N: [ -1, 0, 5, 10, 1025, 7111, 10000, 33792 ]
-  incx: [-1, 1, 2]
-  stride_x: [-1, 68000]
-  batch_count: [-1, 1, 2, 10, 1025]
+  N: [ -1, 0, 1025 ]
+  incx: [-1, 0, 1]
+  stride_scale: [ 0, 1 ]
+  batch_count: [-1, 0, 1]
   function: 
+    - asum_strided_batched: *single_double_precisions_complex_real
     - nrm2_strided_batched: *single_double_precisions_complex_real
-
-- name: blas1_asum_batched
-  category: quick
-  N: [ -1, 0, 1025 ]
-  batch_count: [-1, 0, 1]
-  function: 
-    - asum_batched: *single_double_precisions_complex_real
-- name: blas1_asum_batched
+- name: blas1_strided_batched
   category: pre_checkin
-  N: [ 1025, 33792 ]
-  incx: [-1, 1, 2]
-  batch_count: [ 2, 33 ]
-  function: 
-    - asum_batched: *single_double_precisions_complex_real
-
-- name: blas1_asum_strided_batched
-  category: quick
-  N: [ -1, 0, 1025 ]
-  stride_x: [-1, 68000]
-  batch_count: [-1, 0, 1]
-  function: 
-    - asum_strided_batched: *single_double_precisions_complex_real
-- name: blas1_asum_strided_batched
-  category: pre_checkin
-  N: [ 1025, 33792 ]
-  incx: [-1, 1, 2]
-  stride_x: [-1, 68000]
+  N: [ 513, 33792 ]
+  incx: [1, 2]
+  stride_scale: [ 1 ]
   batch_count: [ 2, 33 ]
   function: 
     - asum_strided_batched: *single_double_precisions_complex_real
-- name: blas1_asum_strided_batched
+    - nrm2_strided_batched: *single_double_precisions_complex_real
+- name: blas1_strided_batched
   category: nightly
-  N: [ 8000001 ]
+  N: [ 300001 ]
   incx: [-1, 1, 2]
-  stride_x: [-1, 16000002]
-  batch_count: [ 2, 1025 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 65 ]
   function: 
     - asum_strided_batched: *single_double_precisions_complex_real
+    - nrm2_strided_batched: *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin

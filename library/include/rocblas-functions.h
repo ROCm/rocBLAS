@@ -382,11 +382,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
     x         pointer storing vector x on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              specifies the increment for the elements of x. incx must be > 0.
     @param[inout]
     result
               store the asum product. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              return is 0.0 if n <= 0.
 
     ********************************************************************/
 
@@ -425,7 +425,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum(rocblas_handle                handl
     x         array of pointers storing the different vector x_i on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of each x_i.
+              specifies the increment for the elements of each x_i. incx must be > 0.
     @param[out]
     result
               pointers to array of batch_count size for results. either on the host CPU or device GPU.
@@ -472,13 +472,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle        handl
     x         pointer to the first vector x_i on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of each x_i.
+              specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx <= 0.
+              return is 0.0 if n <= 0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -563,11 +563,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
     x         array of pointers storing the different vector x_i on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of each x_i.
+              specifies the increment for the elements of each x_i. incx must be > 0.
     @param[out]
     result
               pointers to array of batch_count size for nrm2 results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              return is 0.0 if n <= 0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -610,13 +610,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle        handl
     x         pointer to the first vector x_i on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of each x_i.
+              specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n, incx <= 0.
+              return is 0.0 if n <= 0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
