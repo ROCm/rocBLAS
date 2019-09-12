@@ -49,8 +49,8 @@ supported_distro( )
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
 check_exit_code( )
 {
-  if (( $? != 0 )); then
-    exit $?
+  if (( $1 != 0 )); then
+    exit $1
   fi
 }
 
@@ -61,10 +61,10 @@ elevate_if_not_root( )
 
   if (( ${uid} )); then
     sudo $@
-    check_exit_code
+    check_exit_code "$?"
   else
     $@
-    check_exit_code
+    check_exit_code "$?"
   fi
 }
 
@@ -419,10 +419,10 @@ esac
   else
     CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   fi
-  check_exit_code
+  check_exit_code "$?"
 
   make -j$(nproc) install
-  check_exit_code
+  check_exit_code "$?"
 
   # #################################################
   # install
@@ -430,7 +430,7 @@ esac
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    check_exit_code
+    check_exit_code "$?"
 
     case "${ID}" in
       ubuntu)

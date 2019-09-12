@@ -233,7 +233,37 @@ void testing_gemv_strided_batched(const Arguments& arg)
 
     //quick return
     if(!M || !N || !batch_count)
+    {
+        static const size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T>    dA1(safe_size);
+        device_vector<T>    dx1(safe_size);
+        device_vector<T>    dy1(safe_size);
+        if(!dA1 || !dx1 || !dy1)
+        {
+            CHECK_HIP_ERROR(hipErrorOutOfMemory);
+            return;
+        }
+
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
+                                                              transA,
+                                                              M,
+                                                              N,
+                                                              &h_alpha,
+                                                              dA1,
+                                                              lda,
+                                                              stride_a,
+                                                              dx1,
+                                                              incx,
+                                                              stride_x,
+                                                              &h_beta,
+                                                              dy1,
+                                                              incy,
+                                                              stride_y,
+                                                              batch_count),
+                              rocblas_status_success);
+
         return;
+    }
 
     size_A = size_A + static_cast<size_t>(stride_a) * static_cast<size_t>(batch_count - 1);
     size_x = size_x + static_cast<size_t>(stride_x) * static_cast<size_t>(batch_count - 1);
