@@ -1,4 +1,4 @@
-# Parameters related to building rocFFT
+# Parameters related to building rocBLAS
 ARG base_image
 
 FROM ${base_image}
@@ -10,8 +10,8 @@ ARG user_uid
 # Dependencies:
 # * hcc-config.cmake: pkg-config
 # * tensile: python2.7, python-yaml
-# * rocfft-test: gfortran, googletest
-# * rocfft-bench: libboost-program-options-dev
+# * rocblas-test: gfortran, googletest
+# * rocblas-bench: libboost-program-options-dev
 # * libhsakmt.so: libnuma1
 RUN zypper -n update && zypper -n install\
     rock-dkms \
