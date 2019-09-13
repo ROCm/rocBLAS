@@ -58,9 +58,9 @@ void testing_asum_batched_template(const Arguments& arg)
 
     if(batch_count < 0 || incx <= 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to zero
+        static const size_t       safe_size = 100; //  arbitrarily set to zero
         device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2> d_rocblas_result(std::max(batch_count, 1));
+        device_vector<T2>         d_rocblas_result(std::max(batch_count, 1));
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -77,9 +77,9 @@ void testing_asum_batched_template(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count == 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
+        static const size_t       safe_size = 100; // arbitrarily set to 100
         device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2> d_rocblas_result_2(batch_count);
+        device_vector<T2>         d_rocblas_result_2(batch_count);
         if(!dx || !d_rocblas_result_2)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
