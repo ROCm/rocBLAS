@@ -33,16 +33,16 @@ __global__ void rocblas_swap_kernel_strided_batched(rocblas_int n,
 
 template <rocblas_int NB, typename T>
 rocblas_status rocblas_swap_strided_batched_template(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             T*             x,
-                                             rocblas_int    shiftx,
-                                             rocblas_int    incx,
-                                             rocblas_int    stridex,
-                                             T*             y,
-                                             rocblas_int    shifty,
-                                             rocblas_int    incy,
-                                             rocblas_int    stridey,
-                                             rocblas_int    batch_count)
+                                                     rocblas_int    n,
+                                                     T*             x,
+                                                     rocblas_int    shiftx,
+                                                     rocblas_int    incx,
+                                                     rocblas_int    stridex,
+                                                     T*             y,
+                                                     rocblas_int    shifty,
+                                                     rocblas_int    incy,
+                                                     rocblas_int    stridey,
+                                                     rocblas_int    batch_count)
 {
     // Quick return if possible.
     if(n <= 0 || batch_count == 0)
