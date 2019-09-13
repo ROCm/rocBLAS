@@ -68,7 +68,14 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( EXISTS /etc/redhat-release)
     set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
     set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so ) 
-    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include ) 
+
+    if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
+    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+    else()
+        error("cannot find immintrin.h")
+    endif()
 
     # External header includes included as system files
     target_include_directories( rocblas-bench
