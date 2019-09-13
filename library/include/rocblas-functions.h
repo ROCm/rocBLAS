@@ -1637,15 +1637,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                                      rocblas_int        ldinvA,
                                                      rocblas_int        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle     handle,
-                                                     rocblas_fill       uplo,
-                                                     rocblas_diagonal   diag,
-                                                     rocblas_int        n,
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
+                                                     rocblas_fill        uplo,
+                                                     rocblas_diagonal    diag,
+                                                     rocblas_int         n,
                                                      const double* const A[],
-                                                     rocblas_int        lda,
-                                                     double*            invA[],
-                                                     rocblas_int        ldinvA,
-                                                     rocblas_int        batch_count);
+                                                     rocblas_int         lda,
+                                                     double*             invA[],
+                                                     rocblas_int         ldinvA,
+                                                     rocblas_int         batch_count);
 
 /*! \brief BLAS Level 3 API
 
