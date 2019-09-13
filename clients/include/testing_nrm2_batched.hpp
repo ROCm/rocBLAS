@@ -25,7 +25,7 @@ void testing_nrm2_batched_bad_arg_template(const Arguments& arg)
     rocblas_local_handle handle;
 
     device_vector<T1*, 0, T1> dx(safe_size);
-    device_vector<T2> d_rocblas_result(1);
+    device_vector<T2>         d_rocblas_result(1);
     if(!dx || !d_rocblas_result)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -61,7 +61,7 @@ void testing_nrm2_batched_template(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to zero
 
         device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2> d_rocblas_result(safe_size);
+        device_vector<T2>         d_rocblas_result(safe_size);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -78,9 +78,9 @@ void testing_nrm2_batched_template(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count == 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to zero
+        static const size_t       safe_size = 100; //  arbitrarily set to zero
         device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2> d_rocblas_result(safe_size);
+        device_vector<T2>         d_rocblas_result(safe_size);
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

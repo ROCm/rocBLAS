@@ -69,7 +69,8 @@ namespace
         if(!x || !results)
             return rocblas_status_invalid_pointer;
 
-        if(batch_count < 0 || incx <= 0 || stridex < 0 || stridex < n * incx) // negative n handled later
+        if(batch_count < 0 || incx <= 0 || stridex < 0
+           || stridex < n * incx) // negative n handled later
             return rocblas_status_invalid_size;
 
         // HIP support up to 1024 threads/work itmes per thread block/work group

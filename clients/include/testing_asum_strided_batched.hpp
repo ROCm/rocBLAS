@@ -79,7 +79,6 @@ void testing_asum_strided_batched_template(const Arguments& arg)
         return;
     }
 
-
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count == 0)
     {

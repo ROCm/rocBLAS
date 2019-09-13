@@ -1,11 +1,11 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_asum_batched.hpp"
 #include "logging.h"
 #include "utility.h"
-#include "rocblas_asum_batched.hpp"
 
-namespace 
+namespace
 {
     template <typename>
     constexpr char rocblas_asum_batched_name[] = "unknown";
@@ -18,15 +18,14 @@ namespace
     template <>
     constexpr char rocblas_asum_batched_name<rocblas_double_complex>[] = "rocblas_dzasum_batched";
 
-
     // allocate workspace inside this API
     template <typename Ti, typename To>
     rocblas_status rocblas_asum_batched_impl(rocblas_handle  handle,
-                                        rocblas_int     n,
-                                        const Ti* const x[],
-                                        rocblas_int     incx,
-                                        To*             results,
-                                        rocblas_int     batch_count)
+                                             rocblas_int     n,
+                                             const Ti* const x[],
+                                             rocblas_int     incx,
+                                             To*             results,
+                                             rocblas_int     batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -37,14 +36,14 @@ namespace
 
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
-                        "./rocblas-bench -f asum_batched -r",
-                        rocblas_precision_string<Ti>,
-                        "-n",
-                        n,
-                        "--incx",
-                        incx,
-                        "--batch",
-                        batch_count);
+                      "./rocblas-bench -f asum_batched -r",
+                      rocblas_precision_string<Ti>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx,
+                      "--batch",
+                      batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(
@@ -56,11 +55,11 @@ namespace
         if(batch_count < 0 || incx <= 0)
             return rocblas_status_invalid_size;
 
-
         // HIP support up to 1024 threads/work itmes per thread block/work group
         constexpr int NB = 512;
 
-        size_t dev_bytes = rocblas_asum_batched_template_workspace_size<NB>(n, batch_count, results);
+        size_t dev_bytes
+            = rocblas_asum_batched_template_workspace_size<NB>(n, batch_count, results);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -70,7 +69,7 @@ namespace
             return rocblas_status_memory_error;
 
         return rocblas_asum_batched_template<NB>(
-                handle, n, x, 0, incx, batch_count, (To*)mem, results);
+            handle, n, x, 0, incx, batch_count, (To*)mem, results);
     }
 }
 

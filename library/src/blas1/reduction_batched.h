@@ -18,7 +18,7 @@
 
 size_t rocblas_reduction_batched_kernel_block_count(rocblas_int n, rocblas_int NB)
 {
-    if (n <= 0)
+    if(n <= 0)
         n = 1; // avoid sign loss issues
     return size_t(n - 1) / NB + 1;
 }
@@ -38,7 +38,7 @@ size_t rocblas_reduction_batched_kernel_workspace_size(rocblas_int n,
                                                        rocblas_int batch_count,
                                                        To*         output_type)
 {
-    if (n <= 0) 
+    if(n <= 0)
         n = 1; // allow for return value of empty set
     auto blocks = rocblas_reduction_batched_kernel_block_count(n, NB);
     return sizeof(To) * (blocks + 1) * batch_count;
