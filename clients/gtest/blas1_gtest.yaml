@@ -28,6 +28,7 @@ Tests:
   - name: blas1
     category: quick
     N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
+    incalpha: [-1, 0, 10 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -44,7 +45,7 @@ Tests:
       - scal:  *single_double_complex_real_in_complex_out
       - swap:  *single_double_precisions_complex_real
       - rot:   *rot_precisions
-      - rotm:   *single_double_precisions_complex_real
+      - rotm:  *single_double_precisions_complex_real
 
   - name: blas1_batched
     category: quick

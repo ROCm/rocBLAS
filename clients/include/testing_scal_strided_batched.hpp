@@ -18,16 +18,17 @@ template <typename T, typename U = T>
 void testing_scal_strided_batched(const Arguments& arg)
 {
     rocblas_int N           = arg.N;
+    rocblas_int inca        = arg.incalpha;
     rocblas_int incx        = arg.incx;
     rocblas_int stridex     = arg.stride_x;
     rocblas_int batch_count = arg.batch_count;
-    U           h_alpha     = arg.get_alpha<U>();
 
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
     if(stridex < N * incx)
     {
+        U                   h_alphab  = arg.get_alpha<U>();
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         if(!dx)
@@ -39,7 +40,8 @@ void testing_scal_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
                                                                    N,
-                                                                   &h_alpha,
+                                                                   &h_alphab,
+                                                                   0,
                                                                    dx,
                                                                    incx,
                                                                    stridex,
@@ -47,8 +49,9 @@ void testing_scal_strided_batched(const Arguments& arg)
                               rocblas_status_invalid_size);
         return;
     }
-    if(N <= 0 || incx <= 0 || batch_count <= 0)
+    if(N <= 0 || incx <= 0 || batch_count <= 0 || inca < 0)
     {
+        U                   h_alphab  = arg.get_alpha<U>();
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         if(!dx)
@@ -58,10 +61,11 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count < 0)
+        if(batch_count < 0 || inca < 0) // || incx <= 0)
             EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
                                                                        N,
-                                                                       &h_alpha,
+                                                                       &h_alphab,
+                                                                       0,
                                                                        dx,
                                                                        incx,
                                                                        stridex,
@@ -70,7 +74,8 @@ void testing_scal_strided_batched(const Arguments& arg)
         else
             CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>)(handle,
                                                                      N,
-                                                                     &h_alpha,
+                                                                     &h_alphab,
+                                                                     0,
                                                                      dx,
                                                                      incx,
                                                                      stridex,
@@ -79,7 +84,12 @@ void testing_scal_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_x = N * size_t(incx) + size_t(stridex) * size_t(batch_count - 1);
+    size_t size_x     = N * size_t(incx) + size_t(stridex) * size_t(batch_count - 1);
+    size_t size_alpha = batch_count * size_t(inca);
+
+    if(size_alpha == 0)
+        size_alpha = 1;
+    host_vector<U> h_alpha(size_alpha);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx_1(size_x);
@@ -90,6 +100,11 @@ void testing_scal_strided_batched(const Arguments& arg)
     rocblas_seedrand();
     rocblas_init<T>(hx_1, 1, N, incx, stridex, batch_count);
 
+    if(size_alpha == 1)
+        h_alpha[0] = arg.get_alpha<U>();
+    else
+        rocblas_init<U>(h_alpha, 1, batch_count, inca);
+
     // copy vector is easy in STL; hx_gold = hx: save a copy in hx_gold which will be output of CPU
     // BLAS
     hx_2    = hx_1;
@@ -98,7 +113,7 @@ void testing_scal_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx_1(size_x);
     device_vector<T> dx_2(size_x);
-    device_vector<U> d_alpha(1);
+    device_vector<U> d_alpha(size_alpha);
     if(!dx_1 || !dx_2 || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -118,17 +133,17 @@ void testing_scal_strided_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_HIP_ERROR(hipMemcpy(dx_2, hx_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(U), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, h_alpha, size_alpha * sizeof(U), hipMemcpyHostToDevice));
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>(
-            handle, N, &h_alpha, dx_1, incx, stridex, batch_count)));
+            handle, N, h_alpha, inca, dx_1, incx, stridex, batch_count)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>(
-            handle, N, d_alpha, dx_2, incx, stridex, batch_count)));
+            handle, N, d_alpha, inca, dx_2, incx, stridex, batch_count)));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(T) * size_x, hipMemcpyDeviceToHost));
@@ -138,7 +153,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_scal<T, U>(N, h_alpha, hx_gold + i * stridex, incx);
+            cblas_scal<T, U>(N, h_alpha[i * inca], hx_gold + i * stridex, incx);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -169,7 +184,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_scal_strided_batched<T, U>(
-                handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+                handle, N, h_alpha, inca, dx_1, incx, stridex, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -177,7 +192,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_scal_strided_batched<T, U>(
-                handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+                handle, N, h_alpha, inca, dx_1, incx, stridex, batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -223,11 +238,12 @@ void testing_scal_strided_batched_bad_arg(const Arguments& arg)
     }
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_strided_batched<T, U>)(handle, N, nullptr, dx, incx, stridex, batch_count),
+        (rocblas_scal_strided_batched<T, U>)(handle, N, nullptr, 0, dx, incx, stridex, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
                                                                N,
                                                                &h_alpha,
+                                                               0,
                                                                nullptr,
                                                                incx,
                                                                stridex,

@@ -73,9 +73,7 @@ namespace
         if(!x)
             return rocblas_status_invalid_pointer;
 
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        return rocblas_scal_template<NB, T>(handle, n, alpha, x, 0, incx, 0, 1);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
     }
 }
 

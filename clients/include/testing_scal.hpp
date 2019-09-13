@@ -62,6 +62,10 @@ void testing_scal(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        // if(incx <= 0)
+        //     EXPECT_ROCBLAS_STATUS(
+        //         (rocblas_scal<T, U>)(handle, N, &h_alpha, dx, incx), rocblas_status_invalid_size);
+        // else
         CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx, incx)));
         return;
     }

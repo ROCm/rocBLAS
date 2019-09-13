@@ -52,8 +52,13 @@ static constexpr auto rocblas_scal<rocblas_double_complex, double> = rocblas_zds
 
 // scal_batched
 template <typename T, typename U = T>
-rocblas_status (*rocblas_scal_batched)(
-    rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx);
+rocblas_status (*rocblas_scal_batched)(rocblas_handle handle,
+                                       rocblas_int    n,
+                                       const U*       alpha,
+                                       rocblas_int    inca,
+                                       T* const       x[],
+                                       rocblas_int    incx,
+                                       rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_scal_batched<float> = rocblas_sscal_batched;
@@ -75,8 +80,14 @@ static constexpr auto rocblas_scal_batched<rocblas_double_complex, double> = roc
 
 // scal_strided_batched
 template <typename T, typename U = T>
-rocblas_status (*rocblas_scal_strided_batched)(
-    rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx);
+rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const U*       alpha,
+                                               rocblas_int    inca,
+                                               T*             x,
+                                               rocblas_int    incx,
+                                               rocblas_int    stride_x,
+                                               rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_scal_strided_batched<float> = rocblas_sscal_strided_batched;
