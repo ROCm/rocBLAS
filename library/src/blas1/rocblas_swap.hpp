@@ -6,12 +6,11 @@
 #include "rocblas.h"
 
 template <typename T>
-__forceinline__ __device__ __host__ void
-    rocblas_swap_vals(T* x, T* y)
+__forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)
 {
-    T tmp   = *y;
-    *y = *x;
-    *x = tmp;
+    T tmp = *y;
+    *y    = *x;
+    *x    = tmp;
 }
 
 template <typename T>

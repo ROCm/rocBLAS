@@ -63,8 +63,8 @@ void testing_swap_strided_batched(const Arguments& arg)
     size_t abs_incy = incy >= 0 ? incy : -incy;
 
     // argument sanity check before allocating invalid memory
-    if(stridex < N * abs_incx || stridey < N * abs_incy ||
-       stridex < 0 || stridey < 0 || batch_count < 0)
+    if(stridex < N * abs_incx || stridey < N * abs_incy || stridex < 0 || stridey < 0
+       || batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
@@ -104,7 +104,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     host_vector<T> hx(size_x * batch_count);
     host_vector<T> hy(size_y * batch_count);
     host_vector<T> hx_gold(size_x * batch_count);
-    host_vector<T> hy_gold(size_y * batch_count); 
+    host_vector<T> hy_gold(size_y * batch_count);
 
     // Initial Data on CPU
     rocblas_seedrand();
