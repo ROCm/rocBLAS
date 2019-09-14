@@ -29,7 +29,7 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c'
+    rocblas.paths.build_command = 'sudo ./install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['gfx900 && ubuntu && hip-clang', 'gfx906 && centos7 && hip-clang'], rocblas)
@@ -49,7 +49,8 @@ rocBLASCI:
             command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    export PATH=/opt/rocm/bin:$PATH
+                    LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
         }
         else
@@ -69,14 +70,14 @@ rocBLASCI:
 
         def command
 
-        if(platform.jenkinsLabel.contains('centos'))
+        if(platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('hip-clang'))
         {
             if(auxiliary.isJobStartedByTimer())
             {
                 command = """#!/usr/bin/env bash
                         set -x
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                        LD_LIBRARY_PATH=/opt/rocm/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
                 
                 platform.runCommand(this, command)
@@ -87,8 +88,8 @@ rocBLASCI:
                 command = """#!/usr/bin/env bash
                         set -x
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib ./example-sscal
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                        LD_LIBRARY_PATH=/opt/rocm/lib sudo ./example-sscal
+                        LD_LIBRARY_PATH=/opt/rocm/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
         
                 platform.runCommand(this, command)
@@ -129,7 +130,11 @@ rocBLASCI:
 
         def command 
         
-        if(platform.jenkinsLabel.contains('centos'))
+        if(platform.jenkinsLabel.contains('hip-clang'))
+        {
+            packageCommand = null
+        }
+        else if(platform.jenkinsLabel.contains('centos'))
         {
             command = """
                     set -x
@@ -142,10 +147,6 @@ rocBLASCI:
 
             platform.runCommand(this, command)
             platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")        
-        }
-        else if(platform.jenkinsLabel.contains('hip-clang'))
-        {
-            packageCommand = null
         }
         else
         {
