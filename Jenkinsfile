@@ -50,7 +50,7 @@ rocBLASCI:
                     set -x
                     cd ${project.paths.project_build_prefix}
                     export PATH=/opt/rocm/bin:$PATH
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
         }
         else
@@ -77,7 +77,7 @@ rocBLASCI:
                 command = """#!/usr/bin/env bash
                         set -x
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
+                        LD_LIBRARY_PATH=/opt/rocm/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=*nightly*-*known_bug* #--gtest_filter=*nightly*
                     """
                 
                 platform.runCommand(this, command)
@@ -88,8 +88,8 @@ rocBLASCI:
                 command = """#!/usr/bin/env bash
                         set -x
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib sudo ./example-sscal
-                        LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
+                        LD_LIBRARY_PATH=/opt/rocm/lib sudo ./example-sscal
+                        LD_LIBRARY_PATH=/opt/rocm/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG sudo ./rocblas-test --gtest_output=xml --gtest_color=yes  --gtest_filter=*quick*:*pre_checkin*-*known_bug* #--gtest_filter=*checkin*
                     """
         
                 platform.runCommand(this, command)
