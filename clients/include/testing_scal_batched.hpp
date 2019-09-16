@@ -36,7 +36,7 @@ void testing_scal_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count < 0 || inca < 0) // || incx <= 0)
+        if(batch_count < 0 || inca < 0)
             EXPECT_ROCBLAS_STATUS(
                 (rocblas_scal_batched<T, U>)(handle, N, &h_alphab, 0, dx, incx, batch_count),
                 rocblas_status_invalid_size);
