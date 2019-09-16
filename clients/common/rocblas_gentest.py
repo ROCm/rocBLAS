@@ -196,17 +196,21 @@ def setdefaults(test):
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
 
-    if (test['function']=='ger_strided_batched' or test['function']=='scal_strided_batched') and all([x in test for x in ('M', 'incx', 'strideScale')]):
-        test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
-                                    test['strideScale']))
-    else:
-       test.setdefault('stride_x', 0)
 
-    if test['function']=='ger_strided_batched' and all([x in test for x in ('N', 'incy', 'strideScale')]):
-        test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
-                                        test['strideScale']))
-    else:
-        test.setdefault('stride_y', 0)
+    if test['function'] in ('ger_strided_batched'):
+        if all([x in test for x in ('M', 'incx', 'strideScale')]):
+            test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
+                                            test['strideScale']))
+        if all([x in test for x in ('N', 'incy', 'strideScale')]):
+            test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
+                                            test['strideScale']))
+    if test['function'] in ('scal_strided_batched'):
+        if all([x in test for x in ('N', 'incx', 'strideScale')]):
+            test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
+                                            test['strideScale']))
+
+    test.setdefault('stride_x', 0)
+    test.setdefault('stride_y', 0)
 
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)

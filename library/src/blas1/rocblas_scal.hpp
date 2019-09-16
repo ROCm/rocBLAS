@@ -32,26 +32,14 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
                                      rocblas_int    stridex,
-                                     rocblas_int    batch_count)
+                                     rocblas_int    batch_count,
+                                     V*             mem)
 {
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0 || batch_count <= 0)
     {
-        if(handle->is_device_memory_size_query())
-            return rocblas_status_size_unchanged;
         return rocblas_status_success;
     }
-
-    if(handle->is_device_memory_size_query())
-    {
-        if(rocblas_pointer_mode_host == handle->pointer_mode && inca != 0)
-            return handle->set_optimal_device_memory_size(sizeof(V) * batch_count * inca);
-        else
-            return rocblas_status_size_unchanged;
-    }
-
-    if(n <= 0 || incx <= 0 || batch_count <= 0)
-        return rocblas_status_success;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);
@@ -87,11 +75,8 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
     }
     else // array of alphas on host - copy to device
     {
-        auto mem = handle->device_malloc(sizeof(V) * batch_count * inca);
-        if(!mem)
-            return rocblas_status_memory_error;
         RETURN_IF_HIP_ERROR(
-            hipMemcpy((V*)mem, alpha, sizeof(V) * batch_count * inca, hipMemcpyHostToDevice));
+            hipMemcpy(mem, alpha, sizeof(V) * batch_count * inca, hipMemcpyHostToDevice));
 
         hipLaunchKernelGGL(scal_kernel<T>,
                            blocks,
@@ -99,7 +84,7 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
                            0,
                            rocblas_stream,
                            n,
-                           (V*)mem,
+                           mem,
                            inca,
                            x,
                            offsetx,

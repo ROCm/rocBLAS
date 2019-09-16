@@ -94,7 +94,26 @@ namespace
         if(inca < 0)
             return rocblas_status_invalid_size;
 
-        return rocblas_scal_template<NB, T>(handle, n, alpha, inca, x, 0, incx, 0, batch_count);
+        if(handle->is_device_memory_size_query())
+        {
+            if(rocblas_pointer_mode_host == handle->pointer_mode && inca && n > 0 && incx > 0
+               && batch_count > 0)
+                return handle->set_optimal_device_memory_size(sizeof(U) * batch_count * inca);
+            else
+                return rocblas_status_size_unchanged;
+        }
+
+        U* mem = (U*)nullptr;
+        if(rocblas_pointer_mode_host == handle->pointer_mode && inca && n > 0 && incx > 0
+           && batch_count > 0)
+        {
+            mem = (U*)handle->device_malloc(sizeof(U) * batch_count * inca);
+            if(!mem)
+                return rocblas_status_memory_error;
+        }
+
+        return rocblas_scal_template<NB, T>(
+            handle, n, alpha, inca, x, 0, incx, 0, batch_count, mem);
     }
 }
 
