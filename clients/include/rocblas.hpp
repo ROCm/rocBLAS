@@ -151,8 +151,8 @@ rocblas_status (*rocblas_asum_batched)(rocblas_handle  handle,
                                        rocblas_int     n,
                                        const T1* const x[],
                                        rocblas_int     incx,
-                                       T2*             result,
-                                       rocblas_int     batch_count);
+                                       rocblas_int     batch_count,
+                                       T2*             result);
 
 template <>
 static constexpr auto rocblas_asum_batched<float, float> = rocblas_sasum_batched;
@@ -173,8 +173,8 @@ rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
                                                const T1*      x,
                                                rocblas_int    incx,
                                                rocblas_int    stridex,
-                                               T2*            result,
-                                               rocblas_int    batch_count);
+                                               rocblas_int    batch_count,
+                                               T2*            result);
 
 template <>
 static constexpr auto rocblas_asum_strided_batched<float, float> = rocblas_sasum_strided_batched;
@@ -213,8 +213,8 @@ rocblas_status (*rocblas_nrm2_batched)(rocblas_handle  handle,
                                        rocblas_int     n,
                                        const T1* const x[],
                                        rocblas_int     incx,
-                                       T2*             results,
-                                       rocblas_int     batch_count);
+                                       rocblas_int     batch_count,
+                                       T2*             results);
 
 template <>
 static constexpr auto rocblas_nrm2_batched<float, float> = rocblas_snrm2_batched;
@@ -235,8 +235,8 @@ rocblas_status (*rocblas_nrm2_strided_batched)(rocblas_handle handle,
                                                const T1*      x,
                                                rocblas_int    incx,
                                                rocblas_int    stridex,
-                                               T2*            results,
-                                               rocblas_int    batch_count);
+                                               rocblas_int    batch_count,
+                                               T2*            results);
 
 template <>
 static constexpr auto rocblas_nrm2_strided_batched<float, float> = rocblas_snrm2_strided_batched;

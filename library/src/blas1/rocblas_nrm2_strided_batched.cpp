@@ -30,8 +30,8 @@ namespace
                                                      const Ti*      x,
                                                      rocblas_int    incx,
                                                      rocblas_int    stridex,
-                                                     To*            results,
-                                                     rocblas_int    batch_count)
+                                                     rocblas_int    batch_count,
+                                                     To*            results)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -72,8 +72,7 @@ namespace
         if(batch_count < 0 || stridex < 0 || stridex < n * incx)
             return rocblas_status_invalid_size;
 
-        size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -101,11 +100,11 @@ rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
                                              const float*   x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
-                                             float*         result,
-                                             rocblas_int    batch_count)
+                                             rocblas_int    batch_count,
+                                             float*         result)
 {
     constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
 }
 
 rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
@@ -113,11 +112,11 @@ rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
                                              const double*  x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
-                                             double*        result,
-                                             rocblas_int    batch_count)
+                                             rocblas_int    batch_count,
+                                             double*        result)
 {
     constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
 }
 
 rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
@@ -125,11 +124,11 @@ rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handl
                                               const rocblas_float_complex* x,
                                               rocblas_int                  incx,
                                               rocblas_int                  stridex,
-                                              float*                       result,
-                                              rocblas_int                  batch_count)
+                                              rocblas_int                  batch_count,
+                                              float*                       result)
 {
     constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
 }
 
 rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                handle,
@@ -137,11 +136,11 @@ rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                hand
                                               const rocblas_double_complex* x,
                                               rocblas_int                   incx,
                                               rocblas_int                   stridex,
-                                              double*                       result,
-                                              rocblas_int                   batch_count)
+                                              rocblas_int                   batch_count,
+                                              double*                       result)
 {
     constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
 }
 
 } // extern "C"

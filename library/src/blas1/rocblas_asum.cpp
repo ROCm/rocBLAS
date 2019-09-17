@@ -56,8 +56,7 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_asum_template<NB>(
-            handle, n, x, 0, incx, (To*)mem, result);
+        return rocblas_asum_template<NB>(handle, n, x, 0, incx, (To*)mem, result);
     }
 
 } // namespace
