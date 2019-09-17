@@ -2,8 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "logging.h"
 #include "rocblas_nrm2.hpp"
+#include "logging.h"
 #include "utility.h"
 
 namespace
@@ -58,8 +58,7 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_nrm2_template<NB>(
-            handle, n, x, 0, incx, (To*)mem, result);
+        return rocblas_nrm2_template<NB>(handle, n, x, 0, incx, (To*)mem, result);
     }
 
 } // namespace

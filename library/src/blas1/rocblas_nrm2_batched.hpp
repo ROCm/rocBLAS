@@ -1,30 +1,13 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
+
 #include "fetch_template.h"
 #include "handle.h"
-#include "reduction_strided_batched2.h"
+#include "reduction_strided_batched.h"
 #include "rocblas.h"
-
-// same as non-batched for now
-template <class To>
-struct rocblas_fetch_nrm2_batched
-{
-    template <class Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
-    {
-        return {fetch_abs2(x)};
-    }
-};
-
-struct rocblas_finalize_nrm2_batched
-{
-    template <class To>
-    __forceinline__ __host__ __device__ To operator()(To x)
-    {
-        return sqrt(x);
-    }
-};
+#include "rocblas_nrm2.hpp"
 
 template <rocblas_int NB, typename Ti, typename To>
 rocblas_status rocblas_nrm2_batched_template(rocblas_handle  handle,
@@ -54,9 +37,10 @@ rocblas_status rocblas_nrm2_batched_template(rocblas_handle  handle,
         return rocblas_status_success;
     }
 
-    return rocblas_reduction_strided_batched_kernel<NB, Ti,
-                                            rocblas_fetch_nrm2_batched<To>,
-                                            rocblas_reduce_sum,
-                                            rocblas_finalize_nrm2_batched>(
+    return rocblas_reduction_strided_batched_kernel<NB,
+                                                    Ti,
+                                                    rocblas_fetch_nrm2<To>,
+                                                    rocblas_reduce_sum,
+                                                    rocblas_finalize_nrm2>(
         handle, n, x, shiftx, incx, 0, batch_count, workspace, results);
 }

@@ -5,18 +5,9 @@
 
 #include "fetch_template.h"
 #include "handle.h"
-#include "reduction_strided_batched2.h"
+#include "reduction_strided_batched.h"
 #include "rocblas.h"
-
-template <class To>
-struct rocblas_fetch_asum_batched
-{
-    template <typename Ti>
-    __forceinline__ __device__ To operator()(Ti x, ptrdiff_t)
-    {
-        return {fetch_asum(x)};
-    }
-};
+#include "rocblas_asum.hpp"
 
 template <rocblas_int NB, typename Ti, typename To>
 rocblas_status rocblas_asum_batched_template(rocblas_handle  handle,
@@ -45,6 +36,6 @@ rocblas_status rocblas_asum_batched_template(rocblas_handle  handle,
         return rocblas_status_success;
     }
 
-    return rocblas_reduction_strided_batched_kernel<NB, Ti, rocblas_fetch_asum_batched<To>>(
+    return rocblas_reduction_strided_batched_kernel<NB, Ti, rocblas_fetch_asum<To>>(
         handle, n, x, shiftx, incx, 0, batch_count, workspace, results);
 }

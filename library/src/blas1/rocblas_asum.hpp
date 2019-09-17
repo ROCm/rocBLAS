@@ -5,10 +5,8 @@
 
 #include "fetch_template.h"
 #include "handle.h"
-//#include "reduction.h"
-#include "reduction_strided_batched2.h"
+#include "reduction_strided_batched.h"
 #include "rocblas.h"
-
 
 template <class To>
 struct rocblas_fetch_asum
@@ -20,11 +18,15 @@ struct rocblas_fetch_asum
     }
 };
 
- 
 // allocate workspace inside this API
 template <rocblas_int NB, typename Ti, typename To>
-rocblas_status rocblas_asum_template(
-    rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int shiftx, rocblas_int incx, To* workspace, To* result)
+rocblas_status rocblas_asum_template(rocblas_handle handle,
+                                     rocblas_int    n,
+                                     const Ti*      x,
+                                     rocblas_int    shiftx,
+                                     rocblas_int    incx,
+                                     To*            workspace,
+                                     To*            result)
 {
     // Quick return if possible.
     if(n <= 0 || incx <= 0)
@@ -41,5 +43,3 @@ rocblas_status rocblas_asum_template(
     return rocblas_reduction_strided_batched_kernel<NB, Ti, rocblas_fetch_asum<To>>(
         handle, n, x, shiftx, incx, 0, 1, workspace, result);
 }
-
-
