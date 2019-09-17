@@ -97,6 +97,9 @@ void testing_dot(const Arguments& arg)
     size_t      size_x   = N * size_t(abs_incx);
     size_t      size_y   = N * size_t(abs_incy);
 
+    std::cout<<" N "<<N<<" incx "<<incx<<" incy "<<incy<<" size_x "
+    <<size_x<<" size_y "<<size_y<<std::endl;
+
     // allocate memory on device
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);

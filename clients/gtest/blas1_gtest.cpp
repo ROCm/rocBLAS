@@ -7,6 +7,8 @@
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
+#include "testing_dot_batched.hpp"
+#include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_scal.hpp"
@@ -25,7 +27,11 @@ namespace
         axpy,
         copy,
         dot,
-        dotc,
+        dotc, 
+        dot_batched,
+        dotc_batched,
+        dot_strided_batched,
+        dotc_strided_batched,
         scal,
         swap,
     };
@@ -61,9 +67,18 @@ namespace
 
             name << '_' << arg.incx;
 
+            if(BLAS1 == blas1::dot_strided_batched)
+                name << "_" << arg.stride_x;
+
+            if(BLAS1 == blas1::dot_strided_batched)
+                name << "_" << arg.stride_y;
+
             if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
                || BLAS1 == blas1::swap)
                 name << '_' << arg.incy;
+            
+            if(BLAS1 == blas1::dot_batched || BLAS1 == blas1::dot_strided_batched)
+                name << "_" << arg.batch_count;
 
             return std::move(name);
         }
@@ -88,6 +103,24 @@ namespace
                     || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::dotc && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{}))
+
+            || (BLAS1 == blas1::dot_batched && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::dotc_batched && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{}))
+
+            || (BLAS1 == blas1::dot_strided_batched && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                && (std::is_same<Ti, rocblas_float_complex>{}
+                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
+                    || std::is_same<Ti, double>{}))
+
+            || (BLAS1 == blas1::dotc_strided_batched && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
@@ -182,6 +215,10 @@ BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
+BLAS1_TESTING(dot_batched,   ARG1)
+BLAS1_TESTING(dotc_batched,  ARG1)
+BLAS1_TESTING(dot_strided_batched,   ARG1)
+BLAS1_TESTING(dotc_strided_batched,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(swap,  ARG1)
 
