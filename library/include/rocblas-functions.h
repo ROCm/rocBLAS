@@ -439,29 +439,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
                                                     rocblas_int        n,
                                                     const float* const x[],
                                                     rocblas_int        incx,
-                                                    float*             results,
-                                                    rocblas_int        batch_count);
+                                                    rocblas_int        batch_count,
+                                                    float*             results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
                                                     rocblas_int         n,
                                                     const double* const x[],
                                                     rocblas_int         incx,
-                                                    double*             results,
-                                                    rocblas_int         batch_count);
+                                                    rocblas_int         batch_count,
+                                                    double*             results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
                                                      rocblas_int                        n,
                                                      const rocblas_float_complex* const x[],
                                                      rocblas_int                        incx,
-                                                     float*                             results,
-                                                     rocblas_int batch_count);
+                                                     rocblas_int                        batch_count,
+                                                     float*                             results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const x[],
                                                      rocblas_int                         incx,
-                                                     double*                             results,
-                                                     rocblas_int batch_count);
+                                                     rocblas_int batch_count,
+                                                     double*     results);
 
 /*! \brief BLAS Level 1 API
 
@@ -486,7 +486,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              return is 0.0 if n, incx<=0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -497,32 +497,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handl
                                                             const float*   x,
                                                             rocblas_int    incx,
                                                             rocblas_int    stridex,
-                                                            float*         results,
-                                                            rocblas_int    batch_count);
+                                                            rocblas_int    batch_count,
+                                                            float*         results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
                                                             const double*  x,
                                                             rocblas_int    incx,
                                                             rocblas_int    stridex,
-                                                            double*        results,
-                                                            rocblas_int    batch_count);
+                                                            rocblas_int    batch_count,
+                                                            double*        results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handle,
                                                              rocblas_int                  n,
                                                              const rocblas_float_complex* x,
                                                              rocblas_int                  incx,
                                                              rocblas_int                  stridex,
-                                                             float*                       results,
-                                                             rocblas_int batch_count);
+                                                             rocblas_int batch_count,
+                                                             float*      results);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                handle,
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
                                                              rocblas_int                   incx,
                                                              rocblas_int                   stridex,
-                                                             double*                       results,
-                                                             rocblas_int batch_count);
+                                                             rocblas_int batch_count,
+                                                             double*     results);
 
 /*! \brief BLAS Level 1 API
 
@@ -586,7 +586,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
     @param[out]
     result
               pointers to array of batch_count size for nrm2 results. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              return is 0.0 if n <= 0, incx<=0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -643,7 +643,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              return is 0.0 if n <= 0, incx<=0.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch

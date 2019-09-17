@@ -24,7 +24,7 @@ namespace
         = "rocblas_dznrm2_strided_batched";
 
     // allocate workspace inside this API
-    template <typename Ti, typename To>
+    template <rocblas_int NB, typename Ti, typename To>
     rocblas_status rocblas_nrm2_strided_batched_impl(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const Ti*      x,
@@ -69,15 +69,11 @@ namespace
         if(!x || !results)
             return rocblas_status_invalid_pointer;
 
-        if(batch_count < 0 || incx <= 0 || stridex < 0
-           || stridex < n * incx) // negative n handled later
+        if(batch_count < 0 || stridex < 0 || stridex < n * incx)
             return rocblas_status_invalid_size;
 
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        constexpr int NB = 512;
-
         size_t dev_bytes
-            = rocblas_nrm2_strided_batched_template_workspace_size<NB>(n, batch_count, results);
+            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -108,7 +104,8 @@ rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
                                              float*         result,
                                              rocblas_int    batch_count)
 {
-    return rocblas_nrm2_strided_batched_impl(handle, n, x, incx, stridex, result, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
 }
 
 rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
@@ -119,7 +116,8 @@ rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
                                              double*        result,
                                              rocblas_int    batch_count)
 {
-    return rocblas_nrm2_strided_batched_impl(handle, n, x, incx, stridex, result, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
 }
 
 rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
@@ -130,7 +128,8 @@ rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handl
                                               float*                       result,
                                               rocblas_int                  batch_count)
 {
-    return rocblas_nrm2_strided_batched_impl(handle, n, x, incx, stridex, result, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
 }
 
 rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                handle,
@@ -141,7 +140,8 @@ rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                hand
                                               double*                       result,
                                               rocblas_int                   batch_count)
 {
-    return rocblas_nrm2_strided_batched_impl(handle, n, x, incx, stridex, result, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, result, batch_count);
 }
 
 } // extern "C"

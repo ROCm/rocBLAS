@@ -56,7 +56,7 @@ void testing_nrm2_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(batch_count < 0 || incx <= 0)
+    if(batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
 
@@ -76,7 +76,7 @@ void testing_nrm2_batched_template(const Arguments& arg)
     }
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || batch_count == 0)
+    if(N <= 0 || incx <= 0 || batch_count == 0)
     {
         static const size_t       safe_size = 100; //  arbitrarily set to zero
         device_vector<T1*, 0, T1> dx(safe_size);
