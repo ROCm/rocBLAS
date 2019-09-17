@@ -19,13 +19,13 @@ namespace
     constexpr char rocblas_asum_batched_name<rocblas_double_complex>[] = "rocblas_dzasum_batched";
 
     // allocate workspace inside this API
-    template <typename Ti, typename To>
+    template <rocblas_int NB, typename Ti, typename To>
     rocblas_status rocblas_asum_batched_impl(rocblas_handle  handle,
                                              rocblas_int     n,
                                              const Ti* const x[],
                                              rocblas_int     incx,
-                                             To*             results,
-                                             rocblas_int     batch_count)
+                                             rocblas_int     batch_count,
+                                             To*             results)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -52,14 +52,11 @@ namespace
         if(!x || !results)
             return rocblas_status_invalid_pointer;
 
-        if(batch_count < 0 || incx <= 0)
+        if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        constexpr int NB = 512;
-
         size_t dev_bytes
-            = rocblas_asum_batched_template_workspace_size<NB>(n, batch_count, results);
+            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -85,40 +82,44 @@ rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
                                      rocblas_int        n,
                                      const float* const x[],
                                      rocblas_int        incx,
-                                     float*             results,
-                                     rocblas_int        batch_count)
+                                     rocblas_int        batch_count,
+                                     float*             results)
 {
-    return rocblas_asum_batched_impl(handle, n, x, incx, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
 }
 
 rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
                                      rocblas_int         n,
                                      const double* const x[],
                                      rocblas_int         incx,
-                                     double*             results,
-                                     rocblas_int         batch_count)
+                                     rocblas_int         batch_count,
+                                     double*             results)
 {
-    return rocblas_asum_batched_impl(handle, n, x, incx, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
 }
 
 rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
                                       rocblas_int                        n,
                                       const rocblas_float_complex* const x[],
                                       rocblas_int                        incx,
-                                      float*                             results,
-                                      rocblas_int                        batch_count)
+                                      rocblas_int                        batch_count,
+                                      float*                             results)
 {
-    return rocblas_asum_batched_impl(handle, n, x, incx, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
 }
 
 rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
                                       rocblas_int                         n,
                                       const rocblas_double_complex* const x[],
                                       rocblas_int                         incx,
-                                      double*                             results,
-                                      rocblas_int                         batch_count)
+                                      rocblas_int                         batch_count,
+                                      double*                             results)
 {
-    return rocblas_asum_batched_impl(handle, n, x, incx, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
 }
 
 } // extern "C"

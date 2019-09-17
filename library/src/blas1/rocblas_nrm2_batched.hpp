@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #include "fetch_template.h"
 #include "handle.h"
-#include "reduction_batched.h"
+#include "reduction_strided_batched2.h"
 #include "rocblas.h"
 
 // same as non-batched for now
@@ -25,14 +25,6 @@ struct rocblas_finalize_nrm2_batched
         return sqrt(x);
     }
 };
-
-template <rocblas_int NB, typename To>
-size_t rocblas_nrm2_batched_template_workspace_size(rocblas_int n,
-                                                    rocblas_int batch_count,
-                                                    To*         output_type)
-{
-    return rocblas_reduction_batched_kernel_workspace_size<NB>(n, batch_count, output_type);
-}
 
 template <rocblas_int NB, typename Ti, typename To>
 rocblas_status rocblas_nrm2_batched_template(rocblas_handle  handle,
@@ -62,9 +54,9 @@ rocblas_status rocblas_nrm2_batched_template(rocblas_handle  handle,
         return rocblas_status_success;
     }
 
-    return rocblas_reduction_batched_kernel<NB,
+    return rocblas_reduction_strided_batched_kernel<NB, Ti,
                                             rocblas_fetch_nrm2_batched<To>,
                                             rocblas_reduce_sum,
                                             rocblas_finalize_nrm2_batched>(
-        handle, n, x, shiftx, incx, batch_count, workspace, results);
+        handle, n, x, shiftx, incx, 0, batch_count, workspace, results);
 }

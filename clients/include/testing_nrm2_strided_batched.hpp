@@ -59,9 +59,7 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-
-    if(batch_count < 0 || incx <= 0 || stridex < 0 || stridex < abs_incx * N)
+    if(batch_count < 0 || stridex < 0 || stridex < incx * N)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);
@@ -80,7 +78,7 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
     }
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || batch_count == 0)
+    if(N <= 0 || incx <= 0 || batch_count == 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);

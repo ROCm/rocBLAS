@@ -22,14 +22,14 @@ namespace
         = "rocblas_dzasum_strided_batched";
 
     // allocate workspace inside this API
-    template <typename Ti, typename To>
+    template <rocblas_int NB, typename Ti, typename To>
     rocblas_status rocblas_asum_strided_batched_impl(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const Ti*      x,
                                                      rocblas_int    incx,
                                                      rocblas_int    stridex,
-                                                     To*            results,
-                                                     rocblas_int    batch_count)
+                                                     rocblas_int    batch_count,
+                                                     To*            results)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -67,14 +67,11 @@ namespace
         if(!x || !results)
             return rocblas_status_invalid_pointer;
 
-        if(batch_count < 0 || incx <= 0 || stridex < 0 || stridex < n * incx) // negative n
+        if(batch_count < 0 || stridex < 0 || stridex < n * incx) // negative n
             return rocblas_status_invalid_size;
 
-        // HIP support up to 1024 threads/work itmes per thread block/work group
-        constexpr int NB = 512;
-
         size_t dev_bytes
-            = rocblas_asum_strided_batched_template_workspace_size<NB>(n, batch_count, results);
+            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -102,10 +99,11 @@ rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
                                              const float*   x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
-                                             float*         results,
-                                             rocblas_int    batch_count)
+                                             rocblas_int    batch_count,
+                                             float*         results)
 {
-    return rocblas_asum_strided_batched_impl(handle, n, x, incx, stridex, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, results);
 }
 
 rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
@@ -113,10 +111,11 @@ rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
                                              const double*  x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
-                                             double*        results,
-                                             rocblas_int    batch_count)
+                                             rocblas_int    batch_count,
+                                             double*        results)
 {
-    return rocblas_asum_strided_batched_impl(handle, n, x, incx, stridex, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, results);
 }
 
 rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handle,
@@ -124,10 +123,11 @@ rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handl
                                               const rocblas_float_complex* x,
                                               rocblas_int                  incx,
                                               rocblas_int                  stridex,
-                                              float*                       results,
-                                              rocblas_int                  batch_count)
+                                              rocblas_int                  batch_count,
+                                              float*                       results)
 {
-    return rocblas_asum_strided_batched_impl(handle, n, x, incx, stridex, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, results);
 }
 
 rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                handle,
@@ -135,10 +135,11 @@ rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                hand
                                               const rocblas_double_complex* x,
                                               rocblas_int                   incx,
                                               rocblas_int                   stridex,
-                                              double*                       results,
-                                              rocblas_int                   batch_count)
+                                              rocblas_int                   batch_count,
+                                              double*                       results)
 {
-    return rocblas_asum_strided_batched_impl(handle, n, x, incx, stridex, results, batch_count);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, results);
 }
 
 } // extern "C"
