@@ -111,13 +111,8 @@ namespace
     constexpr char rocblas_dot_name<false, rocblas_double_complex>[] = "rocblas_zdotu";
 
     // allocate workspace inside this API
-<<<<<<< HEAD
-    template <bool CONJ, typename T>
-    rocblas_status rocblas_dot_impl(rocblas_handle handle,
-=======
     template <bool CONJ, typename T, typename T2 = T>
     rocblas_status rocblas_dot(rocblas_handle handle,
->>>>>>> ba31b8672094e0807830049343b02cdaa9da405b
                                rocblas_int    n,
                                const T*       x,
                                rocblas_int    incx,
@@ -171,14 +166,10 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-<<<<<<< HEAD
                 std::cout<<"mem "<<sizeof(T) * blocks<<std::endl;
         std::cout<<"In func n "<<n<<" incx "<<incx<<" incy "<<incy<<std::endl;
 
-        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T*)mem, blocks);
-=======
-        return rocblas_dot_workspace<CONJ>(handle, n, x, incx, y, incy, result, (T2*)mem, blocks);
->>>>>>> ba31b8672094e0807830049343b02cdaa9da405b
+        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T2*)mem, blocks);
     }
 
 } // namespace
