@@ -101,7 +101,8 @@ target_include_directories( rocblas-test
 set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
 set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
-if( EXISTS /etc/redhat-release)
+if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+  if( OS_ID_rhel OR OS_ID_centos)
     set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
     set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
 
@@ -112,18 +113,24 @@ if( EXISTS /etc/redhat-release)
     else()
         error("cannot find immintrin.h")
     endif()
+  else()
+    #SLES
+    set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
+    set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
+    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+  endif()
 
     # External header includes included as system files
     target_include_directories( rocblas-test
       SYSTEM PRIVATE
-        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}> 
+        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}> 
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         )
 
     if(LINK_BLIS)
@@ -142,7 +149,7 @@ else()
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
-    
+
     if(LINK_BLIS)
       target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
     else()

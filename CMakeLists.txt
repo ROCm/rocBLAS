@@ -33,6 +33,8 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
   set( CMAKE_Fortran_COMPILER  "gfortran" )
 endif()
 
+
+
 project( rocblas LANGUAGES CXX )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -138,6 +140,10 @@ include( ROCMCreatePackage )
 include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
+
+include (cmake/os-detection.cmake)
+get_os_id(OS_ID)
+message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
 set ( VERSION_STRING "2.8.1" )
