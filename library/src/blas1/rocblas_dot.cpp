@@ -97,6 +97,10 @@ namespace
     constexpr char rocblas_dot_name<CONJ, float>[] = "rocblas_sdot";
     template <bool CONJ>
     constexpr char rocblas_dot_name<CONJ, double>[] = "rocblas_ddot";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, rocblas_half>[] = "rocblas_hdot";
+    template <bool CONJ>
+    constexpr char rocblas_dot_name<CONJ, rocblas_bfloat16>[] = "rocblas_bfdot";
     template <>
     constexpr char rocblas_dot_name<true, rocblas_float_complex>[] = "rocblas_cdotc";
     template <>
@@ -107,8 +111,13 @@ namespace
     constexpr char rocblas_dot_name<false, rocblas_double_complex>[] = "rocblas_zdotu";
 
     // allocate workspace inside this API
+<<<<<<< HEAD
     template <bool CONJ, typename T>
     rocblas_status rocblas_dot_impl(rocblas_handle handle,
+=======
+    template <bool CONJ, typename T, typename T2 = T>
+    rocblas_status rocblas_dot(rocblas_handle handle,
+>>>>>>> ba31b8672094e0807830049343b02cdaa9da405b
                                rocblas_int    n,
                                const T*       x,
                                rocblas_int    incx,
@@ -156,16 +165,20 @@ namespace
 
         auto blocks = (n - 1) / NB + 1;
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T) * blocks);
+            return handle->set_optimal_device_memory_size(sizeof(T2) * blocks);
 
-        auto mem = handle->device_malloc(sizeof(T) * blocks);
+        auto mem = handle->device_malloc(sizeof(T2) * blocks);
         if(!mem)
             return rocblas_status_memory_error;
 
+<<<<<<< HEAD
                 std::cout<<"mem "<<sizeof(T) * blocks<<std::endl;
         std::cout<<"In func n "<<n<<" incx "<<incx<<" incy "<<incy<<std::endl;
 
         return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T*)mem, blocks);
+=======
+        return rocblas_dot_workspace<CONJ>(handle, n, x, incx, y, incy, result, (T2*)mem, blocks);
+>>>>>>> ba31b8672094e0807830049343b02cdaa9da405b
     }
 
 } // namespace
@@ -198,6 +211,29 @@ rocblas_status rocblas_ddot(rocblas_handle handle,
                             double*        result)
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+
+rocblas_status rocblas_hdot(rocblas_handle      handle,
+                            rocblas_int         n,
+                            const rocblas_half* x,
+                            rocblas_int         incx,
+                            const rocblas_half* y,
+                            rocblas_int         incy,
+                            rocblas_half*       result)
+{
+    return rocblas_dot<false>(
+        handle, n, (const _Float16*)x, incx, (const _Float16*)y, incy, (_Float16*)result);
+}
+
+rocblas_status rocblas_bfdot(rocblas_handle          handle,
+                             rocblas_int             n,
+                             const rocblas_bfloat16* x,
+                             rocblas_int             incx,
+                             const rocblas_bfloat16* y,
+                             rocblas_int             incy,
+                             rocblas_bfloat16*       result)
+{
+    return rocblas_dot<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
 }
 
 rocblas_status rocblas_cdotu(rocblas_handle               handle,

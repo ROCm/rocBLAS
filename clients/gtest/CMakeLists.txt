@@ -62,10 +62,14 @@ set(rocblas_test_source
     trtri_gtest.cpp
     )
 
+if(LINK_BLIS)
+  set( BLIS_CPP ../common/blis_interface.cpp )
+endif()
 
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
 
@@ -83,24 +87,49 @@ target_include_directories( rocblas-test
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
 )
 
-if( EXISTS /etc/redhat-release)
-    set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
-    set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
-    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include ) 
+# External header includes included as system files
+target_include_directories( rocblas-test
+  SYSTEM PRIVATE
+    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    )
+
+set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
+set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
+
+if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    if(OS_ID_rhel OR OS_ID_centos)
+      set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+      set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
+    else()
+      #SLES
+      set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
+      set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
+    endif()
+    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
 
     # External header includes included as system files
     target_include_directories( rocblas-test
       SYSTEM PRIVATE
-        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}> 
+        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}> 
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         )
 
-    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    else()
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
+    endif()
 else()
     # External header includes included as system files
     target_include_directories( rocblas-test
@@ -110,9 +139,14 @@ else()
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-      )
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    )
 
-    target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas Threads::Threads )
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
+    else()
+      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+    endif()
 endif()
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
@@ -133,7 +167,7 @@ endif( )
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml trsv_gtest.yaml logging_mode_gtest.yaml set_get_pointer_mode_gtest.yaml
+                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml gemv_batched_gtest.yaml gemv_strided_batched_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml trsv_gtest.yaml logging_mode_gtest.yaml set_get_pointer_mode_gtest.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data
                    DEPENDS "${ROCBLAS_TEST_DATA}" )

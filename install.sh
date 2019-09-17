@@ -22,6 +22,7 @@ function display_help()
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
+  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
 }
 
@@ -36,7 +37,7 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora)
+    ubuntu|centos|rhel|fedora|sles)
         true
         ;;
     *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora\n"
@@ -48,8 +49,8 @@ supported_distro( )
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
 check_exit_code( )
 {
-  if (( $? != 0 )); then
-    exit $?
+  if (( $1 != 0 )); then
+    exit $1
   fi
 }
 
@@ -60,10 +61,10 @@ elevate_if_not_root( )
 
   if (( ${uid} )); then
     sudo $@
-    check_exit_code
+    check_exit_code "$?"
   else
     $@
-    check_exit_code
+    check_exit_code "$?"
   fi
 }
 
@@ -103,6 +104,17 @@ install_dnf_packages( )
   done
 }
 
+install_zypper_packages( )
+{
+    package_dependencies=("$@")
+    for package in "${package_dependencies[@]}"; do
+        if [[ $(rpm -q ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+            printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+            elevate_if_not_root zypper install -y ${package}
+        fi
+    done
+}
+
 # Take an array of packages as input, and delegate the work to the appropriate distro installer
 # prereq: ${ID} must be defined before calling
 # prereq: ${build_clients} must be defined before calling
@@ -132,17 +144,21 @@ install_packages( )
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel" "libgomp"
                                       "hip_hcc" "rocm_smi64" "zlib-devel" )
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+                                      "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
     library_dependencies_ubuntu+=( "cuda" )
     library_dependencies_centos+=( "" ) # how to install cuda on centos?
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
+    library_dependencies_sles+=( "" )
   fi
 
   local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev")
   local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp")
   local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp")
+  local client_dependencies_sles=( "gcc-fortran" "boost-devel" "libboost_program_options1_66_0-devel" "libgomp1")
 
   case "${ID}" in
     ubuntu)
@@ -173,6 +189,14 @@ install_packages( )
         install_dnf_packages "${client_dependencies_fedora[@]}"
       fi
       ;;
+
+    sles)
+       install_zypper_packages "${client_dependencies_sles[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+            install_zypper_packages "${client_dependencies_sles[@]}"
+        fi
+        ;;
     *)
       echo "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora"
       exit 2
@@ -214,10 +238,11 @@ install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_cov=V2
 tensile_fork=
-tensile_branch=
+tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
+cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
 
@@ -228,7 +253,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path: --options hicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options hicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -269,7 +294,7 @@ while true; do
         tensile_fork=${2}
         shift 2 ;;
     -b|--branch)
-        tensile_branch=${2}
+        tensile_tag=${2}
         shift 2 ;;
     -t|--test_local_path)
         tensile_test_local_path=${2}
@@ -277,6 +302,9 @@ while true; do
     --cuda)
         build_cuda=true
         shift ;;
+    --cpu_ref_lib)
+        cpu_ref_lib=${2}
+        shift 2 ;;
     --hip-clang)
         build_hip_clang=true
         shift ;;
@@ -289,6 +317,15 @@ while true; do
         ;;
   esac
 done
+
+if [[ "${cpu_ref_lib}" == blis ]]; then
+  LINK_BLIS=true
+elif [[ "${cpu_ref_lib}" == lapack ]]; then
+  LINK_BLIS=false
+else
+  echo "Currently the only CPU library options are blis and lapack"
+      exit 2
+fi
 
 build_dir=./build
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
@@ -327,6 +364,26 @@ if [[ "${install_dependencies}" == true ]]; then
     make -j$(nproc)
     elevate_if_not_root make install
   popd
+
+fi
+
+if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+  git submodule update --init
+  cd extern/blis
+  case "${ID}" in
+      centos|rhel|sles)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+      ubuntu)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+          ;;
+      *)
+          echo "Unsupported OS for this script"
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+  esac
+  make install
+  cd ../..
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
@@ -339,8 +396,9 @@ pushd .
   # #################################################
   cmake_common_options=""
   cmake_client_options=""
-  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
+  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -355,8 +413,8 @@ pushd .
     cmake_common_options="${cmake_common_options} -Dtensile_fork=${tensile_fork}"
   fi
 
-  if [[ -n "${tensile_branch}" ]]; then
-    cmake_common_options="${cmake_common_options} -Dtensile_branch=${tensile_branch}"
+  if [[ -n "${tensile_tag}" ]]; then
+    cmake_common_options="${cmake_common_options} -Dtensile_tag=${tensile_tag}"
   fi
 
   if [[ -n "${tensile_test_local_path}" ]]; then
@@ -389,10 +447,10 @@ esac
   else
     CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   fi
-  check_exit_code
+  check_exit_code "$?"
 
   make -j$(nproc) install
-  check_exit_code
+  check_exit_code "$?"
 
   # #################################################
   # install
@@ -400,7 +458,7 @@ esac
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    check_exit_code
+    check_exit_code "$?"
 
     case "${ID}" in
       ubuntu)
@@ -411,6 +469,9 @@ esac
       ;;
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
+      ;;
+      sles)
+        elevate_if_not_root zypper --no-gpg-checks in -y install rocblas-*.rpm
       ;;
     esac
 
