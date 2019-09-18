@@ -229,7 +229,7 @@ template <typename T>
 __global__ void rocblas_trtri_batched_fill(rocblas_handle handle,
                                            rocblas_fill   uplo,
                                            rocblas_int    n,
-                                           rocblas_stride   num_zero_elem,
+                                           rocblas_stride num_zero_elem,
                                            rocblas_int    lda,
                                            rocblas_int    bsa,
                                            T*             A,
