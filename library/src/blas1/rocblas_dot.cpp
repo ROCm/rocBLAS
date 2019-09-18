@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
+// #include "reduction.h"
 #include "rocblas.h"
 #include "utility.h"
 // #include "rocblas_dot_strided_batched.hpp"
@@ -91,6 +91,117 @@ namespace
     //     return rocblas_status_success;
     // }
 
+//  template <bool CONJ, typename T, typename T2 = T>
+//     __global__ void dot_kernel_part1_(
+//         rocblas_int n, const T* x, rocblas_int incx, const T* y, rocblas_int incy, T2* workspace)
+//     {
+//         ptrdiff_t tx  = hipThreadIdx_x;
+//         ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
+
+//         __shared__ T2 tmp[NB];
+
+//         // bound
+//         if(tid < n)
+//             tmp[tx] = T2(y[tid * incy]) * T2(CONJ ? conj(x[tid * incx]) : x[tid * incx]);
+//         else
+//             tmp[tx] = T2(0); // pad with zero
+
+//         rocblas_sum_reduce<NB>(tx, tmp);
+
+//         if(tx == 0)
+//             workspace[hipBlockIdx_x] = tmp[0];
+//     }
+
+//     // assume workspace has already been allocated, recommened for repeated calling of dot product
+//     // routine
+//     template <bool CONJ, typename T, typename T2 = T>
+//     rocblas_status rocblas_dot_workspace(rocblas_handle __restrict__ handle,
+//                                          rocblas_int n,
+//                                          const T*    x,
+//                                          rocblas_int incx,
+//                                          const T*    y,
+//                                          rocblas_int incy,
+//                                          T*          result,
+//                                          T2*         workspace,
+//                                          rocblas_int blocks)
+//     {
+//         // At least two kernels are needed to finish the reduction
+//         // kennel 1 write partial result per thread block in workspace, number of partial result is
+//         // blocks
+//         // kernel 2 gather all the partial result in workspace and finish the final reduction. number of
+//         // threads (NB) loop blocks
+
+//         dim3 grid(blocks);
+//         dim3 threads(NB);
+
+//         if(incx < 0)
+//             x -= ptrdiff_t(incx) * (n - 1);
+//         if(incy < 0)
+//             y -= ptrdiff_t(incy) * (n - 1);
+
+//         hipLaunchKernelGGL(dot_kernel_part1_<CONJ>,
+//                            grid,
+//                            threads,
+//                            0,
+//                            handle->rocblas_stream,
+//                            n,
+//                            x,
+//                            incx,
+//                            y,
+//                            incy,
+//                            workspace);
+        
+//         float inter[blocks];
+//         hipMemcpy(inter, workspace, sizeof(float) * blocks , hipMemcpyDeviceToHost);
+//         std::cout<<"inter ";
+//         for(int i=0;i<blocks;i++)
+//             std::cout<<inter[i]<<" ";
+//         std::cout<<std::endl;
+
+//         if(handle->pointer_mode == rocblas_pointer_mode_device)
+//         {
+//             hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
+//                                1,
+//                                threads,
+//                                0,
+//                                handle->rocblas_stream,
+//                                blocks,
+//                                workspace,
+//                                result);
+//         rocblas_bfloat16 inter[1];
+//         hipMemcpy(inter, result, sizeof(rocblas_bfloat16) * 1, hipMemcpyDeviceToHost);
+//         std::cout<<"after ";
+//         for(int i=0;i<1;i++)
+//             std::cout<<inter[i]<<" ";
+//         std::cout<<std::endl;
+//         }
+//         else
+//         {
+//             hipLaunchKernelGGL(rocblas_reduction_kernel_part2<NB>,
+//                                1,
+//                                threads,
+//                                0,
+//                                handle->rocblas_stream,
+//                                blocks,
+//                                workspace,
+//                                workspace);
+
+//             T2 res_T2;
+//             RETURN_IF_HIP_ERROR(
+//                 hipMemcpy(&res_T2, workspace, sizeof(res_T2), hipMemcpyDeviceToHost));
+//             *result = T(res_T2);
+
+//             float inter[1];
+//         hipMemcpy(inter, workspace, sizeof(float) * 1, hipMemcpyDeviceToHost);
+//         std::cout<<"after ";
+//         for(int i=0;i<1;i++)
+//             std::cout<<inter[i]<<" ";
+//         std::cout<<std::endl;
+//         }
+
+//         return rocblas_status_success;
+//     }
+
     template <bool, typename>
     constexpr char rocblas_dot_name[] = "unknown";
     template <bool CONJ>
@@ -112,7 +223,7 @@ namespace
 
     // allocate workspace inside this API
     template <bool CONJ, typename T, typename T2 = T>
-    rocblas_status rocblas_dot(rocblas_handle handle,
+    rocblas_status rocblas_dot_impl(rocblas_handle handle,
                                rocblas_int    n,
                                const T*       x,
                                rocblas_int    incx,
@@ -156,20 +267,15 @@ namespace
             return rocblas_status_success;
         }
 
-        std::cout<<"GOT HERE A"<<std::endl;
-
-        auto blocks = (n - 1) / NB + 1;
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, 1, (T2*)result);
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T2) * blocks);
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto mem = handle->device_malloc(sizeof(T2) * blocks);
+        auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-                std::cout<<"mem "<<sizeof(T) * blocks<<std::endl;
-        std::cout<<"In func n "<<n<<" incx "<<incx<<" incy "<<incy<<std::endl;
-
-        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T2*)mem, blocks);
+        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T2*)mem);
     }
 
 } // namespace
@@ -212,7 +318,7 @@ rocblas_status rocblas_hdot(rocblas_handle      handle,
                             rocblas_int         incy,
                             rocblas_half*       result)
 {
-    return rocblas_dot<false>(
+    return rocblas_dot_impl<false>(
         handle, n, (const _Float16*)x, incx, (const _Float16*)y, incy, (_Float16*)result);
 }
 
@@ -224,7 +330,7 @@ rocblas_status rocblas_bfdot(rocblas_handle          handle,
                              rocblas_int             incy,
                              rocblas_bfloat16*       result)
 {
-    return rocblas_dot<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
+    return rocblas_dot_impl<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
 }
 
 rocblas_status rocblas_cdotu(rocblas_handle               handle,

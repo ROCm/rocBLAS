@@ -67,10 +67,12 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
-    strideScale: [ 0.5, 1.5 ]
+    strideScale: [ 1.5 ]
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
 
 
   - name: blas1

@@ -84,20 +84,22 @@ namespace
 
                 name << '_' << arg.incx;
 
-            if(BLAS1 == blas1::dot_strided_batched)
+            if(BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched)
                 name << "_" << arg.stride_x;
-
-            if(BLAS1 == blas1::dot_strided_batched)
-                name << "_" << arg.stride_y;
 
             if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
                || BLAS1 == blas1::swap  || BLAS1 == blas1::rot || BLAS1 == blas1::rotm
-               || BLAS1 == blas1::rot || BLAS1 == blas1::rotm ||BLAS1 == blas1::dot_batched
-                || BLAS1 == blas1::dot_strided_batched)
+               || BLAS1 == blas1::rot || BLAS1 == blas1::rotm || BLAS1 == blas1::dot_batched
+                || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_batched
+                || BLAS1 == blas1::dotc_strided_batched)
                 name << '_' << arg.incy;
+
+            if(BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched)
+                name << "_" << arg.stride_y;
             
-            if(BLAS1 == blas1::dot_batched || BLAS1 == blas1::dot_strided_batched)
+            if(BLAS1 == blas1::dot_batched || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dotc_strided_batched)
                 name << "_" << arg.batch_count;
+            }
 
             return std::move(name);
         }

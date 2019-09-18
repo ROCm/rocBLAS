@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
+// #include "reduction.h"
 #include "rocblas.h"
 #include "utility.h"
 #include "rocblas_dot.hpp"
@@ -31,15 +31,15 @@ namespace
     constexpr char rocblas_dot_batched_name<false, rocblas_double_complex>[] = "rocblas_zdotu_batched";
 
     // allocate workspace inside this API
-    template <bool CONJ, typename T>
-    rocblas_status rocblas_dot_batched(rocblas_handle handle,
+    template <bool CONJ, typename T, typename T2 = T>
+    rocblas_status rocblas_dot_batched_impl(rocblas_handle handle,
                                rocblas_int    n,
                                const T*       const x[],
                                rocblas_int    incx,
                                const T*       const y[],
                                rocblas_int    incy,
                                rocblas_int    batch_count,
-                               T*             result)
+                               T*             results)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -64,21 +64,22 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_dot_batched_name<CONJ, T>, "N", n, "incx", incx, "incy", incy, "batch_count", batch_count);
 
-        if(!x || !y || !result)
+        if(!x || !y || !results)
             return rocblas_status_invalid_pointer;
         
-        if(batch_count <= 0)
+        if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        auto blocks = (n - 1) / NB + 1;
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, (T2*)results);
+        
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T) * blocks * batch_count);
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto mem = handle->device_malloc(sizeof(T) * blocks * batch_count);
+        auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count, result, (T*)mem, blocks);
+        return rocblas_dot_template<NB, CONJ, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count, results, (T2*)mem);
     }
 
 } // namespace
@@ -98,9 +99,9 @@ rocblas_status rocblas_sdot_batched(rocblas_handle handle,
                             const float*   const y[],
                             rocblas_int    incy,
                             rocblas_int    batch_count,
-                            float*         result)
+                            float*         results)
 {
-    return rocblas_dot_batched<false>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 rocblas_status rocblas_ddot_batched(rocblas_handle handle,
@@ -110,9 +111,9 @@ rocblas_status rocblas_ddot_batched(rocblas_handle handle,
                             const double*  const y[],
                             rocblas_int    incy,
                             rocblas_int    batch_count,
-                            double*        result)
+                            double*        results)
 {
-    return rocblas_dot_batched<false>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 rocblas_status rocblas_cdotu_batched(rocblas_handle               handle,
@@ -122,9 +123,9 @@ rocblas_status rocblas_cdotu_batched(rocblas_handle               handle,
                              const rocblas_float_complex* const y[],
                              rocblas_int                  incy,
                             rocblas_int    batch_count,
-                             rocblas_float_complex*       result)
+                             rocblas_float_complex*       results)
 {
-    return rocblas_dot_batched<false>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 rocblas_status rocblas_zdotu_batched(rocblas_handle                handle,
@@ -134,9 +135,9 @@ rocblas_status rocblas_zdotu_batched(rocblas_handle                handle,
                              const rocblas_double_complex* const y[],
                              rocblas_int                   incy,
                             rocblas_int    batch_count,
-                             rocblas_double_complex*       result)
+                             rocblas_double_complex*       results)
 {
-    return rocblas_dot_batched<false>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 rocblas_status rocblas_cdotc_batched(rocblas_handle               handle,
@@ -146,9 +147,9 @@ rocblas_status rocblas_cdotc_batched(rocblas_handle               handle,
                              const rocblas_float_complex* const y[],
                              rocblas_int                  incy,
                             rocblas_int    batch_count,
-                             rocblas_float_complex*       result)
+                             rocblas_float_complex*       results)
 {
-    return rocblas_dot_batched<true>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 rocblas_status rocblas_zdotc_batched(rocblas_handle                handle,
@@ -158,9 +159,9 @@ rocblas_status rocblas_zdotc_batched(rocblas_handle                handle,
                              const rocblas_double_complex*  const y[],
                              rocblas_int                   incy,
                             rocblas_int    batch_count,
-                             rocblas_double_complex*       result)
+                             rocblas_double_complex*       results)
 {
-    return rocblas_dot_batched<true>(handle, n, x, incx, y, incy, batch_count, result);
+    return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
 }
 
 } // extern "C"

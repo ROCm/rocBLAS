@@ -75,19 +75,12 @@ void testing_dot_strided_batched(const Arguments& arg)
     size_t               size_x   = N * size_t(abs_incx);
     size_t               size_y   = N * size_t(abs_incy);
 
-    host_vector<T> cpu_result(batch_count);
-    host_vector<T> rocblas_result_1(batch_count);
-    host_vector<T> rocblas_result_2(batch_count);
-
     double               rocblas_error_1;
     double               rocblas_error_2;
     rocblas_local_handle handle;
 
-    // std::cout<<" N "<<N<<" incx "<<incx<<" incy "<<incy<<" stride_x "<<stride_x<<" stride_y "<<stride_y<<" size_x "
-    // <<size_x<<" size_y "<<size_y<<" batch_count "<<batch_count<<std::endl;
-
     // check to prevent undefined memmory allocation error
-    if(N <= 0 || stride_x < size_x || stride_y < size_y || batch_count <= 0)
+    if(N <= 0 || batch_count <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
@@ -100,9 +93,8 @@ void testing_dot_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(stride_x < size_x || stride_y < size_y || batch_count < 0)
+        if(batch_count < 0)
         {
-            std::cout<<"HERE A"<<std::endl;
             EXPECT_ROCBLAS_STATUS(
             (CONJ ? rocblas_dotc_strided_batched<T>
                   : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
@@ -110,7 +102,6 @@ void testing_dot_strided_batched(const Arguments& arg)
         }
         else
         {
-            std::cout<<"HERE B"<<std::endl;
             CHECK_ROCBLAS_ERROR(
                 (CONJ ? rocblas_dotc_strided_batched<T>
                     : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result));
@@ -118,11 +109,12 @@ void testing_dot_strided_batched(const Arguments& arg)
         return;
     }
 
+    host_vector<T> cpu_result(batch_count);
+    host_vector<T> rocblas_result_1(batch_count);
+    host_vector<T> rocblas_result_2(batch_count);
+
     size_x += static_cast<size_t>(stride_x) * static_cast<size_t>(batch_count - 1);
     size_y += static_cast<size_t>(stride_y) * static_cast<size_t>(batch_count - 1);
-
-    std::cout<<" N "<<N<<" incx "<<incx<<" incy "<<incy<<" stride_x "<<stride_x<<" stride_y "<<stride_y<<" size_x "
-    <<size_x<<" size_y "<<size_y<<" batch_count "<<batch_count<<std::endl;
 
     // allocate memory on device
     device_vector<T> dx(size_x);
@@ -143,18 +135,6 @@ void testing_dot_strided_batched(const Arguments& arg)
     rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
     rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
 
-    // std::cout<<"hx: ";
-    // for(int j =0; j<batch_count; j++)
-    //     for(int i =0; i<N; i++)
-    //         std::cout<<hx[i+j*N]<<" ";
-    // std::cout<<std::endl;
-
-    // std::cout<<"hy: ";
-    // for(int j =0; j<batch_count; j++)
-    //     for(int i =0; i<N; i++)
-    //         std::cout<<hy[i+j*N]<<" ";
-    // std::cout<<std::endl;
-    // rocblas_result_1[0] = -1;
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
@@ -187,23 +167,11 @@ void testing_dot_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
 
-        std::cout<<"GOT HERE 1"<<std::endl;
-
-        // std::cout<<"cpu_result: ";
-        // for(int i=0;i<batch_count;i++)
-        //     std::cout<<cpu_result[i]<<" ";
-        // std::cout<<"\ngpu result: ";
-        // for(int i=0;i<batch_count;i++)
-        //     std::cout<<rocblas_result_1[i]<<" ";
-        // std::cout<<std::endl;
-
         if(arg.unit_check)
         {
             unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_1);
             unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_2);
         }
-
-// std::cout<<"GOT HERE 2"<<std::endl;
 
         if(arg.norm_check)
         {
@@ -215,8 +183,6 @@ void testing_dot_strided_batched(const Arguments& arg)
                 rocblas_error_2 += std::abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
             }
         }
-
-    // std::cout<<"GOT HERE 3"<<std::endl;
     }
 
     if(arg.timing)
