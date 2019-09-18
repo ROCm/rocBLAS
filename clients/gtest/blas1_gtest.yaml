@@ -68,6 +68,30 @@ Tests:
     - iamin_batched: *single_double_precisions_complex_real
 
 
+- name: blas1_strided_batched
+  category: quick
+  N: [-1, 0, 5, 10, 1025, 7111, 10000, 33792]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [1, 25]
+  function:
+    - iamax_strided_batched: *single_double_precisions_complex_real
+    - iamin_strided_batched: *single_double_precisions_complex_real
+
+
+- name: blas1_strided_batched
+  category: pre_checkin
+  N: [1048576, 4000000]
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  alphai_betai: *alphai_betai_range
+  batch_count: [-1, 0, 1, 5]
+  function:
+    - iamax_strided_batched: *single_double_precisions_complex_real
+    - iamin_strided_batched: *single_double_precisions_complex_real
+
+
 - name: blas1
   category: pre_checkin
   N: [1048576, 7048576, 6048576, 5048576, 4048576, 3048576, 2048576, 4000000, 8000000, 5048576, 4048576, 3048576, 2048576, 4000000, 8000000]

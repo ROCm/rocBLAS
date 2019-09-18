@@ -112,6 +112,8 @@ set( rocblas_blas2_source
 set( rocblas_blas1_source
   blas1/rocblas_amin_batched.cpp
   blas1/rocblas_amax_batched.cpp
+  blas1/rocblas_amin_strided_batched.cpp
+  blas1/rocblas_amax_strided_batched.cpp
   blas1/rocblas_amin.cpp
   blas1/rocblas_amax.cpp
   blas1/rocblas_asum.cpp

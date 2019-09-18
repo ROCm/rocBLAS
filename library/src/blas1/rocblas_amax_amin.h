@@ -18,9 +18,6 @@
 //
 // max by default again ?...
 //
-#ifndef AMAX_AMIN_REDUCTION
-#define AMAX_AMIN_REDUCTION rocblas_reduce_amax
-#endif
 
 #define QUOTE2(S) #S
 #define QUOTE(S) QUOTE2(S)
@@ -28,79 +25,9 @@
 #define JOIN2(A, B) A##B
 #define JOIN(A, B) JOIN2(A, B)
 
-//
-// Extension of a rocblas_int as a pair of index and value.
-// As an extension the index must be stored first.
-//
-template <typename T>
-struct index_value_t
-{
-    rocblas_int index;
-    T           value;
 
-#if 0
-  __forceinline__ __host__ __device__ index_value_t() noexcept
-  {
-    index = -9999;
-  };
-  
-  __forceinline__ __host__ __device__ index_value_t(rocblas_int i,T v) noexcept
-  {
-    index = i;
-    value = v;
-  };
+#include "rocblas_iamaxmin_template.h"
 
-
-  __forceinline__ __host__ __device__ index_value_t(const index_value_t<T>&u) noexcept
-  {
-    index = u.index;
-    value = u.value;
-  };
-#endif  
-};
-
-
-template <typename T>
-std::ostream& operator<<(std::ostream& out,const index_value_t<T>& h)
-{
-  out << "(" << h.index << "," << h.value << ")" << std::endl;
-  return out;
-}
-
-
-//
-// Specialization of default_value for index_value_t<T>.
-//
-template <typename T>
-struct default_value<index_value_t<T>>
-{
-    __forceinline__ __host__ __device__ constexpr auto operator()() const
-    {
-        index_value_t<T> x;
-        x.index = -1;
-        return x;
-    }
-};
-
-//
-// Fetch absolute value.
-//
-template <typename To>
-struct rocblas_fetch_amax_amin
-{
-    template <typename Ti>
-    __forceinline__ __host__ __device__ index_value_t<To> operator()(Ti x, rocblas_int index)
-  {
-      
-//      index_value_t<To> h;
-//      h.index = index;
-//      h.value = fetch_asum(x);
-//      return h;
-      
-//    return index_value_t<To>{index, fetch_asum(x)};
-    return {index, fetch_asum(x)};
-    }
-};
 
 //
 // Replaces x with y if y.value < x.value or y.value == x.value and y.index < x.index.

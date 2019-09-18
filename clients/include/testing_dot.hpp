@@ -116,6 +116,7 @@ void testing_dot(const Arguments& arg)
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
+#if 0
     for (int i=0;i<N;++i)
       {
 	hx[i] += 1;
@@ -127,7 +128,7 @@ void testing_dot(const Arguments& arg)
 	hy[i] += 1;
 	//	std::cout << "hy[" << i << "] = " << hy[i]  << std::endl;
       }
-    
+#endif    
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));

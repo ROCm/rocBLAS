@@ -163,131 +163,101 @@ template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
 
 
+//
+// iamax and iamin batched.
+//
+template <typename T> using rocblas_iamax_iamin_batched_t = rocblas_status (*)(rocblas_handle handle,
+									       rocblas_int    n,
+									       const T*       const x[],
+									       rocblas_int    incx,
+									       rocblas_int    batch_count,
+									       rocblas_int*   result);
 
-
-
-
+//
+// iamax batched.
+//
 template <typename T>
-rocblas_status rocblas_iamax_batched(rocblas_handle handle,
-				     rocblas_int    n,
-				     const T*       const x[],
-				     rocblas_int    incx,
-				     rocblas_int    batch_count,
-				     rocblas_int*   result);
+rocblas_iamax_iamin_batched_t<T> rocblas_iamax_batched;
 
+template<>
+static constexpr auto rocblas_iamax_batched<rocblas_float_complex> = rocblas_icamax_batched;
 
+template<>
+static constexpr auto rocblas_iamax_batched<rocblas_double_complex> = rocblas_izamax_batched;
 
-template <>
-inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const rocblas_float_complex*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_icamax_batched(handle,n,x,incx,batch_count,result);
-}
+template<>
+static constexpr auto rocblas_iamax_batched<float> = rocblas_isamax_batched;
 
-template <>
-inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const rocblas_double_complex*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_izamax_batched(handle,n,x,incx,batch_count,result);
-}
+template<>
+static constexpr auto rocblas_iamax_batched<double> = rocblas_idamax_batched;
 
-
-template <>
-inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const float*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_isamax_batched(handle,n,x,incx,batch_count,result);
-}
-
-template <>
-inline rocblas_status rocblas_iamax_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const double*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_idamax_batched(handle,n,x,incx,batch_count,result);
-}
-
-
-
-
-
-
-
-
-
+//
+// iamax batched.
+//
 template <typename T>
-rocblas_status rocblas_iamin_batched(rocblas_handle handle,
-				     rocblas_int    n,
-				     const T*       const x[],
-				     rocblas_int    incx,
-				     rocblas_int    batch_count,
-				     rocblas_int*   result);
+rocblas_iamax_iamin_batched_t<T> rocblas_iamin_batched;
+
+template<>
+static constexpr auto rocblas_iamin_batched<rocblas_float_complex> = rocblas_icamin_batched;
+
+template<>
+static constexpr auto rocblas_iamin_batched<rocblas_double_complex> = rocblas_izamin_batched;
+
+template<>
+static constexpr auto rocblas_iamin_batched<float> = rocblas_isamin_batched;
+
+template<>
+static constexpr auto rocblas_iamin_batched<double> = rocblas_idamin_batched;
 
 
 
-template <>
-inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const rocblas_float_complex*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_icamin_batched(handle,n,x,incx,batch_count,result);
-}
+//
+// iamax and iamin strided batched.
+//
+template <typename T> using rocblas_iamax_iamin_strided_batched_t = rocblas_status (*)(rocblas_handle handle,
+										       rocblas_int    n,
+										       const T*       x,
+										       rocblas_int    incx,
+										       rocblas_int    stridex,
+										       rocblas_int    batch_count,
+										       rocblas_int*   result,
+										       rocblas_int    incr);
 
-template <>
-inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const rocblas_double_complex*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_izamin_batched(handle,n,x,incx,batch_count,result);
-}
+//
+// strided batched iamax
+//
+template <typename T>
+rocblas_iamax_iamin_strided_batched_t<T> rocblas_iamax_strided_batched;
 
+template<>
+static constexpr auto rocblas_iamax_strided_batched<rocblas_float_complex> = rocblas_icamax_strided_batched;
 
-template <>
-inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const float*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_isamin_batched(handle,n,x,incx,batch_count,result);
-}
+template<>
+static constexpr auto rocblas_iamax_strided_batched<rocblas_double_complex> = rocblas_izamax_strided_batched;
 
-template <>
-inline rocblas_status rocblas_iamin_batched(rocblas_handle handle,
-					    rocblas_int    n,
-					    const double*   const x[],
-					    rocblas_int    incx,
-					    rocblas_int    batch_count,
-					    rocblas_int*   result)
-{
-  return rocblas_idamin_batched(handle,n,x,incx,batch_count,result);
-}
+template<>
+static constexpr auto rocblas_iamax_strided_batched<float> = rocblas_isamax_strided_batched;
 
+template<>
+static constexpr auto rocblas_iamax_strided_batched<double> = rocblas_idamax_strided_batched;
 
+//
+// strided batched iamin
+//
+template <typename T>
+rocblas_iamax_iamin_strided_batched_t<T> rocblas_iamin_strided_batched;
 
+template<>
+static constexpr auto rocblas_iamin_strided_batched<rocblas_float_complex> = rocblas_icamin_strided_batched;
 
+template<>
+static constexpr auto rocblas_iamin_strided_batched<rocblas_double_complex> = rocblas_izamin_strided_batched;
+
+template<>
+static constexpr auto rocblas_iamin_strided_batched<float> = rocblas_isamin_strided_batched;
+
+template<>
+static constexpr auto rocblas_iamin_strided_batched<double> = rocblas_idamin_strided_batched;
 
 
 

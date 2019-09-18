@@ -14,6 +14,7 @@
 #include "utility.hpp"
 
 // CBLAS does not have a cblas_iamin function, so we write our own version of it
+
 namespace rocblas_cblas2
 {
     template <typename T>
@@ -61,14 +62,60 @@ namespace rocblas_cblas2
 
 } // namespace rocblas_cblas
 
+#if 0
+namespace rocblas_cblas3
+{
+    template <typename T>
+    T asum(T x)
+    {
+        return x < 0 ? -x : x;
+    }
+
+    rocblas_half asum(rocblas_half x)
+    {
+        return x & 0x7fff;
+    }
+
+    template <typename T>
+    bool lessthan(T x, T y)
+    {
+        return x > y;
+    }
+
+    bool lessthan(rocblas_half x, rocblas_half y)
+    {
+        return half_to_float(x) > half_to_float(y);
+    }
+
+    template <typename T>
+    void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    {
+        rocblas_int minpos = -1;
+        if(N > 0 && incx > 0)
+        {
+            auto min = asum(X[0]);
+            minpos   = 0;
+            for(size_t i = 1; i < N; ++i)
+            {
+                auto a = asum(X[i * incx]);
+                if(lessthan(a, min))
+                {
+                    min    = a;
+                    minpos = i;
+                }
+            }
+        }
+        *result = minpos;
+    }
+
+} // namespace rocblas_cblas
+#endif
 
 
 
-
-
-template <typename T,
-          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T* const [], rocblas_int, rocblas_int, rocblas_int*)>
-void testing_iamax_iamin_batched_bad_arg(const Arguments& arg)
+template <typename T>
+//          rocblas_status (*FUNC)(rocblas_handle, rocblas_int, const T* const [], rocblas_int, rocblas_int, rocblas_int*)>
+void testing_iamax_iamin_batched_bad_arg(const Arguments& arg, rocblas_iamax_iamin_batched_t<T> func)
 {
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
@@ -90,13 +137,13 @@ void testing_iamax_iamin_batched_bad_arg(const Arguments& arg)
     
     rocblas_int h_rocblas_result;
 
-    EXPECT_ROCBLAS_STATUS(FUNC(handle, N, nullptr, incx, batch_count, &h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, batch_count, &h_rocblas_result),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(FUNC(handle, N, dx, incx, batch_count, nullptr),
+    EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, batch_count, nullptr),
 			  rocblas_status_invalid_pointer);
     
-    EXPECT_ROCBLAS_STATUS(FUNC(nullptr, N, dx, incx, batch_count, &h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, batch_count, &h_rocblas_result),
                           rocblas_status_invalid_handle);
 
 }
@@ -104,22 +151,22 @@ void testing_iamax_iamin_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamax_batched_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_batched_bad_arg<T, rocblas_iamax_batched<T> >(arg);
+  testing_iamax_iamin_batched_bad_arg<T>(arg, rocblas_iamax_batched<T>);
 }
 
 template <typename T>
 void testing_iamin_batched_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_batched_bad_arg<T, rocblas_iamin_batched<T>>(arg);
+  testing_iamax_iamin_batched_bad_arg<T>(arg, rocblas_iamin_batched<T>);
 }
 
 
 
 
 template <typename T,
-          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T * const[], rocblas_int, rocblas_int, rocblas_int*),
+	  //          rocblas_status (*func)(rocblas_handle, rocblas_int, const T * const[], rocblas_int, rocblas_int, rocblas_int*),	  
 	  void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
-void testing_iamax_iamin_batched(const Arguments& arg)
+void testing_iamax_iamin_batched(const Arguments& arg, rocblas_iamax_iamin_batched_t<T> func)
 {
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -152,7 +199,7 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 	//
 	// Only need to provide a non-null address.
 	//
-        CHECK_ROCBLAS_ERROR(FUNC(handle, N, dxx, incx, batch_count, &h_rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(func(handle, N, dxx, incx, batch_count, &h_rocblas_result_1));
 	
 #ifdef GOOGLE_TEST
         EXPECT_EQ(h_rocblas_result_1, 0);
@@ -176,7 +223,6 @@ void testing_iamax_iamin_batched(const Arguments& arg)
       {
 	CHECK_HIP_ERROR(hipMalloc(&dxx[batch_index], sizeof(T) * size_x));	
       }
-    
 
     //
     // Init the seed rand.
@@ -199,33 +245,22 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 	  {
 	    hxx[batch_index][i*incx] = random_generator<T>();
 	  }
-
-//
-//	for (int i=0;i<N;++i)
-//	  {
-//	    if (0 == hxx[batch_index][i*incx])
-//	      {
-//		printf("hxxxxxxxxxxxxxxxx zero %d\n",i);
-//	      }
-//	  }
-//
-	
-	//     	rocblas_init<T>(hxx[batch_index], 1, N, incx);
       }
+
+
+    //    printf("CHECK INVALID: N = %d, incx = %d, batch_count = %d\n", N, incx, batch_count);
     
     //    host_vector<T> hx(size_x);
     host_vector<rocblas_int> hresults(batch_count);
     //    rocblas_int * hresults = new rocblas_int[batch_count];
     host_vector<rocblas_int> hresults2(batch_count);
-#if 1
-
     device_vector<rocblas_int> dresults(batch_count);
     if(nullptr == dresults)
       {
 	CHECK_HIP_ERROR(hipErrorOutOfMemory);
 	return;
       }
-#endif    
+
     //
     // Initial Data on CPU.
     //
@@ -233,7 +268,6 @@ void testing_iamax_iamin_batched(const Arguments& arg)
     //
     // Copy data from CPU to device.
     //
-
     for (int batch_index=0;batch_index<batch_count;++batch_index)
       {
 	CHECK_HIP_ERROR(hipMemcpy(dxx[batch_index], hxx[batch_index], sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -244,16 +278,12 @@ void testing_iamax_iamin_batched(const Arguments& arg)
     {      
       // GPU BLAS rocblas_pointer_mode_host      
       CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));      
-      CHECK_ROCBLAS_ERROR(FUNC(handle, N, dxx, incx, batch_count, (rocblas_int*)hresults));
+      CHECK_ROCBLAS_ERROR(func(handle, N, dxx, incx, batch_count, (rocblas_int*)hresults));
       
       // GPU BLAS, rocblas_pointer_mode_device
-#if 1
-
       CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-      CHECK_ROCBLAS_ERROR(FUNC(handle, N, dxx, incx, batch_count, (rocblas_int*)dresults));
+      CHECK_ROCBLAS_ERROR(func(handle, N, dxx, incx, batch_count, (rocblas_int*)dresults));
       CHECK_HIP_ERROR(hipMemcpy((rocblas_int*)hresults2, (rocblas_int*)dresults, batch_count * sizeof(rocblas_int), hipMemcpyDeviceToHost));
-      
-#endif
       
       for (int i=0;i<batch_count;++i)
 	{
@@ -265,22 +295,56 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 	  if(arg.unit_check)
 	    {
 #if 0
+	      if ( (cpu_result != hresults[i]) ||  (cpu_result != hresults2[i]) )
+		{
+		  int nn = (N < (cpu_result+1)) ? N : (cpu_result+1);
+		  for (int ii=0;ii<nn;++ii)
+		    {
+		      std::cout << "BATCHED INPUT[" << i << "]["<< ii << "]" << hxx[i][ii*incx] << "    " << std::endl;
+		    }
+		}
+#endif	      
+#if 1
 	      if (cpu_result != hresults[i])
 		{
-		  printf("diff N %d incx %d batch_count = %d cpu_result %d hresult[%d] = %d hresult2[%d] = %d\n",
+#if 0
+		  printf("MODE HOST N %d incx %d batch_count = %d cpu_result %d hresult[%d] = %d\n",
 			 N,
 			 incx,
 			 batch_count,
 			 cpu_result,
 			 i,
-			 hresults[i],
+			 hresults[i]);
+#endif
+
+#if 0
+		  int nn  = (N < (cpu_result+1)) ? N : (cpu_result+1);
+		  for (int j=0;j<nn;++j)
+		    {
+		      std::cout << hxx[i][j] << std::endl;
+		    }
+#endif
+		}
+#endif
+#if 1
+	      if (cpu_result != hresults2[i])
+		{
+#if 0
+		  printf("MODE DEVICE N %d incx %d batch_count = %d cpu_result %d hresult[%d] = %d\n",
+			 N,
+			 incx,
+			 batch_count,
+			 cpu_result,
 			 i,
 			 hresults2[i]);
-		  
-		  for (int j=0;j<30;++j)
+#endif
+#if 0
+		  int nn  = (N < 17) ? N : 17;
+		  for (int j=0;j<nn;++j)
 		    {
-		      std::cout << hxx[i][j] << std::endl; // printf("%f\n",hxx[i]);
+		      std::cout << hxx[i][j] << std::endl;
 		    }
+#endif
 		}
 #endif
 	      unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &hresults[i]); // leads to an error on amin	      
@@ -288,7 +352,6 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 	    }
 	  
 	}
-
       
 #if 0
 	cpu_time_used = get_time_us();
@@ -329,14 +392,14 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-	  FUNC(handle, N, dxx, incx, batch_count, d_rocblas_result);
+	  func(handle, N, dxx, incx, batch_count, d_rocblas_result);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-	  FUNC(handle, N, dxx, incx, batch_count, d_rocblas_result);
+	  func(handle, N, dxx, incx, batch_count, d_rocblas_result);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -373,7 +436,8 @@ void testing_iamax_iamin_batched(const Arguments& arg)
 template <typename T>
 void testing_iamax_batched(const Arguments& arg)
 {
-  testing_iamax_iamin_batched<T, rocblas_iamax_batched<T>, cblas_iamax<T> >(arg);
+  testing_iamax_iamin_batched<T, cblas_iamax<T> >(arg,
+						  rocblas_iamax_batched<T>);
 }
 
 
@@ -381,7 +445,8 @@ void testing_iamax_batched(const Arguments& arg)
 template <typename T>
 void testing_iamin_batched(const Arguments& arg)
 {
-  testing_iamax_iamin_batched<T, rocblas_iamin_batched<T>, rocblas_cblas2::cblas_iamin<T> >(arg);
+  testing_iamax_iamin_batched<T, rocblas_cblas2::cblas_iamin<T> >(arg,
+								  rocblas_iamin_batched<T>);
 }
 
 

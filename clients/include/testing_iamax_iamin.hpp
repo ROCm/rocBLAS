@@ -100,14 +100,14 @@ void testing_iamax_iamin(const Arguments& arg)
     host_vector<T> hx(size_x);
 
     // Initial Data on CPU
-    //    rocblas_seedrand();
+    rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, incx);
-
+#if 0
     for (int i = 0; i < 8; ++i)
       {
 	std::cout << "==[" << i << "]=" << hx[incx*i] << std::endl;
       }
-    
+#endif    
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 

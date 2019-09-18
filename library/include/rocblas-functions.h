@@ -562,7 +562,86 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
 						       rocblas_int                   incx,
 						       rocblas_int batch_count,
 						       rocblas_int*                  result);
+
+
+
+
+
   
+  ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
+							       rocblas_int    n,
+							       const float*   x,
+							       rocblas_int    incx,
+							       rocblas_int    stridex,
+							       rocblas_int    batch_count,
+							       rocblas_int*   result,
+							       rocblas_int    incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_idamin_strided_batched(rocblas_handle handle,
+							       rocblas_int    n,
+							       const double*  x,
+							       rocblas_int    incx,
+							       rocblas_int    stridex,
+							       rocblas_int    batch_count,
+							       rocblas_int*   result,
+							       rocblas_int    incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_icamin_strided_batched(rocblas_handle               handle,
+							       rocblas_int                  n,
+							       const rocblas_float_complex* x,
+							       rocblas_int                  incx,
+							       rocblas_int                  stridex,
+							       rocblas_int 		    batch_count,
+							       rocblas_int*                 result,
+							       rocblas_int                  incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched(rocblas_handle                handle,
+							       rocblas_int                   n,
+							       const rocblas_double_complex* x,
+							       rocblas_int                   incx,
+							       rocblas_int                   stridex,
+							       rocblas_int                   batch_count,
+							       rocblas_int*                  result,
+							       rocblas_int                   incr);
+  
+
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
+							       rocblas_int    n,
+							       const float*   x,
+							       rocblas_int    incx,
+							       rocblas_int    stridex,
+							       rocblas_int    batch_count,
+							       rocblas_int*   result,
+							       rocblas_int    incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_idamax_strided_batched(rocblas_handle handle,
+							       rocblas_int    n,
+							       const double*  x,
+							       rocblas_int    incx,
+							       rocblas_int    stridex,
+							       rocblas_int    batch_count,
+							       rocblas_int*   result,
+							       rocblas_int    incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_icamax_strided_batched(rocblas_handle               handle,
+							       rocblas_int                  n,
+							       const rocblas_float_complex* x,
+							       rocblas_int                  incx,
+							       rocblas_int                  stridex,
+							       rocblas_int 		    batch_count,
+							       rocblas_int*                 result,
+							       rocblas_int                  incr);
+  
+  ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle                handle,
+							       rocblas_int                   n,
+							       const rocblas_double_complex* x,
+							       rocblas_int                   incx,
+							       rocblas_int                   stridex,
+							       rocblas_int                    batch_count,
+							       rocblas_int*                  result,
+							       rocblas_int                   incr);
+
   
   
 
