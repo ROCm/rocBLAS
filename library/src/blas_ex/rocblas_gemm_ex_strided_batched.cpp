@@ -21,23 +21,19 @@ namespace
                                                         const void*       alpha,
                                                         const void*       a,
                                                         rocblas_datatype  a_type,
-                                                        rocblas_int       offset_a,
                                                         rocblas_int       lda,
                                                         rocblas_long      stride_a,
                                                         const void*       b,
                                                         rocblas_datatype  b_type,
-                                                        rocblas_int       offset_b,
                                                         rocblas_int       ldb,
                                                         rocblas_long      stride_b,
                                                         const void*       beta,
                                                         const void*       c,
                                                         rocblas_datatype  c_type,
-                                                        rocblas_int       offset_c,
                                                         rocblas_int       ldc,
                                                         rocblas_long      stride_c,
                                                         void*             d,
                                                         rocblas_datatype  d_type,
-                                                        rocblas_int       offset_d,
                                                         rocblas_int       ldd,
                                                         rocblas_long      stride_d,
                                                         rocblas_int       batch_count,
@@ -343,8 +339,8 @@ namespace
         rocblas_status rb_status = rocblas_status_internal_error;
 
 #define EX_TYPECASTING_PARM                                                                    \
-    handle, trans_a, trans_b, m, n, k, alpha, 0, a, offset_a, lda, stride_a, b, offset_b, ldb, \
-        stride_b, beta, 0, c, offset_c, ldc, stride_c, d, offset_d, ldd, stride_d, batch_count
+    handle, trans_a, trans_b, m, n, k, alpha, 0, a, 0, lda, stride_a, b, 0, ldb, \
+        stride_b, beta, 0, c, 0, ldc, stride_c, d, 0, ldd, stride_d, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
@@ -470,23 +466,19 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                 alpha,
                                                 a,
                                                 a_type,
-                                                0,
                                                 lda,
                                                 stride_a,
                                                 b,
                                                 b_type,
-                                                0,
                                                 ldb,
                                                 stride_b,
                                                 beta,
                                                 c,
                                                 c_type,
-                                                0,
                                                 ldc,
                                                 stride_c,
                                                 d,
                                                 d_type,
-                                                0,
                                                 ldd,
                                                 stride_d,
                                                 batch_count,
