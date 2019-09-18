@@ -252,7 +252,6 @@ Arguments:
   - stride_d: rocblas_int
   - stride_x: rocblas_int
   - stride_y: rocblas_int
-  - stride_scale: rocblas_int
   - norm_check: rocblas_int
   - unit_check: rocblas_int
   - timing: rocblas_int

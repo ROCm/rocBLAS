@@ -59,12 +59,8 @@ void testing_swap_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t abs_incy = incy >= 0 ? incy : -incy;
-
     // argument sanity check before allocating invalid memory
-    if(stridex < N * abs_incx || stridey < N * abs_incy || stridex < 0 || stridey < 0
-       || batch_count < 0)
+    if(batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
@@ -97,8 +93,15 @@ void testing_swap_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_x = (size_t)stridex;
-    size_t size_y = (size_t)stridey;
+
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+
+    size_t size_x = (size_t) (stridex >= 0 ? stridex : -stridex);
+    size_t size_y = (size_t) (stridey >= 0 ? stridey : -stridey);
+    // not testing non-standard strides
+    size_x = std::max(size_x, N*abs_incx);
+    size_y = std::max(size_y, N*abs_incy);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x * batch_count);
