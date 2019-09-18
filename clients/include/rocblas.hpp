@@ -680,6 +680,12 @@ rocblas_status (*rocblas_trsm)(rocblas_handle    handle,
                                T*                B,
                                rocblas_int       ldb);
 
+template <>
+static constexpr auto rocblas_trsm<float> = rocblas_strsm;
+
+template <>
+static constexpr auto rocblas_trsm<double> = rocblas_dtrsm;
+
 // trsm_ex
 // template <typename T>
 // rocblas_status(*rocblas_trsm_ex)(rocblas_handle    handle,
