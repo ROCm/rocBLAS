@@ -112,10 +112,10 @@ rocblas_status (*rocblas_swap_strided_batched)(rocblas_handle handle,
                                                rocblas_int    n,
                                                T*             x,
                                                rocblas_int    incx,
-                                               rocblas_int    stridex,
+                                               rocblas_stride stridex,
                                                T*             y,
                                                rocblas_int    incy,
-                                               rocblas_int    stridey,
+                                               rocblas_stride stridey,
                                                rocblas_int    batch_count);
 
 template <>

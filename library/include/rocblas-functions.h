@@ -395,40 +395,40 @@ ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             float*         x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             float*         y,
                                                             rocblas_int    incy,
-                                                            rocblas_int    stridey,
+                                                            rocblas_stride stridey,
                                                             rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
                                                             double*        x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             double*        y,
                                                             rocblas_int    incy,
-                                                            rocblas_int    stridey,
+                                                            rocblas_stride stridey,
                                                             rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
                                                             rocblas_int            n,
                                                             rocblas_float_complex* x,
                                                             rocblas_int            incx,
-                                                            rocblas_int            stridex,
+                                                            rocblas_stride         stridex,
                                                             rocblas_float_complex* y,
                                                             rocblas_int            incy,
-                                                            rocblas_int            stridey,
+                                                            rocblas_stride         stridey,
                                                             rocblas_int            batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
                                                             rocblas_int             n,
                                                             rocblas_double_complex* x,
                                                             rocblas_int             incx,
-                                                            rocblas_int             stridex,
+                                                            rocblas_stride          stridex,
                                                             rocblas_double_complex* y,
                                                             rocblas_int             incy,
-                                                            rocblas_int             stridey,
+                                                            rocblas_stride          stridey,
                                                             rocblas_int             batch_count);
 
 /*! \brief BLAS Level 1 API
