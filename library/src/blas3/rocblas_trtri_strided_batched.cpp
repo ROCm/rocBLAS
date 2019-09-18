@@ -73,11 +73,11 @@ namespace
             return rocblas_status_invalid_size;
         if(!A)
             return rocblas_status_invalid_pointer;
-        if(lda < n || bsa < lda * n)
+        if(lda < n) // || bsa < lda * n || bsinvA < ldinvA * n) // no stride checks anymore
             return rocblas_status_invalid_size;
         if(!invA)
             return rocblas_status_invalid_pointer;
-        if(ldinvA < n || bsinvA < ldinvA * n || batch_count < 0)
+        if(ldinvA < n || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // For small n or zero batch_count, and device memory size query, return size unchanged

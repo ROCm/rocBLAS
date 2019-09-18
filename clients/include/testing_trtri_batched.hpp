@@ -35,10 +35,9 @@ void testing_trtri_batched(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(N < 0 || lda < 0 || lda < N || batch_count < 0)
+    if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
     {
         static const size_t     safe_size = 100;
-        rocblas_int             num_batch = batch_count < 0 ? 1 : batch_count;
         device_vector<T*, 0, T> dA(1);
         device_vector<T*, 0, T> dInv(1);
 
@@ -47,24 +46,26 @@ void testing_trtri_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        // TODO: if(batch_count == 0 ...) should return success,
-        //       else should return invalid_size (probably)
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dInv, lda, batch_count),
-            rocblas_status_invalid_size);
+
+        if(N < 0 || lda < 0 || lda < N || batch_count < 0)
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dInv, lda, batch_count),
+                rocblas_status_invalid_size);
+        else // batch_count == 0
+            CHECK_ROCBLAS_ERROR(
+                rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dInv, lda, batch_count));
         return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hB[batch_count]; //(size_A);
+    host_vector<T> hB[batch_count];
     host_vector<T> hA[batch_count];
-    host_vector<T> hA_2[batch_count]; //(size_A);
+    host_vector<T> hA_2[batch_count];
     for(int b = 0; b < batch_count; b++)
     {
         hB[b]   = host_vector<T>(size_A);
+        hA[b]   = host_vector<T>(size_A);
         hA_2[b] = host_vector<T>(size_A);
-        // hA[b].reserve(size_A);
-        hA[b] = host_vector<T>(size_A);
     }
 
     // Initial Data on CPU

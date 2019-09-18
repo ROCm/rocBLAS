@@ -22,10 +22,8 @@ namespace
                                               rocblas_diagonal diag,
                                               rocblas_int      n,
                                               const T* const   A[],
-                                              rocblas_int      offsetA,
                                               rocblas_int      lda,
                                               T*               invA[],
-                                              rocblas_int      offsetInvA,
                                               rocblas_int      ldinvA,
                                               rocblas_int      batch_count)
     {
@@ -77,22 +75,8 @@ namespace
         rocblas_status status;
         if(n <= NB)
         {
-            status = rocblas_trtri_small<NB, T>(handle,
-                                                uplo,
-                                                diag,
-                                                n,
-                                                A,
-                                                offsetA,
-                                                lda,
-                                                0,
-                                                0,
-                                                invA,
-                                                offsetInvA,
-                                                ldinvA,
-                                                0,
-                                                0,
-                                                batch_count,
-                                                1);
+            status = rocblas_trtri_small<NB, T>(
+                handle, uplo, diag, n, A, 0, lda, 0, 0, invA, 0, ldinvA, 0, 0, batch_count, 1);
         }
         else
         {
@@ -118,8 +102,7 @@ namespace
             T* C_tmp_host[batch_count];
             for(int b = 0; b < batch_count; b++)
             {
-                // C_tmp_host[b] = (T*)C_tmp + b * n;
-                C_tmp_host[b] = (T*)C_tmp + b * els; // size per batch (apparently)
+                C_tmp_host[b] = (T*)C_tmp + b * els;
             }
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(C_tmp_arr, C_tmp_host, batch_count * sizeof(T*), hipMemcpyHostToDevice));
@@ -129,12 +112,12 @@ namespace
                                                       diag,
                                                       n,
                                                       A,
-                                                      offsetA,
+                                                      0,
                                                       lda,
                                                       0,
                                                       0,
                                                       invA,
-                                                      offsetInvA,
+                                                      0,
                                                       ldinvA,
                                                       0,
                                                       0,
@@ -160,8 +143,7 @@ rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                       rocblas_int        batch_count)
 {
     constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(
-        handle, uplo, diag, n, A, 0, lda, invA, 0, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 
 rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
@@ -175,8 +157,7 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       rocblas_int         batch_count)
 {
     constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(
-        handle, uplo, diag, n, A, 0, lda, invA, 0, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
 }
 
 } // extern "C"

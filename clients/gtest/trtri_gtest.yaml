@@ -38,7 +38,7 @@ Tests:
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 1, 25 ]
+  batch_count: [ -1, 0, 1, 25 ]
 
 - name: trtri_strided_batched
   category: quick
@@ -47,7 +47,7 @@ Tests:
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 1, 25 ]
+  batch_count: [ -1, 0, 1, 25 ]
 
 - name: trtri_batched
   category: pre_checkin               
