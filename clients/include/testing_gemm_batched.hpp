@@ -324,7 +324,7 @@ void testing_gemm_batched(const Arguments& arg)
                                     N,
                                     K,
                                     &h_alpha,
-                                    Av, // TODO
+                                    dA,
                                     lda,
                                     Bv,
                                     ldb,

@@ -569,7 +569,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         unsigned int      m,
                                         unsigned int      n,
                                         unsigned int      k,
-                                        const Tc          alpha,
+                                        const Tc*         alpha,
+                                        rocblas_int       stride_alpha,
                                         const Ti*         a[],
                                         rocblas_int       offset_a,
                                         unsigned int      lda,
@@ -578,7 +579,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         rocblas_int       offset_b,
                                         unsigned int      ldb,
                                         unsigned int      stride_b,
-                                        const Tc          beta,
+                                        const Tc*         beta,
+                                        rocblas_int       stride_beta,
                                         const To*         c[],
                                         rocblas_int       offset_c,
                                         unsigned int      ldc,
@@ -589,6 +591,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         unsigned int      stride_d,
                                         unsigned int      batch_count)
 {
+    // BATCHED VERSION
     // Host arrays of device pointers.
     Ti* hostA[batch_count];
     Ti* hostB[batch_count];
@@ -616,13 +619,15 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     rocblas_status status = rocblas_status_internal_error;
     for(int bi = 0; bi < batch_count; bi++)
     {
+        // Tensile does not support batched gemm_ex yet, must do naive version
         status = gemm_ex_handle_transpose(handle,
                                         trans_a,
                                         trans_b,
                                         m,
                                         n,
                                         k,
-                                        alpha,
+                                        alpha + bi * stride_alpha,
+                                        0, // using single alpha ^
                                         hostA[bi],
                                         offset_a,
                                         lda,
@@ -631,7 +636,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         offset_b,
                                         ldb,
                                         stride_b,
-                                        beta,
+                                        beta + bi * stride_beta,
+                                        0, // see ^
                                         hostC[bi],
                                         offset_c,
                                         ldc,
@@ -654,7 +660,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         unsigned int      m,
                                         unsigned int      n,
                                         unsigned int      k,
-                                        const Tc          alpha,
+                                        const Tc*         alpha,
+                                        rocblas_int       stride_alpha,
                                         const Ti*         a,
                                         rocblas_int       offset_a,
                                         unsigned int      lda,
@@ -663,7 +670,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         rocblas_int       offset_b,
                                         unsigned int      ldb,
                                         unsigned int      stride_b,
-                                        const Tc          beta,
+                                        const Tc*         beta,
+                                        rocblas_int       stride_beta,
                                         const To*         c,
                                         rocblas_int       offset_c,
                                         unsigned int      ldc,
@@ -702,11 +710,34 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
         stride_i = stride_d;
     }
 
-    t_status = call_tensile_ex<Ti,To,Tc>((To*)d,
+    if(stride_alpha != 0 || stride_beta != 0)
+    {
+        for(int bi = 0; bi < batch_count; bi++)
+        {
+            t_status = call_tensile_ex<Ti,To,Tc>((To*)(d + bi * stride_d),
+                                        (const To*)(c_in + bi * stride_c),
+                                        (const Ti*)(a + bi * stride_a),
+                                        (const Ti*)(b + bi * stride_b),
+                                        alpha[bi * stride_alpha], beta[bi * stride_beta],
+                                        unsigned(ldd), stride_d,
+                                        unsigned(ldi), stride_i,
+                                        unsigned(lda), stride_a,
+                                        unsigned(ldb), stride_b,
+                                        unsigned(m),
+                                        unsigned(n),
+                                        unsigned(1),
+                                        unsigned(k),
+                                        handle->rocblas_stream, GetTransposeMode(trans_a, trans_b));
+        }
+    }
+    else
+    {
+        // single alpha/beta
+        t_status = call_tensile_ex<Ti,To,Tc>((To*)d,
                                         (const To*)c_in,
                                         (const Ti*)a,
                                         (const Ti*)b,
-                                        alpha, beta,
+                                        *alpha, *beta,
                                         unsigned(ldd), stride_d,
                                         unsigned(ldi), stride_i,
                                         unsigned(lda), stride_a,
@@ -716,6 +747,8 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
                                         unsigned(batch_count),
                                         unsigned(k),
                                         handle->rocblas_stream, GetTransposeMode(trans_a, trans_b));
+    }
+    
 
     rb_status = (t_status == tensileStatusSuccess) ? rocblas_status_success : rocblas_status_internal_error;
     return rb_status;
@@ -730,7 +763,8 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
                                 unsigned int      m,
                                 unsigned int      n,
                                 unsigned int      k,
-                                Tc                alpha,
+                                Tc*               alpha,
+                                unsigned int      stride_alpha
                                 Ti                a,
                                 unsigned int      offsetAin,
                                 unsigned int      lda,
@@ -739,7 +773,8 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
                                 unsigned int      offsetBin,
                                 unsigned int      ldb,
                                 unsigned int      stride_b,
-                                Tc                beta,
+                                Tc*               beta,
+                                unsigned int      stride_beta,
                                 To                c,
                                 unsigned int      offsetCin,
                                 unsigned int      ldc,
@@ -820,6 +855,7 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
                                               n_chunk_size_corrected,
                                               k,
                                               alpha,
+                                              stride_alpha,
                                               a,
                                               a_offset + offsetAin,
                                               lda,
@@ -829,6 +865,7 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
                                               ldb,
                                               stride_b,
                                               beta,
+                                              stride_beta,
                                               c,
                                               c_offset + offsetCin,
                                               ldc,
@@ -857,6 +894,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       n,
                                    rocblas_int       k,
                                    const void*       alpha,
+                                   rocblas_int       stride_alpha,
                                    const void*       a,
                                    rocblas_int       offsetAin,
                                    rocblas_int       lda,
@@ -866,6 +904,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       ldb,
                                    rocblas_int       stride_b,
                                    const void*       beta,
+                                   rocblas_int       stride_beta,
                                    const void*       c,
                                    rocblas_int       offsetCin,
                                    rocblas_int       ldc,
@@ -876,19 +915,24 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       stride_d,
                                    rocblas_int       batch_count)
 {
-    Tc h_alpha;
-    Tc h_beta;
+    Tc h_alpha[batch_count];
+    Tc h_beta[batch_count];
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         // copy alpha and beta from device to host and convert type
-        hipMemcpy(&h_alpha, alpha, sizeof(Tc), hipMemcpyDeviceToHost);
-        hipMemcpy(&h_beta, beta, sizeof(Tc), hipMemcpyDeviceToHost);
+        for(int b = 0; b < batch_count; b++)
+            hipMemcpy(&h_alpha[b], (Tc*)alpha + b * stride_alpha, sizeof(Tc), hipMemcpyDeviceToHost);
+        
+        for(int b = 0; b < batch_count; b++)
+            hipMemcpy(&h_beta[b], (Tc*)beta + b * stride_beta, sizeof(Tc), hipMemcpyDeviceToHost);
     }
     else
     {
-        h_alpha = *((const Tc*)alpha);
-        h_beta  = *((const Tc*)beta);
+        for(int b = 0; b < batch_count; b++)
+            h_alpha[b] = *(((const Tc*)alpha) + b * stride_alpha);
+        for(int b = 0; b < batch_count; b++)
+            h_beta[b] = *(((const Tc*)beta) + b * stride_beta);
     }
 
     // check alignment of pointers before casting
@@ -898,6 +942,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
         || !isAligned(d, sizeof(To*)))
             return rocblas_status_invalid_size;
 
+        // Pass alpha and beta as simple array (stride of 1)
         return gemm_ex_chunking(handle,
                                 trans_a,
                                 trans_b,
@@ -905,6 +950,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(n),
                                 unsigned(k),
                                 h_alpha,
+                                1, // using stride of 1 for alpha
                                 (const Ti**)a,
                                 unsigned(offsetAin),
                                 unsigned(lda),
@@ -914,6 +960,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(ldb),
                                 unsigned(stride_b),
                                 h_beta,
+                                1, // using stride of 1 for beta
                                 (const To**)c,
                                 unsigned(offsetCin),
                                 unsigned(ldc),
@@ -937,6 +984,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(n),
                                 unsigned(k),
                                 h_alpha,
+                                1,
                                 (const Ti*)a,
                                 unsigned(offsetAin),
                                 unsigned(lda),
@@ -946,6 +994,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(ldb),
                                 unsigned(stride_b),
                                 h_beta,
+                                1,
                                 (const To*)c,
                                 unsigned(offsetCin),
                                 unsigned(ldc),

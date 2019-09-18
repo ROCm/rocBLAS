@@ -166,8 +166,8 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, A, offsetA, ld_a, 0,
-                                                B, offsetB, ld_b, 0, beta, C, offsetC, ld_c, 0, b_c);
+        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, offsetA, ld_a, 0,
+                                                B, offsetB, ld_b, 0, beta, 0, C, offsetC, ld_c, 0, b_c);
     }
 
 

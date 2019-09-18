@@ -207,7 +207,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<false, true>(handle, trans_a, trans_b, m, n, k, alpha, A, offset_a, ld_a, stride_a, B, offset_b, ld_b, stride_b, beta, C, offset_c, ld_c, stride_c, b_c);
+        return rocblas_gemm_template<false, true>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, offset_a, ld_a, stride_a, B, offset_b, ld_b, stride_b, beta, 0, C, offset_c, ld_c, stride_c, b_c);
 
         // clang-format on
     }

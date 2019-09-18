@@ -363,7 +363,9 @@ hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
  ******************************************************************************/
 template <typename T>
 hipError_t call_tensile(const T*          alpha,
+                        rocblas_int       stride_alpha,
                         const T*          beta,
+                        rocblas_int       stride_beta,
                         const T*          A,
                         const T*          B,
                         T*                C,
@@ -381,6 +383,8 @@ hipError_t call_tensile(const T*          alpha,
                         rocblas_int       sizeL,
                         rocblas_handle    handle)
 {
+    // Currently alpha and beta can only be single values as
+    // tensile does not support arrays for scalars yet.
 #ifndef NDEBUG
     std::cout << "Solution Name: "
               << tensileGetSolutionName<T>(trans_a,
@@ -440,7 +444,9 @@ hipError_t call_tensile(const T*          alpha,
 
 template <typename T>
 hipError_t call_tensile(const T*          alpha,
+                        rocblas_int       stride_alpha,
                         const T*          beta,
+                        rocblas_int       stride_beta,
                         const T* const    A[],
                         const T* const    B[],
                         T* const          C[],
@@ -811,6 +817,7 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                             rocblas_int       n,
                                             rocblas_int       k,
                                             const T*          alpha,
+                                            rocblas_int       stride_alpha,
                                             const U           A,
                                             rocblas_int       offset_a,
                                             rocblas_int       ld_a,
@@ -820,6 +827,7 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                             rocblas_int       ld_b,
                                             rocblas_int       stride_b,
                                             const T*          beta,
+                                            rocblas_int       stride_beta,
                                             V                 C,
                                             rocblas_int       offset_c,
                                             rocblas_int       ld_c,
@@ -870,15 +878,17 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
         else if(get_rocblas_status_for_hip_status(errC) != rocblas_status_success)
             return get_rocblas_status_for_hip_status(errC);
 
-        for(int i = 0; i < b_c; i++)
+        for(int b = 0; b < b_c; b++)
         {
             // We cannot do this with a device array, so array of pointers
             // must be on host for now
-            status = call_tensile<T>(alpha,
-                                     beta,
-                                     hostA[i] + offset_a,
-                                     hostB[i] + offset_b,
-                                     hostC[i] + offset_c,
+            status = call_tensile<T>(alpha + b * stride_alpha,
+                                     0,
+                                     beta + b * stride_beta,
+                                     0,
+                                     hostA[b] + offset_a,
+                                     hostB[b] + offset_b,
+                                     hostC[b] + offset_c,
                                      trans_a,
                                      trans_b,
                                      strideC1,
@@ -899,24 +909,61 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
     }
     else
     {
-        status = call_tensile<T>(alpha,
-                                 beta,
-                                 A + offset_a,
-                                 B + offset_b,
-                                 C + offset_c,
-                                 trans_a,
-                                 trans_b,
-                                 strideC1,
-                                 strideC2,
-                                 strideA1,
-                                 strideA2,
-                                 strideB1,
-                                 strideB2,
-                                 sizeI,
-                                 sizeJ,
-                                 sizeK,
-                                 sizeL,
-                                 handle);
+        if(stride_alpha > 0 || stride_beta > 0)
+        {
+            // We can do this, but performance will be degraded,
+            // we will have to use a loop to go over batches rather
+            // than using tensile, since tensile does not support
+            // different scalars as of now.
+
+            sizeK = 1;
+            for(int b = 0; b < b_c; b++)
+            {
+                status = call_tensile<T>(alpha + b * stride_alpha,
+                                         0,
+                                         beta + b * stride_beta,
+                                         0,
+                                         A + b * stride_a + offset_a,
+                                         B + b * stride_b + offset_b,
+                                         C + b * stride_c + offset_c,
+                                         trans_a,
+                                         trans_b,
+                                         strideC1,
+                                         strideC2,
+                                         strideA1,
+                                         strideA2,
+                                         strideB1,
+                                         strideB2,
+                                         sizeI,
+                                         sizeJ,
+                                         sizeK,
+                                         sizeL,
+                                         handle);
+            }
+        }
+        else
+        {
+            status = call_tensile<T>(alpha,
+                                     stride_alpha, // == 0, otherwise not supported
+                                     beta,
+                                     stride_beta, // see ^
+                                     A + offset_a,
+                                     B + offset_b,
+                                     C + offset_c,
+                                     trans_a,
+                                     trans_b,
+                                     strideC1,
+                                     strideC2,
+                                     strideA1,
+                                     strideA2,
+                                     strideB1,
+                                     strideB2,
+                                     sizeI,
+                                     sizeJ,
+                                     sizeK,
+                                     sizeL,
+                                     handle);
+        }
     }
 
     return get_rocblas_status_for_hip_status(status);
