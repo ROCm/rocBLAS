@@ -346,8 +346,7 @@ template <rocblas_int NB,
           typename REDUCE = rocblas_reduce_sum,
           typename Ti,
           typename To>
-
-  __attribute__((amdgpu_flat_work_group_size(128, 1024)))
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
 __global__ void
     rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
@@ -446,8 +445,9 @@ template <rocblas_int NB,
           typename FINALIZE = rocblas_finalize_identity,
           typename To,
           typename Tr>
-  //__attribute__((amdgpu_flat_work_group_size(128, 1024)))
-__global__ void rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
+__global__ void
+    rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int   tx = hipThreadIdx_x;
     __shared__ To tmp[NB];

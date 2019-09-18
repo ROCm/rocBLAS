@@ -163,6 +163,7 @@ template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
 
 
+
 //
 // iamax and iamin batched.
 //
@@ -261,87 +262,52 @@ static constexpr auto rocblas_iamin_strided_batched<double> = rocblas_idamin_str
 
 
 
+//
+// iamax and iamin.
+//
 
-// iamax and iamin need to be full functions rather than references, in order
-// to allow them to be passed as template arguments
+//
+// Define the signature type.
+//
+template <typename T>
+using rocblas_iamax_iamin_t = rocblas_status (*)(
+    rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result);
+
 //
 // iamax
+//
 template <typename T>
-rocblas_status rocblas_iamax(
-    rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result);
+rocblas_iamax_iamin_t<T> rocblas_iamax;
 
 template <>
-inline rocblas_status rocblas_iamax(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result)
-{
-    return rocblas_isamax(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamax<float> = rocblas_isamax;
 
 template <>
-inline rocblas_status rocblas_iamax(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result)
-{
-    return rocblas_idamax(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamax<double> = rocblas_idamax;
 
 template <>
-inline rocblas_status rocblas_iamax(rocblas_handle               handle,
-                                    rocblas_int                  n,
-                                    const rocblas_float_complex* x,
-                                    rocblas_int                  incx,
-                                    rocblas_int*                 result)
-{
-    return rocblas_icamax(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamax<rocblas_float_complex> = rocblas_icamax;
 
 template <>
-inline rocblas_status rocblas_iamax(rocblas_handle                handle,
-                                    rocblas_int                   n,
-                                    const rocblas_double_complex* x,
-                                    rocblas_int                   incx,
-                                    rocblas_int*                  result)
-{
-    return rocblas_izamax(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamax<rocblas_double_complex> = rocblas_izamax;
 
+//
 // iamin
+//
 template <typename T>
-rocblas_status rocblas_iamin(
-    rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result);
+rocblas_iamax_iamin_t<T> rocblas_iamin;
 
 template <>
-inline rocblas_status rocblas_iamin(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result)
-{
-    return rocblas_isamin(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamin<float> = rocblas_isamin;
 
 template <>
-inline rocblas_status rocblas_iamin(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result)
-{
-    return rocblas_idamin(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamin<double> = rocblas_idamin;
 
 template <>
-inline rocblas_status rocblas_iamin(rocblas_handle               handle,
-                                    rocblas_int                  n,
-                                    const rocblas_float_complex* x,
-                                    rocblas_int                  incx,
-                                    rocblas_int*                 result)
-{
-    return rocblas_icamin(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamin<rocblas_float_complex> = rocblas_icamin;
 
 template <>
-inline rocblas_status rocblas_iamin(rocblas_handle                handle,
-                                    rocblas_int                   n,
-                                    const rocblas_double_complex* x,
-                                    rocblas_int                   incx,
-                                    rocblas_int*                  result)
-{
-    return rocblas_izamin(handle, n, x, incx, result);
-}
+static constexpr auto rocblas_iamin<rocblas_double_complex> = rocblas_izamin;
 
 // axpy
 template <typename T>
@@ -465,6 +431,47 @@ static constexpr auto rocblas_ger<float> = rocblas_sger;
 
 template <>
 static constexpr auto rocblas_ger<double> = rocblas_dger;
+
+template <typename T>
+rocblas_status (*rocblas_ger_batched)(rocblas_handle handle,
+                                      rocblas_int    m,
+                                      rocblas_int    n,
+                                      const T*       alpha,
+                                      const T* const x[],
+                                      rocblas_int    incx,
+                                      const T* const y[],
+                                      rocblas_int    incy,
+                                      T* const       A[],
+                                      rocblas_int    lda,
+                                      rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_ger_batched<float> = rocblas_sger_batched;
+
+template <>
+static constexpr auto rocblas_ger_batched<double> = rocblas_dger_batched;
+
+template <typename T>
+rocblas_status (*rocblas_ger_strided_batched)(rocblas_handle handle,
+                                              rocblas_int    m,
+                                              rocblas_int    n,
+                                              const T*       alpha,
+                                              const T*       x,
+                                              rocblas_int    incx,
+                                              rocblas_int    stride_x,
+                                              const T*       y,
+                                              rocblas_int    incy,
+                                              rocblas_int    stride_y,
+                                              T*             A,
+                                              rocblas_int    lda,
+                                              rocblas_int    stride_a,
+                                              rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_ger_strided_batched<float> = rocblas_sger_strided_batched;
+
+template <>
+static constexpr auto rocblas_ger_strided_batched<double> = rocblas_dger_strided_batched;
 
 // syr
 template <typename T>

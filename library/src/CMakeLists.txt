@@ -106,6 +106,8 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_trsv.cpp
   blas2/rocblas_ger.cpp
+  blas2/rocblas_ger_batched.cpp
+  blas2/rocblas_ger_strided_batched.cpp
   blas2/rocblas_syr.cpp
 )
 
@@ -218,5 +220,5 @@ add_custom_command(
   TARGET rocblas
   POST_BUILD
   COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
-  WORKING_DIRECTORY ${CMAKE_HOME_DIRECTORY}
- )
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+)

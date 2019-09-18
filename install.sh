@@ -37,7 +37,7 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora)
+    ubuntu|centos|rhel|fedora|sles)
         true
         ;;
     *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora\n"
@@ -49,8 +49,8 @@ supported_distro( )
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
 check_exit_code( )
 {
-  if (( $? != 0 )); then
-    exit $?
+  if (( $1 != 0 )); then
+    exit $1
   fi
 }
 
@@ -61,10 +61,10 @@ elevate_if_not_root( )
 
   if (( ${uid} )); then
     sudo $@
-    check_exit_code
+    check_exit_code "$?"
   else
     $@
-    check_exit_code
+    check_exit_code "$?"
   fi
 }
 
@@ -104,6 +104,17 @@ install_dnf_packages( )
   done
 }
 
+install_zypper_packages( )
+{
+    package_dependencies=("$@")
+    for package in "${package_dependencies[@]}"; do
+        if [[ $(rpm -q ${package} &> /dev/null; echo $? ) -ne 0 ]]; then
+            printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
+            elevate_if_not_root zypper install -y ${package}
+        fi
+    done
+}
+
 # Take an array of packages as input, and delegate the work to the appropriate distro installer
 # prereq: ${ID} must be defined before calling
 # prereq: ${build_clients} must be defined before calling
@@ -133,17 +144,21 @@ install_packages( )
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel" "libgomp"
                                       "hip_hcc" "rocm_smi64" "zlib-devel" )
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+                                      "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
     library_dependencies_ubuntu+=( "cuda" )
     library_dependencies_centos+=( "" ) # how to install cuda on centos?
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
+    library_dependencies_sles+=( "" )
   fi
 
   local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev")
   local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp")
   local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp")
+  local client_dependencies_sles=( "gcc-fortran" "boost-devel" "libboost_program_options1_66_0-devel" "libgomp1")
 
   case "${ID}" in
     ubuntu)
@@ -174,6 +189,14 @@ install_packages( )
         install_dnf_packages "${client_dependencies_fedora[@]}"
       fi
       ;;
+
+    sles)
+       install_zypper_packages "${client_dependencies_sles[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+            install_zypper_packages "${client_dependencies_sles[@]}"
+        fi
+        ;;
     *)
       echo "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora"
       exit 2
@@ -347,13 +370,18 @@ fi
 if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
   git submodule update --init
   cd extern/blis
-  if [[ -e "/etc/redhat-release" ]]; then  
-    echo 'CentOS detected'
-    ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-  else
-    echo 'Ubuntu detected'
-     ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
-  fi
+  case "${ID}" in
+      centos|rhel|sles)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+      ubuntu)
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+          ;;
+      *)
+          echo "Unsupported OS for this script"
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          ;;
+  esac
   make install
   cd ../..
 fi
@@ -419,10 +447,10 @@ esac
   else
     CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
   fi
-  check_exit_code
+  check_exit_code "$?"
 
   make -j$(nproc) install
-  check_exit_code
+  check_exit_code "$?"
 
   # #################################################
   # install
@@ -430,7 +458,7 @@ esac
   # installing through package manager, which makes uninstalling easy
   if [[ "${install_package}" == true ]]; then
     make package
-    check_exit_code
+    check_exit_code "$?"
 
     case "${ID}" in
       ubuntu)
@@ -441,6 +469,9 @@ esac
       ;;
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
+      ;;
+      sles)
+        elevate_if_not_root zypper --no-gpg-checks in -y install rocblas-*.rpm
       ;;
     esac
 
