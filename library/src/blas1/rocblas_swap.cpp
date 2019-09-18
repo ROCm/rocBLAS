@@ -20,7 +20,7 @@ namespace
     template <>
     constexpr char rocblas_swap_name<rocblas_double_complex>[] = "rocblas_zswap";
 
-    template <class T>
+    template <rocblas_int NB, class T>
     rocblas_status rocblas_swap_impl(
         rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
@@ -48,7 +48,6 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        constexpr rocblas_int NB = 256;
         return rocblas_swap_template<NB>(handle, n, x, incx, y, incy);
     }
 
@@ -67,13 +66,15 @@ extern "C" {
 rocblas_status rocblas_sswap(
     rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy)
 {
-    return rocblas_swap_impl(handle, n, x, incx, y, incy);
+    constexpr rocblas_int NB = 256;
+    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_dswap(
     rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy)
 {
-    return rocblas_swap_impl(handle, n, x, incx, y, incy);
+    constexpr rocblas_int NB = 256;
+    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_cswap(rocblas_handle         handle,
@@ -83,7 +84,8 @@ rocblas_status rocblas_cswap(rocblas_handle         handle,
                              rocblas_float_complex* y,
                              rocblas_int            incy)
 {
-    return rocblas_swap_impl(handle, n, x, incx, y, incy);
+    constexpr rocblas_int NB = 256;
+    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_zswap(rocblas_handle          handle,
@@ -93,7 +95,8 @@ rocblas_status rocblas_zswap(rocblas_handle          handle,
                              rocblas_double_complex* y,
                              rocblas_int             incy)
 {
-    return rocblas_swap_impl(handle, n, x, incx, y, incy);
+    constexpr rocblas_int NB = 256;
+    return rocblas_swap_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 } // extern "C"

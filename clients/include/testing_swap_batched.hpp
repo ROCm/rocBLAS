@@ -24,10 +24,8 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    T** dxt;
-    hipMalloc(&dxt, sizeof(T*));
-    T** dyt;
-    hipMalloc(&dyt, sizeof(T*));
+    device_vector<T*, 0, T> dxt(1);
+    device_vector<T*, 0, T> dyt(1);
     if(!dxt || !dyt)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -40,9 +38,6 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(nullptr, N, dxt, incx, dyt, incy, batch_count),
                           rocblas_status_invalid_handle);
-
-    hipFree(dxt);
-    hipFree(dyt);
 }
 
 template <typename T>
