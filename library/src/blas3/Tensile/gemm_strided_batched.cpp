@@ -47,16 +47,13 @@ namespace
                                                      rocblas_int       k,
                                                      const T*          alpha,
                                                      const T*          A,
-                                                     rocblas_int       offset_a,
                                                      rocblas_int       ld_a,
                                                      rocblas_int       stride_a,
                                                      const T*          B,
-                                                     rocblas_int       offset_b,
                                                      rocblas_int       ld_b,
                                                      rocblas_int       stride_b,
                                                      const T*          beta,
                                                      T*                C,
-                                                     rocblas_int       offset_c,
                                                      rocblas_int       ld_c,
                                                      rocblas_int       stride_c,
                                                      rocblas_int       b_c)
@@ -207,7 +204,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<false, true>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, offset_a, ld_a, stride_a, B, offset_b, ld_b, stride_b, beta, 0, C, offset_c, ld_c, stride_c, b_c);
+        return rocblas_gemm_template<false, true>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, 0, ld_a, stride_a, B, 0, ld_b, stride_b, beta, 0, C, 0, ld_c, stride_c, b_c);
 
         // clang-format on
     }
@@ -402,10 +399,10 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, 0, ld_a, stride_a,
-        B, 0, ld_b, stride_b,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
         beta,
-        C, 0, ld_c, stride_c, b_c);
+        C, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
@@ -431,10 +428,10 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, 0, ld_a, stride_a,
-        B, 0, ld_b, stride_b,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
         beta,
-        C, 0, ld_c, stride_c, b_c);
+        C, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
@@ -460,10 +457,10 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, 0, ld_a, stride_a,
-        B, 0, ld_b, stride_b,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
         beta,
-        C, 0, ld_c, stride_c, b_c);
+        C, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
@@ -489,10 +486,10 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, 0, ld_a, stride_a,
-        B, 0, ld_b, stride_b,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
         beta,
-        C, 0, ld_c, stride_c, b_c);
+        C, ld_c, stride_c, b_c);
 }
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
@@ -518,10 +515,10 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
         handle, trans_a, trans_b,
         m, n, k,
         alpha,
-        A, 0, ld_a, stride_a,
-        B, 0, ld_b, stride_b,
+        A, ld_a, stride_a,
+        B, ld_b, stride_b,
         beta,
-        C, 0, ld_c, stride_c, b_c);
+        C, ld_c, stride_c, b_c);
 }
 
 /*******************************************************************************

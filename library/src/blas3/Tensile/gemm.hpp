@@ -402,7 +402,9 @@ hipError_t call_tensile(const T*          alpha,
               << std::endl;
 #endif
 
-    // Collect alpha / beta (either from host or device)
+    // Collect alpha / beta (either from host or device).
+    // Tensile doesn't support arrays of scalars for now, so we must handle
+    // this case before we enter call_tensile and only pass a single scalar
     T alpha_h;
     T beta_h;
     if(rocblas_pointer_mode_host == handle->pointer_mode)

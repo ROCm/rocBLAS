@@ -3,10 +3,10 @@
  * ************************************************************************ */
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemm_ex.hpp"
 #include "utility.h"
 
 namespace

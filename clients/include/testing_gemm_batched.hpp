@@ -163,7 +163,7 @@ void testing_gemm_batched(const Arguments& arg)
     rocblas_seedrand();
     for(int i = 0; i < batch_count; i++)
     {
-        rocblas_init<T>(hA[i], A_row, A_col, lda); // TODO
+        rocblas_init<T>(hA[i], A_row, A_col, lda);
 
         rocblas_init_alternating_sign<T>(hB[i], B_row, B_col, ldb);
 
@@ -176,8 +176,6 @@ void testing_gemm_batched(const Arguments& arg)
         hC_gold[i] = hC_1[i];
     }
 
-    // Note: Tensile does not support gemm_batched yet, thus we have to use a naive version,
-    //       where we must use host arrays of device pointers, rather than device arrays.
     // 1. Use intermediate arrays to access device memory from host
     for(int i = 0; i < batch_count; i++)
     {
@@ -222,7 +220,10 @@ void testing_gemm_batched(const Arguments& arg)
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        // CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_c, hipMemcpyHostToDevice));
+        for(int i = 0; i < batch_count; i++)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(Cv[i], hC_2[i], sizeof(T) * size_c, hipMemcpyHostToDevice));
+        }
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
         for(int i = 0; i < batch_count; i++)

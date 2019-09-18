@@ -39,14 +39,11 @@ namespace
                                              rocblas_int       k,
                                              const T*          alpha,
                                              const T* const    A[],
-                                             rocblas_int       offsetA,
                                              rocblas_int       ld_a,
                                              const T* const    B[],
-                                             rocblas_int       offsetB,
                                              rocblas_int       ld_b,
                                              const T*          beta,
                                              T* const          C[],
-                                             rocblas_int       offsetC,
                                              rocblas_int       ld_c,
                                              rocblas_int       b_c)
     {
@@ -166,8 +163,8 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, offsetA, ld_a, 0,
-                                                B, offsetB, ld_b, 0, beta, 0, C, offsetC, ld_c, 0, b_c);
+        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, ld_a, 0,
+                                                B, ld_b, 0, beta, 0, C, ld_c, 0, b_c);
     }
 
 
@@ -340,7 +337,7 @@ rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                      rocblas_int               ld_c,
                                      rocblas_int               b_c)
 {
-    return rocblas_gemm_batched_impl<rocblas_half>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, B, 0, ld_b, beta, C, 0, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_half>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
 rocblas_status rocblas_sgemm_batched(rocblas_handle    handle,
@@ -359,7 +356,7 @@ rocblas_status rocblas_sgemm_batched(rocblas_handle    handle,
                                      rocblas_int        ld_c,
                                      rocblas_int        b_c)
 {
-    return rocblas_gemm_batched_impl<float>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, B, 0, ld_b, beta, C, 0, ld_c, b_c);
+    return rocblas_gemm_batched_impl<float>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
 rocblas_status rocblas_dgemm_batched(rocblas_handle     handle,
@@ -378,7 +375,7 @@ rocblas_status rocblas_dgemm_batched(rocblas_handle     handle,
                                      rocblas_int         ld_c,
                                      rocblas_int         b_c)
 {
-    return rocblas_gemm_batched_impl<double>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, B, 0, ld_b, beta, C, 0, ld_c, b_c);
+    return rocblas_gemm_batched_impl<double>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
 rocblas_status rocblas_cgemm_batched(rocblas_handle                    handle,
@@ -397,7 +394,7 @@ rocblas_status rocblas_cgemm_batched(rocblas_handle                    handle,
                                      rocblas_int                        ld_c,
                                      rocblas_int                        b_c)
 {
-    return rocblas_gemm_batched_impl<rocblas_float_complex>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, B, 0, ld_b, beta, C, 0, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_float_complex>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
 rocblas_status rocblas_zgemm_batched(rocblas_handle                     handle,
@@ -416,7 +413,7 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                     handle,
                                      rocblas_int                         ld_c,
                                      rocblas_int                         b_c)
 {
-    return rocblas_gemm_batched_impl<rocblas_double_complex>(handle, trans_a, trans_b, m, n, k, alpha, A, 0, ld_a, B, 0, ld_b, beta, C, 0, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_double_complex>(handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
 

@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __GEMM_EX_HOST__
-#define __GEMM_EX_HOST__
+#ifndef __ROCBLAS_GEMM_EX_HPP
+#define __ROCBLAS_GEMM_EX_HPP
 
 #include "Tensile.h"
 #include "TensileTypes.h"

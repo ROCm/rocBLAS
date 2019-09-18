@@ -1,9 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_gemm_ex.hpp"
 #include "Tensile.h"
 #include "TensileTypes.h"
-#include "gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
