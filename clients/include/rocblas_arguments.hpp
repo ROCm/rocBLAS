@@ -40,8 +40,6 @@ struct Arguments
     rocblas_datatype d_type;
     rocblas_datatype compute_type;
 
-    rocblas_int incalpha; // inc alpha for batched array of scalars
-    rocblas_int incbeta; // inc beta "                            "
     rocblas_int incx;
     rocblas_int incy;
     rocblas_int incd;
@@ -132,8 +130,6 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(c_type);
         ROCBLAS_FORMAT_CHECK(d_type);
         ROCBLAS_FORMAT_CHECK(compute_type);
-        ROCBLAS_FORMAT_CHECK(incalpha);
-        ROCBLAS_FORMAT_CHECK(incbeta);
         ROCBLAS_FORMAT_CHECK(incx);
         ROCBLAS_FORMAT_CHECK(incy);
         ROCBLAS_FORMAT_CHECK(incd);
@@ -287,8 +283,6 @@ private:
         print("ldb", arg.ldb);
         print("ldc", arg.ldc);
         print("ldd", arg.ldd);
-        print("incalpha", arg.incalpha);
-        print("incbeta", arg.incbeta);
         print("incx", arg.incx);
         print("incy", arg.incy);
         print("incd", arg.incd);

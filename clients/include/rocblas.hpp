@@ -55,7 +55,6 @@ template <typename T, typename U = T>
 rocblas_status (*rocblas_scal_batched)(rocblas_handle handle,
                                        rocblas_int    n,
                                        const U*       alpha,
-                                       rocblas_int    inca,
                                        T* const       x[],
                                        rocblas_int    incx,
                                        rocblas_int    batch_count);
@@ -83,7 +82,6 @@ template <typename T, typename U = T>
 rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
                                                rocblas_int    n,
                                                const U*       alpha,
-                                               rocblas_int    inca,
                                                T*             x,
                                                rocblas_int    incx,
                                                rocblas_int    stride_x,

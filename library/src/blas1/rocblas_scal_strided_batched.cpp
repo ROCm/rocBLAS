@@ -31,7 +31,6 @@ namespace
     rocblas_status rocblas_scal_strided_batched_impl(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      const U*       alpha,
-                                                     rocblas_int    inca,
                                                      T*             x,
                                                      rocblas_int    incx,
                                                      rocblas_int    stridex,
@@ -46,15 +45,8 @@ namespace
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_scal_name<T, U>,
-                          n,
-                          *alpha,
-                          inca,
-                          x,
-                          incx,
-                          stridex,
-                          batch_count);
+                log_trace(
+                    handle, rocblas_scal_name<T, U>, n, *alpha, x, incx, stridex, batch_count);
 
             // there are an extra 2 scal functions, thus
             // the -r mode will not work correctly. Substitute
@@ -74,8 +66,6 @@ namespace
                           rocblas_precision_string<U>,
                           "-n",
                           n,
-                          "--inca",
-                          inca,
                           "--incx",
                           incx,
                           "--stride_x",
@@ -88,16 +78,13 @@ namespace
         else
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(
-                    handle, rocblas_scal_name<T, U>, n, alpha, inca, x, incx, stridex, batch_count);
+                log_trace(handle, rocblas_scal_name<T, U>, n, alpha, x, incx, stridex, batch_count);
         }
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
                         rocblas_scal_name<T, U>,
                         "N",
                         n,
-                        "inca",
-                        inca,
                         "incx",
                         incx,
                         "stride_x",
@@ -108,33 +95,12 @@ namespace
         if(!x)
             return rocblas_status_invalid_pointer;
 
-        if(stridex < n * incx)
-            return rocblas_status_invalid_size;
         if(batch_count < 0)
             return rocblas_status_invalid_size;
-        if(inca < 0)
-            return rocblas_status_invalid_size;
-
-        if(handle->is_device_memory_size_query())
-        {
-            if(rocblas_pointer_mode_host == handle->pointer_mode && inca && n > 0 && incx > 0
-               && batch_count > 0)
-                return handle->set_optimal_device_memory_size(sizeof(U) * batch_count * inca);
-            else
-                return rocblas_status_size_unchanged;
-        }
 
         U* mem = (U*)nullptr;
-        if(rocblas_pointer_mode_host == handle->pointer_mode && inca && n > 0 && incx > 0
-           && batch_count > 0)
-        {
-            mem = (U*)handle->device_malloc(sizeof(U) * batch_count * inca);
-            if(!mem)
-                return rocblas_status_memory_error;
-        }
-
         return rocblas_scal_template<NB, T>(
-            handle, n, alpha, inca, x, 0, incx, stridex, batch_count, mem);
+            handle, n, alpha, 0, x, 0, incx, stridex, batch_count, mem);
     }
 }
 
@@ -149,86 +115,74 @@ extern "C" {
 rocblas_status rocblas_sscal_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              const float*   alpha,
-                                             rocblas_int    inca,
                                              float*         x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
                                              rocblas_int    batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 rocblas_status rocblas_dscal_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              const double*  alpha,
-                                             rocblas_int    inca,
                                              double*        x,
                                              rocblas_int    incx,
                                              rocblas_int    stridex,
                                              rocblas_int    batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 rocblas_status rocblas_cscal_strided_batched(rocblas_handle               handle,
                                              rocblas_int                  n,
                                              const rocblas_float_complex* alpha,
-                                             rocblas_int                  inca,
                                              rocblas_float_complex*       x,
                                              rocblas_int                  incx,
                                              rocblas_int                  stridex,
                                              rocblas_int                  batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 rocblas_status rocblas_zscal_strided_batched(rocblas_handle                handle,
                                              rocblas_int                   n,
                                              const rocblas_double_complex* alpha,
-                                             rocblas_int                   inca,
                                              rocblas_double_complex*       x,
                                              rocblas_int                   incx,
                                              rocblas_int                   stridex,
                                              rocblas_int                   batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 // Scal with a real alpha & complex vector
 rocblas_status rocblas_csscal_strided_batched(rocblas_handle         handle,
                                               rocblas_int            n,
                                               const float*           alpha,
-                                              rocblas_int            inca,
                                               rocblas_float_complex* x,
                                               rocblas_int            incx,
                                               rocblas_int            stridex,
                                               rocblas_int            batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 rocblas_status rocblas_zdscal_strided_batched(rocblas_handle          handle,
                                               rocblas_int             n,
                                               const double*           alpha,
-                                              rocblas_int             inca,
                                               rocblas_double_complex* x,
                                               rocblas_int             incx,
                                               rocblas_int             stridex,
                                               rocblas_int             batch_count)
 {
     constexpr rocblas_int NB = 256;
-    return rocblas_scal_strided_batched_impl<NB>(
-        handle, n, alpha, inca, x, incx, stridex, batch_count);
+    return rocblas_scal_strided_batched_impl<NB>(handle, n, alpha, x, incx, stridex, batch_count);
 }
 
 } // extern "C"

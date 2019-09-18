@@ -28,7 +28,6 @@ Tests:
   - name: blas1
     category: quick
     N: [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
-    incalpha: [-1, 0, 10 ]
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -65,7 +64,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
-    strideScale: [ 0.5, 1.5 ]
+    strideScale: [ 1.5 ]
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
@@ -167,8 +166,8 @@ Tests:
     batch_count: [ 2 ]
     strideScale: [ 1.2 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
+      - scal_strided_batched: *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_complex_real_in_complex_out
 
   - name: blas1_strided_batched
     category: nightly
@@ -179,8 +178,8 @@ Tests:
     batch_count: [ 5000 ]
     strideScale: [ 2 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
+      - scal_strided_batched: *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_complex_real_in_complex_out
 
   - name: blas1_bad_arg
     category: pre_checkin

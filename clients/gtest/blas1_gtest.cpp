@@ -82,9 +82,6 @@ namespace
                 if(BLAS1 == blas1::axpy || isScal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
-                if(BLAS1 == blas1::scal_batched || BLAS1 == blas1::scal_strided_batched)
-                    name << '_' << arg.incalpha;
-
                 name << '_' << arg.incx;
 
                 if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot

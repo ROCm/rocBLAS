@@ -18,16 +18,15 @@ template <typename T, typename U = T>
 void testing_scal_batched(const Arguments& arg)
 {
     rocblas_int N           = arg.N;
-    rocblas_int inca        = arg.incalpha;
     rocblas_int incx        = arg.incx;
+    U           h_alpha     = arg.get_alpha<U>();
     rocblas_int batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || incx <= 0 || batch_count <= 0 || inca < 0)
+    if(N < 0 || incx <= 0 || batch_count <= 0)
     {
-        U                       h_alphab = arg.get_alpha<U>();
         device_vector<T*, 0, T> dx(1);
         if(!dx)
         {
@@ -36,29 +35,24 @@ void testing_scal_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count < 0 || inca < 0)
+        if(batch_count < 0)
             EXPECT_ROCBLAS_STATUS(
-                (rocblas_scal_batched<T, U>)(handle, N, &h_alphab, 0, dx, incx, batch_count),
+                (rocblas_scal_batched<T, U>)(handle, N, &h_alpha, dx, incx, batch_count),
                 rocblas_status_invalid_size);
         else
             CHECK_ROCBLAS_ERROR(
-                (rocblas_scal_batched<T, U>)(handle, N, &h_alphab, 0, dx, incx, batch_count));
+                (rocblas_scal_batched<T, U>)(handle, N, &h_alpha, dx, incx, batch_count));
         return;
     }
 
-    size_t size_x     = N * size_t(incx);
-    size_t size_alpha = batch_count * size_t(inca);
-
-    if(size_alpha == 0)
-        size_alpha = 1;
-    host_vector<U> h_alpha(size_alpha);
+    size_t size_x = N * size_t(incx);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
 
     // Device-arrays of pointers to device memory
     device_vector<T*, 0, T> dx_1(batch_count);
     device_vector<T*, 0, T> dx_2(batch_count);
-    device_vector<U>        d_alpha(size_alpha);
+    device_vector<U>        d_alpha(1);
     if(!dx_1 || !dx_2 || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -98,10 +92,6 @@ void testing_scal_batched(const Arguments& arg)
         hx_2[i]    = hx_1[i];
         hx_gold[i] = hx_1[i];
     }
-    if(size_alpha == 1)
-        h_alpha[0] = arg.get_alpha<U>();
-    else
-        rocblas_init<U>(h_alpha, 1, batch_count, inca);
 
     // copy data from CPU to device
     // 1. User intermediate arrays to access device memory from host
@@ -124,17 +114,17 @@ void testing_scal_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(x_2[i], hx_2[i], sizeof(T) * size_x, hipMemcpyHostToDevice));
         }
         CHECK_HIP_ERROR(hipMemcpy(dx_2, x_2, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, h_alpha, size_alpha * sizeof(U), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(U), hipMemcpyHostToDevice));
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            (rocblas_scal_batched<T, U>(handle, N, h_alpha, inca, dx_1, incx, batch_count)));
+            (rocblas_scal_batched<T, U>(handle, N, &h_alpha, dx_1, incx, batch_count)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            (rocblas_scal_batched<T, U>(handle, N, d_alpha, inca, dx_2, incx, batch_count)));
+            (rocblas_scal_batched<T, U>(handle, N, d_alpha, dx_2, incx, batch_count)));
 
         // copy output from device to CPU
         for(int i = 0; i < batch_count; i++)
@@ -147,7 +137,7 @@ void testing_scal_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_scal<T, U>(N, h_alpha[i * inca], hx_gold[i], incx);
+            cblas_scal<T, U>(N, h_alpha, hx_gold[i], incx);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * scal_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
@@ -174,14 +164,14 @@ void testing_scal_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_scal_batched<T, U>(handle, N, h_alpha, inca, dx_1, incx, batch_count);
+            rocblas_scal_batched<T, U>(handle, N, &h_alpha, dx_1, incx, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_scal_batched<T, U>(handle, N, h_alpha, inca, dx_1, incx, batch_count);
+            rocblas_scal_batched<T, U>(handle, N, &h_alpha, dx_1, incx, batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -225,10 +215,9 @@ void testing_scal_batched_bad_arg(const Arguments& arg)
         return;
     }
 
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched<T, U>)(handle, N, nullptr, dx, incx, batch_count),
+                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_batched<T, U>)(handle, N, nullptr, 0, dx, incx, batch_count),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_batched<T, U>)(handle, N, &h_alpha, 0, nullptr, incx, batch_count),
+        (rocblas_scal_batched<T, U>)(handle, N, &h_alpha, nullptr, incx, batch_count),
         rocblas_status_invalid_pointer);
 }

@@ -232,8 +232,6 @@ Arguments:
   - c_type: rocblas_datatype
   - d_type: rocblas_datatype
   - compute_type: rocblas_datatype
-  - incalpha: rocblas_int
-  - incbeta: rocblas_int
   - incx: rocblas_int
   - incy: rocblas_int
   - incd: rocblas_int
@@ -305,8 +303,6 @@ Defaults:
   M: -1
   N: -1
   K: -1
-  incalpha: 0
-  incbeta: 0
   incx: 0
   incy: 0
   incd: 0
