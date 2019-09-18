@@ -26,7 +26,7 @@ namespace
     };
 
     // trsm test template
-    template <template <typename...> class FILTER, trsm_test_type TRSM_EX_TYPE>
+    template <template <typename...> class FILTER, trsm_ex_test_type TRSM_EX_TYPE>
     struct trsm_ex_template : RocBLAS_Test<trsm_ex_template<FILTER, TRSM_EX_TYPE>, FILTER>
     {
         // Filter for which types apply to this suite
@@ -53,7 +53,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<trsm_template> name;
+            RocBLAS_TestName<trsm_ex_template> name;
 
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
                  << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)

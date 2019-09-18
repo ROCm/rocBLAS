@@ -3622,6 +3622,308 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                         compute_type)
 // clang-format on
 
+
+// TODO: Finish documentation
+/*! BLAS EX API
+
+    \details
+    TRSM_EX_BATCHED solves
+
+        op(A)*X = alpha*B or X*op(A) = alpha*B,
+
+    where alpha is a scalar, X and B are m by n matrices,
+    A is triangular matrix and op(A) is one of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    The matrix X is overwritten on B.
+
+    TRSM_EX gives the user the ability to reuse the invA matrix between runs.
+    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate invA on every run.
+
+    Setting up invA:
+    The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
+    matrix A, followed by any smaller diagonal block that remains.
+    To set up invA it is recommended that rocblas_trtri_batched be used with matrix A as the input.
+
+    Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when
+    rocblas_side_left and is n when rocblas_side_right. The actual number of elements in invA
+    should be passed as invA_size.
+
+    To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of
+    matrix A. Below are the restricted parameters:
+      - n = 128
+      - ldinvA = 128
+      - stride_invA = 128x128
+      - batch_count = k / 128,
+
+    Then any remaining block may be added:
+      - n = k % 128
+      - invA = invA + stride_invA * previous_batch_count
+      - ldinvA = 128
+      - batch_count = 1
+
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side
+            rocblas_side_left:       op(A)*X = alpha*B.
+            rocblas_side_right:      X*op(A) = alpha*B.
+
+    @param[in]
+    uplo    rocblas_fill
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            &zero then A is not referenced, and B need not be set before
+            entry.
+
+    @param[in]
+    A       void *
+            pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in, out]
+    B       void *
+            pointer storing matrix B on the GPU.
+            B is of dimension ( ldb, n ).
+            Before entry, the leading m by n part of the array B must
+            contain the right-hand side matrix B, and on exit is
+            overwritten by the solution matrix X.
+
+    @param[in]
+    ldb    rocblas_int
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    @param[in]
+    batch_count rocblas_int
+            specifies how many batches.
+
+    @param[in]
+    invA    void *
+            pointer storing the inverse diagonal blocks of A on the GPU.
+            invA is of dimension ( ld_invA, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right.
+            ld_invA must be equal to 128.
+
+    @param[in]
+    invA_size rocblas_int
+            invA_size specifies the number of elements of device memory in invA.
+
+    @param[in]
+    compute_type rocblas_datatype
+            specifies the datatype of computation
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
+                                                      rocblas_side      side,
+                                                      rocblas_fill      uplo,
+                                                      rocblas_operation transA,
+                                                      rocblas_diagonal  diag,
+                                                      rocblas_int       m,
+                                                      rocblas_int       n,
+                                                      const void*       alpha,
+                                                      const void*       A,
+                                                      rocblas_int       lda,
+                                                      void*             B,
+                                                      rocblas_int       ldb,
+                                                      rocblas_int       batch_count,
+                                                      const void*       invA,
+                                                      rocblas_int       invA_size,
+                                                      rocblas_datatype  compute_type);
+
+// TODO: Finish documentation
+/*! BLAS EX API
+
+    \details
+    TRSM_EX_BATCHED solves
+
+        op(A)*X = alpha*B or X*op(A) = alpha*B,
+
+    where alpha is a scalar, X and B are m by n matrices,
+    A is triangular matrix and op(A) is one of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    The matrix X is overwritten on B.
+
+    TRSM_EX gives the user the ability to reuse the invA matrix between runs.
+    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate invA on every run.
+
+    Setting up invA:
+    The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
+    matrix A, followed by any smaller diagonal block that remains.
+    To set up invA it is recommended that rocblas_trtri_batched be used with matrix A as the input.
+
+    Device memory of size 128 x k should be allocated for invA ahead of time, where k is m when
+    rocblas_side_left and is n when rocblas_side_right. The actual number of elements in invA
+    should be passed as invA_size.
+
+    To begin, rocblas_trtri_batched must be called on the full 128x128 sized diagonal blocks of
+    matrix A. Below are the restricted parameters:
+      - n = 128
+      - ldinvA = 128
+      - stride_invA = 128x128
+      - batch_count = k / 128,
+
+    Then any remaining block may be added:
+      - n = k % 128
+      - invA = invA + stride_invA * previous_batch_count
+      - ldinvA = 128
+      - batch_count = 1
+
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side
+            rocblas_side_left:       op(A)*X = alpha*B.
+            rocblas_side_right:      X*op(A) = alpha*B.
+
+    @param[in]
+    uplo    rocblas_fill
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            &zero then A is not referenced, and B need not be set before
+            entry.
+
+    @param[in]
+    A       void *
+            pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in]
+    stride_A rocblas_int
+            The stride between each A matrix.
+
+    @param[in, out]
+    B       void *
+            pointer storing matrix B on the GPU.
+            B is of dimension ( ldb, n ).
+            Before entry, the leading m by n part of the array B must
+            contain the right-hand side matrix B, and on exit is
+            overwritten by the solution matrix X.
+
+    @param[in]
+    ldb    rocblas_int
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    @param[in]
+    stride_B rocblas_int
+            The stride between each B matrix.
+
+    @param[in]
+    batch_count rocblas_int
+            specifies how many batches.
+
+    @param[in]
+    invA    void *
+            pointer storing the inverse diagonal blocks of A on the GPU.
+            invA is of dimension ( ld_invA, k ), where k is m
+            when rocblas_side_left and
+            is n when rocblas_side_right.
+            ld_invA must be equal to 128.
+
+    @param[in]
+    invA_size rocblas_int
+            invA_size specifies the number of elements of device memory in invA.
+
+    @param[in]
+    stride_invA rocblas_int
+            The stride between each invA matrix.
+
+    @param[in]
+    compute_type rocblas_datatype
+            specifies the datatype of computation
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
+                                                              rocblas_side      side,
+                                                              rocblas_fill      uplo,
+                                                              rocblas_operation transA,
+                                                              rocblas_diagonal  diag,
+                                                              rocblas_int       m,
+                                                              rocblas_int       n,
+                                                              const void*       alpha,
+                                                              const void*       A,
+                                                              rocblas_int       lda,
+                                                              rocblas_int       stride_A,
+                                                              void*             B,
+                                                              rocblas_int       ldb,
+                                                              rocblas_int       stride_B,
+                                                              rocblas_int       batch_count,
+                                                              const void*       invA,
+                                                              rocblas_int       invA_size,
+                                                              rocblas_int       stride_invA,
+                                                              rocblas_datatype  compute_type);
+
 /*
  * ===========================================================================
  *    build information

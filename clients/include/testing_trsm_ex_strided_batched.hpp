@@ -19,20 +19,6 @@
 #define RESIDUAL_EPS_MULTIPLIER 20
 #define TRSM_BLOCK 128
 
-template <typename T>
-void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
-{
-    printf("---------- %s ----------\n", name);
-    int max_size = 3;
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-        {
-            printf("%0.2f ", A[i + j * lda]);
-        }
-        printf("\n");
-    }
-}
 
 template <typename T>
 void testing_trsm_ex_strided_batched(const Arguments& arg)
@@ -163,10 +149,10 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
         for(int i = 0; i < K; i++)
         {
             T t = 0.0;
+            rocblas_int idx2 = stride_A * b + i + i * lda;
             for(int j = 0; j < K; j++)
             {
                 rocblas_int idx1 = stride_A * b + i + j * lda;
-                rocblas_int idx2 = stride_A * b + i + i * lda;
                 hA[idx1] = AAT[idx1];
                 t += AAT[idx1] > 0 ? AAT[idx1] : -AAT[idx1];
             }
@@ -178,27 +164,29 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     //  calculate Cholesky factorization of SPD matrix hA
     for(int b = 0; b < batch_count; b++)
     {
-        rocblas_int idx1 = stride_A * b + i + j * lda;
-        rocblas_int idx2 = stride_A * b + i + i * lda;
         cblas_potrf<T>(char_uplo, K, hA + b * stride_A, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
         if(char_diag == 'U' || char_diag == 'u')
         {
             if('L' == char_uplo || 'l' == char_uplo)
+            {
                 for(int i = 0; i < K; i++)
                 {
-                    T diag = hA[idx2];
+                    T diag = hA[stride_A * b + i + i * lda];
                     for(int j = 0; j <= i; j++)
-                        hA[idx1] = hA[idx1] / diag;
+                        hA[stride_A * b + i + j * lda] = hA[stride_A * b + i + j * lda] / diag;
                 }
+            }
             else
+            {
                 for(int j = 0; j < K; j++)
                 {
-                    T diag = hA[j + j * lda];
+                    T diag = hA[stride_A * b + j + j * lda];
                     for(int i = 0; i <= j; i++)
-                        hA[idx1] = hA[idx1] / diag;
+                        hA[stride_A * b + i + j * lda] = hA[stride_A * b + i + j * lda] / diag;
                 }
+            }
         }
     }
 
@@ -245,33 +233,33 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
         {
             if(blocks > 0)
                 CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
-                                                                    uplo,
-                                                                    diag,
-                                                                    TRSM_BLOCK,
-                                                                    dA + b * stride_A,
-                                                                    lda,
-                                                                    sub_stride_A,
-                                                                    dinvA + b * stride_invA,
-                                                                    TRSM_BLOCK,
-                                                                    sub_stride_invA,
-                                                                    blocks));
+                                                                     uplo,
+                                                                     diag,
+                                                                     TRSM_BLOCK,
+                                                                     dA + b * stride_A,
+                                                                     lda,
+                                                                     sub_stride_A,
+                                                                     dinvA + b * stride_invA,
+                                                                     TRSM_BLOCK,
+                                                                     sub_stride_invA,
+                                                                     blocks));
 
             if(K % TRSM_BLOCK != 0 || blocks == 0)
                 CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
-                                                                    uplo,
-                                                                    diag,
-                                                                    K - TRSM_BLOCK * blocks,
-                                                                    dA + sub_stride_A * blocks + b * stride_A,
-                                                                    lda,
-                                                                    sub_stride_A,
-                                                                    dinvA + sub_stride_invA * blocks + b * stride_invA,
-                                                                    TRSM_BLOCK,
-                                                                    sub_stride_invA,
-                                                                    1));
+                                                                     uplo,
+                                                                     diag,
+                                                                     K - TRSM_BLOCK * blocks,
+                                                                     dA + sub_stride_A * blocks + b * stride_A,
+                                                                     lda,
+                                                                     sub_stride_A,
+                                                                     dinvA + sub_stride_invA * blocks + b * stride_invA,
+                                                                     TRSM_BLOCK,
+                                                                     sub_stride_invA,
+                                                                     1));
         }
 
         size_t x_temp_size = M * N;
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_strided_batched_(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_strided_batched(handle,
                                                              side,
                                                              uplo,
                                                              transA,
@@ -401,7 +389,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_trsm_ex_strided_batched<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, stride_A, dXorB, ldb, stride_B,
+            rocblas_trsm_ex_strided_batched(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, stride_A, dXorB, ldb, stride_B,
                                                batch_count, dinvA, TRSM_BLOCK * K, stride_invA, arg.compute_type));
 
         gpu_time_used  = get_time_us() - gpu_time_used;

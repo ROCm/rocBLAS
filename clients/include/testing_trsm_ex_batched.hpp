@@ -19,20 +19,6 @@
 #define RESIDUAL_EPS_MULTIPLIER 20
 #define TRSM_BLOCK 128
 
-template <typename T>
-void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
-{
-    printf("---------- %s ----------\n", name);
-    int max_size = 3;
-    for(int i = 0; i < m; i++)
-    {
-        for(int j = 0; j < n; j++)
-        {
-            printf("%0.2f ", A[i + j * lda]);
-        }
-        printf("\n");
-    }
-}
 
 template <typename T>
 void testing_trsm_ex_batched(const Arguments& arg)
@@ -229,7 +215,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
     }
     // 2. Copy intermediate arrays into device arrays
-    CHECK_HIP_ERROR(hipMemcpy(dA, bA, sizeof(T*) * batch_count, hipMemcpyHostToDevice))
+    CHECK_HIP_ERROR(hipMemcpy(dA, bA, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
     rocblas_int stride_A    = TRSM_BLOCK * lda + TRSM_BLOCK;
@@ -254,36 +240,34 @@ void testing_trsm_ex_batched(const Arguments& arg)
         hipStream_t rocblas_stream;
         rocblas_get_stream(handle, &rocblas_stream);
 
-        if(blocks > 0)
+        for(int b = 0; b < batch_count; b++)
         {
-            for(int b = 0; blocks; b++)
-            {
-                CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
-                                                             uplo,
-                                                             diag,
-                                                             TRSM_BLOCK,
-                                                             dA,
-                                                             b * stride_A,
-                                                             lda,
-                                                             dinvA,
-                                                             b * stride_invA,
-                                                             TRSM_BLOCK,
-                                                             batch_count));
-            }
-        }
+            if(blocks > 0)
+                CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
+                                                                     uplo,
+                                                                     diag,
+                                                                     TRSM_BLOCK,
+                                                                     bA[b],
+                                                                     lda,
+                                                                     stride_A,
+                                                                     binvA[b],
+                                                                     TRSM_BLOCK,
+                                                                     stride_invA,
+                                                                     blocks));
 
-        if(K % TRSM_BLOCK != 0 || blocks == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
-                                                        uplo,
-                                                         diag,
-                                                         K - TRSM_BLOCK * blocks,
-                                                         dA,
-                                                         stride_A * blocks,
-                                                         lda,
-                                                         dinvA,
-                                                         stride_invA * blocks,
-                                                         TRSM_BLOCK,
-                                                         batch_count));
+            if(K % TRSM_BLOCK != 0 || blocks == 0)
+                CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
+                                                                     uplo,
+                                                                     diag,
+                                                                     K - TRSM_BLOCK * blocks,
+                                                                     bA[b] + stride_A * blocks,
+                                                                     lda,
+                                                                     stride_A,
+                                                                     binvA[b] + stride_invA * blocks,
+                                                                     TRSM_BLOCK,
+                                                                     stride_invA,
+                                                                     1));
+        }
 
         size_t x_temp_size = M * N;
         CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_batched(handle,
@@ -391,13 +375,13 @@ void testing_trsm_ex_batched(const Arguments& arg)
                 {
                     if(hB[j + i * ldb] != 0)
                     {
-                        res_1 += std::abs((hXorB_1[j + i * ldb] - hB[j + i * ldb]) / hB[j + i * ldb]);
-                        res_2 += std::abs((hXorB_2[j + i * ldb] - hB[j + i * ldb]) / hB[j + i * ldb]);
+                        res_1 += std::abs((hXorB_1[b][j + i * ldb] - hB[b][j + i * ldb]) / hB[b][j + i * ldb]);
+                        res_2 += std::abs((hXorB_2[b][j + i * ldb] - hB[b][j + i * ldb]) / hB[b][j + i * ldb]);
                     }
                     else
                     {
-                        res_1 += std::abs(hXorB_1[j + i * ldb]);
-                        res_2 += std::abs(hXorB_2[j + i * ldb]);
+                        res_1 += std::abs(hXorB_1[b][j + i * ldb]);
+                        res_2 += std::abs(hXorB_2[b][j + i * ldb]);
                     }
                 }
                 max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
@@ -415,14 +399,14 @@ void testing_trsm_ex_batched(const Arguments& arg)
         {
             CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
         }
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB_1, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         gpu_time_used = get_time_us(); // in microseconds
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_trsm_batched<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb, batch_count));
+            rocblas_trsm_ex_batched(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb, batch_count, dinvA, TRSM_BLOCK * K, arg.compute_type));
 
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
