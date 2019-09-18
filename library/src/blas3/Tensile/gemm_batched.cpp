@@ -163,8 +163,8 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, ld_a, 0,
-                                                B, ld_b, 0, beta, 0, C, ld_c, 0, b_c);
+        return rocblas_gemm_template<true, false>(handle, trans_a, trans_b, m, n, k, alpha, 0, A, 0, ld_a, 0,
+                                                B, 0, ld_b, 0, beta, 0, C, 0, ld_c, 0, b_c);
     }
 
 
