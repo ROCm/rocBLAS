@@ -9,7 +9,7 @@
 
 #include "gemm.hpp"
 #include "handle.h"
-#include "trtri_host.hpp"
+#include "rocblas_trtri.hpp"
 
 static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 

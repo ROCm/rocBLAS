@@ -9,7 +9,6 @@ Definitions:
 
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192 }
-    - { M:      256,  N:        256,    lda:    256,    ldb:    256     }
     - { M:   600, N:   500, lda:   600, ldb:   600 }
     - { M:   800, N:   700, lda:   801, ldb:   701 }
 

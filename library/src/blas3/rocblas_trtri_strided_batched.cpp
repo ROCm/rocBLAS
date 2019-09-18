@@ -4,12 +4,11 @@
  * ************************************************************************ */
 
 #include "logging.h"
-#include "trtri_host.hpp"
+#include "rocblas_trtri.hpp"
 #include "utility.h"
 
 namespace
 {
-
     template <typename>
     constexpr char rocblas_trtri_name[] = "unknown";
     template <>
