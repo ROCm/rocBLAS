@@ -27,10 +27,10 @@ namespace
                                                      rocblas_int    n,
                                                      T*             x,
                                                      rocblas_int    incx,
-                                                     rocblas_int    stridex,
+                                                     rocblas_stride stridex,
                                                      T*             y,
                                                      rocblas_int    incy,
-                                                     rocblas_int    stridey,
+                                                     rocblas_stride stridey,
                                                      rocblas_int    batch_count)
     {
         if(!handle)
@@ -106,10 +106,10 @@ rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              float*         x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              float*         y,
                                              rocblas_int    incy,
-                                             rocblas_int    stridey,
+                                             rocblas_stride stridey,
                                              rocblas_int    batch_count)
 {
     return rocblas_swap_strided_batched_impl(
@@ -120,10 +120,10 @@ rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              double*        x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              double*        y,
                                              rocblas_int    incy,
-                                             rocblas_int    stridey,
+                                             rocblas_stride stridey,
                                              rocblas_int    batch_count)
 {
     return rocblas_swap_strided_batched_impl(
@@ -134,10 +134,10 @@ rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
                                              rocblas_int            n,
                                              rocblas_float_complex* x,
                                              rocblas_int            incx,
-                                             rocblas_int            stridex,
+                                             rocblas_stride         stridex,
                                              rocblas_float_complex* y,
                                              rocblas_int            incy,
-                                             rocblas_int            stridey,
+                                             rocblas_stride         stridey,
                                              rocblas_int            batch_count)
 {
     return rocblas_swap_strided_batched_impl(
@@ -148,10 +148,10 @@ rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
                                              rocblas_int             n,
                                              rocblas_double_complex* x,
                                              rocblas_int             incx,
-                                             rocblas_int             stridex,
+                                             rocblas_stride          stridex,
                                              rocblas_double_complex* y,
                                              rocblas_int             incy,
-                                             rocblas_int             stridey,
+                                             rocblas_stride          stridey,
                                              rocblas_int             batch_count)
 {
     return rocblas_swap_strided_batched_impl(

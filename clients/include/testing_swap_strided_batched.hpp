@@ -16,12 +16,12 @@
 template <typename T>
 void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int incy        = 1;
-    rocblas_int stridex     = 1;
-    rocblas_int stridey     = 1;
-    rocblas_int batch_count = 5;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_int    incy        = 1;
+    rocblas_stride stridex     = 1;
+    rocblas_stride stridey     = 1;
+    rocblas_int    batch_count = 5;
 
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
@@ -50,12 +50,12 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap_strided_batched(const Arguments& arg)
 {
-    rocblas_int N           = arg.N;
-    rocblas_int incx        = arg.incx;
-    rocblas_int incy        = arg.incy;
-    rocblas_int stridex     = arg.stride_x;
-    rocblas_int stridey     = arg.stride_y;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_int    N           = arg.N;
+    rocblas_int    incx        = arg.incx;
+    rocblas_int    incy        = arg.incy;
+    rocblas_stride stridex     = arg.stride_x;
+    rocblas_stride stridey     = arg.stride_y;
+    rocblas_int    batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
 
@@ -93,15 +93,14 @@ void testing_swap_strided_batched(const Arguments& arg)
         return;
     }
 
-
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
 
-    size_t size_x = (size_t) (stridex >= 0 ? stridex : -stridex);
-    size_t size_y = (size_t) (stridey >= 0 ? stridey : -stridey);
+    size_t size_x = (size_t)(stridex >= 0 ? stridex : -stridex);
+    size_t size_y = (size_t)(stridey >= 0 ? stridey : -stridey);
     // not testing non-standard strides
-    size_x = std::max(size_x, N*abs_incx);
-    size_y = std::max(size_y, N*abs_incy);
+    size_x = std::max(size_x, N * abs_incx);
+    size_y = std::max(size_y, N * abs_incy);
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x * batch_count);
@@ -149,7 +148,7 @@ void testing_swap_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_swap<T>(N, &hx_gold[i * stridex], incx, &hy_gold[i * stridey], incy);
+            cblas_swap<T>(N, hx_gold + i * stridex, incx, hy_gold + i * stridey, incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
 

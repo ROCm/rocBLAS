@@ -7,15 +7,15 @@
 #include "rocblas_swap.hpp"
 
 template <typename T>
-__global__ void rocblas_swap_kernel_strided_batched(rocblas_int n,
-                                                    T*          x,
-                                                    rocblas_int shiftx,
-                                                    rocblas_int incx,
-                                                    rocblas_int stridex,
-                                                    T*          y,
-                                                    rocblas_int shifty,
-                                                    rocblas_int incy,
-                                                    rocblas_int stridey)
+__global__ void rocblas_swap_kernel_strided_batched(rocblas_int    n,
+                                                    T*             x,
+                                                    rocblas_int    shiftx,
+                                                    rocblas_int    incx,
+                                                    rocblas_stride stridex,
+                                                    T*             y,
+                                                    rocblas_int    shifty,
+                                                    rocblas_int    incy,
+                                                    rocblas_stride stridey)
 {
     ssize_t tid = blockIdx.x * blockDim.x + threadIdx.x; // only dim1
 
@@ -37,11 +37,11 @@ rocblas_status rocblas_swap_strided_batched_template(rocblas_handle handle,
                                                      T*             x,
                                                      rocblas_int    shiftx,
                                                      rocblas_int    incx,
-                                                     rocblas_int    stridex,
+                                                     rocblas_stride stridex,
                                                      T*             y,
                                                      rocblas_int    shifty,
                                                      rocblas_int    incy,
-                                                     rocblas_int    stridey,
+                                                     rocblas_stride stridey,
                                                      rocblas_int    batch_count)
 {
     // Quick return if possible.
