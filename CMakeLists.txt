@@ -33,6 +33,8 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
   set( CMAKE_Fortran_COMPILER  "gfortran" )
 endif()
 
+
+
 project( rocblas LANGUAGES CXX )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -139,8 +141,12 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
+include (cmake/os-detection.cmake)
+get_os_id(OS_ID)
+message (STATUS "OS detected is ${OS_ID}")
+
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.7.0" )
+set ( VERSION_STRING "2.9.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -182,7 +188,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 714d394f34e9b4aedda10714e63a68a49db6b876 CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 015477ad8c8ea0ef6f59b8d49a65015b46b8a48e CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()

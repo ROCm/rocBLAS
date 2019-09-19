@@ -110,6 +110,8 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv_strided_batched.cpp
   blas2/rocblas_trsv.cpp
   blas2/rocblas_ger.cpp
+  blas2/rocblas_ger_batched.cpp
+  blas2/rocblas_ger_strided_batched.cpp
   blas2/rocblas_syr.cpp
 )
 

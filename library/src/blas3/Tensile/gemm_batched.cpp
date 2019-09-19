@@ -292,9 +292,9 @@ namespace
         }
 
         
-        rocblas_int stride_a;
-        rocblas_int stride_b;
-        rocblas_int stride_c;
+        rocblas_stride stride_a;
+        rocblas_stride stride_b;
+        rocblas_stride stride_c;
 
         infer_batch_strides(trans_a, trans_b, m, n, k, ld_a,
                             &stride_a, ld_b, &stride_b, ld_c, &stride_c);

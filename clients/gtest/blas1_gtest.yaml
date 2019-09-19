@@ -31,7 +31,7 @@ Tests:
     - nrm2:  *single_double_precisions_complex_real
     - asum:  *single_double_precisions_complex_real
     - iamax: *single_double_precisions_complex_real
-#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - iamin: *single_double_precisions_complex_real
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
     - dot:   *half_bfloat_single_double_complex_real_precisions
@@ -52,7 +52,7 @@ Tests:
     - nrm2:  *double_precision_complex_real
     - asum:  *double_precision_complex_real
     - iamax: *single_double_precisions_complex_real
-#   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+    - iamin: *single_double_precisions_complex_real
     - axpy:  *half_single_precisions_complex_real
     - copy:  *single_double_precisions_complex_real
     - dot:   *double_precision_complex_real
