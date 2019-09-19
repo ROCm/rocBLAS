@@ -17,9 +17,9 @@ rocblas_int
 ^^^^^^^^^^^^^^^^^^
 .. doxygentypedef:: rocblas_int
 
-rocblas_long
+rocblas_stride
 ^^^^^^^^^^^^^^^^^^
-.. doxygentypedef:: rocblas_long
+.. doxygentypedef:: rocblas_stride
 
 rocblas_half
 ^^^^^^^^^^^^^^^^^^

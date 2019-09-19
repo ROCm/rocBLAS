@@ -2767,7 +2767,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     lda       rocblas_int.
               specifies the leading dimension of A.
     @param[in]
-    stride_a  rocblas_long.
+    stride_a  rocblas_stride.
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
@@ -2779,7 +2779,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     ldb       rocblas_int.
               specifies the leading dimension of B.
     @param[in]
-    stride_b  rocblas_long.
+    stride_b  rocblas_stride.
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
@@ -2794,7 +2794,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     ldc       rocblas_int.
               specifies the leading dimension of C.
     @param[in]
-    stride_c  rocblas_long.
+    stride_c  rocblas_stride.
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
@@ -2806,7 +2806,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     ldd       rocblas_int.
               specifies the leading dimension of D.
     @param[in]
-    stride_d  rocblas_long.
+    stride_d  rocblas_stride.
               specifies stride from start of one "D" matrix to the next.
     @param[in]
     batch_count
@@ -2838,20 +2838,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                                               const void*       a,
                                                               rocblas_datatype  a_type,
                                                               rocblas_int       lda,
-                                                              rocblas_long      stride_a,
+                                                              rocblas_stride    stride_a,
                                                               const void*       b,
                                                               rocblas_datatype  b_type,
                                                               rocblas_int       ldb,
-                                                              rocblas_long      stride_b,
+                                                              rocblas_stride    stride_b,
                                                               const void*       beta,
                                                               const void*       c,
                                                               rocblas_datatype  c_type,
                                                               rocblas_int       ldc,
-                                                              rocblas_long      stride_c,
+                                                              rocblas_stride    stride_c,
                                                               void*             d,
                                                               rocblas_datatype  d_type,
                                                               rocblas_int       ldd,
-                                                              rocblas_long      stride_d,
+                                                              rocblas_stride    stride_d,
                                                               rocblas_int       batch_count,
                                                               rocblas_datatype  compute_type,
                                                               rocblas_gemm_algo algo,
