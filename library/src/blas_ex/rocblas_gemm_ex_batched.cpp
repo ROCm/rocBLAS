@@ -313,9 +313,9 @@ namespace
 
         rocblas_status rb_status = rocblas_status_internal_error;
 
-#define EX_TYPECASTING_PARM                                                                    \
-    handle, trans_a, trans_b, m, n, k, alpha, 0, a, 0, lda, stride_a, b, 0, ldb, \
-        stride_b, beta, 0, c, 0, ldc, stride_c, d, 0, ldd, stride_d, batch_count
+#define EX_TYPECASTING_PARM                                                                      \
+    handle, trans_a, trans_b, m, n, k, alpha, 0, a, 0, lda, stride_a, b, 0, ldb, stride_b, beta, \
+        0, c, 0, ldc, stride_c, d, 0, ldd, stride_d, batch_count
 
         if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
            && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
