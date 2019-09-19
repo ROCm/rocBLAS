@@ -23,7 +23,7 @@ namespace
                                                       rocblas_int      n,
                                                       const T*         A,
                                                       rocblas_int      lda,
-                                                      rocblas_int      bsa,
+                                                      rocblas_stride   bsa,
                                                       T*               invA,
                                                       rocblas_int      ldinvA,
                                                       rocblas_int      bsinvA,
@@ -162,10 +162,10 @@ rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      n,
                                               const float*     A,
                                               rocblas_int      lda,
-                                              rocblas_int      bsa,
+                                              rocblas_stride   bsa,
                                               float*           invA,
                                               rocblas_int      ldinvA,
-                                              rocblas_int      bsinvA,
+                                              rocblas_stride   bsinvA,
                                               rocblas_int      batch_count)
 {
     constexpr rocblas_int NB = 16;
@@ -179,10 +179,10 @@ rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      n,
                                               const double*    A,
                                               rocblas_int      lda,
-                                              rocblas_int      bsa,
+                                              rocblas_stride   bsa,
                                               double*          invA,
                                               rocblas_int      ldinvA,
-                                              rocblas_int      bsinvA,
+                                              rocblas_stride   bsinvA,
                                               rocblas_int      batch_count)
 {
     constexpr rocblas_int NB = 16;
