@@ -172,7 +172,7 @@ rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
                                                rocblas_int    n,
                                                const T1*      x,
                                                rocblas_int    incx,
-                                               rocblas_int    stridex,
+                                               rocblas_stride stridex,
                                                rocblas_int    batch_count,
                                                T2*            result);
 
@@ -234,7 +234,7 @@ rocblas_status (*rocblas_nrm2_strided_batched)(rocblas_handle handle,
                                                rocblas_int    n,
                                                const T1*      x,
                                                rocblas_int    incx,
-                                               rocblas_int    stridex,
+                                               rocblas_stride stridex,
                                                rocblas_int    batch_count,
                                                T2*            results);
 

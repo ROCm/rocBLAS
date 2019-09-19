@@ -91,7 +91,7 @@ Tests:
   category: quick
   N: [ -1, 0, 1025 ]
   incx: [-1, 0, 1]
-  stride_scale: [ 0, 1 ]
+  stride_scale: [ 1 ]
   batch_count: [-1, 0, 1]
   function: 
     - asum_strided_batched: *single_double_precisions_complex_real

@@ -27,7 +27,7 @@ namespace
                                                      rocblas_int    n,
                                                      const Ti*      x,
                                                      rocblas_int    incx,
-                                                     rocblas_int    stridex,
+                                                     rocblas_stride stridex,
                                                      rocblas_int    batch_count,
                                                      To*            results)
     {
@@ -67,7 +67,7 @@ namespace
         if(!x || !results)
             return rocblas_status_invalid_pointer;
 
-        if(batch_count < 0 || stridex < 0 || stridex < n * incx) // negative n
+        if(batch_count < 0)
             return rocblas_status_invalid_size;
 
         size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
@@ -97,7 +97,7 @@ rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              const float*   x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              rocblas_int    batch_count,
                                              float*         results)
 {
@@ -109,7 +109,7 @@ rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
                                              rocblas_int    n,
                                              const double*  x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              rocblas_int    batch_count,
                                              double*        results)
 {
@@ -121,7 +121,7 @@ rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handl
                                               rocblas_int                  n,
                                               const rocblas_float_complex* x,
                                               rocblas_int                  incx,
-                                              rocblas_int                  stridex,
+                                              rocblas_stride               stridex,
                                               rocblas_int                  batch_count,
                                               float*                       results)
 {
@@ -133,7 +133,7 @@ rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                hand
                                               rocblas_int                   n,
                                               const rocblas_double_complex* x,
                                               rocblas_int                   incx,
-                                              rocblas_int                   stridex,
+                                              rocblas_stride                stridex,
                                               rocblas_int                   batch_count,
                                               double*                       results)
 {

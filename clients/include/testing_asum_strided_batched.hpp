@@ -16,10 +16,10 @@
 template <typename T1, typename T2 = T1>
 void testing_asum_strided_batched_bad_arg_template(const Arguments& arg)
 {
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int stridex     = 1;
-    rocblas_int batch_count = 5;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_stride stridex     = 1;
+    rocblas_int    batch_count = 5;
 
     static const size_t safe_size        = 100;
     T2                  rocblas_result   = 10;
@@ -49,17 +49,17 @@ void testing_asum_strided_batched_bad_arg_template(const Arguments& arg)
 template <typename T1, typename T2 = T1>
 void testing_asum_strided_batched_template(const Arguments& arg)
 {
-    rocblas_int N           = arg.N;
-    rocblas_int incx        = arg.incx;
-    rocblas_int stridex     = arg.stride_x;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_int    N           = arg.N;
+    rocblas_int    incx        = arg.incx;
+    rocblas_stride stridex     = arg.stride_x;
+    rocblas_int    batch_count = arg.batch_count;
 
     double rocblas_error_1;
     double rocblas_error_2;
 
     rocblas_local_handle handle;
 
-    if(batch_count < 0 || stridex < 0 || stridex < incx * N)
+    if(batch_count < 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);
@@ -140,7 +140,7 @@ void testing_asum_strided_batched_template(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_asum<T1, T2>(N, &hx[i * stridex], incx, cpu_result + i);
+            cblas_asum<T1, T2>(N, hx + i * stridex, incx, cpu_result + i);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
 

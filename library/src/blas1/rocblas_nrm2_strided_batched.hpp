@@ -15,7 +15,7 @@ rocblas_status rocblas_nrm2_strided_batched_template(rocblas_handle handle,
                                                      const Ti*      x,
                                                      rocblas_int    shiftx,
                                                      rocblas_int    incx,
-                                                     rocblas_int    stridex,
+                                                     rocblas_stride stridex,
                                                      rocblas_int    batch_count,
                                                      To*            workspace,
                                                      To*            results)

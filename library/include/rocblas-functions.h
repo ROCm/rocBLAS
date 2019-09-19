@@ -482,7 +482,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
+    stridex   specifies the pointer increment between batches for x. stridex must be be non zero.
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
@@ -496,7 +496,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             const float*   x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             rocblas_int    batch_count,
                                                             float*         results);
 
@@ -504,7 +504,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dasum_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             const double*  x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             rocblas_int    batch_count,
                                                             double*        results);
 
@@ -512,7 +512,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scasum_strided_batched(rocblas_handle     
                                                              rocblas_int                  n,
                                                              const rocblas_float_complex* x,
                                                              rocblas_int                  incx,
-                                                             rocblas_int                  stridex,
+                                                             rocblas_stride               stridex,
                                                              rocblas_int batch_count,
                                                              float*      results);
 
@@ -520,7 +520,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle     
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
                                                              rocblas_int                   incx,
-                                                             rocblas_int                   stridex,
+                                                             rocblas_stride                stridex,
                                                              rocblas_int batch_count,
                                                              double*     results);
 
@@ -640,7 +640,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   specifies the pointer increment between batches for x. stridex must be >= n*incx
+    stridex   specifies the pointer increment between batches for x. stridex must be non zero.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -655,7 +655,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             const float*   x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             rocblas_int    batch_count,
                                                             float*         results);
 
@@ -663,7 +663,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             const double*  x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             rocblas_int    batch_count,
                                                             double*        results);
 
@@ -671,7 +671,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle     
                                                              rocblas_int                  n,
                                                              const rocblas_float_complex* x,
                                                              rocblas_int                  incx,
-                                                             rocblas_int                  stridex,
+                                                             rocblas_stride               stridex,
                                                              rocblas_int batch_count,
                                                              float*      results);
 
@@ -679,7 +679,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
                                                              rocblas_int                   incx,
-                                                             rocblas_int                   stridex,
+                                                             rocblas_stride                stridex,
                                                              rocblas_int batch_count,
                                                              double*     results);
 
