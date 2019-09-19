@@ -1,25 +1,14 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_copy.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_copy_strided_batched.hpp"
 #include "utility.h"
 
 namespace
 {
-    constexpr int NB = 256;
-
-    template <typename T>
-    __global__ void copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
-    {
-        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-        // bound
-        if(tid < n)
-            y[tid * incy] = x[tid * incx];
-    }
-
     template <typename>
     constexpr char rocblas_copy_name[] = "unknown";
     template <>
@@ -33,8 +22,8 @@ namespace
     template <>
     constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
 
-    template <class T>
-    rocblas_status rocblas_copy_template(
+    template <rocblas_int NB, typename T>
+    rocblas_status rocblas_copy_impl(
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
         if(!handle)
@@ -63,12 +52,10 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // Quick return if possible.
-        if(n <= 0)
-            return rocblas_status_success;
+        if(!incx || !incy)
+            return rocblas_status_invalid_size;
 
-        return rocblas_copy_strided_batched_template(
-            handle, n, x, 0, incx, incx * n, y, 0, incy, incy * n, 1);
+        return rocblas_copy_template<NB, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1);
     }
 
 } // namespace
@@ -90,7 +77,8 @@ rocblas_status rocblas_scopy(rocblas_handle handle,
                              float*         y,
                              rocblas_int    incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_dcopy(rocblas_handle handle,
@@ -100,7 +88,8 @@ rocblas_status rocblas_dcopy(rocblas_handle handle,
                              double*        y,
                              rocblas_int    incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_hcopy(rocblas_handle      handle,
@@ -110,7 +99,8 @@ rocblas_status rocblas_hcopy(rocblas_handle      handle,
                              rocblas_half*       y,
                              rocblas_int         incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_ccopy(rocblas_handle               handle,
@@ -120,7 +110,8 @@ rocblas_status rocblas_ccopy(rocblas_handle               handle,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_zcopy(rocblas_handle                handle,
@@ -130,7 +121,8 @@ rocblas_status rocblas_zcopy(rocblas_handle                handle,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 } // extern "C"

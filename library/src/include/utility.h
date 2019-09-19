@@ -81,7 +81,7 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T** p, rocblas_int block, rocblas_int offset, rocblas_int stride)
+                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
 {
     return p[block] + offset;
 }

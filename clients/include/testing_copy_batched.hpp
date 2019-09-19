@@ -19,7 +19,6 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
     rocblas_int         N           = 100;
     rocblas_int         incx        = 1;
     rocblas_int         incy        = 1;
-    static const size_t safe_size   = 100; //  arbitrarily set to 100
     const rocblas_int   batch_count = 5;
 
     rocblas_local_handle handle;
@@ -51,7 +50,7 @@ void testing_copy_batched(const Arguments& arg)
     rocblas_int          batch_count = arg.batch_count;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || !incx || !incy || batch_count < 0)
+    if(N <= 0 || batch_count <= 0)
     {
         device_vector<T*, 0, T> dx(1);
         device_vector<T*, 0, T> dy(1);
@@ -61,25 +60,12 @@ void testing_copy_batched(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
-                              rocblas_status_invalid_size);
-        return;
-    }
-
-    //quick return
-    if(!N || !batch_count)
-    {
-        device_vector<T*, 0, T> dx(1);
-        device_vector<T*, 0, T> dy(1);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
-                              rocblas_status_success);
-
+        if(batch_count < 0)
+            EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(
+                        handle, N, dx, incx, dy, incy, batch_count),
+                    rocblas_status_invalid_size);
+        else
+            CHECK_ROCBLAS_ERROR(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count));
         return;
     }
 

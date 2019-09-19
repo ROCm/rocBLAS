@@ -74,7 +74,7 @@ rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
                                        rocblas_int    incx,
                                        T* const       y[],
                                        rocblas_int    incy,
-                                       rocblas_int    batch_count);
+                                       rocblas_stride    batch_count);
 
 template <>
 static constexpr auto rocblas_copy_batched<float> = rocblas_scopy_batched;
@@ -97,7 +97,7 @@ rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
                                                T*             y,
                                                rocblas_int    incy,
                                                rocblas_int    stridey,
-                                               rocblas_int    batch_count);
+                                               rocblas_stride    batch_count);
 
 template <>
 static constexpr auto rocblas_copy_strided_batched<float> = rocblas_scopy_strided_batched;
