@@ -2,9 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "logging.h"
-//#include "reduction.h"
 #include "rocblas_asum.hpp"
+#include "logging.h"
 #include "utility.h"
 
 namespace

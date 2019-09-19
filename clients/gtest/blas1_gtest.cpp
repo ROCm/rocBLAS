@@ -94,7 +94,6 @@ namespace
             if(BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched)
             {
                 name << '_' << arg.stride_x;
-                name << '_' << arg.stride_scale;
             }
 
             if(BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::nrm2_strided_batched
