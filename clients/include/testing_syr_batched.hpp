@@ -17,11 +17,11 @@
 template <typename T>
 void testing_syr_batched_bad_arg()
 {
-    rocblas_fill         uplo  = rocblas_fill_upper;
-    rocblas_int          N     = 100;
-    rocblas_int          incx  = 1;
-    rocblas_int          lda   = 100;
-    T                    alpha = 0.6;
+    rocblas_fill         uplo        = rocblas_fill_upper;
+    rocblas_int          N           = 100;
+    rocblas_int          incx        = 1;
+    rocblas_int          lda         = 100;
+    T                    alpha       = 0.6;
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle;
 
@@ -38,14 +38,17 @@ void testing_syr_batched_bad_arg()
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_batched<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda, batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_batched<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_batched<T>(handle, uplo, N, &alpha, dx, incx, nullptr, lda, batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_batched<T>(handle, uplo, N, &alpha, dx, incx, nullptr, lda, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_batched<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1, lda, batch_count),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_batched<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1, lda, batch_count),
+        rocblas_status_invalid_handle);
 
     CHECK_HIP_ERROR(hipFree(dA_1));
     CHECK_HIP_ERROR(hipFree(dx));
@@ -54,12 +57,12 @@ void testing_syr_batched_bad_arg()
 template <typename T>
 void testing_syr_batched(const Arguments& arg)
 {
-    rocblas_int          N       = arg.N;
-    rocblas_int          incx    = arg.incx;
-    rocblas_int          lda     = arg.lda;
-    T                    h_alpha = arg.alpha;
-    rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
-    rocblas_int          batch_count = arg.batch_count;
+    rocblas_int  N           = arg.N;
+    rocblas_int  incx        = arg.incx;
+    rocblas_int  lda         = arg.lda;
+    T            h_alpha     = arg.alpha;
+    rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
+    rocblas_int  batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
 
@@ -76,8 +79,9 @@ void testing_syr_batched(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count),
+            rocblas_status_invalid_size);
         return;
     }
 
@@ -86,24 +90,24 @@ void testing_syr_batched(const Arguments& arg)
     size_t size_x   = N * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA_1[batch_count]; 
-    host_vector<T> hA_2[batch_count]; 
-    host_vector<T> hA_gold[batch_count]; 
-    host_vector<T> hx[batch_count]; 
+    host_vector<T> hA_1[batch_count];
+    host_vector<T> hA_2[batch_count];
+    host_vector<T> hA_gold[batch_count];
+    host_vector<T> hx[batch_count];
 
     for(int i = 0; i < batch_count; i++)
     {
-        hA_1[i]      = host_vector<T>(size_A);
-        hA_2[i]      = host_vector<T>(size_A);
+        hA_1[i]    = host_vector<T>(size_A);
+        hA_2[i]    = host_vector<T>(size_A);
         hA_gold[i] = host_vector<T>(size_A);
-        hx[i] = host_vector<T>(size_x); 
+        hx[i]      = host_vector<T>(size_x);
     }
 
     // allocate memory on device
-    device_batch_vector<T> dA_1(batch_count,size_A);
-    device_batch_vector<T> dA_2(batch_count,size_A);
-    device_batch_vector<T> dx(batch_count,size_x);
-    device_vector<T> d_alpha(1);
+    device_batch_vector<T> dA_1(batch_count, size_A);
+    device_batch_vector<T> dA_2(batch_count, size_A);
+    device_batch_vector<T> dx(batch_count, size_x);
+    device_vector<T>       d_alpha(1);
     if(!dA_1 || !dA_2 || !dx || !d_alpha)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -164,10 +168,12 @@ void testing_syr_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count));
+        CHECK_ROCBLAS_ERROR(
+            rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_syr_batched<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda, batch_count));
+        CHECK_ROCBLAS_ERROR(
+            rocblas_syr_batched<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda, batch_count));
 
         // copy output from device to CPU
         for(int i = 0; i < batch_count; i++)
@@ -234,8 +240,8 @@ void testing_syr_batched(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << lda << "," << batch_count << "," << rocblas_gflops
-                  << "," << rocblas_bandwidth;
+        std::cout << N << "," << h_alpha << "," << incx << "," << lda << "," << batch_count << ","
+                  << rocblas_gflops << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

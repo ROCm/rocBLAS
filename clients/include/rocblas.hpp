@@ -738,16 +738,16 @@ static constexpr auto rocblas_syr<double> = rocblas_dsyr;
 // syr strided batched
 template <typename T>
 rocblas_status (*rocblas_syr_strided_batched)(rocblas_handle handle,
-                              rocblas_fill   uplo,
-                              rocblas_int    n,
-                              const T*       alpha,
-                              const T*       x,
-                              rocblas_int    incx,
-                              rocblas_int    stridex,
-                              T*             A,
-                              rocblas_int    lda,
-                              rocblas_int    stridea,
-                              rocblas_int    batch_count);
+                                              rocblas_fill   uplo,
+                                              rocblas_int    n,
+                                              const T*       alpha,
+                                              const T*       x,
+                                              rocblas_int    incx,
+                                              rocblas_stride stridex,
+                                              T*             A,
+                                              rocblas_int    lda,
+                                              rocblas_stride strideA,
+                                              rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_syr_strided_batched<float> = rocblas_ssyr_strided_batched;
@@ -758,14 +758,14 @@ static constexpr auto rocblas_syr_strided_batched<double> = rocblas_dsyr_strided
 // syr batched
 template <typename T>
 rocblas_status (*rocblas_syr_batched)(rocblas_handle handle,
-                              rocblas_fill   uplo,
-                              rocblas_int    n,
-                              const T*       alpha,
-                              const T* const x[],
-                              rocblas_int    incx,
-                              T*             A[],
-                              rocblas_int    lda,
-                              rocblas_int    batch_count);
+                                      rocblas_fill   uplo,
+                                      rocblas_int    n,
+                                      const T*       alpha,
+                                      const T* const x[],
+                                      rocblas_int    incx,
+                                      T*             A[],
+                                      rocblas_int    lda,
+                                      rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_syr_batched<float> = rocblas_ssyr_batched;

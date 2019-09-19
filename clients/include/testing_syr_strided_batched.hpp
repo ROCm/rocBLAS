@@ -17,14 +17,14 @@
 template <typename T>
 void testing_syr_strided_batched_bad_arg()
 {
-    rocblas_fill         uplo  = rocblas_fill_upper;
-    rocblas_int          N     = 100;
-    rocblas_int          incx  = 1;
-    rocblas_int          lda   = 100;
-    T                    alpha = 0.6;
-    rocblas_int          batch_count = 5;
-    rocblas_int          stridex = 1;
-    rocblas_int          strideA = 1;
+    rocblas_fill   uplo        = rocblas_fill_upper;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_int    lda         = 100;
+    T              alpha       = 0.6;
+    rocblas_int    batch_count = 5;
+    rocblas_stride stridex     = 1;
+    rocblas_stride strideA     = 1;
 
     rocblas_local_handle handle;
 
@@ -41,27 +41,33 @@ void testing_syr_strided_batched_bad_arg()
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched<T>(handle, uplo, N, &alpha, nullptr, incx, stridex, dA_1, lda, strideA, batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_strided_batched<T>(
+            handle, uplo, N, &alpha, nullptr, incx, stridex, dA_1, lda, strideA, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched<T>(handle, uplo, N, &alpha, dx, incx, stridex, nullptr, lda, strideA, batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_strided_batched<T>(
+            handle, uplo, N, &alpha, dx, incx, stridex, nullptr, lda, strideA, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched<T>(nullptr, uplo, N, &alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_syr_strided_batched<T>(
+            nullptr, uplo, N, &alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
+        rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_syr_strided_batched(const Arguments& arg)
 {
-    rocblas_int          N       = arg.N;
-    rocblas_int          incx    = arg.incx;
-    rocblas_int          lda     = arg.lda;
-    T                    h_alpha = arg.alpha;
-    rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
-    rocblas_int         stridex  = arg.stride_x;
-    rocblas_int         strideA  = arg.stride_a;
-    rocblas_int         batch_count = arg.batch_count;
+    rocblas_int    N           = arg.N;
+    rocblas_int    incx        = arg.incx;
+    rocblas_int    lda         = arg.lda;
+    T              h_alpha     = arg.alpha;
+    rocblas_fill   uplo        = char2rocblas_fill(arg.uplo);
+    rocblas_stride stridex     = arg.stride_x;
+    rocblas_stride strideA     = arg.stride_a;
+    rocblas_int    batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
 
@@ -78,8 +84,10 @@ void testing_syr_strided_batched(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched<T>(handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syr_strided_batched<T>(
+                handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
+            rocblas_status_invalid_size);
 
         return;
     }
@@ -114,7 +122,7 @@ void testing_syr_strided_batched(const Arguments& arg)
 
     // base for batch creation
     host_vector<T> hA(lda * N);
-    host_vector<T> x(N * abs_incx );
+    host_vector<T> x(N * abs_incx);
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -143,8 +151,8 @@ void testing_syr_strided_batched(const Arguments& arg)
     for(int i = 0; i < batch_count; i++)
     {
         // for now batches are identical data, need rocblas_init methods which take pointers for strided tests
-        memcpy(&hA_1[i*strideA], hA, lda*N*sizeof(T) );
-        memcpy(&dx[i*stridex], x, N*abs_incx*sizeof(T) );
+        memcpy(hA_1 + i * strideA, hA, lda * N * sizeof(T));
+        memcpy(dx + i * stridex, x, N * abs_incx * sizeof(T));
     }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
@@ -153,30 +161,35 @@ void testing_syr_strided_batched(const Arguments& arg)
     hA_2    = hA_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * N * abs_incx * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(
+        hipMemcpy(dA_1, hA_1, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(
+        hipMemcpy(dx, hx, sizeof(T) * N * abs_incx * batch_count, hipMemcpyHostToDevice));
 
     if(arg.unit_check || arg.norm_check)
     {
         // copy data from CPU to device
-        CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(
+            hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_syr_strided_batched<T>(handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_strided_batched<T>(
+            handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_syr_strided_batched<T>(handle, uplo, N, d_alpha, dx, incx, stridex, dA_2, lda, strideA, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_strided_batched<T>(
+            handle, uplo, N, d_alpha, dx, incx, stridex, dA_2, lda, strideA, batch_count));
 
         // copy output from device to CPU
-        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda* batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda* batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda * batch_count, hipMemcpyDeviceToHost);
 
         // CPU BLAS
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_syr<T>(uplo, N, h_alpha, &hx[i*stridex], incx, &hA_gold[i*strideA], lda);
+            cblas_syr<T>(uplo, N, h_alpha, hx + i * stridex, incx, hA_gold + i * strideA, lda);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = syr_gflop_count<T>(N) / cpu_time_used * 1e6;
@@ -194,8 +207,10 @@ void testing_syr_strided_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                rocblas_error_1 = norm_check_general<T>('F', N, N, lda, hA_gold + i * strideA, hA_1 + i * strideA);
-                rocblas_error_2 = norm_check_general<T>('F', N, N, lda, hA_gold + i * strideA, hA_2 + i * strideA);
+                rocblas_error_1 = norm_check_general<T>(
+                    'F', N, N, lda, hA_gold + i * strideA, hA_1 + i * strideA);
+                rocblas_error_2 = norm_check_general<T>(
+                    'F', N, N, lda, hA_gold + i * strideA, hA_2 + i * strideA);
             }
         }
     }
@@ -208,14 +223,16 @@ void testing_syr_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_syr_strided_batched<T>(handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count);
+            rocblas_syr_strided_batched<T>(
+                handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_syr_strided_batched<T>(handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count);
+            rocblas_syr_strided_batched<T>(
+                handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -230,8 +247,8 @@ void testing_syr_strided_batched(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << stridex << "," << lda << "," << strideA
-                << "," << rocblas_gflops << "," << rocblas_bandwidth;
+        std::cout << N << "," << h_alpha << "," << incx << "," << stridex << "," << lda << ","
+                  << strideA << "," << rocblas_gflops << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

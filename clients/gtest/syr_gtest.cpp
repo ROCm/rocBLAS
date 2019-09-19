@@ -56,9 +56,8 @@ namespace
         {
             RocBLAS_TestName<syr_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_'                                            
-                                           << (char)std::toupper(arg.uplo) << '_' << arg.N << '_'
-                                           << arg.alpha << '_' << arg.incx << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+                 << '_' << arg.N << '_' << arg.alpha << '_' << arg.incx << '_' << arg.lda;
 
             if(SYR_TYPE == SYR_STRIDED_BATCHED)
                 name << '_' << arg.stride_x;
