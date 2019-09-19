@@ -205,7 +205,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sscal_strided_batched(rocblas_handle handl
                                                             const float*   alpha,
                                                             float*         x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stride_x,
+                                                            rocblas_stride stride_x,
                                                             rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dscal_strided_batched(rocblas_handle handle,
@@ -213,7 +213,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dscal_strided_batched(rocblas_handle handl
                                                             const double*  alpha,
                                                             double*        x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stride_x,
+                                                            rocblas_stride stride_x,
                                                             rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cscal_strided_batched(rocblas_handle               handle,
@@ -221,7 +221,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cscal_strided_batched(rocblas_handle      
                                                             const rocblas_float_complex* alpha,
                                                             rocblas_float_complex*       x,
                                                             rocblas_int                  incx,
-                                                            rocblas_int                  stride_x,
+                                                            rocblas_stride               stride_x,
                                                             rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zscal_strided_batched(rocblas_handle                handle,
@@ -229,7 +229,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zscal_strided_batched(rocblas_handle      
                                                             const rocblas_double_complex* alpha,
                                                             rocblas_double_complex*       x,
                                                             rocblas_int                   incx,
-                                                            rocblas_int                   stride_x,
+                                                            rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_csscal_strided_batched(rocblas_handle         handle,
@@ -237,7 +237,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csscal_strided_batched(rocblas_handle     
                                                              const float*           alpha,
                                                              rocblas_float_complex* x,
                                                              rocblas_int            incx,
-                                                             rocblas_int            stride_x,
+                                                             rocblas_stride         stride_x,
                                                              rocblas_int            batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle          handle,
@@ -245,7 +245,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle     
                                                              const double*           alpha,
                                                              rocblas_double_complex* x,
                                                              rocblas_int             incx,
-                                                             rocblas_int             stride_x,
+                                                             rocblas_stride          stride_x,
                                                              rocblas_int             batch_count);
 
 /*! \brief BLAS Level 1 API

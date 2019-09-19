@@ -202,14 +202,14 @@ inline double norm_check_general<rocblas_half, 0>(char          norm_type,
 
 /* ============== Norm Check for strided_batched case ============= */
 template <typename T>
-inline double norm_check_general(char        norm_type,
-                                 rocblas_int M,
-                                 rocblas_int N,
-                                 rocblas_int lda,
-                                 rocblas_int stride_a,
-                                 rocblas_int batch_count,
-                                 T*          hCPU,
-                                 T*          hGPU)
+inline double norm_check_general(char           norm_type,
+                                 rocblas_int    M,
+                                 rocblas_int    N,
+                                 rocblas_int    lda,
+                                 rocblas_stride stride_a,
+                                 rocblas_int    batch_count,
+                                 T*             hCPU,
+                                 T*             hGPU)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum

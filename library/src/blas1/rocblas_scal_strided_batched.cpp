@@ -33,7 +33,7 @@ namespace
                                                      const U*       alpha,
                                                      T*             x,
                                                      rocblas_int    incx,
-                                                     rocblas_int    stridex,
+                                                     rocblas_stride stridex,
                                                      rocblas_int    batch_count)
     {
         if(!handle)
@@ -117,7 +117,7 @@ rocblas_status rocblas_sscal_strided_batched(rocblas_handle handle,
                                              const float*   alpha,
                                              float*         x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              rocblas_int    batch_count)
 {
     constexpr rocblas_int NB = 256;
@@ -129,7 +129,7 @@ rocblas_status rocblas_dscal_strided_batched(rocblas_handle handle,
                                              const double*  alpha,
                                              double*        x,
                                              rocblas_int    incx,
-                                             rocblas_int    stridex,
+                                             rocblas_stride stridex,
                                              rocblas_int    batch_count)
 {
     constexpr rocblas_int NB = 256;
@@ -141,7 +141,7 @@ rocblas_status rocblas_cscal_strided_batched(rocblas_handle               handle
                                              const rocblas_float_complex* alpha,
                                              rocblas_float_complex*       x,
                                              rocblas_int                  incx,
-                                             rocblas_int                  stridex,
+                                             rocblas_stride               stridex,
                                              rocblas_int                  batch_count)
 {
     constexpr rocblas_int NB = 256;
@@ -153,7 +153,7 @@ rocblas_status rocblas_zscal_strided_batched(rocblas_handle                handl
                                              const rocblas_double_complex* alpha,
                                              rocblas_double_complex*       x,
                                              rocblas_int                   incx,
-                                             rocblas_int                   stridex,
+                                             rocblas_stride                stridex,
                                              rocblas_int                   batch_count)
 {
     constexpr rocblas_int NB = 256;
@@ -166,7 +166,7 @@ rocblas_status rocblas_csscal_strided_batched(rocblas_handle         handle,
                                               const float*           alpha,
                                               rocblas_float_complex* x,
                                               rocblas_int            incx,
-                                              rocblas_int            stridex,
+                                              rocblas_stride         stridex,
                                               rocblas_int            batch_count)
 {
     constexpr rocblas_int NB = 256;
@@ -178,7 +178,7 @@ rocblas_status rocblas_zdscal_strided_batched(rocblas_handle          handle,
                                               const double*           alpha,
                                               rocblas_double_complex* x,
                                               rocblas_int             incx,
-                                              rocblas_int             stridex,
+                                              rocblas_stride          stridex,
                                               rocblas_int             batch_count)
 {
     constexpr rocblas_int NB = 256;

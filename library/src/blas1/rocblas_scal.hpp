@@ -6,13 +6,13 @@
 #include "utility.h"
 
 template <typename T, typename U, typename V>
-__global__ void rocblas_scal_kernel(rocblas_int n,
-                                    V           alpha_device_host,
-                                    rocblas_int stride_alpha,
-                                    U           xa,
-                                    rocblas_int offsetx,
-                                    rocblas_int incx,
-                                    rocblas_int stridex)
+__global__ void rocblas_scal_kernel(rocblas_int    n,
+                                    V              alpha_device_host,
+                                    rocblas_stride stride_alpha,
+                                    U              xa,
+                                    rocblas_int    offsetx,
+                                    rocblas_int    incx,
+                                    rocblas_stride stridex)
 {
     T*        x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
     auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
@@ -27,11 +27,11 @@ template <rocblas_int NB, typename T, typename U, typename V>
 rocblas_status rocblas_scal_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      const V*       alpha,
-                                     rocblas_int    stride_alpha,
+                                     rocblas_stride stride_alpha,
                                      U              x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
-                                     rocblas_int    stridex,
+                                     rocblas_stride stridex,
                                      rocblas_int    batch_count,
                                      V*             mem)
 {
