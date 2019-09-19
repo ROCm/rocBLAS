@@ -26,7 +26,7 @@ namespace
                                                       rocblas_stride   bsa,
                                                       T*               invA,
                                                       rocblas_int      ldinvA,
-                                                      rocblas_int      bsinvA,
+                                                      rocblas_stride   bsinvA,
                                                       rocblas_int      batch_count)
     {
         if(!handle)

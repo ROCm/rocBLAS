@@ -703,10 +703,10 @@ rocblas_status (*rocblas_trtri_strided_batched)(rocblas_handle   handle,
                                                 rocblas_int      n,
                                                 T*               A,
                                                 rocblas_int      lda,
-                                                rocblas_int      bsa,
+                                                rocblas_stride   bsa,
                                                 T*               invA,
                                                 rocblas_int      ldinvA,
-                                                rocblas_int      bsinvA,
+                                                rocblas_stride   bsinvA,
                                                 rocblas_int      batch_count);
 
 template <>
