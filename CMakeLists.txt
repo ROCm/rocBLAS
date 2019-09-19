@@ -146,7 +146,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.8.1" )
+set ( VERSION_STRING "2.8.2" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -188,7 +188,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 3f69739ed495346e243beef51b1f3f3ebe6d09a5 CACHE STRING "Tensile tag to download" )
+    set( tensile_tag 71c62d1d1f63ced18688c481d1399ee9f56abd4b CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
