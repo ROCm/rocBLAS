@@ -84,7 +84,7 @@ rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
                                                const U*       alpha,
                                                T*             x,
                                                rocblas_int    incx,
-                                               rocblas_int    stride_x,
+                                               rocblas_stride stride_x,
                                                rocblas_int    batch_count);
 
 template <>
