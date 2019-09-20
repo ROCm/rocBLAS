@@ -4,6 +4,8 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "testing_asum.hpp"
+#include "testing_asum_batched.hpp"
+#include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
@@ -11,12 +13,18 @@
 #include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_strided_batched.hpp"
 #include "testing_rot.hpp"
 #include "testing_rotg.hpp"
 #include "testing_rotm.hpp"
 #include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
+#include "testing_scal_batched.hpp"
+#include "testing_scal_strided_batched.hpp"
 #include "testing_swap.hpp"
+#include "testing_swap_batched.hpp"
+#include "testing_swap_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 
@@ -25,7 +33,11 @@ namespace
     enum class blas1
     {
         nrm2,
+        nrm2_batched,
+        nrm2_strided_batched,
         asum,
+        asum_batched,
+        asum_strided_batched,
         iamax,
         iamin,
         axpy,
@@ -37,7 +49,11 @@ namespace
         dot_strided_batched,
         dotc_strided_batched,
         scal,
+        scal_batched,
+        scal_strided_batched,
         swap,
+        swap_batched,
+        swap_strided_batched,
         rot,
         rotg,
         rotm,
@@ -71,7 +87,16 @@ namespace
             }
             else
             {
-                if((BLAS1 == blas1::scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
+                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                                || BLAS1 == blas1::scal_strided_batched);
+                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
+                                   || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched);
+                bool is_strided
+                    = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
+                       || BLAS1 == blas1::scal_strided_batched
+                       || BLAS1 == blas1::swap_strided_batched);
+
+                if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
                 if(BLAS1 == blas1::rot && arg.compute_type != arg.a_type)
@@ -79,11 +104,16 @@ namespace
 
                 name << '_' << arg.N;
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+                if(BLAS1 == blas1::axpy || is_scal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
+                if(is_strided)
+                {
+                    name << '_' << arg.stride_x;
+                }
 
+<<<<<<< HEAD
             if(BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched)
                 name << "_" << arg.stride_x;
 
@@ -100,6 +130,22 @@ namespace
             
             if(BLAS1 == blas1::dot_batched || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dotc_strided_batched)
                 name << "_" << arg.batch_count;
+=======
+                if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
+                   || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
+                   || BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::rot
+                   || BLAS1 == blas1::rotm)
+                    name << '_' << arg.incy;
+                if(BLAS1 == blas1::swap_strided_batched)
+                {
+                    name << '_' << arg.stride_y;
+                }
+
+                if(is_batched || is_strided)
+                {
+                    name << "_" << arg.batch_count;
+                }
+>>>>>>> d300cc1c3ecac1dae352829142851425b4849b9e
             }
 
             return std::move(name);
@@ -110,7 +156,9 @@ namespace
     template <blas1 BLAS1, typename Ti, typename To, typename Tc>
     using blas1_enabled = std::integral_constant<
         bool,
-        (BLAS1 == blas1::asum && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+        ((BLAS1 == blas1::asum || BLAS1 == blas1::asum_batched
+          || BLAS1 == blas1::asum_strided_batched)
+         && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
          && (std::is_same<Ti, rocblas_float_complex>{} || std::is_same<Ti, rocblas_double_complex>{}
              || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
@@ -129,6 +177,7 @@ namespace
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
+<<<<<<< HEAD
             || (BLAS1 == blas1::dot_batched && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_bfloat16>{}
                     || std::is_same<Ti, rocblas_float_complex>{}
@@ -150,11 +199,18 @@ namespace
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
             || (BLAS1 == blas1::nrm2 && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+=======
+            || ((BLAS1 == blas1::nrm2 || BLAS1 == blas1::nrm2_batched
+                 || BLAS1 == blas1::nrm2_strided_batched)
+                && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+>>>>>>> d300cc1c3ecac1dae352829142851425b4849b9e
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::scal && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                 || BLAS1 == blas1::scal_strided_batched)
+                && std::is_same<To, Tc>{}
                 && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
@@ -177,7 +233,9 @@ namespace
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
-            || (BLAS1 == blas1::swap && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
+                 || BLAS1 == blas1::swap_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
@@ -243,7 +301,7 @@ template<>                                                                     \
 inline bool NAME::function_filter(const Arguments& arg)                        \
 {                                                                              \
     return !strcmp(arg.function, #NAME) ||                                     \
-        !strcmp(arg.function, #NAME "_bad_arg");                               \
+           !strcmp(arg.function, #NAME "_bad_arg");                            \
 }                                                                              \
                                                                                \
 TEST_P(NAME, blas1)                                                            \
@@ -258,7 +316,11 @@ INSTANTIATE_TEST_CATEGORIES(NAME)
 #define ARG3(Ti, To, Tc) Ti, To, Tc
 
 BLAS1_TESTING(asum,  ARG1)
+BLAS1_TESTING(asum_batched,  ARG1)
+BLAS1_TESTING(asum_strided_batched,  ARG1)
 BLAS1_TESTING(nrm2,  ARG1)
+BLAS1_TESTING(nrm2_batched,  ARG1)
+BLAS1_TESTING(nrm2_strided_batched,  ARG1)
 BLAS1_TESTING(iamax, ARG1)
 BLAS1_TESTING(iamin, ARG1)
 BLAS1_TESTING(axpy,  ARG1)
@@ -270,7 +332,11 @@ BLAS1_TESTING(dotc_batched,  ARG1)
 BLAS1_TESTING(dot_strided_batched,   ARG1)
 BLAS1_TESTING(dotc_strided_batched,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
+BLAS1_TESTING(scal_batched, ARG2)
+BLAS1_TESTING(scal_strided_batched, ARG2)
 BLAS1_TESTING(swap,  ARG1)
+BLAS1_TESTING(swap_batched, ARG1)
+BLAS1_TESTING(swap_strided_batched, ARG1)
 BLAS1_TESTING(rot,   ARG3)
 BLAS1_TESTING(rotg,  ARG2)
 BLAS1_TESTING(rotm,  ARG1)
