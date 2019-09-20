@@ -196,9 +196,7 @@ def setdefaults(test):
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
 
-
-    
-    if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched'):
+    if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched', 'swap_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'stride_scale')]):
             test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
                                             test['stride_scale']))
@@ -220,7 +218,7 @@ def setdefaults(test):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['strideScale']))
         else:
-            test.setdefault('stride_y', 0)  
+            test.setdefault('stride_y', 0)
 
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)
