@@ -7,6 +7,130 @@
 #include <type_traits>
 #include <utility>
 
+
+template<typename fetch,typename shrink, typename finalize, typename shrink_type> 
+  struct rocblas_shrink_traits
+{
+  using FETCH = fetch;
+  using SHRINK = shrink;
+  using FINALIZE = finalize;
+};
+
+
+template <rocblas_int NB,
+          typename FETCH,
+          typename REDUCE,
+          typename Ti,
+          typename To>
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
+__global__ void rocblas_shrink_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
+{
+    ptrdiff_t     tx  = hipThreadIdx_x;
+    ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
+    __shared__ To tmp[NB];
+    
+    // bound
+    if(tid < n)
+      {
+	// tmp[tx] = FETCH{}(x[tid * incx], tid);
+	tmp[tx] = FETCH{}(x[tid * incx], tid);
+	// tmp[tx] = FETCH{}( ((Ti)778) , tid);
+      }
+    else
+      {
+	//	rocblas_int* g = (rocblas_int*)(&tmp[tx]);
+	//	g[0] = 777;
+	//	tmp[tx] = default_value<To>{}(); // pad with default value
+      }
+
+    //    rocblas_reduction<NB, REDUCE>(tx, tmp);
+    if(tx == 0)
+      {
+        workspace[hipBlockIdx_x] = tmp[0];
+      } 
+}
+
+
+// At least two kernels are needed to finish the reduction
+// kernel 1 write partial result per thread block in workspace, blocks partial results
+// kernel 2 gathers all the partial result in workspace and finishes the final reduction.
+template <rocblas_int NB,
+          typename FETCH,
+          typename REDUCE,
+          typename FINALIZE,
+          typename Ti,
+          typename To,
+          typename Tr>
+rocblas_status rocblas_shrink_kernel(rocblas_handle __restrict__ handle,
+                                        rocblas_int n,
+                                        const Ti*   x,
+                                        rocblas_int incx,
+				        rocblas_int stridex,
+                                        Tr*         result,
+                                        rocblas_int strider,
+                                        To*         workspace,
+                                        rocblas_int blocks)
+{
+  dim3 gg;
+  hipLaunchKernelGGL((rocblas_shrink_kernel_part1<NB, FETCH, REDUCE>),
+		     blocks,
+		     NB,
+		     0,
+		     handle->rocblas_stream,
+		     n,
+		     x,
+		     incx,
+		     workspace);
+#if 0
+  if(handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, REDUCE, FINALIZE>),
+                           1,
+                           NB,
+                           0,
+                           handle->rocblas_stream,
+                           blocks,
+                           workspace,
+                           result);
+    }
+    else
+    {
+        // If in host pointer mode, workspace is converted to Tr* and the result is
+        // placed there, and then copied from device to host. If To is a class type,
+        // it must be a standard layout type and its first member must be of type Tr.
+        static_assert(std::is_standard_layout<To>{}, "To must be a standard layout type");
+        if(blocks > 1)
+        {
+            hipLaunchKernelGGL((rocblas_reduction_kernel_part2<NB, REDUCE, FINALIZE>),
+                               1,
+                               NB,
+                               0,
+                               handle->rocblas_stream,
+                               blocks,
+                               workspace,
+                               (Tr*)workspace);
+        }
+        if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || blocks > 1)
+        {
+	  RETURN_IF_HIP_ERROR(hipMemcpy(result, workspace, sizeof(Tr), hipMemcpyDeviceToHost));
+        }
+        else
+        {
+	  // If FINALIZE is not trivial and kernel part2 was not called, then
+	  // workspace[0] needs to be finalized on host.
+	  //	    printf("on gpu %d\n",sizeof(To));
+	  To res;
+	  RETURN_IF_HIP_ERROR(hipMemcpy(&res, workspace, sizeof(To), hipMemcpyDeviceToHost));
+	  *result = FINALIZE{}(res);
+        }
+    }
+#endif
+    return rocblas_status_success;
+}
+
+
+
+
 /*
  * ===========================================================================
  *    This file provide common device function used in various BLAS routines
@@ -221,6 +345,9 @@ struct rocblas_reduce_sum_batched
 	}
     }
 };
+
+
+
 
 
 
