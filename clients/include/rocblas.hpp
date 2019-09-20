@@ -821,14 +821,14 @@ rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle    handle,
                                                const T*          alpha,
                                                const T*          A,
                                                rocblas_int       lda,
-                                               rocblas_int       bsa,
+                                               rocblas_stride    bsa,
                                                const T*          B,
                                                rocblas_int       ldb,
                                                rocblas_int       bsb,
                                                const T*          beta,
                                                T*                C,
                                                rocblas_int       ldc,
-                                               rocblas_int       bsc,
+                                               rocblas_stride    bsc,
                                                rocblas_int       batch_count);
 
 template <>
