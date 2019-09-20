@@ -85,9 +85,10 @@ namespace
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched);
-                bool is_strided = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1
-                                   : asum_strided_batched || BLAS1 == blas1::scal_strided_batched
-                                         || BLAS1 == blas1::swap_strided_batched);
+                bool is_strided
+                    = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
+                       || BLAS1 == blas1::scal_strided_batched
+                       || BLAS1 == blas1::swap_strided_batched);
 
                 if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
@@ -101,21 +102,21 @@ namespace
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
+                if(is_strided)
+                {
+                    name << '_' << arg.stride_x;
+                }
 
                 if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
                    || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
                    || BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::rot
                    || BLAS1 == blas1::rotm)
                     name << '_' << arg.incy;
-
-                if(is_strided)
-                {
-                    name << '_' << arg.stride_x;
-                }
                 if(BLAS1 == blas1::swap_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
+
                 if(is_batched || is_strided)
                 {
                     name << "_" << arg.batch_count;
