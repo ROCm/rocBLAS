@@ -17,6 +17,7 @@
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 
 // sqrt(0.5) factor for complex cutoff calculations
 constexpr double sqrthalf = 0.7071067811865475244;
@@ -38,6 +39,7 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)
+#define NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, err, NEAR_ASSERT)
 #else
 // clang-format off
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT) \
@@ -49,6 +51,21 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
                     NEAR_ASSERT(hCPU[i + j * lda + k * strideA],  \
                                 hGPU[i + j * lda + k * strideA],  \
                                 err);                             \
+    } while(0)
+
+#define NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, err, NEAR_ASSERT)           \
+    do                                                                               \
+    {                                                                                \
+        for(size_t k = 0; k < batch_count; k++)                                      \
+            for(size_t j = 0; j < N; j++)                                            \
+                for(size_t i = 0; i < M; i++)                                        \
+                    if(rocblas_isnan(hCPU[k][i + j * lda])) {                        \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));            \
+                    } else {                                                         \
+                        NEAR_ASSERT(hCPU[k][i + j * lda],                            \
+                                    hGPU[k][i + j * lda],                            \
+                                    err);                                            \
+                    }                                                                \
     } while(0)
 // clang-format on
 #endif
@@ -191,6 +208,51 @@ inline void near_check_general(rocblas_int             M,
 {
     abs_error *= sqrthalf;
     NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
+}
+
+template <typename T>
+void near_check_general(rocblas_int    M,
+                        rocblas_int    N,
+                        rocblas_int    batch_count,
+                        rocblas_int    lda,
+                        host_vector<T> hCPU[],
+                        host_vector<T> hGPU[],
+                        double         abs_error);
+
+template <>
+inline void near_check_general(rocblas_int               M,
+                               rocblas_int               N,
+                               rocblas_int               batch_count,
+                               rocblas_int               lda,
+                               host_vector<rocblas_half> hCPU[],
+                               host_vector<rocblas_half> hGPU[],
+                               double                    abs_error)
+{
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, NEAR_ASSERT_HALF);
+}
+
+template <>
+inline void near_check_general(rocblas_int        M,
+                               rocblas_int        N,
+                               rocblas_int        batch_count,
+                               rocblas_int        lda,
+                               host_vector<float> hCPU[],
+                               host_vector<float> hGPU[],
+                               double             abs_error)
+{
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
+}
+
+template <>
+inline void near_check_general(rocblas_int         M,
+                               rocblas_int         N,
+                               rocblas_int         batch_count,
+                               rocblas_int         lda,
+                               host_vector<double> hCPU[],
+                               host_vector<double> hGPU[],
+                               double              abs_error)
+{
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
 
 #endif
