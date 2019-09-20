@@ -75,6 +75,8 @@ if( BUILD_WITH_TENSILE )
   #rocblas_gemm and rocblas_trsm require tensile
   set( Tensile_SRC
     blas3/Tensile/gemm.cpp
+    blas3/Tensile/gemm_batched.cpp
+    blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_trsm.cpp
   )
 
@@ -91,6 +93,8 @@ set( rocblas_auxiliary_source
 
 set( rocblas_ex_source
   blas_ex/rocblas_gemm_ex.cpp
+  blas_ex/rocblas_gemm_ex_batched.cpp
+  blas_ex/rocblas_gemm_ex_strided_batched.cpp
 )
 
 set( rocblas_blas3_source
@@ -128,6 +132,8 @@ set( rocblas_blas1_source
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp
   blas1/rocblas_scal.cpp
+  blas1/rocblas_scal_batched.cpp
+  blas1/rocblas_scal_strided_batched.cpp
   blas1/rocblas_swap.cpp
   blas1/rocblas_rot.cpp
   blas1/rocblas_rotg.cpp

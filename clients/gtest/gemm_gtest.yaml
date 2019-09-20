@@ -2350,6 +2350,7 @@ Tests:
   function:
     - gemm_bad_arg
     - gemm_ex_bad_arg
+    - gemm_batched_ex_bad_arg
     - gemm_strided_batched_ex_bad_arg
   precision: *half_single_double_precisions
   transA: N
@@ -2360,6 +2361,7 @@ Tests:
   function:
     - gemm_bad_arg
     - gemm_ex_bad_arg
+    - gemm_batched_ex_bad_arg
     - gemm_strided_batched_ex_bad_arg
   precision: *single_double_precisions_complex
   transA: N
