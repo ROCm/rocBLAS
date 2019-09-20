@@ -23,8 +23,6 @@
 /* WARNING: If this data is changed, then rocblas_common.yaml must also be
  * changed. */
 
-#define check(arg) check_(arg, #arg)
-
 struct Arguments
 {
     rocblas_int M;
@@ -87,9 +85,9 @@ struct Arguments
     // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
     static void validate(std::istream& ifs)
     {
-        auto error = [](const char* name) {
-            std::cerr << "Fatal error: Binary test data does not match input format at " << name
-                      << ".\n"
+        auto error = [](auto name) {
+            std::cerr << "Arguments field " << name << " does not match format.\n\n"
+                      << "Fatal error: Binary test data does match input format.\n"
                          "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                          "define exactly the same Arguments, that rocblas_gentest.py\n"
                          "generates the data correctly, and that endianness is the same.\n";
