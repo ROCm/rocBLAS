@@ -512,11 +512,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
     x         pointer storing vector x on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              specifies the increment for the elements of x. incx must be > 0.
     @param[inout]
     result
               store the asum product. either on the host CPU or device GPU.
-              return is 0.0 if n, incx<=0.
+              return is 0.0 if n <= 0.
 
     ********************************************************************/
 
@@ -537,6 +537,122 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum(rocblas_handle                handl
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              double*                       result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    asum_batched computes the sum of the magnitudes of the elements in a batch of real vectors x_i,
+        or the sum of magnitudes of the real and imaginary parts of elements if x_i is a complex
+        vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         array of pointers storing the different vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count,
+                                                    float*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count,
+                                                    double*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     float*                             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
+                                                     rocblas_int                         n,
+                                                     const rocblas_double_complex* const x[],
+                                                     rocblas_int                         incx,
+                                                     rocblas_int batch_count,
+                                                     double*     results);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    asum_strided_batched computes the sum of the magnitudes of elements of a real vectors x_i,
+        or the sum of magnitudes of the real and imaginary parts of elements if x_i is a complex
+        vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         pointer to the first vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    stridex   specifies the pointer increment between batches for x. stridex must be be non zero.
+    @param[out]
+    results
+              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              return is 0.0 if n, incx<=0.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            float*         results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            double*        results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int batch_count,
+                                                             float*      results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                handle,
+                                                             rocblas_int                   n,
+                                                             const rocblas_double_complex* x,
+                                                             rocblas_int                   incx,
+                                                             rocblas_stride                stridex,
+                                                             rocblas_int batch_count,
+                                                             double*     results);
 
 /*! \brief BLAS Level 1 API
 
@@ -578,6 +694,124 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              double*                       result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    nrm2_batched computes the euclidean norm over a batch of real or complex vectors
+              := sqrt( x'*x ) for real vector x_i[j] for  j = 1 , … , n
+              := sqrt( x**H*x ) for complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         array of pointers storing the different vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    @param[out]
+    result
+              pointers to array of batch_count size for nrm2 results. either on the host CPU or device GPU.
+              return is 0.0 if n <= 0, incx<=0.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_snrm2_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count,
+                                                    float*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count,
+                                                    double*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     float*                             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle                      handle,
+                                                     rocblas_int                         n,
+                                                     const rocblas_double_complex* const x[],
+                                                     rocblas_int                         incx,
+                                                     rocblas_int batch_count,
+                                                     double*     results);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    nrm2_strided_batched computes the euclidean norm over a batch of real or complex vectors
+              := sqrt( x'*x ) for real vector x_i[j] for  j = 1 , … , n
+              := sqrt( x**H*x ) for complex vector
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         pointer to the first vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    stridex   specifies the pointer increment between batches for x. stridex must be non zero.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    @param[out]
+    results
+              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              return is 0.0 if n <= 0, incx<=0.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            float*         results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            double*        results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int batch_count,
+                                                             float*      results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                handle,
+                                                             rocblas_int                   n,
+                                                             const rocblas_double_complex* x,
+                                                             rocblas_int                   incx,
+                                                             rocblas_stride                stridex,
+                                                             rocblas_int batch_count,
+                                                             double*     results);
 
 /*! \brief BLAS Level 1 API
 
