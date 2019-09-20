@@ -18,6 +18,8 @@
 #include "testing_rotm.hpp"
 #include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
+#include "testing_scal_batched.hpp"
+#include "testing_scal_strided_batched.hpp"
 #include "testing_swap.hpp"
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
@@ -41,6 +43,8 @@ namespace
         dot,
         dotc,
         scal,
+        scal_batched,
+        scal_strided_batched,
         swap,
         swap_batched,
         swap_strided_batched,
@@ -77,7 +81,16 @@ namespace
             }
             else
             {
-                if((BLAS1 == blas1::scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
+                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                                || BLAS1 == blas1::scal_strided_batched);
+                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
+                                   || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched);
+                bool is_strided
+                    = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
+                       || BLAS1 == blas1::scal_strided_batched
+                       || BLAS1 == blas1::swap_strided_batched);
+
+                if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
                 if(BLAS1 == blas1::rot && arg.compute_type != arg.a_type)
@@ -85,36 +98,30 @@ namespace
 
                 name << '_' << arg.N;
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::scal)
+                if(BLAS1 == blas1::axpy || is_scal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
+                if(is_strided)
+                {
+                    name << '_' << arg.stride_x;
+                }
 
                 if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
                    || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
                    || BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::rot
                    || BLAS1 == blas1::rotm)
                     name << '_' << arg.incy;
-
                 if(BLAS1 == blas1::swap_strided_batched)
                 {
-                    name << '_' << arg.stride_x << "_" << arg.stride_y;
+                    name << '_' << arg.stride_y;
                 }
 
-                if(BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched)
+                if(is_batched || is_strided)
                 {
                     name << "_" << arg.batch_count;
                 }
             }
-
-            if(BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched)
-            {
-                name << '_' << arg.stride_x;
-            }
-
-            if(BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::nrm2_strided_batched
-               || BLAS1 == blas1::asum_batched || BLAS1 == blas1::asum_strided_batched)
-                name << '_' << arg.batch_count;
 
             return std::move(name);
         }
@@ -152,7 +159,9 @@ namespace
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::scal && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                 || BLAS1 == blas1::scal_strided_batched)
+                && std::is_same<To, Tc>{}
                 && ((std::is_same<Ti, rocblas_float_complex>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
@@ -243,7 +252,7 @@ template<>                                                                     \
 inline bool NAME::function_filter(const Arguments& arg)                        \
 {                                                                              \
     return !strcmp(arg.function, #NAME) ||                                     \
-        !strcmp(arg.function, #NAME "_bad_arg");                               \
+           !strcmp(arg.function, #NAME "_bad_arg");                            \
 }                                                                              \
                                                                                \
 TEST_P(NAME, blas1)                                                            \
@@ -270,6 +279,8 @@ BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(scal,  ARG2)
+BLAS1_TESTING(scal_batched, ARG2)
+BLAS1_TESTING(scal_strided_batched, ARG2)
 BLAS1_TESTING(swap,  ARG1)
 BLAS1_TESTING(swap_batched, ARG1)
 BLAS1_TESTING(swap_strided_batched, ARG1)
