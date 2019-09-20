@@ -2331,7 +2331,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm(rocblas_handle                handle
     @param[in]
     batch_count
               rocblas_int
-              number of gemm operatons in the batch
+              number of gemm operations in the batch
      ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                                     rocblas_operation         transa,
