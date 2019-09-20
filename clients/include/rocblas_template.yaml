@@ -9,6 +9,10 @@ Functions:
   rocblas_dcopy: { function: copy, <<: *double_precision }
   rocblas_sswap: { function: swap, <<: *single_precision }
   rocblas_dswap: { function: swap, <<: *double_precision }
+  rocblas_sswap_batched: { function: swap_batched, <<: *single_precision }
+  rocblas_dswap_batched: { function: swap_batched, <<: *double_precision }
+  rocblas_sswap_strided_batched: { function: swap_strided_batched, <<: *single_precision }
+  rocblas_dswap_strided_batched: { function: swap_strided_batched, <<: *double_precision }
   rocblas_sdot:  { function: dot, <<: *single_precision  }
   rocblas_ddot:  { function: dot, <<: *double_precision  }
   rocblas_sasum: { function: asum, <<: *single_precision }

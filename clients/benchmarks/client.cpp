@@ -30,6 +30,8 @@
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_vector.hpp"
 #include "testing_swap.hpp"
+#include "testing_swap_batched.hpp"
+#include "testing_swap_strided_batched.hpp"
 #include "testing_syr.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
@@ -147,6 +149,10 @@ struct perf_blas<
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "swap_batched"))
+            testing_swap_batched<T>(arg);
+        else if(!strcmp(arg.function, "swap_strided_batched"))
+            testing_swap_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "iamax"))
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
@@ -269,6 +275,10 @@ struct perf_blas<T,
             testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "swap_batched"))
+            testing_swap_batched<T>(arg);
+        else if(!strcmp(arg.function, "swap_strided_batched"))
+            testing_swap_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "iamax"))
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
