@@ -1,36 +1,13 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "fetch_template.h"
-#include "handle.h"
+
+#include "rocblas_nrm2.hpp"
 #include "logging.h"
-#include "reduction.h"
-#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    constexpr int NB = 512;
-
-    template <class To>
-    struct rocblas_fetch_nrm2
-    {
-        template <class Ti>
-        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t tid)
-        {
-            return {fetch_abs2(x)};
-        }
-    };
-
-    struct rocblas_finalize_nrm2
-    {
-        template <class To>
-        __forceinline__ __host__ __device__ To operator()(To x)
-        {
-            return sqrt(x);
-        }
-    };
 
     template <typename>
     constexpr char rocblas_nrm2_name[] = "unknown";
@@ -46,8 +23,8 @@ namespace
     constexpr char rocblas_nrm2_name<rocblas_double_complex>[] = "rocblas_dznrm2";
 
     // allocate workspace inside this API
-    template <typename Ti, typename To>
-    rocblas_status rocblas_nrm2(
+    template <rocblas_int NB, typename Ti, typename To>
+    rocblas_status rocblas_nrm2_impl(
         rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, To* result)
     {
         if(!handle)
@@ -72,31 +49,16 @@ namespace
         if(!x || !result)
             return rocblas_status_invalid_pointer;
 
-        // Quick return if possible.
-        if(n <= 0 || incx <= 0)
-        {
-            if(handle->is_device_memory_size_query())
-                return rocblas_status_size_unchanged;
-            else if(rocblas_pointer_mode_device == handle->pointer_mode)
-                RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
-            else
-                *result = 0;
-            return rocblas_status_success;
-        }
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, 1, result);
 
-        auto blocks = (n - 1) / NB + 1;
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto mem = handle->device_malloc(sizeof(To) * blocks);
+        auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_reduction_kernel<NB,
-                                        rocblas_fetch_nrm2<To>,
-                                        rocblas_reduce_sum,
-                                        rocblas_finalize_nrm2>(
-            handle, n, x, incx, result, (To*)mem, blocks);
+        return rocblas_nrm2_template<NB>(handle, n, x, 0, incx, (To*)mem, result);
     }
 
 } // namespace
@@ -114,13 +76,15 @@ extern "C" {
 rocblas_status rocblas_snrm2(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result)
 {
-    return rocblas_nrm2(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_dnrm2(
     rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result)
 {
-    return rocblas_nrm2(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_scnrm2(rocblas_handle               handle,
@@ -129,7 +93,8 @@ rocblas_status rocblas_scnrm2(rocblas_handle               handle,
                               rocblas_int                  incx,
                               float*                       result)
 {
-    return rocblas_nrm2(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_dznrm2(rocblas_handle                handle,
@@ -138,7 +103,8 @@ rocblas_status rocblas_dznrm2(rocblas_handle                handle,
                               rocblas_int                   incx,
                               double*                       result)
 {
-    return rocblas_nrm2(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_nrm2_impl<NB>(handle, n, x, incx, result);
 }
 
 } // extern "C"

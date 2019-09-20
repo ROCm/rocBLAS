@@ -8,6 +8,8 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
 #include "testing_asum.hpp"
+#include "testing_asum_batched.hpp"
+#include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
@@ -18,6 +20,8 @@
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_strided_batched.hpp"
 #include "testing_rot.hpp"
 #include "testing_rotg.hpp"
 #include "testing_rotm.hpp"
@@ -155,6 +159,10 @@ struct perf_blas<
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "gemv_batched"))
@@ -247,6 +255,10 @@ struct perf_blas<T,
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
+        else if(!strcmp(arg.function, "asum_batched"))
+            testing_asum_batched<T>(arg);
+        else if(!strcmp(arg.function, "asum_strided_batched"))
+            testing_asum_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "copy"))
@@ -257,6 +269,10 @@ struct perf_blas<T,
             testing_dotc<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
         else if(!strcmp(arg.function, "swap_batched"))
