@@ -8,6 +8,8 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
 #include "testing_asum.hpp"
+#include "testing_asum_batched.hpp"
+#include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_copy_batched.hpp"
@@ -20,14 +22,20 @@
 #include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_strided_batched.hpp"
 #include "testing_rot.hpp"
 #include "testing_rotg.hpp"
 #include "testing_rotm.hpp"
 #include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
+#include "testing_scal_batched.hpp"
+#include "testing_scal_strided_batched.hpp"
 #include "testing_set_get_matrix.hpp"
 #include "testing_set_get_vector.hpp"
 #include "testing_swap.hpp"
+#include "testing_swap_batched.hpp"
+#include "testing_swap_strided_batched.hpp"
 #include "testing_syr.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
@@ -48,6 +56,8 @@ using namespace std::literals;
 
 #if BUILD_WITH_TENSILE
 #include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
@@ -76,7 +86,10 @@ struct perf_gemm_ex<Ti,
     }
     void operator()(const Arguments& arg)
     {
-        testing_gemm_ex<Ti, To, Tc>(arg);
+        if(!strcmp(arg.function, "gemm_ex"))
+            testing_gemm_ex<Ti, To, Tc>(arg);
+        else if(!strcmp(arg.function, "gemm_batched_ex"))
+            testing_gemm_batched_ex<Ti, To, Tc>(arg);
     }
 };
 
@@ -127,6 +140,8 @@ struct perf_blas<
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "trsm"))
@@ -149,12 +164,20 @@ struct perf_blas<
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "swap_batched"))
+            testing_swap_batched<T>(arg);
+        else if(!strcmp(arg.function, "swap_strided_batched"))
+            testing_swap_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "iamax"))
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "gemv_batched"))
@@ -221,6 +244,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else
@@ -243,10 +268,16 @@ struct perf_blas<T,
     {
         if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
+        else if(!strcmp(arg.function, "asum_batched"))
+            testing_asum_batched<T>(arg);
+        else if(!strcmp(arg.function, "asum_strided_batched"))
+            testing_asum_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "copy"))
@@ -261,8 +292,16 @@ struct perf_blas<T,
             testing_dotc<T>(arg);
         else if(!strcmp(arg.function, "nrm2"))
             testing_nrm2<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_batched"))
+            testing_nrm2_batched<T>(arg);
+        else if(!strcmp(arg.function, "nrm2_strided_batched"))
+            testing_nrm2_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "swap"))
             testing_swap<T>(arg);
+        else if(!strcmp(arg.function, "swap_batched"))
+            testing_swap_batched<T>(arg);
+        else if(!strcmp(arg.function, "swap_strided_batched"))
+            testing_swap_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "iamax"))
             testing_iamax<T>(arg);
         else if(!strcmp(arg.function, "iamin"))
@@ -300,6 +339,10 @@ struct perf_blas_scal<
     {
         if(!strcmp(arg.function, "scal"))
             testing_scal<Ta, Tb>(arg);
+        else if(!strcmp(arg.function, "scal_batched"))
+            testing_scal_batched<Ta, Tb>(arg);
+        else if(!strcmp(arg.function, "scal_strided_batched"))
+            testing_scal_strided_batched<Ta, Tb>(arg);
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -321,7 +364,7 @@ int run_bench_test(Arguments& arg)
         function += sizeof(prefix) - 1;
 
 #if BUILD_WITH_TENSILE
-    if(!strcmp(function, "gemm"))
+    if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -395,7 +438,7 @@ int run_bench_test(Arguments& arg)
         }
     }
 
-    if(!strcmp(function, "gemm_ex"))
+    if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -465,7 +508,8 @@ int run_bench_test(Arguments& arg)
     else
 #endif
     {
-        if(!strcmp(function, "scal"))
+        if(!strcmp(function, "scal") || !strcmp(function, "scal_batched")
+           || !strcmp(function, "scal_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_scal>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);

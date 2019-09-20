@@ -67,13 +67,36 @@ __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half
     return {x, x};
 }
 
+// Load a batched scalar. This only works on the device. Used for batched functions which may
+// pass an array of scalars rather than a single scalar.
+
+// For device side array of scalars
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(const T* x, rocblas_int idx, rocblas_int inc)
+{
+    return x[idx * inc];
+}
+
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(T* x, rocblas_int idx, rocblas_int inc)
+{
+    return x[idx * inc];
+}
+
+// Overload for single scalar value
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_int inc)
+{
+    return x;
+}
+
 // Load a pointer from a batch. If the argument is a T**, use block to index it and
 // add the offset, if the argument is a T*, add block * stride to pointer and add offset.
 
 // For device pointers
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
+                                    load_ptr_batch(T* p, rocblas_int block, rocblas_int offset, rocblas_stride stride)
 {
     return p + block * stride + offset;
 }
@@ -81,7 +104,7 @@ __forceinline__ __device__ __host__ T*
 // For device array of device pointers
 template <typename T>
 __forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_int offset, rocblas_int stride)
+                                    load_ptr_batch(T* const* p, rocblas_int block, rocblas_int offset, rocblas_stride stride)
 {
     return p[block] + offset;
 }
