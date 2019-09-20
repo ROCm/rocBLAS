@@ -252,6 +252,17 @@ inline void unit_check_general(rocblas_int               M,
 }
 
 template <>
+inline void unit_check_general(rocblas_int      M,
+                               rocblas_int      N,
+                               rocblas_int      batch_count,
+                               rocblas_int      lda,
+                               host_vector<int> hCPU[],
+                               host_vector<int> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_EQ);
+}
+
+template <>
 inline void unit_check_general(rocblas_int        M,
                                rocblas_int        N,
                                rocblas_int        batch_count,

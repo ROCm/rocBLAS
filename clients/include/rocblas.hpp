@@ -777,6 +777,39 @@ static constexpr auto rocblas_gemm<rocblas_float_complex> = rocblas_cgemm;
 template <>
 static constexpr auto rocblas_gemm<rocblas_double_complex> = rocblas_zgemm;
 
+// gemm_batched
+template <typename T>
+rocblas_status (*rocblas_gemm_batched)(rocblas_handle    handle,
+                                       rocblas_operation transA,
+                                       rocblas_operation transB,
+                                       rocblas_int       m,
+                                       rocblas_int       n,
+                                       rocblas_int       k,
+                                       const T*          alpha,
+                                       const T* const    A[],
+                                       rocblas_int       lda,
+                                       const T* const    B[],
+                                       rocblas_int       ldb,
+                                       const T*          beta,
+                                       T*                C[],
+                                       rocblas_int       ldc,
+                                       rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_gemm_batched<rocblas_half> = rocblas_hgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<float> = rocblas_sgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<double> = rocblas_dgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<rocblas_float_complex> = rocblas_cgemm_batched;
+
+template <>
+static constexpr auto rocblas_gemm_batched<rocblas_double_complex> = rocblas_zgemm_batched;
+
 // gemm_strided_batched
 template <typename T>
 rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle    handle,
@@ -788,14 +821,14 @@ rocblas_status (*rocblas_gemm_strided_batched)(rocblas_handle    handle,
                                                const T*          alpha,
                                                const T*          A,
                                                rocblas_int       lda,
-                                               rocblas_int       bsa,
+                                               rocblas_stride    bsa,
                                                const T*          B,
                                                rocblas_int       ldb,
                                                rocblas_int       bsb,
                                                const T*          beta,
                                                T*                C,
                                                rocblas_int       ldc,
-                                               rocblas_int       bsc,
+                                               rocblas_stride    bsc,
                                                rocblas_int       batch_count);
 
 template <>
