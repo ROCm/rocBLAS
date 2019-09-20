@@ -336,7 +336,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
                                                     rocblas_int        incx,
                                                     float* const       y[],
                                                     rocblas_int        incy,
-                                                    rocblas_stride        batch_count);
+                                                    rocblas_stride     batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                                     rocblas_int         n,
@@ -344,7 +344,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                                     rocblas_int         incx,
                                                     double* const       y[],
                                                     rocblas_int         incy,
-                                                    rocblas_stride         batch_count);
+                                                    rocblas_stride      batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
                                                     rocblas_int                        n,
@@ -352,7 +352,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle              
                                                     rocblas_int                        incx,
                                                     rocblas_float_complex* const       y[],
                                                     rocblas_int                        incy,
-                                                    rocblas_stride                        batch_count);
+                                                    rocblas_stride                     batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
                                                     rocblas_int                         n,
@@ -410,7 +410,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handl
                                                             float*         y,
                                                             rocblas_int    incy,
                                                             rocblas_int    stridey,
-                                                            rocblas_stride    batch_count);
+                                                            rocblas_stride batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -420,7 +420,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handl
                                                             double*        y,
                                                             rocblas_int    incy,
                                                             rocblas_int    stridey,
-                                                            rocblas_stride    batch_count);
+                                                            rocblas_stride batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
                                                             rocblas_int                  n,

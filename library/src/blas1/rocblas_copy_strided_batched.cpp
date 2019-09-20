@@ -34,7 +34,7 @@ namespace
                                                      T*             y,
                                                      rocblas_int    incy,
                                                      rocblas_int    stridey,
-                                                     rocblas_stride    batch_count)
+                                                     rocblas_stride batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -117,7 +117,7 @@ rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
                                              float*         y,
                                              rocblas_int    incy,
                                              rocblas_int    stridey,
-                                             rocblas_stride    batch_count)
+                                             rocblas_stride batch_count)
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
@@ -132,7 +132,7 @@ rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
                                              double*        y,
                                              rocblas_int    incy,
                                              rocblas_int    stridey,
-                                             rocblas_stride    batch_count)
+                                             rocblas_stride batch_count)
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
@@ -147,7 +147,7 @@ rocblas_status rocblas_hcopy_strided_batched(rocblas_handle      handle,
                                              rocblas_half*       y,
                                              rocblas_int         incy,
                                              rocblas_int         stridey,
-                                             rocblas_stride         batch_count)
+                                             rocblas_stride      batch_count)
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
@@ -162,7 +162,7 @@ rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle
                                              rocblas_float_complex*       y,
                                              rocblas_int                  incy,
                                              rocblas_int                  stridey,
-                                             rocblas_stride                  batch_count)
+                                             rocblas_stride               batch_count)
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
@@ -177,7 +177,7 @@ rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handl
                                              rocblas_double_complex*       y,
                                              rocblas_int                   incy,
                                              rocblas_int                   stridey,
-                                             rocblas_stride                   batch_count)
+                                             rocblas_stride                batch_count)
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(

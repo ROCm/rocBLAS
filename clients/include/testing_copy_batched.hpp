@@ -16,10 +16,10 @@
 template <typename T>
 void testing_copy_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_int         incy        = 1;
-    const rocblas_int   batch_count = 5;
+    rocblas_int       N           = 100;
+    rocblas_int       incx        = 1;
+    rocblas_int       incy        = 1;
+    const rocblas_int batch_count = 5;
 
     rocblas_local_handle handle;
 
@@ -61,11 +61,12 @@ void testing_copy_batched(const Arguments& arg)
         }
 
         if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(
-                        handle, N, dx, incx, dy, incy, batch_count),
-                    rocblas_status_invalid_size);
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
+                rocblas_status_invalid_size);
         else
-            CHECK_ROCBLAS_ERROR(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count));
+            CHECK_ROCBLAS_ERROR(
+                rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count));
         return;
     }
 

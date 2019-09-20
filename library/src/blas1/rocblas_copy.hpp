@@ -44,7 +44,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    offsety,
                                      rocblas_int    incy,
                                      rocblas_int    stridey,
-                                     rocblas_stride    batch_count)
+                                     rocblas_stride batch_count)
 {
     // Quick return if possible.
     if(n <= 0 || !batch_count)
