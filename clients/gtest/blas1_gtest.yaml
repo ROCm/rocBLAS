@@ -39,7 +39,6 @@ Tests:
     - dotc:  *single_double_precisions_complex
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
-    - swap:  *single_double_precisions_complex_real
     - rot:   *rot_precisions
     - rotm:   *single_double_precisions_complex_real
 
@@ -110,15 +109,70 @@ Tests:
     - dotc:  *double_precision_complex_real
     - scal:  *single_double_precisions_complex_real
     - scal:  *single_double_complex_real_in_complex_out
-    - swap:  *single_double_precisions_complex_real
     - rot:   *rot_precisions
     - rotm:   *single_double_precisions_complex_real
+
+- name: blas1_batched
+  category: quick
+  N: [ -1, 0, 1025 ]
+  batch_count: [-1, 0, 1]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
+    - nrm2_batched: *single_double_precisions_complex_real
+- name: blas1_batched
+  category: pre_checkin
+  N: [ 1025, 33792 ]
+  incx: [1, 2]
+  batch_count: [ 2, 33 ]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
+    - nrm2_batched: *single_double_precisions_complex_real
+- name: blas1_batched 
+  category: nightly
+  N: [ 300001 ]
+  incx: [-1, 1, 2]
+  batch_count: [ 65 ]
+  function: 
+    - asum_batched: *single_double_precisions_complex_real
+    - nrm2_batched: *single_double_precisions_complex_real
+
+- name: blas1_strided_batched
+  category: quick
+  N: [ -1, 0, 1025 ]
+  incx: [-1, 0, 1]
+  stride_scale: [ 1 ]
+  batch_count: [-1, 0, 1]
+  function: 
+    - asum_strided_batched: *single_double_precisions_complex_real
+    - nrm2_strided_batched: *single_double_precisions_complex_real
+- name: blas1_strided_batched
+  category: pre_checkin
+  N: [ 513, 33792 ]
+  incx: [1, 2]
+  stride_scale: [ 1 ]
+  batch_count: [ 2, 33 ]
+  function: 
+    - asum_strided_batched: *single_double_precisions_complex_real
+    - nrm2_strided_batched: *single_double_precisions_complex_real
+- name: blas1_strided_batched
+  category: nightly
+  N: [ 300001 ]
+  incx: [-1, 1, 2]
+  stride_scale: [ 1 ]
+  batch_count: [ 65 ]
+  function: 
+    - asum_strided_batched: *single_double_precisions_complex_real
+    - nrm2_strided_batched: *single_double_precisions_complex_real
 
 - name: blas1_bad_arg
   category: pre_checkin
   function:
     - nrm2_bad_arg:  *single_double_precisions_complex_real
+    - nrm2_batched_bad_arg:  *single_double_precisions_complex_real
+    - nrm2_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - asum_bad_arg:  *single_double_precisions_complex_real
+    - asum_batched_bad_arg:  *single_double_precisions_complex_real
+    - asum_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - iamax_bad_arg: *single_double_precisions_complex_real
     - iamin_bad_arg: *single_double_precisions_complex_real
     - axpy_bad_arg:  *half_single_precisions_complex_real
@@ -128,6 +182,8 @@ Tests:
     - scal_bad_arg:  *single_double_precisions_complex_real
     - scal_bad_arg:  *single_double_complex_real_in_complex_out
     - swap_bad_arg:  *single_double_precisions_complex_real
+    - swap_batched_bad_arg:  *single_double_precisions_complex_real
+    - swap_strided_batched_bad_arg:  *single_double_precisions_complex_real
     - rot_bad_arg:   *rot_precisions
     - rotg_bad_arg:  *rotg_precisions
     - rotm_bad_arg:  *single_double_precisions_complex_real
@@ -138,4 +194,56 @@ Tests:
   function:
     - rotg:  *rotg_precisions
     - rotmg: *single_double_precisions_complex_real
-...
+
+# blas1 swap variants
+
+- name: blas1_swap
+  category: quick
+  N: [ -1, 0, 1025] 
+  incx: [ 1 ]
+  incy: [ 1 ]
+  function: 
+    - swap: *single_double_precisions_complex_real
+
+- name: blas1_swap
+  category: pre_checkin
+  N: [ 5000, 800000 ]
+  incx_incy: *incx_incy_range
+  function: 
+    - swap: *single_double_precisions_complex_real
+
+- name: blas1_swap_batched
+  category: quick
+  N: [ -1, 0, 1025] 
+  incx: [ 1 ]
+  incy: [ 1 ]
+  batch_count: [-1, 0, 1]
+  function: 
+    - swap_batched: *single_double_precisions_complex_real
+
+- name: blas1_swap_batched
+  category: pre_checkin
+  N: [ 5000, 800000 ]
+  incx_incy: *incx_incy_range
+  batch_count: [1, 7]
+  function: 
+    - swap_batched: *single_double_precisions_complex_real
+
+- name: blas1_swap_strided_batched
+  category: quick
+  N: [ -1, 0, 1025] 
+  incx: [ 1 ]
+  incy: [ 1 ]
+  batch_count: [-1, 0, 1]
+  stride_scale: [ 0, 1 ]
+  function:
+    - swap_strided_batched: *single_double_precisions_complex_real
+
+- name: blas1_swap_strided_batched
+  category: pre_checkin
+  N: [ 5000, 800000 ]
+  incx_incy: *incx_incy_range
+  batch_count: [1, 7] 
+  stride_scale: [ 1 ]
+  function:
+    - swap_strided_batched: *single_double_precisions_complex_real
