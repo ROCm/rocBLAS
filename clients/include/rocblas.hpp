@@ -136,7 +136,7 @@ rocblas_status (*rocblas_dot_batched)(rocblas_handle handle,
                               rocblas_int    incx,
                               const T* const y[],
                               rocblas_int    incy,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                               T*             result);
 
 template <>
@@ -159,7 +159,7 @@ rocblas_status (*rocblas_dotc_batched)(rocblas_handle handle,
                                rocblas_int    incx,
                                const T* const y[],
                                rocblas_int    incy,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                                T*             result);
 
 template <>
@@ -178,7 +178,7 @@ rocblas_status (*rocblas_dot_strided_batched)(rocblas_handle handle,
                               const T*       y,
                               rocblas_int    incy,
                                rocblas_int    stridey,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                               T*             result);
 
 template <>
@@ -203,7 +203,7 @@ rocblas_status (*rocblas_dotc_strided_batched)(rocblas_handle handle,
                                const T*       y,
                                rocblas_int    incy,
                                rocblas_int    stridey,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                                T*             result);
 
 template <>

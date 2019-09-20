@@ -51,7 +51,7 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
                                         rocblas_int    offsety,
                                         rocblas_int incy,
                                         rocblas_int stridey,
-                                        rocblas_int    batch_count,
+                                        rocblas_stride    batch_count,
                                         T*          results,
                                         V*          workspace)
 {

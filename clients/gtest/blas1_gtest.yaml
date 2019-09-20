@@ -36,7 +36,7 @@ Tests:
       - nrm2:  *single_double_precisions_complex_real
       - asum:  *single_double_precisions_complex_real
       - iamax: *single_double_precisions_complex_real
-  #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+      - iamin: *single_double_precisions_complex_real
       - axpy:  *half_single_precisions_complex_real
       - copy:  *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
@@ -55,8 +55,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched: *single_double_complex_real_in_complex_out
       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_batched:  *single_double_precisions_complex
 
@@ -69,8 +67,6 @@ Tests:
     batch_count: [-1, 0, 5]
     strideScale: [ 1.5 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched: *single_double_complex_real_in_complex_out
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
 
@@ -85,7 +81,7 @@ Tests:
       - nrm2:  *double_precision_complex_real
       - asum:  *double_precision_complex_real
       - iamax: *single_double_precisions_complex_real
-  #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+      - iamin: *single_double_precisions_complex_real
       - axpy:  *half_single_precisions_complex_real
       - copy:  *single_double_precisions_complex_real
       - dot:   *double_precision_complex_real
@@ -104,8 +100,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [2]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
       - dot_batched:   *double_precision_complex_real
       - dotc_batched:  *double_precision_complex_real
 
@@ -118,8 +112,6 @@ Tests:
     batch_count: [2]
     strideScale: [ 1.5 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched:  *single_double_complex_real_in_complex_out
       - dot_strided_batched:   *double_precision_complex_real
       - dotc_strided_batched:  *double_precision_complex_real
 
@@ -133,7 +125,7 @@ Tests:
       - nrm2:  *double_precision_complex_real
       - asum:  *double_precision_complex_real
       - iamax: *single_double_precisions_complex_real
-  #   - iamin: *single_double_precisions_complex_real # broken for now -- cause unknown
+      - iamin: *single_double_precisions_complex_real
       - axpy:  *half_single_precisions_complex_real
       - copy:  *single_double_precisions_complex_real
       - dot:   *double_precision_complex_real
@@ -152,8 +144,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [ 2 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
       - dot_batched:   *double_precision_complex_real
       - dotc_batched:  *double_precision_complex_real
 
@@ -165,8 +155,6 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [ 5000 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
       - dot_batched:   *double_precision_complex_real
       - dotc_batched:  *double_precision_complex_real
 
@@ -194,8 +182,6 @@ Tests:
     batch_count: [ 5000 ]
     strideScale: [ 2 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
       - dot_strided_batched:   *double_precision_complex_real
       - dotc_strided_batched:  *double_precision_complex_real
 
@@ -222,8 +208,6 @@ Tests:
     category: pre_checkin
     batch_count: [1, 10]
     function:
-      - scal_batched_bad_arg:  *single_double_precisions_complex_real
-      - scal_batched_bad_arg:  *single_double_complex_real_in_complex_out
       - dot_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dotc_batched_bad_arg:  *single_double_precisions_complex
 
@@ -232,8 +216,6 @@ Tests:
     batch_count: [1, 10]
     stride_x: [1, 100000]
     function:
-      - scal_strided_batched_bad_arg:  *single_double_precisions_complex_real
-      - scal_strided_batched_bad_arg:  *single_double_complex_real_in_complex_out
       - dot_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched_bad_arg:  *single_double_precisions_complex
 

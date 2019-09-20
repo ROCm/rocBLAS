@@ -38,7 +38,7 @@ namespace
                                const T*       y,
                                rocblas_int    incy,
                                rocblas_int    stridey,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                                T*             results)
     {
         if(!handle)
@@ -104,7 +104,7 @@ rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
                             const float*   y,
                             rocblas_int    incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                             float*         results)
 {
     return rocblas_dot_strided_batched_impl<false>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
@@ -118,7 +118,7 @@ rocblas_status rocblas_ddot_strided_batched(rocblas_handle handle,
                             const double*  y,
                             rocblas_int    incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                             double*        results)
 {
     return rocblas_dot_strided_batched_impl<false>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
@@ -132,7 +132,7 @@ rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
                             const rocblas_half* y,
                             rocblas_int         incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                             rocblas_half*       result)
 {
     return rocblas_dot_strided_batched_impl<false>(
@@ -147,7 +147,7 @@ rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,
                              const rocblas_bfloat16* y,
                              rocblas_int             incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_bfloat16*       result)
 {
     return rocblas_dot_strided_batched_impl<false, rocblas_bfloat16, float>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
@@ -161,7 +161,7 @@ rocblas_status rocblas_cdotu_strided_batched(rocblas_handle               handle
                              const rocblas_float_complex* y,
                              rocblas_int                  incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_float_complex*       results)
 {
     return rocblas_dot_strided_batched_impl<false>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
@@ -175,7 +175,7 @@ rocblas_status rocblas_zdotu_strided_batched(rocblas_handle                handl
                              const rocblas_double_complex* y,
                              rocblas_int                   incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_double_complex*       results)
 {
     return rocblas_dot_strided_batched_impl<false>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
@@ -189,7 +189,7 @@ rocblas_status rocblas_cdotc_strided_batched(rocblas_handle               handle
                              const rocblas_float_complex* y,
                              rocblas_int                  incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_float_complex*       results)
 {
     return rocblas_dot_strided_batched_impl<true>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
@@ -203,7 +203,7 @@ rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handl
                              const rocblas_double_complex* y,
                              rocblas_int                   incy,
                             rocblas_int    stridey,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_double_complex*       results)
 {
     return rocblas_dot_strided_batched_impl<true>(handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);

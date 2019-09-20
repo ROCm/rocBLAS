@@ -38,7 +38,7 @@ namespace
                                rocblas_int    incx,
                                const T*       const y[],
                                rocblas_int    incy,
-                               rocblas_int    batch_count,
+                               rocblas_stride    batch_count,
                                T*             results)
     {
         if(!handle)
@@ -98,7 +98,7 @@ rocblas_status rocblas_sdot_batched(rocblas_handle handle,
                             rocblas_int    incx,
                             const float*   const y[],
                             rocblas_int    incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                             float*         results)
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
@@ -110,7 +110,7 @@ rocblas_status rocblas_ddot_batched(rocblas_handle handle,
                             rocblas_int    incx,
                             const double*  const y[],
                             rocblas_int    incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                             double*        results)
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
@@ -122,7 +122,7 @@ rocblas_status rocblas_cdotu_batched(rocblas_handle               handle,
                              rocblas_int                  incx,
                              const rocblas_float_complex* const y[],
                              rocblas_int                  incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_float_complex*       results)
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
@@ -134,7 +134,7 @@ rocblas_status rocblas_zdotu_batched(rocblas_handle                handle,
                              rocblas_int                   incx,
                              const rocblas_double_complex* const y[],
                              rocblas_int                   incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_double_complex*       results)
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
@@ -146,7 +146,7 @@ rocblas_status rocblas_cdotc_batched(rocblas_handle               handle,
                              rocblas_int                  incx,
                              const rocblas_float_complex* const y[],
                              rocblas_int                  incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_float_complex*       results)
 {
     return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
@@ -158,7 +158,7 @@ rocblas_status rocblas_zdotc_batched(rocblas_handle                handle,
                              rocblas_int                   incx,
                              const rocblas_double_complex*  const y[],
                              rocblas_int                   incy,
-                            rocblas_int    batch_count,
+                            rocblas_stride    batch_count,
                              rocblas_double_complex*       results)
 {
     return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
