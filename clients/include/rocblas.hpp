@@ -84,6 +84,54 @@ static constexpr auto rocblas_swap<rocblas_float_complex> = rocblas_cswap;
 template <>
 static constexpr auto rocblas_swap<rocblas_double_complex> = rocblas_zswap;
 
+// swap_batched
+template <typename T>
+rocblas_status (*rocblas_swap_batched)(rocblas_handle handle,
+                                       rocblas_int    n,
+                                       T*             x[],
+                                       rocblas_int    incx,
+                                       T*             y[],
+                                       rocblas_int    incy,
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_swap_batched<float> = rocblas_sswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<double> = rocblas_dswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<rocblas_float_complex> = rocblas_cswap_batched;
+
+template <>
+static constexpr auto rocblas_swap_batched<rocblas_double_complex> = rocblas_zswap_batched;
+
+// swap_strided_batched
+template <typename T>
+rocblas_status (*rocblas_swap_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               T*             x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stridey,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<float> = rocblas_sswap_strided_batched;
+
+template <>
+static constexpr auto rocblas_swap_strided_batched<double> = rocblas_dswap_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_swap_strided_batched<rocblas_float_complex> = rocblas_cswap_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_swap_strided_batched<rocblas_double_complex> = rocblas_zswap_strided_batched;
+
 // dot
 template <typename T>
 rocblas_status (*rocblas_dot)(rocblas_handle handle,
@@ -145,6 +193,51 @@ static constexpr auto rocblas_asum<rocblas_float_complex, float> = rocblas_scasu
 template <>
 static constexpr auto rocblas_asum<rocblas_double_complex, double> = rocblas_dzasum;
 
+// asum_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_asum_batched)(rocblas_handle  handle,
+                                       rocblas_int     n,
+                                       const T1* const x[],
+                                       rocblas_int     incx,
+                                       rocblas_int     batch_count,
+                                       T2*             result);
+
+template <>
+static constexpr auto rocblas_asum_batched<float, float> = rocblas_sasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<double, double> = rocblas_dasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<rocblas_float_complex, float> = rocblas_scasum_batched;
+
+template <>
+static constexpr auto rocblas_asum_batched<rocblas_double_complex, double> = rocblas_dzasum_batched;
+
+// asum_strided_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const T1*      x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               rocblas_int    batch_count,
+                                               T2*            result);
+
+template <>
+static constexpr auto rocblas_asum_strided_batched<float, float> = rocblas_sasum_strided_batched;
+
+template <>
+static constexpr auto rocblas_asum_strided_batched<double, double> = rocblas_dasum_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_asum_strided_batched<rocblas_float_complex, float> = rocblas_scasum_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_asum_strided_batched<rocblas_double_complex, double> = rocblas_dzasum_strided_batched;
+
 // nrm2
 template <typename T1, typename T2>
 rocblas_status (*rocblas_nrm2)(
@@ -162,6 +255,53 @@ static constexpr auto rocblas_nrm2<rocblas_float_complex, float> = rocblas_scnrm
 template <>
 static constexpr auto rocblas_nrm2<rocblas_double_complex, double> = rocblas_dznrm2;
 
+// nrm2_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_nrm2_batched)(rocblas_handle  handle,
+                                       rocblas_int     n,
+                                       const T1* const x[],
+                                       rocblas_int     incx,
+                                       rocblas_int     batch_count,
+                                       T2*             results);
+
+template <>
+static constexpr auto rocblas_nrm2_batched<float, float> = rocblas_snrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<double, double> = rocblas_dnrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<rocblas_float_complex, float> = rocblas_scnrm2_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_batched<rocblas_double_complex, double> = rocblas_dznrm2_batched;
+
+// nrm2_strided_batched
+template <typename T1, typename T2>
+rocblas_status (*rocblas_nrm2_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const T1*      x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               rocblas_int    batch_count,
+                                               T2*            results);
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<float, float> = rocblas_snrm2_strided_batched;
+
+template <>
+static constexpr auto rocblas_nrm2_strided_batched<double, double> = rocblas_dnrm2_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_nrm2_strided_batched<rocblas_float_complex, float> = rocblas_scnrm2_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_nrm2_strided_batched<rocblas_double_complex, double> = rocblas_dznrm2_strided_batched;
+
+// iamax and iamin need to be full functions rather than references, in order
+// to allow them to be passed as template arguments
 //
 // iamax and iamin.
 //
