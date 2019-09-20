@@ -216,7 +216,6 @@ def setdefaults(test):
 
     test.setdefault('stride_x', 0)
     test.setdefault('stride_y', 0)
->>>>>>> d300cc1c3ecac1dae352829142851425b4849b9e
 
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)

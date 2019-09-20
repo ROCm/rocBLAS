@@ -107,7 +107,7 @@ namespace
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 name << '_' << arg.incx;
-                
+
                 if(is_strided)
                 {
                     name << '_' << arg.stride_x;
@@ -143,7 +143,8 @@ namespace
         bool,
         ((BLAS1 == blas1::asum || BLAS1 == blas1::asum_batched
           || BLAS1 == blas1::asum_strided_batched)
-         && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+	         && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+         && (std::is_same<Ti, rocblas_float_complex>{} || std::is_same<Ti, rocblas_double_complex>{}
              || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::axpy && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
