@@ -38,10 +38,10 @@ Definitions:
     - { incx:  10, incy:  99}
 
   - &nightly_incx_incy_range
-    - { incx:   1, incy:   1, strideScale: 1.5}
-    - { incx:   1, incy:  -1, strideScale: 2}
-    - { incx:   1, incy:   2, strideScale: 1}
-    - { incx:  10, incy:  99, strideScale: 1}
+    - { incx:   1, incy:   1, stride_scale: 1.5}
+    - { incx:   1, incy:  -1, stride_scale: 2}
+    - { incx:   1, incy:   2, stride_scale: 1}
+    - { incx:  10, incy:  99, stride_scale: 1}
 
 Tests:
 - name: ger_bad_arg
@@ -110,7 +110,7 @@ Tests:
   category: pre_checkin
   function: ger_strided_batched_bad_arg
   precision: *single_double_precisions
-  strideScale: [ -1, 0, 0.5, 1, 2 ]
+  stride_scale: [ -1, 0, 0.5, 1, 2 ]
   batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: ger_strided_batched_small
@@ -120,7 +120,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  strideScale: [ 0.5, 1, 2 ]
+  stride_scale: [ 0.5, 1, 2 ]
   batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: ger_strided_batched_medium
@@ -130,7 +130,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  strideScale: [ 0.5, 1, 2 ]
+  stride_scale: [ 0.5, 1, 2 ]
   batch_count: [ 1, 5, 10 ]
 
 - name: ger_strided_batched_large

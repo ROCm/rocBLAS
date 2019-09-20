@@ -50,6 +50,65 @@ static constexpr auto rocblas_scal<rocblas_float_complex, float> = rocblas_cssca
 template <>
 static constexpr auto rocblas_scal<rocblas_double_complex, double> = rocblas_zdscal;
 
+// scal_batched
+template <typename T, typename U = T>
+rocblas_status (*rocblas_scal_batched)(rocblas_handle handle,
+                                       rocblas_int    n,
+                                       const U*       alpha,
+                                       T* const       x[],
+                                       rocblas_int    incx,
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_scal_batched<float> = rocblas_sscal_batched;
+
+template <>
+static constexpr auto rocblas_scal_batched<double> = rocblas_dscal_batched;
+
+template <>
+static constexpr auto rocblas_scal_batched<rocblas_float_complex> = rocblas_cscal_batched;
+
+template <>
+static constexpr auto rocblas_scal_batched<rocblas_double_complex> = rocblas_zscal_batched;
+
+template <>
+static constexpr auto rocblas_scal_batched<rocblas_float_complex, float> = rocblas_csscal_batched;
+
+template <>
+static constexpr auto rocblas_scal_batched<rocblas_double_complex, double> = rocblas_zdscal_batched;
+
+// scal_strided_batched
+template <typename T, typename U = T>
+rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const U*       alpha,
+                                               T*             x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stride_x,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_scal_strided_batched<float> = rocblas_sscal_strided_batched;
+
+template <>
+static constexpr auto rocblas_scal_strided_batched<double> = rocblas_dscal_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_scal_strided_batched<rocblas_float_complex> = rocblas_cscal_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_scal_strided_batched<rocblas_double_complex> = rocblas_zscal_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_scal_strided_batched<rocblas_float_complex, float> = rocblas_csscal_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_scal_strided_batched<rocblas_double_complex, double> = rocblas_zdscal_strided_batched;
+
 // copy
 template <typename T>
 rocblas_status (*rocblas_copy)(
