@@ -63,7 +63,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
-    strideScale: [ 0.5, 1.5 ]
+    strideScale: [ 1.5 ]
     function:
       - copy_strided_batched:  *single_double_precisions_complex_real
 
@@ -201,7 +201,7 @@ Tests:
   - name: blas1_strided_batched_bad_arg
     category: pre_checkin
     batch_count: [1, 10]
-    stride_x: [1, 100000]
+    strideScale: [ 1 ]
     function:
       - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
 
