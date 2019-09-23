@@ -325,7 +325,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
     @param[in]
-    batch_count rocblas_stride
+    batch_count rocblas_int
                 number of instances in the batch
 
     ********************************************************************/
@@ -336,7 +336,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
                                                     rocblas_int        incx,
                                                     float* const       y[],
                                                     rocblas_int        incy,
-                                                    rocblas_stride     batch_count);
+                                                    rocblas_int        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                                     rocblas_int         n,
@@ -344,7 +344,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                                     rocblas_int         incx,
                                                     double* const       y[],
                                                     rocblas_int         incy,
-                                                    rocblas_stride      batch_count);
+                                                    rocblas_int         batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
                                                     rocblas_int                        n,
@@ -352,7 +352,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle              
                                                     rocblas_int                        incx,
                                                     rocblas_float_complex* const       y[],
                                                     rocblas_int                        incy,
-                                                    rocblas_stride                     batch_count);
+                                                    rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
                                                     rocblas_int                         n,
@@ -360,7 +360,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
                                                     rocblas_int                         incx,
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
-                                                    rocblas_stride batch_count);
+                                                    rocblas_int batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -383,7 +383,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
     incx      rocblas_int
               specifies the increments for the elements of vectors x_i.
     @param[in]
-    stridex     rocblas_int
+    stridex     rocblas_stride
                 stride form the start of one vector (x_i) and the next one (x_i+1)
     @param[in]
     y         pointer to the first vector (y_0) in the batch stored on the GPU.
@@ -391,13 +391,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
     @param[in]
-    stridey     rocblas_int
+    stridey     rocblas_stride
                 stride from the start of one vector (y_i) and the next one (y_i+1)
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    batch_count rocblas_stride
+    batch_count rocblas_int
                 number of instances in the batch
 
     ********************************************************************/
@@ -406,41 +406,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handl
                                                             rocblas_int    n,
                                                             const float*   x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             float*         y,
                                                             rocblas_int    incy,
-                                                            rocblas_int    stridey,
-                                                            rocblas_stride batch_count);
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
                                                             const double*  x,
                                                             rocblas_int    incx,
-                                                            rocblas_int    stridex,
+                                                            rocblas_stride stridex,
                                                             double*        y,
                                                             rocblas_int    incy,
-                                                            rocblas_int    stridey,
-                                                            rocblas_stride batch_count);
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
                                                             rocblas_int                  n,
                                                             const rocblas_float_complex* x,
                                                             rocblas_int                  incx,
-                                                            rocblas_int                  stridex,
+                                                            rocblas_stride               stridex,
                                                             rocblas_float_complex*       y,
                                                             rocblas_int                  incy,
-                                                            rocblas_int                  stridey,
-                                                            rocblas_stride batch_count);
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handle,
                                                             rocblas_int                   n,
                                                             const rocblas_double_complex* x,
                                                             rocblas_int                   incx,
-                                                            rocblas_int                   stridex,
+                                                            rocblas_stride                stridex,
                                                             rocblas_double_complex*       y,
                                                             rocblas_int                   incy,
-                                                            rocblas_int                   stridey,
-                                                            rocblas_stride batch_count);
+                                                            rocblas_stride                stridey,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 1 API
 

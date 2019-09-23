@@ -7,15 +7,15 @@
 #include "utility.h"
 
 template <typename T, typename U, typename V>
-__global__ void copy_kernel(rocblas_int n,
-                            const U     xa,
-                            rocblas_int offsetx,
-                            rocblas_int incx,
-                            rocblas_int stridex,
-                            V           ya,
-                            rocblas_int offsety,
-                            rocblas_int incy,
-                            rocblas_int stridey)
+__global__ void copy_kernel(rocblas_int    n,
+                            const U        xa,
+                            rocblas_int    offsetx,
+                            rocblas_int    incx,
+                            rocblas_stride stridex,
+                            V              ya,
+                            rocblas_int    offsety,
+                            rocblas_int    incy,
+                            rocblas_stride stridey)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -39,12 +39,12 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      const U        x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
-                                     rocblas_int    stridex,
+                                     rocblas_stride stridex,
                                      V              y,
                                      rocblas_int    offsety,
                                      rocblas_int    incy,
-                                     rocblas_int    stridey,
-                                     rocblas_stride batch_count)
+                                     rocblas_stride stridey,
+                                     rocblas_int    batch_count)
 {
     // Quick return if possible.
     if(n <= 0 || !batch_count)

@@ -16,12 +16,12 @@
 template <typename T>
 void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    rocblas_int incy        = 1;
-    rocblas_int stride_x    = incx * N;
-    rocblas_int stride_y    = incy * N;
-    rocblas_int batch_count = 5;
+    rocblas_int    N           = 100;
+    rocblas_int    incx        = 1;
+    rocblas_int    incy        = 1;
+    rocblas_stride    stride_x    = incx * N;
+    rocblas_stride stride_y    = incy * N;
+    rocblas_int    batch_count = 5;
 
     rocblas_local_handle handle;
 
