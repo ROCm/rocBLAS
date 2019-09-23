@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
-// #include "reduction.h"
 #include "rocblas.h"
 #include "rocblas_dot.hpp"
 #include "utility.h"

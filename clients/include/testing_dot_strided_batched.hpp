@@ -231,7 +231,7 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                   &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = batch_count * dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
