@@ -28,7 +28,7 @@
 
 #include "rocblas_iamaxmin_template.h"
 
-
+#if 0
 //
 // Names.
 //
@@ -176,4 +176,63 @@ rocblas_status JOIN(rocblas_iza, MAX_MIN)(rocblas_handle                handle,
     return rocblas_iamaxmin<double, rocblas_double_complex>(handle, n, x, incx, result);
 }
 
+} // extern "C"
+
+#endif
+
+
+
+//
+// C wrapper
+//
+extern "C" {
+
+#ifdef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
+#error existing macro ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
+#endif
+#ifdef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_CIMPL
+#error existing macro ROCBLAS_IAMAXMIN_STRIDED_BATCHED_CIMPL
+#endif
+  
+  //
+  // Define the C header.
+  //
+#define ROCBLAS_IAMAXMIN_HEADER(name)		\
+  JOIN(name, MAX_MIN )
+  
+#define ROCBLAS_IAMAXMIN_CIMPL(name, type)		\
+  rocblas_status ROCBLAS_IAMAXMIN_HEADER(name) (rocblas_handle  handle, \
+						rocblas_int     n,	\
+						const type*     x,	\
+						rocblas_int     incx,	\
+						rocblas_int*    result) \
+  {									\
+    return rocblas_iamaxmin_impl(handle,				\
+				 n,					\
+				 x,					\
+				 incx,					\
+				 0,					\
+				 result,				\
+				 1,					\
+				 0,					\
+				 1,					\
+				 QUOTE(ROCBLAS_IAMAXMIN_HEADER(name))); \
+  }
+  
+  ROCBLAS_IAMAXMIN_CIMPL( rocblas_isa , float);
+  ROCBLAS_IAMAXMIN_CIMPL( rocblas_ida , double);
+  ROCBLAS_IAMAXMIN_CIMPL( rocblas_ica , rocblas_float_complex);
+  ROCBLAS_IAMAXMIN_CIMPL( rocblas_iza , rocblas_double_complex);
+  
+  //
+  // Undefined introduced macro.
+  //
+#undef ROCBLAS_IAMAXMIN_CIMPL
+#undef ROCBLAS_IAMAXMIN_HEADER
+  
+  //
+  // Undefined the C header.
+  //
+#undef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
+  
 } // extern "C"

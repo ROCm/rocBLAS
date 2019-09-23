@@ -89,13 +89,20 @@ namespace
             {
                 bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
-                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
-                                   || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched);
+                bool is_batched = (BLAS1 == blas1::nrm2_batched ||
+				   BLAS1 == blas1::iamin_batched ||
+				   BLAS1 == blas1::iamax_batched ||
+				   BLAS1 == blas1::asum_batched ||
+				   BLAS1 == blas1::scal_batched ||
+				   BLAS1 == blas1::swap_batched);
                 bool is_strided
-                    = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
-                       || BLAS1 == blas1::scal_strided_batched
-                       || BLAS1 == blas1::swap_strided_batched);
-
+		  = (BLAS1 == blas1::nrm2_strided_batched ||
+		     BLAS1 == blas1::iamin_strided_batched ||
+		     BLAS1 == blas1::iamax_strided_batched ||
+		     BLAS1 == blas1::asum_strided_batched ||
+		     BLAS1 == blas1::scal_strided_batched ||
+		     BLAS1 == blas1::swap_strided_batched);
+		
                 if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
@@ -275,30 +282,36 @@ INSTANTIATE_TEST_CATEGORIES(NAME)
 BLAS1_TESTING(asum,  ARG1)
 BLAS1_TESTING(asum_batched,  ARG1)
 BLAS1_TESTING(asum_strided_batched,  ARG1)
+
 BLAS1_TESTING(nrm2,  ARG1)
 BLAS1_TESTING(nrm2_batched,  ARG1)
 BLAS1_TESTING(nrm2_strided_batched,  ARG1)
+
 BLAS1_TESTING(iamax, ARG1)
+BLAS1_TESTING(iamax_batched, ARG1)
+BLAS1_TESTING(iamax_strided_batched, ARG1)
+
 BLAS1_TESTING(iamin, ARG1)
+BLAS1_TESTING(iamin_batched, ARG1)
+BLAS1_TESTING(iamin_strided_batched, ARG1)
+
+BLAS1_TESTING(scal,  ARG2)
+BLAS1_TESTING(scal_batched, ARG2)
+BLAS1_TESTING(scal_strided_batched, ARG2)
+
+BLAS1_TESTING(swap,  ARG1)
+BLAS1_TESTING(swap_batched, ARG1)
+BLAS1_TESTING(swap_strided_batched, ARG1)
+
+
 BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
-BLAS1_TESTING(scal,  ARG2)
-BLAS1_TESTING(scal_batched, ARG2)
-BLAS1_TESTING(scal_strided_batched, ARG2)
-BLAS1_TESTING(swap,  ARG1)
-BLAS1_TESTING(swap_batched, ARG1)
-BLAS1_TESTING(swap_strided_batched, ARG1)
 BLAS1_TESTING(rot,   ARG3)
 BLAS1_TESTING(rotg,  ARG2)
 BLAS1_TESTING(rotm,  ARG1)
 BLAS1_TESTING(rotmg, ARG1)
-
-BLAS1_TESTING(iamax_batched, ARG1)
-BLAS1_TESTING(iamin_batched, ARG1)
-BLAS1_TESTING(iamax_strided_batched, ARG1)
-BLAS1_TESTING(iamin_strided_batched, ARG1)
 
     // clang-format on
 

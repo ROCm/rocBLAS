@@ -57,29 +57,29 @@ struct batched_arrays_traits< strided_batched_arrays<T> >
 
 
 template <typename U>
-typename batched_arrays_traits<U>::batch_array_t load_batched_ptr(U x,rocblas_int i,rocblas_int stride);
+typename batched_arrays_traits<U>::batch_array_t load_batched_ptr(U x,rocblas_int i,rocblas_stride stride);
 
 
 template <typename T>
-typename batched_arrays_traits< const_batched_arrays<T> >::batch_array_t load_batched_ptr(const_batched_arrays<T> x, rocblas_int i, rocblas_int stride)
+typename batched_arrays_traits< const_batched_arrays<T> >::batch_array_t load_batched_ptr(const_batched_arrays<T> x, rocblas_int i, rocblas_stride stride)
 {
   return x[i];
 };
 
 template <typename T>
-typename batched_arrays_traits< const_strided_batched_arrays<T> >::batch_array_t load_batched_ptr(const_strided_batched_arrays<T> x, rocblas_int i, rocblas_int stride)
-{
-  return x + i * stride;
-};
-
-template <typename T>
-typename batched_arrays_traits< strided_batched_arrays<T> >::batch_array_t load_batched_ptr(strided_batched_arrays<T> x, rocblas_int i, rocblas_int stride)
-{
-  return x + i * stride;
-};
-
-template <typename T>
-typename batched_arrays_traits< batched_arrays<T> >::batch_array_t load_batched_ptr(batched_arrays<T> x, rocblas_int i, rocblas_int stride)
+typename batched_arrays_traits< batched_arrays<T> >::batch_array_t load_batched_ptr(batched_arrays<T> x, rocblas_int i, rocblas_stride stride)
 {
   return x[i];
+};
+
+template <typename T>
+typename batched_arrays_traits< const_strided_batched_arrays<T> >::batch_array_t load_batched_ptr(const_strided_batched_arrays<T> x, rocblas_int i, rocblas_stride stride)
+{
+  return x + i * stride;
+};
+
+template <typename T>
+typename batched_arrays_traits< strided_batched_arrays<T> >::batch_array_t load_batched_ptr(strided_batched_arrays<T> x, rocblas_int i, rocblas_stride stride)
+{
+  return x + i * stride;
 };

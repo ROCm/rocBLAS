@@ -27,9 +27,6 @@ struct TypeTraits_AMAXMIN<rocblas_double_complex>
  public: using To = double;
 };
 
-
-
-
 //
 // Extension of a rocblas_int as a pair of index and value.
 // As an extension the index must be stored first.
@@ -138,8 +135,6 @@ struct rocblas_finalize_amax_amin
 };
 
 
-
-#if 0
 #if 0
 #define TOKEN_ROCBLAS_IAMAXMIN_NAME_BATCHED QUOTE(MAX_MIN) "_batched"
 
@@ -161,7 +156,6 @@ static constexpr char rocblas_iamaxmin_name_batched<rocblas_float_complex>[]
 template <>
 static constexpr char rocblas_iamaxmin_name_batched<rocblas_double_complex>[]
 = "rocblas_iza" TOKEN_ROCBLAS_IAMAXMIN_NAME_BATCHED;
-#endif
 
 template <typename U>
 struct rocblas_iamaxmin_name_template
@@ -169,39 +163,19 @@ struct rocblas_iamaxmin_name_template
   static constexpr char name[] = "unknown";
 };
 
-
-
-template <typename T>
-struct toto
-{
-
-};
-#if 0
-template <typename T>
-struct toto<T>
-{
-  static constexpr char c[] = "dd";
-};
 #endif
-template <typename T>
-struct rocblas_iamaxmin_name_template< const_batched_arrays<T> >
-{
-  static constexpr char name[] = "rocblas_" toto<T>::c;// "_batched";
-};
 
-
-#endif
 template <typename U>
-static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
-						rocblas_int    n,
-						U              x,
-						rocblas_int    incx,
-						rocblas_int    stridex,
-						rocblas_int*   r,
-						rocblas_int    incr,
-						rocblas_int    strider,
-						rocblas_int    batch_count,
-						const char name[])
+static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
+					    rocblas_int    n,
+					    U              x,
+					    rocblas_int    incx,
+					    rocblas_stride stridex,
+					    rocblas_int*   r,
+					    rocblas_int    incr,
+					    rocblas_stride strider,
+					    rocblas_int    batch_count,
+					    const char     name[])
 {
   //
   // Get the 'T input' type
@@ -225,23 +199,38 @@ static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
   auto layer_mode = handle->layer_mode;
   if(layer_mode & rocblas_layer_mode_log_trace)
     {
-      log_trace(handle, name, n, x, incx);
+      log_trace(handle, name, n, x, incx, stridex, batch_count);
     }
   
   if(layer_mode & rocblas_layer_mode_log_bench)
     {
       log_bench(handle,
-		"./rocblas-bench -f ia" QUOTE(MAX_MIN) " -r",
+		"./rocblas-bench -f",
+		&name[8], // skip 'rocblas_'
+		"-r",
 		rocblas_precision_string<Ti>,
 		"-n",
 		n,
 		"--incx",
-		incx);
+		incx,
+		"--stride_x",
+		stridex,
+		"--batch",
+		batch_count);
     }
   
   if(layer_mode & rocblas_layer_mode_log_profile)
     {
-      log_profile(handle, name, "N", n, "incx", incx);
+      log_profile(handle,
+		  name,
+		  "N",
+		  n,
+		  "incx",
+		  incx,
+		  "stride_x",
+		  stridex,
+		  "batch",
+		  batch_count);
     }
   
   if(!x || !r)
@@ -249,48 +238,101 @@ static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
       return rocblas_status_invalid_pointer;
     }
   
-  *r = -777;
+  if(batch_count < 0)
+    {
+      return rocblas_status_invalid_size;
+    }
+  
+  auto blocks = (n - 1) / NB + 1;
+  if(handle->is_device_memory_size_query())
+    {
+      return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
+    }
+  
+  auto mem = handle->device_malloc(sizeof(index_value_t<To>) * blocks);
+  if(!mem)
+    {
+      return rocblas_status_memory_error;
+    }
+  
+  return rocblas_iamaxmin_template(handle,
+				   n,
+				   x,
+				   incx,
+				   stridex,
+				   r,
+				   incr,
+				   strider,
+				   batch_count,
+				   (void*)mem,
+				   name);
+}
+
+
+template <typename U, typename R>
+static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
+						rocblas_int    n,
+						U              x,
+						rocblas_int    incx,
+						rocblas_stride stridex,
+						R*             r,
+						rocblas_int    incr,
+						rocblas_stride strider,
+						rocblas_int    batch_count,
+						void *         workspace,
+						const char     name[])
+{
+  //
+  // Get the 'T input' type
+  //
+  using Ti = typename batched_arrays_traits<U>::base_t;
+  
+  //
+  // Get the 'T output' type
+  //
+  using To = typename TypeTraits_AMAXMIN<Ti>::To;
+  
+  //
+  // HIP support up to 1024 threads/work times per thread block/work group
+  //
+  static constexpr int NB = 1024;
+
   //
   // Quick return if possible.
   //
-  if(n <= 0 || incx <= 0 || batch_count <=0)
+  if(n <= 0 || incx <= 0 || batch_count == 0)
     {
       if(handle->is_device_memory_size_query())
         {
 	  return rocblas_status_size_unchanged;
         }
-      else if(handle->pointer_mode == rocblas_pointer_mode_device)
+      else if(handle->pointer_mode == rocblas_pointer_mode_device && batch_count > 0)
         {
-	  RETURN_IF_HIP_ERROR(hipMemset(r, 0, sizeof(*r)));
+	  RETURN_IF_HIP_ERROR(hipMemset(r, 0, batch_count * sizeof(R)));
         }
-        else
+      else
         {
-	  *r = 0;
+	  //
+	  // On host.
+	  //
+	  for(int i = 0; i < batch_count; i++)
+            {
+	      r[i] = R(0);
+            }
         }
-        return rocblas_status_success;
+      return rocblas_status_success;
     }
-    
-    auto blocks = (n - 1) / NB + 1;
-    if(handle->is_device_memory_size_query())
-    {
-        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
-    }
-
-    auto mem = handle->device_malloc(sizeof(index_value_t<To>) * blocks);
-    if(!mem)
-    {
-        return rocblas_status_memory_error;
-    }
-    
+  auto blocks = (n - 1) / NB + 1;
+  
     int status = rocblas_status_success;
     for(int batch_index = 0; batch_index < batch_count; ++batch_index)
-    {
+      {
       auto h = load_batched_ptr(x,batch_index,stridex);
       status &= rocblas_reduction_kernel<NB,
                                            rocblas_fetch_amax_amin<To>,
                                            AMAX_AMIN_REDUCTION,
                                            rocblas_finalize_amax_amin>
-	  (handle, n, h, incx, &r[batch_index], (index_value_t<To>*)mem, blocks);     
+	  (handle, n, h, incx, &r[batch_index], (index_value_t<To>*)workspace, blocks);     
     }
     
     return rocblas_status_success;
