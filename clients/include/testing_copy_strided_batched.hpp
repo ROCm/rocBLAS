@@ -19,7 +19,7 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
     rocblas_int    incy        = 1;
-    rocblas_stride    stride_x    = incx * N;
+    rocblas_stride stride_x    = incx * N;
     rocblas_stride stride_y    = incy * N;
     rocblas_int    batch_count = 5;
 
@@ -87,8 +87,8 @@ void testing_copy_strided_batched(const Arguments& arg)
         return;
     }
 
-    size_x += +size_t(stride_x) * size_t(batch_count - 1);
-    size_y += +size_t(stride_y) * size_t(batch_count - 1);
+    size_x += size_t(stride_x) * size_t(batch_count - 1);
+    size_y += size_t(stride_y) * size_t(batch_count - 1);
 
     // allocate memory on device
     device_vector<T> dx(size_x);

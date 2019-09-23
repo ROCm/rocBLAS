@@ -320,7 +320,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
     @param[in]
     incx      specifies the increment for the elements of vectors x_i.
     @param[out]
-    y         array of pointesr storing the different vectors y_i on the GPU.
+    y         array of pointers storing the different vectors y_i on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
