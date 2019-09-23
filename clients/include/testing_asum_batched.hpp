@@ -79,7 +79,7 @@ void testing_asum_batched_template(const Arguments& arg)
     {
         static const size_t       safe_size = 100; // arbitrarily set to 100
         device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2>         d_rocblas_result_2(batch_count);
+        device_vector<T2>         d_rocblas_result_2(std::max(batch_count, 1));
         if(!dx || !d_rocblas_result_2)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
