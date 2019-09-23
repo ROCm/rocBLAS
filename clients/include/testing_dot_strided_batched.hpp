@@ -18,14 +18,14 @@
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int incy        = 1;
     rocblas_int stride_x    = incx * N;
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
-    size_t size_x = stride_x * batch_count;
-    size_t size_y = stride_y * batch_count;
+    size_t      size_x      = stride_x * batch_count;
+    size_t      size_y      = stride_y * batch_count;
 
     rocblas_local_handle handle;
     device_vector<T>     dx(size_x);
@@ -40,18 +40,45 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T>
-              : rocblas_dot_strided_batched<T>)(handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
+        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(handle,
+                                                                                  N,
+                                                                                  nullptr,
+                                                                                  incx,
+                                                                                  stride_x,
+                                                                                  dy,
+                                                                                  incy,
+                                                                                  stride_y,
+                                                                                  batch_count,
+                                                                                  d_rocblas_result),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(handle,
+                                                                                  N,
+                                                                                  dx,
+                                                                                  incx,
+                                                                                  stride_x,
+                                                                                  nullptr,
+                                                                                  incy,
+                                                                                  stride_y,
+                                                                                  batch_count,
+                                                                                  d_rocblas_result),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         (CONJ ? rocblas_dotc_strided_batched<T>
-              : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count, d_rocblas_result),
+              : rocblas_dot_strided_batched<
+                  T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, nullptr),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
+        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(nullptr,
+                                                                                  N,
+                                                                                  dx,
+                                                                                  incx,
+                                                                                  stride_x,
+                                                                                  dy,
+                                                                                  incy,
+                                                                                  stride_y,
+                                                                                  batch_count,
+                                                                                  d_rocblas_result),
         rocblas_status_invalid_handle);
 }
 
@@ -64,16 +91,16 @@ void testing_dotc_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
-    rocblas_int          batch_count = arg.batch_count;
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    rocblas_int          stride_x    = abs_incx * N;//arg.stride_x;
-    rocblas_int          stride_y    = abs_incy * N;//arg.stride_y;
-    size_t               size_x   = N * size_t(abs_incx);
-    size_t               size_y   = N * size_t(abs_incy);
+    rocblas_int    N           = arg.N;
+    rocblas_int    incx        = arg.incx;
+    rocblas_int    incy        = arg.incy;
+    rocblas_int    batch_count = arg.batch_count;
+    rocblas_int    abs_incx    = incx >= 0 ? incx : -incx;
+    rocblas_int    abs_incy    = incy >= 0 ? incy : -incy;
+    rocblas_stride stride_x    = arg.stride_x;
+    rocblas_stride stride_y    = arg.stride_y;
+    size_t         size_x      = N * size_t(abs_incx);
+    size_t         size_y      = N * size_t(abs_incy);
 
     double               rocblas_error_1;
     double               rocblas_error_2;
@@ -86,6 +113,7 @@ void testing_dot_strided_batched(const Arguments& arg)
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
         device_vector<T>    d_rocblas_result(safe_size);
+
         if(!dx || !dy || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -93,18 +121,35 @@ void testing_dot_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+
         if(batch_count < 0)
         {
-            EXPECT_ROCBLAS_STATUS(
-            (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
-                                rocblas_status_invalid_size);
+            EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
+                                        : rocblas_dot_strided_batched<T>)(handle,
+                                                                          N,
+                                                                          dx,
+                                                                          incx,
+                                                                          stride_x,
+                                                                          dy,
+                                                                          incy,
+                                                                          stride_y,
+                                                                          batch_count,
+                                                                          d_rocblas_result),
+                                  rocblas_status_invalid_size);
         }
         else
         {
-            CHECK_ROCBLAS_ERROR(
-                (CONJ ? rocblas_dotc_strided_batched<T>
-                    : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result));
+            CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
+                                      : rocblas_dot_strided_batched<T>)(handle,
+                                                                        N,
+                                                                        dx,
+                                                                        incx,
+                                                                        stride_x,
+                                                                        dy,
+                                                                        incy,
+                                                                        stride_y,
+                                                                        batch_count,
+                                                                        d_rocblas_result));
         }
         return;
     }
@@ -113,8 +158,8 @@ void testing_dot_strided_batched(const Arguments& arg)
     host_vector<T> rocblas_result_1(batch_count);
     host_vector<T> rocblas_result_2(batch_count);
 
-    size_x += static_cast<size_t>(stride_x) * static_cast<size_t>(batch_count - 1);
-    size_y += static_cast<size_t>(stride_y) * static_cast<size_t>(batch_count - 1);
+    size_x += size_t(stride_x) * size_t(batch_count - 1);
+    size_y += size_t(stride_y) * size_t(batch_count - 1);
 
     // allocate memory on device
     device_vector<T> dx(size_x);
@@ -146,23 +191,44 @@ void testing_dot_strided_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(
-            (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1));
+        CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
+                                  : rocblas_dot_strided_batched<T>)(handle,
+                                                                    N,
+                                                                    dx,
+                                                                    incx,
+                                                                    stride_x,
+                                                                    dy,
+                                                                    incy,
+                                                                    stride_y,
+                                                                    batch_count,
+                                                                    rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(
-            (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result_2));
-        CHECK_HIP_ERROR(
-            hipMemcpy(rocblas_result_2, d_rocblas_result_2, sizeof(T)*batch_count, hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
+                                  : rocblas_dot_strided_batched<T>)(handle,
+                                                                    N,
+                                                                    dx,
+                                                                    incx,
+                                                                    stride_x,
+                                                                    dy,
+                                                                    incy,
+                                                                    stride_y,
+                                                                    batch_count,
+                                                                    d_rocblas_result_2));
+        CHECK_HIP_ERROR(hipMemcpy(
+            rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
         for(int b = 0; b < batch_count; ++b)
         {
-            (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx + b * stride_x, incx, hy + b * stride_y, incy, &cpu_result[b]);
+            (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N,
+                                                  hx + b * stride_x,
+                                                  incx,
+                                                  hy + b * stride_y,
+                                                  incy,
+                                                  &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
@@ -194,7 +260,16 @@ void testing_dot_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1);
+                  : rocblas_dot_strided_batched<T>)(handle,
+                                                    N,
+                                                    dx,
+                                                    incx,
+                                                    stride_x,
+                                                    dy,
+                                                    incy,
+                                                    stride_y,
+                                                    batch_count,
+                                                    rocblas_result_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -202,21 +277,32 @@ void testing_dot_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1);
+                  : rocblas_dot_strided_batched<T>)(handle,
+                                                    N,
+                                                    dx,
+                                                    incx,
+                                                    stride_x,
+                                                    dy,
+                                                    incy,
+                                                    stride_y,
+                                                    batch_count,
+                                                    rocblas_result_1);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * dot_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout << "N,incx,stridex,incy,stridey,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        std::cout
+            << "N,incx,stridex,incy,stridey,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
             std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
         std::cout << std::endl;
-        std::cout << N << "," << incx << "," << stride_x << "," << incy << "," << stride_y << "," << batch_count<< "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used;
+        std::cout << N << "," << incx << "," << stride_x << "," << incy << "," << stride_y << ","
+                  << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ","
+                  << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

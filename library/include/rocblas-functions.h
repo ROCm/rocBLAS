@@ -321,6 +321,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of y.
+    @param[in]
+    y         pointer storing vector y on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
     @param[inout]
     result
               store the dot product. either on the host CPU or device GPU.
@@ -395,13 +400,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle
 /*! \brief BLAS Level 1 API
 
     \details
-    dot_batched(u)  perform dot product of vector x and y
+    dot_batched(u) performs a batch of dot products of vectors x and y
 
-        result = x * y;
+        result_i = x_i * y_i;
 
-    dotc  perform dot product of complex vector x and complex y
+    dotc_batched  performs a batch dot of products of complex vectors x and complex y
 
-        result = conjugate (x) * y;
+        result_i = conjugate (x_i) * y_i;
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors.
 
     @param[in]
     handle    rocblas_handle.
@@ -409,81 +417,110 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle
     @param[in]
     n         rocblas_int.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         array of pointers storing the different vectors x_i on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              specifies the increment for the elements of x_i.
+    @param[in]
+    y         array of pointers storing the different vectors y_i on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y_i.
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
     @param[inout]
     result
-              store the dot product. either on the host CPU or device GPU.
+              store the dot products. either on the host CPU or device GPU.
               return is 0.0 if n <= 0.
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_sdot_batched(rocblas_handle handle,
-                                           rocblas_int    n,
-                                           const float* const x[],
-                                           rocblas_int    incx,
-                                           const float* const y[],
-                                           rocblas_int    incy,
-                                           rocblas_stride    batch_count,
-                                           float*         result);
+ROCBLAS_EXPORT rocblas_status rocblas_sdot_batched(rocblas_handle     handle,
+                                                   rocblas_int        n,
+                                                   const float* const x[],
+                                                   rocblas_int        incx,
+                                                   const float* const y[],
+                                                   rocblas_int        incy,
+                                                   rocblas_int        batch_count,
+                                                   float*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_ddot_batched(rocblas_handle handle,
-                                           rocblas_int    n,
-                                           const double*  const x[],
-                                           rocblas_int    incx,
-                                           const double*  const y[],
-                                           rocblas_int    incy,
-                                           rocblas_stride    batch_count,
-                                           double*        result);
+ROCBLAS_EXPORT rocblas_status rocblas_ddot_batched(rocblas_handle      handle,
+                                                   rocblas_int         n,
+                                                   const double* const x[],
+                                                   rocblas_int         incx,
+                                                   const double* const y[],
+                                                   rocblas_int         incy,
+                                                   rocblas_int         batch_count,
+                                                   double*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_cdotu_batched(rocblas_handle               handle,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* const x[],
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* const y[],
-                                            rocblas_int                  incy,
-                                           rocblas_stride    batch_count,
-                                            rocblas_float_complex*       result);
+ROCBLAS_EXPORT rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
+                                                   rocblas_int               n,
+                                                   const rocblas_half* const x[],
+                                                   rocblas_int               incx,
+                                                   const rocblas_half* const y[],
+                                                   rocblas_int               incy,
+                                                   rocblas_int               batch_count,
+                                                   rocblas_half*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zdotu_batched(rocblas_handle                handle,
-                                            rocblas_int                   n,
-                                            const rocblas_double_complex* const x[],
-                                            rocblas_int                   incx,
-                                            const rocblas_double_complex* const y[],
-                                            rocblas_int                   incy,
-                                           rocblas_stride    batch_count,
-                                            rocblas_double_complex*       result);
+ROCBLAS_EXPORT rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,
+                                                    rocblas_int                   n,
+                                                    const rocblas_bfloat16* const x[],
+                                                    rocblas_int                   incx,
+                                                    const rocblas_bfloat16* const y[],
+                                                    rocblas_int                   incy,
+                                                    rocblas_int                   batch_count,
+                                                    rocblas_bfloat16*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_cdotc_batched(rocblas_handle               handle,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* const x[],
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* const y[],
-                                            rocblas_int                  incy,
-                                           rocblas_stride    batch_count,
-                                            rocblas_float_complex*       result);
+ROCBLAS_EXPORT rocblas_status rocblas_cdotu_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count,
+                                                    rocblas_float_complex*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle                handle,
-                                            rocblas_int                   n,
-                                            const rocblas_double_complex* const x[],
-                                            rocblas_int                   incx,
-                                            const rocblas_double_complex* const y[],
-                                            rocblas_int                   incy,
-                                           rocblas_stride    batch_count,
-                                            rocblas_double_complex*       result);
+ROCBLAS_EXPORT rocblas_status rocblas_zdotu_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int                         batch_count,
+                                                    rocblas_double_complex*             result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdotc_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count,
+                                                    rocblas_float_complex*             result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int                         batch_count,
+                                                    rocblas_double_complex*             result);
 
 /*! \brief BLAS Level 1 API
 
     \details
-    dot_strided_batched(u)  perform dot product of vector x and y
+    dot_strided_batched(u)  performs a batch of dot product of vectors x and y
 
-        result = x * y;
+        result_i = x_i * y_i;
 
-    dotc  perform dot product of complex vector x and complex y
+    dotc_strided_batched  performs a batch of dot product of complex vectors x and complex y
 
-        result = conjugate (x) * y;
+        result_i = conjugate (x_i) * y_i;
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors.
 
     @param[in]
     handle    rocblas_handle.
@@ -491,82 +528,118 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
     @param[in]
     n         rocblas_int.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         pointer to the first vector (x_0) in the batch stored on the GPU.
     @param[in]
     incx      rocblas_int
-              specifies the increment for the elements of y.
+              specifies the increment for the elements of x_i.
+    @param[in]
+    stridex     rocblas_stride
+                stride from the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    y         pointer to the first vector (y_0) in the batch stored on the GPU.
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of y_i.
+    @param[in]
+    stridey     rocblas_stride
+                stride from the start of one vector (y_i) and the neyt one (y_i+1)
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
     @param[inout]
     result
-              store the dot product. either on the host CPU or device GPU.
+              store the dot products. either on the host CPU or device GPU.
               return is 0.0 if n <= 0.
 
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
-                                           rocblas_int    n,
-                                           const float*   x,
-                                           rocblas_int    incx,
-                                            rocblas_int    stridex,
-                                           const float*   y,
-                                           rocblas_int    incy,
-                                           rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                           float*         result);
+                                                           rocblas_int    n,
+                                                           const float*   x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           const float*   y,
+                                                           rocblas_int    incy,
+                                                           rocblas_stride stridey,
+                                                           rocblas_int    batch_count,
+                                                           float*         result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ddot_strided_batched(rocblas_handle handle,
-                                           rocblas_int    n,
-                                           const double*  x,
-                                           rocblas_int    incx,
-                               rocblas_int    stridex,
-                                           const double*  y,
-                                           rocblas_int    incy,
-                               rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                           double*        result);
+                                                           rocblas_int    n,
+                                                           const double*  x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           const double*  y,
+                                                           rocblas_int    incy,
+                                                           rocblas_stride stridey,
+                                                           rocblas_int    batch_count,
+                                                           double*        result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
+                                                           rocblas_int         n,
+                                                           const rocblas_half* x,
+                                                           rocblas_int         incx,
+                                                           rocblas_stride      stridex,
+                                                           const rocblas_half* y,
+                                                           rocblas_int         incy,
+                                                           rocblas_stride      stridey,
+                                                           rocblas_int         batch_count,
+                                                           rocblas_half*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,
+                                                            rocblas_int             n,
+                                                            const rocblas_bfloat16* x,
+                                                            rocblas_int             incx,
+                                                            rocblas_stride          stridex,
+                                                            const rocblas_bfloat16* y,
+                                                            rocblas_int             incy,
+                                                            rocblas_stride          stridey,
+                                                            rocblas_int             batch_count,
+                                                            rocblas_bfloat16*       result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cdotu_strided_batched(rocblas_handle               handle,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                               rocblas_int    stridex,
-                                            const rocblas_float_complex* y,
-                                            rocblas_int                  incy,
-                               rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                            rocblas_float_complex*       result);
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int            batch_count,
+                                                            rocblas_float_complex* result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zdotu_strided_batched(rocblas_handle                handle,
-                                            rocblas_int                   n,
-                                            const rocblas_double_complex* x,
-                                            rocblas_int                   incx,
-                               rocblas_int    stridex,
-                                            const rocblas_double_complex* y,
-                                            rocblas_int                   incy,
-                               rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                            rocblas_double_complex*       result);
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            const rocblas_double_complex* y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stridey,
+                                                            rocblas_int             batch_count,
+                                                            rocblas_double_complex* result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cdotc_strided_batched(rocblas_handle               handle,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                               rocblas_int    stridex,
-                                            const rocblas_float_complex* y,
-                                            rocblas_int                  incy,
-                               rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                            rocblas_float_complex*       result);
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int            batch_count,
+                                                            rocblas_float_complex* result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handle,
-                                            rocblas_int                   n,
-                                            const rocblas_double_complex* x,
-                                            rocblas_int                   incx,
-                               rocblas_int    stridex,
-                                            const rocblas_double_complex* y,
-                                            rocblas_int                   incy,
-                               rocblas_int    stridey,
-                                           rocblas_stride    batch_count,
-                                            rocblas_double_complex*       result);
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            const rocblas_double_complex* y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stridey,
+                                                            rocblas_int             batch_count,
+                                                            rocblas_double_complex* result);
 
 /*! \brief BLAS Level 1 API
 

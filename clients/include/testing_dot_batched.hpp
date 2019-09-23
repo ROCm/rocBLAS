@@ -18,16 +18,16 @@
 template <typename T, bool CONJ = false>
 void testing_dot_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int incy        = 1;
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle    handle;
     device_vector<T*, 0, T> dx(1);
     device_vector<T*, 0, T> dy(1);
-    device_vector<T>     d_rocblas_result(batch_count);
+    device_vector<T>        d_rocblas_result(batch_count);
     if(!dx || !dy || !d_rocblas_result)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -37,18 +37,38 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_batched<T>
-              : rocblas_dot_batched<T>)(handle, N, nullptr, incx, dy, incy, batch_count, d_rocblas_result),
+        (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                  N,
+                                                                  nullptr,
+                                                                  incx,
+                                                                  dy,
+                                                                  incy,
+                                                                  batch_count,
+                                                                  d_rocblas_result),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                  N,
+                                                                  dx,
+                                                                  incx,
+                                                                  nullptr,
+                                                                  incy,
+                                                                  batch_count,
+                                                                  d_rocblas_result),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         (CONJ ? rocblas_dotc_batched<T>
-              : rocblas_dot_batched<T>)(handle, N, dx, incx, nullptr, incy, batch_count, d_rocblas_result),
+              : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, nullptr),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(nullptr, N, dx, incx, dy, incy, batch_count, d_rocblas_result),
+        (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(nullptr,
+                                                                  N,
+                                                                  dx,
+                                                                  incx,
+                                                                  dy,
+                                                                  incy,
+                                                                  batch_count,
+                                                                  d_rocblas_result),
         rocblas_status_invalid_handle);
 }
 
@@ -61,10 +81,10 @@ void testing_dotc_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot_batched(const Arguments& arg)
 {
-    rocblas_int N    = arg.N;
-    rocblas_int incx = arg.incx;
-    rocblas_int incy = arg.incy;
-    rocblas_int          batch_count = arg.batch_count;
+    rocblas_int N           = arg.N;
+    rocblas_int incx        = arg.incx;
+    rocblas_int incy        = arg.incy;
+    rocblas_int batch_count = arg.batch_count;
 
     double               rocblas_error_1;
     double               rocblas_error_2;
@@ -73,10 +93,10 @@ void testing_dot_batched(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
+        static const size_t     safe_size = 100; // arbitrarily set to 100
         device_vector<T*, 0, T> dx(1);
         device_vector<T*, 0, T> dy(1);
-        device_vector<T>    d_rocblas_result(safe_size);
+        device_vector<T>        d_rocblas_result(safe_size);
         if(!dx || !dy || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -88,16 +108,27 @@ void testing_dot_batched(const Arguments& arg)
         if(batch_count < 0)
         {
             EXPECT_ROCBLAS_STATUS(
-            (CONJ ? rocblas_dotc_batched<T>
-                  : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, d_rocblas_result),
-                                rocblas_status_invalid_size);
-
+                (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                          N,
+                                                                          dx,
+                                                                          incx,
+                                                                          dy,
+                                                                          incy,
+                                                                          batch_count,
+                                                                          d_rocblas_result),
+                rocblas_status_invalid_size);
         }
         else
         {
             CHECK_ROCBLAS_ERROR(
-                (CONJ ? rocblas_dotc_batched<T>
-                    : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, d_rocblas_result));
+                (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                          N,
+                                                                          dx,
+                                                                          incx,
+                                                                          dy,
+                                                                          incy,
+                                                                          batch_count,
+                                                                          d_rocblas_result));
         }
         return;
     }
@@ -105,15 +136,15 @@ void testing_dot_batched(const Arguments& arg)
     host_vector<T> cpu_result(batch_count);
     host_vector<T> rocblas_result_1(batch_count);
     host_vector<T> rocblas_result_2(batch_count);
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
-    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
+    rocblas_int    abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int    abs_incy = incy >= 0 ? incy : -incy;
+    size_t         size_x   = N * size_t(abs_incx);
+    size_t         size_y   = N * size_t(abs_incy);
 
     //Device-arrays of pointers to device memory
     device_vector<T*, 0, T> dx(batch_count);
     device_vector<T*, 0, T> dy(batch_count);
-    device_vector<T> d_rocblas_result_2(batch_count);
+    device_vector<T>        d_rocblas_result_2(batch_count);
     if(!dx || !dy || !d_rocblas_result_2)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -131,8 +162,8 @@ void testing_dot_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; ++b)
     {
-        hx[b]      = host_vector<T>(size_x);
-        hy[b]      = host_vector<T>(size_y);
+        hx[b] = host_vector<T>(size_x);
+        hy[b] = host_vector<T>(size_y);
     }
 
     int last = batch_count - 1;
@@ -171,17 +202,29 @@ void testing_dot_batched(const Arguments& arg)
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            (CONJ ? rocblas_dotc_batched<T>
-                  : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, rocblas_result_1));
+            (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      dy,
+                                                                      incy,
+                                                                      batch_count,
+                                                                      rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            (CONJ ? rocblas_dotc_batched<T>
-                  : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, d_rocblas_result_2));
+            (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      dy,
+                                                                      incy,
+                                                                      batch_count,
+                                                                      d_rocblas_result_2));
 
-        CHECK_HIP_ERROR(
-            hipMemcpy(rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(
+            rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -219,16 +262,28 @@ void testing_dot_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            (CONJ ? rocblas_dotc_batched<T>
-                  : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, rocblas_result_1);
+            (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      dy,
+                                                                      incy,
+                                                                      batch_count,
+                                                                      rocblas_result_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            (CONJ ? rocblas_dotc_batched<T>
-                  : rocblas_dot_batched<T>)(handle, N, dx, incx, dy, incy, batch_count, rocblas_result_1);
+            (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      dy,
+                                                                      incy,
+                                                                      batch_count,
+                                                                      rocblas_result_1);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -241,8 +296,8 @@ void testing_dot_batched(const Arguments& arg)
             std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
         std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used;
+        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << rocblas_gflops
+                  << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;

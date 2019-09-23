@@ -8,15 +8,23 @@
 #include "utility.h"
 
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
-__global__ void dot_kernel_part1(
-    rocblas_int n, const U xa, rocblas_int    offsetx, rocblas_int incx, rocblas_int stridex, const U  ya, rocblas_int    offsety, rocblas_int incy, rocblas_int stridey, V* workspace)
+__global__ void dot_kernel_part1(rocblas_int    n,
+                                 const U        xa,
+                                 rocblas_int    offsetx,
+                                 rocblas_int    incx,
+                                 rocblas_stride stridex,
+                                 const U        ya,
+                                 rocblas_int    offsety,
+                                 rocblas_int    incy,
+                                 rocblas_int    stridey,
+                                 V*             workspace)
 {
     ptrdiff_t tx  = hipThreadIdx_x;
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + tx;
 
     __shared__ V tmp[NB];
-    const T* x;
-    const T* y;
+    const T*     x;
+    const T*     y;
 
     // bound
     if(tid < n)
@@ -35,25 +43,25 @@ __global__ void dot_kernel_part1(
     rocblas_sum_reduce<NB>(tx, tmp);
 
     if(tx == 0)
-        workspace[hipBlockIdx_x + hipBlockIdx_y*hipGridDim_x] = tmp[0];
+        workspace[hipBlockIdx_x + hipBlockIdx_y * hipGridDim_x] = tmp[0];
 }
 
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
-template <rocblas_int NB, bool CONJ, typename T, typename U , typename V = T>
+template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
 rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
-                                        rocblas_int n,
-                                        const U    x,
-                                        rocblas_int    offsetx, 
-                                        rocblas_int incx,
-                                        rocblas_int stridex,
-                                        const U    y,
-                                        rocblas_int    offsety,
-                                        rocblas_int incy,
-                                        rocblas_int stridey,
-                                        rocblas_stride    batch_count,
-                                        T*          results,
-                                        V*          workspace)
+                                    rocblas_int    n,
+                                    const U        x,
+                                    rocblas_int    offsetx,
+                                    rocblas_int    incx,
+                                    rocblas_stride stridex,
+                                    const U        y,
+                                    rocblas_int    offsety,
+                                    rocblas_int    incy,
+                                    rocblas_stride stridey,
+                                    rocblas_int    batch_count,
+                                    T*             results,
+                                    V*             workspace)
 {
     // At least two kernels are needed to finish the reduction
     // kennel 1 write partial results per thread block in workspace, number of partial results is
@@ -80,51 +88,51 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
     }
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
-    dim3 grid(blocks, batch_count);
-    dim3 threads(NB);
+    dim3        grid(blocks, batch_count);
+    dim3        threads(NB);
 
     hipLaunchKernelGGL(dot_kernel_part1<NB, CONJ, T>,
-                        grid,
-                        threads,
-                        0,
-                        handle->rocblas_stream,
-                        n,
-                        x,
-                        offsetx,
-                        incx,
-                        stridex,
-                        y,
-                        offsety,
-                        incy,
-                        stridey,
-                        workspace);
+                       grid,
+                       threads,
+                       0,
+                       handle->rocblas_stream,
+                       n,
+                       x,
+                       offsetx,
+                       incx,
+                       stridex,
+                       y,
+                       offsety,
+                       incy,
+                       stridey,
+                       workspace);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         hipLaunchKernelGGL(rocblas_reduction_strided_batched_kernel_part2<NB>,
-                            dim3(1, batch_count),
-                            threads,
-                            0,
-                            handle->rocblas_stream,
-                            blocks,
-                            workspace,
-                            results);
+                           dim3(1, batch_count),
+                           threads,
+                           0,
+                           handle->rocblas_stream,
+                           blocks,
+                           workspace,
+                           results);
     }
     else
     {
         hipLaunchKernelGGL(rocblas_reduction_strided_batched_kernel_part2<NB>,
-                            dim3(1, batch_count),
-                            threads,
-                            0,
-                            handle->rocblas_stream,
-                            blocks,
-                            workspace,
-                            workspace);
+                           dim3(1, batch_count),
+                           threads,
+                           0,
+                           handle->rocblas_stream,
+                           blocks,
+                           workspace,
+                           workspace);
 
         V res_V[batch_count];
         RETURN_IF_HIP_ERROR(
             hipMemcpy(res_V, workspace, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
-        for(int i = 0; i<batch_count; i++)
+        for(int i = 0; i < batch_count; i++)
             results[i] = T(res_V[i]);
     }
 
