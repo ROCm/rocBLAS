@@ -107,23 +107,23 @@ namespace
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(C_tmp_arr, C_tmp_host, batch_count * sizeof(T*), hipMemcpyHostToDevice));
 
-            status = rocblas_trtri_large<NB, true, T>(handle,
-                                                      uplo,
-                                                      diag,
-                                                      n,
-                                                      A,
-                                                      0,
-                                                      lda,
-                                                      0,
-                                                      0,
-                                                      invA,
-                                                      0,
-                                                      ldinvA,
-                                                      0,
-                                                      0,
-                                                      batch_count,
-                                                      1,
-                                                      (T**)C_tmp_arr);
+            status = rocblas_trtri_large<NB, true, false, T>(handle,
+                                                             uplo,
+                                                             diag,
+                                                             n,
+                                                             A,
+                                                             0,
+                                                             lda,
+                                                             0,
+                                                             0,
+                                                             invA,
+                                                             0,
+                                                             ldinvA,
+                                                             0,
+                                                             0,
+                                                             batch_count,
+                                                             1,
+                                                             (T**)C_tmp_arr);
         }
 
         return status;

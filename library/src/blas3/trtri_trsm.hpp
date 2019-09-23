@@ -180,7 +180,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         rocblas_int           stride_invA = NB * NB;
         rocblas_int           stride_C    = JB * JB;
 
-        trtri_gemm_block<false, T>(handle,
+        trtri_gemm_block<false, false, T>(handle,
                                    IB * 2,
                                    IB * 2,
                                    (const T*)A,
@@ -205,7 +205,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                                    uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * NB,
                                    0);
 
-        trtri_gemm_block<false, T>(
+        trtri_gemm_block<false, false, T>(
             handle,
             IB * 2,
             IB * 2,
@@ -231,7 +231,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
             uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4,
             0);
 
-        trtri_gemm_block<false, T>(handle,
+        trtri_gemm_block<false, false, T>(handle,
                                    JB,
                                    JB,
                                    (const T*)A,
@@ -280,7 +280,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            blocks * NB * NB,
                            0,
                            1);
-        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB, false, T>(handle,
+        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB, false, false, T>(handle,
                                                                     uplo,
                                                                     diag,
                                                                     rem,

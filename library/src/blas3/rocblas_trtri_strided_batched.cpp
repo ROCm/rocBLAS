@@ -122,23 +122,23 @@ namespace
             if(!C_tmp)
                 return rocblas_status_memory_error;
 
-            status = rocblas_trtri_large<NB, false, T>(handle,
-                                                       uplo,
-                                                       diag,
-                                                       n,
-                                                       A,
-                                                       0,
-                                                       lda,
-                                                       bsa,
-                                                       0,
-                                                       invA,
-                                                       0,
-                                                       ldinvA,
-                                                       bsinvA,
-                                                       0,
-                                                       batch_count,
-                                                       1,
-                                                       (T*)C_tmp);
+            status = rocblas_trtri_large<NB, false, true, T>(handle,
+                                                             uplo,
+                                                             diag,
+                                                             n,
+                                                             A,
+                                                             0,
+                                                             lda,
+                                                             bsa,
+                                                             0,
+                                                             invA,
+                                                             0,
+                                                             ldinvA,
+                                                             bsinvA,
+                                                             0,
+                                                             batch_count,
+                                                             1,
+                                                             (T*)C_tmp);
         }
 
         return status;

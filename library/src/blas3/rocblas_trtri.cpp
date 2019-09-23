@@ -65,23 +65,23 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_trtri_template<NB, false, T>(handle,
-                                                    uplo,
-                                                    diag,
-                                                    n,
-                                                    A,
-                                                    0,
-                                                    lda,
-                                                    lda * n,
-                                                    0,
-                                                    invA,
-                                                    0,
-                                                    ldinvA,
-                                                    ldinvA * n,
-                                                    0,
-                                                    1,
-                                                    1,
-                                                    (T*)mem);
+        return rocblas_trtri_template<NB, false, false, T>(handle,
+                                                           uplo,
+                                                           diag,
+                                                           n,
+                                                           A,
+                                                           0,
+                                                           lda,
+                                                           lda * n,
+                                                           0,
+                                                           invA,
+                                                           0,
+                                                           ldinvA,
+                                                           ldinvA * n,
+                                                           0,
+                                                           1,
+                                                           1,
+                                                           (T*)mem);
     }
 
 }
