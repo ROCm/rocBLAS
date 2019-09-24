@@ -275,8 +275,8 @@ Tests:
     incx: *incx_range
     batch_count: [2]
     function:
-      - asum_batched: *single_double_precisions_complex_real
-      - nrm2_batched: *single_double_precisions_complex_real
+      - asum_batched: *double_precision_complex_real
+      - nrm2_batched: *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -285,8 +285,8 @@ Tests:
     batch_count: [2]
     stride_scale: [ 1.5 ]
     function:
-      - asum_strided_batched: *single_double_precisions_complex_real
-      - nrm2_strided_batched: *single_double_precisions_complex_real
+      - asum_strided_batched: *double_precision_complex_real
+      - nrm2_strided_batched: *double_precision_complex_real
 
   - name: blas1
     category: nightly
