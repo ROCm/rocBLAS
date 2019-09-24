@@ -973,7 +973,6 @@ static constexpr auto rocblas_trsm_batched<double> = rocblas_dtrsm_batched;
 //                                                   rocblas_int       stride_invA,
 //                                                   rocblas_datatype  compute_type);
 
-
 // trsm_strided_batched
 template <typename T>
 rocblas_status (*rocblas_trsm_strided_batched)(rocblas_handle    handle,

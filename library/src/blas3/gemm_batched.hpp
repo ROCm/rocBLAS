@@ -5,8 +5,8 @@
 #ifndef __GEMM_BATCHED_HPP__
 #define __GEMM_BATCHED_HPP__
 
-#include "gemm_host.hpp"
 #include "Tensile.h"
+#include "gemm_host.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"

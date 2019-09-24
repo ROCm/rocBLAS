@@ -57,8 +57,8 @@ namespace
         /////////////
         auto layer_mode = handle->layer_mode;
         if(layer_mode
-            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-                | rocblas_layer_mode_log_profile))
+           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+              | rocblas_layer_mode_log_profile))
         {
             auto side_letter   = rocblas_side_letter(side);
             auto uplo_letter   = rocblas_fill_letter(uplo);
@@ -69,72 +69,72 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                                rocblas_trsm_name<T>,
-                                side,
-                                uplo,
-                                transA,
-                                diag,
-                                m,
-                                n,
-                                *alpha,
-                                A,
-                                lda,
-                                stride_A,
-                                B,
-                                ldb,
-                                stride_B,
-                                batch_count);
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              *alpha,
+                              A,
+                              lda,
+                              stride_A,
+                              B,
+                              ldb,
+                              stride_B,
+                              batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     log_bench(handle,
-                                "./rocblas-bench -f trsm_strided_batched -r",
-                                rocblas_precision_string<T>,
-                                "--side",
-                                side_letter,
-                                "--uplo",
-                                uplo_letter,
-                                "--transposeA",
-                                transA_letter,
-                                "--diag",
-                                diag_letter,
-                                "-m",
-                                m,
-                                "-n",
-                                n,
-                                "--alpha",
-                                *alpha,
-                                "--lda",
-                                lda,
-                                "--stride_A",
-                                stride_A,
-                                "--ldb",
-                                ldb,
-                                "--stride_B",
-                                stride_B,
-                                "--batch",
-                                batch_count);
+                              "./rocblas-bench -f trsm_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--side",
+                              side_letter,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              "--alpha",
+                              *alpha,
+                              "--lda",
+                              lda,
+                              "--stride_A",
+                              stride_A,
+                              "--ldb",
+                              ldb,
+                              "--stride_B",
+                              stride_B,
+                              "--batch",
+                              batch_count);
                 }
             }
             else
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                                rocblas_trsm_name<T>,
-                                side,
-                                uplo,
-                                transA,
-                                diag,
-                                m,
-                                n,
-                                alpha,
-                                A,
-                                lda,
-                                stride_A,
-                                B,
-                                ldb,
-                                stride_B,
-                                batch_count);
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              alpha,
+                              A,
+                              lda,
+                              stride_A,
+                              B,
+                              ldb,
+                              stride_B,
+                              batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -201,26 +201,26 @@ namespace
         // return status_size_unchanged if device memory size query
         if(!m || !n)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                            : rocblas_status_success;
+                                                         : rocblas_status_success;
 
         return rocblas_trsm_strided_batched_template<BLOCK, T>(handle,
-                                                                side,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                m,
-                                                                n,
-                                                                alpha,
-                                                                A,
-                                                                lda,
-                                                                stride_A,
-                                                                B,
-                                                                ldb,
-                                                                stride_B,
-                                                                batch_count,
-                                                                supplied_invA,
-                                                                supplied_invA_size,
-                                                                stride_invA);
+                                                               side,
+                                                               uplo,
+                                                               transA,
+                                                               diag,
+                                                               m,
+                                                               n,
+                                                               alpha,
+                                                               A,
+                                                               lda,
+                                                               stride_A,
+                                                               B,
+                                                               ldb,
+                                                               stride_B,
+                                                               batch_count,
+                                                               supplied_invA,
+                                                               supplied_invA_size,
+                                                               stride_invA);
     }
 
 }

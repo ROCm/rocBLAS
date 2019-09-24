@@ -46,10 +46,10 @@ void testing_trsm_batched(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        rocblas_int         num_batch = batch_count < 0 ? 1 : batch_count;
-        device_vector<T*, 0, T>    dA(1);
-        device_vector<T*, 0, T>    dXorB(1);
+        static const size_t     safe_size = 100; // arbitrarily set to 100
+        rocblas_int             num_batch = batch_count < 0 ? 1 : batch_count;
+        device_vector<T*, 0, T> dA(1);
+        device_vector<T*, 0, T> dXorB(1);
 
         if(!dA || !dXorB)
         {
@@ -117,7 +117,7 @@ void testing_trsm_batched(const Arguments& arg)
     device_batch_vector<T> Av(batch_count, size_A);
     device_batch_vector<T> XorBv(batch_count, size_B);
 
-    int                    last = batch_count - 1;
+    int last = batch_count - 1;
     if(!dA || !dXorB || !alpha_d || (!Av[last] && size_A) || (!XorBv[last] && size_B))
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

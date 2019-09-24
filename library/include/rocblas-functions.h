@@ -4712,7 +4712,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                         compute_type)
 // clang-format on
 
-
 // TODO: Finish documentation
 /*! BLAS EX API
 

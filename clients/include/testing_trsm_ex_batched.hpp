@@ -19,7 +19,6 @@
 #define RESIDUAL_EPS_MULTIPLIER 20
 #define TRSM_BLOCK 128
 
-
 template <typename T>
 void testing_trsm_ex_batched(const Arguments& arg)
 {
@@ -28,11 +27,11 @@ void testing_trsm_ex_batched(const Arguments& arg)
     rocblas_int lda = arg.lda;
     rocblas_int ldb = arg.ldb;
 
-    char char_side   = arg.side;
-    char char_uplo   = arg.uplo;
-    char char_transA = arg.transA;
-    char char_diag   = arg.diag;
-    T    alpha_h     = arg.alpha;
+    char        char_side   = arg.side;
+    char        char_uplo   = arg.uplo;
+    char        char_transA = arg.transA;
+    char        char_diag   = arg.diag;
+    T           alpha_h     = arg.alpha;
     rocblas_int batch_count = arg.batch_count;
 
     rocblas_side      side   = char2rocblas_side(char_side);
@@ -70,7 +69,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
     device_vector<T*, 0, T> dXorB(batch_count);
     device_vector<T*, 0, T> dinvA(batch_count);
     device_vector<T*, 0, T> dX_tmp(batch_count);
-    device_vector<T> alpha_d(1);
+    device_vector<T>        alpha_d(1);
 
     // Host-arrays of pointers to host memory
     host_vector<T> hA[batch_count]; //(size_A);
@@ -105,7 +104,8 @@ void testing_trsm_ex_batched(const Arguments& arg)
     device_batch_vector<T> bX_tmp(batch_count, M * N);
 
     int last = batch_count - 1;
-    if((!bA[last] && size_A) || (!bXorB[last] && size_B) || (!binvA[last] && TRSM_BLOCK * K) || (!bX_tmp[last] && M * N))
+    if((!bA[last] && size_A) || (!bXorB[last] && size_B) || (!binvA[last] && TRSM_BLOCK * K)
+       || (!bX_tmp[last] && M * N))
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -142,18 +142,18 @@ void testing_trsm_ex_batched(const Arguments& arg)
 
         //  calculate AAT = hA * hA ^ T
         cblas_gemm<T, T>(rocblas_operation_none,
-                        rocblas_operation_transpose,
-                        K,
-                        K,
-                        K,
-                        1.0,
-                        hA[b],
-                        lda,
-                        hA[b],
-                        lda,
-                        0.0,
-                        AAT[b],
-                        lda);
+                         rocblas_operation_transpose,
+                         K,
+                         K,
+                         K,
+                         1.0,
+                         hA[b],
+                         lda,
+                         hA[b],
+                         lda,
+                         0.0,
+                         AAT[b],
+                         lda);
 
         //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < K; i++)
@@ -167,7 +167,6 @@ void testing_trsm_ex_batched(const Arguments& arg)
             hA[b][i + i * lda] = t;
         }
 
-        
         //  calculate Cholesky factorization of SPD matrix hA
         cblas_potrf<T>(char_uplo, K, hA[b], lda);
 
@@ -198,7 +197,6 @@ void testing_trsm_ex_batched(const Arguments& arg)
                 hX[b][i + j * ldb] = 0.0;
         hB[b] = hX[b];
 
-        
         // Calculate hB = hA*hX;
         cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
 
@@ -233,7 +231,8 @@ void testing_trsm_ex_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(
+                hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
         }
         CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
@@ -256,17 +255,18 @@ void testing_trsm_ex_batched(const Arguments& arg)
                                                                      blocks));
 
             if(K % TRSM_BLOCK != 0 || blocks == 0)
-                CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
-                                                                     uplo,
-                                                                     diag,
-                                                                     K - TRSM_BLOCK * blocks,
-                                                                     bA[b] + stride_A * blocks,
-                                                                     lda,
-                                                                     stride_A,
-                                                                     binvA[b] + stride_invA * blocks,
-                                                                     TRSM_BLOCK,
-                                                                     stride_invA,
-                                                                     1));
+                CHECK_ROCBLAS_ERROR(
+                    rocblas_trtri_strided_batched<T>(handle,
+                                                     uplo,
+                                                     diag,
+                                                     K - TRSM_BLOCK * blocks,
+                                                     bA[b] + stride_A * blocks,
+                                                     lda,
+                                                     stride_A,
+                                                     binvA[b] + stride_invA * blocks,
+                                                     TRSM_BLOCK,
+                                                     stride_invA,
+                                                     1));
         }
 
         size_t x_temp_size = M * N;
@@ -289,14 +289,16 @@ void testing_trsm_ex_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(hXorB_1[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
+            CHECK_HIP_ERROR(
+                hipMemcpy(hXorB_1[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
         }
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_2[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(
+                hipMemcpy(bXorB[b], hXorB_2[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
         }
         CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
@@ -320,7 +322,8 @@ void testing_trsm_ex_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(hXorB_2[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
+            CHECK_HIP_ERROR(
+                hipMemcpy(hXorB_2[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
         }
 
         // Error Check
@@ -338,8 +341,10 @@ void testing_trsm_ex_batched(const Arguments& arg)
                 {
                     if(hX[j + i * ldb] != 0)
                     {
-                        err_1 += std::abs((hX[b][j + i * ldb] - hXorB_1[b][j + i * ldb]) / hX[b][j + i * ldb]);
-                        err_2 += std::abs((hX[b][j + i * ldb] - hXorB_2[b][j + i * ldb]) / hX[b][j + i * ldb]);
+                        err_1 += std::abs((hX[b][j + i * ldb] - hXorB_1[b][j + i * ldb])
+                                          / hX[b][j + i * ldb]);
+                        err_2 += std::abs((hX[b][j + i * ldb] - hXorB_2[b][j + i * ldb])
+                                          / hX[b][j + i * ldb]);
                     }
                     else
                     {
@@ -358,8 +363,10 @@ void testing_trsm_ex_batched(const Arguments& arg)
         // hXorB <- hA * (A^(-1) B) ;
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
-            cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_2[b], ldb);
+            cblas_trmm<T>(
+                side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
+            cblas_trmm<T>(
+                side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_2[b], ldb);
         }
 
         // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
@@ -375,8 +382,10 @@ void testing_trsm_ex_batched(const Arguments& arg)
                 {
                     if(hB[j + i * ldb] != 0)
                     {
-                        res_1 += std::abs((hXorB_1[b][j + i * ldb] - hB[b][j + i * ldb]) / hB[b][j + i * ldb]);
-                        res_2 += std::abs((hXorB_2[b][j + i * ldb] - hB[b][j + i * ldb]) / hB[b][j + i * ldb]);
+                        res_1 += std::abs((hXorB_1[b][j + i * ldb] - hB[b][j + i * ldb])
+                                          / hB[b][j + i * ldb]);
+                        res_2 += std::abs((hXorB_2[b][j + i * ldb] - hB[b][j + i * ldb])
+                                          / hB[b][j + i * ldb]);
                     }
                     else
                     {
@@ -397,7 +406,8 @@ void testing_trsm_ex_batched(const Arguments& arg)
         // GPU rocBLAS
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(
+                hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
         }
         CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
@@ -405,8 +415,22 @@ void testing_trsm_ex_batched(const Arguments& arg)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(
-            rocblas_trsm_ex_batched(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb, batch_count, dinvA, TRSM_BLOCK * K, arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_batched(handle,
+                                                    side,
+                                                    uplo,
+                                                    transA,
+                                                    diag,
+                                                    M,
+                                                    N,
+                                                    &alpha_h,
+                                                    dA,
+                                                    lda,
+                                                    dXorB,
+                                                    ldb,
+                                                    batch_count,
+                                                    dinvA,
+                                                    TRSM_BLOCK * K,
+                                                    arg.compute_type));
 
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;

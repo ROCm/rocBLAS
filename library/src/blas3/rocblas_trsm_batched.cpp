@@ -43,7 +43,7 @@ namespace
                                                 T*                B[],
                                                 rocblas_int       ldb,
                                                 rocblas_int       batch_count,
-                                                const T*          supplied_invA[]      = nullptr,
+                                                const T*          supplied_invA[]    = nullptr,
                                                 rocblas_int       supplied_invA_size = 0)
     {
         if(!handle)
@@ -54,8 +54,8 @@ namespace
         /////////////
         auto layer_mode = handle->layer_mode;
         if(layer_mode
-            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-                | rocblas_layer_mode_log_profile))
+           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+              | rocblas_layer_mode_log_profile))
         {
             auto side_letter   = rocblas_side_letter(side);
             auto uplo_letter   = rocblas_fill_letter(uplo);
@@ -66,64 +66,64 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                                rocblas_trsm_name<T>,
-                                side,
-                                uplo,
-                                transA,
-                                diag,
-                                m,
-                                n,
-                                *alpha,
-                                A,
-                                lda,
-                                B,
-                                ldb,
-                                batch_count);
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              *alpha,
+                              A,
+                              lda,
+                              B,
+                              ldb,
+                              batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     log_bench(handle,
-                                "./rocblas-bench -f trsm_batched -r",
-                                rocblas_precision_string<T>,
-                                "--side",
-                                side_letter,
-                                "--uplo",
-                                uplo_letter,
-                                "--transposeA",
-                                transA_letter,
-                                "--diag",
-                                diag_letter,
-                                "-m",
-                                m,
-                                "-n",
-                                n,
-                                "--alpha",
-                                *alpha,
-                                "--lda",
-                                lda,
-                                "--ldb",
-                                ldb,
-                                "--batch",
-                                batch_count);
+                              "./rocblas-bench -f trsm_batched -r",
+                              rocblas_precision_string<T>,
+                              "--side",
+                              side_letter,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              "--alpha",
+                              *alpha,
+                              "--lda",
+                              lda,
+                              "--ldb",
+                              ldb,
+                              "--batch",
+                              batch_count);
                 }
             }
             else
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                                rocblas_trsm_name<T>,
-                                side,
-                                uplo,
-                                transA,
-                                diag,
-                                m,
-                                n,
-                                alpha,
-                                A,
-                                lda,
-                                B,
-                                ldb,
-                                batch_count);
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              alpha,
+                              A,
+                              lda,
+                              B,
+                              ldb,
+                              batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -181,24 +181,24 @@ namespace
         // return status_size_unchanged if device memory size query
         if(!m || !n)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                            : rocblas_status_success;
+                                                         : rocblas_status_success;
 
         rocblas_status status;
         status = rocblas_trsm_batched_template<BLOCK, T>(handle,
-                                                            side,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            m,
-                                                            n,
-                                                            alpha,
-                                                            A,
-                                                            lda,
-                                                            B,
-                                                            ldb,
-                                                            batch_count,
-                                                            supplied_invA,
-                                                            supplied_invA_size);
+                                                         side,
+                                                         uplo,
+                                                         transA,
+                                                         diag,
+                                                         m,
+                                                         n,
+                                                         alpha,
+                                                         A,
+                                                         lda,
+                                                         B,
+                                                         ldb,
+                                                         batch_count,
+                                                         supplied_invA,
+                                                         supplied_invA_size);
 
         return status;
     }
@@ -277,7 +277,7 @@ rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
                                                          m,
                                                          n,
                                                          (double*)(alpha),
-                                                         (const double* const *)(A),
+                                                         (const double* const*)(A),
                                                          lda,
                                                          (double**)(B),
                                                          ldb,
@@ -294,7 +294,7 @@ rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
                                                          m,
                                                          n,
                                                          (float*)(alpha),
-                                                         (const float* const *)(A),
+                                                         (const float* const*)(A),
                                                          lda,
                                                          (float**)(B),
                                                          ldb,

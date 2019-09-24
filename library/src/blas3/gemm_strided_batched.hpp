@@ -4,14 +4,13 @@
 #ifndef __GEMM_STRIDED_BATCHED_HPP__
 #define __GEMM_STRIDED_BATCHED_HPP__
 
-#include "gemm_host.hpp"
 #include "Tensile.h"
+#include "gemm_host.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
 #include <sys/time.h>
-
 
 template <typename>
 static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
@@ -39,23 +38,23 @@ static constexpr char rocblas_gemm_strided_batched_name<rocblas_double_complex>[
 ******************************************************************************/
 template <typename T>
 rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
-                                                rocblas_operation trans_a,
-                                                rocblas_operation trans_b,
-                                                rocblas_int       m,
-                                                rocblas_int       n,
-                                                rocblas_int       k,
-                                                const T*          alpha,
-                                                const T*          A,
-                                                rocblas_int       ld_a,
-                                                rocblas_int       stride_a,
-                                                const T*          B,
-                                                rocblas_int       ld_b,
-                                                rocblas_int       stride_b,
-                                                const T*          beta,
-                                                T*                C,
-                                                rocblas_int       ld_c,
-                                                rocblas_int       stride_c,
-                                                rocblas_int       b_c)
+                                                 rocblas_operation trans_a,
+                                                 rocblas_operation trans_b,
+                                                 rocblas_int       m,
+                                                 rocblas_int       n,
+                                                 rocblas_int       k,
+                                                 const T*          alpha,
+                                                 const T*          A,
+                                                 rocblas_int       ld_a,
+                                                 rocblas_int       stride_a,
+                                                 const T*          B,
+                                                 rocblas_int       ld_b,
+                                                 rocblas_int       stride_b,
+                                                 const T*          beta,
+                                                 T*                C,
+                                                 rocblas_int       ld_c,
+                                                 rocblas_int       stride_c,
+                                                 rocblas_int       b_c)
 
 {
     // clang-format off
@@ -213,29 +212,28 @@ rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
     // clang-format on
 }
 
-
 /*******************************************************************************
 * Batched / Strided GEMM Kernel name implementation
 ******************************************************************************/
 template <typename T>
 rocblas_status rocblas_gemm_strided_batched_kernel_name_impl(rocblas_handle    handle,
-                                                            rocblas_operation trans_a,
-                                                            rocblas_operation trans_b,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            rocblas_int       k,
-                                                            const T*          alpha,
-                                                            const T*          A,
-                                                            rocblas_int       ld_a,
-                                                            rocblas_int       stride_a,
-                                                            const T*          B,
-                                                            rocblas_int       ld_b,
-                                                            rocblas_int       stride_b,
-                                                            const T*          beta,
-                                                            T*                C,
-                                                            rocblas_int       ld_c,
-                                                            rocblas_int       stride_c,
-                                                            rocblas_int       b_c)
+                                                             rocblas_operation trans_a,
+                                                             rocblas_operation trans_b,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const T*          alpha,
+                                                             const T*          A,
+                                                             rocblas_int       ld_a,
+                                                             rocblas_int       stride_a,
+                                                             const T*          B,
+                                                             rocblas_int       ld_b,
+                                                             rocblas_int       stride_b,
+                                                             const T*          beta,
+                                                             T*                C,
+                                                             rocblas_int       ld_c,
+                                                             rocblas_int       stride_c,
+                                                             rocblas_int       b_c)
 {
     // clang-format off
     if(!handle)

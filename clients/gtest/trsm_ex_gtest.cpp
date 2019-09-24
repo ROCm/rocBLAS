@@ -14,7 +14,6 @@
 #include <cstring>
 #include <type_traits>
 
-
 namespace
 {
     // possible trsm_ex test cases
