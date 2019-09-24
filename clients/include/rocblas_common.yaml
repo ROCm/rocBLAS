@@ -321,8 +321,7 @@ Defaults:
   stride_b: 0
   stride_c: 0
   stride_d: 0
-  stride_x: 0
-  stride_y: 0
+  stride_scale: 1
   norm_check: 0
   unit_check: 1
   timing: 0

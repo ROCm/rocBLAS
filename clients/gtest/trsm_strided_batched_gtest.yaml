@@ -8,10 +8,10 @@ Definitions:
     - { M:    10, N:    10, lda:    20, ldb:   100 }
 
   - &medium_matrix_size_range
-    - { M:   192, N:   192, lda:   192, ldb:   192 }
-    - { M:   600, N:   500, lda:   600, ldb:   600 }
-    - { M:   800, N:   700, lda:   801, ldb:   701 }
     - { M:   128, N:   128, lda:   128, ldb:   128 }
+    - { M:   129, N:   129, lda:   129, ldb:   129 }
+    - { M:   256, N:   256, lda:   256, ldb:   256 }
+    - { M:   257, N:   257, lda:   257, ldb:   257 }
 
   - &large_matrix_size_range
     - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
@@ -117,9 +117,11 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  stride_a: [1, 500000, 1000000]
-  stride_b: [1, 500000, 1000000]
-  batch_count: [0, 1, 5, 20]
+  # stride_a: [1, 500000, 1000000]
+  stride_a: [ 65536 ]
+  stride_b: [ 65536 ]
+  # stride_b: [1, 500000, 1000000]
+  batch_count: [ 0, 1, 5 ]        
 
 - name: trsm_strided_batched_testset1
   category: nightly

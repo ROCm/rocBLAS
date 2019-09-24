@@ -13,13 +13,13 @@
 #include <cstdio>
 #include <tuple>
 
-// Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
-// you can use all 64K, but in practice no.
-constexpr rocblas_int STRSM_BLOCK = 128;
-constexpr rocblas_int DTRSM_BLOCK = 128;
-
 namespace
 {
+    // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
+    // you can use all 64K, but in practice no.
+    constexpr rocblas_int STRSM_BLOCK = 128;
+    constexpr rocblas_int DTRSM_BLOCK = 128;
+
     template <typename>
     constexpr char rocblas_trsm_name[] = "unknown";
     template <>

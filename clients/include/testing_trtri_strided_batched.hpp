@@ -36,7 +36,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(N < 0 || lda < 0 || lda < N || batch_count < 0)
+    if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
     {
         static const size_t safe_size = 100;
         device_vector<T>    dA(safe_size);
@@ -47,10 +47,14 @@ void testing_trtri_strided_batched(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trtri_strided_batched<T>(
-                handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count),
-            rocblas_status_invalid_size);
+        if(N < 0 || lda < 0 || lda < N || batch_count < 0)
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_trtri_strided_batched<T>(
+                    handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count),
+                rocblas_status_invalid_size);
+        else // batch_count == 0
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
+                handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count));
         return;
     }
 

@@ -6,8 +6,7 @@
 
 #include "handle.h"
 #include "rocblas.h"
-#include "../blas_ex/rocblas_gemm_ex_batched.hpp"
-#include "trsm_device.hpp"
+#include "../blas_ex/rocblas_gemm_ex.hpp"
 #include "trtri_trsm.hpp"
 #include "utility.h"
 
@@ -30,6 +29,54 @@ namespace
     constexpr T zero = 0;
     template <typename T>
     constexpr T one = 1;
+
+    template <typename T>
+    __device__ void copy_matrix_trsm(rocblas_int rows,
+                                    rocblas_int cols,
+                                    rocblas_int elem_size,
+                                    const T*    a,
+                                    rocblas_int lda,
+                                    T*          b,
+                                    rocblas_int ldb)
+    {
+        size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+        if(tx < rows && ty < cols)
+            b[tx + ldb * ty] = a[tx + lda * ty];
+    }
+
+    template <typename T>
+    __global__ void copy_matrix_strided_batched_trsm(rocblas_int rows,
+                                                    rocblas_int cols,
+                                                    rocblas_int elem_size,
+                                                    const T*    a,
+                                                    rocblas_int lda,
+                                                    rocblas_int stride_a,
+                                                    T*          b,
+                                                    rocblas_int ldb,
+                                                    rocblas_int stride_b)
+    {
+        const T* xa = a + hipBlockIdx_z * stride_a;
+        T*       xb = b + hipBlockIdx_z * stride_b;
+        copy_matrix_trsm(rows, cols, elem_size, xa, lda, xb, ldb);
+    }
+
+    template <typename T>
+    __global__ void copy_matrix_batched_trsm(rocblas_int rows,
+                                            rocblas_int cols,
+                                            rocblas_int elem_size,
+                                            const T*    a[],
+                                            rocblas_int lda,
+                                            T*          b[],
+                                            rocblas_int ldb,
+                                            rocblas_int offset_a,
+                                            rocblas_int offset_b)
+    {
+        const T* xa = a[hipBlockIdx_z] + offset_a;
+        T*       xb = b[hipBlockIdx_z] + offset_b;
+        copy_matrix_trsm(rows, cols, elem_size, xa, lda, xb, ldb);
+    }
 
     /* ===============copy helper============================================= */
     template <typename T>
@@ -129,42 +176,52 @@ namespace
             {
                 // left, lower no-transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       alpha,
+                                                      0,
                                                       invA,
+                                                      0,
                                                       BLOCK,
                                                       stride_invA,
-                                                      B,
+                                                      (const T*)B,
+                                                      0,
                                                       ldb,
                                                       stride_B,
                                                       &zero<T>,
+                                                      0,
                                                       X,
+                                                      0,
                                                       m,
                                                       stride_X,
                                                       batch_count);
 
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transA,
                                                           transB,
                                                           m - BLOCK,
                                                           n,
                                                           BLOCK,
                                                           &negative_one<T>,
-                                                          A(BLOCK, 0),
+                                                          0,
+                                                          A,
+                                                          BLOCK,
                                                           lda,
                                                           stride_A,
-                                                          X,
+                                                          (const T*)X,
+                                                          0,
                                                           m,
                                                           stride_X,
                                                           alpha,
-                                                          B(BLOCK, 0),
+                                                          0,
+                                                          B,
+                                                          BLOCK,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -173,21 +230,26 @@ namespace
                     {
                         jb = min(m - i, BLOCK);
 
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               jb,
                                                               n,
                                                               jb,
                                                               &one<T>,
-                                                              invA(i),
+                                                              0,
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
-                                                              B(i, 0),
+                                                              (const T*)B,
+                                                              i,
                                                               ldb,
                                                               stride_B,
                                                               &zero<T>,
-                                                              X(i, 0),
+                                                              0,
+                                                              X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               batch_count);
@@ -196,21 +258,26 @@ namespace
                             // as if (i+BLOCK<m)
                             break;
 
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               m - i - BLOCK,
                                                               n,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              A(i + BLOCK, i),
+                                                              0,
+                                                              A,
+                                                              i + BLOCK + i * lda,
                                                               lda,
                                                               stride_A,
-                                                              X(i, 0),
+                                                              (const T*)X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               &one<T>,
-                                                              B(i + BLOCK, 0),
+                                                              0,
+                                                              B,
+                                                              i + BLOCK,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -221,9 +288,9 @@ namespace
             for( i=0; i < m; i += BLOCK ) {
                 jb = min(m-i, BLOCK);
                 T *tmp = (i == 0) ? alpha : one;
-                rocblas_gemm_strided_batched_template(handle, transA, transB, jb, n, jb, tmp, invA(i), BLOCK, stride_invA, B(i,0), ldb, stride_B, &zero<T>, X(i,0), ldb, stride_X, batch_count); // strides?
+                rocblas_gemm_template<false, true>(handle, transA, transB, jb, n, jb, tmp, invA(i), BLOCK, stride_invA, B(i,0), ldb, stride_B, &zero<T>, X(i,0), ldb, stride_X, batch_count); // strides?
                 if(i + BLOCK < m){
-                    rocblas_gemm_strided_batched_template(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negative_one<T>, A(i+BLOCK,i), lda, stride_A, X(i,0), ldb, stride_X, tmp, B(i+BLOCK,0), ldb, stride_B, batch_count); // strides?
+                    rocblas_gemm_template<false, true>(handle, transA, transB, m-i-BLOCK, n, BLOCK, &negative_one<T>, A(i+BLOCK,i), lda, stride_A, X(i,0), ldb, stride_X, tmp, B(i+BLOCK,0), ldb, stride_B, batch_count); // strides?
                 }
             }
 
@@ -236,42 +303,52 @@ namespace
                 i  = m - jb;
 
                 // if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35}
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       alpha,
-                                                      invA(i),
+                                                      0,
+                                                      invA,
+                                                      i * BLOCK,
                                                       BLOCK,
                                                       stride_invA,
-                                                      B(i, 0),
+                                                      (const T*)B,
+                                                      i,
                                                       ldb,
                                                       stride_B,
                                                       &zero<T>,
-                                                      X(i, 0),
+                                                      0,
+                                                      X,
+                                                      i,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(i - BLOCK >= 0)
                 {
 
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transA,
                                                           transB,
                                                           i,
                                                           n,
                                                           jb,
                                                           &negative_one<T>,
-                                                          A(0, i),
+                                                          0,
+                                                          A,
+                                                          i * lda,
                                                           lda,
                                                           stride_A,
-                                                          X(i, 0),
+                                                          (const T*)X,
+                                                          i,
                                                           m,
                                                           stride_X,
                                                           alpha,
+                                                          0,
                                                           B,
+                                                          0,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -280,41 +357,51 @@ namespace
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
                         //{32, 35, 32, 32, 35, 35}
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               BLOCK,
                                                               n,
                                                               BLOCK,
                                                               &one<T>,
-                                                              invA(i),
+                                                              0,
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
-                                                              B(i, 0),
+                                                              (const T*)B,
+                                                              i,
                                                               ldb,
                                                               stride_B,
                                                               &zero<T>,
-                                                              X(i, 0),
+                                                              0,
+                                                              X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               i,
                                                               n,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              A(0, i),
+                                                              0,
+                                                              A,
+                                                              i * lda,
                                                               lda,
                                                               stride_A,
-                                                              X(i, 0),
+                                                              (const T*)X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               &one<T>,
+                                                              0,
                                                               B,
+                                                              0,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -329,41 +416,51 @@ namespace
                 // left, lower transpose
                 jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
                 i  = m - jb;
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       alpha,
-                                                      invA(i),
+                                                      0,
+                                                      invA,
+                                                      i * BLOCK,
                                                       BLOCK,
                                                       stride_invA,
-                                                      B(i, 0),
+                                                      (const T*)B,
+                                                      i,
                                                       ldb,
                                                       stride_B,
                                                       &zero<T>,
-                                                      X(i, 0),
+                                                      0,
+                                                      X,
+                                                      i,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transA,
                                                           transB,
                                                           i,
                                                           n,
                                                           jb,
                                                           &negative_one<T>,
-                                                          A(i, 0),
+                                                          0,
+                                                          A,
+                                                          i,
                                                           lda,
                                                           stride_A,
-                                                          X(i, 0),
+                                                          (const T*)X,
+                                                          i,
                                                           m,
                                                           stride_X,
                                                           alpha,
+                                                          0,
                                                           B,
+                                                          0,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -371,41 +468,51 @@ namespace
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               BLOCK,
                                                               n,
                                                               BLOCK,
                                                               &one<T>,
-                                                              invA(i),
+                                                              0,
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
-                                                              B(i, 0),
+                                                              (const T*)B,
+                                                              i,
                                                               ldb,
                                                               stride_B,
                                                               &zero<T>,
-                                                              X(i, 0),
+                                                              0,
+                                                              X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               i,
                                                               n,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              A(i, 0),
+                                                              0,
+                                                              A,
+                                                              i,
                                                               lda,
                                                               stride_A,
-                                                              X(i, 0),
+                                                              (const T*)X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               &one<T>,
+                                                              0,
                                                               B,
+                                                              0,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -416,41 +523,51 @@ namespace
             {
                 // left, upper transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       alpha,
+                                                      0,
                                                       invA,
+                                                      0,
                                                       BLOCK,
                                                       stride_invA,
-                                                      B,
+                                                      (const T*)B,
+                                                      0,
                                                       ldb,
                                                       stride_B,
                                                       &zero<T>,
+                                                      0,
                                                       X,
+                                                      0,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transA,
                                                           transB,
                                                           m - BLOCK,
                                                           n,
                                                           BLOCK,
                                                           &negative_one<T>,
-                                                          A(0, BLOCK),
+                                                          0,
+                                                          A,
+                                                          BLOCK * lda,
                                                           lda,
                                                           stride_A,
-                                                          X,
+                                                          (const T*)X,
+                                                          0,
                                                           m,
                                                           stride_X,
                                                           alpha,
-                                                          B(BLOCK, 0),
+                                                          0,
+                                                          B,
+                                                          BLOCK,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -459,41 +576,51 @@ namespace
                     for(i = BLOCK; i < m; i += BLOCK)
                     {
                         jb = min(m - i, BLOCK);
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               jb,
                                                               n,
                                                               jb,
                                                               &one<T>,
-                                                              invA(i),
+                                                              0,
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
-                                                              B(i, 0),
+                                                              (const T*)B,
+                                                              i,
                                                               ldb,
                                                               stride_B,
                                                               &zero<T>,
-                                                              X(i, 0),
+                                                              0,
+                                                              X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i + BLOCK >= m)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transA,
                                                               transB,
                                                               m - i - BLOCK,
                                                               n,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              A(i, i + BLOCK),
+                                                              0,
+                                                              A,
+                                                              i + (i + BLOCK) * lda,
                                                               lda,
                                                               stride_A,
-                                                              X(i, 0),
+                                                              (const T*)X,
+                                                              i,
                                                               m,
                                                               stride_X,
                                                               &one<T>,
-                                                              B(i + BLOCK, 0),
+                                                              0,
+                                                              B,
+                                                              i + BLOCK,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -538,41 +665,51 @@ namespace
                 // right, lower no-transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       alpha,
-                                                      B(0, i),
+                                                      0,
+                                                      (const T*)B,
+                                                      i * ldb,
                                                       ldb,
                                                       stride_B,
-                                                      invA(i),
+                                                      invA,
+                                                      i * BLOCK,
                                                       BLOCK,
                                                       stride_invA,
                                                       &zero<T>,
-                                                      X(0, i),
+                                                      0,
+                                                      X,
+                                                      i * m,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transB,
                                                           transA,
                                                           m,
                                                           i,
                                                           jb,
                                                           &negative_one<T>,
-                                                          X(0, i),
+                                                          0,
+                                                          (const T*)X,
+                                                          i * m,
                                                           m,
                                                           stride_X,
-                                                          A(i, 0),
+                                                          A,
+                                                          i,
                                                           lda,
                                                           stride_A,
                                                           alpha,
+                                                          0,
                                                           B,
+                                                          0,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -580,41 +717,51 @@ namespace
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               BLOCK,
                                                               BLOCK,
                                                               &one<T>,
-                                                              B(0, i),
+                                                              0,
+                                                              (const T*)B,
+                                                              i * ldb,
                                                               ldb,
                                                               stride_B,
-                                                              invA(i),
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
                                                               &zero<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               i,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              (const T*)X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
-                                                              A(i, 0),
+                                                              A,
+                                                              i,
                                                               lda,
                                                               stride_A,
                                                               &one<T>,
+                                                              0,
                                                               B,
+                                                              0,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -625,41 +772,51 @@ namespace
             {
                 // right, upper no-transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       alpha,
-                                                      B,
+                                                      0,
+                                                      (const T*)B,
+                                                      0,
                                                       ldb,
                                                       stride_B,
                                                       invA,
+                                                      0,
                                                       BLOCK,
                                                       stride_invA,
                                                       &zero<T>,
+                                                      0,
                                                       X,
+                                                      0,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transB,
                                                           transA,
                                                           m,
                                                           n - BLOCK,
                                                           BLOCK,
                                                           &negative_one<T>,
-                                                          X,
+                                                          0,
+                                                          (const T*)X,
+                                                          0,
                                                           m,
                                                           stride_X,
-                                                          A(0, BLOCK),
+                                                          A,
+                                                          BLOCK * lda,
                                                           lda,
                                                           stride_A,
                                                           alpha,
-                                                          B(0, BLOCK),
+                                                          0,
+                                                          B,
+                                                          BLOCK * ldb,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -668,41 +825,51 @@ namespace
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               jb,
                                                               jb,
                                                               &one<T>,
-                                                              B(0, i),
+                                                              0,
+                                                              (const T*)B,
+                                                              i * ldb,
                                                               ldb,
                                                               stride_B,
-                                                              invA(i),
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
                                                               &zero<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               n - i - BLOCK,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              (const T*)X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
-                                                              A(i, i + BLOCK),
+                                                              A,
+                                                              i + (i + BLOCK) * lda,
                                                               lda,
                                                               stride_A,
                                                               &one<T>,
-                                                              B(0, i + BLOCK),
+                                                              0,
+                                                              B,
+                                                              (i + BLOCK) * ldb,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -716,41 +883,51 @@ namespace
             {
                 // right, lower transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       alpha,
-                                                      B,
+                                                      0,
+                                                      (const T*)B,
+                                                      0,
                                                       ldb,
                                                       stride_B,
                                                       invA,
+                                                      0,
                                                       BLOCK,
                                                       stride_invA,
                                                       &zero<T>,
+                                                      0,
                                                       X,
+                                                      0,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transB,
                                                           transA,
                                                           m,
                                                           n - BLOCK,
                                                           BLOCK,
                                                           &negative_one<T>,
-                                                          X,
+                                                          0,
+                                                          (const T*)X,
+                                                          0,
                                                           m,
                                                           stride_X,
-                                                          A(BLOCK, 0),
+                                                          A,
+                                                          BLOCK,
                                                           lda,
                                                           stride_A,
                                                           alpha,
-                                                          B(0, BLOCK),
+                                                          0,
+                                                          B,
+                                                          BLOCK * ldb,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -759,41 +936,51 @@ namespace
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               jb,
                                                               jb,
                                                               &one<T>,
-                                                              B(0, i),
+                                                              0,
+                                                              (const T*)B,
+                                                              i * ldb,
                                                               ldb,
                                                               stride_B,
-                                                              invA(i),
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
                                                               &zero<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               n - i - BLOCK,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              (const T*)X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
-                                                              A(BLOCK + i, i),
+                                                              A,
+                                                              BLOCK + i + i * lda,
                                                               lda,
                                                               stride_A,
                                                               &one<T>,
-                                                              B(0, i + BLOCK),
+                                                              0,
+                                                              B,
+                                                              (i + BLOCK) * ldb,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -805,41 +992,51 @@ namespace
                 // right, upper transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_strided_batched_template(handle,
+                rocblas_gemm_template<false, true>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       alpha,
-                                                      B(0, i),
+                                                      0,
+                                                      (const T*)B,
+                                                      i * ldb,
                                                       ldb,
                                                       stride_B,
-                                                      invA(i),
+                                                      invA,
+                                                      i * BLOCK,
                                                       BLOCK,
                                                       stride_invA,
                                                       &zero<T>,
-                                                      X(0, i),
+                                                      0,
+                                                      X,
+                                                      i * m,
                                                       m,
                                                       stride_X,
                                                       batch_count);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transB,
                                                           transA,
                                                           m,
                                                           i,
                                                           jb,
                                                           &negative_one<T>,
-                                                          X(0, i),
+                                                          0,
+                                                          (const T*)X,
+                                                          i * m,
                                                           m,
                                                           stride_X,
-                                                          A(0, i),
+                                                          A,
+                                                          i * lda,
                                                           lda,
                                                           stride_A,
                                                           alpha,
+                                                          0,
                                                           B,
+                                                          0,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -847,41 +1044,51 @@ namespace
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               BLOCK,
                                                               BLOCK,
                                                               &one<T>,
-                                                              B(0, i),
+                                                              0,
+                                                              (const T*)B,
+                                                              i * ldb,
                                                               ldb,
                                                               stride_B,
-                                                              invA(i),
+                                                              invA,
+                                                              i * BLOCK,
                                                               BLOCK,
                                                               stride_invA,
                                                               &zero<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
                                                               batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_strided_batched_template(handle,
+                        rocblas_gemm_template<false, true>(handle,
                                                               transB,
                                                               transA,
                                                               m,
                                                               i,
                                                               BLOCK,
                                                               &negative_one<T>,
-                                                              X(0, i),
+                                                              0,
+                                                              (const T*)X,
+                                                              i * m,
                                                               m,
                                                               stride_X,
-                                                              A(0, i),
+                                                              A,
+                                                              i * lda,
                                                               lda,
                                                               stride_A,
                                                               &one<T>,
+                                                              0,
                                                               B,
+                                                              0,
                                                               ldb,
                                                               stride_B,
                                                               batch_count);
@@ -920,7 +1127,7 @@ namespace
         size_t      bsize      = side == rocblas_side_left ? n : m;
         size_t      W          = 1 + (bsize - 1) / B_chunk_size;
         bool        arch_lt906 = handle->device_arch_id() < 906;
-        rocblas_int stride_X   = m * n;
+        rocblas_int stride_X   = BLOCK * B_chunk_size;//m * n;
 
         for(size_t w = 0; w < W; w++)
         {
@@ -928,8 +1135,6 @@ namespace
 
             if(side == rocblas_side_left)
             {
-                T* Bw = B + w * B_chunk_size * ldb;
-
                 for(size_t r = 0; r < R; r++)
                 {
                     size_t q = R - 1 - r;
@@ -940,7 +1145,7 @@ namespace
                         copy_block_unit(handle,
                                         BLOCK,
                                         width,
-                                        Bw + j * BLOCK,
+                                        B + j * BLOCK + w * B_chunk_size * ldb,
                                         ldb,
                                         stride_B,
                                         x_temp,
@@ -950,32 +1155,36 @@ namespace
 
                     if(r)
                     {
-                        const T* A_current;
-                        T*       B_current = parity ? Bw : Bw + (q + 1) * BLOCK;
+                        rocblas_int offsetA = 0;
+                        rocblas_int offsetB = parity ? w * B_chunk_size * ldb : w * B_chunk_size * ldb + (q + 1) * BLOCK;
 
                         if(transA == rocblas_operation_none)
-                            A_current = parity ? A + r * BLOCK : A + BLOCK * (q * lda + q + lda);
+                            offsetA = parity ? r * BLOCK : BLOCK * (q * lda + q + lda);
                         else
-                            A_current
-                                = parity ? A + r * BLOCK * lda : A + BLOCK * (q * lda + q + 1);
+                            offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_strided_batched_template(handle,
+                            rocblas_gemm_template<false, true>(handle,
                                                                   transA,
                                                                   rocblas_operation_none,
                                                                   BLOCK,
                                                                   width,
                                                                   r * BLOCK,
                                                                   &negative_one<T>,
-                                                                  A_current,
+                                                                  0,
+                                                                  A,
+                                                                  offsetA,
                                                                   lda,
                                                                   stride_A,
-                                                                  B_current,
+                                                                  (const T*)B,
+                                                                  offsetB,
                                                                   ldb,
                                                                   stride_B,
                                                                   alpha,
+                                                                  0,
                                                                   x_temp,
+                                                                  0,
                                                                   BLOCK,
                                                                   stride_X,
                                                                   batch_count);
@@ -987,53 +1196,61 @@ namespace
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
 
-                            rocblas_gemm_strided_batched_ex(handle,
+                            rocblas_gemm_ex_template<false>(handle,
                                                             transA,
                                                             rocblas_operation_none,
                                                             BLOCK,
                                                             width,
                                                             r * BLOCK,
                                                             &negative_one<T>,
-                                                            A_current,
+                                                            0,
+                                                            A,
                                                             compute_type,
+                                                            offsetA,
                                                             lda,
                                                             stride_A,
-                                                            B_current,
+                                                            B,
                                                             compute_type,
+                                                            offsetB,
                                                             ldb,
                                                             stride_B,
                                                             alpha,
-                                                            Bw + j * BLOCK,
+                                                            0,
+                                                            B,
                                                             compute_type,
+                                                            j * BLOCK + w * B_chunk_size * ldb,
                                                             ldb,
                                                             stride_B,
                                                             x_temp,
                                                             compute_type,
+                                                            0,
                                                             BLOCK,
                                                             stride_X,
                                                             batch_count,
-                                                            compute_type,
-                                                            algo,
-                                                            solution_index,
-                                                            flags);
+                                                            compute_type);
                         }
                     }
 
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           transA,
                                                           rocblas_operation_none,
                                                           BLOCK,
                                                           width,
                                                           BLOCK,
                                                           r ? &one<T> : alpha,
-                                                          invA + j * BLOCK * BLOCK,
+                                                          0,
+                                                          invA,
+                                                          j * BLOCK * BLOCK,
                                                           BLOCK,
-                                                          stride_invA, // ??
-                                                          x_temp,
+                                                          stride_invA,
+                                                          (const T*)x_temp,
+                                                          0,
                                                           BLOCK,
-                                                          stride_X, // ??
+                                                          stride_X,
                                                           &zero<T>,
-                                                          Bw + j * BLOCK,
+                                                          0,
+                                                          B,
+                                                          w * B_chunk_size * ldb + j * BLOCK,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -1041,7 +1258,6 @@ namespace
             }
             else
             {
-                T* Bw = B + w * B_chunk_size;
                 for(size_t r = 0; r < R; r++)
                 {
                     size_t q = R - 1 - r;
@@ -1052,7 +1268,7 @@ namespace
                         copy_block_unit(handle,
                                         width,
                                         BLOCK,
-                                        Bw + j * BLOCK * ldb,
+                                        B + j * BLOCK * ldb + w * B_chunk_size,
                                         ldb,
                                         stride_B,
                                         x_temp,
@@ -1062,31 +1278,35 @@ namespace
 
                     if(r)
                     {
-                        const T* A_current;
-                        T*       B_current = parity ? Bw + (q + 1) * BLOCK * ldb : Bw;
+                        rocblas_int offsetA = 0;
+                        rocblas_int offsetB = parity? w * B_chunk_size + (q + 1) * BLOCK * ldb : w * B_chunk_size;
                         if(transA == rocblas_operation_none)
-                            A_current
-                                = parity ? A + BLOCK * (q * lda + q + 1) : A + r * BLOCK * lda;
+                            offsetA = parity ? BLOCK * (q * lda + q + 1) : r * BLOCK * lda;
                         else
-                            A_current = parity ? A + BLOCK * (q * lda + q + lda) : A + r * BLOCK;
+                            offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_strided_batched_template(handle,
+                            rocblas_gemm_template<false, true>(handle,
                                                                   rocblas_operation_none,
                                                                   transA,
                                                                   width,
                                                                   BLOCK,
                                                                   r * BLOCK,
                                                                   &negative_one<T>,
-                                                                  B_current,
+                                                                  0,
+                                                                  (const T*)B,
+                                                                  offsetB,
                                                                   ldb,
                                                                   stride_B,
-                                                                  A_current,
+                                                                  A,
+                                                                  offsetA,
                                                                   lda,
                                                                   stride_A,
                                                                   alpha,
+                                                                  0,
                                                                   x_temp,
+                                                                  0,
                                                                   width,
                                                                   stride_X,
                                                                   batch_count);
@@ -1098,53 +1318,61 @@ namespace
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
 
-                            rocblas_gemm_strided_batched_ex(handle,
+                            rocblas_gemm_ex_template<false>(handle,
                                                             rocblas_operation_none,
                                                             transA,
                                                             width,
                                                             BLOCK,
                                                             r * BLOCK,
                                                             &negative_one<T>,
-                                                            B_current,
+                                                            0,
+                                                            B,
                                                             compute_type,
+                                                            offsetB,
                                                             ldb,
                                                             stride_B,
-                                                            A_current,
+                                                            A,
                                                             compute_type,
+                                                            offsetA,
                                                             lda,
                                                             stride_A,
                                                             alpha,
-                                                            Bw + j * BLOCK * ldb,
+                                                            0,
+                                                            B,
                                                             compute_type,
+                                                            j * BLOCK * ldb + w * B_chunk_size,
                                                             ldb,
                                                             stride_B,
                                                             x_temp,
                                                             compute_type,
+                                                            0,
                                                             width,
                                                             stride_X,
                                                             batch_count,
-                                                            compute_type,
-                                                            algo,
-                                                            solution_index,
-                                                            flags);
+                                                            compute_type);
                         }
                     }
 
-                    rocblas_gemm_strided_batched_template(handle,
+                    rocblas_gemm_template<false, true>(handle,
                                                           rocblas_operation_none,
                                                           transA,
                                                           width,
                                                           BLOCK,
                                                           BLOCK,
                                                           r ? &one<T> : alpha,
-                                                          x_temp,
+                                                          0,
+                                                          (const T*)x_temp,
+                                                          0,
                                                           width,
-                                                          stride_B,
-                                                          invA + j * BLOCK * BLOCK,
+                                                          stride_X,
+                                                          invA,
+                                                          j * BLOCK * BLOCK,
                                                           BLOCK,
                                                           stride_invA,
                                                           &zero<T>,
-                                                          Bw + j * BLOCK * ldb,
+                                                          0,
+                                                          B,
+                                                          w * B_chunk_size * ldb + j * BLOCK * ldb,
                                                           ldb,
                                                           stride_B,
                                                           batch_count);
@@ -1167,7 +1395,7 @@ namespace
                                              T*                B[],
                                              rocblas_int       ldb,
                                              rocblas_int       batch_count,
-                                             const T*          invA[],
+                                             const T* const    invA[],
                                              T*                X[])
     {
         rocblas_int i, jb;
@@ -1181,67 +1409,82 @@ namespace
             {
                 // left, lower no-transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transA,
                                               transB,
                                               jb,
                                               n,
                                               jb,
                                               alpha,
+                                              0,
                                               invA,
                                               0,
                                               BLOCK,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               0,
                                               ldb,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               0,
                                               m,
+                                              0,
                                               batch_count);
 
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transA,
                                                   transB,
                                                   m - BLOCK,
                                                   n,
                                                   BLOCK,
                                                   &negative_one<T>,
+                                                  0,
                                                   A,
                                                   BLOCK,
                                                   lda,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   0,
                                                   m,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   BLOCK,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = BLOCK; i < m; i += BLOCK)
                     {
                         jb = min(m - i, BLOCK);
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       &one<T>,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i,
                                                       ldb,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i,
                                                       m,
+                                                      0,
                                                       batch_count);
 
                         if(i + BLOCK
@@ -1249,23 +1492,28 @@ namespace
                             // as if (i+BLOCK<m)
                             break;
 
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       m - i - BLOCK,
                                                       n,
                                                       BLOCK,
                                                       &negative_one<T>,
+                                                      0,
                                                       A,
                                                       i + BLOCK + i * lda,
                                                       lda,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i,
                                                       m,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       i + BLOCK,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1277,87 +1525,107 @@ namespace
                 i  = m - jb;
 
                 // if m=n=35=lda=ldb, BLOCK =32, then jb = 3, i = 32; {3, 35, 3, 32, 35, 35}
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transA,
                                               transB,
                                               jb,
                                               n,
                                               jb,
                                               alpha,
+                                              0,
                                               invA,
                                               i * BLOCK,
                                               BLOCK,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               i,
                                               ldb,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               i,
                                               m,
+                                              0,
                                               batch_count);
                 if(i - BLOCK >= 0)
                 {
 
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transA,
                                                   transB,
                                                   i,
                                                   n,
                                                   jb,
                                                   &negative_one<T>,
+                                                  0,
                                                   A,
                                                   i * lda,
                                                   lda,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   i,
                                                   m,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   0,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
                         //{32, 35, 32, 32, 35, 35}
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       BLOCK,
                                                       n,
                                                       BLOCK,
                                                       &one<T>,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i,
                                                       ldb,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       i,
                                                       n,
                                                       BLOCK,
                                                       &negative_one<T>,
+                                                      0,
                                                       A,
                                                       i * lda,
                                                       lda,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i,
                                                       m,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       0,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1370,85 +1638,105 @@ namespace
                 // left, lower transpose
                 jb = (m % BLOCK == 0) ? BLOCK : (m % BLOCK);
                 i  = m - jb;
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transA,
                                               transB,
                                               jb,
                                               n,
                                               jb,
                                               alpha,
+                                              0,
                                               invA,
                                               i * BLOCK,
                                               BLOCK,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               i,
                                               ldb,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               i,
                                               m,
+                                              0,
                                               batch_count);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transA,
                                                   transB,
                                                   i,
                                                   n,
                                                   jb,
                                                   &negative_one<T>,
+                                                  0,
                                                   A,
                                                   i,
                                                   lda,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   i,
                                                   m,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   0,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       BLOCK,
                                                       n,
                                                       BLOCK,
                                                       &one<T>,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i,
                                                       ldb,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       i,
                                                       n,
                                                       BLOCK,
                                                       &negative_one<T>,
+                                                      0,
                                                       A,
                                                       i,
                                                       lda,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i,
                                                       m,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       0,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1457,86 +1745,106 @@ namespace
             {
                 // left, upper transpose
                 jb = min(BLOCK, m);
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transA,
                                               transB,
                                               jb,
                                               n,
                                               jb,
                                               alpha,
+                                              0,
                                               invA,
                                               0,
                                               BLOCK,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               0,
                                               ldb,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               0,
                                               m,
+                                              0,
                                               batch_count);
                 if(BLOCK < m)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transA,
                                                   transB,
                                                   m - BLOCK,
                                                   n,
                                                   BLOCK,
                                                   &negative_one<T>,
+                                                  0,
                                                   A,
                                                   BLOCK * lda,
                                                   lda,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   0,
                                                   m,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   BLOCK,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = BLOCK; i < m; i += BLOCK)
                     {
                         jb = min(m - i, BLOCK);
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       jb,
                                                       n,
                                                       jb,
                                                       &one<T>,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i,
                                                       ldb,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i + BLOCK >= m)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transA,
                                                       transB,
                                                       m - i - BLOCK,
                                                       n,
                                                       BLOCK,
                                                       &negative_one<T>,
+                                                      0,
                                                       A,
                                                       i + (i + BLOCK) * lda,
                                                       lda,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i,
                                                       m,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       i + BLOCK,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1558,7 +1866,7 @@ namespace
                                               T*                B[],
                                               rocblas_int       ldb,
                                               rocblas_int       batch_count,
-                                              const T*          invA[],
+                                              const T* const    invA[],
                                               T*                X[])
     {
         rocblas_int i, jb;
@@ -1573,87 +1881,107 @@ namespace
                 // right, lower no-transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transB,
                                               transA,
                                               m,
                                               jb,
                                               jb,
                                               alpha,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               i * ldb,
                                               ldb,
+                                              0,
                                               invA,
                                               i * BLOCK,
                                               BLOCK,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               i * m,
                                               m,
+                                              0,
                                               batch_count);
 
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transB,
                                                   transA,
                                                   m,
                                                   i,
                                                   jb,
                                                   &negative_one<T>,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   i * m,
                                                   m,
+                                                  0,
                                                   A,
                                                   i,
                                                   lda,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   0,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       BLOCK,
                                                       BLOCK,
                                                       &one<T>,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i * ldb,
                                                       ldb,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       batch_count);
 
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       i,
                                                       BLOCK,
                                                       &negative_one<T>,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       A,
                                                       i,
                                                       lda,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       0,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1662,86 +1990,106 @@ namespace
             {
                 // right, upper no-transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transB,
                                               transA,
                                               m,
                                               jb,
                                               jb,
                                               alpha,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               0,
                                               ldb,
+                                              0,
                                               invA,
                                               0,
                                               BLOCK,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               0,
                                               m,
+                                              0,
                                               batch_count);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transB,
                                                   transA,
                                                   m,
                                                   n - BLOCK,
                                                   BLOCK,
                                                   &negative_one<T>,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   0,
                                                   m,
+                                                  0,
                                                   A,
                                                   BLOCK * lda,
                                                   lda,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   BLOCK * ldb,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       &one<T>,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i * ldb,
                                                       ldb,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       n - i - BLOCK,
                                                       BLOCK,
                                                       &negative_one<T>,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       A,
                                                       i + (i + BLOCK) * lda,
                                                       lda,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       (i + BLOCK) * ldb,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1753,86 +2101,106 @@ namespace
             {
                 // right, lower transpose
                 jb = min(BLOCK, n);
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transB,
                                               transA,
                                               m,
                                               jb,
                                               jb,
                                               alpha,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               0,
                                               ldb,
+                                              0,
                                               invA,
                                               0,
                                               BLOCK,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               0,
                                               m,
+                                              0,
                                               batch_count);
                 if(BLOCK < n)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transB,
                                                   transA,
                                                   m,
                                                   n - BLOCK,
                                                   BLOCK,
                                                   &negative_one<T>,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   0,
                                                   m,
+                                                  0,
                                                   A,
                                                   BLOCK,
                                                   lda,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   BLOCK * ldb,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = BLOCK; i < n; i += BLOCK)
                     {
                         jb = min(BLOCK, n - i);
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       jb,
                                                       jb,
                                                       &one<T>,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i * ldb,
                                                       ldb,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i + BLOCK >= n)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       n - i - BLOCK,
                                                       BLOCK,
                                                       &negative_one<T>,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       A,
                                                       BLOCK + i + i * lda,
                                                       lda,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       (i + BLOCK) * ldb,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1842,85 +2210,105 @@ namespace
                 // right, upper transpose
                 jb = (n % BLOCK == 0) ? BLOCK : (n % BLOCK);
                 i  = n - jb;
-                rocblas_gemm_batched_template(handle,
+                rocblas_gemm_template<true, false>(handle,
                                               transB,
                                               transA,
                                               m,
                                               jb,
                                               jb,
                                               alpha,
-                                              B,
+                                              0,
+                                              (const T* const*)B,
                                               i * ldb,
                                               ldb,
+                                              0,
                                               invA,
                                               i * BLOCK,
                                               BLOCK,
+                                              0,
                                               &zero<T>,
+                                              0,
                                               X,
                                               i * m,
                                               m,
+                                              0,
                                               batch_count);
                 if(i - BLOCK >= 0)
                 {
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transB,
                                                   transA,
                                                   m,
                                                   i,
                                                   jb,
                                                   &negative_one<T>,
-                                                  X,
+                                                  0,
+                                                  (const T* const*)X,
                                                   i * m,
                                                   m,
+                                                  0,
                                                   A,
                                                   i * lda,
                                                   lda,
+                                                  0,
                                                   alpha,
+                                                  0,
                                                   B,
                                                   0,
                                                   ldb,
+                                                  0,
                                                   batch_count);
 
                     // remaining blocks
                     for(i = n - jb - BLOCK; i >= 0; i -= BLOCK)
                     {
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       BLOCK,
                                                       BLOCK,
                                                       &one<T>,
-                                                      B,
+                                                      0,
+                                                      (const T* const*)B,
                                                       i * ldb,
                                                       ldb,
+                                                      0,
                                                       invA,
                                                       i * BLOCK,
                                                       BLOCK,
+                                                      0,
                                                       &zero<T>,
+                                                      0,
                                                       X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       batch_count);
                         if(i - BLOCK < 0)
                             break;
-                        rocblas_gemm_batched_template(handle,
+                        rocblas_gemm_template<true, false>(handle,
                                                       transB,
                                                       transA,
                                                       m,
                                                       i,
                                                       BLOCK,
                                                       &negative_one<T>,
-                                                      X,
+                                                      0,
+                                                      (const T* const*)X,
                                                       i * m,
                                                       m,
+                                                      0,
                                                       A,
                                                       i * lda,
                                                       lda,
+                                                      0,
                                                       &one<T>,
+                                                      0,
                                                       B,
                                                       0,
                                                       ldb,
+                                                      0,
                                                       batch_count);
                     }
                 }
@@ -1944,7 +2332,7 @@ namespace
                                                  T*                B[],
                                                  rocblas_int       ldb,
                                                  rocblas_int       batch_count,
-                                                 const T*          invA[],
+                                                 const T* const    invA[],
                                                  size_t            B_chunk_size,
                                                  T*                x_temp[])
     {
@@ -1991,23 +2379,28 @@ namespace
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_batched_template(handle,
+                            rocblas_gemm_template<true, false>(handle,
                                                           transA,
                                                           rocblas_operation_none,
                                                           BLOCK,
                                                           width,
                                                           r * BLOCK,
                                                           &negative_one<T>,
+                                                          0,
                                                           A,
                                                           offsetA,
                                                           lda,
-                                                          B,
+                                                          0,
+                                                          (const T* const*)B,
                                                           offsetB,
                                                           ldb,
+                                                          0,
                                                           alpha,
+                                                          0,
                                                           x_temp,
                                                           0,
                                                           BLOCK,
+                                                          0,
                                                           batch_count);
                         }
                         else
@@ -2017,55 +2410,63 @@ namespace
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
 
-                            rocblas_gemm_batched_ex_impl(handle,
+                            rocblas_gemm_ex_template<true>(handle,
                                                     transA,
                                                     rocblas_operation_none,
                                                     BLOCK,
                                                     width,
                                                     r * BLOCK,
                                                     &negative_one<T>,
+                                                    0,
                                                     A,
                                                     compute_type,
                                                     offsetA,
                                                     lda,
+                                                    0,
                                                     B,
                                                     compute_type,
                                                     offsetB,
                                                     ldb,
+                                                    0,
                                                     alpha,
+                                                    0,
                                                     B,
                                                     compute_type,
                                                     j * BLOCK + w * B_chunk_size * ldb,
                                                     ldb,
+                                                    0,
                                                     x_temp,
                                                     compute_type,
                                                     0,
                                                     BLOCK,
+                                                    0,
                                                     batch_count,
-                                                    compute_type,
-                                                    algo,
-                                                    solution_index,
-                                                    flags);
+                                                    compute_type);
                         }
                     }
 
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   transA,
                                                   rocblas_operation_none,
                                                   BLOCK,
                                                   width,
                                                   BLOCK,
                                                   r ? &one<T> : alpha,
-                                                  (const T**)invA,
+                                                  0,
+                                                  invA,
                                                   j * BLOCK * BLOCK,
                                                   BLOCK,
-                                                  x_temp,
+                                                  0,
+                                                  (const T* const*)x_temp,
                                                   0,
                                                   BLOCK,
+                                                  0,
                                                   &zero<T>,
+                                                  0,
                                                   B,
                                                   w * B_chunk_size * ldb + j * BLOCK,
                                                   ldb,
+                                                  0,
                                                   batch_count);
                 }
             }
@@ -2099,23 +2500,28 @@ namespace
 
                         if(arch_lt906)
                         {
-                            rocblas_gemm_batched_template(handle,
+                            rocblas_gemm_template<true, false>(handle,
                                                           rocblas_operation_none,
                                                           transA,
                                                           width,
                                                           BLOCK,
                                                           r * BLOCK,
                                                           &negative_one<T>,
-                                                          B,
+                                                          0,
+                                                          (const T* const*)B,
                                                           offsetB,
                                                           ldb,
+                                                          0,
                                                           A,
                                                           offsetA,
                                                           lda,
+                                                          0,
                                                           alpha,
+                                                          0,
                                                           x_temp,
                                                           0,
                                                           width,
+                                                          0,
                                                           batch_count);
                         }
                         else
@@ -2125,55 +2531,63 @@ namespace
                             int32_t           solution_index = 0;
                             uint32_t          flags          = 0;
 
-                            rocblas_gemm_batched_ex_impl(handle,
+                            rocblas_gemm_ex_template<true>(handle,
                                                     rocblas_operation_none,
                                                     transA,
                                                     width,
                                                     BLOCK,
                                                     r * BLOCK,
                                                     &negative_one<T>,
-                                                    B,
+                                                    0,
+                                                    (const T* const*)B,
                                                     compute_type,
                                                     offsetB,
                                                     ldb,
+                                                    0,
                                                     A,
                                                     compute_type,
                                                     offsetA,
                                                     lda,
+                                                    0,
                                                     alpha,
+                                                    0,
                                                     B,
                                                     compute_type,
-                                                    j* BLOCK * ldb + w * B_chunk_size,
+                                                    j * BLOCK * ldb + w * B_chunk_size,
                                                     ldb,
+                                                    0,
                                                     x_temp,
                                                     compute_type,
                                                     0,
                                                     width,
+                                                    0,
                                                     batch_count,
-                                                    compute_type,
-                                                    algo,
-                                                    solution_index,
-                                                    flags);
+                                                    compute_type);
                         }
                     }
 
-                    rocblas_gemm_batched_template(handle,
+                    rocblas_gemm_template<true, false>(handle,
                                                   rocblas_operation_none,
                                                   transA,
                                                   width,
                                                   BLOCK,
                                                   BLOCK,
                                                   r ? &one<T> : alpha,
-                                                  x_temp,
+                                                  0,
+                                                  (const T* const*)x_temp,
                                                   0,
                                                   width,
-                                                  (const T**)invA,
+                                                  0,
+                                                  invA,
                                                   j * BLOCK * BLOCK,
                                                   BLOCK,
+                                                  0,
                                                   &zero<T>,
+                                                  0,
                                                   B,
                                                   w * B_chunk_size * ldb + j * BLOCK * ldb,
                                                   ldb,
+                                                  0,
                                                   batch_count);
                 }
             }
@@ -2336,7 +2750,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
     T* invarrt[batch_count];
     for(int b = 0; b < batch_count; b++)
     {
-       invarrt[b] = (T*)invA + b * invA_els;//(m*n);//BLOCK * k;
+       invarrt[b] = (T*)invA + b * invA_els;
     }
     RETURN_IF_HIP_ERROR(hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
 
@@ -2352,7 +2766,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
         T* ctemparrt[batch_count];
         for(int b = 0; b < batch_count; b++)
         {
-            ctemparrt[b] = (T*)c_temp + b * c_temp_els;//b * m * n;
+            ctemparrt[b] = (T*)c_temp + b * c_temp_els;
 
         }
         RETURN_IF_HIP_ERROR(hipMemcpy(x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
@@ -2374,9 +2788,10 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
     if(exact_blocks)
     {
         T* xtemparrt[batch_count];
+
         for(int b = 0; b < batch_count; b++)
         {
-            xtemparrt[b] = (T*)x_temp + b * x_temp_els;//b * BLOCK * B_chunk_size;
+            xtemparrt[b] = (T*)x_temp + b * x_temp_els;
         }
         hipMemcpy(x_temparr, xtemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice);
 
@@ -2393,7 +2808,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
                                                         B,
                                                         ldb,
                                                         batch_count,
-                                                        (const T**)invAarr,
+                                                        (const T* const*)invAarr,
                                                         B_chunk_size,
                                                         (T**)x_temparr);
     }
@@ -2402,7 +2817,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
         T* xtemparrt[batch_count];
         for(int b = 0; b < batch_count; b++)
         {
-            xtemparrt[b] = ((T*)x_temp) + b * x_temp_els;//b * m * n;
+            xtemparrt[b] = ((T*)x_temp) + b * x_temp_els;
         }
         RETURN_IF_HIP_ERROR(hipMemcpy(x_temparr, xtemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
 
@@ -2420,7 +2835,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
                                                             B,
                                                             ldb,
                                                             batch_count,
-                                                            (const T**)invAarr,
+                                                            (const T* const*)invAarr,
                                                             (T**)x_temparr);
 
         if(status == rocblas_status_success)
@@ -2432,9 +2847,7 @@ rocblas_status rocblas_trsm_batched_template(rocblas_handle    handle,
         return status;
 
     // If status is successful, return perf_status; else return error
-    // return rocblas_status_success;
     return status == rocblas_status_success ? perf_status : status;
-return rocblas_status_success;
 }
 
 template <rocblas_int BLOCK, typename T>
@@ -2646,7 +3059,6 @@ rocblas_status rocblas_trsm_strided_batched_template(rocblas_handle    handle,
                                                                       stride_invA,
                                                                       (T*)x_temp);
         // Copy solution to B
-
         if(status == rocblas_status_success)
             copy_block_unit(
                 handle, m, n, (const T*)x_temp, m, (m * n), (T*)B, ldb, stride_B, batch_count);
