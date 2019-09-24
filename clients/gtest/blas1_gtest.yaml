@@ -363,7 +363,7 @@ Tests:
     incx: [ 1 ]
     incy: [ 1 ]
     batch_count: [-1, 0, 257]
-    stride_scale: [ 0, 1 ]
+    stride_scale: [ 1 ]
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
