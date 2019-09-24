@@ -22,7 +22,7 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
 
-    size_t size_A = size_t(lda * N);
+    size_t size_A = size_t(lda) * N;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;
@@ -34,7 +34,7 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
-    // memory
+    // memory, quick return if batch_count == 0
     if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
     {
         static const size_t     safe_size = 100;
@@ -144,7 +144,7 @@ void testing_trtri_batched(const Arguments& arg)
     if(arg.timing)
     {
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trtri_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_gflops = batch_count * trtri_gflop_count<T>(N) / gpu_time_used * 1e6;
     }
 
     // copy output from device to CPU
@@ -173,7 +173,7 @@ void testing_trtri_batched(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
+            cblas_gflops  = batch_count * trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
 #if 0

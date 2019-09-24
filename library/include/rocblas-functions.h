@@ -2088,9 +2088,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    trtri  compute the inverse of a matrices  A
-
-        inv(A);
+    trtri_batched  compute the inverse of A_i and write into invA_i where
+                   A_i and invA_i are the i-th matrices in the batch,
+                   for i in [0, batch_count - 1]
 
     @param[in]
     handle    rocblas_handle.
@@ -2149,9 +2149,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    trtri_strided_batched compute the inverse of a batched matrices  A
-
-        inv(A);
+    trtri_strided_batched compute the inverse of A_i and write into invA_i where
+                   A_i and invA_i are the i-th matrices in the batch,
+                   for i in [0, batch_count - 1]
 
     @param[in]
     handle    rocblas_handle.
@@ -2187,9 +2187,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
               specifies the leading dimension of invA.
     @param[in]
     stride_invA rocblas_stride
-             "batch stride invA": stride from the start of one "invA" matrix to the next
-    @param[in]
-    stride_invA rocblas_int
              "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
     batch_count       rocblas_int
