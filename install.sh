@@ -24,6 +24,7 @@ function display_help()
 #  echo "    [--cuda] build library for cuda backend"
   echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
+  echo "    [-n|--no_tensile] build subset of library that doesn't require tensile (testing)"
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -242,6 +243,7 @@ tensile_tag=
 tensile_test_local_path=
 build_clients=false
 build_cuda=false
+build_tensile=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -253,7 +255,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options hicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nhicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -299,6 +301,9 @@ while true; do
     -t|--test_local_path)
         tensile_test_local_path=${2}
         shift 2 ;;
+    -n|--no_tensile)
+        build_tensile=false
+        shift ;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -360,7 +365,7 @@ if [[ "${install_dependencies}" == true ]]; then
   pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
+    ${cmake_executable} -lpthread -DBUILD_WITH_TENSILE=OFF -DBUILD_CLIENTS_BENCHMARKS=OFF -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
   popd
@@ -429,8 +434,14 @@ case "${ID}" in
 esac
 
   # clients
+
+  tensile_opt=""
+    if [[ "${build_tensile}" == false ]]; then
+    tensile_opt="-DBUILD_WITH_TENSILE=OFF"
+  fi
+
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
+    cmake_client_options="${cmake_client_options} ${tensile_opt} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
   fi
 
   compiler="hcc"

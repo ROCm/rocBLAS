@@ -7,17 +7,13 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+// blas1
 #include "testing_asum.hpp"
 #include "testing_asum_batched.hpp"
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
 #include "testing_dot.hpp"
-#include "testing_geam.hpp"
-#include "testing_gemv.hpp"
-#include "testing_gemv_batched.hpp"
-#include "testing_gemv_strided_batched.hpp"
-#include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
@@ -34,9 +30,13 @@
 #include "testing_swap.hpp"
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
+// blas2
+#include "testing_gemv.hpp"
+#include "testing_gemv_batched.hpp"
+#include "testing_gemv_strided_batched.hpp"
+#include "testing_ger.hpp"
 #include "testing_syr.hpp"
-#include "testing_trtri.hpp"
-#include "testing_trtri_batched.hpp"
+
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -53,6 +53,8 @@
 using namespace std::literals;
 
 #if BUILD_WITH_TENSILE
+
+#include "testing_geam.hpp"
 #include "testing_gemm.hpp"
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
@@ -62,6 +64,8 @@ using namespace std::literals;
 #include "testing_trsm.hpp"
 #include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trtri.hpp"
+#include "testing_trtri_batched.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
@@ -136,19 +140,7 @@ struct perf_blas<
     }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "gemm"))
-            testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "gemm_batched"))
-            testing_gemm_batched<T>(arg);
-        else if(!strcmp(arg.function, "gemm_strided_batched"))
-            testing_gemm_strided_batched<T>(arg);
-        else if(!strcmp(arg.function, "trsm"))
-            testing_trsm<T>(arg);
-        else if(!strcmp(arg.function, "trsm_ex"))
-            testing_trsm_ex<T>(arg);
-        else if(!strcmp(arg.function, "trsv"))
-            testing_trsv<T>(arg);
-        else if(!strcmp(arg.function, "asum"))
+        if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
         else if(!strcmp(arg.function, "axpy"))
             testing_axpy<T>(arg);
@@ -172,22 +164,6 @@ struct perf_blas<
             testing_nrm2_batched<T>(arg);
         else if(!strcmp(arg.function, "nrm2_strided_batched"))
             testing_nrm2_strided_batched<T>(arg);
-        else if(!strcmp(arg.function, "gemv"))
-            testing_gemv<T>(arg);
-        else if(!strcmp(arg.function, "gemv_batched"))
-            testing_gemv_batched<T>(arg);
-        else if(!strcmp(arg.function, "gemv_strided_batched"))
-            testing_gemv_strided_batched<T>(arg);
-        else if(!strcmp(arg.function, "ger"))
-            testing_ger<T>(arg);
-        else if(!strcmp(arg.function, "syr"))
-            testing_syr<T>(arg);
-        else if(!strcmp(arg.function, "trtri"))
-            testing_trtri<T>(arg);
-        else if(!strcmp(arg.function, "trtri_batched"))
-            testing_trtri_batched<T>(arg);
-        else if(!strcmp(arg.function, "geam"))
-            testing_geam<T>(arg);
         else if(!strcmp(arg.function, "set_get_vector"))
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
@@ -200,6 +176,36 @@ struct perf_blas<
             testing_rotm<T>(arg);
         else if(!strcmp(arg.function, "rotmg"))
             testing_rotmg<T>(arg);
+        else if(!strcmp(arg.function, "gemv"))
+            testing_gemv<T>(arg);
+        else if(!strcmp(arg.function, "gemv_batched"))
+            testing_gemv_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemv_strided_batched"))
+            testing_gemv_strided_batched<T>(arg);
+        else if(!strcmp(arg.function, "ger"))
+            testing_ger<T>(arg);
+        else if(!strcmp(arg.function, "syr"))
+            testing_syr<T>(arg);
+#if BUILD_WITH_TENSILE
+        else if(!strcmp(arg.function, "geam"))
+            testing_geam<T>(arg);
+        else if(!strcmp(arg.function, "trtri"))
+            testing_trtri<T>(arg);
+        else if(!strcmp(arg.function, "trtri_batched"))
+            testing_trtri_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+        else if(!strcmp(arg.function, "trsm"))
+            testing_trsm<T>(arg);
+        else if(!strcmp(arg.function, "trsm_ex"))
+            testing_trsm_ex<T>(arg);
+        else if(!strcmp(arg.function, "trsv"))
+            testing_trsv<T>(arg);
+#endif
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -236,12 +242,14 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "dot"))
             testing_dot<T>(arg);
+#if BUILD_WITH_TENSILE
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_batched"))
             testing_gemm_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm_strided_batched"))
             testing_gemm_strided_batched<T>(arg);
+#endif
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
@@ -260,13 +268,7 @@ struct perf_blas<T,
     }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "gemm"))
-            testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "gemm_batched"))
-            testing_gemm_batched<T>(arg);
-        else if(!strcmp(arg.function, "gemm_strided_batched"))
-            testing_gemm_strided_batched<T>(arg);
-        else if(!strcmp(arg.function, "asum"))
+        if(!strcmp(arg.function, "asum"))
             testing_asum<T>(arg);
         else if(!strcmp(arg.function, "asum_batched"))
             testing_asum_batched<T>(arg);
@@ -298,6 +300,14 @@ struct perf_blas<T,
             testing_iamin<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
+#if BUILD_WITH_TENSILE
+        else if(!strcmp(arg.function, "gemm"))
+            testing_gemm<T>(arg);
+        else if(!strcmp(arg.function, "gemm_batched"))
+            testing_gemm_batched<T>(arg);
+        else if(!strcmp(arg.function, "gemm_strided_batched"))
+            testing_gemm_strided_batched<T>(arg);
+#endif
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
                                         + " --a_type "s + rocblas_datatype2string(arg.a_type));
