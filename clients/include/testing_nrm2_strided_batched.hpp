@@ -53,7 +53,7 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
     rocblas_int    incx        = arg.incx;
     rocblas_stride stridex     = arg.stride_x;
     rocblas_int    batch_count = arg.batch_count;
-    std::cout << "stridex" << stridex << std::endl;
+
     double rocblas_error_1;
     double rocblas_error_2;
 

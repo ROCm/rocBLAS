@@ -53,7 +53,7 @@ void template_testing_iamax_iamin_strided_batched_bad_arg(const Arguments& arg,
 
 template <typename T,
 	  void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
-void testing_iamax_iamin_strided_batched(const Arguments& arg, rocblas_iamax_iamin_strided_batched_t<T> func)
+void template_testing_iamax_iamin_strided_batched(const Arguments& arg, rocblas_iamax_iamin_strided_batched_t<T> func)
 {
 
   rocblas_int
@@ -238,7 +238,7 @@ void testing_iamax_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamax_strided_batched(const Arguments& arg)
 {
-  testing_iamax_iamin_strided_batched<T, rocblas_cblas::iamax<T> >
+  template_testing_iamax_iamin_strided_batched<T, rocblas_cblas::iamax<T> >
     (arg, rocblas_iamax_strided_batched<T>);
 }
 
@@ -252,7 +252,7 @@ void testing_iamin_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_iamin_strided_batched(const Arguments& arg)
 {
-  testing_iamax_iamin_strided_batched<T, rocblas_cblas::iamin<T> >
+  template_testing_iamax_iamin_strided_batched<T, rocblas_cblas::iamin<T> >
     (arg, rocblas_iamin_strided_batched<T>);
 }
 

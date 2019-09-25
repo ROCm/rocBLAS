@@ -17,13 +17,17 @@
 // Template on the reduction types.
 // 
 //
-template <typename Ti>
+template <typename T>
 struct reduction_types
 {
 public:
-    using To = Ti;
+    using Ti = T;
+    using To = T;
 };
 
+//
+// Specialization of the reduction types for the float complex.
+//
 template <>
 struct reduction_types<rocblas_float_complex>
 {
@@ -31,6 +35,9 @@ struct reduction_types<rocblas_float_complex>
  public: using To = float;
 };
 
+//
+// Specialization of the reduction types for the double complex.
+//
 template <>
 struct reduction_types<rocblas_double_complex>
 {
