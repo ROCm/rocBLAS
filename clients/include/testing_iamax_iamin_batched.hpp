@@ -27,8 +27,7 @@ void template_testing_iamax_iamin_batched_bad_arg(const Arguments&              
     //
     // allocate memory on device
     //
-    T** dx;
-    hipMalloc(&dx, batch_count * sizeof(T*));
+    device_vector<T*, 0, T> dx(batch_count);
     if(nullptr == dx)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);

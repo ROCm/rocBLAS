@@ -26,14 +26,13 @@ void template_testing_iamax_iamin_strided_batched_bad_arg(
     //
     // allocate memory on device
     //
-    T* dx;
-    hipMalloc(&dx, batch_count * sizeof(T));
+    device_vector<T> dx(batch_count);
     if(nullptr == dx)
     {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
+      CHECK_HIP_ERROR(hipErrorOutOfMemory);
+      return;
     }
-
+    
     rocblas_int h_rocblas_result;
 
     EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result),
