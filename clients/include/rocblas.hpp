@@ -421,8 +421,7 @@ using rocblas_iamax_iamin_batched_t = rocblas_status (*)(rocblas_handle handle,
 							 const T* const x[],
 							 rocblas_int incx,
 							 rocblas_int batch_count,
-							 rocblas_int* result,
-							 rocblas_int  incresult);
+							 rocblas_int* result);
 
 //
 // batched iamax
@@ -476,8 +475,7 @@ using rocblas_iamax_iamin_strided_batched_t = rocblas_status (*)(rocblas_handle 
 								 rocblas_int incx,
 								 rocblas_stride stridex,
 								 rocblas_int batch_count,
-								 rocblas_int* result,
-								 rocblas_stride  stride_result);
+								 rocblas_int* result);
 
 //
 // strided_batched iamax

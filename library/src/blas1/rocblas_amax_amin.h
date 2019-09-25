@@ -4,219 +4,57 @@
 #include "fetch_template.h"
 #include "handle.h"
 #include "logging.h"
-#include "reduction.h"
+#include "reduction_strided_batched.h"
 #include "rocblas.h"
 #include "utility.h"
 
-//
-// max by default ?...
-//
 #ifndef MAX_MIN
-#define MAX_MIN max
+#error undefined macro MAX_MIN
 #endif
 
 //
-// max by default again ?...
+// Specify which suffix to use: _batched, _strided_batched or nothing.
+// Here nothing.
 //
-
-#define QUOTE2(S) #S
-#define QUOTE(S) QUOTE2(S)
-
-#define JOIN2(A, B) A##B
-#define JOIN(A, B) JOIN2(A, B)
-
-
-#include "rocblas_iamaxmin_template.h"
-
-#if 0
-//
-// Names.
-//
-template <typename>
-static constexpr char rocblas_iamaxmin_name[] = "unknown";
+#define ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX
 
 //
-// Name specializations.
+// Include the template.
 //
-template <>
-static constexpr char rocblas_iamaxmin_name<float>[] = "rocblas_isa" QUOTE(MAX_MIN);
-
-template <>
-static constexpr char rocblas_iamaxmin_name<double>[] = "rocblas_ida" QUOTE(MAX_MIN);
-
-template <>
-static constexpr char rocblas_iamaxmin_name<rocblas_float_complex>[] = "rocblas_ica" QUOTE(MAX_MIN);
-
-template <>
-static constexpr char rocblas_iamaxmin_name<rocblas_double_complex>[]
-    = "rocblas_iza" QUOTE(MAX_MIN);
-
-//
-// allocate workspace inside this API
-//
-template <typename To, typename Ti>
-static rocblas_status rocblas_iamaxmin(
-    rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, rocblas_int* result)
-{
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    static constexpr int NB = 1024;
-    if(!handle)
-    {
-        return rocblas_status_invalid_handle;
-    }
-
-    auto layer_mode = handle->layer_mode;
-    if(layer_mode & rocblas_layer_mode_log_trace)
-    {
-        log_trace(handle, rocblas_iamaxmin_name<Ti>, n, x, incx);
-    }
-
-    if(layer_mode & rocblas_layer_mode_log_bench)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f ia" QUOTE(MAX_MIN) " -r",
-                  rocblas_precision_string<Ti>,
-                  "-n",
-                  n,
-                  "--incx",
-                  incx);
-    }
-
-    if(layer_mode & rocblas_layer_mode_log_profile)
-    {
-        log_profile(handle, rocblas_iamaxmin_name<Ti>, "N", n, "incx", incx);
-    }
-
-    if(!x || !result)
-    {
-        return rocblas_status_invalid_pointer;
-    }
-
-    // Quick return if possible.
-    if(n <= 0 || incx <= 0)
-    {
-        if(handle->is_device_memory_size_query())
-        {
-            return rocblas_status_size_unchanged;
-        }
-        else if(handle->pointer_mode == rocblas_pointer_mode_device)
-        {
-            RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
-        }
-        else
-        {
-            *result = 0;
-        }
-        return rocblas_status_success;
-    }
-
-    auto blocks = (n - 1) / NB + 1;
-    if(handle->is_device_memory_size_query())
-    {
-        return handle->set_optimal_device_memory_size(sizeof(index_value_t<To>) * blocks);
-    }
-
-    auto mem = handle->device_malloc(sizeof(index_value_t<To>) * blocks);
-    if(!mem)
-    {
-        return rocblas_status_memory_error;
-    }
-
-    
-    return rocblas_reduction_kernel<NB,
-                                    rocblas_fetch_amax_amin<To>,
-                                    AMAX_AMIN_REDUCTION,
-                                    rocblas_finalize_amax_amin>(handle,
-                                                                n,
-                                                                x,
-                                                                incx,
-                                                                result,
-                                                                (index_value_t<To>*)mem,
-                                                                blocks);
-}
-
-/*
- * ===========================================================================
- *    C wrapper
- * ===========================================================================
- */
-
-extern "C" {
-
-rocblas_status JOIN(rocblas_isa, MAX_MIN)(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result)
-{
-    return rocblas_iamaxmin<float>(handle, n, x, incx, result);
-}
-
-rocblas_status JOIN(rocblas_ida, MAX_MIN)(rocblas_handle handle, // the handle.
-                                          rocblas_int    n,
-                                          const double*  x,
-                                          rocblas_int    incx,
-                                          rocblas_int*   result)
-{
-    return rocblas_iamaxmin<double>(handle, n, x, incx, result);
-}
-
-rocblas_status JOIN(rocblas_ica, MAX_MIN)(rocblas_handle               handle,
-                                          rocblas_int                  n,
-                                          const rocblas_float_complex* x,
-                                          rocblas_int                  incx,
-                                          rocblas_int*                 result)
-{
-    return rocblas_iamaxmin<float, rocblas_float_complex>(handle, n, x, incx, result);
-}
-
-rocblas_status JOIN(rocblas_iza, MAX_MIN)(rocblas_handle                handle,
-                                          rocblas_int                   n,
-                                          const rocblas_double_complex* x,
-                                          rocblas_int                   incx,
-                                          rocblas_int*                  result)
-{
-    return rocblas_iamaxmin<double, rocblas_double_complex>(handle, n, x, incx, result);
-}
-
-} // extern "C"
-
-#endif
-
-
+#include "rocblas_iamaxmin_impl.h"
 
 //
 // C wrapper
 //
 extern "C" {
 
-#ifdef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
-#error existing macro ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
-#endif
-#ifdef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_CIMPL
-#error existing macro ROCBLAS_IAMAXMIN_STRIDED_BATCHED_CIMPL
+#ifdef ROCBLAS_IAMAXMIN_HEADER
+#error existing macro ROCBLAS_IAMAXMIN_BATCHED_HEADER
 #endif
   
+#ifdef ROCBLAS_IAMAXMIN_CIMPL
+#error existing macro ROCBLAS_IAMAXMIN_STRIDED_BATCHED_CIMPL
+#endif
+
   //
   // Define the C header.
   //
-#define ROCBLAS_IAMAXMIN_HEADER(name)		\
-  JOIN(name, MAX_MIN )
-  
-#define ROCBLAS_IAMAXMIN_CIMPL(name, type)		\
-  rocblas_status ROCBLAS_IAMAXMIN_HEADER(name) (rocblas_handle  handle, \
+#define ROCBLAS_IAMAXMIN_HEADER(name) JOIN(name, MAX_MIN )
+
+#define ROCBLAS_IAMAXMIN_CIMPL(name, type)				\
+  rocblas_status ROCBLAS_IAMAXMIN_HEADER(name) (rocblas_handle  handle,		\
 						rocblas_int     n,	\
 						const type*     x,	\
 						rocblas_int     incx,	\
-						rocblas_int*    result) \
+						rocblas_int*    result)	\
   {									\
     return rocblas_iamaxmin_impl(handle,				\
 				 n,					\
 				 x,					\
 				 incx,					\
 				 0,					\
-				 result,				\
 				 1,					\
-				 0,					\
-				 1,					\
-				 QUOTE(ROCBLAS_IAMAXMIN_HEADER(name))); \
+				 result);				\
   }
   
   ROCBLAS_IAMAXMIN_CIMPL( rocblas_isa , float);
@@ -225,14 +63,12 @@ extern "C" {
   ROCBLAS_IAMAXMIN_CIMPL( rocblas_iza , rocblas_double_complex);
   
   //
-  // Undefined introduced macro.
+  // Undefined introduced macros.
   //
+  
 #undef ROCBLAS_IAMAXMIN_CIMPL
 #undef ROCBLAS_IAMAXMIN_HEADER
   
-  //
-  // Undefined the C header.
-  //
-#undef ROCBLAS_IAMAXMIN_STRIDED_BATCHED_HEADER
-  
 } // extern "C"
+
+#undef ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX

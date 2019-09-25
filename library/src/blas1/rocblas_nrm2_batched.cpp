@@ -57,7 +57,7 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, results);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);

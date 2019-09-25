@@ -4,11 +4,24 @@
 
 #pragma once
 
+#include "fetch_template.h"
+#include "handle.h"
+#include "logging.h"
+#include "reduction_strided_batched.h"
+#include "rocblas.h"
+#include "utility.h"
+
+#ifndef MAX_MIN
+#error undefined macro MAX_MIN
+#endif
+
 //
-// Use the non-batched header.
+// Specify which suffix to use: _batched, _strided_batched or nothing.
+// Here _batched.
 //
-#include "rocblas_amax_amin.h"
-#include "rocblas_iamaxmin_template.h"
+#define ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX _batched
+
+#include "rocblas_iamaxmin_impl.h"
 
 //
 // C wrapper
@@ -21,12 +34,12 @@ extern "C" {
 #ifdef ROCBLAS_IAMAXMIN_BATCHED_CIMPL
 #error existing macro ROCBLAS_IAMAXMIN_BATCHED_CIMPL
 #endif
-  
+
   //
   // Define the C header.
   //
 #define ROCBLAS_IAMAXMIN_BATCHED_HEADER(name)	\
-  JOIN(name, JOIN(MAX_MIN, _batched))
+  JOIN(name, JOIN(MAX_MIN, ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX) )
   
 #define ROCBLAS_IAMAXMIN_BATCHED_CIMPL(name, type)			\
   rocblas_status ROCBLAS_IAMAXMIN_BATCHED_HEADER(name) (rocblas_handle                handle, \
@@ -34,8 +47,7 @@ extern "C" {
 							const type* const             x[], \
 							rocblas_int                   incx, \
 							rocblas_int                   batch_count, \
-							rocblas_int*                  result, \
-							rocblas_int                   incresult) \
+							rocblas_int*                  result) \
   {									\
     static constexpr rocblas_int stridex = 0;				\
     return rocblas_iamaxmin_impl(handle,				\
@@ -43,25 +55,24 @@ extern "C" {
 				 x,					\
 				 incx,					\
 				 stridex,				\
-				 result,				\
-				 incresult,				\
-				 1,					\
 				 batch_count,				\
-				 QUOTE(ROCBLAS_IAMAXMIN_BATCHED_HEADER(name))); \
+				 result);				\
   }
   
   ROCBLAS_IAMAXMIN_BATCHED_CIMPL( rocblas_isa , float);
   ROCBLAS_IAMAXMIN_BATCHED_CIMPL( rocblas_ida , double);
   ROCBLAS_IAMAXMIN_BATCHED_CIMPL( rocblas_ica , rocblas_float_complex);
   ROCBLAS_IAMAXMIN_BATCHED_CIMPL( rocblas_iza , rocblas_double_complex);
-  
-  
+
+
   //
-  // Undefined introduced macro.
+  // Undefined introduced macros.
   //
 #undef ROCBLAS_IAMAXMIN_BATCHED_CIMPL
 #undef ROCBLAS_IAMAXMIN_BATCHED_HEADER
   
 } // extern "C"
+
+#undef ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX
 
 
