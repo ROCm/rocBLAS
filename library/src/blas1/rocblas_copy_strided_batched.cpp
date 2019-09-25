@@ -85,15 +85,7 @@ namespace
                         "batch_count",
                         batch_count);
 
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
-
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        if(!incx || !incy || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        return rocblas_copy_template<NB, T>(
+        return rocblas_copy_template<NB, true, T>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 
