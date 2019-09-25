@@ -211,6 +211,7 @@ namespace
                                                                m,
                                                                n,
                                                                alpha,
+                                                               0,
                                                                A,
                                                                0,
                                                                lda,
