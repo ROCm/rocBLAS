@@ -9,11 +9,9 @@
 
 namespace
 {
-  
     // HIP support up to 1024 threads/work itemes per thread block/work group
     // setting to 512 for gfx803.
-  //    constexpr int NB = 512;
-     constexpr int NB = 1024;
+    constexpr int NB = 512;
 
     template <bool CONJ, typename T, typename T2 = T>
     __global__ void dot_kernel_part1(
