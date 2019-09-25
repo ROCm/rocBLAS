@@ -359,7 +359,6 @@ template <>
 static constexpr auto
     rocblas_nrm2_strided_batched<rocblas_double_complex, double> = rocblas_dznrm2_strided_batched;
 
-
 //
 // iamax and iamin.
 //
@@ -407,7 +406,6 @@ static constexpr auto rocblas_iamin<rocblas_float_complex> = rocblas_icamin;
 template <>
 static constexpr auto rocblas_iamin<rocblas_double_complex> = rocblas_izamin;
 
-
 //
 // batched iamax and iamin.
 //
@@ -417,11 +415,11 @@ static constexpr auto rocblas_iamin<rocblas_double_complex> = rocblas_izamin;
 //
 template <typename T>
 using rocblas_iamax_iamin_batched_t = rocblas_status (*)(rocblas_handle handle,
-							 rocblas_int n,
-							 const T* const x[],
-							 rocblas_int incx,
-							 rocblas_int batch_count,
-							 rocblas_int* result);
+                                                         rocblas_int    n,
+                                                         const T* const x[],
+                                                         rocblas_int    incx,
+                                                         rocblas_int    batch_count,
+                                                         rocblas_int*   result);
 
 //
 // batched iamax
@@ -459,23 +457,21 @@ static constexpr auto rocblas_iamin_batched<rocblas_float_complex> = rocblas_ica
 template <>
 static constexpr auto rocblas_iamin_batched<rocblas_double_complex> = rocblas_izamin_batched;
 
-
 //
 // strided_batched iamax and iamin.
 //
-
 
 //
 // Define the signature type.
 //
 template <typename T>
 using rocblas_iamax_iamin_strided_batched_t = rocblas_status (*)(rocblas_handle handle,
-								 rocblas_int n,
-								 const T* x,
-								 rocblas_int incx,
-								 rocblas_stride stridex,
-								 rocblas_int batch_count,
-								 rocblas_int* result);
+                                                                 rocblas_int    n,
+                                                                 const T*       x,
+                                                                 rocblas_int    incx,
+                                                                 rocblas_stride stridex,
+                                                                 rocblas_int    batch_count,
+                                                                 rocblas_int*   result);
 
 //
 // strided_batched iamax
@@ -490,10 +486,12 @@ template <>
 static constexpr auto rocblas_iamax_strided_batched<double> = rocblas_idamax_strided_batched;
 
 template <>
-static constexpr auto rocblas_iamax_strided_batched<rocblas_float_complex> = rocblas_icamax_strided_batched;
+static constexpr auto
+    rocblas_iamax_strided_batched<rocblas_float_complex> = rocblas_icamax_strided_batched;
 
 template <>
-static constexpr auto rocblas_iamax_strided_batched<rocblas_double_complex> = rocblas_izamax_strided_batched;
+static constexpr auto
+    rocblas_iamax_strided_batched<rocblas_double_complex> = rocblas_izamax_strided_batched;
 
 //
 // strided_batched iamin
@@ -508,12 +506,12 @@ template <>
 static constexpr auto rocblas_iamin_strided_batched<double> = rocblas_idamin_strided_batched;
 
 template <>
-static constexpr auto rocblas_iamin_strided_batched<rocblas_float_complex> = rocblas_icamin_strided_batched;
+static constexpr auto
+    rocblas_iamin_strided_batched<rocblas_float_complex> = rocblas_icamin_strided_batched;
 
 template <>
-static constexpr auto rocblas_iamin_strided_batched<rocblas_double_complex> = rocblas_izamin_strided_batched;
-
-
+static constexpr auto
+    rocblas_iamin_strided_batched<rocblas_double_complex> = rocblas_izamin_strided_batched;
 
 // axpy
 template <typename T>

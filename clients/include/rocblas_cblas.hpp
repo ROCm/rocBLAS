@@ -4,8 +4,8 @@
 #pragma once
 
 //
-//  CBLAS does not have a cblas_iamin function
-//  neither a rocblas_half iamax,
+//  CBLAS does not have an  function iamin
+//  neither a rocblas_half based function iamax,
 //  so we write our own version of it
 //
 namespace rocblas_cblas
@@ -67,7 +67,7 @@ namespace rocblas_cblas
     template <typename T>
     void iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
     {
-      cblas_iamax(N,X,incx,result);
+        cblas_iamax(N, X, incx, result);
     }
 
     template <>
@@ -90,7 +90,5 @@ namespace rocblas_cblas
         }
         *result = maxpos;
     }
-
-  
 
 } // namespace rocblas_cblas

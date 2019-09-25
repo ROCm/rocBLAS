@@ -166,8 +166,7 @@ size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>
-size_t
-    rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
@@ -183,14 +182,15 @@ template <rocblas_int NB,
           typename REDUCE = rocblas_reduce_sum,
           typename TPtrX,
           typename To>
-  __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-__global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                                               rocblas_int    nblocks,
-                                                               TPtrX          xvec,
-                                                               rocblas_int    shiftx,
-                                                               rocblas_int    incx,
-                                                               rocblas_stride stridex,
-                                                               To*            workspace)
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
+__global__ void
+    rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
+                                                   rocblas_int    nblocks,
+                                                   TPtrX          xvec,
+                                                   rocblas_int    shiftx,
+                                                   rocblas_int    incx,
+                                                   rocblas_stride stridex,
+                                                   To*            workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
@@ -219,7 +219,7 @@ template <rocblas_int NB,
           typename To,
           typename Tr>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-  __global__ void
+__global__ void
     rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int   tx = hipThreadIdx_x;
@@ -315,21 +315,21 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                                                         To*            workspace,
                                                         Tr*            result)
 {
-  
-  rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-  hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, Ti, FETCH, REDUCE>),
-		     dim3(blocks, batch_count),
-		     NB,
-		     0,
-		     handle->rocblas_stream,
-		     n,
-		     blocks,
-		     x,
-		     shiftx,
-		     incx,
-		     stridex,
-		     workspace);
+    rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
+
+    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, Ti, FETCH, REDUCE>),
+                       dim3(blocks, batch_count),
+                       NB,
+                       0,
+                       handle->rocblas_stream,
+                       n,
+                       blocks,
+                       x,
+                       shiftx,
+                       incx,
+                       stridex,
+                       workspace);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {

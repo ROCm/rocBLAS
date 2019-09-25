@@ -15,7 +15,7 @@
 //
 //
 // Template on the reduction types.
-// 
+//
 //
 template <typename T>
 struct reduction_types
@@ -31,8 +31,11 @@ public:
 template <>
 struct reduction_types<rocblas_float_complex>
 {
- public: using Ti = rocblas_float_complex;
- public: using To = float;
+public:
+    using Ti = rocblas_float_complex;
+
+public:
+    using To = float;
 };
 
 //
@@ -41,10 +44,12 @@ struct reduction_types<rocblas_float_complex>
 template <>
 struct reduction_types<rocblas_double_complex>
 {
- public: using Ti = rocblas_double_complex;
- public: using To = double;
-};
+public:
+    using Ti = rocblas_double_complex;
 
+public:
+    using To = double;
+};
 
 //
 // Extension of a rocblas_int as a pair of index and value.
@@ -54,20 +59,19 @@ struct reduction_types<rocblas_double_complex>
 template <typename T>
 struct index_value_t
 {
-  rocblas_int index;
-  T           value;
+    rocblas_int index;
+    T           value;
 };
 
 //
 // Overload the output stream operator for the intermediate data type.
 //
 template <typename T>
-std::ostream& operator<<(std::ostream& out,const index_value_t<T>& index_value)
+std::ostream& operator<<(std::ostream& out, const index_value_t<T>& index_value)
 {
-  out << "(" << index_value.index << "," << index_value.value << ")" << std::endl;
-  return out;
+    out << "(" << index_value.index << "," << index_value.value << ")" << std::endl;
+    return out;
 };
-
 
 // #############################################################
 // DEFINITION OF ACTIONS TO EXECUTE DURING THE MIN/MAX ALGORITHM
@@ -95,11 +99,10 @@ struct rocblas_fetch_amax_amin
 {
     template <typename Ti>
     __forceinline__ __host__ __device__ index_value_t<To> operator()(Ti x, rocblas_int index)
-  {
-    return {index, fetch_asum(x)};
+    {
+        return {index, fetch_asum(x)};
     }
 };
-
 
 //
 // Replaces x with y if y.value < x.value or y.value == x.value and y.index < x.index.
@@ -164,60 +167,59 @@ struct rocblas_finalize_amax_amin
 
 template <typename U>
 static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
-						rocblas_int    n,
-						U              x,
-						rocblas_int    incx,
-						rocblas_stride stridex,
-						rocblas_int    batch_count,
-						rocblas_int *  result,
-						void *         workspace)
+                                                rocblas_int    n,
+                                                U              x,
+                                                rocblas_int    incx,
+                                                rocblas_stride stridex,
+                                                rocblas_int    batch_count,
+                                                rocblas_int*   result,
+                                                void*          workspace)
 {
-  //
-  // Get the 'T input' type
-  //
-  using Ti = batched_data_t<U>;
-  
-  //
-  // Get the 'T output' type
-  //
-  using To = typename reduction_types<Ti>::To;
-  
-  //
-  // HIP support up to 1024 threads/work times per thread block/work group
-  //
-  static constexpr int NB = 1024;
+    //
+    // Get the 'T input' type
+    //
+    using Ti = batched_data_t<U>;
 
-  //
-  // Quick return if possible.
-  //
-  if(n <= 0 || incx <= 0 || batch_count == 0)
+    //
+    // Get the 'T output' type
+    //
+    using To = typename reduction_types<Ti>::To;
+
+    //
+    // HIP support up to 1024 threads/work times per thread block/work group
+    //
+    static constexpr int NB = 1024;
+
+    //
+    // Quick return if possible.
+    //
+    if(n <= 0 || incx <= 0 || batch_count == 0)
     {
-      if(handle->is_device_memory_size_query())
+        if(handle->is_device_memory_size_query())
         {
-	  return rocblas_status_size_unchanged;
+            return rocblas_status_size_unchanged;
         }
-      else if(handle->pointer_mode == rocblas_pointer_mode_device && batch_count > 0)
+        else if(handle->pointer_mode == rocblas_pointer_mode_device && batch_count > 0)
         {
-	  RETURN_IF_HIP_ERROR(hipMemset(result, 0, batch_count * sizeof(rocblas_int)));
+            RETURN_IF_HIP_ERROR(hipMemset(result, 0, batch_count * sizeof(rocblas_int)));
         }
-      else
+        else
         {
-	  //
-	  // On host.
-	  //
-	  for(int i = 0; i < batch_count; i++)
+            //
+            // On host.
+            //
+            for(int i = 0; i < batch_count; i++)
             {
-	      result[i] = rocblas_int(0);
+                result[i] = rocblas_int(0);
             }
         }
-      return rocblas_status_success;
+        return rocblas_status_success;
     }
-  
-  return rocblas_reduction_strided_batched_kernel
-    < NB,
-    Ti,
-    rocblas_fetch_amax_amin<To>,
-    AMAX_AMIN_REDUCTION,
-    rocblas_finalize_amax_amin>(handle, n, x, 0, incx, stridex, batch_count, (index_value_t<To>*)workspace, result);
-  
+
+    return rocblas_reduction_strided_batched_kernel<NB,
+                                                    Ti,
+                                                    rocblas_fetch_amax_amin<To>,
+                                                    AMAX_AMIN_REDUCTION,
+                                                    rocblas_finalize_amax_amin>(
+        handle, n, x, 0, incx, stridex, batch_count, (index_value_t<To>*)workspace, result);
 }
