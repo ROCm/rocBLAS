@@ -212,14 +212,17 @@ namespace
                                                                n,
                                                                alpha,
                                                                A,
+                                                               0,
                                                                lda,
                                                                stride_A,
                                                                B,
+                                                               0,
                                                                ldb,
                                                                stride_B,
                                                                batch_count,
                                                                supplied_invA,
                                                                supplied_invA_size,
+                                                               0,
                                                                stride_invA);
     }
 

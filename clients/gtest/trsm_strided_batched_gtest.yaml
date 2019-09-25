@@ -95,7 +95,7 @@ Definitions:
 Tests:
 - name: trsm_strided_batched_small
   category: quick
-  function: trsm_strided_batched
+  function: trsm_strided_batched #[trsm_strided_batched, trsm_ex_strided_batched]
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -117,10 +117,8 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  # stride_a: [1, 500000, 1000000]
-  stride_a: [ 65536 ]
-  stride_b: [ 65536 ]
-  # stride_b: [1, 500000, 1000000]
+  stride_a: [1, 500000, 1000000]
+  stride_b: [1, 500000, 1000000]
   batch_count: [ 0, 1, 5 ]        
 
 - name: trsm_strided_batched_testset1
