@@ -43,7 +43,7 @@ namespace
                                                 T*                B[],
                                                 rocblas_int       ldb,
                                                 rocblas_int       batch_count,
-                                                const T*          supplied_invA[]    = nullptr,
+                                                const T* const    supplied_invA[]    = nullptr,
                                                 rocblas_int       supplied_invA_size = 0)
     {
         if(!handle)
@@ -184,24 +184,28 @@ namespace
                                                          : rocblas_status_success;
 
         rocblas_status status;
-        status = rocblas_trsm_batched_template<BLOCK, T>(handle,
-                                                         side,
-                                                         uplo,
-                                                         transA,
-                                                         diag,
-                                                         m,
-                                                         n,
-                                                         alpha,
-                                                         0,
-                                                         A,
-                                                         0,
-                                                         lda,
-                                                         B,
-                                                         0,
-                                                         ldb,
-                                                         batch_count,
-                                                         supplied_invA,
-                                                         supplied_invA_size);
+        status = rocblas_trsm_template<BLOCK, true, false, T>(handle,
+                                                              side,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              m,
+                                                              n,
+                                                              alpha,
+                                                              0,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              0,
+                                                              B,
+                                                              0,
+                                                              ldb,
+                                                              0,
+                                                              batch_count,
+                                                              supplied_invA,
+                                                              supplied_invA_size,
+                                                              0,
+                                                              0);
 
         return status;
     }
@@ -285,7 +289,7 @@ rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
                                                          (double**)(B),
                                                          ldb,
                                                          batch_count,
-                                                         (const double**)(invA),
+                                                         (const double* const*)(invA),
                                                          invA_size);
 
     case rocblas_datatype_f32_r:
@@ -302,7 +306,7 @@ rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
                                                          (float**)(B),
                                                          ldb,
                                                          batch_count,
-                                                         (const float**)(invA),
+                                                         (const float* const*)(invA),
                                                          invA_size);
 
     default:

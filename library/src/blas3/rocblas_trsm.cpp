@@ -173,26 +173,26 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
-        return rocblas_trsm_strided_batched_template<BLOCK, T>(handle,
-                                                               side,
-                                                               uplo,
-                                                               transA,
-                                                               diag,
-                                                               m,
-                                                               n,
-                                                               alpha,
-                                                               0,
-                                                               A,
-                                                               0,
-                                                               lda,
-                                                               0,
-                                                               B,
-                                                               0,
-                                                               ldb,
-                                                               0,
-                                                               1,
-                                                               supplied_invA,
-                                                               supplied_invA_size);
+        return rocblas_trsm_template<BLOCK, false, true, T>(handle,
+                                                            side,
+                                                            uplo,
+                                                            transA,
+                                                            diag,
+                                                            m,
+                                                            n,
+                                                            alpha,
+                                                            0,
+                                                            A,
+                                                            0,
+                                                            lda,
+                                                            0,
+                                                            B,
+                                                            0,
+                                                            ldb,
+                                                            0,
+                                                            1,
+                                                            supplied_invA,
+                                                            supplied_invA_size);
     }
 
 }
