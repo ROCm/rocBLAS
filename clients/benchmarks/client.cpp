@@ -12,6 +12,8 @@
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
+#include "testing_copy_batched.hpp"
+#include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
 #include "testing_geam.hpp"
 #include "testing_gemv.hpp"
@@ -154,6 +156,10 @@ struct perf_blas<
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "copy"))
             testing_copy<T>(arg);
+        else if(!strcmp(arg.function, "copy_batched"))
+            testing_copy_batched<T>(arg);
+        else if(!strcmp(arg.function, "copy_strided_batched"))
+            testing_copy_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "dot"))
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "swap"))
@@ -276,6 +282,10 @@ struct perf_blas<T,
             testing_axpy<T>(arg);
         else if(!strcmp(arg.function, "copy"))
             testing_copy<T>(arg);
+        else if(!strcmp(arg.function, "copy_batched"))
+            testing_copy_batched<T>(arg);
+        else if(!strcmp(arg.function, "copy_strided_batched"))
+            testing_copy_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "dot"))
             testing_dot<T>(arg);
         else if(!strcmp(arg.function, "dotc"))
