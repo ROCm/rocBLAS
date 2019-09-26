@@ -26,17 +26,17 @@ namespace
     constexpr T one = 1;
 
     template <typename T, typename U, typename V>
-    __global__ void copy_matrix_trsm(rocblas_int rows,
-                                     rocblas_int cols,
-                                     rocblas_int elem_size,
-                                     U           a,
-                                     rocblas_int lda,
-                                     rocblas_int stride_a,
-                                     V           b,
-                                     rocblas_int ldb,
-                                     rocblas_int stride_b,
-                                     rocblas_int offset_a,
-                                     rocblas_int offset_b)
+    __global__ void copy_matrix_trsm(rocblas_int    rows,
+                                     rocblas_int    cols,
+                                     rocblas_int    elem_size,
+                                     U              a,
+                                     rocblas_int    lda,
+                                     rocblas_stride stride_a,
+                                     V              b,
+                                     rocblas_int    ldb,
+                                     rocblas_stride stride_b,
+                                     rocblas_int    offset_a,
+                                     rocblas_int    offset_b)
     {
         const T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
         T*       xb = load_ptr_batch(b, hipBlockIdx_z, offset_b, stride_b);
@@ -55,10 +55,10 @@ namespace
                          rocblas_int    n,
                          U              src,
                          rocblas_int    src_ld,
-                         rocblas_int    src_stride,
+                         rocblas_stride src_stride,
                          V              dst,
                          rocblas_int    dst_ld,
-                         rocblas_int    dst_stride,
+                         rocblas_stride dst_stride,
                          rocblas_int    batch_count,
                          rocblas_int    offset_src = 0,
                          rocblas_int    offset_dst = 0)
@@ -1384,16 +1384,16 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                      U                 A,
                                      rocblas_int       offset_A,
                                      rocblas_int       lda,
-                                     rocblas_int       stride_A,
+                                     rocblas_stride    stride_A,
                                      V                 B,
                                      rocblas_int       offset_B,
                                      rocblas_int       ldb,
-                                     rocblas_int       stride_B,
+                                     rocblas_stride    stride_B,
                                      rocblas_int       batch_count,
                                      U                 supplied_invA      = nullptr,
                                      rocblas_int       supplied_invA_size = 0,
                                      rocblas_int       offset_invA        = 0,
-                                     rocblas_int       stride_invA        = 0)
+                                     rocblas_stride    stride_invA        = 0)
 {
     // return rocblas_status_not_implemented;
     if(batch_count == 0)

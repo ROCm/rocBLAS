@@ -40,14 +40,14 @@ namespace
                                                         const T*          alpha,
                                                         const T*          A,
                                                         rocblas_int       lda,
-                                                        rocblas_int       stride_A,
+                                                        rocblas_stride    stride_A,
                                                         T*                B,
                                                         rocblas_int       ldb,
-                                                        rocblas_int       stride_B,
+                                                        rocblas_stride    stride_B,
                                                         rocblas_int       batch_count,
                                                         const T*          supplied_invA = nullptr,
                                                         rocblas_int       supplied_invA_size = 0,
-                                                        rocblas_int       stride_invA        = 0)
+                                                        rocblas_stride    stride_invA        = 0)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -241,10 +241,10 @@ rocblas_status rocblas_strsm_strided_batched(rocblas_handle    handle,
                                              const float*      alpha,
                                              const float*      A,
                                              rocblas_int       lda,
-                                             rocblas_int       stride_A,
+                                             rocblas_stride    stride_A,
                                              float*            B,
                                              rocblas_int       ldb,
-                                             rocblas_int       stride_B,
+                                             rocblas_stride    stride_B,
                                              rocblas_int       batch_count)
 {
     return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(handle,
@@ -274,10 +274,10 @@ rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
                                              const double*     alpha,
                                              const double*     A,
                                              rocblas_int       lda,
-                                             rocblas_int       stride_A,
+                                             rocblas_stride    stride_A,
                                              double*           B,
                                              rocblas_int       ldb,
-                                             rocblas_int       stride_B,
+                                             rocblas_stride    stride_B,
                                              rocblas_int       batch_count)
 {
     return rocblas_trsm_strided_batched_ex_impl<DTRSM_BLOCK>(handle,
@@ -307,14 +307,14 @@ rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
                                                const void*       alpha,
                                                const void*       A,
                                                rocblas_int       lda,
-                                               rocblas_int       stride_A,
+                                               rocblas_stride    stride_A,
                                                void*             B,
                                                rocblas_int       ldb,
-                                               rocblas_int       stride_B,
+                                               rocblas_stride    stride_B,
                                                rocblas_int       batch_count,
                                                const void*       invA,
                                                rocblas_int       invA_size,
-                                               rocblas_int       stride_invA,
+                                               rocblas_stride    stride_invA,
                                                rocblas_datatype  compute_type)
 {
     switch(compute_type)

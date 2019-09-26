@@ -30,10 +30,10 @@ __global__ void trtri_trsm_kernel(rocblas_fill     uplo,
                                   U                A,
                                   rocblas_int      offset_A,
                                   rocblas_int      lda,
-                                  rocblas_int      stride_A,
+                                  rocblas_stride   stride_A,
                                   V                invA,
                                   rocblas_int      offset_invA,
-                                  rocblas_int      stride_invA)
+                                  rocblas_stride   stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix
@@ -101,10 +101,10 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                                            U                A,
                                            rocblas_int      offset_Ain,
                                            rocblas_int      lda,
-                                           rocblas_int      stride_A,
+                                           rocblas_stride   stride_A,
                                            V                invA,
                                            rocblas_int      offset_invAin,
-                                           rocblas_int      stride_invA,
+                                           rocblas_stride   stride_invA,
                                            rocblas_int      batch_count)
 {
     // Quick return if possible.

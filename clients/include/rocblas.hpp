@@ -985,10 +985,10 @@ rocblas_status (*rocblas_trsm_strided_batched)(rocblas_handle    handle,
                                                const T*          alpha,
                                                T*                A,
                                                rocblas_int       lda,
-                                               rocblas_int       strie_a,
+                                               rocblas_stride    stride_a,
                                                T*                B,
                                                rocblas_int       ldb,
-                                               rocblas_int       stride_b,
+                                               rocblas_stride    stride_b,
                                                rocblas_int       batch_count);
 
 template <>

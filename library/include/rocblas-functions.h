@@ -2516,10 +2516,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_strsm_strided_batched(rocblas_handle    ha
                                                             const float*      alpha,
                                                             const float*      A,
                                                             rocblas_int       lda,
-                                                            rocblas_int       stride_a,
+                                                            rocblas_stride    stride_a,
                                                             float*            B,
                                                             rocblas_int       ldb,
-                                                            rocblas_int       stride_b,
+                                                            rocblas_stride    stride_b,
                                                             rocblas_int       batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
@@ -2532,10 +2532,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    ha
                                                             const double*     alpha,
                                                             const double*     A,
                                                             rocblas_int       lda,
-                                                            rocblas_int       stride_a,
+                                                            rocblas_stride    stride_a,
                                                             double*           B,
                                                             rocblas_int       ldb,
-                                                            rocblas_int       stride_b,
+                                                            rocblas_stride    stride_b,
                                                             rocblas_int       batch_count);
 
 /*! \brief BLAS Level 3 API
@@ -5003,14 +5003,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    
                                                               const void*       alpha,
                                                               const void*       A,
                                                               rocblas_int       lda,
-                                                              rocblas_int       stride_A,
+                                                              rocblas_stride    stride_A,
                                                               void*             B,
                                                               rocblas_int       ldb,
-                                                              rocblas_int       stride_B,
+                                                              rocblas_stride    stride_B,
                                                               rocblas_int       batch_count,
                                                               const void*       invA,
                                                               rocblas_int       invA_size,
-                                                              rocblas_int       stride_invA,
+                                                              rocblas_stride    stride_invA,
                                                               rocblas_datatype  compute_type);
 
 /*
