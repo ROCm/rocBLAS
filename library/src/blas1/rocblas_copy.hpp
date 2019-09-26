@@ -49,8 +49,6 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_stride stridey,
                                      rocblas_int    batch_count)
 {
-    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
     // Quick return if possible.
     if(n <= 0 || !batch_count)
         return rocblas_status_success;
