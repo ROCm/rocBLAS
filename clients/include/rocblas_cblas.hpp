@@ -67,12 +67,6 @@ namespace rocblas_cblas
     template <typename T>
     void iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
     {
-        cblas_iamax(N, X, incx, result);
-    }
-
-    template <>
-    void iamax(rocblas_int N, const rocblas_half* X, rocblas_int incx, rocblas_int* result)
-    {
         rocblas_int maxpos = -1;
         if(N > 0 && incx > 0)
         {
