@@ -154,15 +154,14 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
 
-        if(!x || !y || !result)
-            return rocblas_status_invalid_pointer;
-
         // Quick return if possible.
         if(n <= 0)
         {
             if(handle->is_device_memory_size_query())
                 return rocblas_status_size_unchanged;
-            else if(rocblas_pointer_mode_device == handle->pointer_mode)
+            if(!result)
+                return rocblas_status_invalid_pointer;
+            if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
             else
                 *result = T(0);
@@ -172,6 +171,9 @@ namespace
         auto blocks = (n - 1) / NB + 1;
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(sizeof(T2) * blocks);
+
+        if(!x || !y || !result)
+            return rocblas_status_invalid_pointer;
 
         auto mem = handle->device_malloc(sizeof(T2) * blocks);
         if(!mem)

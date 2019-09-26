@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 #include <sys/time.h>
 
 namespace
@@ -48,10 +49,8 @@ namespace
         // Perform logging
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
@@ -70,25 +69,25 @@ namespace
                             m,
                             n,
                             k,
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             A,
                             ld_a,
                             B,
                             ld_b,
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             C,
                             ld_c);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha);
-                    if (std::imag(*alpha) != 0)
+                    alphass << "--alpha " << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
+                    if (alpha && std::imag(*alpha) != 0)
                         alphass << " --alphai " << std::imag(*alpha);
 
                     std::stringstream betass;
-                    betass << "--beta " << std::real(*beta);
-                    if (std::imag(*beta) != 0)
+                    betass << "--beta " << (beta ? std::real(*beta) : std::numeric_limits<T>::quiet_NaN());
+                    if (beta && std::imag(*beta) != 0)
                         betass << " --betai " << std::imag(*beta);
 
                     log_bench(handle,
@@ -508,4 +507,3 @@ rocblas_status rocblas_dgemm_kernel_name(rocblas_handle handle,
 
 
 }
-

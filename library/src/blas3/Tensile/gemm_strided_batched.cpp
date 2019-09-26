@@ -7,11 +7,11 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 #include <sys/time.h>
 
 namespace
 {
-
     template <typename>
     static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
 
@@ -82,14 +82,14 @@ namespace
                             m,
                             n,
                             k,
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             A,
                             ld_a,
                             stride_a,
                             B,
                             ld_b,
                             stride_b,
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             C,
                             ld_c,
                             stride_c,
@@ -98,13 +98,13 @@ namespace
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha);
-                    if (std::imag(*alpha) != 0)
+                    alphass << "--alpha " << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
+                    if (alpha && std::imag(*alpha) != 0)
                         alphass << " --alphai " << std::imag(*alpha);
 
                     std::stringstream betass;
-                    betass << "--beta " << std::real(*beta);
-                    if (std::imag(*beta) != 0)
+                    betass << "--beta " << (beta ? std::real(*beta) : std::numeric_limits<T>::quiet_NaN());
+                    if (beta && std::imag(*beta) != 0)
                         betass << " --betai " << std::imag(*beta);
 
                     log_bench(handle,
@@ -255,14 +255,14 @@ namespace
                             m,
                             n,
                             k,
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             A,
                             ld_a,
                             stride_a,
                             B,
                             ld_b,
                             stride_b,
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             C,
                             ld_c,
                             stride_c,
@@ -283,7 +283,7 @@ namespace
                             "-k",
                             k,
                             "--alpha",
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             "--lda",
                             ld_a,
                             "--bsa",
@@ -293,7 +293,7 @@ namespace
                             "--bsb",
                             stride_b,
                             "--beta",
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             "--ldc",
                             ld_c,
                             "--bsc",

@@ -5,6 +5,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 
 namespace
 {
@@ -46,23 +47,30 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
 
         auto layer_mode = handle->layer_mode;
 
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<T>, n, *alpha, x, incx, y, incy);
+                log_trace(handle,
+                          rocblas_axpy_name<T>,
+                          n,
+                          alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
+                          x,
+                          incx,
+                          y,
+                          incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha)
-                        << (std::imag(*alpha) != 0
-                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                                : "");
+                alphass << "--alpha "
+                        << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
+                if(alpha && std::imag(*alpha) != 0)
+                    alphass << " --alphai " << std::imag(*alpha);
+
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<T>,
@@ -81,10 +89,11 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_axpy_name<T>, "N", n, "incx", incx, "incy", incy);
 
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
         if(n <= 0) // Quick return if possible. Not Argument error
             return rocblas_status_success;
+
+        if(!alpha || !x || !y)
+            return rocblas_status_invalid_pointer;
 
         int         blocks = (n - 1) / NB + 1;
         dim3        threads(NB);
@@ -172,19 +181,28 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
 
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_axpy_name<rocblas_half>, n, *alpha, x, incx, y, incy);
+                log_trace(handle,
+                          rocblas_axpy_name<rocblas_half>,
+                          n,
+                          alpha ? *alpha : std::numeric_limits<float>::quiet_NaN(),
+                          x,
+                          incx,
+                          y,
+                          incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
                 std::stringstream alphass;
-                alphass << "--alpha " << std::real(*alpha)
-                        << (std::imag(*alpha) != 0
-                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                                : "");
+                alphass << "--alpha "
+                        << (alpha ? std::real(*alpha) : std::numeric_limits<float>::quiet_NaN());
+                if(alpha && std::imag(*alpha) != 0)
+                    alphass << " --alphai " << std::imag(*alpha);
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<rocblas_half>,
@@ -204,13 +222,11 @@ namespace
             log_profile(
                 handle, rocblas_axpy_name<rocblas_half>, "N", n, "incx", incx, "incy", incy);
 
-        if(!alpha || !x || !y)
-            return rocblas_status_invalid_pointer;
-
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
         if(n <= 0) // Quick return if possible. Not Argument error
             return rocblas_status_success;
+
+        if(!alpha || !x || !y)
+            return rocblas_status_invalid_pointer;
 
         hipStream_t rocblas_stream = handle->rocblas_stream;
         if(incx != 1 || incy != 1) // slow code, no rocblas_half8 or rocblas_half2

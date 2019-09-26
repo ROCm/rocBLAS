@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 #include <sys/time.h>
 
 namespace
@@ -53,9 +54,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
         auto layer_mode = handle->layer_mode;
         if(layer_mode & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench |
                         rocblas_layer_mode_log_profile))
@@ -73,12 +71,12 @@ namespace
                             m,
                             n,
                             k,
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             A,
                             ld_a,
                             B,
                             ld_b,
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             C,
                             ld_c,
                             b_c);
@@ -98,13 +96,13 @@ namespace
                             "-k",
                             k,
                             "--alpha",
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             "--lda",
                             ld_a,
                             "--ldb",
                             ld_b,
                             "--beta",
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             "--ldc",
                             ld_c,
                             "--batch",
@@ -210,12 +208,12 @@ namespace
                             m,
                             n,
                             k,
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             A,
                             ld_a,
                             B,
                             ld_b,
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             C,
                             ld_c,
                             b_c);
@@ -235,13 +233,13 @@ namespace
                             "-k",
                             k,
                             "--alpha",
-                            *alpha,
+                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                             "--lda",
                             ld_a,
                             "--ldb",
                             ld_b,
                             "--beta",
-                            *beta,
+                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                             "--ldc",
                             ld_c,
                             "--batch",
@@ -291,7 +289,7 @@ namespace
                             b_c);
         }
 
-        
+
         rocblas_stride stride_a;
         rocblas_stride stride_b;
         rocblas_stride stride_c;

@@ -49,7 +49,7 @@ namespace
         if(!x || !result)
             return rocblas_status_invalid_pointer;
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, 1, result);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, To>(n);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
