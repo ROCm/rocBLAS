@@ -310,12 +310,9 @@ BLAS1_TESTING(iamin, ARG1)
 BLAS1_TESTING(iamin_batched, ARG1)
 BLAS1_TESTING(iamin_strided_batched, ARG1)
 
-BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
 BLAS1_TESTING(copy_batched,  ARG1)
 BLAS1_TESTING(copy_strided_batched,  ARG1)
-BLAS1_TESTING(dot,   ARG1)
-BLAS1_TESTING(dotc,  ARG1)
 
 BLAS1_TESTING(scal,  ARG2)
 BLAS1_TESTING(scal_batched, ARG2)
@@ -324,7 +321,6 @@ BLAS1_TESTING(scal_strided_batched, ARG2)
 BLAS1_TESTING(swap,  ARG1)
 BLAS1_TESTING(swap_batched, ARG1)
 BLAS1_TESTING(swap_strided_batched, ARG1)
-
 
 BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
