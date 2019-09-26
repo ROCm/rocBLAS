@@ -82,7 +82,7 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
     {
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);
-        device_vector<T2>   d_rocblas_result(safe_size);
+        device_vector<T2>   d_rocblas_result(std::max(batch_count, 1));
         if(!dx || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

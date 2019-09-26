@@ -60,8 +60,8 @@ void testing_copy_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
     rocblas_int          abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int          abs_incy = incy >= 0 ? incy : -incy;
-    size_t               size_x   = N * size_t(abs_incx);
-    size_t               size_y   = N * size_t(abs_incy);
+    size_t               size_x   = size_t(stride_x) * size_t(batch_count);
+    size_t               size_y   = size_t(stride_y) * size_t(batch_count);
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
@@ -86,9 +86,6 @@ void testing_copy_strided_batched(const Arguments& arg)
 
         return;
     }
-
-    size_x += size_t(stride_x) * size_t(batch_count - 1);
-    size_y += size_t(stride_y) * size_t(batch_count - 1);
 
     // allocate memory on device
     device_vector<T> dx(size_x);
