@@ -2,7 +2,9 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+#if BUILD_WITH_TENSILE
 #include "Tensile.h"
+#endif
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
@@ -68,8 +70,10 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
     // allocate on heap
     try
     {
+#if BUILD_WITH_TENSILE
         static int dummy = (tensileInitialize(), 0);
-        *handle          = new _rocblas_handle();
+#endif
+        *handle = new _rocblas_handle();
 
         if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
             log_trace(*handle, "rocblas_create_handle");
