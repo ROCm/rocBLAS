@@ -126,6 +126,52 @@ static constexpr auto rocblas_copy<rocblas_float_complex> = rocblas_ccopy;
 template <>
 static constexpr auto rocblas_copy<rocblas_double_complex> = rocblas_zcopy;
 
+template <typename T>
+rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
+                                       rocblas_int    n,
+                                       const T* const x[],
+                                       rocblas_int    incx,
+                                       T* const       y[],
+                                       rocblas_int    incy,
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_copy_batched<float> = rocblas_scopy_batched;
+
+template <>
+static constexpr auto rocblas_copy_batched<double> = rocblas_dcopy_batched;
+
+template <>
+static constexpr auto rocblas_copy_batched<rocblas_float_complex> = rocblas_ccopy_batched;
+
+template <>
+static constexpr auto rocblas_copy_batched<rocblas_double_complex> = rocblas_zcopy_batched;
+
+template <typename T>
+rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const T*       x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stridey,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_copy_strided_batched<float> = rocblas_scopy_strided_batched;
+
+template <>
+static constexpr auto rocblas_copy_strided_batched<double> = rocblas_dcopy_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_copy_strided_batched<rocblas_float_complex> = rocblas_ccopy_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_copy_strided_batched<rocblas_double_complex> = rocblas_zcopy_strided_batched;
+
 // swap
 template <typename T>
 rocblas_status (*rocblas_swap)(

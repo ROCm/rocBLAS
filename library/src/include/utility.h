@@ -72,12 +72,6 @@ __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half
 
 // For device side array of scalars
 template <typename T>
-__forceinline__ __device__ __host__ T load_scalar(const T* x, rocblas_int idx, rocblas_int inc)
-{
-    return x[idx * inc];
-}
-
-template <typename T>
 __forceinline__ __device__ __host__ T load_scalar(T* x, rocblas_int idx, rocblas_int inc)
 {
     return x[idx * inc];

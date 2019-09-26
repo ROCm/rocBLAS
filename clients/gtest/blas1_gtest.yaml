@@ -63,6 +63,7 @@ Tests:
       - scal_batched: *single_double_complex_real_in_complex_out
       - asum_batched: *single_double_precisions_complex_real
       - nrm2_batched: *single_double_precisions_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: quick
@@ -77,6 +78,7 @@ Tests:
       - scal_strided_batched: *single_double_complex_real_in_complex_out
       - asum_strided_batched: *single_double_precisions_complex_real
       - nrm2_strided_batched: *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
 
   - name: blas1
@@ -111,6 +113,7 @@ Tests:
       - scal_batched: *single_double_complex_real_in_complex_out
       - asum_batched: *double_precision_complex_real
       - nrm2_batched: *double_precision_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -125,6 +128,7 @@ Tests:
       - scal_strided_batched: *single_double_complex_real_in_complex_out
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched: *double_precision_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
   - name: blas1
     category: nightly
@@ -156,6 +160,7 @@ Tests:
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched: *single_double_complex_real_in_complex_out
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_batched
     category: nightly
@@ -167,6 +172,7 @@ Tests:
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched:  *single_double_complex_real_in_complex_out
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -179,6 +185,7 @@ Tests:
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -191,6 +198,7 @@ Tests:
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched:  *single_double_complex_real_in_complex_out
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
   
   - name: blas1
@@ -305,13 +313,15 @@ Tests:
     function:
       - scal_batched_bad_arg:  *single_double_precisions_complex_real
       - scal_batched_bad_arg:  *single_double_complex_real_in_complex_out
+      - copy_batched_bad_arg:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched_bad_arg
     category: pre_checkin
     batch_count: [1, 10]
-    stride_x: [1, 100000]
+    strideScale: [ 1 ]
     function:
       - scal_strided_batched_bad_arg:  *single_double_precisions_complex_real
       - scal_strided_batched_bad_arg:  *single_double_complex_real_in_complex_out
+      - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
 
 ...
