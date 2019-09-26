@@ -10,11 +10,6 @@
 #include "trtri_trsm.hpp"
 #include "utility.h"
 
-// #define A(ii, jj) (A + (ii) + (jj)*lda)
-// #define B(ii, jj) (B + (ii) + (jj)*ldb)
-// #define X(ii, jj) (X + (ii) + (jj)*m)
-// #define invA(ii) (invA + (ii)*BLOCK)
-
 ///////////////////// //////
 ///// helper templates /////
 ////////////////////////////
@@ -1453,11 +1448,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
             c_temp_bytes = c_temp_els * sizeof(T);
         }
     }
-    else if(STRIDED_BATCHED)
-    {
-        if(stride_invA < supplied_invA_size && batch_count > 1)
-            return rocblas_status_invalid_size;
-    }
 
     // Chunk size for special algorithm
     size_t B_chunk_size = 0;
@@ -1500,12 +1490,9 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     {
         if(exact_blocks)
         {
-            B_chunk_size = 1; // Fall back on chunk size of 1 (like TRSV)
-            x_temp_els   = BLOCK;
-            x_temp_bytes = x_temp_els * sizeof(T) * batch_count;
-            ///// TODO //// ????
-            if(STRIDED_BATCHED)
-                x_temp_bytes = sizeof(T) * BLOCK * batch_count;
+            B_chunk_size   = 1; // Fall back on chunk size of 1 (like TRSV)
+            x_temp_els     = BLOCK;
+            x_temp_bytes   = x_temp_els * sizeof(T) * batch_count;
             x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
 
             mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);

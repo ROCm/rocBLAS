@@ -49,8 +49,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < K || ldb < M || stride_A < size_A || stride_B < size_B
-       || stride_invA < size_A || batch_count < 0)
+    if(M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);

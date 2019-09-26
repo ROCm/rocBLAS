@@ -103,8 +103,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  stride_a: [1, 5000, 10000]
-  stride_b: [1, 5000, 10000]
+  stride_scale: [ 1, 1.5, 5 ]
   batch_count: [-1, 1, 20]
 
 - name: trsm_strided_batched_medium
@@ -117,8 +116,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  stride_a: [1, 500000, 1000000]
-  stride_b: [1, 500000, 1000000]
+  stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ 0, 1, 5 ]        
 
 - name: trsm_strided_batched_testset1
@@ -131,8 +129,7 @@ Tests:
   diag: [U]
   matrix_size: *testset1_matrix_size_range
   alpha: [ 1 ]
-  stride_a: [25000000]
-  stride_b: [25000000]
+  stride_scale: [ 2 ]
   batch_count: [5]
 
 - name: trsm_strided_batched_testset2
@@ -145,8 +142,7 @@ Tests:
   diag: [U]
   matrix_size: *testset2_matrix_size_range
   alpha: [ 1 ]
-  stride_a: [25000000]
-  stride_b: [25000000]
+  stride_scale: [ 2 ]
   batch_count: [5]
 
 - name: trsm_strided_batched_large
@@ -159,8 +155,7 @@ Tests:
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
-  stride_a: [4000001]
-  stride_b: [5000000]
+  stride_scale: [ 2 ]
   batch_count: [5]
 
 - name: trsm_strided_batched_manybatch
@@ -173,7 +168,6 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  stride_a: [1024]
-  stride_b: [1024]
+  stride_scale: [ 1 ]
   batch_count: [262144]
 ...

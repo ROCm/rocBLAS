@@ -188,12 +188,6 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        if(batch_count > 1)
-        {
-            if(stride_A < lda * k || stride_B < ldb * n)
-                return rocblas_status_invalid_size;
-        }
-
         //////////////////////
         // MEMORY MANAGEMENT//
         //////////////////////
