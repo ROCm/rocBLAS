@@ -91,13 +91,13 @@ namespace
             }
             else
             {
-                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                bool is_scal = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
 
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::iamin_batched
                                    || BLAS1 == blas1::iamax_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
-				   || BLAS1 == blas1::copy_batched);
+                                   || BLAS1 == blas1::copy_batched);
 
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::iamin_strided_batched
