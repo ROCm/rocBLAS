@@ -6,7 +6,7 @@
 #include "rocblas.h"
 #include "utility.h"
 
-template <typename T, typename U, typename V>
+template <bool BATCH_ADJUSTXY, typename T, typename U, typename V>
 __global__ void copy_kernel(rocblas_int    n,
                             const U        xa,
                             rocblas_int    offsetx,
@@ -24,19 +24,22 @@ __global__ void copy_kernel(rocblas_int    n,
         const T* x = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
         T*       y = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
 
-        if(incx < 0)
-            x -= ptrdiff_t(incx) * (n - 1);
-        if(incy < 0)
-            y -= ptrdiff_t(incy) * (n - 1);
+        if(BATCH_ADJUSTXY)
+        {
+            if(incx < 0)
+                x -= ptrdiff_t(incx) * (n - 1);
+            if(incy < 0)
+                y -= ptrdiff_t(incy) * (n - 1);
+        }
 
         y[tid * incy] = x[tid * incx];
     }
 }
 
-template <rocblas_int NB, typename T, typename U, typename V>
+template <rocblas_int NB, bool BATCH_ADJUSTXY, typename T, typename U, typename V>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
-                                     const U        x,
+                                     U              x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
@@ -50,17 +53,31 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     if(n <= 0 || !batch_count)
         return rocblas_status_success;
 
+    if(!x || !y)
+        return rocblas_status_invalid_pointer;
+
+    if(batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!BATCH_ADJUSTXY)
+    {
+        if(incx == incy && x == y)
+            return rocblas_status_success;
+        if(incx < 0)
+            x -= ptrdiff_t(incx) * (n - 1);
+        if(incy < 0)
+            y -= ptrdiff_t(incy) * (n - 1);
+    }
+
     int  blocks = (n - 1) / NB + 1;
     dim3 grid(blocks, batch_count);
     dim3 threads(NB);
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
-
-    hipLaunchKernelGGL(copy_kernel<T>,
+    hipLaunchKernelGGL((copy_kernel<BATCH_ADJUSTXY, T>),
                        grid,
                        threads,
                        0,
-                       rocblas_stream,
+                       handle->rocblas_stream,
                        n,
                        x,
                        offsetx,
