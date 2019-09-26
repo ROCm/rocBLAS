@@ -1484,6 +1484,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
 
     // Attempt to allocate optimal memory size
     // void* mem = nullptr;
+    // TODO: Device memory allocation should NOT be done in template, should be done in _impl functions.
     auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     if(!mem)
@@ -1547,17 +1548,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
 
     rocblas_status status = rocblas_status_success;
 
-    if(BATCHED)
-    {
-        T* invarrt[batch_count];
-        for(int b = 0; b < batch_count; b++)
-        {
-            invarrt[b] = (T*)invA + b * invA_els;
-        }
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
-    }
-
     if(supplied_invA)
     {
         invAarr = (V)(supplied_invA);
@@ -1571,12 +1561,16 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
         if(BATCHED)
         {
             T* ctemparrt[batch_count];
+            T* invarrt[batch_count];
             for(int b = 0; b < batch_count; b++)
             {
                 ctemparrt[b] = (T*)c_temp + b * c_temp_els;
+                invarrt[b]   = (T*)invA + b * invA_els;
             }
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
+            RETURN_IF_HIP_ERROR(
+                hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
         }
 
         status = rocblas_trtri_trsm_template<BLOCK, BATCHED, STRIDED_BATCHED, T>(

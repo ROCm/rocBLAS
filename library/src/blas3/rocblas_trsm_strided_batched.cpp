@@ -336,7 +336,8 @@ rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
                                                                  stride_B,
                                                                  batch_count,
                                                                  static_cast<const double*>(invA),
-                                                                 invA_size);
+                                                                 invA_size,
+                                                                 stride_invA);
 
     case rocblas_datatype_f32_r:
         return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(handle,
@@ -355,7 +356,8 @@ rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
                                                                  stride_B,
                                                                  batch_count,
                                                                  static_cast<const float*>(invA),
-                                                                 invA_size);
+                                                                 invA_size,
+                                                                 stride_invA);
 
     default:
         return rocblas_status_not_implemented;

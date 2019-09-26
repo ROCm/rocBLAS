@@ -34,7 +34,6 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     T           alpha_h     = arg.alpha;
     rocblas_int stride_A    = arg.stride_a;
     rocblas_int stride_B    = arg.stride_b;
-    rocblas_int stride_invA = arg.stride_c;
     rocblas_int batch_count = arg.batch_count;
 
     rocblas_side      side   = char2rocblas_side(char_side);
@@ -43,13 +42,15 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K);
-    size_t      size_B = ldb * size_t(N);
+    size_t      size_A = lda * size_t(K) * batch_count + size_t(stride_A) * size_t(batch_count - 1);
+    size_t      size_B = ldb * size_t(N) * batch_count + size_t(stride_B) * size_t(batch_count - 1);
+    rocblas_int stride_invA = TRSM_BLOCK * K;
+    size_t      size_invA   = stride_invA * batch_count;
 
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0)
+    if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
@@ -59,16 +60,43 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        // TODO change this to trsm_ex
+        // TODO change this to trsm_ex_strided_batched
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
-            rocblas_status_invalid_size);
+        if(batch_count == 0)
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched<T>(handle,
+                                                                side,
+                                                                uplo,
+                                                                transA,
+                                                                diag,
+                                                                M,
+                                                                N,
+                                                                &alpha_h,
+                                                                dA,
+                                                                lda,
+                                                                stride_A,
+                                                                dXorB,
+                                                                ldb,
+                                                                stride_B,
+                                                                batch_count));
+        else
+            EXPECT_ROCBLAS_STATUS(rocblas_trsm_strided_batched<T>(handle,
+                                                                  side,
+                                                                  uplo,
+                                                                  transA,
+                                                                  diag,
+                                                                  M,
+                                                                  N,
+                                                                  &alpha_h,
+                                                                  dA,
+                                                                  lda,
+                                                                  stride_A,
+                                                                  dXorB,
+                                                                  ldb,
+                                                                  stride_B,
+                                                                  batch_count),
+                                  rocblas_status_invalid_size);
         return;
     }
-
-    size_A = size_A + size_t(stride_A) * size_t(batch_count - 1);
-    size_B = size_B + size_t(stride_B) * size_t(batch_count - 1);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
@@ -78,9 +106,6 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     host_vector<T> hXorB_1(size_B);
     host_vector<T> hXorB_2(size_B);
     host_vector<T> cpuXorB(size_B);
-    host_vector<T> invATemp1(TRSM_BLOCK * K);
-    host_vector<T> invATemp2(TRSM_BLOCK * K);
-    host_vector<T> hinvAI(TRSM_BLOCK * K);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -92,10 +117,9 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
-    device_vector<T> dinvA(TRSM_BLOCK * K);
-    device_vector<T> dX_tmp(M * N);
+    device_vector<T> dinvA(size_invA);
 
-    if(!dA || !dXorB || !alpha_d)
+    if(!dA || !dXorB || !alpha_d || !dinvA)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -239,6 +263,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
         for(int b = 0; b < batch_count; b++)
         {
             if(blocks > 0)
+            {
                 CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
                                                                      uplo,
                                                                      diag,
@@ -250,8 +275,10 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                                                                      TRSM_BLOCK,
                                                                      sub_stride_invA,
                                                                      blocks));
+            }
 
             if(K % TRSM_BLOCK != 0 || blocks == 0)
+            {
                 CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
                     handle,
                     uplo,
@@ -264,6 +291,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                     TRSM_BLOCK,
                     sub_stride_invA,
                     1));
+            }
         }
 
         size_t x_temp_size = M * N;
@@ -283,7 +311,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                                                             stride_B,
                                                             batch_count,
                                                             dinvA,
-                                                            TRSM_BLOCK * K,
+                                                            size_invA,
                                                             stride_invA,
                                                             arg.compute_type));
 
@@ -310,7 +338,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                                                             stride_B,
                                                             batch_count,
                                                             dinvA,
-                                                            TRSM_BLOCK * K,
+                                                            size_invA,
                                                             stride_invA,
                                                             arg.compute_type));
 
@@ -432,7 +460,7 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                                                             stride_B,
                                                             batch_count,
                                                             dinvA,
-                                                            TRSM_BLOCK * K,
+                                                            size_invA,
                                                             stride_invA,
                                                             arg.compute_type));
 

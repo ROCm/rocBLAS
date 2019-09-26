@@ -58,7 +58,7 @@ void testing_trsm_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0 || M == 0 || N == 0 || K == 0)
+        if(batch_count == 0) // || M == 0 || N == 0 || K == 0)
             CHECK_ROCBLAS_ERROR(rocblas_trsm_batched<T>(handle,
                                                         side,
                                                         uplo,
