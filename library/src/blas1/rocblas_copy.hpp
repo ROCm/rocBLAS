@@ -59,17 +59,19 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     if(batch_count < 0)
         return rocblas_status_invalid_size;
 
-    int  blocks = (n - 1) / NB + 1;
-    dim3 grid(blocks, batch_count);
-    dim3 threads(NB);
-
     if(!BATCH_ADJUSTXY)
     {
+        if(incx == incy && x == y)
+            return rocblas_status_success;
         if(incx < 0)
             x -= ptrdiff_t(incx) * (n - 1);
         if(incy < 0)
             y -= ptrdiff_t(incy) * (n - 1);
     }
+
+    int  blocks = (n - 1) / NB + 1;
+    dim3 grid(blocks, batch_count);
+    dim3 threads(NB);
 
     hipLaunchKernelGGL((copy_kernel<BATCH_ADJUSTXY, T>),
                        grid,
