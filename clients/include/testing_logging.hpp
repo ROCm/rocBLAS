@@ -169,11 +169,11 @@ void testing_logging()
 
         rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
 
-        // BLAS3
-        rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
-
         if(BUILD_WITH_TENSILE)
         {
+            // BLAS3
+            rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
+
             /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
                rocblas_trsm<T>(handle, side, uplo, transA, diag, m, n, &alpha, da, lda, db,
                ldb);
@@ -472,28 +472,28 @@ void testing_logging()
 
     // BLAS3
 
-    if(test_pointer_mode == rocblas_pointer_mode_host)
-    {
-        trace_ofs2 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
-                   << "," << n << "," << alpha << "," << (void*)da << "," << lda << "," << beta
-                   << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc << '\n';
-
-        bench_ofs2 << "./rocblas-bench -f geam -r "
-                   << rocblas_precision_string<T> << " --transposeA " << transA_letter
-                   << " --transposeB " << transB_letter << " -m " << m << " -n " << n << " --alpha "
-                   << alpha << " --lda " << lda << " --beta " << beta << " --ldb " << ldb
-                   << " --ldc " << ldc << '\n';
-    }
-    else
-    {
-        trace_ofs2 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
-                   << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
-                   << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
-                   << ldc << '\n';
-    }
-
     if(BUILD_WITH_TENSILE)
     {
+        if(test_pointer_mode == rocblas_pointer_mode_host)
+        {
+            trace_ofs2 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << alpha << "," << (void*)da << "," << lda << "," << beta
+                       << "," << (void*)db << "," << ldb << "," << (void*)dc << "," << ldc << '\n';
+
+            bench_ofs2 << "./rocblas-bench -f geam -r "
+                       << rocblas_precision_string<T> << " --transposeA " << transA_letter
+                       << " --transposeB " << transB_letter << " -m " << m << " -n " << n
+                       << " --alpha " << alpha << " --lda " << lda << " --beta " << beta
+                       << " --ldb " << ldb << " --ldc " << ldc << '\n';
+        }
+        else
+        {
+            trace_ofs2 << replaceX<T>("rocblas_Xgeam") << "," << transA << "," << transB << "," << m
+                       << "," << n << "," << (void*)&alpha << "," << (void*)da << "," << lda << ","
+                       << (void*)&beta << "," << (void*)db << "," << ldb << "," << (void*)dc << ","
+                       << ldc << '\n';
+        }
+
         /* trsm calls rocblas_get_stream and rocblas_dgemm, so test it by comparing files
                 if(test_pointer_mode == rocblas_pointer_mode_host)
                 {
