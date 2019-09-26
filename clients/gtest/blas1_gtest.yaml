@@ -76,12 +76,14 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy:  *half_single_precisions_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1
     category: quick
     function:
       - rotg:  *rotg_precisions
       - rotmg: *single_double_precisions_complex_real
+
 
 # ** pre_checkin **
 
@@ -223,6 +225,7 @@ Tests:
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched:  *single_double_complex_real_in_complex_out
+      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -316,7 +319,7 @@ Tests:
       - nrm2_strided_batched: *double_precision_complex_real
 
 
-  # blas1 swap variants
+  # blas1 swap and copy variants
   - name: blas1_swap
     category: quick
     N: [ -1, 0, 1025] 
@@ -340,7 +343,8 @@ Tests:
     batch_count: [-1, 0, 257]
     function: 
       - swap_batched: *single_double_precisions_complex_real
-
+      - copy_batched: *single_double_precisions_complex_real
+            
   - name: blas1_swap_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
@@ -348,6 +352,7 @@ Tests:
     batch_count: [1, 7]
     function: 
       - swap_batched: *single_double_precisions_complex_real
+      - copy_batched: *single_double_precisions_complex_real
 
   - name: blas1_swap_strided_batched
     category: quick
@@ -358,6 +363,7 @@ Tests:
     stride_scale: [ 1 ]
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
   - name: blas1_swap_strided_batched
     category: pre_checkin
@@ -367,6 +373,7 @@ Tests:
     stride_scale: [ 1 ]
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
 
 # bad args
   - name: blas1_bad_arg
@@ -400,13 +407,15 @@ Tests:
     function:
       - scal_batched_bad_arg:  *single_double_precisions_complex_real
       - scal_batched_bad_arg:  *single_double_complex_real_in_complex_out
+      - copy_batched_bad_arg:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched_bad_arg
     category: pre_checkin
     batch_count: [1, 10]
-    stride_x: [1, 100000]
+    strideScale: [ 1 ]
     function:
       - scal_strided_batched_bad_arg:  *single_double_precisions_complex_real
       - scal_strided_batched_bad_arg:  *single_double_complex_real_in_complex_out
+      - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
 
 ...
