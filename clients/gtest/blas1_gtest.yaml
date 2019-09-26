@@ -116,8 +116,8 @@ Tests:
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched: *single_double_complex_real_in_complex_out
-      - asum_batched: *single_double_precisions_complex_real
-      - nrm2_batched: *single_double_precisions_complex_real
+      - asum_batched: *double_precision_complex_real
+      - nrm2_batched: *double_precision_complex_real
       - iamin_batched: *single_double_precisions_complex_real
       - iamax_batched: *single_double_precisions_complex_real
       - copy_batched:  *single_double_precisions_complex_real
@@ -134,8 +134,8 @@ Tests:
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
-      - asum_strided_batched: *single_double_precisions_complex_real
-      - nrm2_strided_batched: *single_double_precisions_complex_real
+      - asum_strided_batched: *double_precision_complex_real
+      - nrm2_strided_batched: *double_precision_complex_real
       - iamin_strided_batched: *single_double_precisions_complex_real
       - iamax_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
