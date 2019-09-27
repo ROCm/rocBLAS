@@ -27,7 +27,6 @@ template <>
 static constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_double_complex>[]
     = "rocblas_iza" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
 
-
 template <typename U>
 static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
                                             rocblas_int    n,
@@ -37,7 +36,7 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
                                             rocblas_int    batch_count,
                                             rocblas_int*   result)
 {
-  //
+    //
     // Get the 'T input' type.
     //
     using Ti = batched_data_t<U>;
@@ -64,36 +63,26 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     //
     // Log trace.
     //
-    rocblas_utils<U>::log_trace(handle,
-				n,
-				x,
-				incx,
-				stridex,
-				batch_count,
-				ROCBLAS_IAMAXMIN_NAME<Ti>);
-    
+    rocblas_utils<U>::log_trace(
+        handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
+
     //
     // Log bench.
     //
     rocblas_utils<U>::log_bench(handle,
-				n,
-				x,
-				incx,
-				stridex,
-				batch_count,
-				"ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
+                                n,
+                                x,
+                                incx,
+                                stridex,
+                                batch_count,
+                                "ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
 
     //
     // Log profile.
     //
-    rocblas_utils<U>::log_profile(handle,
-				  n,
-				  x,
-				  incx,
-				  stridex,
-				  batch_count,
-				  ROCBLAS_IAMAXMIN_NAME<Ti>);
-    
+    rocblas_utils<U>::log_profile(
+        handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
+
     if(!x || !result)
     {
         return rocblas_status_invalid_pointer;
