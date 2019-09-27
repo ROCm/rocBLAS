@@ -21,9 +21,6 @@ __global__ void rocblas_swap_kernel_batched(rocblas_int n,
     {
         T* xb = x[blockIdx.y] + shiftx;
         T* yb = y[blockIdx.y] + shifty;
-        // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-        xb -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
-        yb -= (incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0;
 
         rocblas_swap_vals(xb + tid * incx, yb + tid * incy);
     }
@@ -49,6 +46,10 @@ rocblas_status rocblas_swap_batched_template(rocblas_handle handle,
     rocblas_int blocks = (n - 1) / NB + 1;
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
+
+    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
+    shiftx -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
+    shifty -= (incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0;
 
     hipLaunchKernelGGL(rocblas_swap_kernel_batched,
                        grid,
