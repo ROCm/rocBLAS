@@ -10,11 +10,11 @@
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
 __global__ void dot_kernel_part1(rocblas_int    n,
                                  const U        xa,
-                                 rocblas_int    offsetx,
+                                 ptrdiff_t      shiftx,
                                  rocblas_int    incx,
                                  rocblas_stride stridex,
                                  const U        ya,
-                                 rocblas_int    offsety,
+                                 ptrdiff_t      shifty,
                                  rocblas_int    incy,
                                  rocblas_int    stridey,
                                  V*             workspace)
@@ -29,12 +29,8 @@ __global__ void dot_kernel_part1(rocblas_int    n,
     // bound
     if(tid < n)
     {
-        x = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-        y = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
-        if(incx < 0)
-            x -= ptrdiff_t(incx) * (n - 1);
-        if(incy < 0)
-            y -= ptrdiff_t(incy) * (n - 1);
+        x       = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+        y       = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
         tmp[tx] = V(y[tid * incy]) * V(CONJ ? conj(x[tid * incx]) : x[tid * incx]);
     }
     else
@@ -87,6 +83,10 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
         return rocblas_status_success;
     }
 
+    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
+    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
+    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
+
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
@@ -98,11 +98,11 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
                        handle->rocblas_stream,
                        n,
                        x,
-                       offsetx,
+                       shiftx,
                        incx,
                        stridex,
                        y,
-                       offsety,
+                       shifty,
                        incy,
                        stridey,
                        workspace);

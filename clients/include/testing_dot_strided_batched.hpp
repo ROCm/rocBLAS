@@ -112,7 +112,7 @@ void testing_dot_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        device_vector<T>    d_rocblas_result(safe_size);
+        device_vector<T>    d_rocblas_result(std::max(batch_count, 1));
 
         if(!dx || !dy || !d_rocblas_result)
         {

@@ -94,9 +94,9 @@ void testing_dot_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         static const size_t     safe_size = 100; // arbitrarily set to 100
-        device_vector<T*, 0, T> dx(1);
-        device_vector<T*, 0, T> dy(1);
-        device_vector<T>        d_rocblas_result(safe_size);
+        device_vector<T*, 0, T> dx(safe_size);
+        device_vector<T*, 0, T> dy(safe_size);
+        device_vector<T>        d_rocblas_result(std::max(batch_count, 1));
         if(!dx || !dy || !d_rocblas_result)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);

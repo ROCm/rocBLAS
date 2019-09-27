@@ -184,14 +184,13 @@ template <rocblas_int NB,
           typename TPtrX,
           typename To>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-__global__ void
-    rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                                   rocblas_int    nblocks,
-                                                   TPtrX          xvec,
-                                                   rocblas_int    shiftx,
-                                                   rocblas_int    incx,
-                                                   rocblas_stride stridex,
-                                                   To*            workspace)
+__global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
+                                                               rocblas_int    nblocks,
+                                                               TPtrX          xvec,
+                                                               rocblas_int    shiftx,
+                                                               rocblas_int    incx,
+                                                               rocblas_stride stridex,
+                                                               To*            workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;

@@ -8,6 +8,8 @@
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
+#include "testing_copy_batched.hpp"
+#include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
 #include "testing_dot_batched.hpp"
 #include "testing_dot_strided_batched.hpp"
@@ -42,6 +44,8 @@ namespace
         iamin,
         axpy,
         copy,
+        copy_batched,
+        copy_strided_batched,
         dot,
         dotc,
         dot_batched,
@@ -91,11 +95,13 @@ namespace
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
-                                   || BLAS1 == blas1::dot_batched || BLAS1 == blas1::dotc_batched);
+                                   || BLAS1 == blas1::copy_batched || BLAS1 == blas1::dot_batched
+                                   || BLAS1 == blas1::dotc_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
                        || BLAS1 == blas1::swap_strided_batched
+                       || BLAS1 == blas1::copy_strided_batched
                        || BLAS1 == blas1::dot_strided_batched
                        || BLAS1 == blas1::dotc_strided_batched);
 
@@ -117,8 +123,9 @@ namespace
                     name << '_' << arg.stride_x;
                 }
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy || BLAS1 == blas1::dot
-                   || BLAS1 == blas1::dotc || BLAS1 == blas1::dot_batched
+                if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy
+                   || BLAS1 == blas1::copy_strided_batched || BLAS1 == blas1::copy_batched
+                   || BLAS1 == blas1::dot || BLAS1 == blas1::dotc || BLAS1 == blas1::dot_batched
                    || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dot_strided_batched
                    || BLAS1 == blas1::dotc_strided_batched || BLAS1 == blas1::swap
                    || BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched
@@ -127,8 +134,8 @@ namespace
                     name << '_' << arg.incy;
                 }
 
-                if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::dot_strided_batched
-                   || BLAS1 == blas1::dotc_strided_batched)
+                if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::copy_strided_batched
+                   || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
@@ -199,7 +206,9 @@ namespace
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::copy && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::copy || BLAS1 == blas1::copy_batched
+                 || BLAS1 == blas1::copy_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
@@ -296,6 +305,8 @@ BLAS1_TESTING(iamax, ARG1)
 BLAS1_TESTING(iamin, ARG1)
 BLAS1_TESTING(axpy,  ARG1)
 BLAS1_TESTING(copy,  ARG1)
+BLAS1_TESTING(copy_batched,  ARG1)
+BLAS1_TESTING(copy_strided_batched,  ARG1)
 BLAS1_TESTING(dot,   ARG1)
 BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(dot_batched,   ARG1)
