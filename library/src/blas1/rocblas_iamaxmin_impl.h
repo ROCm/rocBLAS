@@ -1,6 +1,7 @@
 #pragma once
 
 #include "rocblas_iamaxmin_template.h"
+#include "rocblas_utils.h"
 
 //
 // Define names.
@@ -8,23 +9,24 @@
 #define ROCBLAS_IAMAXMIN_NAME JOIN(rocblas_iamaxmin, JOIN(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX, _name))
 
 template <typename>
-constexpr char ROCBLAS_IAMAXMIN_NAME[] = "unknown";
+static constexpr char ROCBLAS_IAMAXMIN_NAME[] = "unknown";
 
 template <>
-constexpr char ROCBLAS_IAMAXMIN_NAME<float>[]
-    = "rocblas_is" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+static constexpr char ROCBLAS_IAMAXMIN_NAME<float>[]
+    = "rocblas_isa" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
 
 template <>
-constexpr char ROCBLAS_IAMAXMIN_NAME<double>[]
-    = "rocblas_id" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+static constexpr char ROCBLAS_IAMAXMIN_NAME<double>[]
+    = "rocblas_ida" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
 
 template <>
-constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_float_complex>[]
-    = "rocblas_ic" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+static constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_float_complex>[]
+    = "rocblas_ica" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
 
 template <>
-constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_double_complex>[]
-    = "rocblas_iz" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+static constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_double_complex>[]
+    = "rocblas_iza" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+
 
 template <typename U>
 static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
@@ -35,7 +37,7 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
                                             rocblas_int    batch_count,
                                             rocblas_int*   result)
 {
-    //
+  //
     // Get the 'T input' type.
     //
     using Ti = batched_data_t<U>;
@@ -59,34 +61,39 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
         return rocblas_status_invalid_handle;
     }
 
-    auto layer_mode = handle->layer_mode;
-    if(layer_mode & rocblas_layer_mode_log_trace)
-    {
-        log_trace(handle, name, n, x, incx, stridex, batch_count);
-    }
+    //
+    // Log trace.
+    //
+    rocblas_utils<U>::log_trace(handle,
+				n,
+				x,
+				incx,
+				stridex,
+				batch_count,
+				ROCBLAS_IAMAXMIN_NAME<Ti>);
+    
+    //
+    // Log bench.
+    //
+    rocblas_utils<U>::log_bench(handle,
+				n,
+				x,
+				incx,
+				stridex,
+				batch_count,
+				"ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
 
-    if(layer_mode & rocblas_layer_mode_log_bench)
-    {
-        log_bench(handle,
-                  "./rocblas-bench -f",
-                  &name[8], // skip 'rocblas_'
-                  "-r",
-                  rocblas_precision_string<Ti>,
-                  "-n",
-                  n,
-                  "--incx",
-                  incx,
-                  "--stride_x",
-                  stridex,
-                  "--batch",
-                  batch_count);
-    }
-
-    if(layer_mode & rocblas_layer_mode_log_profile)
-    {
-        log_profile(handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch", batch_count);
-    }
-
+    //
+    // Log profile.
+    //
+    rocblas_utils<U>::log_profile(handle,
+				  n,
+				  x,
+				  incx,
+				  stridex,
+				  batch_count,
+				  ROCBLAS_IAMAXMIN_NAME<Ti>);
+    
     if(!x || !result)
     {
         return rocblas_status_invalid_pointer;
