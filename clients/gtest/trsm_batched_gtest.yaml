@@ -223,7 +223,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  batch_count: [262144]
+  batch_count: [32768]
 
 - name: trsm_batched_manybatch
   category: nightly
@@ -235,5 +235,5 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
-  batch_count: [262144]
+  batch_count: [32768]
 ...

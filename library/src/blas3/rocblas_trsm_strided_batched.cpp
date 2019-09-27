@@ -197,28 +197,52 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
-        return rocblas_trsm_template<BLOCK, false, true, T>(handle,
-                                                            side,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            m,
-                                                            n,
-                                                            alpha,
-                                                            0,
-                                                            (const T*)A,
-                                                            0,
-                                                            lda,
-                                                            stride_A,
-                                                            (T*)B,
-                                                            0,
-                                                            ldb,
-                                                            stride_B,
-                                                            batch_count,
-                                                            (const T*)supplied_invA,
-                                                            supplied_invA_size,
-                                                            0,
-                                                            stride_invA);
+        void*          mem_x_temp;
+        void*          mem_x_temp_arr;
+        void*          mem_invA;
+        void*          mem_invA_arr;
+        bool           optimal_mem;
+        rocblas_status status = rocblas_trsm_template_mem<BLOCK, false, T>(handle,
+                                                                           side,
+                                                                           m,
+                                                                           n,
+                                                                           batch_count,
+                                                                           &mem_x_temp,
+                                                                           &mem_x_temp_arr,
+                                                                           &mem_invA,
+                                                                           &mem_invA_arr,
+                                                                           &optimal_mem,
+                                                                           supplied_invA,
+                                                                           supplied_invA_size);
+
+        rocblas_status status2 = rocblas_trsm_template<BLOCK, false, T>(handle,
+                                                                        side,
+                                                                        uplo,
+                                                                        transA,
+                                                                        diag,
+                                                                        m,
+                                                                        n,
+                                                                        alpha,
+                                                                        0,
+                                                                        (const T*)A,
+                                                                        0,
+                                                                        lda,
+                                                                        stride_A,
+                                                                        (T*)B,
+                                                                        0,
+                                                                        ldb,
+                                                                        stride_B,
+                                                                        batch_count,
+                                                                        optimal_mem,
+                                                                        mem_x_temp,
+                                                                        mem_x_temp_arr,
+                                                                        mem_invA,
+                                                                        mem_invA_arr,
+                                                                        (const T*)supplied_invA,
+                                                                        supplied_invA_size,
+                                                                        0,
+                                                                        stride_invA);
+        return (status2 == rocblas_status_success) ? status : status2;
     }
 
 }
