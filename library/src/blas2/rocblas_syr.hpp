@@ -5,7 +5,6 @@
 #include "handle.h"
 #include "rocblas.h"
 
-
 template <typename T, typename U>
 __global__ void rocblas_syr_kernel(rocblas_fill uplo,
                                    rocblas_int  n,

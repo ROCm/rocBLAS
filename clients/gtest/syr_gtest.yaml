@@ -53,4 +53,69 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ 1000 ]
   alpha: [ 1000.6 ]
+
+# batched
+
+- name: syr_batched_small
+  category: quick
+  function: syr_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  alpha: [ -0.5, 2.0, 0.0 ]
+  batch_count: [ 1 ] 
+
+- name: syr_batched_medium
+  category: pre_checkin
+  function: syr_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx: [ 0, 2, -2 ]
+  alpha: [ -0.5, 2.0 ]
+  batch_count: [ 1 ] 
+
+- name: syr_batched_large
+  category: nightly
+  function: syr_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *large_matrix_size_range
+  incx: [ 1000 ]
+  alpha: [ 1000.6 ]
+  batch_count: [ 1 ] 
+
+# strided batched
+
+- name: syr_strided_batched_small
+  category: quick
+  function: syr_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  alpha: [ -0.5, 2.0, 0.0 ]
+  batch_count: [ 1 ] 
+
+- name: syr_strided_batched_medium
+  category: pre_checkin
+  function: syr_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx: [ 0, 2, -2 ]
+  alpha: [ -0.5, 2.0 ]
+  batch_count: [ 1 ] 
+
+- name: syr_strided_large
+  category: nightly
+  function: syr_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *large_matrix_size_range
+  incx: [ 1000 ]
+  alpha: [ 1000.6 ]
+  batch_count: [ 1 ] 
+
 ...

@@ -11,7 +11,7 @@ __global__ void rocblas_syr_strided_batched_kernel(rocblas_fill uplo,
                                                    rocblas_int  n,
                                                    U            alpha_device_host,
                                                    const T* __restrict__ xvec,
-                                                   rocblas_int    shiftx,
+                                                   ptrdiff_t      shiftx,
                                                    rocblas_int    incx,
                                                    rocblas_stride stridex,
                                                    T*             Avec,
@@ -26,9 +26,6 @@ __global__ void rocblas_syr_strided_batched_kernel(rocblas_fill uplo,
     const T* x = xvec + hipBlockIdx_z * stridex + shiftx;
     T*       A = Avec + hipBlockIdx_z * strideA + shiftA;
 
-    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    x -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
-
     if(uplo == rocblas_fill_lower ? tx < n && ty <= tx : ty < n && tx <= ty)
         A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
 }
@@ -39,7 +36,7 @@ rocblas_status rocblas_syr_strided_batched_template(rocblas_handle handle,
                                                     rocblas_int    n,
                                                     const T*       alpha,
                                                     const T*       x,
-                                                    rocblas_int    shiftx,
+                                                    rocblas_int    offsetx,
                                                     rocblas_int    incx,
                                                     rocblas_stride stridex,
                                                     T*             A,
@@ -62,6 +59,9 @@ rocblas_status rocblas_syr_strided_batched_template(rocblas_handle handle,
 
     dim3 syr_strided_batched_grid(blocksX, blocksY, batch_count);
     dim3 syr_strided_batched_threads(GEMV_DIM_X, GEMV_DIM_Y);
+
+    // in case of negative inc shift to end of data for negative indexing tid*inc
+    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         hipLaunchKernelGGL(rocblas_syr_strided_batched_kernel,

@@ -2,6 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_syr_batched.hpp"
+#include "logging.h"
+#include "utility.h"
 
 namespace
 {

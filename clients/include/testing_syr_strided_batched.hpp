@@ -111,8 +111,11 @@ void testing_syr_strided_batched(const Arguments& arg)
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = lda * N * batch_count;
-    size_t size_x   = N * abs_incx * batch_count;
+    size_t size_A   = size_t(lda) * N * batch_count;
+    size_t size_x   = size_t(N) * abs_incx * batch_count;
+
+    strideA = std::max(strideA, rocblas_stride(size_t(lda) * N));
+    stridex = std::max(stridex, rocblas_stride(size_t(N) * abs_incx));
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);
@@ -152,7 +155,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     {
         // for now batches are identical data, need rocblas_init methods which take pointers for strided tests
         memcpy(hA_1 + i * strideA, hA, lda * N * sizeof(T));
-        memcpy(dx + i * stridex, x, N * abs_incx * sizeof(T));
+        memcpy(hx + i * stridex, x, N * abs_incx * sizeof(T));
     }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
@@ -161,16 +164,13 @@ void testing_syr_strided_batched(const Arguments& arg)
     hA_2    = hA_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(
-        hipMemcpy(dA_1, hA_1, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(
-        hipMemcpy(dx, hx, sizeof(T) * N * abs_incx * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA_1, hA_1, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     if(arg.unit_check || arg.norm_check)
     {
         // copy data from CPU to device
-        CHECK_HIP_ERROR(
-            hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N * batch_count, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * size_A, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -182,8 +182,8 @@ void testing_syr_strided_batched(const Arguments& arg)
             handle, uplo, N, d_alpha, dx, incx, stridex, dA_2, lda, strideA, batch_count));
 
         // copy output from device to CPU
-        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda * batch_count, hipMemcpyDeviceToHost);
-        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda * batch_count, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_1, dA_1, sizeof(T) * size_A, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_2, dA_2, sizeof(T) * size_A, hipMemcpyDeviceToHost);
 
         // CPU BLAS
         cpu_time_used = get_time_us();
