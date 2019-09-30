@@ -63,13 +63,13 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     //
     // Log trace.
     //
-    rocblas_utils<U>::log_trace(
+    rocblas_utils<U>::logging_trace(
         handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
 
     //
     // Log bench.
     //
-    rocblas_utils<U>::log_bench(handle,
+    rocblas_utils<U>::logging_bench(handle,
                                 n,
                                 x,
                                 incx,
@@ -80,7 +80,7 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     //
     // Log profile.
     //
-    rocblas_utils<U>::log_profile(
+    rocblas_utils<U>::logging_profile(
         handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
 
     if(!x || !result)

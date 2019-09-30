@@ -5,7 +5,7 @@
 template <typename U>
 struct rocblas_utils
 {
-    static void log_trace(rocblas_handle handle,
+    static void logging_trace(rocblas_handle handle,
                           rocblas_int    n,
                           U              x,
                           rocblas_int    incx,
@@ -13,7 +13,7 @@ struct rocblas_utils
                           rocblas_int    batch_count,
                           const char*    name);
 
-    static void log_bench(rocblas_handle handle,
+    static void logging_bench(rocblas_handle handle,
                           rocblas_int    n,
                           U              x,
                           rocblas_int    incx,
@@ -21,7 +21,7 @@ struct rocblas_utils
                           rocblas_int    batch_count,
                           const char*    name);
 
-    static void log_profile(rocblas_handle handle,
+    static void logging_profile(rocblas_handle handle,
                             rocblas_int    n,
                             U              x,
                             rocblas_int    incx,
@@ -34,7 +34,7 @@ template <typename T>
 struct rocblas_utils<const_batched_arrays<T>>
 {
 
-    static void log_profile(rocblas_handle          handle,
+    static void logging_profile(rocblas_handle          handle,
                             rocblas_int             n,
                             const_batched_arrays<T> x,
                             rocblas_int             incx,
@@ -50,7 +50,7 @@ struct rocblas_utils<const_batched_arrays<T>>
         }
     };
 
-    static void log_trace(rocblas_handle          handle,
+    static void logging_trace(rocblas_handle          handle,
                           rocblas_int             n,
                           const_batched_arrays<T> x,
                           rocblas_int             incx,
@@ -65,7 +65,7 @@ struct rocblas_utils<const_batched_arrays<T>>
         }
     };
 
-    static void log_bench(rocblas_handle          handle,
+    static void logging_bench(rocblas_handle          handle,
                           rocblas_int             n,
                           const_batched_arrays<T> x,
                           rocblas_int             incx,
@@ -98,7 +98,7 @@ template <typename T>
 struct rocblas_utils<const_strided_batched_arrays<T>>
 {
 
-    static void log_profile(rocblas_handle                  handle,
+    static void logging_profile(rocblas_handle                  handle,
                             rocblas_int                     n,
                             const_strided_batched_arrays<T> x,
                             rocblas_int                     incx,
@@ -121,7 +121,7 @@ struct rocblas_utils<const_strided_batched_arrays<T>>
         }
     };
 
-    static void log_bench(rocblas_handle                  handle,
+    static void logging_bench(rocblas_handle                  handle,
                           rocblas_int                     n,
                           const_strided_batched_arrays<T> x,
                           rocblas_int                     incx,
@@ -165,7 +165,7 @@ struct rocblas_utils<const_strided_batched_arrays<T>>
         }
     };
 
-    static void log_trace(rocblas_handle                  handle,
+    static void logging_trace(rocblas_handle                  handle,
                           rocblas_int                     n,
                           const_strided_batched_arrays<T> x,
                           rocblas_int                     incx,
