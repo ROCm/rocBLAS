@@ -6,15 +6,15 @@
 #include "rocblas.h"
 
 template <typename T, typename U>
-__global__ void rocblas_syr_batched_kernel(rocblas_fill   uplo,
-                                           rocblas_int    n,
-                                           U              alpha_device_host,
+__global__ void rocblas_syr_batched_kernel(rocblas_fill uplo,
+                                           rocblas_int  n,
+                                           U            alpha_device_host,
                                            const T* const __restrict__ xvec[],
-                                           ptrdiff_t      shiftx,
-                                           rocblas_int    incx,
-                                           T*             Avec[],
-                                           rocblas_int    shiftA,
-                                           rocblas_int    lda)
+                                           ptrdiff_t   shiftx,
+                                           rocblas_int incx,
+                                           T*          Avec[],
+                                           rocblas_int shiftA,
+                                           rocblas_int lda)
 {
     auto        alpha = load_scalar(alpha_device_host);
     rocblas_int tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

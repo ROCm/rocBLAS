@@ -49,9 +49,6 @@ void testing_syr_batched_bad_arg()
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr_batched<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1, lda, batch_count),
         rocblas_status_invalid_handle);
-
-    CHECK_HIP_ERROR(hipFree(dA_1));
-    CHECK_HIP_ERROR(hipFree(dx));
 }
 
 template <typename T>
@@ -99,7 +96,6 @@ void testing_syr_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(
             rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count));
-
         return;
     }
 
@@ -188,13 +184,13 @@ void testing_syr_batched(const Arguments& arg)
         //CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * lda * N, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
-        // CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        // CHECK_ROCBLAS_ERROR(
-        //     rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_batched<T>(
+            handle, uplo, N, &h_alpha, dx_pvec, incx, dA1_pvec, lda, batch_count));
 
-         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-         CHECK_ROCBLAS_ERROR(
-             rocblas_syr_batched<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_batched<T>(
+            handle, uplo, N, d_alpha, dx_pvec, incx, dA2_pvec, lda, batch_count));
 
         // copy output from device to CPU
         for(int i = 0; i < batch_count; i++)
@@ -254,7 +250,7 @@ void testing_syr_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,lda,rocblas-Gflops,rocblas-GB/s";
+        std::cout << "N,alpha,incx,lda,batch_count,rocblas-Gflops,rocblas-GB/s";
 
         if(arg.norm_check)
             std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";

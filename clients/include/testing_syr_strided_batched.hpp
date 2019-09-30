@@ -218,7 +218,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 20;
+        int number_hot_calls  = 100;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -236,11 +236,11 @@ void testing_syr_strided_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = syr_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_gflops    = batch_count * syr_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,stridex,lda,strideA,rocblas-Gflops,rocblas-GB/s";
+        std::cout << "N,alpha,incx,stridex,lda,strideA,batch_count,rocblas-Gflops,rocblas-GB/s";
 
         if(arg.norm_check)
             std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
@@ -248,7 +248,8 @@ void testing_syr_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << N << "," << h_alpha << "," << incx << "," << stridex << "," << lda << ","
-                  << strideA << "," << rocblas_gflops << "," << rocblas_bandwidth;
+                  << strideA << "," << batch_count << "," << rocblas_gflops << ","
+                  << rocblas_bandwidth;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
