@@ -70,12 +70,12 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     // Log bench.
     //
     rocblas_utils<U>::logging_bench(handle,
-                                n,
-                                x,
-                                incx,
-                                stridex,
-                                batch_count,
-                                "ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
+                                    n,
+                                    x,
+                                    incx,
+                                    stridex,
+                                    batch_count,
+                                    "ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
 
     //
     // Log profile.
