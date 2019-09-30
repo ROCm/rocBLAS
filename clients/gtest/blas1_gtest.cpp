@@ -16,8 +16,14 @@
 #include "testing_nrm2_batched.hpp"
 #include "testing_nrm2_strided_batched.hpp"
 #include "testing_rot.hpp"
+#include "testing_rot_batched.hpp"
+#include "testing_rot_strided_batched.hpp"
 #include "testing_rotg.hpp"
+#include "testing_rotg_batched.hpp"
+#include "testing_rotg_strided_batched.hpp"
 #include "testing_rotm.hpp"
+#include "testing_rotm_batched.hpp"
+#include "testing_rotm_strided_batched.hpp"
 #include "testing_rotmg.hpp"
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
@@ -53,8 +59,14 @@ namespace
         swap_batched,
         swap_strided_batched,
         rot,
+        rot_batched,
+        rot_strided_batched,
         rotg,
+        rotg_batched,
+        rotg_strided_batched,
         rotm,
+        rotm_batched,
+        rotm_strided_batched,
         rotmg,
     };
 
@@ -89,17 +101,21 @@ namespace
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
-                                   || BLAS1 == blas1::copy_batched);
+                                   || BLAS1 == blas1::copy_batched || BLAS1 == blas1::rot_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
                        || BLAS1 == blas1::swap_strided_batched
-                       || BLAS1 == blas1::copy_strided_batched);
+                       || BLAS1 == blas1::copy_strided_batched
+                       || BLAS1 == blas1::rot_strided_batched);
 
-                if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rotg)
+                if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                    || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotg)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
-                if(BLAS1 == blas1::rot && arg.compute_type != arg.a_type)
+                if((BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                    || BLAS1 == blas1::rot_strided_batched)
+                   && arg.compute_type != arg.a_type)
                     name << '_' << rocblas_datatype2string(arg.compute_type);
 
                 name << '_' << arg.N;
@@ -118,12 +134,14 @@ namespace
                    || BLAS1 == blas1::copy_strided_batched || BLAS1 == blas1::copy_batched
                    || BLAS1 == blas1::dot || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
                    || BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::rot
+                   || BLAS1 == blas1::rot_batched || BLAS1 == blas1::rot_strided_batched
                    || BLAS1 == blas1::rotm)
                 {
                     name << '_' << arg.incy;
                 }
 
-                if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::copy_strided_batched)
+                if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::copy_strided_batched
+                   || BLAS1 == blas1::rot_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
@@ -204,7 +222,8 @@ namespace
                     || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{}))
 
-            || (BLAS1 == blas1::rot
+            || ((BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                 || BLAS1 == blas1::rot_strided_batched)
                 && ((std::is_same<Ti, float>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
                     || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{}
                         && std::is_same<To, Tc>{})
@@ -300,6 +319,8 @@ BLAS1_TESTING(swap,  ARG1)
 BLAS1_TESTING(swap_batched, ARG1)
 BLAS1_TESTING(swap_strided_batched, ARG1)
 BLAS1_TESTING(rot,   ARG3)
+BLAS1_TESTING(rot_batched, ARG3)
+BLAS1_TESTING(rot_strided_batched, ARG3)
 BLAS1_TESTING(rotg,  ARG2)
 BLAS1_TESTING(rotm,  ARG1)
 BLAS1_TESTING(rotmg, ARG1)

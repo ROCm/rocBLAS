@@ -139,6 +139,8 @@ set( rocblas_blas1_source
   blas1/rocblas_scal_strided_batched.cpp
   blas1/rocblas_swap.cpp
   blas1/rocblas_rot.cpp
+  blas1/rocblas_rot_batched.cpp
+  blas1/rocblas_rot_strided_batched.cpp
   blas1/rocblas_rotg.cpp
   blas1/rocblas_rotm.cpp
   blas1/rocblas_rotmg.cpp

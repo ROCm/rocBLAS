@@ -198,7 +198,7 @@ def setdefaults(test):
 
     if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched',
                             'scal_strided_batched', 'swap_strided_batched',
-                            'copy_strided_batched'):
+                            'copy_strided_batched', 'rot_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'stride_scale')]):
             test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
                                             test['stride_scale']))

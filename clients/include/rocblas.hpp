@@ -510,6 +510,83 @@ static constexpr auto
 template <>
 static constexpr auto rocblas_rot<rocblas_double_complex, double, double> = rocblas_zdrot;
 
+// rot_batched
+template <typename T, typename U = T, typename V = T>
+rocblas_status (*rocblas_rot_batched)(rocblas_handle handle,
+                                      rocblas_int    n,
+                                      T*             x[],
+                                      rocblas_int    incx,
+                                      T*             y[],
+                                      rocblas_int    incy,
+                                      const U*       c,
+                                      const V*       s,
+                                      rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rot_batched<float> = rocblas_srot_batched;
+
+template <>
+static constexpr auto rocblas_rot_batched<double> = rocblas_drot_batched;
+
+template <>
+static constexpr auto
+    rocblas_rot_batched<rocblas_float_complex, float, rocblas_float_complex> = rocblas_crot_batched;
+
+template <>
+static constexpr auto
+    rocblas_rot_batched<rocblas_float_complex, float, float> = rocblas_csrot_batched;
+
+template <>
+static constexpr auto rocblas_rot_batched<rocblas_double_complex,
+                                          double,
+                                          rocblas_double_complex> = rocblas_zrot_batched;
+
+template <>
+static constexpr auto
+    rocblas_rot_batched<rocblas_double_complex, double, double> = rocblas_zdrot_batched;
+
+// rot_strided_batched
+template <typename T, typename U = T, typename V = T>
+rocblas_status (*rocblas_rot_strided_batched)(rocblas_handle handle,
+                                              rocblas_int    n,
+                                              T*             x,
+                                              rocblas_int    incx,
+                                              rocblas_stride stride_x,
+                                              T*             y,
+                                              rocblas_int    incy,
+                                              rocblas_stride stride_y,
+                                              const U*       c,
+                                              const V*       s,
+                                              rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rot_strided_batched<float> = rocblas_srot_strided_batched;
+
+template <>
+static constexpr auto rocblas_rot_strided_batched<double> = rocblas_drot_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_rot_strided_batched<rocblas_float_complex,
+                                float,
+                                rocblas_float_complex> = rocblas_crot_strided_batched;
+
+template <>
+static constexpr auto rocblas_rot_strided_batched<rocblas_float_complex,
+                                                  float,
+                                                  float> = rocblas_csrot_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_rot_strided_batched<rocblas_double_complex,
+                                double,
+                                rocblas_double_complex> = rocblas_zrot_strided_batched;
+
+template <>
+static constexpr auto rocblas_rot_strided_batched<rocblas_double_complex,
+                                                  double,
+                                                  double> = rocblas_zdrot_strided_batched;
+
 // rotg
 template <typename T, typename U = T>
 rocblas_status (*rocblas_rotg)(rocblas_handle handle, T* a, T* b, U* c, T* s);

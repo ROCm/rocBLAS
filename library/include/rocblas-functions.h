@@ -1258,6 +1258,208 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
 /*! \brief BLAS Level 1 API
 
     \details
+    rot_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[in]
+    n       rocblas_int
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       array of pointers storing vector x on the GPU.
+    @param[in]
+    incx    rocblas_int
+            specifies the increment between elements of x.
+    @param[inout]
+    y       array of pointers storing vector y on the GPU.
+    @param[in]
+    incy    rocblas_int
+            specifies the increment between elements of y.
+    @param[in]
+    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    @param[in]
+    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+    @param[in]
+    batch_count rocblas_int
+                the number of x and y arrays, i.e. the number of batches.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srot_batched(rocblas_handle handle,
+                                                   rocblas_int    n,
+                                                   float*         x[],
+                                                   rocblas_int    incx,
+                                                   float*         y[],
+                                                   rocblas_int    incy,
+                                                   const float*   c,
+                                                   const float*   s,
+                                                   rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drot_batched(rocblas_handle handle,
+                                                   rocblas_int    n,
+                                                   double*        x[],
+                                                   rocblas_int    incx,
+                                                   double*        y[],
+                                                   rocblas_int    incy,
+                                                   const double*  c,
+                                                   const double*  s,
+                                                   rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crot_batched(rocblas_handle               handle,
+                                                   rocblas_int                  n,
+                                                   rocblas_float_complex*       x[],
+                                                   rocblas_int                  incx,
+                                                   rocblas_float_complex*       y[],
+                                                   rocblas_int                  incy,
+                                                   const float*                 c,
+                                                   const rocblas_float_complex* s,
+                                                   rocblas_int                  batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csrot_batched(rocblas_handle         handle,
+                                                    rocblas_int            n,
+                                                    rocblas_float_complex* x[],
+                                                    rocblas_int            incx,
+                                                    rocblas_float_complex* y[],
+                                                    rocblas_int            incy,
+                                                    const float*           c,
+                                                    const float*           s,
+                                                    rocblas_int            batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrot_batched(rocblas_handle                handle,
+                                                   rocblas_int                   n,
+                                                   rocblas_double_complex*       x[],
+                                                   rocblas_int                   incx,
+                                                   rocblas_double_complex*       y[],
+                                                   rocblas_int                   incy,
+                                                   const double*                 c,
+                                                   const rocblas_double_complex* s,
+                                                   rocblas_int                   batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle          handle,
+                                                    rocblas_int             n,
+                                                    rocblas_double_complex* x[],
+                                                    rocblas_int             incx,
+                                                    rocblas_double_complex* y[],
+                                                    rocblas_int             incy,
+                                                    const double*           c,
+                                                    const double*           s,
+                                                    rocblas_int             batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rot_strided_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[in]
+    n       rocblas_int
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       pointer storing strided vectors x on the GPU.
+    @param[in]
+    incx    rocblas_int
+            specifies the increment between elements of x.
+    @param[in]
+    stride_x rocblas_stride
+             specifies the increment from the beginning of x_i to the beginning of x_(i+1)
+    @param[inout]
+    y       pointer storing strided vectors y on the GPU.
+    @param[in]
+    incy    rocblas_int
+            specifies the increment between elements of y.
+    @param[in]
+    stride_y rocblas_stride
+             specifies the increment from the beginning of y_i to the beginning of y_(i+1)
+    @param[in]
+    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    @param[in]
+    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+    @param[in]
+    batch_count rocblas_int
+                the number of x and y arrays, i.e. the number of batches.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srot_strided_batched(rocblas_handle handle,
+                                                           rocblas_int    n,
+                                                           float*         x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           float*         y,
+                                                           rocblas_int    incy,
+                                                           rocblas_stride stride_y,
+                                                           const float*   c,
+                                                           const float*   s,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drot_strided_batched(rocblas_handle handle,
+                                                           rocblas_int    n,
+                                                           double*        x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           double*        y,
+                                                           rocblas_int    incy,
+                                                           rocblas_stride stride_y,
+                                                           const double*  c,
+                                                           const double*  s,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crot_strided_batched(rocblas_handle               handle,
+                                                           rocblas_int                  n,
+                                                           rocblas_float_complex*       x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stride_x,
+                                                           rocblas_float_complex*       y,
+                                                           rocblas_int                  incy,
+                                                           rocblas_stride               stride_y,
+                                                           const float*                 c,
+                                                           const rocblas_float_complex* s,
+                                                           rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csrot_strided_batched(rocblas_handle         handle,
+                                                            rocblas_int            n,
+                                                            rocblas_float_complex* x,
+                                                            rocblas_int            incx,
+                                                            rocblas_stride         stride_x,
+                                                            rocblas_float_complex* y,
+                                                            rocblas_int            incy,
+                                                            rocblas_stride         stride_y,
+                                                            const float*           c,
+                                                            const float*           s,
+                                                            rocblas_int            batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrot_strided_batched(rocblas_handle                handle,
+                                                           rocblas_int                   n,
+                                                           rocblas_double_complex*       x,
+                                                           rocblas_int                   incx,
+                                                           rocblas_stride                stride_x,
+                                                           rocblas_double_complex*       y,
+                                                           rocblas_int                   incy,
+                                                           rocblas_stride                stride_y,
+                                                           const double*                 c,
+                                                           const rocblas_double_complex* s,
+                                                           rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle          handle,
+                                                            rocblas_int             n,
+                                                            rocblas_double_complex* x,
+                                                            rocblas_int             incx,
+                                                            rocblas_stride          stride_x,
+                                                            rocblas_double_complex* y,
+                                                            rocblas_int             incy,
+                                                            rocblas_stride          stride_y,
+                                                            const double*           c,
+                                                            const double*           s,
+                                                            rocblas_int             batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
     rotg creates the Givens rotation matrix for the vector (a b).
          Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
