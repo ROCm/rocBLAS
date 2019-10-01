@@ -514,9 +514,9 @@ static constexpr auto rocblas_rot<rocblas_double_complex, double, double> = rocb
 template <typename T, typename U = T, typename V = T>
 rocblas_status (*rocblas_rot_batched)(rocblas_handle handle,
                                       rocblas_int    n,
-                                      T*             x[],
+                                      T* const       x[],
                                       rocblas_int    incx,
-                                      T*             y[],
+                                      T* const       y[],
                                       rocblas_int    incy,
                                       const U*       c,
                                       const V*       s,
@@ -618,6 +618,40 @@ static constexpr auto rocblas_rotm<float> = rocblas_srotm;
 
 template <>
 static constexpr auto rocblas_rotm<double> = rocblas_drotm;
+
+// rotm_batched
+template <typename T>
+rocblas_status (*rocblas_rotm_batched)(rocblas_handle handle,
+                                       rocblas_int    n,
+                                       T* const       x[],
+                                       rocblas_int    incx,
+                                       T* const       y[],
+                                       rocblas_int    incy,
+                                       const T*       param,
+                                       rocblas_int    batch_count);
+template <>
+static constexpr auto rocblas_rotm_batched<float> = rocblas_srotm_batched;
+
+template <>
+static constexpr auto rocblas_rotm_batched<double> = rocblas_drotm_batched;
+
+// rotm_strided_batched
+template <typename T>
+rocblas_status (*rocblas_rotm_strided_batched)(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               T*             x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stride_x,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stride_y,
+                                               const T*       param,
+                                               rocblas_int    batch_count);
+template <>
+static constexpr auto rocblas_rotm_strided_batched<float> = rocblas_srotm_strided_batched;
+
+template <>
+static constexpr auto rocblas_rotm_strided_batched<double> = rocblas_drotm_strided_batched;
 
 //rotmg
 template <typename T>

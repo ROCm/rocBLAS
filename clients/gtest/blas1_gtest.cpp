@@ -101,13 +101,15 @@ namespace
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
-                                   || BLAS1 == blas1::copy_batched || BLAS1 == blas1::rot_batched);
+                                   || BLAS1 == blas1::copy_batched || BLAS1 == blas1::rot_batched
+                                   || BLAS1 == blas1::rotm_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
                        || BLAS1 == blas1::swap_strided_batched
                        || BLAS1 == blas1::copy_strided_batched
-                       || BLAS1 == blas1::rot_strided_batched);
+                       || BLAS1 == blas1::rot_strided_batched
+                       || BLAS1 == blas1::rotm_strided_batched);
 
                 if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
                     || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotg)
@@ -135,13 +137,14 @@ namespace
                    || BLAS1 == blas1::dot || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
                    || BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::rot
                    || BLAS1 == blas1::rot_batched || BLAS1 == blas1::rot_strided_batched
-                   || BLAS1 == blas1::rotm)
+                   || BLAS1 == blas1::rotm || BLAS1 == blas1::rotm_batched
+                   || BLAS1 == blas1::rotm_strided_batched)
                 {
                     name << '_' << arg.incy;
                 }
 
                 if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::copy_strided_batched
-                   || BLAS1 == blas1::rot_strided_batched)
+                   || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotm_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
@@ -242,7 +245,9 @@ namespace
                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
 
-            || (BLAS1 == blas1::rotm && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::rotm || BLAS1 == blas1::rotm_batched
+                 || BLAS1 == blas1::rotm_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
             || (BLAS1 == blas1::rotmg && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
@@ -323,6 +328,8 @@ BLAS1_TESTING(rot_batched, ARG3)
 BLAS1_TESTING(rot_strided_batched, ARG3)
 BLAS1_TESTING(rotg,  ARG2)
 BLAS1_TESTING(rotm,  ARG1)
+BLAS1_TESTING(rotm_batched, ARG1)
+BLAS1_TESTING(rotm_strided_batched, ARG1)
 BLAS1_TESTING(rotmg, ARG1)
 
     // clang-format on

@@ -103,14 +103,6 @@ __forceinline__ __device__ __host__ T*
     return p[block] + offset;
 }
 
-// For device array of device pointers
-template <typename T>
-__forceinline__ __device__ __host__ T*
-                                    load_ptr_batch(T** p, rocblas_int block, rocblas_int offset, rocblas_stride stride)
-{
-    return p[block] + offset;
-}
-
 #endif // GOOGLE_TEST
 
 inline bool isAligned(const void* pointer, size_t byte_count)

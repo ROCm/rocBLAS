@@ -188,42 +188,43 @@ void testing_rot_batched(const Arguments& arg)
         }
 
         // Test rocblas_pointer_mode_device
-        // {
-        //     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        //     for(int b = 0; b < batch_count; b++)
-        //     {
-        //         CHECK_HIP_ERROR(hipMemcpy(bx[b], hx[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
-        //         CHECK_HIP_ERROR(hipMemcpy(by[b], hy[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
-        //     }
-        //     CHECK_HIP_ERROR(hipMemcpy(dx, bx, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        //     CHECK_HIP_ERROR(hipMemcpy(dy, by, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+            for(int b = 0; b < batch_count; b++)
+            {
+                CHECK_HIP_ERROR(hipMemcpy(bx[b], hx[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
+                CHECK_HIP_ERROR(hipMemcpy(by[b], hy[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
+            }
+            CHECK_HIP_ERROR(hipMemcpy(dx, bx, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(hipMemcpy(dy, by, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
-        //     CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U), hipMemcpyHostToDevice));
-        //     CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(V), hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U), hipMemcpyHostToDevice));
+            CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(V), hipMemcpyHostToDevice));
 
-        //     CHECK_ROCBLAS_ERROR((rocblas_rot_batched<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds, batch_count)));
+            CHECK_ROCBLAS_ERROR(
+                (rocblas_rot_batched<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds, batch_count)));
 
-        //     host_vector<T> rx[batch_count];
-        //     host_vector<T> ry[batch_count];
-        //     for(int b = 0; b < batch_count; b++)
-        //     {
-        //         rx[b] = host_vector<T>(size_x);
-        //         ry[b] = host_vector<T>(size_y);
-        //         CHECK_HIP_ERROR(hipMemcpy(rx[b], bx[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
-        //         CHECK_HIP_ERROR(hipMemcpy(ry[b], by[b], sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        //     }
+            host_vector<T> rx[batch_count];
+            host_vector<T> ry[batch_count];
+            for(int b = 0; b < batch_count; b++)
+            {
+                rx[b] = host_vector<T>(size_x);
+                ry[b] = host_vector<T>(size_y);
+                CHECK_HIP_ERROR(hipMemcpy(rx[b], bx[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
+                CHECK_HIP_ERROR(hipMemcpy(ry[b], by[b], sizeof(T) * size_y, hipMemcpyDeviceToHost));
+            }
 
-        //     if(arg.unit_check)
-        //     {
-        //         unit_check_general<T>(1, N, batch_count, incx, cx, rx);
-        //         unit_check_general<T>(1, N, batch_count, incy, cy, ry);
-        //     }
-        //     if(arg.norm_check)
-        //     {
-        //         norm_error_device_x = norm_check_general<T>('F', 1, N, batch_count, incx, cx, rx);
-        //         norm_error_device_y = norm_check_general<T>('F', 1, N, batch_count, incy, cy, ry);
-        //     }
-        // }
+            if(arg.unit_check)
+            {
+                unit_check_general<T>(1, N, batch_count, incx, cx, rx);
+                unit_check_general<T>(1, N, batch_count, incy, cy, ry);
+            }
+            if(arg.norm_check)
+            {
+                norm_error_device_x = norm_check_general<T>('F', 1, N, batch_count, incx, cx, rx);
+                norm_error_device_y = norm_check_general<T>('F', 1, N, batch_count, incy, cy, ry);
+            }
+        }
     }
 
     if(arg.timing)

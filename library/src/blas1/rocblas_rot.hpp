@@ -93,7 +93,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
                                     rocblas_int    batch_count)
 {
     // Quick return if possible
-    if(n <= 0 || incx <= 0 || incy <= 0)
+    if(n <= 0 || incx <= 0 || incy <= 0 || batch_count == 0)
         return rocblas_status_success;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);

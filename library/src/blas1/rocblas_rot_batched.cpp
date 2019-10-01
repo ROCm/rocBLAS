@@ -29,9 +29,9 @@ namespace
     template <class T, class U, class V>
     rocblas_status rocblas_rot_batched_impl(rocblas_handle handle,
                                             rocblas_int    n,
-                                            T*             x[],
+                                            T* const       x[],
                                             rocblas_int    incx,
-                                            T*             y[],
+                                            T* const       y[],
                                             rocblas_int    incy,
                                             const U*       c,
                                             const V*       s,
@@ -94,9 +94,9 @@ extern "C" {
 
 rocblas_status rocblas_srot_batched(rocblas_handle handle,
                                     rocblas_int    n,
-                                    float*         x[],
+                                    float* const   x[],
                                     rocblas_int    incx,
-                                    float*         y[],
+                                    float* const   y[],
                                     rocblas_int    incy,
                                     const float*   c,
                                     const float*   s,
@@ -107,9 +107,9 @@ rocblas_status rocblas_srot_batched(rocblas_handle handle,
 
 rocblas_status rocblas_drot_batched(rocblas_handle handle,
                                     rocblas_int    n,
-                                    double*        x[],
+                                    double* const  x[],
                                     rocblas_int    incx,
-                                    double*        y[],
+                                    double* const  y[],
                                     rocblas_int    incy,
                                     const double*  c,
                                     const double*  s,
@@ -120,9 +120,9 @@ rocblas_status rocblas_drot_batched(rocblas_handle handle,
 
 rocblas_status rocblas_crot_batched(rocblas_handle               handle,
                                     rocblas_int                  n,
-                                    rocblas_float_complex*       x[],
+                                    rocblas_float_complex* const x[],
                                     rocblas_int                  incx,
-                                    rocblas_float_complex*       y[],
+                                    rocblas_float_complex* const y[],
                                     rocblas_int                  incy,
                                     const float*                 c,
                                     const rocblas_float_complex* s,
@@ -131,24 +131,24 @@ rocblas_status rocblas_crot_batched(rocblas_handle               handle,
     return rocblas_rot_batched_impl(handle, n, x, incx, y, incy, c, s, batch_count);
 }
 
-rocblas_status rocblas_csrot_batched(rocblas_handle         handle,
-                                     rocblas_int            n,
-                                     rocblas_float_complex* x[],
-                                     rocblas_int            incx,
-                                     rocblas_float_complex* y[],
-                                     rocblas_int            incy,
-                                     const float*           c,
-                                     const float*           s,
-                                     rocblas_int            batch_count)
+rocblas_status rocblas_csrot_batched(rocblas_handle               handle,
+                                     rocblas_int                  n,
+                                     rocblas_float_complex* const x[],
+                                     rocblas_int                  incx,
+                                     rocblas_float_complex* const y[],
+                                     rocblas_int                  incy,
+                                     const float*                 c,
+                                     const float*                 s,
+                                     rocblas_int                  batch_count)
 {
     return rocblas_rot_batched_impl(handle, n, x, incx, y, incy, c, s, batch_count);
 }
 
 rocblas_status rocblas_zrot_batched(rocblas_handle                handle,
                                     rocblas_int                   n,
-                                    rocblas_double_complex*       x[],
+                                    rocblas_double_complex* const x[],
                                     rocblas_int                   incx,
-                                    rocblas_double_complex*       y[],
+                                    rocblas_double_complex* const y[],
                                     rocblas_int                   incy,
                                     const double*                 c,
                                     const rocblas_double_complex* s,
@@ -157,15 +157,15 @@ rocblas_status rocblas_zrot_batched(rocblas_handle                handle,
     return rocblas_rot_batched_impl(handle, n, x, incx, y, incy, c, s, batch_count);
 }
 
-rocblas_status rocblas_zdrot_batched(rocblas_handle          handle,
-                                     rocblas_int             n,
-                                     rocblas_double_complex* x[],
-                                     rocblas_int             incx,
-                                     rocblas_double_complex* y[],
-                                     rocblas_int             incy,
-                                     const double*           c,
-                                     const double*           s,
-                                     rocblas_int             batch_count)
+rocblas_status rocblas_zdrot_batched(rocblas_handle                handle,
+                                     rocblas_int                   n,
+                                     rocblas_double_complex* const x[],
+                                     rocblas_int                   incx,
+                                     rocblas_double_complex* const y[],
+                                     rocblas_int                   incy,
+                                     const double*                 c,
+                                     const double*                 s,
+                                     rocblas_int                   batch_count)
 {
     return rocblas_rot_batched_impl(handle, n, x, incx, y, incy, c, s, batch_count);
 }
