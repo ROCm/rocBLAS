@@ -132,7 +132,8 @@ if( CUDA_FOUND )
   target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_NVCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${CUDA_LIBRARIES} )
 else( )
-  target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
+  # auto set in hip_common.h
+  #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 

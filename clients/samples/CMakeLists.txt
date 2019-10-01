@@ -51,7 +51,9 @@ foreach( exe ${sample_list} )
   else( )
     # Unfortunatley, we can't link to hip::hip_hcc because it pulls in flags specific to the
     # hcc compiler, and we want to be able to build with host compilers
-    target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
+
+    # auto set in hip_common.h
+    #target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
     target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
   endif( )
 
