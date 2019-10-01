@@ -56,18 +56,26 @@ namespace
         {
             RocBLAS_TestName<syr_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
-                 << '_' << arg.N << '_' << arg.alpha << '_' << arg.incx << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type);
 
-            if(SYR_TYPE == SYR_STRIDED_BATCHED)
-                name << '_' << arg.stride_x;
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_' << arg.alpha
+                     << '_' << arg.incx << '_' << arg.lda;
 
-            if(SYR_TYPE == SYR_STRIDED_BATCHED)
-                name << '_' << arg.stride_a;
+                if(SYR_TYPE == SYR_STRIDED_BATCHED)
+                    name << '_' << arg.stride_x;
 
-            if(SYR_TYPE == SYR_STRIDED_BATCHED || SYR_TYPE == SYR_BATCHED)
-                name << '_' << arg.batch_count;
+                if(SYR_TYPE == SYR_STRIDED_BATCHED)
+                    name << '_' << arg.stride_a;
 
+                if(SYR_TYPE == SYR_STRIDED_BATCHED || SYR_TYPE == SYR_BATCHED)
+                    name << '_' << arg.batch_count;
+            }
             return std::move(name);
         }
     };
