@@ -10,7 +10,7 @@ __global__ void rocblas_scal_kernel(rocblas_int    n,
                                     V              alpha_device_host,
                                     rocblas_stride stride_alpha,
                                     U              xa,
-                                    rocblas_int    offsetx,
+                                    ptrdiff_t      offsetx,
                                     rocblas_int    incx,
                                     rocblas_stride stridex)
 {

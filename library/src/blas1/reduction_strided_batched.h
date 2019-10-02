@@ -183,13 +183,15 @@ template <rocblas_int NB,
           typename REDUCE = rocblas_reduce_sum,
           typename TPtrX,
           typename To>
-__global__ void rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
-                                                               rocblas_int    nblocks,
-                                                               TPtrX          xvec,
-                                                               rocblas_int    shiftx,
-                                                               rocblas_int    incx,
-                                                               rocblas_stride stridex,
-                                                               To*            workspace)
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
+__global__ void
+    rocblas_reduction_strided_batched_kernel_part1(rocblas_int    n,
+                                                   rocblas_int    nblocks,
+                                                   TPtrX          xvec,
+                                                   rocblas_int    shiftx,
+                                                   rocblas_int    incx,
+                                                   rocblas_stride stridex,
+                                                   To*            workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
@@ -217,6 +219,7 @@ template <rocblas_int NB,
           typename FINALIZE = rocblas_finalize_identity,
           typename To,
           typename Tr>
+__attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
 __global__ void
     rocblas_reduction_strided_batched_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
@@ -254,7 +257,7 @@ __global__ void
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[hipBlockIdx_y] = FINALIZE{}(tmp[0]);
+        result[hipBlockIdx_y] = Tr(FINALIZE{}(tmp[0]));
 }
 
 /*! \brief
@@ -376,7 +379,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(res, workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
             for(int i = 0; i < batch_count; i++)
-                result[i] = FINALIZE{}(res[i]);
+                result[i] = Tr(FINALIZE{}(res[i]));
         }
     }
 
