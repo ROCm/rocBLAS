@@ -4,7 +4,7 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_ger_strided_batched.hpp"
+#include "rocblas_ger.hpp"
 #include "utility.h"
 
 namespace
@@ -88,8 +88,8 @@ namespace
         if(!m || !n)
             return rocblas_status_success;
 
-        rocblas_ger_strided_batched_template(
-            handle, m, n, alpha, x, 0, incx, incx * m, y, 0, incy, incy * n, A, 0, lda, lda * n, 1);
+        rocblas_ger_template<T>(
+            handle, m, n, alpha, 0, x, 0, incx, incx * m, y, 0, incy, incy * n, A, 0, lda, lda * n, 1);
 
         return rocblas_status_success;
     }

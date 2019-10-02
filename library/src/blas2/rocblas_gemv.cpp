@@ -132,7 +132,7 @@ namespace
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
 
-        return rocblas_gemv_template(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+        return rocblas_gemv_template<T>(handle, transA, m, n, alpha, A, 0, lda, 0, x, 0, incx, 0, beta, y, 0, incy, 0, 1);
     }
 
 } // namespace

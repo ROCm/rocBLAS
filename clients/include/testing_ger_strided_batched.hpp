@@ -131,8 +131,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     size_t size_y   = N * abs_incy;
 
     // argument check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || stride_a < size_A
-       || stride_x < size_x || stride_y < size_y || batch_count < 0)
+    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA_1(safe_size);

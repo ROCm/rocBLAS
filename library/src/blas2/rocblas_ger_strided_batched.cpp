@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_ger_strided_batched.hpp"
+#include "rocblas_ger.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -129,18 +129,18 @@ namespace
         if(!x || !y || !A)
             return rocblas_status_invalid_pointer;
 
-        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || stridex < m * std::abs(incx)
-           || stridey < n * abs(incy) || strideA < lda * n || batch_count < 0)
+        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // Quick return if possible. Not Argument error
         if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-        rocblas_ger_strided_batched_template(handle,
+        rocblas_ger_template<T>(handle,
                                              m,
                                              n,
                                              alpha,
+                                             0,
                                              x,
                                              0,
                                              incx,

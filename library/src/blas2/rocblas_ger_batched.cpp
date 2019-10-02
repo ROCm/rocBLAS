@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_ger_batched.hpp"
+#include "rocblas_ger.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -115,8 +115,8 @@ namespace
         if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-        rocblas_ger_batched_template(
-            handle, m, n, alpha, x, 0, incx, y, 0, incy, A, 0, lda, batch_count);
+        rocblas_ger_template<T>(
+            handle, m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, batch_count);
 
         return rocblas_status_success;
     }
