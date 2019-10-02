@@ -24,6 +24,8 @@
 #include "testing_rot_batched.hpp"
 #include "testing_rot_strided_batched.hpp"
 #include "testing_rotg.hpp"
+#include "testing_rotg_batched.hpp"
+#include "testing_rotg_strided_batched.hpp"
 #include "testing_rotm.hpp"
 #include "testing_rotm_batched.hpp"
 #include "testing_rotm_strided_batched.hpp"
@@ -178,8 +180,12 @@ struct perf_blas<
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
-        else if(!strcmp(arg.function, "rotg"))
-            testing_rotg<T>(arg);
+        // else if(!strcmp(arg.function, "rotg"))
+        //     testing_rotg<T>(arg);
+        // else if(!strcmp(arg.function, "rotg_batched"))
+        //     testing_rotg_batched<T>(arg);
+        // else if(!strcmp(arg.function, "rotg_strided_batched"))
+        //     testing_rotg_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "rotm"))
             testing_rotm<T>(arg);
         else if(!strcmp(arg.function, "rotm_batched"))
@@ -406,6 +412,40 @@ struct perf_blas_scal<
     }
 };
 
+template <typename Ta, typename Tb = Ta, typename = void>
+struct perf_blas_rotg : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tb>
+struct perf_blas_rotg<
+    Ta,
+    Tb,
+    typename std::enable_if<
+        (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
+        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>::type>
+{
+    explicit operator bool()
+    {
+        return true;
+    }
+    void operator()(const Arguments& arg)
+    {
+        if(!strcmp(arg.function, "rotg"))
+            testing_rotg<Ta, Tb>(arg);
+        else if(!strcmp(arg.function, "rotg_batched"))
+            testing_rotg_batched<Ta, Tb>(arg);
+        else if(!strcmp(arg.function, "rotg_strided_batched"))
+            testing_rotg_strided_batched<Ta, Tb>(arg);
+        else
+            throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                        + " --a_type " + rocblas_datatype2string(arg.a_type)
+                                        + " --b_type " + rocblas_datatype2string(arg.b_type));
+    }
+};
+
 int run_bench_test(Arguments& arg)
 {
     // disable unit_check in client benchmark, it is only used in gtest unit test
@@ -568,6 +608,9 @@ int run_bench_test(Arguments& arg)
         if(!strcmp(function, "scal") || !strcmp(function, "scal_batched")
            || !strcmp(function, "scal_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_scal>(arg);
+        else if(!strcmp(function, "rotg") || !strcmp(function, "rotg_batched")
+                || !strcmp(function, "rotg_strided_batched"))
+            rocblas_blas1_dispatch<perf_blas_rotg>(arg);
         else if(!strcmp(function, "rot") || !strcmp(function, "rot_batched")
                 || !strcmp(function, "rot_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_rot>(arg);

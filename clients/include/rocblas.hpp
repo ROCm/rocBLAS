@@ -603,6 +603,54 @@ static constexpr auto rocblas_rotg<rocblas_float_complex, float> = rocblas_crotg
 template <>
 static constexpr auto rocblas_rotg<rocblas_double_complex, double> = rocblas_zrotg;
 
+// rotg_batched
+template <typename T, typename U = T>
+rocblas_status (*rocblas_rotg_batched)(rocblas_handle handle,
+                                       T* const       a[],
+                                       T* const       b[],
+                                       U* const       c[],
+                                       T* const       s[],
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rotg_batched<float> = rocblas_srotg_batched;
+
+template <>
+static constexpr auto rocblas_rotg_batched<double> = rocblas_drotg_batched;
+
+template <>
+static constexpr auto rocblas_rotg_batched<rocblas_float_complex, float> = rocblas_crotg_batched;
+
+template <>
+static constexpr auto rocblas_rotg_batched<rocblas_double_complex, double> = rocblas_zrotg_batched;
+
+//rotg_strided_batched
+template <typename T, typename U = T>
+rocblas_status (*rocblas_rotg_strided_batched)(rocblas_handle handle,
+                                               T*             a,
+                                               rocblas_stride stride_a,
+                                               T*             b,
+                                               rocblas_stride stride_b,
+                                               U*             c,
+                                               rocblas_stride stride_c,
+                                               T*             s,
+                                               rocblas_stride stride_s,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rotg_strided_batched<float> = rocblas_srotg_strided_batched;
+
+template <>
+static constexpr auto rocblas_rotg_strided_batched<double> = rocblas_drotg_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_rotg_strided_batched<rocblas_float_complex, float> = rocblas_crotg_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_rotg_strided_batched<rocblas_double_complex, double> = rocblas_zrotg_strided_batched;
+
 //rotm
 template <typename T>
 rocblas_status (*rocblas_rotm)(rocblas_handle handle,

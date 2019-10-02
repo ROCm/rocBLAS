@@ -23,11 +23,11 @@ __global__ void rotm_kernel(rocblas_int    n,
                             U              h22_device_host,
                             rocblas_stride stride_param)
 {
-    auto      flag = load_scalar(flag_device_host); //, hipBlockIdx_y, stride_param);
-    auto      h11  = load_scalar(h11_device_host); //, hipBlockIdx_y, stride_param);
-    auto      h21  = load_scalar(h21_device_host); //, hipBlockIdx_y, stride_param);
-    auto      h12  = load_scalar(h12_device_host); //, hipBlockIdx_y, stride_param);
-    auto      h22  = load_scalar(h22_device_host); //, hipBlockIdx_y, stride_param);
+    auto      flag = load_scalar(flag_device_host, hipBlockIdx_y, stride_param);
+    auto      h11  = load_scalar(h11_device_host, hipBlockIdx_y, stride_param);
+    auto      h21  = load_scalar(h21_device_host, hipBlockIdx_y, stride_param);
+    auto      h12  = load_scalar(h12_device_host, hipBlockIdx_y, stride_param);
+    auto      h22  = load_scalar(h22_device_host, hipBlockIdx_y, stride_param);
     auto      x    = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
     auto      y    = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
     ptrdiff_t tid  = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

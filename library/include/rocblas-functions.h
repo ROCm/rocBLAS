@@ -1500,6 +1500,140 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
 /*! \brief BLAS Level 1 API
 
     \details
+    rotg_batched creates the Givens rotation matrix for the batched vectors (a b).
+         a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+         If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+         If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    a       batched array of single input vector elements, overwritten with r.
+    @param[inout]
+    b       batched array of single input vector elements, overwritten with z.
+    @param[inout]
+    c       batched array of cosine elements of Givens rotations.
+    @param[inout]
+    s       batched array of sine elements of Givens rotations.
+    @param[in]
+    batch_count rocblas_int
+                number of batches (length of arrays a, b, c, and s).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotg_batched(rocblas_handle handle,
+                                                    float* const   a[],
+                                                    float* const   b[],
+                                                    float* const   c[],
+                                                    float* const   s[],
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotg_batched(rocblas_handle handle,
+                                                    double* const  a[],
+                                                    double* const  b[],
+                                                    double* const  c[],
+                                                    double* const  s[],
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg_batched(rocblas_handle               handle,
+                                                    rocblas_float_complex* const a[],
+                                                    rocblas_float_complex* const b[],
+                                                    float* const                 c[],
+                                                    rocblas_float_complex* const s[],
+                                                    rocblas_int                  batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle                handle,
+                                                    rocblas_double_complex* const a[],
+                                                    rocblas_double_complex* const b[],
+                                                    double* const                 c[],
+                                                    rocblas_double_complex* const s[],
+                                                    rocblas_int                   batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotg_strided_batched creates the Givens rotation matrix for the strided batched vectors (a b).
+         a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+         If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+         If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    a       strided_batched pointer to single input vector elements, overwritten with r.
+    @param[in]
+    stride_a rocblas_stride
+             distance between elements of a in batch (distance between a_i and a_(i + 1))
+    @param[inout]
+    b       strided_batched pointer to single input vector elements, overwritten with z.
+    @param[in]
+    stride_b rocblas_stride
+             distance between elements of b in batch (distance between b_i and b_(i + 1))
+    @param[inout]
+    c       strided_batched pointer to cosine elements of Givens rotations.
+    @param[in]
+    stride_c rocblas_stride
+             distance between elements of c in batch (distance between c_i and c_(i + 1))
+    @param[inout]
+    s       strided_batched pointer to sine elements of Givens rotations.
+    @param[in]
+    stride_s rocblas_stride
+             distance between elements of s in batch (distance between s_i and s_(i + 1))
+    @param[in]
+    batch_count rocblas_int
+                number of batches (length of arrays a, b, c, and s).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotg_strided_batched(rocblas_handle handle,
+                                                            float*         a,
+                                                            rocblas_stride stride_a,
+                                                            float*         b,
+                                                            rocblas_stride stride_b,
+                                                            float*         c,
+                                                            rocblas_stride stride_c,
+                                                            float*         s,
+                                                            rocblas_stride stride_s,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotg_strided_batched(rocblas_handle handle,
+                                                            double*        a,
+                                                            rocblas_stride stride_a,
+                                                            double*        b,
+                                                            rocblas_stride stride_b,
+                                                            double*        c,
+                                                            rocblas_stride stride_c,
+                                                            double*        s,
+                                                            rocblas_stride stride_s,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg_strided_batched(rocblas_handle         handle,
+                                                            rocblas_float_complex* a,
+                                                            rocblas_stride         stride_a,
+                                                            rocblas_float_complex* b,
+                                                            rocblas_stride         stride_b,
+                                                            float*                 c,
+                                                            rocblas_stride         stride_c,
+                                                            rocblas_float_complex* s,
+                                                            rocblas_stride         stride_s,
+                                                            rocblas_int            batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle          handle,
+                                                            rocblas_double_complex* a,
+                                                            rocblas_stride          stride_a,
+                                                            rocblas_double_complex* b,
+                                                            rocblas_stride          stride_b,
+                                                            double*                 c,
+                                                            rocblas_stride          stride_c,
+                                                            rocblas_double_complex* s,
+                                                            rocblas_stride          stride_s,
+                                                            rocblas_int             batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
     rotm applies the modified Givens rotation matrix defined by param to vectors x and y.
     
     @param[in]

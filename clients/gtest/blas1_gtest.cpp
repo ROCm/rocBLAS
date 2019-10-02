@@ -99,20 +99,23 @@ namespace
             {
                 bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
+                bool is_rotg    = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
+                                || BLAS1 == blas1::rotg_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
                                    || BLAS1 == blas1::copy_batched || BLAS1 == blas1::rot_batched
-                                   || BLAS1 == blas1::rotm_batched);
+                                   || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
                        || BLAS1 == blas1::swap_strided_batched
                        || BLAS1 == blas1::copy_strided_batched
                        || BLAS1 == blas1::rot_strided_batched
-                       || BLAS1 == blas1::rotm_strided_batched);
+                       || BLAS1 == blas1::rotm_strided_batched
+                       || BLAS1 == blas1::rotg_strided_batched);
 
-                if((is_scal || BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
-                    || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotg)
+                if((is_scal || is_rotg || BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                    || BLAS1 == blas1::rot_strided_batched)
                    && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
                 if((BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
@@ -120,14 +123,16 @@ namespace
                    && arg.compute_type != arg.a_type)
                     name << '_' << rocblas_datatype2string(arg.compute_type);
 
-                name << '_' << arg.N;
+                if(!is_rotg)
+                    name << '_' << arg.N;
 
                 if(BLAS1 == blas1::axpy || is_scal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
-                name << '_' << arg.incx;
+                if(!is_rotg)
+                    name << '_' << arg.incx;
 
-                if(is_strided)
+                if(is_strided && !is_rotg)
                 {
                     name << '_' << arg.stride_x;
                 }
@@ -147,6 +152,12 @@ namespace
                    || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotm_strided_batched)
                 {
                     name << '_' << arg.stride_y;
+                }
+
+                if(is_rotg)
+                {
+                    name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c << '_'
+                         << arg.stride_d;
                 }
 
                 if(is_batched || is_strided)
@@ -239,7 +250,9 @@ namespace
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
                         && std::is_same<Tc, double>{})))
 
-            || (BLAS1 == blas1::rotg && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
+                 || BLAS1 == blas1::rotg_strided_batched)
+                && std::is_same<To, Tc>{}
                 && ((std::is_same<Ti, float>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{})
                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
@@ -327,6 +340,8 @@ BLAS1_TESTING(rot,   ARG3)
 BLAS1_TESTING(rot_batched, ARG3)
 BLAS1_TESTING(rot_strided_batched, ARG3)
 BLAS1_TESTING(rotg,  ARG2)
+BLAS1_TESTING(rotg_batched, ARG2)
+BLAS1_TESTING(rotg_strided_batched, ARG2)
 BLAS1_TESTING(rotm,  ARG1)
 BLAS1_TESTING(rotm_batched, ARG1)
 BLAS1_TESTING(rotm_strided_batched, ARG1)

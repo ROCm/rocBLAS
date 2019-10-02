@@ -215,6 +215,13 @@ def setdefaults(test):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['stride_scale']))
 
+    if test['function'] in ('rotg_strided_batched'):
+        if 'stride_scale' in test:
+            test.setdefault('stride_a', int(test['stride_scale']))
+            test.setdefault('stride_b', int(test['stride_scale']))
+            test.setdefault('stride_c', int(test['stride_scale']))
+            test.setdefault('stride_d', int(test['stride_scale']))
+
     test.setdefault('stride_x', 0)
     test.setdefault('stride_y', 0)
 

@@ -81,7 +81,7 @@ void testing_rot_batched(const Arguments& arg)
             EXPECT_ROCBLAS_STATUS(
                 (rocblas_rot_batched<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds, batch_count)),
                 rocblas_status_invalid_size);
-        if(!batch_count)
+        else
             CHECK_ROCBLAS_ERROR(
                 (rocblas_rot_batched<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds, batch_count)));
         return;
