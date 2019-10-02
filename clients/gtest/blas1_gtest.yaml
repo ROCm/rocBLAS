@@ -44,6 +44,7 @@ Tests:
     N: *N_range
     incx_incy: *incx_incy_range
     function:
+      - copy:  *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
       - rot:   *rot_precisions
@@ -147,6 +148,7 @@ Tests:
       - iamin: *single_double_precisions_complex_real
 
 # alpha and incx incy
+
 # scal batched and strided variants (uses alpha)
 
   - name: blas1_batched
@@ -348,6 +350,7 @@ Tests:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
 
+            
   - name: blas1_swap_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
