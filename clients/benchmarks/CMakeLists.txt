@@ -150,7 +150,6 @@ endif( )
 if( OS_ID_rhel OR OS_ID_centos)
     # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
-else()
 endif()
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
