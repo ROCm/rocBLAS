@@ -84,8 +84,8 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
     }
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
-    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
+    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
+    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
     dim3        grid(blocks, batch_count);
