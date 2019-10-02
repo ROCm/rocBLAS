@@ -39,7 +39,7 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
     // outside of rocblas)
     if(handle->is_device_memory_size_query())
     {
-        if(stride_alpha && rocblas_pointer_mode_device == handle->pointer_mode && n > 0 && incx > 0
+        if(stride_alpha && rocblas_pointer_mode_host == handle->pointer_mode && n > 0 && incx > 0
            && batch_count > 0)
             return handle->set_optimal_device_memory_size(sizeof(V) * batch_count * stride_alpha);
         else

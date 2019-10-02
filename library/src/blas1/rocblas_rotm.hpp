@@ -69,10 +69,22 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                                      rocblas_stride stride_y,
                                      const T*       param,
                                      rocblas_stride stride_param,
-                                     rocblas_int    batch_count)
+                                     rocblas_int    batch_count,
+                                     T*             mem)
 {
+    // Memory queries must be in template as _impl doesn't have stride_param parameter (for calls from
+    // outside of rocblas)
+    if(handle->is_device_memory_size_query())
+    {
+        if(stride_param && rocblas_pointer_mode_host == handle->pointer_mode && n > 0 && incx > 0
+           && incy > 0 && batch_count > 0)
+            return handle->set_optimal_device_memory_size(sizeof(T) * batch_count * stride_param);
+        else
+            return rocblas_status_size_unchanged;
+    }
+
     // Quick return if possible
-    if(n <= 0 || incx <= 0 || incy <= 0 || batch_count == 0)
+    if(n <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
         return rocblas_status_success;
     if(rocblas_pointer_mode_host == handle->pointer_mode && param[0] == -2)
         return rocblas_status_success;
@@ -102,7 +114,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            param + 3,
                            param + 4,
                            stride_param);
-    else // c and s are on host
+    else if(!stride_param) // single param on host
         hipLaunchKernelGGL(rotm_kernel,
                            blocks,
                            threads,
@@ -123,6 +135,33 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            param[3],
                            param[4],
                            stride_param);
+    else // array of params on host, copy to device
+    {
+        // This should NOT happen from calls from the API currently.
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(mem, param, sizeof(T) * batch_count * stride_param, hipMemcpyHostToDevice));
+
+        hipLaunchKernelGGL(rotm_kernel,
+                           blocks,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           n,
+                           x,
+                           offset_x,
+                           incx,
+                           stride_x,
+                           y,
+                           offset_y,
+                           incy,
+                           stride_y,
+                           mem,
+                           mem + 1,
+                           mem + 2,
+                           mem + 3,
+                           mem + 4,
+                           0);
+    }
 
     return rocblas_status_success;
 }

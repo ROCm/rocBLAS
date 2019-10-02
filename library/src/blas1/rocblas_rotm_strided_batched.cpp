@@ -86,7 +86,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         return rocblas_rotm_template<NB, T>(
-            handle, n, x, 0, incx, stride_x, y, 0, incy, stride_y, param, 0, batch_count);
+            handle, n, x, 0, incx, stride_x, y, 0, incy, stride_y, param, 0, batch_count, (T*)nullptr);
     }
 
 } // namespace
