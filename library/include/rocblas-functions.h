@@ -1851,6 +1851,122 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
     rocblas_handle handle, double* d1, double* d2, double* x1, const double* y1, double* param);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotmg_batched creates the modified Givens rotation matrix for the batched vectors (d1 * x1, d2 * y1).
+          Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    d1      batched array of input scalars that is overwritten.
+    @param[inout]
+    d2      batched array of input scalars that is overwritten.
+    @param[inout]
+    x1      batched array of input scalars that is overwritten.
+    @param[in]
+    y1      batched array of input scalars.
+    @param[out]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    @param[in]
+    batch_count rocblas_int
+                the number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
+                                                     float* const       d1[],
+                                                     float* const       d2[],
+                                                     float* const       x1[],
+                                                     const float* const y1[],
+                                                     float*             param,
+                                                     rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
+                                                     double* const       d1[],
+                                                     double* const       d2[],
+                                                     double* const       x1[],
+                                                     const double* const y1[],
+                                                     double*             param,
+                                                     rocblas_int         batch_count);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rotmg_strided_batched creates the modified Givens rotation matrix for the batched vectors (d1 * x1, d2 * y1).
+          Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
+          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
+    
+    @param[in]
+    handle  rocblas_handle
+            handle to the rocblas library context queue.
+    @param[inout]
+    d1      batched array of input scalars that is overwritten.
+    @param[inout]
+    d2      batched array of input scalars that is overwritten.
+    @param[inout]
+    x1      batched array of input scalars that is overwritten.
+    @param[in]
+    y1      batched array of input scalars.
+    @param[out]
+    param   vector of 5 elements defining the rotation.
+            param[0] = flag
+            param[1] = H11
+            param[2] = H21
+            param[3] = H12
+            param[4] = H22
+            The flag parameter defines the form of H:
+            flag = -1 => H = ( H11 H12 H21 H22 )
+            flag =  0 => H = ( 1.0 H12 H21 1.0 )
+            flag =  1 => H = ( H11 1.0 -1.0 H22 )
+            flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
+            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    @param[in]
+    batch_count rocblas_int
+                the number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle handle,
+                                                             float*         d1,
+                                                             rocblas_stride stride_d1,
+                                                             float*         d2,
+                                                             rocblas_stride stride_d2,
+                                                             float*         x1,
+                                                             rocblas_stride stride_x1,
+                                                             const float*   y1,
+                                                             rocblas_stride stride_y1,
+                                                             float*         param,
+                                                             rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle handle,
+                                                             double*        d1,
+                                                             rocblas_stride stride_d1,
+                                                             double*        d2,
+                                                             rocblas_stride stride_d2,
+                                                             double*        x1,
+                                                             rocblas_stride stride_x1,
+                                                             const double*  y1,
+                                                             rocblas_stride stride_y1,
+                                                             double*        param,
+                                                             rocblas_int    batch_count);
+
 /*
  * ===========================================================================
  *    level 2 BLAS

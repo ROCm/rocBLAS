@@ -711,6 +711,42 @@ static constexpr auto rocblas_rotmg<float> = rocblas_srotmg;
 template <>
 static constexpr auto rocblas_rotmg<double> = rocblas_drotmg;
 
+//rotmg_batched
+template <typename T>
+rocblas_status (*rocblas_rotmg_batched)(rocblas_handle handle,
+                                        T* const       d1[],
+                                        T* const       d2[],
+                                        T* const       x1[],
+                                        const T* const y1[],
+                                        T*             param,
+                                        rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rotmg_batched<float> = rocblas_srotmg_batched;
+
+template <>
+static constexpr auto rocblas_rotmg_batched<double> = rocblas_drotmg_batched;
+
+//rotmg_strided_batched
+template <typename T>
+rocblas_status (*rocblas_rotmg_strided_batched)(rocblas_handle handle,
+                                                T*             d1,
+                                                rocblas_stride stride_d1,
+                                                T*             d2,
+                                                rocblas_stride stride_d2,
+                                                T*             x1,
+                                                rocblas_stride stride_x1,
+                                                const T*       y1,
+                                                rocblas_stride stride_y1,
+                                                T*             param,
+                                                rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_rotmg_strided_batched<float> = rocblas_srotmg_strided_batched;
+
+template <>
+static constexpr auto rocblas_rotmg_strided_batched<double> = rocblas_drotmg_strided_batched;
+
 /*
  * ===========================================================================
  *    level 2 BLAS

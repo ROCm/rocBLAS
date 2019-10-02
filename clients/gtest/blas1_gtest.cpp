@@ -25,6 +25,8 @@
 #include "testing_rotm_batched.hpp"
 #include "testing_rotm_strided_batched.hpp"
 #include "testing_rotmg.hpp"
+#include "testing_rotmg_batched.hpp"
+#include "testing_rotmg_strided_batched.hpp"
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
 #include "testing_scal_strided_batched.hpp"
@@ -68,6 +70,8 @@ namespace
         rotm_batched,
         rotm_strided_batched,
         rotmg,
+        rotmg_batched,
+        rotmg_strided_batched,
     };
 
     // ----------------------------------------------------------------------------
@@ -104,7 +108,8 @@ namespace
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
                                    || BLAS1 == blas1::copy_batched || BLAS1 == blas1::rot_batched
-                                   || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched);
+                                   || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched
+                                   || BLAS1 == blas1::rotmg_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
@@ -112,7 +117,8 @@ namespace
                        || BLAS1 == blas1::copy_strided_batched
                        || BLAS1 == blas1::rot_strided_batched
                        || BLAS1 == blas1::rotm_strided_batched
-                       || BLAS1 == blas1::rotg_strided_batched);
+                       || BLAS1 == blas1::rotg_strided_batched
+                       || BLAS1 == blas1::rotmg_strided_batched);
 
                 if((is_scal || is_rotg || BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
                     || BLAS1 == blas1::rot_strided_batched)
@@ -263,7 +269,9 @@ namespace
                 && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::rotmg && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
+                 || BLAS1 == blas1::rotmg_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
@@ -346,6 +354,8 @@ BLAS1_TESTING(rotm,  ARG1)
 BLAS1_TESTING(rotm_batched, ARG1)
 BLAS1_TESTING(rotm_strided_batched, ARG1)
 BLAS1_TESTING(rotmg, ARG1)
+BLAS1_TESTING(rotmg_batched, ARG1)
+BLAS1_TESTING(rotmg_strided_batched, ARG1)
 
     // clang-format on
 

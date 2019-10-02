@@ -30,6 +30,8 @@
 #include "testing_rotm_batched.hpp"
 #include "testing_rotm_strided_batched.hpp"
 #include "testing_rotmg.hpp"
+#include "testing_rotmg_batched.hpp"
+#include "testing_rotmg_strided_batched.hpp"
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
 #include "testing_scal_strided_batched.hpp"
@@ -194,6 +196,10 @@ struct perf_blas<
             testing_rotm_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "rotmg"))
             testing_rotmg<T>(arg);
+        else if(!strcmp(arg.function, "rotmg_batched"))
+            testing_rotmg_batched<T>(arg);
+        else if(!strcmp(arg.function, "rotmg_strided_batched"))
+            testing_rotmg_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "gemv"))
             testing_gemv<T>(arg);
         else if(!strcmp(arg.function, "gemv_batched"))

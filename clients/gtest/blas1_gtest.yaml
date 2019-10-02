@@ -56,6 +56,7 @@ Tests:
     batch_count: [-1, 0, 5]
     function:
       - rotg_batched: *rotg_precisions
+      - rotmg_batched: *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: quick
@@ -63,6 +64,7 @@ Tests:
     stride_scale: [ 1, 7 ]
     function:
       - rotg_strided_batched: *rotg_precisions
+      - rotmg_strided_batched: *single_double_precisions_complex_real
 
   - name: blas1_batched
     category: quick
@@ -345,6 +347,7 @@ Tests:
       - copy_batched_bad_arg:  *single_double_precisions_complex_real
       - rot_batched_bad_arg: *rot_precisions
       - rotg_batched_bad_arg: *rot_precisions
+      - rotmg_batched_bad_arg: *single_double_precisions_complex_real
       - rotm_batched_bad_arg: *single_double_precisions_complex_real
 
   - name: blas1_strided_batched_bad_arg
@@ -357,6 +360,7 @@ Tests:
       - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real
       - rot_strided_batched_bad_arg: *rot_precisions
       - rotg_strided_batched_bad_arg: *rot_precisions
+      - rotmg_strided_batched_bad_arg: *rot_precisions
       - rotm_strided_batched_bad_arg: *single_double_precisions_complex_real
 
 ...
