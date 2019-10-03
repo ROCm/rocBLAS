@@ -116,7 +116,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
     rocblas_int lda         = arg.lda;
-    T           h_alpha     = (T)arg.alpha;
+    T           h_alpha     = arg.get_alpha<T>();
     rocblas_int stride_x    = arg.stride_x;
     rocblas_int stride_y    = arg.stride_y;
     rocblas_int stride_a    = arg.stride_a;

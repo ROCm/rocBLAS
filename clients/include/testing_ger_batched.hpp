@@ -59,7 +59,7 @@ void testing_ger_batched(const Arguments& arg)
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
     rocblas_int lda         = arg.lda;
-    T           h_alpha     = (T)arg.alpha;
+    T           h_alpha     = arg.get_alpha<T>();
     rocblas_int batch_count = arg.batch_count;
 
     rocblas_local_handle handle;
