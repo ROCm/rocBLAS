@@ -16,16 +16,16 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
                                      const V*          A,
                                      rocblas_int       offseta,
                                      rocblas_int       lda,
-                                     rocblas_stride       strideA,
+                                     rocblas_stride    strideA,
                                      const V*          x,
                                      rocblas_int       offsetx,
                                      rocblas_int       incx,
-                                     rocblas_stride       stridex,
+                                     rocblas_stride    stridex,
                                      const U*          beta,
                                      W*                y,
                                      rocblas_int       offsety,
                                      rocblas_int       incy,
-                                     rocblas_stride       stridey,
+                                     rocblas_stride    stridey,
                                      rocblas_int       batch_count)
 {
     //quick return
@@ -35,8 +35,12 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * ((transA == rocblas_operation_none ? n : m) - 1) : offsetx;
-    auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * ((transA == rocblas_operation_none ? m : n) - 1) : offsety;
+    auto shiftx = incx < 0
+                      ? offsetx - ptrdiff_t(incx) * ((transA == rocblas_operation_none ? n : m) - 1)
+                      : offsetx;
+    auto shifty = incy < 0
+                      ? offsety - ptrdiff_t(incy) * ((transA == rocblas_operation_none ? m : n) - 1)
+                      : offsety;
 
     if(transA == rocblas_operation_none)
     {

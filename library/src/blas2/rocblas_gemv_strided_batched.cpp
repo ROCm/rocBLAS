@@ -160,24 +160,24 @@ namespace
             return rocblas_status_invalid_size;
 
         return rocblas_gemv_template<T>(handle,
-                                                     transA,
-                                                     m,
-                                                     n,
-                                                     alpha,
-                                                     A,
-                                                     0,
-                                                     lda,
-                                                     strideA,
-                                                     x,
-                                                     0,
-                                                     incx,
-                                                     stridex,
-                                                     beta,
-                                                     y,
-                                                     0,
-                                                     incy,
-                                                     stridey,
-                                                     batch_count);
+                                        transA,
+                                        m,
+                                        n,
+                                        alpha,
+                                        A,
+                                        0,
+                                        lda,
+                                        strideA,
+                                        x,
+                                        0,
+                                        incx,
+                                        stridex,
+                                        beta,
+                                        y,
+                                        0,
+                                        incy,
+                                        stridey,
+                                        batch_count);
     }
 } //namespace
 

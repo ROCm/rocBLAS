@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_ger.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_ger.hpp"
 #include "utility.h"
 
 namespace
@@ -137,23 +137,23 @@ namespace
             return rocblas_status_success;
 
         rocblas_ger_template<T>(handle,
-                                             m,
-                                             n,
-                                             alpha,
-                                             0,
-                                             x,
-                                             0,
-                                             incx,
-                                             stridex,
-                                             y,
-                                             0,
-                                             incy,
-                                             stridey,
-                                             A,
-                                             0,
-                                             lda,
-                                             strideA,
-                                             batch_count);
+                                m,
+                                n,
+                                alpha,
+                                0,
+                                x,
+                                0,
+                                incx,
+                                stridex,
+                                y,
+                                0,
+                                incy,
+                                stridey,
+                                A,
+                                0,
+                                lda,
+                                strideA,
+                                batch_count);
 
         return rocblas_status_success;
     }
