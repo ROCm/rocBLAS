@@ -269,6 +269,7 @@ while true; do
         shift ;;
     --hip-clang)
         build_hip_clang=true
+        tensile_cov=V3
         shift ;;
     --prefix)
         install_prefix=${2}
@@ -360,6 +361,7 @@ pushd .
   compiler="hcc"
   if [[ "${build_cuda}" == true || "${build_hip_clang}" == true ]]; then
     compiler="hipcc"
+    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
   # Uncomment for cmake debugging
