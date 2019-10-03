@@ -132,6 +132,8 @@ set( rocblas_blas1_source
   blas1/rocblas_copy_batched.cpp
   blas1/rocblas_copy_strided_batched.cpp
   blas1/rocblas_dot.cpp
+  blas1/rocblas_dot_strided_batched.cpp
+  blas1/rocblas_dot_batched.cpp
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp

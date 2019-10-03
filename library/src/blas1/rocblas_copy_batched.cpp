@@ -65,8 +65,7 @@ namespace
                         "batch_count",
                         batch_count);
 
-        return rocblas_copy_template<NB, true, T>(
-            handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
+        return rocblas_copy_template<NB, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
     }
 
 } // namespace
