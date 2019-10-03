@@ -81,6 +81,8 @@ Tests:
       - copy_batched:  *single_double_precisions_complex_real
       - rot_batched: *rot_precisions
       - rotm_batched: *single_double_precisions_complex_real
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *single_double_precisions_complex
 
   - name: blas1_strided_batched
     category: quick
@@ -98,6 +100,8 @@ Tests:
       - copy_strided_batched:  *single_double_precisions_complex_real
       - rot_strided_batched: *rot_precisions
       - rotm_strided_batched: *single_double_precisions_complex_real
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
 
 
   - name: blas1
@@ -135,6 +139,8 @@ Tests:
       - copy_batched:  *single_double_precisions_complex_real
       - rot_batched: *rot_precisions
       - rotm_batched: *single_double_precisions_complex_real
+      - dot_batched:   *double_precision_complex_real
+      - dotc_batched:  *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -152,6 +158,8 @@ Tests:
       - copy_strided_batched:  *single_double_precisions_complex_real
       - rot_strided_batched: *rot_precisions
       - rotm_strided_batched: *single_double_precisions_complex_real
+      - dot_strided_batched:   *double_precision_complex_real
+      - dotc_strided_batched:  *double_precision_complex_real
 
   - name: blas1
     category: nightly
@@ -186,6 +194,8 @@ Tests:
       - copy_batched:  *single_double_precisions_complex_real
       - rot_batched: *rot_precisions
       - rotm_batched: *single_double_precisions_complex_real
+      - dot_batched:   *double_precision_complex_real
+      - dotc_batched:  *double_precision_complex_real
 
   - name: blas1_batched
     category: nightly
@@ -200,6 +210,8 @@ Tests:
       - copy_batched:  *single_double_precisions_complex_real
       - rot_batched: *rot_precisions
       - rotm_batched: *single_double_precisions_complex_real
+      - dot_batched:   *double_precision_complex_real
+      - dotc_batched:  *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -215,6 +227,7 @@ Tests:
       - copy_strided_batched:  *single_double_precisions_complex_real
       - rot_strided_batched: *rot_precisions
       - rotm_strided_batched: *single_double_precisions_complex_real
+      - dot_strided_batched:   *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -230,6 +243,8 @@ Tests:
       - copy_strided_batched:  *single_double_precisions_complex_real
       - rot_strided_batched: *rot_precisions
       - rotm_strided_batched: *single_double_precisions_complex_real
+      - dot_strided_batched:   *double_precision_complex_real
+      - dotc_strided_batched:  *double_precision_complex_real
 
   
   - name: blas1
@@ -299,7 +314,7 @@ Tests:
     incx: [ 1 ]
     incy: [ 1 ]
     batch_count: [-1, 0, 1]
-    stride_scale: [ 0, 1 ]
+    stride_scale: [ 1 ]
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
 
@@ -349,6 +364,8 @@ Tests:
       - rotg_batched_bad_arg: *rot_precisions
       - rotmg_batched_bad_arg: *single_double_precisions_complex_real
       - rotm_batched_bad_arg: *single_double_precisions_complex_real
+      - dot_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_bad_arg:  *single_double_precisions_complex
 
   - name: blas1_strided_batched_bad_arg
     category: pre_checkin
@@ -362,5 +379,7 @@ Tests:
       - rotg_strided_batched_bad_arg: *rot_precisions
       - rotmg_strided_batched_bad_arg: *rot_precisions
       - rotm_strided_batched_bad_arg: *single_double_precisions_complex_real
+      - dot_strided_batched_bad_arg:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_bad_arg:  *single_double_precisions_complex
 
 ...
