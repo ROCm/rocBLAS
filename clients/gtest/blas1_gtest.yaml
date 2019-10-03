@@ -38,29 +38,7 @@ Definitions:
 
 Tests:
 
-# ** quick **
-
-  - name: blas1_xyinc
-    category: quick
-    N: *N_range
-    incx_incy: *incx_incy_range
-    function:
-      - dot:   *half_bfloat_single_double_complex_real_precisions
-      - dotc:  *single_double_precisions_complex
-
-# ** pre_checkin **
-
-  - name: blas1_with_incxy
-    category: pre_checkin
-    N: [ 50000, 1049600 ]
-    incx_incy: *incx_incy_range
-    function:
-      - dot:   *double_precision_complex_real
-      - dotc:  *double_precision_complex_real
-
-
-
-# Functions with no parameters to scan over
+# All functions with no parameters to scan over
 
   - name: blas1
     category: quick
@@ -68,8 +46,9 @@ Tests:
       - rotg:  *rotg_precisions
       - rotmg: *single_double_precisions_complex_real
 
-# Functions with alpha and incx and incy
+# All functions with alpha and incx and incy
 
+# quick
   - name: blas1_with_alpha
     category: quick
     N: *N_range
@@ -79,6 +58,7 @@ Tests:
     function:
       - axpy:  *half_single_precisions_complex_real
 
+# pre_checkin
   - name: blas1_with_alpha
     category: pre_checkin
     N: [ 50000, 1049600 ]
@@ -88,6 +68,7 @@ Tests:
     function:
       - axpy:  *half_single_precisions_complex_real
 
+# nightly
   - name: blas1_with_alpha
     category: nightly
     N: [ 4000000 ]
@@ -98,8 +79,9 @@ Tests:
       - axpy:  *half_single_precisions_complex_real
 
 
-# Functions with alpha and incx no incy
+# All functions with alpha and incx but no incy
 
+# quick
   - name: blas1_with_alpha
     category: quick
     N: *N_range
@@ -133,6 +115,7 @@ Tests:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
 
+# pre_checkin
   - name: blas1
     category: pre_checkin
     N: [ 50000, 1049600 ]
@@ -166,6 +149,7 @@ Tests:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
 
+# nightly
   - name: blas1_batched
     category: nightly
     N: [ 4000000 ]
@@ -212,9 +196,10 @@ Tests:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched:  *single_double_complex_real_in_complex_out
 
-# Functions with incx, no incy, no alpha
+# All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
 
+# quick
   - name: blas1
     category: quick
     N: *N_range
@@ -244,11 +229,13 @@ Tests:
       - asum_strided_batched: *single_double_precisions_complex_real
       - nrm2_strided_batched: *single_double_precisions_complex_real
 
-  - name: blas1_without_incy
+# pre_checkin
+  - name: blas1
     category: pre_checkin
     N: [ 50000, 1049600 ]
     incx: *incx_range
     function:
+      # for large N nrm2 and asum drop single precision tolerance comparisions
       - nrm2:  *double_precision_complex_real
       - asum:  *double_precision_complex_real
       - iamax: *single_double_precisions_complex_real
@@ -273,6 +260,7 @@ Tests:
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched: *double_precision_complex_real
 
+# nightly
   - name: blas1
     category: nightly
     N: [ 300001 ]
@@ -300,10 +288,10 @@ Tests:
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched: *double_precision_complex_real
 
-# Functions with incx, incy, no alpha
+# All functions with incx, incy, no alpha
 
-  # quick
-  - name: blas1_with_incxy
+# quick
+  - name: blas1
     category: quick
     N: [ -1, 0, 1025] 
     incx: [ 1 ]
@@ -313,8 +301,10 @@ Tests:
       - copy: *single_double_precisions_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
 
-  - name: blas1_with_incxy
+  - name: blas1_batched
     category: quick
     N: [ -1, 0, 1025] 
     incx: [ 1 ]
@@ -324,7 +314,7 @@ Tests:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
 
-  - name: blas1_with_incxy
+  - name: blas1_strided_batched
     category: quick
     N: [ -1, 0, 1025] 
     incx: [ 1 ]
@@ -335,8 +325,8 @@ Tests:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
 
-  # pre_checkin
-  - name: blas1_with_incxy
+# pre_checkin
+  - name: blas1
     category: pre_checkin
     N: [ 5000, 800000 ]
     incx_incy: *incx_incy_range
@@ -348,7 +338,7 @@ Tests:
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
 
-  - name: blas1_with_incxy
+  - name: blas1_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
     incx_incy: *incx_incy_range
@@ -357,7 +347,7 @@ Tests:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
 
-  - name: blas1_with_incxy
+  - name: blas1_strided_batched
     category: pre_checkin
     N: [ 5000, 800000 ]
     incx_incy: *incx_incy_range
@@ -367,8 +357,8 @@ Tests:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
 
-  # nightly
-  - name: blas1_with_incxy
+# nightly
+  - name: blas1
     category: nightly
     N: [ 4000000 ]
     incx_incy: *incx_incy_range
@@ -380,7 +370,7 @@ Tests:
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
 
-  - name: blas1_with_incxy
+  - name: blas1_batched
     category: nightly
     N: [ 4000000 ]
     incx_incy: *incx_incy_range
@@ -389,7 +379,7 @@ Tests:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched:  *single_double_precisions_complex_real
 
-  - name: blas1_with_incxy
+  - name: blas1_strided_batched
     category: nightly
     N: [ 4000000 ]
     incx_incy: *incx_incy_range
@@ -399,7 +389,7 @@ Tests:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
 
-# all functions
+# all functions bad arg
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg
     category: pre_checkin
