@@ -2134,7 +2134,7 @@ rocblas_zhemv(rocblas_handle handle,
 
         A := A + alpha*x*y**T
 
-    where alpha is a scalars, x and y are vectors, and A is an
+    where alpha is a scalar, x and y are vectors, and A is an
     m by n matrix.
 
     @param[in]
@@ -2359,7 +2359,7 @@ rocblas_zger(rocblas_handle handle,
 
         A := A + alpha*x*x**T
 
-    where alpha is a scalars, x is a vector, and A is an
+    where alpha is a scalar, x is a vector, and A is an
     n by n symmetric matrix.
 
     @param[in]
@@ -2424,7 +2424,7 @@ rocblas_zsyr(rocblas_handle handle,
 
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
-    where alpha is a scalars, x is an array of vectors, and A is an array of
+    where alpha is a scalar, x is an array of vectors, and A is an array of
     n by n symmetric matrices. For i = 1 , … , batch_count
 
     @param[in]
@@ -2457,7 +2457,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssyr_batched(rocblas_handle     handle,
                                                    const float*       alpha,
                                                    const float* const x[],
                                                    rocblas_int        incx,
-                                                   float*             A[],
+                                                   float* const       A[],
                                                    rocblas_int        lda,
                                                    rocblas_int        batch_count);
 
@@ -2467,7 +2467,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
                                                    const double*       alpha,
                                                    const double* const x[],
                                                    rocblas_int         incx,
-                                                   double*             A[],
+                                                   double* const       A[],
                                                    rocblas_int         lda,
                                                    rocblas_int         batch_count);
 
@@ -2478,7 +2478,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
 
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
-    where alpha is a scalars, vectors, and A is an array of
+    where alpha is a scalar, vectors, and A is an array of
     n by n symmetric matrices. For i = 1 , … , batch_count
 
     @param[in]

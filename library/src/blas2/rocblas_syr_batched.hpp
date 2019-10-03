@@ -12,7 +12,7 @@ __global__ void rocblas_syr_batched_kernel(rocblas_fill uplo,
                                            const T* const __restrict__ xvec[],
                                            ptrdiff_t   shiftx,
                                            rocblas_int incx,
-                                           T*          Avec[],
+                                           T* const    Avec[],
                                            rocblas_int shiftA,
                                            rocblas_int lda)
 {
@@ -35,7 +35,7 @@ rocblas_status rocblas_syr_batched_template(rocblas_handle handle,
                                             const T* const x[],
                                             rocblas_int    offsetx,
                                             rocblas_int    incx,
-                                            T*             A[],
+                                            T* const       A[],
                                             rocblas_int    shiftA,
                                             rocblas_int    lda,
                                             rocblas_int    batch_count)

@@ -22,7 +22,7 @@ namespace
                                             const T* const x[],
                                             rocblas_int    shiftx,
                                             rocblas_int    incx,
-                                            T*             A[],
+                                            T* const       A[],
                                             rocblas_int    shiftA,
                                             rocblas_int    lda,
                                             rocblas_int    batch_count)
@@ -119,7 +119,7 @@ rocblas_status rocblas_ssyr_batched(rocblas_handle     handle,
                                     const float*       alpha,
                                     const float* const x[],
                                     rocblas_int        incx,
-                                    float*             A[],
+                                    float* const       A[],
                                     rocblas_int        lda,
                                     rocblas_int        batch_count)
 {
@@ -132,7 +132,7 @@ rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
                                     const double*       alpha,
                                     const double* const x[],
                                     rocblas_int         incx,
-                                    double*             A[],
+                                    double* const       A[],
                                     rocblas_int         lda,
                                     rocblas_int         batch_count)
 {
