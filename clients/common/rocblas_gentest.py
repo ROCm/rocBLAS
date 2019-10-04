@@ -206,28 +206,20 @@ def setdefaults(test):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['stride_scale']))
 
-    if test['function'] in ('ger_strided_batched'):
-        if all([x in test for x in ('M', 'incx', 'stride_scale')]):
-            test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
-                                            test['stride_scale']))
-        if all([x in test for x in ('N', 'incy', 'stride_scale')]):
-            test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
-                                            test['stride_scale']))
-
-    if test['function'] in ('gemv_strided_batched'):
-        if test['transA'] == 'N':
-            if all([x in test for x in ('N', 'incx', 'stride_scale')]):
-                test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
-                                                test['stride_scale']))
-            if all([x in test for x in ('M', 'incy', 'stride_scale')]):
-                test.setdefault('stride_y', int(test['M'] * abs(test['incy']) *
-                                                test['stride_scale']))
-        else:
+    if test['function'] in ('gemv_strided_batched', 'ger_strided_batched'):
+        if test['function'] in ('ger_strided_batched') or test['transA'] in ('T', 'C'):
             if all([x in test for x in ('M', 'incx', 'stride_scale')]):
                 test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
                                                 test['stride_scale']))
             if all([x in test for x in ('N', 'incy', 'stride_scale')]):
                 test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
+                                                test['stride_scale']))
+        else:
+            if all([x in test for x in ('N', 'incx', 'stride_scale')]):
+                test.setdefault('stride_x', int(test['N'] * abs(test['incx']) *
+                                                test['stride_scale']))
+            if all([x in test for x in ('M', 'incy', 'stride_scale')]):
+                test.setdefault('stride_y', int(test['M'] * abs(test['incy']) *
                                                 test['stride_scale']))
 
     test.setdefault('stride_x', 0)

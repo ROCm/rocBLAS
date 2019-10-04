@@ -55,7 +55,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((gemvn_kernel_test<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+            hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
                                gemvn_grid,
                                gemvn_threads,
                                0,
@@ -84,7 +84,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
             if(!*alpha && *beta == 1)
                 return rocblas_status_success;
 
-            hipLaunchKernelGGL((gemvn_kernel_test<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+            hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
                                gemvn_grid,
                                gemvn_threads,
                                0,
@@ -119,7 +119,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((gemvt_kernel_test<NB, T>),
+            hipLaunchKernelGGL((gemvt_kernel<NB, T>),
                                gemvt_grid,
                                gemvt_threads,
                                0,
@@ -148,7 +148,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
             if(!*alpha && *beta == 1)
                 return rocblas_status_success;
 
-            hipLaunchKernelGGL((gemvt_kernel_test<NB, T>),
+            hipLaunchKernelGGL((gemvt_kernel<NB, T>),
                                gemvt_grid,
                                gemvt_threads,
                                0,
@@ -183,7 +183,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((gemvc_kernel_test<NB, T>),
+            hipLaunchKernelGGL((gemvc_kernel<NB, T>),
                                gemvc_grid,
                                gemvc_threads,
                                0,
@@ -212,7 +212,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
             if(!*alpha && *beta == 1)
                 return rocblas_status_success;
 
-            hipLaunchKernelGGL((gemvc_kernel_test<NB, T>),
+            hipLaunchKernelGGL((gemvc_kernel<NB, T>),
                                gemvc_grid,
                                gemvc_threads,
                                0,
