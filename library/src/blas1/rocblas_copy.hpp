@@ -6,14 +6,14 @@
 #include "rocblas.h"
 #include "utility.h"
 
-template <bool BATCH_ADJUSTXY, typename T, typename U, typename V>
+template <typename T, typename U, typename V>
 __global__ void copy_kernel(rocblas_int    n,
                             const U        xa,
-                            rocblas_int    offsetx,
+                            ptrdiff_t      shiftx,
                             rocblas_int    incx,
                             rocblas_stride stridex,
                             V              ya,
-                            rocblas_int    offsety,
+                            ptrdiff_t      shifty,
                             rocblas_int    incy,
                             rocblas_stride stridey)
 {
@@ -21,22 +21,14 @@ __global__ void copy_kernel(rocblas_int    n,
     // bound
     if(tid < n)
     {
-        const T* x = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-        T*       y = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
-
-        if(BATCH_ADJUSTXY)
-        {
-            if(incx < 0)
-                x -= ptrdiff_t(incx) * (n - 1);
-            if(incy < 0)
-                y -= ptrdiff_t(incy) * (n - 1);
-        }
+        const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+        T*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
         y[tid * incy] = x[tid * incx];
     }
 }
 
-template <rocblas_int NB, bool BATCH_ADJUSTXY, typename T, typename U, typename V>
+template <rocblas_int NB, typename T, typename U, typename V>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      U              x,
@@ -59,32 +51,26 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     if(batch_count < 0)
         return rocblas_status_invalid_size;
 
-    if(!BATCH_ADJUSTXY)
-    {
-        if(incx == incy && x == y)
-            return rocblas_status_success;
-        if(incx < 0)
-            x -= ptrdiff_t(incx) * (n - 1);
-        if(incy < 0)
-            y -= ptrdiff_t(incy) * (n - 1);
-    }
+    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
+    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
+    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
 
     int  blocks = (n - 1) / NB + 1;
     dim3 grid(blocks, batch_count);
     dim3 threads(NB);
 
-    hipLaunchKernelGGL((copy_kernel<BATCH_ADJUSTXY, T>),
+    hipLaunchKernelGGL((copy_kernel<T>),
                        grid,
                        threads,
                        0,
                        handle->rocblas_stream,
                        n,
                        x,
-                       offsetx,
+                       shiftx,
                        incx,
                        stridex,
                        y,
-                       offsety,
+                       shifty,
                        incy,
                        stridey);
 
