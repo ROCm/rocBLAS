@@ -51,7 +51,7 @@ namespace
     {
         trtri_k,
         trtri_batched_k,
-        trtri_strided_batched_k
+        trtri_strided_batched_k,
     };
 
     template <trtri_kind K>

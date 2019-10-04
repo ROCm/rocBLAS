@@ -22,8 +22,8 @@ void testing_trtri_strided_batched(const Arguments& arg)
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_int bsa    = lda * N;
-    size_t      size_A = size_t(bsa) * batch_count;
+    rocblas_stride stride_a = lda * N;
+    size_t         size_A   = size_t(stride_a) * batch_count;
 
     char char_uplo = arg.uplo;
     char char_diag = arg.diag;
@@ -36,7 +36,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
+    if(N < 0 || lda < 0 || lda < N || batch_count < 0)
     {
         static const size_t safe_size = 100;
         device_vector<T>    dA(safe_size);
@@ -50,11 +50,8 @@ void testing_trtri_strided_batched(const Arguments& arg)
         if(N < 0 || lda < 0 || lda < N || batch_count < 0)
             EXPECT_ROCBLAS_STATUS(
                 rocblas_trtri_strided_batched<T>(
-                    handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count),
+                    handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count),
                 rocblas_status_invalid_size);
-        else // batch_count == 0
-            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
-                handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count));
         return;
     }
 
@@ -66,7 +63,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    host_vector<T> hA_sub(bsa);
+    host_vector<T> hA_sub(stride_a);
 
     for(size_t b = 0; b < batch_count; b++)
     {
@@ -123,16 +120,16 @@ void testing_trtri_strided_batched(const Arguments& arg)
     }
 
     CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
-        handle, uplo, diag, N, dA, lda, bsa, dinvA, lda, bsa, batch_count));
+        handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count));
 
     // Test in place
     CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
-        handle, uplo, diag, N, dA, lda, bsa, dA, lda, bsa, batch_count));
+        handle, uplo, diag, N, dA, lda, stride_a, dA, lda, stride_a, batch_count));
 
     if(arg.timing)
     {
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trtri_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_gflops = batch_count * trtri_gflop_count<T>(N) / gpu_time_used * 1e6;
     }
 
     // copy output from device to CPU
@@ -151,14 +148,14 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
         for(size_t i = 0; i < batch_count; i++)
         {
-            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB + i * bsa, lda);
+            rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB + i * stride_a, lda);
             if(info != 0)
                 printf("error in cblas_trtri\n");
         }
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
+            cblas_gflops  = batch_count * trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
 #if 0
@@ -176,17 +173,19 @@ void testing_trtri_strided_batched(const Arguments& arg)
         {
             for(size_t i = 0; i < batch_count; i++)
             {
-                rocblas_error = fmax(
-                    rocblas_error,
-                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA + i * bsa));
+                rocblas_error
+                    = fmax(rocblas_error,
+                           norm_check_symmetric<T>(
+                               'F', char_uplo, N, lda, hB + i * stride_a, hA + i * stride_a));
                 // printf("error=%f, %lu\n", rocblas_error, i);
             }
             rocblas_error = 0.0;
             for(size_t i = 0; i < batch_count; i++)
             {
-                rocblas_error = fmax(
-                    rocblas_error,
-                    norm_check_symmetric<T>('F', char_uplo, N, lda, hB + i * bsa, hA_2 + i * bsa));
+                rocblas_error
+                    = fmax(rocblas_error,
+                           norm_check_symmetric<T>(
+                               'F', char_uplo, N, lda, hB + i * stride_a, hA_2 + i * stride_a));
                 // printf("error=%f, %lu\n", rocblas_error, i);
             }
         }
