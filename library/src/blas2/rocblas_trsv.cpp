@@ -130,12 +130,19 @@ namespace
                                           BLOCK,
                                           &negative_one<T>,
                                           A + BLOCK,
+                                          0,
                                           lda,
+                                          0,
                                           X,
+                                          0,
                                           1,
+                                          0,
                                           &one<T>,
                                           B + BLOCK * incx,
-                                          incx);
+                                          0,
+                                          incx,
+                                          0,
+                                          1);
 
                     // remaining blocks
                     for(i = BLOCK; i < m; i += BLOCK)
@@ -148,11 +155,18 @@ namespace
                                               jb,
                                               &one<T>,
                                               invA + i * BLOCK,
+                                              0,
                                               BLOCK,
+                                              0,
                                               B + i * incx,
+                                              0,
                                               incx,
+                                              0,
                                               &zero<T>,
                                               X + i,
+                                              0,
+                                              1,
+                                              0,
                                               1);
                         if(i + BLOCK < m)
                             rocblas_gemv_template(handle,
@@ -161,12 +175,19 @@ namespace
                                                   BLOCK,
                                                   &negative_one<T>,
                                                   A + i + BLOCK + i * lda,
+                                                  0,
                                                   lda,
+                                                  0,
                                                   X + i,
+                                                  0,
                                                   1,
+                                                  0,
                                                   &one<T>,
                                                   B + (i + BLOCK) * incx,
-                                                  incx);
+                                                  0,
+                                                  incx,
+                                                  0,
+                                                  1);
                     }
                 }
             }
@@ -183,11 +204,18 @@ namespace
                                       jb,
                                       &one<T>,
                                       invA + i * BLOCK,
+                                      0,
                                       BLOCK,
+                                      0,
                                       B + i * incx,
+                                      0,
                                       incx,
+                                      0,
                                       &zero<T>,
                                       X + i,
+                                      0,
+                                      1,
+                                      0,
                                       1);
 
                 if(i >= BLOCK)
@@ -198,12 +226,19 @@ namespace
                                           jb,
                                           &negative_one<T>,
                                           A + i * lda,
+                                          0,
                                           lda,
+                                          0,
                                           X + i,
+                                          0,
                                           1,
+                                          0,
                                           &one<T>,
                                           B,
-                                          incx);
+                                          0,
+                                          incx,
+                                          0,
+                                          1);
 
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
@@ -215,11 +250,18 @@ namespace
                                               BLOCK,
                                               &one<T>,
                                               invA + i * BLOCK,
+                                              0,
                                               BLOCK,
+                                              0,
                                               B + i * incx,
+                                              0,
                                               incx,
+                                              0,
                                               &zero<T>,
                                               X + i,
+                                              0,
+                                              1,
+                                              0,
                                               1);
 
                         if(i >= BLOCK)
@@ -229,12 +271,19 @@ namespace
                                                   BLOCK,
                                                   &negative_one<T>,
                                                   A + i * lda,
+                                                  0,
                                                   lda,
+                                                  0,
                                                   X + i,
+                                                  0,
                                                   1,
+                                                  0,
                                                   &one<T>,
                                                   B,
-                                                  incx);
+                                                  0,
+                                                  incx,
+                                                  0,
+                                                  1);
                     }
                 }
             }
@@ -253,11 +302,18 @@ namespace
                                       jb,
                                       &one<T>,
                                       invA + i * BLOCK,
+                                      0,
                                       BLOCK,
+                                      0,
                                       B + i * incx,
+                                      0,
                                       incx,
+                                      0,
                                       &zero<T>,
                                       X + i,
+                                      0,
+                                      1,
+                                      0,
                                       1);
 
                 if(i - BLOCK >= 0)
@@ -268,12 +324,19 @@ namespace
                                           i,
                                           &negative_one<T>,
                                           A + i,
+                                          0,
                                           lda,
+                                          0,
                                           X + i,
+                                          0,
                                           1,
+                                          0,
                                           &one<T>,
                                           B,
-                                          incx);
+                                          0,
+                                          incx,
+                                          0,
+                                          1);
 
                     // remaining blocks
                     for(i = m - jb - BLOCK; i >= 0; i -= BLOCK)
@@ -284,11 +347,18 @@ namespace
                                               BLOCK,
                                               &one<T>,
                                               invA + i * BLOCK,
+                                              0,
                                               BLOCK,
+                                              0,
                                               B + i * incx,
+                                              0,
                                               incx,
+                                              0,
                                               &zero<T>,
                                               X + i,
+                                              0,
+                                              1,
+                                              0,
                                               1);
 
                         if(i >= BLOCK)
@@ -298,12 +368,19 @@ namespace
                                                   i,
                                                   &negative_one<T>,
                                                   A + i,
+                                                  0,
                                                   lda,
+                                                  0,
                                                   X + i,
+                                                  0,
                                                   1,
+                                                  0,
                                                   &one<T>,
                                                   B,
-                                                  incx);
+                                                  0,
+                                                  incx,
+                                                  0,
+                                                  1);
                     }
                 }
             }
@@ -311,8 +388,25 @@ namespace
             {
                 // left, upper transpose
                 jb = min(BLOCK, m);
-                rocblas_gemv_template(
-                    handle, transA, jb, jb, &one<T>, invA, BLOCK, B, incx, &zero<T>, X, 1);
+                rocblas_gemv_template(handle,
+                                      transA,
+                                      jb,
+                                      jb,
+                                      &one<T>,
+                                      invA,
+                                      0,
+                                      BLOCK,
+                                      0,
+                                      B,
+                                      0,
+                                      incx,
+                                      0,
+                                      &zero<T>,
+                                      X,
+                                      0,
+                                      1,
+                                      0,
+                                      1);
 
                 if(BLOCK < m)
                 {
@@ -322,12 +416,19 @@ namespace
                                           m - BLOCK,
                                           &negative_one<T>,
                                           A + BLOCK * lda,
+                                          0,
                                           lda,
+                                          0,
                                           X,
+                                          0,
                                           1,
+                                          0,
                                           &one<T>,
                                           B + BLOCK * incx,
-                                          incx);
+                                          0,
+                                          incx,
+                                          0,
+                                          1);
 
                     // remaining blocks
                     for(i = BLOCK; i < m; i += BLOCK)
@@ -339,11 +440,18 @@ namespace
                                               jb,
                                               &one<T>,
                                               invA + i * BLOCK,
+                                              0,
                                               BLOCK,
+                                              0,
                                               B + i * incx,
+                                              0,
                                               incx,
+                                              0,
                                               &zero<T>,
                                               X + i,
+                                              0,
+                                              1,
+                                              0,
                                               1);
 
                         if(i + BLOCK < m)
@@ -353,12 +461,19 @@ namespace
                                                   m - i - BLOCK,
                                                   &negative_one<T>,
                                                   A + i + (i + BLOCK) * lda,
+                                                  0,
                                                   lda,
+                                                  0,
                                                   X + i,
+                                                  0,
                                                   1,
+                                                  0,
                                                   &one<T>,
                                                   B + (i + BLOCK) * incx,
-                                                  incx);
+                                                  0,
+                                                  incx,
+                                                  0,
+                                                  1);
                     }
                 }
             }
@@ -415,11 +530,18 @@ namespace
                                       N,
                                       &negative_one<T>,
                                       A_current,
+                                      0,
                                       lda,
+                                      0,
                                       B_current,
+                                      0,
                                       incx,
+                                      0,
                                       &one<T>,
                                       x_temp,
+                                      0,
+                                      1,
+                                      0,
                                       1);
             }
 
@@ -429,12 +551,19 @@ namespace
                                   BLOCK,
                                   &one<T>,
                                   invA + j * BLOCK * BLOCK,
+                                  0,
                                   BLOCK,
+                                  0,
                                   x_temp,
+                                  0,
                                   1,
+                                  0,
                                   &zero<T>,
                                   B + j * BLOCK * incx,
-                                  incx);
+                                  0,
+                                  incx,
+                                  0,
+                                  1);
         }
 
         return rocblas_status_success;
