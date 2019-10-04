@@ -1955,7 +1955,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
     incy    rocblas_int
             specifies the increment between elements of y.
     @param[in]
-    param   vector of 5 elements defining the rotation.
+    param   array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -1966,30 +1966,30 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
             flag =  0 => H = ( 1.0 H12 H21 1.0 )
             flag =  1 => H = ( H11 1.0 -1.0 H22 )
             flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
-            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+            param may ONLY be stored on the device for the batched version of this function.
     @param[in]
     batch_count rocblas_int
                 the number of x and y arrays, i.e. the number of batches.
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    float* const   x[],
-                                                    rocblas_int    incx,
-                                                    float* const   y[],
-                                                    rocblas_int    incy,
-                                                    const float*   param,
-                                                    rocblas_int    batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    const float* const param[],
+                                                    rocblas_int        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    double* const  x[],
-                                                    rocblas_int    incx,
-                                                    double* const  y[],
-                                                    rocblas_int    incy,
-                                                    const double*  param,
-                                                    rocblas_int    batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    const double* const param[],
+                                                    rocblas_int         batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -2019,7 +2019,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
     stride_y rocblas_stride
              specifies the increment between the beginning of y_i and y_(i + 1)
     @param[in]
-    param   vector of 5 elements defining the rotation.
+    param   strided_batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2030,7 +2030,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
             flag =  0 => H = ( 1.0 H12 H21 1.0 )
             flag =  1 => H = ( H11 1.0 -1.0 H22 )
             flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
-            param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+            param may ONLY be stored on the device for the strided_batched version of this function.
+    @param[in]
+    stride_param rocblas_stride
+                 specifies the increment between the beginning of param_i and param_(i + 1)
     @param[in]
     batch_count rocblas_int
                 the number of x and y arrays, i.e. the number of batches.
@@ -2046,6 +2049,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stride_y,
                                                             const float*   param,
+                                                            rocblas_stride stride_param,
                                                             rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handle,
@@ -2057,6 +2061,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stride_y,
                                                             const double*  param,
+                                                            rocblas_stride stride_param,
                                                             rocblas_int    batch_count);
 
 /*! \brief BLAS Level 1 API
@@ -2120,7 +2125,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
     @param[in]
     y1      batched array of input scalars.
     @param[out]
-    param   vector of 5 elements defining the rotation.
+    param   batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2143,7 +2148,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
                                                      float* const       d2[],
                                                      float* const       x1[],
                                                      const float* const y1[],
-                                                     float*             param,
+                                                     float* const       param[],
                                                      rocblas_int        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
@@ -2151,7 +2156,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                                                      double* const       d2[],
                                                      double* const       x1[],
                                                      const double* const y1[],
-                                                     double*             param,
+                                                     double* const       param[],
                                                      rocblas_int         batch_count);
 
 /*! \brief BLAS Level 1 API
@@ -2186,7 +2191,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
     stride_y1 rocblas_stride
               specifies the increment between the beginning of y1_i and y1_(i+1)
     @param[out]
-    param   vector of 5 elements defining the rotation.
+    param   batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2214,6 +2219,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle hand
                                                              const float*   y1,
                                                              rocblas_stride stride_y1,
                                                              float*         param,
+                                                             rocblas_stride stride_param,
                                                              rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle handle,
@@ -2226,6 +2232,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
                                                              const double*  y1,
                                                              rocblas_stride stride_y1,
                                                              double*        param,
+                                                             rocblas_stride stride_param,
                                                              rocblas_int    batch_count);
 
 /*

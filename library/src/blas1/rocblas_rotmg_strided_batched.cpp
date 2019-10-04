@@ -27,6 +27,7 @@ namespace
                                                       const T*       y1,
                                                       rocblas_stride stride_y1,
                                                       T*             param,
+                                                      rocblas_stride stride_param,
                                                       rocblas_int    batch_count)
     {
         if(!handle)
@@ -85,6 +86,7 @@ namespace
                                       stride_y1,
                                       param,
                                       0,
+                                      stride_param,
                                       batch_count);
     }
 
@@ -108,10 +110,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle hand
                                                              const float*   y1,
                                                              rocblas_stride stride_y1,
                                                              float*         param,
+                                                             rocblas_stride stride_param,
                                                              rocblas_int    batch_count)
 {
-    return rocblas_rotmg_strided_batched_impl(
-        handle, d1, stride_d1, d2, stride_d2, x1, stride_x1, y1, stride_y1, param, batch_count);
+    return rocblas_rotmg_strided_batched_impl(handle,
+                                              d1,
+                                              stride_d1,
+                                              d2,
+                                              stride_d2,
+                                              x1,
+                                              stride_x1,
+                                              y1,
+                                              stride_y1,
+                                              param,
+                                              stride_param,
+                                              batch_count);
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle handle,
@@ -124,10 +137,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
                                                              const double*  y1,
                                                              rocblas_stride stride_y1,
                                                              double*        param,
+                                                             rocblas_stride stride_param,
                                                              rocblas_int    batch_count)
 {
-    return rocblas_rotmg_strided_batched_impl(
-        handle, d1, stride_d1, d2, stride_d2, x1, stride_x1, y1, stride_y1, param, batch_count);
+    return rocblas_rotmg_strided_batched_impl(handle,
+                                              d1,
+                                              stride_d1,
+                                              d2,
+                                              stride_d2,
+                                              x1,
+                                              stride_x1,
+                                              y1,
+                                              stride_y1,
+                                              param,
+                                              stride_param,
+                                              batch_count);
 }
 
 } // extern "C"

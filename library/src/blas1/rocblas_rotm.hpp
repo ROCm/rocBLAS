@@ -7,30 +7,24 @@
 #include "utility.h"
 
 template <typename T, typename U>
-__global__ void rotm_kernel(rocblas_int    n,
-                            T              x_in,
-                            rocblas_int    offset_x,
-                            rocblas_int    incx,
-                            rocblas_stride stride_x,
-                            T              y_in,
-                            rocblas_int    offset_y,
-                            rocblas_int    incy,
-                            rocblas_stride stride_y,
-                            U              flag_device_host,
-                            U              h11_device_host,
-                            U              h21_device_host,
-                            U              h12_device_host,
-                            U              h22_device_host,
-                            rocblas_stride stride_param)
+__device__ void rotm_kernel_calc(rocblas_int    n,
+                                 T              x_in,
+                                 rocblas_int    offset_x,
+                                 rocblas_int    incx,
+                                 rocblas_stride stride_x,
+                                 T              y_in,
+                                 rocblas_int    offset_y,
+                                 rocblas_int    incy,
+                                 rocblas_stride stride_y,
+                                 U              flag,
+                                 U              h11,
+                                 U              h21,
+                                 U              h12,
+                                 U              h22)
 {
-    auto      flag = load_scalar(flag_device_host, hipBlockIdx_y, stride_param);
-    auto      h11  = load_scalar(h11_device_host, hipBlockIdx_y, stride_param);
-    auto      h21  = load_scalar(h21_device_host, hipBlockIdx_y, stride_param);
-    auto      h12  = load_scalar(h12_device_host, hipBlockIdx_y, stride_param);
-    auto      h22  = load_scalar(h22_device_host, hipBlockIdx_y, stride_param);
-    auto      x    = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
-    auto      y    = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
-    ptrdiff_t tid  = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto      x   = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
+    auto      y   = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     if(tid < n && flag != -2)
     {
@@ -56,38 +50,110 @@ __global__ void rotm_kernel(rocblas_int    n,
     }
 }
 
-template <rocblas_int NB, typename T, typename U>
+template <typename T, typename U>
+__global__ void rotm_kernel_batched(rocblas_int    n,
+                                    T              x_in,
+                                    rocblas_int    offset_x,
+                                    rocblas_int    incx,
+                                    rocblas_stride stride_x,
+                                    T              y_in,
+                                    rocblas_int    offset_y,
+                                    rocblas_int    incy,
+                                    rocblas_stride stride_y,
+                                    U              param,
+                                    rocblas_int    offset_param,
+                                    rocblas_stride stride_param)
+{
+    auto p    = load_ptr_batch(param, hipBlockIdx_y, offset_param, stride_param);
+    auto flag = p[0];
+    auto h11  = p[1];
+    auto h21  = p[2];
+    auto h12  = p[3];
+    auto h22  = p[4];
+    rotm_kernel_calc(n,
+                     x_in,
+                     offset_x,
+                     incx,
+                     stride_x,
+                     y_in,
+                     offset_y,
+                     incy,
+                     stride_y,
+                     flag,
+                     h11,
+                     h21,
+                     h12,
+                     h22);
+}
+
+template <typename T>
+__global__ void rotm_kernel_regular(rocblas_int    n,
+                                    T*             x_in,
+                                    rocblas_int    offset_x,
+                                    rocblas_int    incx,
+                                    rocblas_stride stride_x,
+                                    T*             y_in,
+                                    rocblas_int    offset_y,
+                                    rocblas_int    incy,
+                                    rocblas_stride stride_y,
+                                    T              flag,
+                                    T              h11,
+                                    T              h21,
+                                    T              h12,
+                                    T              h22)
+{
+    rotm_kernel_calc(n,
+                     x_in,
+                     offset_x,
+                     incx,
+                     stride_x,
+                     y_in,
+                     offset_y,
+                     incy,
+                     stride_y,
+                     flag,
+                     h11,
+                     h21,
+                     h12,
+                     h22);
+}
+
+// Workaround to avoid constexpr if - Helper function to quick return when param[0] == -2
+template <typename T>
+bool quick_return_param(const T* param, rocblas_stride stride_param)
+{
+    if(param[0] == -2 && stride_param == 0)
+        return true;
+    return false;
+}
+
+template <typename T>
+bool quick_return_param(const T* const param[], rocblas_stride stride_param)
+{
+    return false;
+}
+
+template <rocblas_int NB, bool BATCHED_OR_STRIDED, typename T, typename U>
 rocblas_status rocblas_rotm_template(rocblas_handle handle,
                                      rocblas_int    n,
-                                     U              x,
+                                     T              x,
                                      rocblas_int    offset_x,
                                      rocblas_int    incx,
                                      rocblas_stride stride_x,
-                                     U              y,
+                                     T              y,
                                      rocblas_int    offset_y,
                                      rocblas_int    incy,
                                      rocblas_stride stride_y,
-                                     const T*       param,
+                                     U              param,
+                                     rocblas_int    offset_param,
                                      rocblas_stride stride_param,
-                                     rocblas_int    batch_count,
-                                     T*             mem)
+                                     rocblas_int    batch_count)
 {
-    // Memory queries must be in template as _impl doesn't have stride_param parameter (for calls from
-    // outside of rocblas)
-    if(handle->is_device_memory_size_query())
-    {
-        // TODO: Decide if we want to support this or not.
-        if(stride_param && rocblas_pointer_mode_host == handle->pointer_mode && n > 0 && incx > 0
-           && incy > 0 && batch_count > 0)
-            return handle->set_optimal_device_memory_size(sizeof(T) * batch_count * stride_param);
-        else
-            return rocblas_status_size_unchanged;
-    }
-
     // Quick return if possible
     if(n <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
         return rocblas_status_success;
-    if(rocblas_pointer_mode_host == handle->pointer_mode && param[0] == -2)
+
+    if(quick_return_param(param, stride_param))
         return rocblas_status_success;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
@@ -95,7 +161,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rotm_kernel,
+        hipLaunchKernelGGL(rotm_kernel_batched,
                            blocks,
                            threads,
                            0,
@@ -110,13 +176,10 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            incy,
                            stride_y,
                            param,
-                           param + 1,
-                           param + 2,
-                           param + 3,
-                           param + 4,
+                           offset_param,
                            stride_param);
-    else if(!stride_param) // single param on host
-        hipLaunchKernelGGL(rotm_kernel,
+    else if(!BATCHED_OR_STRIDED)
+        hipLaunchKernelGGL(rotm_kernel_regular,
                            blocks,
                            threads,
                            0,
@@ -134,34 +197,12 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            param[1],
                            param[2],
                            param[3],
-                           param[4],
-                           0);
-    else // array of params on host, copy to device
+                           param[4]);
+    else // host mode not implemented for (strided_)batched functions
     {
-        // This should NOT happen from calls from the API currently.
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(mem, param, sizeof(T) * batch_count * stride_param, hipMemcpyHostToDevice));
-
-        hipLaunchKernelGGL(rotm_kernel,
-                           blocks,
-                           threads,
-                           0,
-                           rocblas_stream,
-                           n,
-                           x,
-                           offset_x,
-                           incx,
-                           stride_x,
-                           y,
-                           offset_y,
-                           incy,
-                           stride_y,
-                           mem,
-                           mem + 1,
-                           mem + 2,
-                           mem + 3,
-                           mem + 4,
-                           stride_param);
+        // TODO: if desired we can use a host for loop to iterate through
+        //       batches in this scenario. Currently simply not implemented.
+        return rocblas_status_not_implemented;
     }
 
     return rocblas_status_success;

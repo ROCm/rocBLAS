@@ -22,7 +22,7 @@ namespace
                                               T* const       d2[],
                                               T* const       x1[],
                                               const T* const y1[],
-                                              T*             param,
+                                              T* const       param[],
                                               rocblas_int    batch_count)
     {
         if(!handle)
@@ -48,7 +48,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         return rocblas_rotmg_template(
-            handle, d1, 0, 0, d2, 0, 0, x1, 0, 0, y1, 0, 0, param, 0, batch_count);
+            handle, d1, 0, 0, d2, 0, 0, x1, 0, 0, y1, 0, 0, param, 0, 0, batch_count);
     }
 
 } // namespace
@@ -66,7 +66,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
                                                      float* const       d2[],
                                                      float* const       x1[],
                                                      const float* const y1[],
-                                                     float*             param,
+                                                     float* const       param[],
                                                      rocblas_int        batch_count)
 {
     return rocblas_rotmg_batched_impl(handle, d1, d2, x1, y1, param, batch_count);
@@ -77,7 +77,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                                                      double* const       d2[],
                                                      double* const       x1[],
                                                      const double* const y1[],
-                                                     double*             param,
+                                                     double* const       param[],
                                                      rocblas_int         batch_count)
 {
     return rocblas_rotmg_batched_impl(handle, d1, d2, x1, y1, param, batch_count);

@@ -207,6 +207,9 @@ def setdefaults(test):
         if all([x in test for x in ('N', 'incy', 'stride_scale')]):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['stride_scale']))
+        # we are using stride_c for param in rotm
+        if all([x in test for x in ('stride_scale')]):
+            test.setdefault('stride_c', int(test['stride_scale']) * 5)
 
     if test['function'] in ('ger_strided_batched'):
         if all([x in test for x in ('M', 'incx', 'stride_scale')]):
@@ -223,10 +226,12 @@ def setdefaults(test):
             test.setdefault('stride_c', int(test['stride_scale']))
             test.setdefault('stride_d', int(test['stride_scale']))
 
+    # we are using stride_a for d1, stride_b for d2, and stride_c for param in rotmg
     if test['function'] in ('rotmg_strided_batched'):
         if 'stride_scale' in test:
             test.setdefault('stride_a', int(test['stride_scale']))
             test.setdefault('stride_b', int(test['stride_scale']))
+            test.setdefault('stride_c', int(test['stride_scale']) * 5)
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 

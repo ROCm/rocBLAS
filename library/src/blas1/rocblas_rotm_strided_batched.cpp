@@ -28,6 +28,7 @@ namespace
                                                      rocblas_int    incy,
                                                      rocblas_stride stride_y,
                                                      const T*       param,
+                                                     rocblas_stride stride_param,
                                                      rocblas_int    batch_count)
     {
         if(!handle)
@@ -85,20 +86,20 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_rotm_template<NB, T>(handle,
-                                            n,
-                                            x,
-                                            0,
-                                            incx,
-                                            stride_x,
-                                            y,
-                                            0,
-                                            incy,
-                                            stride_y,
-                                            param,
-                                            0,
-                                            batch_count,
-                                            (T*)nullptr);
+        return rocblas_rotm_template<NB, true>(handle,
+                                               n,
+                                               x,
+                                               0,
+                                               incx,
+                                               stride_x,
+                                               y,
+                                               0,
+                                               incy,
+                                               stride_y,
+                                               param,
+                                               0,
+                                               stride_param,
+                                               batch_count);
     }
 
 } // namespace
@@ -120,10 +121,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stride_y,
                                                             const float*   param,
+                                                            rocblas_stride stride_param,
                                                             rocblas_int    batch_count)
 {
     return rocblas_rotm_strided_batched_impl(
-        handle, n, x, incx, stride_x, y, incy, stride_y, param, batch_count);
+        handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count);
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handle,
@@ -135,10 +137,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stride_y,
                                                             const double*  param,
+                                                            rocblas_stride stride_param,
                                                             rocblas_int    batch_count)
 {
     return rocblas_rotm_strided_batched_impl(
-        handle, n, x, incx, stride_x, y, incy, stride_y, param, batch_count);
+        handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count);
 }
 
 } // extern "C"

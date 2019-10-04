@@ -113,6 +113,8 @@ namespace
                                || BLAS1 == blas1::rot_strided_batched);
                 bool is_rotg    = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
                                 || BLAS1 == blas1::rotg_strided_batched);
+                bool is_rotmg   = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
+                                 || BLAS1 == blas1::rotmg_strided_batched);
                 bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
                                    || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
                                    || BLAS1 == blas1::copy_batched || BLAS1 == blas1::dot_batched
@@ -136,13 +138,13 @@ namespace
                 if(is_rot && arg.compute_type != arg.a_type)
                     name << '_' << rocblas_datatype2string(arg.compute_type);
 
-                if(!is_rotg)
+                if(!is_rotg && !is_rotmg)
                     name << '_' << arg.N;
 
                 if(BLAS1 == blas1::axpy || is_scal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
-                if(!is_rotg)
+                if(!is_rotg && !is_rotmg)
                     name << '_' << arg.incx;
 
                 if(is_strided && !is_rotg)
@@ -174,6 +176,11 @@ namespace
                 {
                     name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c << '_'
                          << arg.stride_d;
+                }
+
+                if(BLAS1 == blas1::rotm_strided_batched || BLAS1 == blas1::rotmg_strided_batched)
+                {
+                    name << '_' << arg.stride_c;
                 }
 
                 if(is_batched || is_strided)

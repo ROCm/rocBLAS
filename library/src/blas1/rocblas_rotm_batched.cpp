@@ -25,7 +25,7 @@ namespace
                                              rocblas_int    incx,
                                              T* const       y[],
                                              rocblas_int    incy,
-                                             const T*       param,
+                                             const T* const param[],
                                              rocblas_int    batch_count)
     {
         if(!handle)
@@ -65,8 +65,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        return rocblas_rotm_template<NB, T>(
-            handle, n, x, 0, incx, 0, y, 0, incy, 0, param, 0, batch_count, (T*)nullptr);
+        return rocblas_rotm_template<NB, true>(
+            handle, n, x, 0, incx, 0, y, 0, incy, 0, param, 0, 0, batch_count);
     }
 
 } // namespace
@@ -79,26 +79,26 @@ namespace
 
 extern "C" {
 
-ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    float* const   x[],
-                                                    rocblas_int    incx,
-                                                    float* const   y[],
-                                                    rocblas_int    incy,
-                                                    const float*   param,
-                                                    rocblas_int    batch_count)
+ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    const float* const param[],
+                                                    rocblas_int        batch_count)
 {
     return rocblas_rotm_batched_impl(handle, n, x, incx, y, incy, param, batch_count);
 }
 
-ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    double* const  x[],
-                                                    rocblas_int    incx,
-                                                    double* const  y[],
-                                                    rocblas_int    incy,
-                                                    const double*  param,
-                                                    rocblas_int    batch_count)
+ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    const double* const param[],
+                                                    rocblas_int         batch_count)
 {
     return rocblas_rotm_batched_impl(handle, n, x, incx, y, incy, param, batch_count);
 }

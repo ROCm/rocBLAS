@@ -775,7 +775,7 @@ rocblas_status (*rocblas_rotm_batched)(rocblas_handle handle,
                                        rocblas_int    incx,
                                        T* const       y[],
                                        rocblas_int    incy,
-                                       const T*       param,
+                                       const T* const param[],
                                        rocblas_int    batch_count);
 template <>
 static constexpr auto rocblas_rotm_batched<float> = rocblas_srotm_batched;
@@ -794,6 +794,7 @@ rocblas_status (*rocblas_rotm_strided_batched)(rocblas_handle handle,
                                                rocblas_int    incy,
                                                rocblas_stride stride_y,
                                                const T*       param,
+                                               rocblas_stride stride_param,
                                                rocblas_int    batch_count);
 template <>
 static constexpr auto rocblas_rotm_strided_batched<float> = rocblas_srotm_strided_batched;
@@ -818,7 +819,7 @@ rocblas_status (*rocblas_rotmg_batched)(rocblas_handle handle,
                                         T* const       d2[],
                                         T* const       x1[],
                                         const T* const y1[],
-                                        T*             param,
+                                        T* const       param[],
                                         rocblas_int    batch_count);
 
 template <>
@@ -839,6 +840,7 @@ rocblas_status (*rocblas_rotmg_strided_batched)(rocblas_handle handle,
                                                 const T*       y1,
                                                 rocblas_stride stride_y1,
                                                 T*             param,
+                                                rocblas_stride stride_param,
                                                 rocblas_int    batch_count);
 
 template <>

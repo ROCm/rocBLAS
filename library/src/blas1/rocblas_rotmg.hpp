@@ -147,7 +147,7 @@ __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T*
     param[0] = flag;
 }
 
-template <typename T, typename U, typename V>
+template <typename T, typename U>
 __global__ void rocblas_rotmg_kernel(T              d1_in,
                                      rocblas_int    offset_d1,
                                      rocblas_stride stride_d1,
@@ -160,7 +160,8 @@ __global__ void rocblas_rotmg_kernel(T              d1_in,
                                      U              y1_in,
                                      rocblas_int    offset_y1,
                                      rocblas_stride stride_y1,
-                                     V              param,
+                                     T              param,
+                                     rocblas_int    offset_param,
                                      rocblas_stride stride_param,
                                      rocblas_int    batch_count)
 {
@@ -168,11 +169,11 @@ __global__ void rocblas_rotmg_kernel(T              d1_in,
     auto d2 = load_ptr_batch(d2_in, hipBlockIdx_x, offset_d2, stride_d2);
     auto x1 = load_ptr_batch(x1_in, hipBlockIdx_x, offset_x1, stride_x1);
     auto y1 = load_ptr_batch(y1_in, hipBlockIdx_x, offset_y1, stride_y1);
-    auto p  = param + hipBlockIdx_x * stride_param;
+    auto p  = load_ptr_batch(param, hipBlockIdx_x, offset_param, stride_param);
     rocblas_rotmg_calc(*d1, *d2, *x1, *y1, p);
 }
 
-template <typename T, typename U, typename V>
+template <typename T, typename U>
 rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                                       T              d1_in,
                                       rocblas_int    offset_d1,
@@ -186,7 +187,8 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                                       U              y1_in,
                                       rocblas_int    offset_y1,
                                       rocblas_stride stride_y1,
-                                      V              param,
+                                      T              param,
+                                      rocblas_int    offset_param,
                                       rocblas_stride stride_param,
                                       rocblas_int    batch_count)
 {
@@ -214,6 +216,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                            offset_y1,
                            stride_y1,
                            param,
+                           offset_param,
                            stride_param,
                            batch_count);
     }
@@ -227,7 +230,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
             auto d2 = load_ptr_batch(d2_in, i, offset_d2, stride_d2);
             auto x1 = load_ptr_batch(x1_in, i, offset_x1, stride_x1);
             auto y1 = load_ptr_batch(y1_in, i, offset_y1, stride_y1);
-            auto p  = param + i * stride_param;
+            auto p  = load_ptr_batch(param, i, offset_param, stride_param);
 
             rocblas_rotmg_calc(*d1, *d2, *x1, *y1, p);
         }
