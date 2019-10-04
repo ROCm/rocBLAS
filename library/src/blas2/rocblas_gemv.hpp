@@ -29,7 +29,7 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
                                      rocblas_int       batch_count)
 {
     //quick return
-    if(!m || !n)
+    if(!m || !n || !batch_count)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
