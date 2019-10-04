@@ -330,9 +330,25 @@ rocblas_status rocblas_hgemm(rocblas_handle handle,
                              rocblas_half *C,
                              rocblas_int ld_c)
 {
+#ifdef USE_TENSILE_HOST
+
+    TensileHostCall<half> hostCall;
+    RocblasContractionProblem<half> problem(ContractionProblemType::GEMM,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                              A,ld_a,
+                              B,ld_b,
+                              beta,
+                              C,ld_c);
+
+    return callTensileContraction_half( &problem, handle->host);
+
+#else
+
     return rocblas_gemm_impl<rocblas_half>(handle, trans_a, trans_b,
                                            m, n, k, alpha, A, ld_a,
                                            B, ld_b, beta, C, ld_c);
+#endif
 }
 
 rocblas_status rocblas_sgemm(rocblas_handle handle,
@@ -350,9 +366,25 @@ rocblas_status rocblas_sgemm(rocblas_handle handle,
                              float *C,
                              rocblas_int ld_c)
 {
+#ifdef USE_TENSILE_HOST
+
+    TensileHostCall<float> hostCall;
+    RocblasContractionProblem<float> problem(ContractionProblemType::GEMM,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                              A,ld_a,
+                              B,ld_b,
+                              beta,
+                              C,ld_c);
+
+    return callTensileContraction_float( &problem, handle->host);
+
+#else
+
     return rocblas_gemm_impl<float>(handle, trans_a, trans_b,
                                     m, n, k, alpha, A, ld_a,
                                     B, ld_b, beta, C, ld_c);
+#endif
 }
 
 rocblas_status rocblas_dgemm(rocblas_handle handle,
@@ -370,9 +402,24 @@ rocblas_status rocblas_dgemm(rocblas_handle handle,
                              double *C,
                              rocblas_int ld_c)
 {
+#ifdef USE_TENSILE_HOST
+
+    TensileHostCall<double> hostCall;
+    RocblasContractionProblem<double> problem(ContractionProblemType::GEMM,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                              A,ld_a,
+                              B,ld_b,
+                              beta,
+                              C,ld_c);
+
+    return callTensileContraction_double( &problem, handle->host);
+
+#else
     return rocblas_gemm_impl<double>(handle, trans_a, trans_b,
                                      m, n, k, alpha, A, ld_a,
                                      B, ld_b, beta, C, ld_c);
+#endif
 }
 
 rocblas_status rocblas_cgemm(rocblas_handle handle,
@@ -390,9 +437,25 @@ rocblas_status rocblas_cgemm(rocblas_handle handle,
                              rocblas_float_complex *C,
                              rocblas_int ld_c)
 {
+#ifdef USE_TENSILE_HOST
+
+    TensileHostCall<rocblas_float_complex> hostCall;
+    RocblasContractionProblem<rocblas_float_complex> problem(ContractionProblemType::GEMM,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                              A,ld_a,
+                              B,ld_b,
+                              beta,
+                              C,ld_c);
+
+    return callTensileContraction_float_complex( &problem, handle->host);
+
+#else
+
     return rocblas_gemm_impl<rocblas_float_complex>(handle, trans_a, trans_b,
                                                     m, n, k, alpha, A, ld_a,
                                                     B, ld_b, beta, C, ld_c);
+#endif
 }
 
 
@@ -411,9 +474,25 @@ rocblas_status rocblas_zgemm(rocblas_handle handle,
                              rocblas_double_complex *C,
                              rocblas_int ld_c)
 {
+#ifdef USE_TENSILE_HOST
+
+    TensileHostCall<rocblas_double_complex> hostCall;
+    RocblasContractionProblem<rocblas_double_complex> problem(ContractionProblemType::GEMM,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                              A,ld_a,
+                              B,ld_b,
+                              beta,
+                              C,ld_c);
+
+    return callTensileContraction_double_complex( &problem, handle->host);
+
+#else
+
     return rocblas_gemm_impl<rocblas_double_complex>(handle, trans_a, trans_b,
                                                     m, n, k, alpha, A, ld_a,
                                                     B, ld_b, beta, C, ld_c);
+#endif
 }
 
 /*******************************************************************************

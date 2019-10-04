@@ -59,6 +59,28 @@ extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocbla
     return rocblas_status_success;
 }
 
+#ifdef USE_TENSILE_HOST
+extern "C" rocblas_status rocblas_create_host_handle(rocblas_handle* handle, const char* lib_path)
+{
+    //std::cout << lib_path << std::endl;
+    rocblas_status status = rocblas_create_handle(handle);
+
+    if (status == rocblas_status_success)
+    {
+        try
+        {
+            (*handle)->host->initializeHost(lib_path);
+        } 
+        catch (...)
+        {
+            return rocblas_status_internal_error;
+        }
+    }
+    
+    return status;
+}
+#endif
+
 /*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/

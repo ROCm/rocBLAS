@@ -395,6 +395,20 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
                                              rocblas_stride stride_c,
                                              rocblas_int b_c)
 {
+#ifdef USE_TENSILE_HOST
+    TensileHostCall<rocblas_half> hostCall;
+    RocblasContractionProblem<rocblas_half> problem(ContractionProblemType::GEMMStridedBatch,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                             A,ld_a,stride_a,
+                              B,ld_b,stride_b,
+                              beta,
+                              C,ld_c,stride_c,
+                              b_c);
+
+    return callTensileContraction_half( &problem, handle->host);
+#else
+
     return rocblas_gemm_strided_batched_impl<rocblas_half>(
         handle, trans_a, trans_b,
         m, n, k,
@@ -403,6 +417,7 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle handle,
         B, ld_b, stride_b,
         beta,
         C, ld_c, stride_c, b_c);
+#endif
 }
 
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
@@ -424,6 +439,21 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
                                              rocblas_stride stride_c,
                                              rocblas_int b_c)
 {
+
+#ifdef USE_TENSILE_HOST
+    TensileHostCall<float> hostCall;
+    RocblasContractionProblem<float> problem(ContractionProblemType::GEMMStridedBatch,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                             A,ld_a,stride_a,
+                              B,ld_b,stride_b,
+                              beta,
+                              C,ld_c,stride_c,
+                              b_c);
+
+    return callTensileContraction_float( &problem, handle->host);
+#else
+
     return rocblas_gemm_strided_batched_impl<float>(
         handle, trans_a, trans_b,
         m, n, k,
@@ -432,6 +462,8 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle handle,
         B, ld_b, stride_b,
         beta,
         C, ld_c, stride_c, b_c);
+
+#endif
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
@@ -453,6 +485,19 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
                                              rocblas_stride stride_c,
                                              rocblas_int b_c)
 {
+#ifdef USE_TENSILE_HOST
+    TensileHostCall<double> hostCall;
+    RocblasContractionProblem<double> problem(ContractionProblemType::GEMMStridedBatch,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                             A,ld_a,stride_a,
+                              B,ld_b,stride_b,
+                              beta,
+                              C,ld_c,stride_c,
+                              b_c);
+
+    return callTensileContraction_double( &problem, handle->host);
+#else
     return rocblas_gemm_strided_batched_impl<double>(
         handle, trans_a, trans_b,
         m, n, k,
@@ -461,6 +506,7 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle handle,
         B, ld_b, stride_b,
         beta,
         C, ld_c, stride_c, b_c);
+#endif
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
@@ -482,6 +528,19 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
                                              rocblas_stride stride_c,
                                              rocblas_int b_c)
 {
+#ifdef USE_TENSILE_HOST
+    TensileHostCall<rocblas_float_complex> hostCall;
+    RocblasContractionProblem<rocblas_float_complex> problem(ContractionProblemType::GEMMStridedBatch,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                             A,ld_a,stride_a,
+                              B,ld_b,stride_b,
+                              beta,
+                              C,ld_c,stride_c,
+                              b_c);
+
+    return callTensileContraction_float_complex( &problem, handle->host);
+#else
     return rocblas_gemm_strided_batched_impl<rocblas_float_complex>(
         handle, trans_a, trans_b,
         m, n, k,
@@ -490,6 +549,7 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle handle,
         B, ld_b, stride_b,
         beta,
         C, ld_c, stride_c, b_c);
+#endif
 }
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
@@ -511,6 +571,20 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
                                              rocblas_stride stride_c,
                                              rocblas_int b_c)
 {
+#ifdef USE_TENSILE_HOST
+    TensileHostCall<rocblas_double_complex> hostCall;
+    RocblasContractionProblem<rocblas_double_complex> problem(ContractionProblemType::GEMMStridedBatch,trans_a,trans_b,
+                              m,n,k,
+                              alpha,
+                             A,ld_a,stride_a,
+                              B,ld_b,stride_b,
+                              beta,
+                              C,ld_c,stride_c,
+                              b_c);
+
+    return callTensileContraction_double_complex( &problem, handle->host);
+#else
+
     return rocblas_gemm_strided_batched_impl<rocblas_double_complex>(
         handle, trans_a, trans_b,
         m, n, k,
@@ -519,6 +593,7 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle handle,
         B, ld_b, stride_b,
         beta,
         C, ld_c, stride_c, b_c);
+#endif
 }
 
 /*******************************************************************************

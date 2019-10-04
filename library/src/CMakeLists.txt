@@ -28,6 +28,10 @@ find_package(Threads REQUIRED)
 
 # Set up Tensile  Dependency
 if( BUILD_WITH_TENSILE )
+  # build gemm with Tensile Host library
+  if( BUILD_WITH_TENSILE_HOST )
+  target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
+  endif()
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
   if( BUILD_SHARED_LIBS )
     set( ROCBLAS_SHARED_LIBS ON )
@@ -74,6 +78,7 @@ if( BUILD_WITH_TENSILE )
 
   #rocblas_gemm and rocblas_trsm require tensile
   set( Tensile_SRC
+    tensile_host.cpp
     blas3/Tensile/gemm.cpp
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
@@ -193,7 +198,7 @@ target_include_directories( rocblas
 # target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
 
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas PRIVATE Tensile )
+  target_link_libraries( rocblas PRIVATE Tensile TensileHost)
   target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
 endif()
 
