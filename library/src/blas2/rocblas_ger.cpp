@@ -84,10 +84,6 @@ namespace
         if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible. Not Argument error
-        if(!m || !n)
-            return rocblas_status_success;
-
         rocblas_ger_template<T>(
             handle, m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, 1);
 

@@ -132,10 +132,6 @@ namespace
         if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible. Not Argument error
-        if(!m || !n || !batch_count)
-            return rocblas_status_success;
-
         rocblas_ger_template<T>(handle,
                                 m,
                                 n,
