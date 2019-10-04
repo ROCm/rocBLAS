@@ -6,9 +6,10 @@
 #include "rocblas.h"
 
 template <typename T, typename U>
-__global__ void rocblas_syr_batched_kernel(rocblas_fill uplo,
-                                           rocblas_int  n,
-                                           U            alpha_device_host,
+__global__ void rocblas_syr_batched_kernel(rocblas_fill   uplo,
+                                           rocblas_int    n,
+                                           U              alpha_device_host,
+                                           rocblas_stride stride_alpha,
                                            const T* const __restrict__ xvec[],
                                            ptrdiff_t   shiftx,
                                            rocblas_int incx,
@@ -16,7 +17,7 @@ __global__ void rocblas_syr_batched_kernel(rocblas_fill uplo,
                                            rocblas_int shiftA,
                                            rocblas_int lda)
 {
-    auto        alpha = load_scalar(alpha_device_host);
+    auto        alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
     rocblas_int tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
@@ -32,6 +33,7 @@ rocblas_status rocblas_syr_batched_template(rocblas_handle handle,
                                             rocblas_fill   uplo,
                                             rocblas_int    n,
                                             const T*       alpha,
+                                            rocblas_stride stride_alpha,
                                             const T* const x[],
                                             rocblas_int    offsetx,
                                             rocblas_int    incx,
@@ -67,6 +69,7 @@ rocblas_status rocblas_syr_batched_template(rocblas_handle handle,
                            uplo,
                            n,
                            alpha,
+                           stride_alpha,
                            x,
                            shiftx,
                            incx,
@@ -82,6 +85,7 @@ rocblas_status rocblas_syr_batched_template(rocblas_handle handle,
                            uplo,
                            n,
                            *alpha,
+                           stride_alpha,
                            x,
                            shiftx,
                            incx,

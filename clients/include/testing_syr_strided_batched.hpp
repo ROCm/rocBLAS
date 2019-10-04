@@ -63,7 +63,7 @@ void testing_syr_strided_batched(const Arguments& arg)
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_int    lda         = arg.lda;
-    T              h_alpha     = arg.alpha;
+    T              h_alpha     = arg.get_alpha<T>();
     rocblas_fill   uplo        = char2rocblas_fill(arg.uplo);
     rocblas_stride stridex     = arg.stride_x;
     rocblas_stride strideA     = arg.stride_a;
@@ -192,7 +192,7 @@ void testing_syr_strided_batched(const Arguments& arg)
             cblas_syr<T>(uplo, N, h_alpha, hx + i * stridex, incx, hA_gold + i * strideA, lda);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = syr_gflop_count<T>(N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * syr_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {

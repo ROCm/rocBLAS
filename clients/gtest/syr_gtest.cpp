@@ -65,10 +65,12 @@ namespace
             else
             {
                 name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_' << arg.alpha
-                     << '_' << arg.incx << '_' << arg.lda;
+                     << '_' << arg.incx;
 
                 if(SYR_TYPE == SYR_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
+
+                name << '_' << arg.lda;
 
                 if(SYR_TYPE == SYR_STRIDED_BATCHED)
                     name << '_' << arg.stride_a;

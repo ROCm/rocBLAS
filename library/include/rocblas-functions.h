@@ -665,10 +665,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
     x_i and y_i are vectors.
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int
     @param[in]
     x         pointer to the first vector (x_0) in the batch stored on the GPU.
     @param[in]
@@ -791,14 +791,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle      
         y := x; x := y
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int
     @param[inout]
     x         pointer storing vector x on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[inout]
     y         pointer storing vector y on the GPU.
     @param[in]
@@ -835,14 +836,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
         y_i[j] := x_i[j]; x_i[j] := y_i[j]
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int
     @param[inout]
     x         array of pointers storing the different vector x_i on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[inout]
     y         array of pointers storing the different vector y_i on the GPU.
     @param[in]
@@ -894,23 +896,26 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
         y_i[j] := x_i[j]; x_i[j] := y_i[j]
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int
     @param[inout]
     x         a pointer to the first vector x_i on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[in]
-    stridex      specifies the pointer increment between batches for x.
+    stridex   rocblas_stride
+              specifies the pointer increment between batches for x.
     @param[inout]
     y         a pointer to the first vector y_i on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    stridey      specifies the pointer increment between batches for y.
+    stridey   rocblas_stride
+              specifies the pointer increment between batches for y.
     @param[in]
     batch_count rocblas_int
                 number of instances in the batch
@@ -963,10 +968,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle      
     axpy   compute y := alpha * x + y
 
     @param[in]
-    handle    rocblas_handle.
+    handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int.
+    n         rocblas_int
     @param[in]
     alpha     specifies the scalar alpha.
     @param[in]
@@ -1138,7 +1143,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   specifies the pointer increment between batches for x. stridex must be be non zero.
+    stridex   rocblas_stride
+              specifies the pointer increment between batches for x. stridex must be be non zero.
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
@@ -1296,7 +1302,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   specifies the pointer increment between batches for x. stridex must be non zero.
+    stridex   rocblas_stride
+              specifies the pointer increment between batches for x. stridex must be non zero.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -2495,17 +2502,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
     incx      rocblas_int
               specifies the increment for the elements of x_i.
     @param[in]
-    stridex      specifies the pointer increment between vectors (x_i) and (x_i+1).
+    stridex   rocblas_stride
+              specifies the pointer increment between vectors (x_i) and (x_i+1).
     @param[inout]
     A         pointer to the first matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    strideA      stride from the start of one matrix (A_i) and the next one (A_i+1)
+    strideA   rocblas_stride
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
     batch_count rocblas_int
-                number of instances in the batch
+              number of instances in the batch
 
     ********************************************************************/
 

@@ -120,7 +120,7 @@ namespace
             return rocblas_status_invalid_size;
 
         return rocblas_syr_strided_batched_template(
-            handle, uplo, n, alpha, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
+            handle, uplo, n, alpha, 0, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
     }
 
 }

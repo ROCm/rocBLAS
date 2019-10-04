@@ -43,7 +43,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(
-                        handle, rocblas_syr_batched_name<T>, uplo, n, *alpha, x, incx, A, lda);
+                        handle, rocblas_syr_batched_name<T>, uplo, n, *alpha, 0, x, incx, A, lda);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
@@ -100,7 +100,7 @@ namespace
             return rocblas_status_invalid_size;
 
         return rocblas_syr_batched_template(
-            handle, uplo, n, alpha, x, 0, incx, A, 0, lda, batch_count);
+            handle, uplo, n, alpha, 0, x, 0, incx, A, 0, lda, batch_count);
     }
 
 }
