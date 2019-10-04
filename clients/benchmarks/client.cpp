@@ -38,7 +38,6 @@
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
 #include "testing_syr.hpp"
-
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -68,6 +67,7 @@ using namespace std::literals;
 #include "testing_trsv.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
+#include "testing_trtri_strided_batched.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
@@ -199,6 +199,8 @@ struct perf_blas<
             testing_trtri<T>(arg);
         else if(!strcmp(arg.function, "trtri_batched"))
             testing_trtri_batched<T>(arg);
+        else if(!strcmp(arg.function, "trtri_strided_batched"))
+            testing_trtri_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "gemm"))
             testing_gemm<T>(arg);
         else if(!strcmp(arg.function, "gemm_batched"))
