@@ -171,21 +171,22 @@ namespace
         /////////////////////
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
             return rocblas_status_not_implemented;
-        if(m < 0 || n < 0)
-            return rocblas_status_invalid_size;
         if(!alpha || !A)
+            return rocblas_status_invalid_pointer;
+        if(!B)
             return rocblas_status_invalid_pointer;
 
         // A is of size lda*k
         rocblas_int k = side == rocblas_side_left ? m : n;
 
-        if(lda < k)
-            return rocblas_status_invalid_size;
-        if(!B)
-            return rocblas_status_invalid_pointer;
-        if(ldb < m)
-            return rocblas_status_invalid_size;
         if(batch_count < 0)
+            return rocblas_status_invalid_size;
+        // TODO: Should these return invalid_size even if batch_count == 0?
+        if(lda < k && batch_count > 0)
+            return rocblas_status_invalid_size;
+        if(ldb < m && batch_count > 0)
+            return rocblas_status_invalid_size;
+        if((m < 0 || n < 0) && batch_count > 0)
             return rocblas_status_invalid_size;
 
         //////////////////////
