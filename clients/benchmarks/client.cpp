@@ -182,12 +182,6 @@ struct perf_blas<
             testing_set_get_vector<T>(arg);
         else if(!strcmp(arg.function, "set_get_matrix"))
             testing_set_get_matrix<T>(arg);
-        // else if(!strcmp(arg.function, "rotg"))
-        //     testing_rotg<T>(arg);
-        // else if(!strcmp(arg.function, "rotg_batched"))
-        //     testing_rotg_batched<T>(arg);
-        // else if(!strcmp(arg.function, "rotg_strided_batched"))
-        //     testing_rotg_strided_batched<T>(arg);
         else if(!strcmp(arg.function, "rotm"))
             testing_rotm<T>(arg);
         else if(!strcmp(arg.function, "rotm_batched"))

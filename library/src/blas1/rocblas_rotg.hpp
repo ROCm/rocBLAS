@@ -95,6 +95,9 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
                                      rocblas_stride stride_s,
                                      rocblas_int    batch_count)
 {
+    if(!batch_count)
+        return rocblas_status_success;
+
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -120,7 +123,7 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
     else
     {
         RETURN_IF_HIP_ERROR(hipStreamSynchronize(rocblas_stream));
-        // TODO: make this faster for larger batches.
+        // TODO: make this faster for a large number of batches.
         for(int i = 0; i < batch_count; i++)
         {
             auto a = load_ptr_batch(a_in, i, offset_a, stride_a);

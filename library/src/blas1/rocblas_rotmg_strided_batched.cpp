@@ -31,8 +31,6 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
@@ -67,6 +65,8 @@ namespace
 
         if(!d1 || !d2 || !x1 || !y1 || !param)
             return rocblas_status_invalid_pointer;
+        if(batch_count < 0)
+            return rocblas_status_invalid_size;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 

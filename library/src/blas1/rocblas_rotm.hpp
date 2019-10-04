@@ -76,6 +76,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     // outside of rocblas)
     if(handle->is_device_memory_size_query())
     {
+        // TODO: Decide if we want to support this or not.
         if(stride_param && rocblas_pointer_mode_host == handle->pointer_mode && n > 0 && incx > 0
            && incy > 0 && batch_count > 0)
             return handle->set_optimal_device_memory_size(sizeof(T) * batch_count * stride_param);
@@ -134,7 +135,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            param[2],
                            param[3],
                            param[4],
-                           stride_param);
+                           0);
     else // array of params on host, copy to device
     {
         // This should NOT happen from calls from the API currently.
@@ -160,7 +161,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            mem + 2,
                            mem + 3,
                            mem + 4,
-                           0);
+                           stride_param);
     }
 
     return rocblas_status_success;

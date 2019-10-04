@@ -46,7 +46,7 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_rotg_batched(const Arguments& arg)
 {
-    const int            TEST_COUNT  = 1; //00;
+    const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle;
 

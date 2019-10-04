@@ -2,8 +2,6 @@
 include: rocblas_common.yaml
 include: known_bugs.yaml
 
-
-
 Definitions:
   - &N_range
     - [ -1, 0, 5, 10, 500, 1000, 1024, 1025, 7111, 10000, 33792 ]
@@ -367,6 +365,8 @@ Tests:
     function: 
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
+      - rot_batched:   *rot_precisions
+      - rotm_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -377,6 +377,8 @@ Tests:
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
+      - rot_strided_batched:   *rot_precisions
+      - rotm_strided_batched:  *single_double_precisions_complex_real
 
 # nightly
   - name: blas1

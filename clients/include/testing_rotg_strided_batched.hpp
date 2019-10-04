@@ -59,7 +59,7 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_rotg_strided_batched(const Arguments& arg)
 {
-    const int   TEST_COUNT  = 1;
+    const int   TEST_COUNT  = 100;
     rocblas_int stride_a    = arg.stride_a;
     rocblas_int stride_b    = arg.stride_b;
     rocblas_int stride_c    = arg.stride_c;

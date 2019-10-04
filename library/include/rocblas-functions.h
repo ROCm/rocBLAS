@@ -1994,7 +1994,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
 /*! \brief BLAS Level 1 API
 
     \details
-    rotm_strided_batched applies the modified Givens rotation matrix defined by param to batched vectors x and y.
+    rotm_strided_batched applies the modified Givens rotation matrix defined by param to strided batched vectors x and y.
     
     @param[in]
     handle  rocblas_handle
@@ -2003,7 +2003,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointers storing batched vectors x on the GPU.
+    x       pointers storing strided batched vectors x on the GPU.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
@@ -2011,7 +2011,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle handle,
     stride_x rocblas_stride
              specifies the increment between the beginning of x_i and x_(i + 1)
     @param[inout]
-    y       pointers storing batched vectors y on the GPU.
+    y       pointers storing strided batched vectors y on the GPU.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
@@ -2167,12 +2167,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
             handle to the rocblas library context queue.
     @param[inout]
     d1      batched array of input scalars that is overwritten.
+    @param[in]
+    stride_d1 rocblas_stride
+              specifies the increment between the beginning of d1_i and d1_(i+1)
     @param[inout]
     d2      batched array of input scalars that is overwritten.
+    @param[in]
+    stride_d2 rocblas_stride
+              specifies the increment between the beginning of d2_i and d2_(i+1)
     @param[inout]
     x1      batched array of input scalars that is overwritten.
     @param[in]
+    stride_x1 rocblas_stride
+              specifies the increment between the beginning of x1_i and x1_(i+1)
+    @param[in]
     y1      batched array of input scalars.
+    @param[in]
+    stride_y1 rocblas_stride
+              specifies the increment between the beginning of y1_i and y1_(i+1)
     @param[out]
     param   vector of 5 elements defining the rotation.
             param[0] = flag
