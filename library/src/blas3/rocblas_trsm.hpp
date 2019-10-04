@@ -1349,6 +1349,14 @@ namespace
 
 } // \namespace
 
+/**
+  *  The purpose of this function is to allocate memory for trsm. It is added to remove
+  *  memory allocation from the rocblas_trsm_template function, but also allow code reuse
+  *  from the _impl functions.
+  *
+  *  Note that for the batched version of trsm, we are also allocating memory to store the
+  *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
+  */
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
 rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
                                          rocblas_side   side,
