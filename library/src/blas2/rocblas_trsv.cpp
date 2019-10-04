@@ -119,8 +119,25 @@ namespace
             {
                 // left, lower no-transpose
                 jb = min(BLOCK, m);
-                rocblas_gemv_template<T>(
-                    handle, transA, jb, jb, &one<T>, invA, BLOCK, B, incx, &zero<T>, X, 1);
+                rocblas_gemv_template<T>(handle,
+                                         transA,
+                                         jb,
+                                         jb,
+                                         &one<T>,
+                                         invA,
+                                         0,
+                                         BLOCK,
+                                         0,
+                                         B,
+                                         0,
+                                         incx,
+                                         0,
+                                         &zero<T>,
+                                         X,
+                                         0,
+                                         1,
+                                         0,
+                                         1);
 
                 if(BLOCK < m)
                 {
