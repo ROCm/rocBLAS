@@ -217,30 +217,30 @@ void testing_trsm_ex(const Arguments& arg)
         rocblas_get_stream(handle, &rocblas_stream);
 
         if(blocks > 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
-                                                         uplo,
-                                                         diag,
-                                                         TRSM_BLOCK,
-                                                         dA,
-                                                         lda,
-                                                         stride_A,
-                                                         dinvA,
-                                                         TRSM_BLOCK,
-                                                         stride_invA,
-                                                         blocks));
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
+                                                                 uplo,
+                                                                 diag,
+                                                                 TRSM_BLOCK,
+                                                                 dA,
+                                                                 lda,
+                                                                 stride_A,
+                                                                 dinvA,
+                                                                 TRSM_BLOCK,
+                                                                 stride_invA,
+                                                                 blocks));
 
         if(K % TRSM_BLOCK != 0 || blocks == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(handle,
-                                                         uplo,
-                                                         diag,
-                                                         K - TRSM_BLOCK * blocks,
-                                                         dA + stride_A * blocks,
-                                                         lda,
-                                                         stride_A,
-                                                         dinvA + stride_invA * blocks,
-                                                         TRSM_BLOCK,
-                                                         stride_invA,
-                                                         1));
+            CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,
+                                                                 uplo,
+                                                                 diag,
+                                                                 K - TRSM_BLOCK * blocks,
+                                                                 dA + stride_A * blocks,
+                                                                 lda,
+                                                                 stride_A,
+                                                                 dinvA + stride_invA * blocks,
+                                                                 TRSM_BLOCK,
+                                                                 stride_invA,
+                                                                 1));
 
         size_t x_temp_size = M * N;
         CHECK_ROCBLAS_ERROR(rocblas_trsm_ex(handle,

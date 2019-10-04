@@ -2479,9 +2479,70 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
 /*! \brief BLAS Level 3 API
 
     \details
-    trtri  compute the inverse of a matrix  A
+    trtri_batched  compute the inverse of A_i and write into invA_i where
+                   A_i and invA_i are the i-th matrices in the batch,
+                   for i in [0, batch_count - 1]
 
-        inv(A);
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      rocblas_fill.
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+    @param[in]
+    diag      rocblas_diagonal.
+              = 'rocblas_diagonal_non_unit', A is non-unit triangular;
+              = 'rocblas_diagonal_unit', A is unit triangular;
+    @param[in]
+    n         rocblas_int.
+    @param[in]
+    A         array of pointers storing matrices A on the GPU.
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+    @param[out]
+    invA      array of pointers storing the inverse matrices A on the GPU.
+              Partial inplace operation is supported, see below.
+              If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
+              the inverse of the upper triangular matrix, and the strictly lower
+              triangular part of invA is cleared.
+              If UPLO = 'L', the leading N-by-N lower triangular part of the invA will store
+              the inverse of the lower triangular matrix, and the strictly upper
+              triangular part of invA is cleared.
+    @param[in]
+    ldinvA    rocblas_int
+              specifies the leading dimension of invA.
+    @param[in]
+    batch_count       rocblas_int
+              numbers of matrices in the batch
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
+                                                     rocblas_fill       uplo,
+                                                     rocblas_diagonal   diag,
+                                                     rocblas_int        n,
+                                                     const float* const A[],
+                                                     rocblas_int        lda,
+                                                     float*             invA[],
+                                                     rocblas_int        ldinvA,
+                                                     rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
+                                                     rocblas_fill        uplo,
+                                                     rocblas_diagonal    diag,
+                                                     rocblas_int         n,
+                                                     const double* const A[],
+                                                     rocblas_int         lda,
+                                                     double*             invA[],
+                                                     rocblas_int         ldinvA,
+                                                     rocblas_int         batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    trtri_strided_batched compute the inverse of A_i and write into invA_i where
+                   A_i and invA_i are the i-th matrices in the batch,
+                   for i in [0, batch_count - 1]
 
     @param[in]
     handle    rocblas_handle.
@@ -2501,7 +2562,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    stride_a  rocblas_int
+    stride_a  rocblas_stride
              "batch stride a": stride from the start of one "A" matrix to the next
     @param[out]
     invA      pointer storing the inverse matrix A on the GPU.
@@ -2516,36 +2577,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
     ldinvA    rocblas_int
               specifies the leading dimension of invA.
     @param[in]
-    stride_invA rocblas_int
+    stride_invA rocblas_stride
              "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
     batch_count       rocblas_int
               numbers of matrices in the batch
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle   handle,
-                                                     rocblas_fill     uplo,
-                                                     rocblas_diagonal diag,
-                                                     rocblas_int      n,
-                                                     const float*     A,
-                                                     rocblas_int      lda,
-                                                     rocblas_int      stride_a,
-                                                     float*           invA,
-                                                     rocblas_int      ldinvA,
-                                                     rocblas_int      stride_invA,
-                                                     rocblas_int      batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
+                                                             rocblas_fill     uplo,
+                                                             rocblas_diagonal diag,
+                                                             rocblas_int      n,
+                                                             const float*     A,
+                                                             rocblas_int      lda,
+                                                             rocblas_stride   stride_a,
+                                                             float*           invA,
+                                                             rocblas_int      ldinvA,
+                                                             rocblas_stride   stride_invA,
+                                                             rocblas_int      batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle   handle,
-                                                     rocblas_fill     uplo,
-                                                     rocblas_diagonal diag,
-                                                     rocblas_int      n,
-                                                     const double*    A,
-                                                     rocblas_int      lda,
-                                                     rocblas_int      stride_a,
-                                                     double*          invA,
-                                                     rocblas_int      ldinvA,
-                                                     rocblas_int      stride_invA,
-                                                     rocblas_int      batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
+                                                             rocblas_fill     uplo,
+                                                             rocblas_diagonal diag,
+                                                             rocblas_int      n,
+                                                             const double*    A,
+                                                             rocblas_int      lda,
+                                                             rocblas_stride   stride_a,
+                                                             double*          invA,
+                                                             rocblas_int      ldinvA,
+                                                             rocblas_stride   stride_invA,
+                                                             rocblas_int      batch_count);
 
 /*! \brief BLAS Level 3 API
 
