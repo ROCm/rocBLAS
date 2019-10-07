@@ -120,10 +120,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                // unit_check_general<T>(1, 1, 1, ca, ha);
-                // unit_check_general<T>(1, 1, 1, cb, hb);
-                // unit_check_general<U>(1, 1, 1, cc, hc);
-                // unit_check_general<T>(1, 1, 1, cs, hs);
+                unit_check_general<T>(1, 1, 1, ca, ha);
+                unit_check_general<T>(1, 1, 1, cb, hb);
+                unit_check_general<U>(1, 1, 1, cc, hc);
+                unit_check_general<T>(1, 1, 1, cs, hs);
             }
 
             if(arg.norm_check)
