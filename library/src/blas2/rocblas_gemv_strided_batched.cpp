@@ -42,9 +42,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -152,15 +149,6 @@ namespace
                             batch_count);
         }
 
-        if(!A || !x || !y)
-            return rocblas_status_invalid_pointer;
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
-            return rocblas_status_invalid_size;
-        if(strideA < lda * n)
-            return rocblas_status_invalid_size;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-
         size_t size_x, dim_x, abs_incx;
         size_t size_y, dim_y, abs_incy;
 
@@ -183,6 +171,15 @@ namespace
 
         if(stridex < size_x || stridey < size_y)
             return rocblas_status_invalid_size;
+
+        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0 || strideA < lda * n)
+            return rocblas_status_invalid_size;
+
+        if (!m || !n || !batch_count || (!alpha && beta == 1))
+            return rocblas_status_success;
+
+        if(!A || !x || !y || !alpha || !beta)
+            return rocblas_status_invalid_pointer;
 
         return rocblas_gemv_strided_batched_template(handle,
                                                      transA,

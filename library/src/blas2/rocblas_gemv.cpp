@@ -6,6 +6,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 
 namespace
 {
@@ -38,9 +39,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -56,22 +54,27 @@ namespace
                               transA,
                               m,
                               n,
-                              *alpha,
+                              alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
                               A,
                               lda,
                               x,
                               incx,
-                              *beta,
+                              beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
                               y,
                               incy);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha)
-                            << (std::imag(*alpha) != 0
-                                    ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                                    : "");
+                    std::stringstream alphass, betass;
+                    alphass << "--alpha "
+                            << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
+                    if(alpha && std::imag(*alpha))
+                        alphass << " --alphai " << std::imag(*alpha);
+                    betass << "--beta "
+                           << (beta ? std::real(*beta) : std::numeric_limits<T>::quiet_NaN());
+                    if(beta && std::imag(*beta))
+                        betass << " --betai " << std::imag(*beta);
+
                     log_bench(handle,
                               "./rocblas-bench -f gemv -r",
                               rocblas_precision_string<T>,
@@ -86,8 +89,7 @@ namespace
                               lda,
                               "--incx",
                               incx,
-                              "--beta",
-                              *beta,
+                              betass.str(),
                               "--incy",
                               incy);
                 }
@@ -127,10 +129,14 @@ namespace
                             incy);
         }
 
-        if(!A || !x || !y)
-            return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
+
+        if (!m || !n || !batch_count || (!alpha && beta == 1))
+            return rocblas_status_success;
+
+        if(!A || !x || !y || !alpha || !beta)
+            return rocblas_status_invalid_pointer;
 
         return rocblas_gemv_template(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
     }
