@@ -219,6 +219,8 @@ def setdefaults(test):
             test.setdefault('stride_y', int(test['N'] * abs(test['incy']) *
                                             test['stride_scale']))
 
+    # we are using stride_c for arg c and stride_d for arg s in rotg
+    # these are are single values for each batch
     if test['function'] in ('rotg_strided_batched'):
         if 'stride_scale' in test:
             test.setdefault('stride_a', int(test['stride_scale']))
@@ -226,7 +228,9 @@ def setdefaults(test):
             test.setdefault('stride_c', int(test['stride_scale']))
             test.setdefault('stride_d', int(test['stride_scale']))
 
-    # we are using stride_a for d1, stride_b for d2, and stride_c for param in rotmg
+    # we are using stride_a for d1, stride_b for d2, and stride_c for param in
+    # rotmg. These are are single values for each batch, except param which is
+    # a 5 element array
     if test['function'] in ('rotmg_strided_batched'):
         if 'stride_scale' in test:
             test.setdefault('stride_a', int(test['stride_scale']))

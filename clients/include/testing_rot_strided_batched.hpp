@@ -127,8 +127,14 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_seedrand();
     rocblas_init<T>(hx, 1, N, incx, stride_x, batch_count);
     rocblas_init<T>(hy, 1, N, incy, stride_y, batch_count);
-    rocblas_init<U>(hc, 1, 1, 1);
-    rocblas_init<V>(hs, 1, 1, 1);
+
+    // Random alpha (0 - 10)
+    host_vector<rocblas_int> alpha(1);
+    rocblas_init<rocblas_int>(alpha, 1, 1, 1);
+
+    // cos and sin of alpha (in rads)
+    hc[0] = cos(alpha[0]);
+    hs[0] = sin(alpha[0]);
 
     // CPU BLAS reference data
     host_vector<T> cx = hx;

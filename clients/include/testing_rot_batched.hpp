@@ -128,8 +128,14 @@ void testing_rot_batched(const Arguments& arg)
         rocblas_init<T>(hx[b], 1, N, incx);
         rocblas_init<T>(hy[b], 1, N, incy);
     }
-    rocblas_init<U>(hc, 1, 1, 1);
-    rocblas_init<V>(hs, 1, 1, 1);
+
+    // Random alpha (0 - 10)
+    host_vector<rocblas_int> alpha(1);
+    rocblas_init<rocblas_int>(alpha, 1, 1, 1);
+
+    // cos and sin of alpha (in rads)
+    hc[0] = cos(alpha[0]);
+    hs[0] = sin(alpha[0]);
 
     // CPU BLAS reference data
     host_vector<T> cx[batch_count];
