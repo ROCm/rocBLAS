@@ -45,23 +45,26 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
+        if(!handle->is_device_memory_size_query())
+        {
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f dot -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f dot -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy);
 
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
+        }
 
         // Quick return if possible.
         if(n <= 0)
@@ -71,13 +74,13 @@ namespace
             if(!result)
                 return rocblas_status_invalid_pointer;
             if(rocblas_pointer_mode_device == handle->pointer_mode)
-                RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
+                RETURN_IF_HIP_ERROR(hipMemsetAsync(result, 0, sizeof(*result)));
             else
                 *result = T(0);
             return rocblas_status_success;
         }
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T>(n);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 

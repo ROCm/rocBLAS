@@ -83,7 +83,7 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T>(n, batch_count);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n, batch_count);
 
         if(!x || !y || !results)
             return rocblas_status_invalid_pointer;
