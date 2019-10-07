@@ -12,16 +12,16 @@ template <rocblas_int DIM_X,
           typename T,
           typename U,
           typename std::enable_if<!std::is_same<T, rocblas_double_complex>{}, int>::type = 0>
-__device__ void gemvn_kernel_worker(rocblas_int m,
-                                    rocblas_int n,
-                                    U           alpha,
-                                    const T*    A,
-                                    rocblas_int lda,
-                                    const T*    x,
-                                    rocblas_int incx,
-                                    U           beta,
-                                    T*          y,
-                                    rocblas_int incy)
+__device__ void gemvn_kernel_calc(rocblas_int m,
+                                  rocblas_int n,
+                                  U           alpha,
+                                  const T*    A,
+                                  rocblas_int lda,
+                                  const T*    x,
+                                  rocblas_int incx,
+                                  U           beta,
+                                  T*          y,
+                                  rocblas_int incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
@@ -172,16 +172,16 @@ __device__ void gemvn_kernel_worker(rocblas_int m,
 // Overload for double precision complex numbers. We run out of registers
 // if we use the above algorithm.
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U>
-__device__ void gemvn_kernel_worker(rocblas_int                   m,
-                                    rocblas_int                   n,
-                                    U                             alpha,
-                                    const rocblas_double_complex* A,
-                                    rocblas_int                   lda,
-                                    const rocblas_double_complex* x,
-                                    rocblas_int                   incx,
-                                    U                             beta,
-                                    rocblas_double_complex*       y,
-                                    rocblas_int                   incy)
+__device__ void gemvn_kernel_calc(rocblas_int                   m,
+                                  rocblas_int                   n,
+                                  U                             alpha,
+                                  const rocblas_double_complex* A,
+                                  rocblas_int                   lda,
+                                  const rocblas_double_complex* x,
+                                  rocblas_int                   incx,
+                                  U                             beta,
+                                  rocblas_double_complex*       y,
+                                  rocblas_int                   incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
@@ -250,16 +250,16 @@ __device__ void gemvn_kernel_worker(rocblas_int                   m,
 }
 
 template <rocblas_int NB_X, typename T, typename U>
-__device__ void gemvc_kernel_worker(rocblas_int m,
-                                    rocblas_int n,
-                                    U           alpha,
-                                    const T*    A,
-                                    rocblas_int lda,
-                                    const T*    x,
-                                    rocblas_int incx,
-                                    U           beta,
-                                    T*          y,
-                                    rocblas_int incy)
+__device__ void gemvc_kernel_calc(rocblas_int m,
+                                  rocblas_int n,
+                                  U           alpha,
+                                  const T*    A,
+                                  rocblas_int lda,
+                                  const T*    x,
+                                  rocblas_int incx,
+                                  U           beta,
+                                  T*          y,
+                                  rocblas_int incy)
 {
     rocblas_int tx = hipThreadIdx_x;
 
@@ -317,16 +317,16 @@ __device__ void gemvc_kernel_worker(rocblas_int m,
 }
 
 template <rocblas_int NB_X, typename T, typename U>
-__device__ void gemvt_kernel_worker(rocblas_int m,
-                                    rocblas_int n,
-                                    U           alpha,
-                                    const T*    A,
-                                    rocblas_int lda,
-                                    const T*    x,
-                                    rocblas_int incx,
-                                    U           beta,
-                                    T*          y,
-                                    rocblas_int incy)
+__device__ void gemvt_kernel_calc(rocblas_int m,
+                                  rocblas_int n,
+                                  U           alpha,
+                                  const T*    A,
+                                  rocblas_int lda,
+                                  const T*    x,
+                                  rocblas_int incx,
+                                  U           beta,
+                                  T*          y,
+                                  rocblas_int incy)
 {
     rocblas_int tx = hipThreadIdx_x;
 
@@ -414,7 +414,7 @@ __global__ void gemvn_kernel(rocblas_int    m,
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
-    gemvn_kernel_worker<DIM_X, DIM_Y>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+    gemvn_kernel_calc<DIM_X, DIM_Y>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <rocblas_int NB_X, typename T, typename U, typename V, typename W>
@@ -444,7 +444,7 @@ __global__ void gemvc_kernel(rocblas_int    m,
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
-    gemvc_kernel_worker<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+    gemvc_kernel_calc<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <rocblas_int NB_X, typename T, typename U, typename V, typename W>
@@ -474,7 +474,7 @@ __global__ void gemvt_kernel(rocblas_int    m,
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
-    gemvt_kernel_worker<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+    gemvt_kernel_calc<NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 #endif
