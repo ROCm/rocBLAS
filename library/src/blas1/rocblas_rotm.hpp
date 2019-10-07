@@ -120,15 +120,16 @@ __global__ void rotm_kernel_regular(rocblas_int    n,
 
 // Workaround to avoid constexpr if - Helper function to quick return when param[0] == -2
 template <typename T>
-bool quick_return_param(const T* param, rocblas_stride stride_param)
+bool quick_return_param(rocblas_handle handle, const T* param, rocblas_stride stride_param)
 {
-    if(param[0] == -2 && stride_param == 0)
-        return true;
+    if(rocblas_pointer_mode_host == handle->pointer_mode)
+        if(param[0] == -2 && stride_param == 0)
+            return true;
     return false;
 }
 
 template <typename T>
-bool quick_return_param(const T* const param[], rocblas_stride stride_param)
+bool quick_return_param(rocblas_handle handle, const T* const param[], rocblas_stride stride_param)
 {
     return false;
 }
@@ -153,7 +154,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     if(n <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
-    if(quick_return_param(param, stride_param))
+    if(quick_return_param(handle, param, stride_param))
         return rocblas_status_success;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);

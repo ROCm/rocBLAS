@@ -2096,6 +2096,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
             flag =  1 => H = ( H11 1.0 -1.0 H22 )
             flag = -2 => H = ( 1.0 0.0 0.0 1.0 )
             param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+    @param[in]
+    stride_param rocblas_stride
+                 specifies the increment between the beginning of param_i and param_(i + 1)
 
     ********************************************************************/
 
