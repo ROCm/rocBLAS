@@ -172,10 +172,11 @@ namespace
         if(stridex < size_x || stridey < size_y)
             return rocblas_status_invalid_size;
 
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0 || strideA < lda * n)
+        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0
+           || strideA < lda * n)
             return rocblas_status_invalid_size;
 
-        if (!m || !n || !batch_count || (!alpha && beta == 1))
+        if(!m || !n || !batch_count)
             return rocblas_status_success;
 
         if(!A || !x || !y || !alpha || !beta)

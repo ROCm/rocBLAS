@@ -77,7 +77,7 @@ namespace
             return rocblas_status_success;
         }
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, 1, (T2*)result);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T>(n);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 

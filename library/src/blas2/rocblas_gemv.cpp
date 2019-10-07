@@ -132,7 +132,7 @@ namespace
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
 
-        if (!m || !n || !batch_count || (!alpha && beta == 1))
+        if(!m || !n)
             return rocblas_status_success;
 
         if(!A || !x || !y || !alpha || !beta)
