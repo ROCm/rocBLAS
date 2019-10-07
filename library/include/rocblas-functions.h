@@ -190,12 +190,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle             
     @param[inout]
     x           pointer storing vector x on the GPU.
     @param[in]
-    incx        specifies the increment for the elements of x.
+    incx        rocblas_int
+                specifies the increment for the elements of x.
     @param[in]
-    stride_x     stride form the start of one vector (x_i) and the next one (x_i+1).
-                 There are no restrictions placed on stride_x, however the user should
-                 take care to ensure that stride_x is of appropriate size, for a typical
-                 case this means stride_x > n * incx.
+    stride_x    rocblas_stride
+                stride from the start of one vector (x_i) and the next one (x_i+1).
+                There are no restrictions placed on stride_x, however the user should
+                take care to ensure that stride_x is of appropriate size, for a typical
+                case this means stride_x >= n * incx.
     @param[in]
     batch_count specifies the number of batches in x.
      ********************************************************************/
@@ -384,15 +386,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
               specifies the increments for the elements of vectors x_i.
     @param[in]
     stridex     rocblas_stride
-                stride form the start of one vector (x_i) and the next one (x_i+1)
-    @param[in]
+                stride from the start of one vector (x_i) and the next one (x_i+1).
+                There are no restrictions placed on stride_x, however the user should
+                take care to ensure that stride_x is of appropriate size, for a typical
+                case this means stride_x >= n * incx.
+    @param[out]
     y         pointer to the first vector (y_0) in the batch stored on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
     @param[in]
     stridey     rocblas_stride
-                stride from the start of one vector (y_i) and the next one (y_i+1)
+                stride from the start of one vector (y_i) and the next one (y_i+1).
+                There are no restrictions placed on stride_y, however the user should
+                take care to ensure that stride_y is of appropriate size, for a typical
+                case this means stride_y >= n * incy. stridey should be non zero.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -907,18 +915,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
               specifies the increment for the elements of x.
     @param[in]
     stridex   rocblas_stride
-              specifies the pointer increment between batches for x.
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= n * incx.
     @param[inout]
     y         a pointer to the first vector y_i on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    stridey   rocblas_stride
-              specifies the pointer increment between batches for y.
-    @param[in]
-    batch_count rocblas_int
-                number of instances in the batch
+    stridey   rocblas_stride  
+              stride from the start of one vector (y_i) and the next one (y_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_y is of appropriate size, for a typical
+              case this means stride_y >= n * incy. stridey should be non zero.
+     @param[in]
+     batch_count rocblas_int
+                 number of instances in the batch
 
     ********************************************************************/
 
@@ -1144,7 +1158,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   rocblas_stride
-              specifies the pointer increment between batches for x. stridex must be be non zero.
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= n * incx.
     @param[out]
     results
               pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
@@ -1303,7 +1320,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   rocblas_stride
-              specifies the pointer increment between batches for x. stridex must be non zero.
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= n * incx.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -1886,7 +1906,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
     lda         rocblas_int
                 specifies the leading dimension of matrices A_i.
     @param[in]
-    strideA     rocblas_int
+    strideA     rocblas_stride
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
     x           pointer to the first vector (x_0) in the batch stored on the GPU.
@@ -1894,8 +1914,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
     incx        rocblas_int
                 specifies the increment for the elements of vectors x_i.
     @param[in]
-    stridex     rocblas_int
-                stride form the start of one vector (x_i) and the next one (x_i+1)
+    stridex     rocblas_stride
+                stride from the start of one vector (x_i) and the next one (x_i+1).
+                There are no restrictions placed on stride_x, however the user should
+                take care to ensure that stride_x is of appropriate size. When trans equals rocblas_operation_none
+                this typically means stride_x >= n * incx, otherwise stride_x >= m * incx.
     @param[in]
     beta        specifies the scalar beta.
     @param[inout]
@@ -1904,8 +1927,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
     incy        rocblas_int
                 specifies the increment for the elements of vectors y_i.
     @param[in]
-    stridey     rocblas_int
-                stride from the start of one vector (y_i) and the next one (y_i+1)
+    stridey     rocblas_stride
+                stride from the start of one vector (y_i) and the next one (y_i+1).
+                There are no restrictions placed on stride_y, however the user should
+                take care to ensure that stride_y is of appropriate size. When trans equals rocblas_operation_none
+                this typically means stride_y >= m * incy, otherwise stride_y >= n * incy. stridey should be non zero.
     @param[in]
     batch_count rocblas_int
                 number of instances in the batch
@@ -2028,7 +2054,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
     x         pointer storing vector x on the GPU.
 
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_strsv(rocblas_handle    handle,
@@ -2080,7 +2107,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
     @param[in]
     x         pointer storing vector x on the GPU.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int
+              specifies the increment for the elements of x.
     @param[in]
     beta      specifies the scalar beta.
     @param[out]
@@ -2287,23 +2315,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
     incx      rocblas_int
               specifies the increments for the elements of vectors x_i.
     @param[in]
-    stridex     rocblas_int
-                stride form the start of one vector (x_i) and the next one (x_i+1)
-    @param[in]
+    stridex   rocblas_stride
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= m * incx.
+    @param[inout]
     y         pointer to the first vector (y_0) in the batch stored on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
     @param[in]
-    stridey     rocblas_int
-                stride from the start of one vector (y_i) and the next one (y_i+1)
+    stridey   rocblas_stride
+              stride from the start of one vector (y_i) and the next one (y_i+1).
+              There are no restrictions placed on stride_y, however the user should
+              take care to ensure that stride_y is of appropriate size, for a typical
+              case this means stride_y >= n * incy.
     @param[inout]
     A         pointer to the first matrix (A_0) in the batch stored on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    strideA     rocblas_int
+    strideA     rocblas_stride
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
     batch_count rocblas_int
@@ -2702,11 +2736,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
     ldinvA    rocblas_int
               specifies the leading dimension of invA.
     @param[in]
-    stride_invA rocblas_stride
-             "batch stride invA": stride from the start of one "invA" matrix to the next
+    stride_invA  rocblas_stride
+                 "batch stride invA": stride from the start of one "invA" matrix to the next
     @param[in]
-    batch_count       rocblas_int
-              numbers of matrices in the batch
+    batch_count  rocblas_int
+                 numbers of matrices in the batch
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
@@ -3178,7 +3212,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     lda       rocblas_int
               specifies the leading dimension of "A".
     @param[in]
-    stride_a       rocblas_stride
+    stride_a  rocblas_stride
               stride from the start of one "A" matrix to the next
     @param[in]
     B         pointer storing strided batched matrix B on the GPU.
@@ -3186,7 +3220,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     ldb       rocblas_int
               specifies the leading dimension of "B".
     @param[in]
-    stride_b       rocblas_stride
+    stride_b  rocblas_stride
               stride from the start of one "B" matrix to the next
     @param[in]
     beta      specifies the scalar beta.
@@ -3196,7 +3230,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     ldc       rocblas_int
               specifies the leading dimension of "C".
     @param[in]
-    stride_c       rocblas_stride
+    stride_c  rocblas_stride
               stride from the start of one "C" matrix to the next
     @param[in]
     batch_count
@@ -3980,7 +4014,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     lda       rocblas_int.
               specifies the leading dimension of A.
     @param[in]
-    stride_a  rocblas_long.
+    stride_a  rocblas_stride.
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
@@ -3992,7 +4026,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     ldb       rocblas_int.
               specifies the leading dimension of B.
     @param[in]
-    stride_b  rocblas_long.
+    stride_b  rocblas_stride.
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
@@ -4007,7 +4041,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     ldc       rocblas_int.
               specifies the leading dimension of C.
     @param[in]
-    stride_c  rocblas_long.
+    stride_c  rocblas_stride.
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
@@ -4019,7 +4053,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     ldd       rocblas_int.
               specifies the leading dimension of D.
     @param[in]
-    stride_d  rocblas_long.
+    stride_d  rocblas_stride.
               specifies stride from start of one "D" matrix to the next.
     @param[in]
     batch_count
