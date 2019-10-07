@@ -44,22 +44,26 @@ if( BUILD_WITH_TENSILE )
       trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
+
+  set(rocblas_test_source
+    ${Tensile_TEST_SRC}
+    geam_gtest.cpp
+    trtri_gtest.cpp
+    )
 endif( )
 
-set(rocblas_test_source
+set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
-    ${Tensile_TEST_SRC}
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
     blas1_gtest.cpp
+    # blas2
     gemv_gtest.cpp
     ger_gtest.cpp
     syr_gtest.cpp
     symv_gtest.cpp
-    geam_gtest.cpp
-    trtri_gtest.cpp
     )
 
 if(LINK_BLIS)
@@ -73,7 +77,7 @@ set( rocblas_benchmark_common
       ../common/rocblas_parse_data.cpp
     )
 
-add_executable( rocblas-test ${rocblas_test_source} ${rocblas_benchmark_common} )
+add_executable( rocblas-test ${rocblas_no_tensile_test_source} ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )
@@ -102,15 +106,23 @@ set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
 set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
 if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    if(OS_ID_rhel OR OS_ID_centos)
-      set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
-      set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
+    if( OS_ID_rhel OR OS_ID_centos)
+        # defer OpenMP include as search order must come after clang
+        set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+        set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
     else()
-      #SLES
-      set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
-      set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
+    #SLES
+        set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
+        set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
     endif()
-    set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+
+    if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
+    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+    else()
+        error("cannot find immintrin.h")
+    endif()
 
     # External header includes included as system files
     target_include_directories( rocblas-test
@@ -184,6 +196,11 @@ elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
   # GCC or hip-clang needs specific flag to turn on f16c intrinsics
   target_compile_options( rocblas-test PRIVATE -mf16c )
 endif( )
+
+if( OS_ID_rhel OR OS_ID_centos)
+    # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
+    set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
+endif()
 
 if( CXX_VERSION_STRING MATCHES "clang" )
   target_link_libraries( rocblas-test PRIVATE -lpthread -lm )

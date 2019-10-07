@@ -9,11 +9,11 @@
 template <typename T>
 __global__ void rocblas_swap_kernel_strided_batched(rocblas_int    n,
                                                     T*             x,
-                                                    rocblas_int    shiftx,
+                                                    ptrdiff_t      shiftx,
                                                     rocblas_int    incx,
                                                     rocblas_stride stridex,
                                                     T*             y,
-                                                    rocblas_int    shifty,
+                                                    ptrdiff_t      shifty,
                                                     rocblas_int    incy,
                                                     rocblas_stride stridey)
 {
@@ -23,9 +23,6 @@ __global__ void rocblas_swap_kernel_strided_batched(rocblas_int    n,
     {
         T* xb = x + blockIdx.y * stridex + shiftx;
         T* yb = y + blockIdx.y * stridey + shifty;
-        // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-        xb -= (incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0;
-        yb -= (incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0;
 
         rocblas_swap_vals(xb + tid * incx, yb + tid * incy);
     }
@@ -35,11 +32,11 @@ template <rocblas_int NB, typename T>
 rocblas_status rocblas_swap_strided_batched_template(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      T*             x,
-                                                     rocblas_int    shiftx,
+                                                     rocblas_int    offsetx,
                                                      rocblas_int    incx,
                                                      rocblas_stride stridex,
                                                      T*             y,
-                                                     rocblas_int    shifty,
+                                                     rocblas_int    offsety,
                                                      rocblas_int    incy,
                                                      rocblas_stride stridey,
                                                      rocblas_int    batch_count)
@@ -52,6 +49,10 @@ rocblas_status rocblas_swap_strided_batched_template(rocblas_handle handle,
     rocblas_int blocks         = (n - 1) / NB + 1;
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
+
+    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
+    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
+    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
 
     hipLaunchKernelGGL(rocblas_swap_kernel_strided_batched,
                        grid,

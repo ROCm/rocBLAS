@@ -83,36 +83,44 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_INC
     ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile
   )
-endif( )
+
+  set( rocblas_ex_source
+    blas_ex/rocblas_gemm_ex.cpp
+    blas_ex/rocblas_gemm_ex_batched.cpp
+    blas_ex/rocblas_gemm_ex_strided_batched.cpp
+  )
+
+  set( rocblas_blas3_source
+    blas3/rocblas_trtri.cpp
+    blas3/rocblas_trtri_batched.cpp
+    blas3/rocblas_trtri_strided_batched.cpp
+    blas3/rocblas_geam.cpp
+    ${Tensile_SRC}
+  )
+
+  set( rocblas_blas2_tensile_source
+    blas2/rocblas_trsv.cpp
+  )
+
+endif( ) # BUILD_WITH_TENSILE
+
+set( rocblas_blas2_source
+  ${rocblas_blas2_tensile_source}
+  blas2/rocblas_gemv.cpp
+  blas2/rocblas_gemv_batched.cpp
+  blas2/rocblas_gemv_strided_batched.cpp
+  blas2/rocblas_ger.cpp
+  blas2/rocblas_ger_batched.cpp
+  blas2/rocblas_ger_strided_batched.cpp
+  blas2/rocblas_syr.cpp
+  blas2/rocblas_syr_batched.cpp
+  blas2/rocblas_syr_strided_batched.cpp
+)
 
 set( rocblas_auxiliary_source
   handle.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
-)
-
-set( rocblas_ex_source
-  blas_ex/rocblas_gemm_ex.cpp
-  blas_ex/rocblas_gemm_ex_batched.cpp
-  blas_ex/rocblas_gemm_ex_strided_batched.cpp
-)
-
-set( rocblas_blas3_source
-  blas3/rocblas_trtri.cpp
-  blas3/rocblas_trtri_batched.cpp
-  blas3/rocblas_geam.cpp
-  ${Tensile_SRC}
-)
-
-set( rocblas_blas2_source
-  blas2/rocblas_gemv.cpp
-  blas2/rocblas_gemv_batched.cpp
-  blas2/rocblas_gemv_strided_batched.cpp
-  blas2/rocblas_trsv.cpp
-  blas2/rocblas_ger.cpp
-  blas2/rocblas_ger_batched.cpp
-  blas2/rocblas_ger_strided_batched.cpp
-  blas2/rocblas_syr.cpp
 )
 
 set( rocblas_blas1_source
@@ -123,7 +131,11 @@ set( rocblas_blas1_source
   blas1/rocblas_asum_strided_batched.cpp
   blas1/rocblas_axpy.cpp
   blas1/rocblas_copy.cpp
+  blas1/rocblas_copy_batched.cpp
+  blas1/rocblas_copy_strided_batched.cpp
   blas1/rocblas_dot.cpp
+  blas1/rocblas_dot_strided_batched.cpp
+  blas1/rocblas_dot_batched.cpp
   blas1/rocblas_nrm2.cpp
   blas1/rocblas_nrm2_batched.cpp
   blas1/rocblas_nrm2_strided_batched.cpp
