@@ -156,50 +156,28 @@ namespace
             return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
-        if(strideA < lda * n)
-            return rocblas_status_invalid_size;
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t size_x, dim_x, abs_incx;
-        size_t size_y, dim_y, abs_incy;
-
-        if(transA == rocblas_operation_none)
-        {
-            dim_x = n;
-            dim_y = m;
-        }
-        else
-        {
-            dim_x = m;
-            dim_y = n;
-        }
-
-        abs_incx = incx >= 0 ? incx : -incx;
-        abs_incy = incy >= 0 ? incy : -incy;
-
-        size_x = dim_x * abs_incx;
-        size_y = dim_y * abs_incy;
-
-        if(stridex < size_x || stridey < size_y)
-            return rocblas_status_invalid_size;
-
-        return rocblas_gemv_strided_batched_template(handle,
-                                                     transA,
-                                                     m,
-                                                     n,
-                                                     alpha,
-                                                     A,
-                                                     lda,
-                                                     strideA,
-                                                     x,
-                                                     incx,
-                                                     stridex,
-                                                     beta,
-                                                     y,
-                                                     incy,
-                                                     stridey,
-                                                     batch_count);
+        return rocblas_gemv_template<T>(handle,
+                                        transA,
+                                        m,
+                                        n,
+                                        alpha,
+                                        A,
+                                        0,
+                                        lda,
+                                        strideA,
+                                        x,
+                                        0,
+                                        incx,
+                                        stridex,
+                                        beta,
+                                        y,
+                                        0,
+                                        incy,
+                                        stridey,
+                                        batch_count);
     }
 } //namespace
 

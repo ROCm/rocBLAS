@@ -116,7 +116,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
     rocblas_int lda         = arg.lda;
-    T           h_alpha     = (T)arg.alpha;
+    T           h_alpha     = arg.get_alpha<T>();
     rocblas_int stride_x    = arg.stride_x;
     rocblas_int stride_y    = arg.stride_y;
     rocblas_int stride_a    = arg.stride_a;
@@ -131,8 +131,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     size_t size_y   = N * abs_incy;
 
     // argument check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || stride_a < size_A
-       || stride_x < size_x || stride_y < size_y || batch_count < 0)
+    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA_1(safe_size);

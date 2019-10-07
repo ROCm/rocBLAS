@@ -55,24 +55,32 @@ namespace
         {
             RocBLAS_TestName<ger_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << arg.M << '_' << arg.N << '_'
-                 << arg.alpha << '_' << arg.incx;
+            name << rocblas_datatype2string(arg.a_type);
 
-            if(GER_TYPE == GER_STRIDED_BATCHED)
-                name << '_' << arg.stride_x;
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                name << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.incx;
 
-            name << '_' << arg.incy;
+                if(GER_TYPE == GER_STRIDED_BATCHED)
+                    name << '_' << arg.stride_x;
 
-            if(GER_TYPE == GER_STRIDED_BATCHED)
-                name << '_' << arg.stride_y;
+                name << '_' << arg.incy;
 
-            name << '_' << arg.lda;
+                if(GER_TYPE == GER_STRIDED_BATCHED)
+                    name << '_' << arg.stride_y;
 
-            if(GER_TYPE == GER_STRIDED_BATCHED)
-                name << '_' << arg.stride_a;
+                name << '_' << arg.lda;
 
-            if(GER_TYPE == GER_STRIDED_BATCHED || GER_TYPE == GER_BATCHED)
-                name << '_' << arg.batch_count;
+                if(GER_TYPE == GER_STRIDED_BATCHED)
+                    name << '_' << arg.stride_a;
+
+                if(GER_TYPE == GER_STRIDED_BATCHED || GER_TYPE == GER_BATCHED)
+                    name << '_' << arg.batch_count;
+            }
 
             return std::move(name);
         }
