@@ -148,7 +148,7 @@ struct rocblas_default_value
     }
 };
 
-size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
+inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
 {
     if(n <= 0)
         n = 1; // avoid sign loss issues
@@ -166,7 +166,7 @@ size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
+inline size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set

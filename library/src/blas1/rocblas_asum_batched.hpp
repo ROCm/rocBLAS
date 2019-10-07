@@ -20,18 +20,18 @@ rocblas_status rocblas_asum_batched_template(rocblas_handle  handle,
                                              To*             results)
 {
     // Quick return if possible.
-    if(n <= 0 || incx <= 0 || batch_count == 0)
+    if(!batch_count)
+        return rocblas_status_success;
+    if(n <= 0 || incx <= 0)
     {
         if(handle->is_device_memory_size_query())
             return rocblas_status_size_unchanged;
-        else if(rocblas_pointer_mode_device == handle->pointer_mode && batch_count > 0)
-            RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(To)));
+        else if(rocblas_pointer_mode_device == handle->pointer_mode)
+            RETURN_IF_HIP_ERROR(hipMemsetAsync(results, 0, batch_count * sizeof(To)));
         else
         {
             for(int i = 0; i < batch_count; i++)
-            {
                 results[i] = 0;
-            }
         }
         return rocblas_status_success;
     }

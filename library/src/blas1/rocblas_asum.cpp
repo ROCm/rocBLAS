@@ -27,29 +27,32 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_asum_name<Ti>, n, x, incx);
+        if(!device->is_device_memory_size())
+        {
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_asum_name<Ti>, n, x, incx);
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f asum -r",
-                      rocblas_precision_string<Ti>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f asum -r",
+                          rocblas_precision_string<Ti>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx);
 
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_asum_name<Ti>, "N", n, "incx", incx);
-
-        if(!x || !result)
-            return rocblas_status_invalid_pointer;
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle, rocblas_asum_name<Ti>, "N", n, "incx", incx);
+        }
 
         size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, To>(n);
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
+
+        if(!x || !result)
+            return rocblas_status_invalid_pointer;
 
         auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
