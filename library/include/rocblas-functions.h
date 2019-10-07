@@ -1434,12 +1434,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointer storing vector x on the GPU.
+    x       pointer storing vector x in device memory.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
     @param[inout]
-    y       pointer storing vector y on the GPU.
+    y       pointer storing vector y in device memory.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
@@ -1517,12 +1517,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       array of pointers storing vector x on the GPU.
+    x       array of pointers storing vector x in device memory.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
     @param[inout]
-    y       array of pointers storing vector y on the GPU.
+    y       array of pointers storing vector y in device memory.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
@@ -1609,7 +1609,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointer storing strided vectors x on the GPU.
+    x       pointer storing strided vectors x in device memory.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
@@ -1617,7 +1617,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     stride_x rocblas_stride
              specifies the increment from the beginning of x_i to the beginning of x_(i+1)
     @param[inout]
-    y       pointer storing strided vectors y on the GPU.
+    y       pointer storing strided vectors y in device memory.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
