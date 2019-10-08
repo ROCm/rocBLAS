@@ -33,7 +33,7 @@ if( BUILD_WITH_TENSILE )
     set( ROCBLAS_SHARED_LIBS ON )
     set( BUILD_SHARED_LIBS OFF )
   else( )
-    list( APPEND package_targets Tensile )
+    list( APPEND package_targets Tensile TensileHost )
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
