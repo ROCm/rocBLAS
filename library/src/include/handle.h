@@ -40,7 +40,7 @@ private:
 
 public:
 #ifdef USE_TENSILE_HOST
-    TensileHost *host = nullptr;
+    TensileHost* host = nullptr;
 #endif
     _rocblas_handle();
     ~_rocblas_handle();

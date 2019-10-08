@@ -554,22 +554,12 @@ try
     std::string compute_type;
     std::string initialization;
 
-#ifdef USE_TENSILE_HOST
-    std::string host_lib_path;
-#endif
-
     rocblas_int device_id;
     bool        datafile = rocblas_parse_data(argc, argv);
 
     options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
-
-#ifdef USE_TENSILE_HOST
-        ("lib",
-         value<std::string>(&host_lib_path),
-         "Host libriary path")
-#endif
         ("sizem,m",
          value<rocblas_int>(&arg.M)->default_value(128),
          "Specific matrix size: sizem is only applicable to BLAS-2 & BLAS-3: the number of "
@@ -804,12 +794,6 @@ try
     int copied = snprintf(arg.function, sizeof(arg.function), "%s", function.c_str());
     if(copied <= 0 || copied >= sizeof(arg.function))
         throw std::invalid_argument("Invalid value for --function");
-
-#ifdef USE_TENSILE_HOST
-    int copied_host = snprintf(arg.host_lib_path, sizeof(arg.host_lib_path), "%s", host_lib_path.c_str());
-    if(copied_host <= 0 || copied_host >= sizeof(arg.host_lib_path))
-        throw std::invalid_argument("Invalid value for --lib");
-#endif
 
     return run_bench_test(arg);
 }

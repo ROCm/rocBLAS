@@ -12,9 +12,10 @@ _rocblas_handle::_rocblas_handle()
 {
 #ifdef USE_TENSILE_HOST
     host = createTensileHost();
-    if (host == nullptr)
+    if(!host)
         throw rocblas_status_internal_error;
 #endif
+
     // default device is active device
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
@@ -68,9 +69,9 @@ _rocblas_handle::~_rocblas_handle()
     }
     if(device_memory)
         (hipFree)(device_memory);
+
 #ifdef USE_TENSILE_HOST
-    if(host != nullptr)
-        delete host;
+    delete host;
 #endif
 }
 

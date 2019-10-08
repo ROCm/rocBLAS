@@ -80,10 +80,6 @@ struct Arguments
 
     rocblas_initialization initialization;
 
-#ifdef USE_TENSILE_HOST
-    char host_lib_path[4096];
-#endif
-
     // Validate input format.
     // rocblas_gentest.py is expected to conform to this format.
     // rocblas_gentest.py uses rocblas_common.yaml to generate this format.

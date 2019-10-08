@@ -28,12 +28,6 @@ public:
     {
         rocblas_create_handle(&handle);
     }
-#ifdef USE_TENSILE_HOST
-    rocblas_local_handle(const char* lib_path)
-    {
-        rocblas_create_host_handle(&handle, lib_path);
-    }
-#endif
     ~rocblas_local_handle()
     {
         rocblas_destroy_handle(handle);

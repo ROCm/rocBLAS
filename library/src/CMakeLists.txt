@@ -26,12 +26,8 @@ set( package_targets rocblas )
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# Set up Tensile  Dependency
+# Set up Tensile Dependency
 if( BUILD_WITH_TENSILE )
-  # build gemm with Tensile Host library
-  if( BUILD_WITH_TENSILE_HOST )
-  target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
-  endif()
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
   if( BUILD_SHARED_LIBS )
     set( ROCBLAS_SHARED_LIBS ON )
@@ -54,6 +50,10 @@ if( BUILD_WITH_TENSILE )
 
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  # build gemm with Tensile Host library
+  if( BUILD_WITH_TENSILE_HOST )
+  target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
+  endif()
   target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
   # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
   if(TARGET hip::device)

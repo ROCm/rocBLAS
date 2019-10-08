@@ -19,9 +19,7 @@ extern "C" {
 /*! \brief create handle
  */
 ROCBLAS_EXPORT rocblas_status rocblas_create_handle(rocblas_handle* handle);
-#ifdef USE_TENSILE_HOST
-ROCBLAS_EXPORT rocblas_status rocblas_create_host_handle(rocblas_handle* handle, const char*);
-#endif
+
 /*! \brief destroy handle
  */
 ROCBLAS_EXPORT rocblas_status rocblas_destroy_handle(rocblas_handle handle);

@@ -59,28 +59,6 @@ extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocbla
     return rocblas_status_success;
 }
 
-#ifdef USE_TENSILE_HOST
-extern "C" rocblas_status rocblas_create_host_handle(rocblas_handle* handle, const char* lib_path)
-{
-    //std::cout << lib_path << std::endl;
-    rocblas_status status = rocblas_create_handle(handle);
-
-    if (status == rocblas_status_success)
-    {
-        try
-        {
-            (*handle)->host->initializeHost(lib_path);
-        } 
-        catch (...)
-        {
-            return rocblas_status_internal_error;
-        }
-    }
-    
-    return status;
-}
-#endif
-
 /*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
@@ -88,7 +66,8 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
 {
     // if handle not valid
     if(!handle)
-        return rocblas_status_invalid_pointer;
+        return rocblas_status_invalid_handle;
+
     // allocate on heap
     try
     {
@@ -99,10 +78,17 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
 
         if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
             log_trace(*handle, "rocblas_create_handle");
+
+#ifdef USE_TENSILE_HOST
+        const char* lib_path = getenv("ROCBLAS_TENSILE_LIBPATH");
+        if(!lib_path)
+            lib_path = "/opt/rocm/";  // TODO: Set default path
+        (*handle)->host->initializeHost(lib_path);
+#endif
     }
-    catch(rocblas_status status)
+    catch(...)
     {
-        return status;
+        return rocblas_status_internal_error;
     }
     return rocblas_status_success;
 }
