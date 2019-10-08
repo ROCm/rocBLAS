@@ -1534,8 +1534,8 @@ namespace
             auto c_temp = x_temp;
 
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
-            status = rocblas_trtri_trsm_template<BLOCK>(
-                handle, (T*)c_temp, uplo, diag, k, A, lda, (T*)invA);
+            status = rocblas_trtri_trsm_template<BLOCK, false, T>(
+                handle, (T*)c_temp, uplo, diag, k, A, 0, lda, 0, (T*)invA, 0, 0, 1);
             if(status != rocblas_status_success)
                 return status;
         }
