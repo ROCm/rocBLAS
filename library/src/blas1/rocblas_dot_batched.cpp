@@ -61,7 +61,7 @@ namespace
                       incx,
                       "--incy",
                       incy,
-                      "--batch_count",
+                      "--batch",
                       batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)

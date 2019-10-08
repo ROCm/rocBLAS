@@ -42,9 +42,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -60,14 +57,14 @@ namespace
                               transA,
                               m,
                               n,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               lda,
                               strideA,
                               x,
                               incx,
                               stridex,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               y,
                               incy,
                               stridey,
@@ -83,11 +80,7 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
-                              *alpha,
-                              std::imag(*alpha) != 0
-                                  ? "--alphai " + std::to_string(std::imag(*alpha))
-                                  : "",
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
                               "--stride_a",
@@ -96,8 +89,7 @@ namespace
                               incx,
                               "--stride_x",
                               stridex,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--incy",
                               incy,
                               "--stride_y",
@@ -148,16 +140,16 @@ namespace
                             incy,
                             "stride_y",
                             stridey,
-                            "batch",
+                            "batch_count",
                             batch_count);
         }
 
-        if(!A || !x || !y)
+        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
+            return rocblas_status_invalid_size;
+        if(!m || !n || !batch_count)
+            return rocblas_status_success;
+        if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
-            return rocblas_status_invalid_size;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
 
         return rocblas_gemv_template<T>(handle,
                                         transA,
