@@ -11,7 +11,6 @@
 
 namespace
 {
-
     template <typename>
     static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
 
@@ -195,6 +194,44 @@ namespace
             }
         }
 
+#ifdef USE_TENSILE_HOST
+
+        T alpha_h;
+        T beta_h;
+        if(rocblas_pointer_mode_host == handle->pointer_mode)
+        {
+            alpha_h = *alpha;
+            beta_h  = *beta;
+        }
+        else
+        {
+            hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
+            hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
+        }
+
+        TensileHostCall<T>           hostCall;
+        RocblasContractionProblem<T> problem(ContractionProblemType::GEMMStridedBatch,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha_h,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta_h,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             b_c);
+
+        return callTensileContraction_half(&problem, handle->host);
+
+#else
         rocblas_status validArgs = validateArgs(handle,
                                                 trans_a,
                                                 trans_b,
@@ -240,8 +277,10 @@ namespace
                                                   ld_c,
                                                   stride_c,
                                                   b_c);
+#endif
     }
 
+#ifndef USE_TENSILE_HOST
     /*******************************************************************************
     * Batched / Strided GEMM Kernel name implementation
     ******************************************************************************/
@@ -414,6 +453,7 @@ namespace
 
         return validArgs;
     }
+#endif
 
 }
 
@@ -442,49 +482,24 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
                                              rocblas_stride      stride_c,
                                              rocblas_int         b_c)
 {
-#ifdef USE_TENSILE_HOST
-    TensileHostCall<rocblas_half>           hostCall;
-    RocblasContractionProblem<rocblas_half> problem(ContractionProblemType::GEMMStridedBatch,
-                                                    trans_a,
-                                                    trans_b,
-                                                    m,
-                                                    n,
-                                                    k,
-                                                    alpha,
-                                                    A,
-                                                    ld_a,
-                                                    stride_a,
-                                                    B,
-                                                    ld_b,
-                                                    stride_b,
-                                                    beta,
-                                                    C,
-                                                    ld_c,
-                                                    stride_c,
-                                                    b_c);
-
-    return callTensileContraction_half(&problem, handle->host);
-#else
-
-    return rocblas_gemm_strided_batched_impl<rocblas_half>(handle,
-                                                           trans_a,
-                                                           trans_b,
-                                                           m,
-                                                           n,
-                                                           k,
-                                                           alpha,
-                                                           A,
-                                                           ld_a,
-                                                           stride_a,
-                                                           B,
-                                                           ld_b,
-                                                           stride_b,
-                                                           beta,
-                                                           C,
-                                                           ld_c,
-                                                           stride_c,
-                                                           b_c);
-#endif
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             b_c);
 }
 
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
@@ -506,10 +521,7 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              rocblas_stride    stride_c,
                                              rocblas_int       b_c)
 {
-
-#ifdef USE_TENSILE_HOST
-    TensileHostCall<float>           hostCall;
-    RocblasContractionProblem<float> problem(ContractionProblemType::GEMMStridedBatch,
+    return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
                                              trans_b,
                                              m,
@@ -527,30 +539,6 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              ld_c,
                                              stride_c,
                                              b_c);
-
-    return callTensileContraction_float(&problem, handle->host);
-#else
-
-    return rocblas_gemm_strided_batched_impl<float>(handle,
-                                                    trans_a,
-                                                    trans_b,
-                                                    m,
-                                                    n,
-                                                    k,
-                                                    alpha,
-                                                    A,
-                                                    ld_a,
-                                                    stride_a,
-                                                    B,
-                                                    ld_b,
-                                                    stride_b,
-                                                    beta,
-                                                    C,
-                                                    ld_c,
-                                                    stride_c,
-                                                    b_c);
-
-#endif
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
@@ -572,48 +560,24 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
                                              rocblas_stride    stride_c,
                                              rocblas_int       b_c)
 {
-#ifdef USE_TENSILE_HOST
-    TensileHostCall<double>           hostCall;
-    RocblasContractionProblem<double> problem(ContractionProblemType::GEMMStridedBatch,
-                                              trans_a,
-                                              trans_b,
-                                              m,
-                                              n,
-                                              k,
-                                              alpha,
-                                              A,
-                                              ld_a,
-                                              stride_a,
-                                              B,
-                                              ld_b,
-                                              stride_b,
-                                              beta,
-                                              C,
-                                              ld_c,
-                                              stride_c,
-                                              b_c);
-
-    return callTensileContraction_double(&problem, handle->host);
-#else
-    return rocblas_gemm_strided_batched_impl<double>(handle,
-                                                     trans_a,
-                                                     trans_b,
-                                                     m,
-                                                     n,
-                                                     k,
-                                                     alpha,
-                                                     A,
-                                                     ld_a,
-                                                     stride_a,
-                                                     B,
-                                                     ld_b,
-                                                     stride_b,
-                                                     beta,
-                                                     C,
-                                                     ld_c,
-                                                     stride_c,
-                                                     b_c);
-#endif
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             b_c);
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle,
@@ -635,49 +599,24 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle
                                              rocblas_stride               stride_c,
                                              rocblas_int                  b_c)
 {
-#ifdef USE_TENSILE_HOST
-    TensileHostCall<rocblas_float_complex>           hostCall;
-    RocblasContractionProblem<rocblas_float_complex> problem(
-        ContractionProblemType::GEMMStridedBatch,
-        trans_a,
-        trans_b,
-        m,
-        n,
-        k,
-        alpha,
-        A,
-        ld_a,
-        stride_a,
-        B,
-        ld_b,
-        stride_b,
-        beta,
-        C,
-        ld_c,
-        stride_c,
-        b_c);
-
-    return callTensileContraction_float_complex(&problem, handle->host);
-#else
-    return rocblas_gemm_strided_batched_impl<rocblas_float_complex>(handle,
-                                                                    trans_a,
-                                                                    trans_b,
-                                                                    m,
-                                                                    n,
-                                                                    k,
-                                                                    alpha,
-                                                                    A,
-                                                                    ld_a,
-                                                                    stride_a,
-                                                                    B,
-                                                                    ld_b,
-                                                                    stride_b,
-                                                                    beta,
-                                                                    C,
-                                                                    ld_c,
-                                                                    stride_c,
-                                                                    b_c);
-#endif
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             b_c);
 }
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handle,
@@ -699,52 +638,27 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handl
                                              rocblas_stride                stride_c,
                                              rocblas_int                   b_c)
 {
-#ifdef USE_TENSILE_HOST
-    TensileHostCall<rocblas_double_complex>           hostCall;
-    RocblasContractionProblem<rocblas_double_complex> problem(
-        ContractionProblemType::GEMMStridedBatch,
-        trans_a,
-        trans_b,
-        m,
-        n,
-        k,
-        alpha,
-        A,
-        ld_a,
-        stride_a,
-        B,
-        ld_b,
-        stride_b,
-        beta,
-        C,
-        ld_c,
-        stride_c,
-        b_c);
-
-    return callTensileContraction_double_complex(&problem, handle->host);
-#else
-
-    return rocblas_gemm_strided_batched_impl<rocblas_double_complex>(handle,
-                                                                     trans_a,
-                                                                     trans_b,
-                                                                     m,
-                                                                     n,
-                                                                     k,
-                                                                     alpha,
-                                                                     A,
-                                                                     ld_a,
-                                                                     stride_a,
-                                                                     B,
-                                                                     ld_b,
-                                                                     stride_b,
-                                                                     beta,
-                                                                     C,
-                                                                     ld_c,
-                                                                     stride_c,
-                                                                     b_c);
-#endif
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             b_c);
 }
 
+#ifndef USE_TENSILE_HOST
 /*******************************************************************************
  * Strided Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -864,4 +778,5 @@ rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                                  stride_c,
                                                                  b_c);
 }
+#endif
 }

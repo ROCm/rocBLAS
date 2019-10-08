@@ -443,11 +443,11 @@ esac
 
   tensile_opt=""
     if [[ "${build_tensile}" == false ]]; then
-    tensile_opt="$tensile_opt -DBUILD_WITH_TENSILE=OFF"
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
   fi
 
     if [[ "${build_tensile_host}" == true ]]; then
-    tensile_opt="$tensile_opt -DBUILD_WITH_TENSILE_HOST=ON"
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
   if [[ "${build_clients}" == true ]]; then
