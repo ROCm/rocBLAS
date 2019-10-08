@@ -92,6 +92,7 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
+        String sudo = auxiliary.sudo(platform.jenkinsLabel)
 
         def command
 
@@ -100,10 +101,10 @@ rocBLASCI:
             command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
-                    make package
-                    mkdir -p package
-                    mv *.rpm package/
-                    rpm -qlp package/*.rpm
+                    ${sudo} make package
+                    ${sudo} mkdir -p package
+                    ${sudo} mv *.rpm package/
+                    ${sudo} rpm -qlp package/*.rpm
                 """
 
             platform.runCommand(this, command)
