@@ -7,7 +7,6 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
-#include <limits>
 #include <sys/time.h>
 
 namespace
@@ -243,14 +242,14 @@ namespace
                             m,
                             n,
                             k,
-                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
+                            log_trace_scalar_value(alpha),
                             A,
                             ld_a,
                             stride_a,
                             B,
                             ld_b,
                             stride_b,
-                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
+                            log_trace_scalar_value(beta),
                             C,
                             ld_c,
                             stride_c,
@@ -270,8 +269,7 @@ namespace
                             n,
                             "-k",
                             k,
-                            "--alpha",
-                            alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
+                            LOG_BENCH_SCALAR_VALUE(alpha),
                             "--lda",
                             ld_a,
                             "--bsa",
@@ -280,8 +278,7 @@ namespace
                             ld_b,
                             "--bsb",
                             stride_b,
-                            "--beta",
-                            beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
+                            LOG_BENCH_SCALAR_VALUE(beta),
                             "--ldc",
                             ld_c,
                             "--bsc",

@@ -44,11 +44,11 @@ namespace
                                              rocblas_int       ld_c,
                                              rocblas_int       b_c)
     {
-        // Perform logging
         if(!handle)
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        // Perform logging
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench

@@ -144,11 +144,11 @@ namespace
                             batch_count);
         }
 
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy | batch_count < 0)
+        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!m || !n || !batch_count)
             return rocblas_status_success;
-        if(!A || !x || !y || !alpha || !beta))
+        if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
         return rocblas_gemv_template<T>(handle,
