@@ -23,13 +23,13 @@ namespace
                                                     const T*       alpha,
                                                     const T*       x,
                                                     rocblas_int    incx,
-                                                    rocblas_int    stridex,
+                                                    rocblas_stride stridex,
                                                     const T*       y,
                                                     rocblas_int    incy,
-                                                    rocblas_int    stridey,
+                                                    rocblas_stride stridey,
                                                     T*             A,
                                                     rocblas_int    lda,
-                                                    rocblas_int    strideA,
+                                                    rocblas_stride strideA,
                                                     rocblas_int    batch_count)
     {
         if(!handle)
@@ -170,13 +170,13 @@ rocblas_status rocblas_sger_strided_batched(rocblas_handle handle,
                                             const float*   alpha,
                                             const float*   x,
                                             rocblas_int    incx,
-                                            rocblas_int    stridex,
+                                            rocblas_stride stridex,
                                             const float*   y,
                                             rocblas_int    incy,
-                                            rocblas_int    stridey,
+                                            rocblas_stride stridey,
                                             float*         A,
                                             rocblas_int    lda,
-                                            rocblas_int    strideA,
+                                            rocblas_stride strideA,
                                             rocblas_int    batch_count)
 {
     return rocblas_ger_strided_batched_impl(
@@ -189,13 +189,13 @@ rocblas_status rocblas_dger_strided_batched(rocblas_handle handle,
                                             const double*  alpha,
                                             const double*  x,
                                             rocblas_int    incx,
-                                            rocblas_int    stridex,
+                                            rocblas_stride stridex,
                                             const double*  y,
                                             rocblas_int    incy,
-                                            rocblas_int    stridey,
+                                            rocblas_stride stridey,
                                             double*        A,
                                             rocblas_int    lda,
-                                            rocblas_int    strideA,
+                                            rocblas_stride strideA,
                                             rocblas_int    batch_count)
 {
     return rocblas_ger_strided_batched_impl(
