@@ -146,7 +146,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.8.2" )
+set ( VERSION_STRING "2.10.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -188,12 +188,13 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 71c62d1d1f63ced18688c481d1399ee9f56abd4b CACHE STRING "Tensile tag to download" )
+    file (STRINGS "tensile_tag.txt" read_tensile_tag)
+    set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-  find_package(Tensile 4.12.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.13.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 endif()
 
 # Find HCC/HIP dependencies

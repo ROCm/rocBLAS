@@ -4,36 +4,36 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:    -1, N:     1, lda:    1 }
-    - { M:     1, N:    -1, lda:    1 }
-    - { M:     1, N:     1, lda:    0 }
-    - { M:    10, N:    10, lda:    9 }
-    - { M:     0, N:     1, lda:    1 }
-    - { M:     1, N:     0, lda:    1 }
-    - { M:    -1, N:    -1, lda:   -1 }
-    - { M:    10, N:    10, lda:    2 }
-    - { M:   100, N:   200, lda:  200 }
+    - { M:    -1, N:     1, lda:    1, stride_a:        1 }
+    - { M:     1, N:    -1, lda:    1, stride_a:        1 }
+    - { M:     1, N:     1, lda:    0, stride_a:        1 }
+    - { M:    10, N:    10, lda:    9, stride_a:        1 }
+    - { M:     0, N:     1, lda:    1, stride_a:        1 }
+    - { M:     1, N:     0, lda:    1, stride_a:        1 }
+    - { M:    -1, N:    -1, lda:   -1, stride_a:        1 }
+    - { M:    10, N:    10, lda:    2, stride_a:        1 }
+    - { M:   100, N:   200, lda:  200, stride_a:    40000 }
 
   - &medium_matrix_size_range
-    - { M:   300, N:   400, lda:  400 }
-    - { M:   600, N:   500, lda:  601 }
+    - { M:   300, N:   400, lda:  400, stride_a:   160000 }
+    - { M:   600, N:   500, lda:  601, stride_a:   301000 }
 
   - &large_matrix_size_range
-    - { M:  1000, N:  1000, lda: 1000 }
-    - { M:  2000, N:  2000, lda: 2000 }
-    - { M:  4011, N:  4011, lda: 4011 }
-    - { M:  8000, N:  8000, lda: 8000 }
+    - { M:  1000, N:  1000, lda: 1000, stride_a:  1000000 }
+    - { M:  2000, N:  2000, lda: 2000, stride_a:  4000000 }
+    - { M:  4011, N:  4011, lda: 4011, stride_a: 16088200 }
+    - { M:  8000, N:  8000, lda: 8000, stride_a: 64000000 }
 
   - &incx_incy_range
-    - { incx:   2, incy:   1 }
-    - { incx:  -1, incy:   2 }
-    - { incx:   1, incy:   1 }
-    - { incx:  -1, incy:   3 }
-    - { incx:   3, incy:  -1 }
-    - { incx:   0, incy:   1 }
-    - { incx:   1, incy:   0 }
-    - { incx:   0, incy:  -1 }
-    - { incx:  10, incy: 100 }
+    - { incx:   2, incy:   1, stride_scale: 1   }
+    - { incx:  -1, incy:   2, stride_scale: 1   }
+    - { incx:   1, incy:   1, stride_scale: 1   }
+    - { incx:  -1, incy:   3, stride_scale: 1.5 }
+    - { incx:   3, incy:  -1, stride_scale: 1   }
+    - { incx:   0, incy:   1, stride_scale: 1   }
+    - { incx:   1, incy:   0, stride_scale: 1   }
+    - { incx:   0, incy:  -1, stride_scale: 2   }
+    - { incx:  10, incy: 100, stride_scale: 1   }
 
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
@@ -84,4 +84,98 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+
+- name: gemv_batched_bad_arg
+  category: pre_checkin
+  function: gemv_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_batched_NaN
+  category: pre_checkin
+  function: gemv_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha: [ -1.0, 0, 1.0, 2.0 ]
+  beta: .NaN  # converted to 0.0 in test code
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_batched_small
+  category: quick
+  function: gemv_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_batched_medium
+  category: pre_checkin
+  function: gemv_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 3 ]
+
+- name: gemv_batched_large
+  category: nightly
+  function: gemv_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *large_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 3 ]
+  
+- name: gemv_strided_batched_bad_arg
+  category: pre_checkin
+  function: gemv_strided_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_strided_batched_NaN
+  category: pre_checkin
+  function: gemv_strided_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha: [ -1.0, 0, 1.0, 2.0 ]
+  beta: .NaN  # converted to 0.0 in test code
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_strided_batched_small
+  category: quick
+  function: gemv_strided_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_strided_batched_medium
+  category: pre_checkin
+  function: gemv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 3 ]
+
+- name: gemv_strided_batched_large
+  category: nightly
+  function: gemv_strided_batched
+  precision: *single_double_precisions
+  transA: [ N, T, C ]
+  matrix_size: *large_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 3 ]
 ...
