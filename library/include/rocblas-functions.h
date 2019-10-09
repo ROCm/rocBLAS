@@ -2879,7 +2879,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
             if side = rocblas_side_left,  lda >= max( 1, m ),
             if side = rocblas_side_right, lda >= max( 1, n ).
     @param[in]
-    stride_a rocblas_int.
+    stride_a rocblas_stride
              stride from the start of one "A" matrix to the next.
     @param[in,output]
     B       pointer storing matrix B on the GPU.
@@ -2887,7 +2887,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
     ldb    rocblas_int.
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
     @param[in]
-    stride_b rocblas_int.
+    stride_b rocblas_stride
              stride from the start of one "B" matrix to the next.
     @param[in]
     batch_count rocblas_int.
@@ -5337,7 +5337,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
             if side = rocblas_side_right, lda >= max( 1, n ).
 
     @param[in]
-    stride_A rocblas_int
+    stride_A rocblas_stride
             The stride between each A matrix.
 
     @param[in, out]
@@ -5353,7 +5353,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     @param[in]
-    stride_B rocblas_int
+    stride_B rocblas_stride
             The stride between each B matrix.
 
     @param[in]
@@ -5373,7 +5373,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
             invA_size specifies the number of elements of device memory in invA.
 
     @param[in]
-    stride_invA rocblas_int
+    stride_invA rocblas_stride
             The stride between each invA matrix.
 
     @param[in]

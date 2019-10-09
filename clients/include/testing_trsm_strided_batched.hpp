@@ -59,8 +59,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched<T>(handle,
+        rocblas_status status = rocblas_trsm_strided_batched<T>(handle,
                                                                 side,
                                                                 uplo,
                                                                 transA,
@@ -74,24 +73,11 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                                 dXorB,
                                                                 ldb,
                                                                 stride_b,
-                                                                batch_count));
+                                                                batch_count);
+        if(batch_count == 0)
+            CHECK_ROCBLAS_ERROR(status);
         else
-            EXPECT_ROCBLAS_STATUS(rocblas_trsm_strided_batched<T>(handle,
-                                                                  side,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  M,
-                                                                  N,
-                                                                  &alpha_h,
-                                                                  dA,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  dXorB,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  batch_count),
-                                  rocblas_status_invalid_size);
+            EXPECT_ROCBLAS_STATUS(status, rocblas_status_invalid_size);
 
         return;
     }
@@ -411,7 +397,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
+        rocblas_gflops = batch_count * trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us();
@@ -430,7 +416,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
                           ldb);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";

@@ -1386,11 +1386,11 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
     // If not large enough, indicate degraded performance and ignore supplied invA
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
-                               "is being ignored; TRSM performance is degraded\n",
-                               stderr);
-        perf_status    = rocblas_status_perf_degraded;
-        supplied_invA  = nullptr;
+        // static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
+        //                        "is being ignored; TRSM performance is degraded\n",
+        //                        stderr);
+        perf_status   = rocblas_status_perf_degraded;
+        supplied_invA = nullptr;
     }
 
     if(!supplied_invA)
