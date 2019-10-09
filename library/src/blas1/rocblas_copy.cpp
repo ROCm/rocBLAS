@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_copy.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -8,17 +9,6 @@
 
 namespace
 {
-    constexpr int NB = 256;
-
-    template <typename T>
-    __global__ void copy_kernel(rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
-    {
-        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-        // bound
-        if(tid < n)
-            y[tid * incy] = x[tid * incx];
-    }
-
     template <typename>
     constexpr char rocblas_copy_name[] = "unknown";
     template <>
@@ -32,12 +22,14 @@ namespace
     template <>
     constexpr char rocblas_copy_name<rocblas_double_complex>[] = "rocblas_zcopy";
 
-    template <class T>
-    rocblas_status rocblas_copy_template(
+    template <rocblas_int NB, typename T>
+    rocblas_status rocblas_copy_impl(
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
@@ -57,29 +49,7 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_copy_name<T>, "N", n, "incx", incx, "incy", incy);
 
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
-
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        // Quick return if possible.
-        if(n <= 0)
-            return rocblas_status_success;
-
-        int  blocks = (n - 1) / NB + 1;
-        dim3 grid(blocks);
-        dim3 threads(NB);
-
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-
-        if(incx < 0)
-            x -= ptrdiff_t(incx) * (n - 1);
-        if(incy < 0)
-            y -= ptrdiff_t(incy) * (n - 1);
-
-        hipLaunchKernelGGL(copy_kernel, grid, threads, 0, rocblas_stream, n, x, incx, y, incy);
-
-        return rocblas_status_success;
+        return rocblas_copy_template<NB, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, 1);
     }
 
 } // namespace
@@ -101,7 +71,8 @@ rocblas_status rocblas_scopy(rocblas_handle handle,
                              float*         y,
                              rocblas_int    incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_dcopy(rocblas_handle handle,
@@ -111,7 +82,8 @@ rocblas_status rocblas_dcopy(rocblas_handle handle,
                              double*        y,
                              rocblas_int    incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_hcopy(rocblas_handle      handle,
@@ -121,7 +93,8 @@ rocblas_status rocblas_hcopy(rocblas_handle      handle,
                              rocblas_half*       y,
                              rocblas_int         incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_ccopy(rocblas_handle               handle,
@@ -131,7 +104,8 @@ rocblas_status rocblas_ccopy(rocblas_handle               handle,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 rocblas_status rocblas_zcopy(rocblas_handle                handle,
@@ -141,7 +115,8 @@ rocblas_status rocblas_zcopy(rocblas_handle                handle,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
 {
-    return rocblas_copy_template(handle, n, x, incx, y, incy);
+    constexpr int NB = 256;
+    return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
 }
 
 } // extern "C"

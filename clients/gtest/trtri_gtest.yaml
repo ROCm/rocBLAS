@@ -24,7 +24,7 @@ Definitions:
 
 Tests:
 - name: trtri
-  category: pre_checkin
+  category: quick
   function: trtri
   precision: *single_double_precisions
   uplo: [ U, L ]
@@ -32,13 +32,22 @@ Tests:
   matrix_size: *small_matrix_size_range
 
 - name: trtri_batched
-  category: pre_checkin               
+  category: quick               
   function: trtri_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 1, 100, 1000 ]
+  batch_count: [ -1, 0, 1, 25 ]
+
+- name: trtri_strided_batched
+  category: quick
+  function: trtri_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *small_matrix_size_range
+  batch_count: [ -1, 0, 1, 25 ]
 
 - name: trtri_batched
   category: pre_checkin               
@@ -47,5 +56,14 @@ Tests:
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *medium_matrix_size_range
-  batch_count: [ -1, 1, 100, 1000 ]
+  batch_count: [ -1, 1, 25 ]
+
+- name: trtri_strided_batched
+  category: pre_checkin
+  function: trtri_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *medium_matrix_size_range
+  batch_count: [ -1, 1, 25 ]
 ...

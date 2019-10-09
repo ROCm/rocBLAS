@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_ger.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_ger_strided_batched.hpp"
 #include "utility.h"
 
 namespace
@@ -84,12 +84,8 @@ namespace
         if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible. Not Argument error
-        if(!m || !n)
-            return rocblas_status_success;
-
-        rocblas_ger_strided_batched_template(
-            handle, m, n, alpha, x, 0, incx, incx * m, y, 0, incy, incy * n, A, 0, lda, lda * n, 1);
+        rocblas_ger_template<T>(
+            handle, m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, 1);
 
         return rocblas_status_success;
     }
