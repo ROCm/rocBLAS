@@ -185,7 +185,7 @@ namespace
                                              C,
                                              ld_c);
 
-        return callTensileContraction_double(&problem, handle->host);
+        return callTensileContraction(&problem, handle->host);
 
 #else
         rocblas_status validArgs = validateArgs(

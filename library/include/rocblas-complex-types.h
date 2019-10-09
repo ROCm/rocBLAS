@@ -84,6 +84,19 @@ public:
     {
     }
 
+    // Conversion from std::complex<T>
+    __device__ __host__ rocblas_complex_num(const std::complex<T>& z)
+        : x(reinterpret_cast<T (&)[2]>(z)[0])
+        , y(reinterpret_cast<T (&)[2]>(z)[1])
+    {
+    }
+
+    // Conversion to std::complex<T>
+    __device__ __host__ operator std::complex<T>() const
+    {
+        return {x, y};
+    }
+
     // Conversion from different complex (explicit)
     template <typename U, typename std::enable_if<std::is_constructible<T, U>{}, int>::type = 0>
     __device__ __host__ explicit rocblas_complex_num(const rocblas_complex_num<U>& z)

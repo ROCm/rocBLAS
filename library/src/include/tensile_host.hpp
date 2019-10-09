@@ -124,17 +124,8 @@ public:
 
 TensileHost* createTensileHost();
 
-rocblas_status callTensileContraction_half(RocblasContractionProblem<rocblas_half>* problem,
-                                           TensileHost*                             host);
-rocblas_status callTensileContraction_float(RocblasContractionProblem<float>* problem,
-                                            TensileHost*                      host);
-rocblas_status callTensileContraction_double(RocblasContractionProblem<double>* problem,
-                                             TensileHost*                       host);
-rocblas_status
-               callTensileContraction_float_complex(RocblasContractionProblem<rocblas_float_complex>* problem,
-                                                    TensileHost*                                      host);
-rocblas_status callTensileContraction_double_complex(
-    RocblasContractionProblem<rocblas_double_complex>* problem, TensileHost* host);
+template <typename T>
+rocblas_status callTensileContraction(RocblasContractionProblem<T>* problem, TensileHost* host);
 
 #endif
 
