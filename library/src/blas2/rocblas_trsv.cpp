@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "../blas3/trtri_trsm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"

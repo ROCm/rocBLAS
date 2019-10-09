@@ -7,6 +7,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trsv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -14,6 +15,14 @@
 
 namespace
 {
+    // possible trsv test cases
+    enum trsv_test_type
+    {
+        TRSV,
+        TRSV_BATCHED,
+        TRSV_STRIDED_BATCHED,
+    };
+
     // By default, this test does not apply to any types.
     // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>
@@ -36,6 +45,10 @@ namespace
         {
             if(!strcmp(arg.function, "trsv"))
                 testing_trsv<T>(arg);
+            else if(!strcmp(arg.function, "trsv_batched"))
+                testing_trsv_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsv_strided_batched"))
+                testing_trsv_strided_batched<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -52,16 +65,33 @@ namespace
         // Filter for which functions apply to this suite
         static bool function_filter(const Arguments& arg)
         {
-            return !strcmp(arg.function, "trsv");
+            switch(TRSV_TYPE)
+            {
+            case TRSV:
+                return !strcmp(arg.function, "trsv");
+            case TRSV_BATCHED:
+                return !strcmp(arg.function, "trsv_batched");
+            case TRSV_STRIDED_BATCHED:
+                return !strcmp(arg.function, "trsv_strided_batched");
+            }
+            return false;
         }
 
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<trsv>{}
-                   << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
-                   << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
-                   << '_' << arg.lda << '_' << arg.incx;
+            RocBLAS_TestName<trsv> name;
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+                 << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
+                 << '_' << arg.lda 
+                
+            if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
+                name << '_' << arg.stride_a;
+                
+            name << '_' << arg.incx;
+
+            if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
+                name << '_' << arg.stride_x << '_' << arg.batch_count;
         }
     };
 
@@ -70,5 +100,18 @@ namespace
         rocblas_simple_dispatch<trsv_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(trsv);
+
+    TEST_P(trsv_batched, blas2)
+    {
+        rocblas_simple_dispatch<trsv_batched_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(trsv_batched);
+
+
+    TEST_P(trsv_strided_batched, blas2)
+    {
+        rocblas_simple_dispatch<trsv_strided_batched_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(trsv_strided_batched);
 
 } // namespace
