@@ -11,7 +11,7 @@ Definitions:
     - { M:    0, N:    1, lda:    1, stride_a:    1 }
     - { M:    1, N:    0, lda:    1, stride_a:    1 }
     - { M:    1, N:    1, lda:    0, stride_a:    1 }
-    - { M:   11, N:   12, lda:   13, stride_a:    1 }
+    - { M:   11, N:   12, lda:   13, stride_a:  156 }
     - { M:   16, N:   16, lda:   16, stride_a:  256 }
     - { M:   33, N:   32, lda:   33, stride_a: 1056 }
     - { M:   65, N:   65, lda:   66, stride_a: 4300 }
@@ -46,7 +46,10 @@ Definitions:
 Tests:
 - name: ger_bad_arg
   category: pre_checkin
-  function: ger_bad_arg
+  function:
+  - ger_bad_arg
+  - ger_batched_bad_arg
+  - ger_strided_batched_bad_arg
   precision: *single_double_precisions
 
 - name: ger_small
@@ -72,12 +75,6 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0, 0.6 ]
-
-- name: ger_batched_bad_arg
-  category: pre_checkin
-  function: ger_batched_bad_arg
-  precision: *single_double_precisions
-  batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: ger_batched_small
   category: quick
@@ -106,13 +103,6 @@ Tests:
   alpha: [ -0.5, 2.0, 0.0 ]
   batch_count: [ 1, 3 ]
 
-- name: ger_strided_batched_bad_arg
-  category: pre_checkin
-  function: ger_strided_batched_bad_arg
-  precision: *single_double_precisions
-  stride_scale: [ -1, 0, 0.5, 1, 2 ]
-  batch_count: [ -5, 0, 1, 5, 10 ]
-
 - name: ger_strided_batched_small
   category: quick
   function: ger_strided_batched
@@ -120,7 +110,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  stride_scale: [ 0.5, 1, 2 ]
+  stride_scale: [ 1, 2 ]
   batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: ger_strided_batched_medium
@@ -130,7 +120,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  stride_scale: [ 0.5, 1, 2 ]
+  stride_scale: [ 1, 2 ]
   batch_count: [ 1, 5, 10 ]
 
 - name: ger_strided_batched_large
@@ -140,5 +130,6 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx_incy: *nightly_incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
+  stride_scale: [ 1 ]
   batch_count: [ 1, 3 ]
 ...
