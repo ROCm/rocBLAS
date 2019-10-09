@@ -55,28 +55,18 @@ namespace
                               transA,
                               m,
                               n,
-                              alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
+                              log_trace_scalar_value(alpha),
                               A,
                               lda,
                               x,
                               incx,
-                              beta ? *beta : std::numeric_limits<T>::quiet_NaN(),
+                              log_trace_scalar_value(beta),
                               y,
                               incy,
                               batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass, betass;
-                    alphass << "--alpha "
-                            << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
-                    if(alpha && std::imag(*alpha))
-                        alphass << " --alphai " << std::imag(*alpha);
-                    betass << "--beta "
-                           << (beta ? std::real(*beta) : std::numeric_limits<T>::quiet_NaN());
-                    if(beta && std::imag(*beta))
-                        betass << " --betai " << std::imag(*beta);
-
                     log_bench(handle,
                               "./rocblas-bench -f gemv_batched -r",
                               rocblas_precision_string<T>,
@@ -86,12 +76,12 @@ namespace
                               m,
                               "-n",
                               n,
-                              alphass.str(),
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
                               "--incx",
                               incx,
-                              betass.str(),
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--incy",
                               incy,
                               "--batch",
@@ -145,8 +135,25 @@ namespace
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_gemv_batched_template(
-            handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+        return rocblas_gemv_template(handle,
+                                     transA,
+                                     m,
+                                     n,
+                                     alpha,
+                                     A,
+                                     0,
+                                     lda,
+                                     0,
+                                     x,
+                                     0,
+                                     incx,
+                                     0,
+                                     beta,
+                                     y,
+                                     0,
+                                     incy,
+                                     0,
+                                     batch_count);
     }
 } // namespace
 
