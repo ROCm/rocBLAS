@@ -44,6 +44,10 @@ Functions:
   rocblas_dger:  { function: ger, <<: *double_precision  }
   rocblas_ssyr:  { function: syr, <<: *single_precision  }
   rocblas_dsyr:  { function: syr, <<: *double_precision  }
+  rocblas_ssyr_strided_batched:  { function: syr_strided_batched, <<: *single_precision  }
+  rocblas_dsyr_strided_batched:  { function: syr_strided_batched, <<: *double_precision  }
+  rocblas_ssyr_batched:  { function: syr_batched, <<: *single_precision  }
+  rocblas_dsyr_batched:  { function: syr_batched, <<: *double_precision  }
   rocblas_sgemv: { function: gemv, <<: *single_precision }
   rocblas_dgemv: { function: gemv, <<: *double_precision }
   rocblas_cgemv: { function: gemv, <<: *single_precision_complex }

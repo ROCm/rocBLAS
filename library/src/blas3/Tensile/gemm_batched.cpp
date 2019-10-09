@@ -11,21 +11,18 @@
 
 namespace
 {
-
     template <typename>
-    static constexpr char rocblas_gemm_batched_name[] = "unknown";
+    constexpr char rocblas_gemm_batched_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemm_batched_name<rocblas_half>[] = "rocblas_hgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_half>[] = "rocblas_hgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<float>[] = "rocblas_sgemm_batched";
+    constexpr char rocblas_gemm_batched_name<float>[] = "rocblas_sgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<double>[] = "rocblas_dgemm_batched";
+    constexpr char rocblas_gemm_batched_name<double>[] = "rocblas_dgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[]
-        = "rocblas_cgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_float_complex>[] = "rocblas_cgemm_batched";
     template <>
-    static constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[]
-        = "rocblas_zgemm_batched";
+    constexpr char rocblas_gemm_batched_name<rocblas_double_complex>[] = "rocblas_zgemm_batched";
 
     /*******************************************************************************
     * Batched GEMM implementation
@@ -47,14 +44,11 @@ namespace
                                              rocblas_int       ld_c,
                                              rocblas_int       b_c)
     {
-        // Perform logging
         if(!handle)
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
+        // Perform logging
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -73,12 +67,12 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               B,
                               ld_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c,
                               b_c);
@@ -97,14 +91,12 @@ namespace
                               n,
                               "-k",
                               k,
-                              "--alpha",
-                              *alpha,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--ldb",
                               ld_b,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c,
                               "--batch",
@@ -150,7 +142,7 @@ namespace
                             ld_b,
                             "ldc",
                             ld_c,
-                            "batch",
+                            "batch_count",
                             b_c);
         }
 
@@ -185,6 +177,7 @@ namespace
                                                   b_c);
     }
 
+#ifndef USE_TENSILE_HOST
     /**
     * Kernel Name Function.
     */
@@ -227,12 +220,12 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               B,
                               ld_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c,
                               b_c);
@@ -251,14 +244,12 @@ namespace
                               n,
                               "-k",
                               k,
-                              "--alpha",
-                              *alpha,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--ldb",
                               ld_b,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c,
                               "--batch",
@@ -342,6 +333,7 @@ namespace
 
         return validArgs;
     }
+#endif
 
 }
 
@@ -450,6 +442,8 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
+#ifndef USE_TENSILE_HOST
+
 /*******************************************************************************
  * Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -512,4 +506,6 @@ rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
     return rocblas_gemm_batched_kernel_name_impl<double>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
+
+#endif
 }

@@ -12,26 +12,24 @@
 namespace
 {
     template <typename>
-    static constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
+    constexpr char rocblas_gemm_strided_batched_name[] = "unknown";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[]
+    constexpr char rocblas_gemm_strided_batched_name<rocblas_half>[]
         = "rocblas_hgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<float>[]
-        = "rocblas_sgemm_strided_batched";
+    constexpr char rocblas_gemm_strided_batched_name<float>[] = "rocblas_sgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<double>[]
-        = "rocblas_dgemm_strided_batched";
+    constexpr char rocblas_gemm_strided_batched_name<double>[] = "rocblas_dgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<rocblas_float_complex>[]
+    constexpr char rocblas_gemm_strided_batched_name<rocblas_float_complex>[]
         = "rocblas_cgemm_strided_batched";
 
     template <>
-    static constexpr char rocblas_gemm_strided_batched_name<rocblas_double_complex>[]
+    constexpr char rocblas_gemm_strided_batched_name<rocblas_double_complex>[]
         = "rocblas_zgemm_strided_batched";
 
     /*******************************************************************************
@@ -81,14 +79,14 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               stride_a,
                               B,
                               ld_b,
                               stride_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c,
                               stride_c,
@@ -96,16 +94,6 @@ namespace
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha);
-                    if(std::imag(*alpha) != 0)
-                        alphass << " --alphai " << std::imag(*alpha);
-
-                    std::stringstream betass;
-                    betass << "--beta " << std::real(*beta);
-                    if(std::imag(*beta) != 0)
-                        betass << " --betai " << std::imag(*beta);
-
                     log_bench(handle,
                               "./rocblas-bench -f gemm_strided_batched -r",
                               rocblas_precision_string<T>,
@@ -119,7 +107,7 @@ namespace
                               n,
                               "-k",
                               k,
-                              alphass.str(),
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--stride_a",
@@ -128,7 +116,7 @@ namespace
                               ld_b,
                               "--stride_b",
                               stride_b,
-                              betass.str(),
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c,
                               "--stride_c",
@@ -327,14 +315,14 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               stride_a,
                               B,
                               ld_b,
                               stride_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c,
                               stride_c,
@@ -354,8 +342,7 @@ namespace
                               n,
                               "-k",
                               k,
-                              "--alpha",
-                              *alpha,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--bsa",
@@ -364,8 +351,7 @@ namespace
                               ld_b,
                               "--bsb",
                               stride_b,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c,
                               "--bsc",

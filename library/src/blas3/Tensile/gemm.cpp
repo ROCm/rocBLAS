@@ -12,17 +12,17 @@
 namespace
 {
     template <typename>
-    static constexpr char rocblas_gemm_name[] = "unknown";
+    constexpr char rocblas_gemm_name[] = "unknown";
     template <>
-    static constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
+    constexpr char rocblas_gemm_name<rocblas_half>[] = "rocblas_hgemm";
     template <>
-    static constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
+    constexpr char rocblas_gemm_name<float>[] = "rocblas_sgemm";
     template <>
-    static constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
+    constexpr char rocblas_gemm_name<double>[] = "rocblas_dgemm";
     template <>
-    static constexpr char rocblas_gemm_name<rocblas_float_complex>[] = "rocblas_cgemm";
+    constexpr char rocblas_gemm_name<rocblas_float_complex>[] = "rocblas_cgemm";
     template <>
-    static constexpr char rocblas_gemm_name<rocblas_double_complex>[] = "rocblas_zgemm";
+    constexpr char rocblas_gemm_name<rocblas_double_complex>[] = "rocblas_zgemm";
 
     /*******************************************************************************
     * GEMM implementation
@@ -43,14 +43,12 @@ namespace
                                      T*                C,
                                      rocblas_int       ld_c)
     {
-        // Perform logging
         if(!handle)
             return rocblas_status_invalid_handle;
+
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
+        // Perform logging
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -69,27 +67,17 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               B,
                               ld_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha);
-                    if(std::imag(*alpha) != 0)
-                        alphass << " --alphai " << std::imag(*alpha);
-
-                    std::stringstream betass;
-                    betass << "--beta " << std::real(*beta);
-                    if(std::imag(*beta) != 0)
-                        betass << " --betai " << std::imag(*beta);
-
                     log_bench(handle,
                               "./rocblas-bench -f gemm -r",
                               rocblas_precision_string<T>,
@@ -103,12 +91,12 @@ namespace
                               n,
                               "-k",
                               k,
-                              alphass.str(),
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--ldb",
                               ld_b,
-                              betass.str(),
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c);
                 }
@@ -188,6 +176,7 @@ namespace
         return callTensileContraction(&problem, handle->host);
 
 #else
+
         rocblas_status validArgs = validateArgs(
             handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, 0, B, ld_b, 0, beta, C, ld_c, 0, 1);
 
@@ -263,27 +252,17 @@ namespace
                               m,
                               n,
                               k,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               ld_a,
                               B,
                               ld_b,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               C,
                               ld_c);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha);
-                    if(std::imag(*alpha) != 0)
-                        alphass << " --alphai " << std::imag(*alpha);
-
-                    std::stringstream betass;
-                    betass << "--beta " << std::real(*beta);
-                    if(std::imag(*beta) != 0)
-                        betass << " --betai " << std::imag(*beta);
-
                     log_bench(handle,
                               "./rocblas-bench -f gemm -r",
                               rocblas_precision_string<T>,
@@ -297,12 +276,12 @@ namespace
                               n,
                               "-k",
                               k,
-                              alphass.str(),
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               ld_a,
                               "--ldb",
                               ld_b,
-                              betass.str(),
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--ldc",
                               ld_c);
                 }
