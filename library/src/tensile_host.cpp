@@ -106,11 +106,13 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     bool transposeA = trans_a != rocblas_operation_none;
     bool transposeB = trans_b != rocblas_operation_none;
 
-    Tensile::ContractionProblem::FreeIndex  free;
-    Tensile::ContractionProblem::BoundIndex bound;
+    Tensile::ContractionProblem::FreeIndices  freeIndex(2);
+    Tensile::ContractionProblem::BoundIndex boundIndex;
 
-    free.ca = free.da = 0;
-    free.cb = free.db = 1;
+    freeIndex[0].isA=true;
+    freeIndex[0].i = freeIndex[0].c = freeIndex[0].d = 0;
+    freeIndex[1].isA=false;
+    freeIndex[1].i = freeIndex[1].c = freeIndex[1].d = 1;
 
     Tensile::TensorDescriptor a, b, c, d;
 
@@ -118,36 +120,36 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     if(transposeA)
     {
         a       = Tensile::TensorDescriptor(dt, {k, m}, {1, ld_a});
-        free.a  = 1;
-        bound.a = 0;
+        freeIndex[0].i  = 1;
+        boundIndex.a = 0;
     }
     else
     {
         a       = Tensile::TensorDescriptor(dt, {m, k}, {1, ld_a});
-        free.a  = 0;
-        bound.a = 1;
+        freeIndex[0].i  = 0;
+        boundIndex.a = 1;
     }
 
     if(transposeB)
     {
         b       = Tensile::TensorDescriptor(dt, {n, k}, {1, ld_b});
-        free.b  = 0;
-        bound.b = 1;
+        freeIndex[1].i  = 0;
+        boundIndex.b = 1;
     }
     else
     {
         b       = Tensile::TensorDescriptor(dt, {k, n}, {1, ld_b});
-        free.b  = 1;
-        bound.b = 0;
+        freeIndex[1].i  = 1;
+        boundIndex.b = 0;
     }
 
-    Tensile::ContractionProblem::FreeIndices  freeIndices{free};
+    Tensile::ContractionProblem::FreeIndices  freeIndices{freeIndex};
     Tensile::ContractionProblem::BatchIndices batchIndices;
-    Tensile::ContractionProblem::BoundIndices boundIndices{bound};
-
-    d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
+    Tensile::ContractionProblem::BoundIndices boundIndices{boundIndex};
 
     unsigned int batchCount = 1;
+
+    d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
 
     a.appendDim(batchCount);
     b.appendDim(batchCount);
