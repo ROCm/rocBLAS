@@ -28,14 +28,14 @@ namespace
                                                      const T*          alpha,
                                                      const T*          A,
                                                      rocblas_int       lda,
-                                                     rocblas_int       strideA,
+                                                     rocblas_stride    strideA,
                                                      const T*          x,
                                                      rocblas_int       incx,
-                                                     rocblas_int       stridex,
+                                                     rocblas_stride    stridex,
                                                      const T*          beta,
                                                      T*                y,
                                                      rocblas_int       incy,
-                                                     rocblas_int       stridey,
+                                                     rocblas_stride    stridey,
                                                      rocblas_int       batch_count)
     {
         if(!handle)
