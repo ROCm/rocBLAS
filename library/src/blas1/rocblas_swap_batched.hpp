@@ -38,24 +38,19 @@ rocblas_status rocblas_swap_batched_template(rocblas_handle handle,
                                              rocblas_int    batch_count)
 {
     // Quick return if possible.
-    if(n <= 0 || batch_count == 0)
+    if(n <= 0 || !batch_count)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
-
-    rocblas_int blocks = (n - 1) / NB + 1;
-    dim3        grid(blocks, batch_count);
-    dim3        threads(NB);
-
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
-    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
+    ptrdiff_t   shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
+    ptrdiff_t   shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    rocblas_int blocks = (n - 1) / NB + 1;
 
     hipLaunchKernelGGL(rocblas_swap_kernel_batched,
-                       grid,
-                       threads,
+                       dim3(blocks, batch_count),
+                       dim3(NB),
                        0,
-                       rocblas_stream,
+                       handle->rocblas_stream,
                        n,
                        x,
                        shiftx,

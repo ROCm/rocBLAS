@@ -30,6 +30,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_swap_batched_name<T>, n, x, incx, y, incy, batch_count);
@@ -57,15 +59,17 @@ namespace
                         "batch",
                         batch_count);
 
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
+        // Quick return if possible.
+        if(n <= 0 || batch_count == 0)
+            return rocblas_status_success;
 
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
 
-        constexpr rocblas_int NB = 256;
+        static constexpr auto NB = 256;
         return rocblas_swap_batched_template<NB>(handle, n, x, 0, incx, y, 0, incy, batch_count);
     }
 

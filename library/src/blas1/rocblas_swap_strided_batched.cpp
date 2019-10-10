@@ -8,7 +8,6 @@
 
 namespace
 {
-
     template <typename>
     constexpr char rocblas_swap_strided_batched_name[] = "unknown";
     template <>
@@ -35,6 +34,8 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
@@ -80,15 +81,16 @@ namespace
                         "batch",
                         batch_count);
 
-        if(!x || !y)
-            return rocblas_status_invalid_pointer;
+        if(!batch_count || n <= 0)
+            return rocblas_status_success;
 
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
 
-        constexpr rocblas_int NB = 256;
+        static constexpr auto NB = 256;
         return rocblas_swap_strided_batched_template<NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
