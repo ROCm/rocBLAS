@@ -1,30 +1,24 @@
-#!/bin/sh
+#!/bin/bash
 #
 # This pre-commit hook checks if any versions of clang-format
 # are installed, and if so, uses the installed version to format
 # the staged changes.
 
-base=/opt/rocm/hcc/bin/clang-format
-format=""
+format=/opt/rocm/hcc/bin/clang-format
 
-# Redirect output to stderr.
-exec 1>&2
+# Redirect stdout to stderr.
+exec >&2
 
- # check if clang-format is installed
-type "$base" >/dev/null 2>&1 && format="$base"
-
-# no versions of clang-format are installed
-if [ -z "$format" ]
-then
-    echo "$base is not installed. Pre-commit hook will not be executed."
+# check if clang-format is installed
+if [[ ! -x $format ]]; then
+    echo "$format is not installed. Pre-commit hook will not be executed."
     exit 0
 fi
 
 # Do everything from top - level
 cd $(git rev-parse --show-toplevel)
 
-if git rev-parse --verify HEAD >/dev/null 2>&1
-then
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
     against=HEAD
 else
     # Initial commit: diff against an empty tree object
@@ -39,10 +33,10 @@ for file in $(git diff-index --cached --name-only $against); do
 done
 
 # do the formatting
-for file in $(git diff-index --cached --name-only $against | grep -E '\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$')
-do
-    if [ -e "$file" ]
-    then
+for file in $(git diff-index --cached --name-only $against | grep -E '\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'); do
+    if [[ -e "$file" ]]; then
+        sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
+        sed -i -e '$a\' "$file" # Add missing newline to end of file
         echo "$format $file"
         "$format" -i -style=file "$file"
     fi
