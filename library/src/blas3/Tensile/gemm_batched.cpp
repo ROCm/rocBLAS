@@ -328,7 +328,7 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        rocblas_gemm_kernel_name_template<true>(
+        rocblas_gemm_kernel_name_template<true, T>(
             trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
 
         return validArgs;

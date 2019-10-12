@@ -28,8 +28,12 @@ namespace
     __global__ void axpy_kernel(
         rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
     {
-        auto      alpha = load_scalar(alpha_device_host);
-        ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        auto alpha = load_scalar(alpha_device_host);
+
+        if(!alpha)
+            return;
+
+        ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
         // bound
         if(tid < n)
@@ -58,25 +62,19 @@ namespace
                 log_trace(handle,
                           rocblas_axpy_name<T>,
                           n,
-                          alpha ? *alpha : std::numeric_limits<T>::quiet_NaN(),
+                          log_trace_scalar_value(alpha),
                           x,
                           incx,
                           y,
                           incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                std::stringstream alphass;
-                alphass << "--alpha "
-                        << (alpha ? std::real(*alpha) : std::numeric_limits<T>::quiet_NaN());
-                if(alpha && std::imag(*alpha) != 0)
-                    alphass << " --alphai " << std::imag(*alpha);
-
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<T>,
                           "-n",
                           n,
-                          alphass.str(),
+                          LOG_BENCH_SCALAR_VALUE(alpha),
                           "--incx",
                           incx,
                           "--incy",
@@ -117,8 +115,16 @@ namespace
     template <typename T, typename U>
     __global__ void haxpy_mlt_8(int n_mlt_8, U alpha_device_host, const T* x, T* y)
     {
-        int  tid      = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
-        auto alpha_h2 = load_scalar(alpha_device_host);
+        union
+        {
+            rocblas_half2 value;
+            uint32_t      data;
+        } alpha_h2 = {load_scalar(alpha_device_host)};
+
+        if(!(alpha_h2.data & 0x7fff))
+            return;
+
+        int tid = hipThreadIdx_x + hipBlockIdx_x * hipBlockDim_x;
 
         rocblas_half2 y0, y1, y2, y3;
         rocblas_half2 x0, x1, x2, x3;
@@ -144,10 +150,10 @@ namespace
             x3[0] = x[tid][6];
             x3[1] = x[tid][7];
 
-            z0 = rocblas_fmadd_half2(alpha_h2, x0, y0);
-            z1 = rocblas_fmadd_half2(alpha_h2, x1, y1);
-            z2 = rocblas_fmadd_half2(alpha_h2, x2, y2);
-            z3 = rocblas_fmadd_half2(alpha_h2, x3, y3);
+            z0 = rocblas_fmadd_half2(alpha_h2.value, x0, y0);
+            z1 = rocblas_fmadd_half2(alpha_h2.value, x1, y1);
+            z2 = rocblas_fmadd_half2(alpha_h2.value, x2, y2);
+            z3 = rocblas_fmadd_half2(alpha_h2.value, x3, y3);
 
             y[tid][0] = z0[0];
             y[tid][1] = z0[1];
@@ -164,7 +170,9 @@ namespace
     __global__ void haxpy_mod_8(int n_mod_8, U alpha_device_host, const T* x, T* y)
     {
         auto alpha = load_scalar(alpha_device_host);
-        int  tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        if(!alpha)
+            return;
+        int tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tid < n_mod_8)
             y[tid] += alpha * x[tid];
     }
@@ -191,24 +199,19 @@ namespace
                 log_trace(handle,
                           rocblas_axpy_name<rocblas_half>,
                           n,
-                          alpha ? *alpha : std::numeric_limits<float>::quiet_NaN(),
+                          log_trace_scalar_value(alpha),
                           x,
                           incx,
                           y,
                           incy);
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                std::stringstream alphass;
-                alphass << "--alpha "
-                        << (alpha ? std::real(*alpha) : std::numeric_limits<float>::quiet_NaN());
-                if(alpha && std::imag(*alpha) != 0)
-                    alphass << " --alphai " << std::imag(*alpha);
                 log_bench(handle,
                           "./rocblas-bench -f axpy -r",
                           rocblas_precision_string<rocblas_half>,
                           "-n",
                           n,
-                          alphass.str(),
+                          LOG_BENCH_SCALAR_VALUE(alpha),
                           "--incx",
                           incx,
                           "--incy",
@@ -251,7 +254,7 @@ namespace
                                    incx,
                                    (_Float16*)y,
                                    incy);
-            else if(*(const _Float16*)alpha) // alpha is on host
+            else
                 hipLaunchKernelGGL(axpy_kernel,
                                    blocks,
                                    threads,
@@ -267,7 +270,7 @@ namespace
         else
         { // rocblas_half8 load-store and rocblas_half2 arithmetic
             rocblas_int n_mod_8 = n & 7; // n mod 8
-            rocblas_int n_mlt_8 = n & ~(rocblas_int)7; // multiple of 8
+            rocblas_int n_mlt_8 = n & ~rocblas_int(7); // multiple of 8
             int         blocks  = (n / 8 - 1) / NB + 1;
             dim3        grid(blocks);
             dim3        threads(NB);
@@ -295,7 +298,7 @@ namespace
                                        (const _Float16*)x + n_mlt_8,
                                        (_Float16*)y + n_mlt_8);
             }
-            else if(*(const _Float16*)alpha) // alpha is on host
+            else
             {
                 hipLaunchKernelGGL(haxpy_mlt_8,
                                    grid,

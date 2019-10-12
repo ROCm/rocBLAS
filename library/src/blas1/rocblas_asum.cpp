@@ -27,7 +27,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if(!device->is_device_memory_size())
+        if(!handle->is_device_memory_size_query())
         {
             auto layer_mode = handle->layer_mode;
             if(layer_mode & rocblas_layer_mode_log_trace)

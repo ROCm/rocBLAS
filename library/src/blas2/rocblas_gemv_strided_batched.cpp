@@ -146,36 +146,32 @@ namespace
 
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
-        if(!m || !n || !batch_count)
-            return rocblas_status_success;
-        if(!A || !x || !y || !alpha || !beta)
-            return rocblas_status_invalid_pointer;
 
-        if(!m || !n || !batch_count)
+        if(!batch_count || !m || !n)
             return rocblas_status_success;
 
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_gemv_template(handle,
-                                     transA,
-                                     m,
-                                     n,
-                                     alpha,
-                                     A,
-                                     0,
-                                     lda,
-                                     strideA,
-                                     x,
-                                     0,
-                                     incx,
-                                     stridex,
-                                     beta,
-                                     y,
-                                     0,
-                                     incy,
-                                     stridey,
-                                     batch_count);
+        return rocblas_gemv_template<T>(handle,
+                                        transA,
+                                        m,
+                                        n,
+                                        alpha,
+                                        A,
+                                        0,
+                                        lda,
+                                        strideA,
+                                        x,
+                                        0,
+                                        incx,
+                                        stridex,
+                                        beta,
+                                        y,
+                                        0,
+                                        incy,
+                                        stridey,
+                                        batch_count);
     }
 } //namespace
 

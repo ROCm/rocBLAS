@@ -35,12 +35,12 @@ rocblas_status rocblas_gemv_template(rocblas_handle    handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    auto shiftx = incx < 0
-                      ? offsetx - ptrdiff_t(incx) * ((transA == rocblas_operation_none ? n : m) - 1)
-                      : offsetx;
-    auto shifty = incy < 0
-                      ? offsety - ptrdiff_t(incy) * ((transA == rocblas_operation_none ? m : n) - 1)
-                      : offsety;
+    auto shiftx
+        = incx < 0 ? offsetx - ptrdiff_t(incx) * (transA == rocblas_operation_none ? n - 1 : m - 1)
+                   : offsetx;
+    auto shifty
+        = incy < 0 ? offsety - ptrdiff_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
+                   : offsety;
 
     if(transA == rocblas_operation_none)
     {
