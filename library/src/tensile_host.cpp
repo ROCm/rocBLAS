@@ -106,12 +106,12 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     bool transposeA = trans_a != rocblas_operation_none;
     bool transposeB = trans_b != rocblas_operation_none;
 
-    Tensile::ContractionProblem::FreeIndices  freeIndex(2);
-    Tensile::ContractionProblem::BoundIndex boundIndex;
+    Tensile::ContractionProblem::FreeIndices freeIndex(2);
+    Tensile::ContractionProblem::BoundIndex  boundIndex;
 
-    freeIndex[0].isA=true;
+    freeIndex[0].isA = true;
     freeIndex[0].i = freeIndex[0].c = freeIndex[0].d = 0;
-    freeIndex[1].isA=false;
+    freeIndex[1].isA                                 = false;
     freeIndex[1].i = freeIndex[1].c = freeIndex[1].d = 1;
 
     Tensile::TensorDescriptor a, b, c, d;
@@ -119,28 +119,28 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     Tensile::DataType dt = tensile_datatype<T>;
     if(transposeA)
     {
-        a       = Tensile::TensorDescriptor(dt, {k, m}, {1, ld_a});
-        freeIndex[0].i  = 1;
-        boundIndex.a = 0;
+        a              = Tensile::TensorDescriptor(dt, {k, m}, {1, ld_a});
+        freeIndex[0].i = 1;
+        boundIndex.a   = 0;
     }
     else
     {
-        a       = Tensile::TensorDescriptor(dt, {m, k}, {1, ld_a});
-        freeIndex[0].i  = 0;
-        boundIndex.a = 1;
+        a              = Tensile::TensorDescriptor(dt, {m, k}, {1, ld_a});
+        freeIndex[0].i = 0;
+        boundIndex.a   = 1;
     }
 
     if(transposeB)
     {
-        b       = Tensile::TensorDescriptor(dt, {n, k}, {1, ld_b});
-        freeIndex[1].i  = 0;
-        boundIndex.b = 1;
+        b              = Tensile::TensorDescriptor(dt, {n, k}, {1, ld_b});
+        freeIndex[1].i = 0;
+        boundIndex.b   = 1;
     }
     else
     {
-        b       = Tensile::TensorDescriptor(dt, {k, n}, {1, ld_b});
-        freeIndex[1].i  = 1;
-        boundIndex.b = 0;
+        b              = Tensile::TensorDescriptor(dt, {k, n}, {1, ld_b});
+        freeIndex[1].i = 1;
+        boundIndex.b   = 0;
     }
 
     Tensile::ContractionProblem::FreeIndices  freeIndices{freeIndex};
@@ -149,16 +149,13 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
 
     unsigned int batchCount = 1;
 
-    d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
+    c = d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
 
     a.appendDim(batchCount);
     b.appendDim(batchCount);
     d.appendDim(batchCount);
 
     batchIndices.push_back({2, 2, 2, 2});
-
-    if(value_category(beta) != 0)
-        c = d;
 
     Tensile::TensorOps nop;
 
@@ -242,7 +239,7 @@ struct rocblas_to_tensile_type<rocblas_double_complex>
 template <>
 struct rocblas_to_tensile_type<rocblas_half>
 {
-    using type = int32_t;
+    using type = Tensile::Half;
 };
 
 template <typename T>
