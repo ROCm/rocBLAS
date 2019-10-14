@@ -22,6 +22,10 @@ template <>
 static constexpr auto tensile_datatype<rocblas_half> = Tensile::DataType::Half;
 
 template <>
+static constexpr auto tensile_datatype<Tensile::Half> = Tensile::DataType::Half;
+
+
+template <>
 static constexpr auto tensile_datatype<float> = Tensile::DataType::Float;
 
 template <>
@@ -149,13 +153,18 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
 
     unsigned int batchCount = 1;
 
-    c = d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
+    d = Tensile::TensorDescriptor(dt, {m, n}, {1, ld_c});
 
     a.appendDim(batchCount);
     b.appendDim(batchCount);
     d.appendDim(batchCount);
 
     batchIndices.push_back({2, 2, 2, 2});
+
+    if(beta != 0)
+        c = d;
+    else
+        c = Tensile::TensorDescriptor(dt, {}, {});
 
     Tensile::TensorOps nop;
 
