@@ -29,7 +29,7 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c'
+    rocblas.paths.build_command = './install.sh -c'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
