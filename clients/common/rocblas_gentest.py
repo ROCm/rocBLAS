@@ -211,8 +211,8 @@ def setdefaults(test):
         if all([x in test for x in ('stride_scale')]):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
 
-    if test['function'] in ('gemv_strided_batched', 'ger_strided_batched'):
-        if test['function'] in ('ger_strided_batched') or test['transA'] in ('T', 'C'):
+    if test['function'] in ('gemv_strided_batched', 'ger_strided_batched', 'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched') or test['transA'] in ('T', 'C'):
             if all([x in test for x in ('M', 'incx', 'stride_scale')]):
                 test.setdefault('stride_x', int(test['M'] * abs(test['incx']) *
                                                 test['stride_scale']))

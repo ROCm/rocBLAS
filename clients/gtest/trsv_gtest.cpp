@@ -45,8 +45,8 @@ namespace
         {
             if(!strcmp(arg.function, "trsv"))
                 testing_trsv<T>(arg);
-            else if(!strcmp(arg.function, "trsv_batched"))
-                testing_trsv_batched<T>(arg);
+            // else if(!strcmp(arg.function, "trsv_batched"))
+            //     testing_trsv_batched<T>(arg);
             else if(!strcmp(arg.function, "trsv_strided_batched"))
                 testing_trsv_strided_batched<T>(arg);
             else
@@ -54,17 +54,18 @@ namespace
         }
     };
 
-    struct trsv : RocBLAS_Test<trsv, trsv_testing>
+    template <template <typename...> class FILTER, trsv_test_type TRSV_TYPE>
+    struct trsv_template : RocBLAS_Test<trsv_template<FILTER, TRSV_TYPE>, FILTER>
     {
         // Filter for which types apply to this suite
         static bool type_filter(const Arguments& arg)
         {
-            return rocblas_simple_dispatch<type_filter_functor>(arg);
+            return rocblas_simple_dispatch<trsv_template::template type_filter_functor>(arg);
         }
 
         // Filter for which functions apply to this suite
         static bool function_filter(const Arguments& arg)
-        {
+        {   
             switch(TRSV_TYPE)
             {
             case TRSV:
@@ -80,10 +81,10 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<trsv> name;
+            RocBLAS_TestName<trsv_template> name;
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
-                 << '_' << arg.lda 
+                 << '_' << arg.lda; 
                 
             if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -92,25 +93,29 @@ namespace
 
             if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
                 name << '_' << arg.stride_x << '_' << arg.batch_count;
+            
+            return std::move(name);
         }
     };
 
+    using trsv = trsv_template<trsv_testing, TRSV>;
     TEST_P(trsv, blas2)
     {
         rocblas_simple_dispatch<trsv_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(trsv);
 
+    using trsv_batched = trsv_template<trsv_testing, TRSV_BATCHED>;
     TEST_P(trsv_batched, blas2)
     {
-        rocblas_simple_dispatch<trsv_batched_testing>(GetParam());
+        rocblas_simple_dispatch<trsv_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(trsv_batched);
 
-
+    using trsv_strided_batched = trsv_template<trsv_testing, TRSV_STRIDED_BATCHED>;
     TEST_P(trsv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<trsv_strided_batched_testing>(GetParam());
+        rocblas_simple_dispatch<trsv_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(trsv_strided_batched);
 

@@ -100,6 +100,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_blas2_tensile_source
     blas2/rocblas_trsv.cpp
+    blas2/rocblas_trsv_strided_batched.cpp
+    blas2/rocblas_trsv_batched.cpp
   )
 
 endif( ) # BUILD_WITH_TENSILE
