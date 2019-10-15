@@ -121,7 +121,6 @@ Tests:
       - nrm2_batched: *single_double_precisions_complex_real
       - iamin_batched: *single_double_precisions_complex_real
       - iamax_batched: *single_double_precisions_complex_real
-      - copy_batched:  *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: quick
@@ -138,7 +137,6 @@ Tests:
       - nrm2_strided_batched: *single_double_precisions_complex_real
       - iamin_strided_batched: *single_double_precisions_complex_real
       - iamax_strided_batched: *single_double_precisions_complex_real
-      - copy_strided_batched:  *single_double_precisions_complex_real
 
 # pre_checkin
   - name: blas1
@@ -165,7 +163,7 @@ Tests:
       - nrm2_batched: *double_precision_complex_real
       - iamin_batched: *single_double_precisions_complex_real
       - iamax_batched: *single_double_precisions_complex_real
-      - copy_batched:  *single_double_precisions_complex_real
+
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -182,7 +180,6 @@ Tests:
       - nrm2_strided_batched: *double_precision_complex_real
       - iamin_strided_batched: *single_double_precisions_complex_real
       - iamax_strided_batched: *single_double_precisions_complex_real
-      - copy_strided_batched:  *single_double_precisions_complex_real
 
   - name: blas1
     category: nightly
