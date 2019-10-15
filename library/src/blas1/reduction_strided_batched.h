@@ -165,8 +165,21 @@ size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
     batch_count rocblas_int 
         Number of batches
     ********************************************************************/
+#if 0
 template <rocblas_int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
+  size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count,To*result)
+{
+    if(n <= 0)
+        n = 1; // allow for return value of empty set
+    auto blocks = rocblas_reduction_kernel_block_count(n, NB);
+    return sizeof(To) * (blocks + 1) * batch_count;
+}
+#endif
+
+template <rocblas_int NB, typename To>
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int n,
+                                               rocblas_int batch_count = 1,
+                                               To*         result      = nullptr)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
@@ -315,9 +328,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                                                         To*            workspace,
                                                         Tr*            result)
 {
-
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
-
     hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, Ti, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,

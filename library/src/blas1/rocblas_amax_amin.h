@@ -16,7 +16,7 @@
 // Specify which suffix to use: _batched, _strided_batched or nothing.
 // Here nothing.
 //
-#define ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX
+#define ROCBLAS_BATCHED_SUFFIX
 
 //
 // Include the template.
@@ -28,6 +28,9 @@
 //
 extern "C" {
 
+//
+// Check macros exist.
+//
 #ifdef ROCBLAS_IAMAXMIN_HEADER
 #error existing macro ROCBLAS_IAMAXMIN_BATCHED_HEADER
 #endif
@@ -65,4 +68,4 @@ ROCBLAS_IAMAXMIN_CIMPL(rocblas_iza, rocblas_double_complex);
 
 } // extern "C"
 
-#undef ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX
+#undef ROCBLAS_BATCHED_SUFFIX

@@ -1,31 +1,38 @@
 #pragma once
 
+#ifndef ROCBLAS_BATCHED_SUFFIX
+#error Definition of the macro ROCBLAS_BATCHED_SUFFIX is required (_batched, _strided_batched or nothing).
+#endif
+
 #include "rocblas_iamaxmin_template.h"
 #include "rocblas_utils.h"
 
 //
 // Define names.
 //
-#define ROCBLAS_IAMAXMIN_NAME JOIN(rocblas_iamaxmin, JOIN(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX, _name))
+#ifdef ROCBLAS_IAMAXMIN_NAME
+#error ROCBLAS_IAMAXMIN_NAME is already defined.
+#endif
+#define ROCBLAS_IAMAXMIN_NAME JOIN(rocblas_iamaxmin, JOIN(ROCBLAS_BATCHED_SUFFIX, _name))
 
 template <typename>
 static constexpr char ROCBLAS_IAMAXMIN_NAME[] = "unknown";
 
 template <>
 static constexpr char ROCBLAS_IAMAXMIN_NAME<float>[]
-    = "rocblas_isa" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+    = "rocblas_isa" QUOTE(MAX_MIN) QUOTE(ROCBLAS_BATCHED_SUFFIX);
 
 template <>
 static constexpr char ROCBLAS_IAMAXMIN_NAME<double>[]
-    = "rocblas_ida" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+    = "rocblas_ida" QUOTE(MAX_MIN) QUOTE(ROCBLAS_BATCHED_SUFFIX);
 
 template <>
 static constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_float_complex>[]
-    = "rocblas_ica" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+    = "rocblas_ica" QUOTE(MAX_MIN) QUOTE(ROCBLAS_BATCHED_SUFFIX);
 
 template <>
 static constexpr char ROCBLAS_IAMAXMIN_NAME<rocblas_double_complex>[]
-    = "rocblas_iza" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX);
+    = "rocblas_iza" QUOTE(MAX_MIN) QUOTE(ROCBLAS_BATCHED_SUFFIX);
 
 template <typename U>
 static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
@@ -63,24 +70,24 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     //
     // Log trace.
     //
-    rocblas_utils<U>::logging_trace(
+    rocblas_reduction_utils::logging_trace(
         handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
 
     //
     // Log bench.
     //
-    rocblas_utils<U>::logging_bench(handle,
-                                    n,
-                                    x,
-                                    incx,
-                                    stridex,
-                                    batch_count,
-                                    "ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX));
+    rocblas_reduction_utils::logging_bench(handle,
+                                           n,
+                                           x,
+                                           incx,
+                                           stridex,
+                                           batch_count,
+                                           "ia" QUOTE(MAX_MIN) QUOTE(ROCBLAS_BATCHED_SUFFIX));
 
     //
     // Log profile.
     //
-    rocblas_utils<U>::logging_profile(
+    rocblas_reduction_utils::logging_profile(
         handle, n, x, incx, stridex, batch_count, ROCBLAS_IAMAXMIN_NAME<Ti>);
 
     if(!x || !result)
@@ -110,4 +117,7 @@ static rocblas_status rocblas_iamaxmin_impl(rocblas_handle handle,
     return rocblas_iamaxmin_template(handle, n, x, incx, stridex, batch_count, result, (void*)mem);
 }
 
+//
+// Undefined introduced macro(s).
+//
 #undef ROCBLAS_IAMAXMIN_NAME

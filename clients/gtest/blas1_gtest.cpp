@@ -113,7 +113,7 @@ namespace
             }
             else
             {
-                bool is_scal = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_rot     = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
                                || BLAS1 == blas1::rot_strided_batched);
@@ -121,16 +121,16 @@ namespace
                                 || BLAS1 == blas1::rotg_strided_batched);
                 bool is_rotmg   = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
                                  || BLAS1 == blas1::rotmg_strided_batched);
-                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched || BLAS1 == blas1::iamin_batched
-                                   || BLAS1 == blas1::iamax_batched || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
+                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
+                                   || BLAS1 == blas1::iamin_batched || BLAS1 == blas1::iamax_batched
+                                   || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
                                    || BLAS1 == blas1::copy_batched || BLAS1 == blas1::dot_batched
                                    || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::rot_batched
                                    || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched
                                    || BLAS1 == blas1::rotmg_batched);
 
                 bool is_strided
-                    = (BLAS1 == blas1::nrm2_strided_batched
-		       || BLAS1 == blas1::iamin_strided_batched
+                    = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::iamin_strided_batched
                        || BLAS1 == blas1::iamax_strided_batched
                        || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
@@ -395,8 +395,6 @@ BLAS1_TESTING(swap_batched, ARG1)
 BLAS1_TESTING(swap_strided_batched, ARG1)
 
 BLAS1_TESTING(axpy,  ARG1)
-BLAS1_TESTING(dot,   ARG1)
-BLAS1_TESTING(dotc,  ARG1)
 BLAS1_TESTING(rot,   ARG3)
 BLAS1_TESTING(rot_batched, ARG3)
 BLAS1_TESTING(rot_strided_batched, ARG3)

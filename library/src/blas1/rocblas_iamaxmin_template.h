@@ -20,7 +20,6 @@
 template <typename T>
 struct reduction_types
 {
-public:
     using Ti = T;
     using To = T;
 };
@@ -31,10 +30,7 @@ public:
 template <>
 struct reduction_types<rocblas_float_complex>
 {
-public:
     using Ti = rocblas_float_complex;
-
-public:
     using To = float;
 };
 
@@ -44,10 +40,7 @@ public:
 template <>
 struct reduction_types<rocblas_double_complex>
 {
-public:
     using Ti = rocblas_double_complex;
-
-public:
     using To = double;
 };
 
@@ -65,13 +58,16 @@ struct index_value_t
 
 //
 // Overload the output stream operator for the intermediate data type.
+// This is a convenience operator that the developer will include if needed.
 //
+#if NDEBUG
 template <typename T>
 std::ostream& operator<<(std::ostream& out, const index_value_t<T>& index_value)
 {
     out << "(" << index_value.index << "," << index_value.value << ")" << std::endl;
     return out;
 };
+#endif
 
 // #############################################################
 // DEFINITION OF ACTIONS TO EXECUTE DURING THE MIN/MAX ALGORITHM
@@ -216,10 +212,11 @@ static rocblas_status rocblas_iamaxmin_template(rocblas_handle handle,
         return rocblas_status_success;
     }
 
+    static constexpr rocblas_int shiftx = 0;
     return rocblas_reduction_strided_batched_kernel<NB,
                                                     Ti,
                                                     rocblas_fetch_amax_amin<To>,
                                                     AMAX_AMIN_REDUCTION,
                                                     rocblas_finalize_amax_amin>(
-        handle, n, x, 0, incx, stridex, batch_count, (index_value_t<To>*)workspace, result);
+        handle, n, x, shiftx, incx, stridex, batch_count, (index_value_t<To>*)workspace, result);
 }

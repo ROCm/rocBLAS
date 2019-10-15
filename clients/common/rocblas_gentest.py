@@ -197,7 +197,7 @@ def setdefaults(test):
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
 
     if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched',
-                            'iamax_strided_batched','iamin_strided_batched',
+                            'iamax_strided_batched', 'iamin_strided_batched',
                             'scal_strided_batched', 'swap_strided_batched',
                             'copy_strided_batched', 'dot_strided_batched',
                             'dotc_strided_batched', 'rot_strided_batched',

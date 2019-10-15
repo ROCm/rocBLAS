@@ -19,7 +19,7 @@
 // Specify which suffix to use: _batched, _strided_batched or nothing.
 // Here _batched.
 //
-#define ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX _batched
+#define ROCBLAS_BATCHED_SUFFIX _batched
 
 #include "rocblas_iamaxmin_impl.h"
 
@@ -38,8 +38,7 @@ extern "C" {
 //
 // Define the C header.
 //
-#define ROCBLAS_IAMAXMIN_BATCHED_HEADER(name) \
-    JOIN(name, JOIN(MAX_MIN, ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX))
+#define ROCBLAS_IAMAXMIN_BATCHED_HEADER(name) JOIN(name, JOIN(MAX_MIN, ROCBLAS_BATCHED_SUFFIX))
 
 #define ROCBLAS_IAMAXMIN_BATCHED_CIMPL(name, type)                                      \
     rocblas_status ROCBLAS_IAMAXMIN_BATCHED_HEADER(name)(rocblas_handle    handle,      \
@@ -66,4 +65,4 @@ ROCBLAS_IAMAXMIN_BATCHED_CIMPL(rocblas_iza, rocblas_double_complex);
 
 } // extern "C"
 
-#undef ROCBLAS_IAMAXMIN_GROUPKIND_SUFFIX
+#undef ROCBLAS_BATCHED_SUFFIX

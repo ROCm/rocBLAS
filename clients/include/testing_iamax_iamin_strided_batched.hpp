@@ -118,7 +118,6 @@ void template_testing_iamax_iamin_strided_batched(const Arguments&              
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_input, hipMemcpyHostToDevice));
 
     T *ptrdx = (stridex > 0) ? ((T*)dx) : ((T*)dx) + (1 - batch_count) * stridex,
-
       *ptrhx = (stridex > 0) ? ((T*)hx) : ((T*)hx) + (1 - batch_count) * stridex;
 
     double gpu_time_used, cpu_time_used;
