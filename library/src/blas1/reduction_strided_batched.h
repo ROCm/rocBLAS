@@ -256,7 +256,7 @@ __global__ void
 
     // Store result on device or in workspace
     if(tx == 0)
-        result[hipBlockIdx_y] = FINALIZE{}(tmp[0]);
+        result[hipBlockIdx_y] = Tr(FINALIZE{}(tmp[0]));
 }
 
 /*! \brief
@@ -379,7 +379,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(res, workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
             for(int i = 0; i < batch_count; i++)
-                result[i] = FINALIZE{}(res[i]);
+                result[i] = Tr(FINALIZE{}(res[i]));
         }
     }
 

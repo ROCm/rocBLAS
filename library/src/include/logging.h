@@ -13,6 +13,7 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -366,5 +367,44 @@ inline void log_bench(rocblas_handle handle, Ts&&... xs)
 {
     log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
 }
+
+/************************************************************************************
+ * Log scalar values pointed to by pointer
+ ************************************************************************************/
+
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+T log_trace_scalar_value(const T* value)
+{
+    return value ? *value : std::numeric_limits<T>::quiet_NaN();
+}
+
+template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+T log_trace_scalar_value(const T* value)
+{
+    return value ? *value
+                 : T{std::numeric_limits<typename T::value_type>::quiet_NaN(),
+                     std::numeric_limits<typename T::value_type>::quiet_NaN()};
+}
+
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+auto log_bench_scalar_value(const char* name, const T* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
+    return ss.str();
+}
+
+template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+auto log_bench_scalar_value(const char* name, const T* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " "
+       << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
+    if(value && std::imag(*value))
+        ss << " --" << name << "i " << std::imag(*value);
+    return ss.str();
+}
+
+#define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
 
 #endif

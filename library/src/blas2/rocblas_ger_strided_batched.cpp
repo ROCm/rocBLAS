@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_ger_strided_batched.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_ger.hpp"
 #include "utility.h"
 
 namespace
@@ -23,13 +23,13 @@ namespace
                                                     const T*       alpha,
                                                     const T*       x,
                                                     rocblas_int    incx,
-                                                    rocblas_int    stridex,
+                                                    rocblas_stride stridex,
                                                     const T*       y,
                                                     rocblas_int    incy,
-                                                    rocblas_int    stridey,
+                                                    rocblas_stride stridey,
                                                     T*             A,
                                                     rocblas_int    lda,
-                                                    rocblas_int    strideA,
+                                                    rocblas_stride strideA,
                                                     rocblas_int    batch_count)
     {
         if(!handle)
@@ -81,7 +81,7 @@ namespace
                           lda,
                           "--strideA",
                           strideA,
-                          "--batch_count",
+                          "--batch",
                           batch_count);
         }
         else
@@ -129,31 +129,27 @@ namespace
         if(!x || !y || !A)
             return rocblas_status_invalid_pointer;
 
-        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || stridex < m * std::abs(incx)
-           || stridey < n * abs(incy) || strideA < lda * n || batch_count < 0)
+        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        // Quick return if possible. Not Argument error
-        if(!m || !n || !batch_count)
-            return rocblas_status_success;
-
-        rocblas_ger_strided_batched_template(handle,
-                                             m,
-                                             n,
-                                             alpha,
-                                             x,
-                                             0,
-                                             incx,
-                                             stridex,
-                                             y,
-                                             0,
-                                             incy,
-                                             stridey,
-                                             A,
-                                             0,
-                                             lda,
-                                             strideA,
-                                             batch_count);
+        rocblas_ger_template<T>(handle,
+                                m,
+                                n,
+                                alpha,
+                                0,
+                                x,
+                                0,
+                                incx,
+                                stridex,
+                                y,
+                                0,
+                                incy,
+                                stridey,
+                                A,
+                                0,
+                                lda,
+                                strideA,
+                                batch_count);
 
         return rocblas_status_success;
     }
@@ -174,13 +170,13 @@ rocblas_status rocblas_sger_strided_batched(rocblas_handle handle,
                                             const float*   alpha,
                                             const float*   x,
                                             rocblas_int    incx,
-                                            rocblas_int    stridex,
+                                            rocblas_stride stridex,
                                             const float*   y,
                                             rocblas_int    incy,
-                                            rocblas_int    stridey,
+                                            rocblas_stride stridey,
                                             float*         A,
                                             rocblas_int    lda,
-                                            rocblas_int    strideA,
+                                            rocblas_stride strideA,
                                             rocblas_int    batch_count)
 {
     return rocblas_ger_strided_batched_impl(
@@ -193,13 +189,13 @@ rocblas_status rocblas_dger_strided_batched(rocblas_handle handle,
                                             const double*  alpha,
                                             const double*  x,
                                             rocblas_int    incx,
-                                            rocblas_int    stridex,
+                                            rocblas_stride stridex,
                                             const double*  y,
                                             rocblas_int    incy,
-                                            rocblas_int    stridey,
+                                            rocblas_stride stridey,
                                             double*        A,
                                             rocblas_int    lda,
-                                            rocblas_int    strideA,
+                                            rocblas_stride strideA,
                                             rocblas_int    batch_count)
 {
     return rocblas_ger_strided_batched_impl(

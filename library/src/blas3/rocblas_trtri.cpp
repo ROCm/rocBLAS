@@ -2,10 +2,19 @@
  *  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *  *
  *  * ************************************************************************ */
-#include "trtri_trsm.hpp"
+#include "rocblas_trtri.hpp"
+#include "logging.h"
+#include "utility.h"
 
 namespace
 {
+    template <typename>
+    constexpr char rocblas_trtri_name[] = "unknown";
+    template <>
+    constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
+    template <>
+    constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
+
     template <rocblas_int NB, typename T>
     rocblas_status rocblas_trtri_impl(rocblas_handle   handle,
                                       rocblas_fill     uplo,
@@ -19,7 +28,23 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        // TODO: Add logging
+        auto layer_mode = handle->layer_mode;
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_trtri_name<T>, uplo, diag, n, A, lda, invA, ldinvA);
+
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_trtri_name<T>,
+                        "uplo",
+                        rocblas_fill_letter(uplo),
+                        "diag",
+                        rocblas_diag_letter(diag),
+                        "N",
+                        n,
+                        "lda",
+                        lda,
+                        "ldinvA",
+                        ldinvA);
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
             return rocblas_status_not_implemented;
@@ -32,7 +57,7 @@ namespace
         if(!invA)
             return rocblas_status_invalid_pointer;
 
-        size_t size = rocblas_trtri_batched_temp_size<NB>(n, 1) * sizeof(T);
+        size_t size = rocblas_trtri_temp_size<NB>(n, 1) * sizeof(T);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(size);
 
@@ -40,12 +65,26 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_trtri_template<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, (T*)mem);
+        return rocblas_trtri_template<NB, false, false, T>(handle,
+                                                           uplo,
+                                                           diag,
+                                                           n,
+                                                           A,
+                                                           0,
+                                                           lda,
+                                                           lda * n,
+                                                           0,
+                                                           invA,
+                                                           0,
+                                                           ldinvA,
+                                                           ldinvA * n,
+                                                           0,
+                                                           1,
+                                                           1,
+                                                           (T*)mem);
     }
 
-} // namespace
-
-/* ============================================================================================ */
+}
 
 /*
  * ===========================================================================
