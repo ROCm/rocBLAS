@@ -159,12 +159,9 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     b.appendDim(batchCount);
     d.appendDim(batchCount);
 
-    batchIndices.push_back({2, 2, 2, 2});
+    c = d;
 
-    if(beta != 0)
-        c = d;
-    else
-        c = Tensile::TensorDescriptor(dt, {}, {});
+    batchIndices.push_back({2, 2, 2, 2});
 
     Tensile::TensorOps nop;
 
