@@ -45,7 +45,7 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_trsv_strided_batched_name<T>, uplo, transA, diag, m, A, lda, B, incx);
+            log_trace(handle, rocblas_trsv_strided_batched_name<T>, uplo, transA, diag, m, A, lda, stride_A, B, incx, stride_B, batch_count);
 
         if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
         {
@@ -69,8 +69,14 @@ namespace
                               m,
                               "--lda",
                               lda,
+                              "--stride_A",
+                              stride_A,
                               "--incx",
-                              incx);
+                              incx,
+                              "--stride_B",
+                              stride_B,
+                              "--batch",
+                               batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -86,15 +92,21 @@ namespace
                             m,
                             "lda",
                             lda,
+                            "stride_A",
+                            stride_A,
                             "incx",
-                            incx);
+                            incx,
+                            "stride_B",
+                            stride_B,
+                            "batch",
+                            batch_count);
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
             return rocblas_status_not_implemented;
         if(!A || !B)
             return rocblas_status_invalid_pointer;
-        if(m < 0 || lda < m || lda < 1 || !incx)
+        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // quick return if possible.
