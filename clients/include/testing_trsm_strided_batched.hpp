@@ -41,8 +41,8 @@ void testing_trsm_strided_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_int K      = side == rocblas_side_left ? M : N;
-    size_t      size_A = lda * size_t(K) * batch_count + size_t(stride_a) * size_t(batch_count - 1);
-    size_t      size_B = ldb * size_t(N) * batch_count + size_t(stride_b) * size_t(batch_count - 1);
+    size_t      size_A = lda * size_t(K) + size_t(stride_a) * size_t(batch_count - 1);
+    size_t      size_B = ldb * size_t(N) + size_t(stride_b) * size_t(batch_count - 1);
 
     rocblas_local_handle handle;
 

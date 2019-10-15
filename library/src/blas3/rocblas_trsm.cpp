@@ -173,6 +173,16 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
+        rocblas_status perf_status = rocblas_status_success;
+        if(supplied_invA && supplied_invA_size / BLOCK < k)
+        {
+            static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
+                                "is being ignored; TRSM performance is degraded\n",
+                                stderr);
+            perf_status    = rocblas_status_perf_degraded;
+            supplied_invA  = nullptr;
+        }
+
         void*          mem_x_temp;
         void*          mem_x_temp_arr;
         void*          mem_invA;
@@ -217,7 +227,8 @@ namespace
                                                                         supplied_invA,
                                                                         supplied_invA_size);
 
-        return (status2 == rocblas_status_success) ? status : status2;
+        return (perf_status != rocblas_status_success) ? perf_status :
+               (status2 == rocblas_status_success) ? status : status2;
     }
 
 }
