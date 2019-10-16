@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#if BUILD_WITH_TENSILE
+#include "Tensile.h"
+#endif
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
@@ -10,10 +13,12 @@
  ******************************************************************************/
 _rocblas_handle::_rocblas_handle()
 {
+#if BUILD_WITH_TENSILE
+    static int dummy = (tensileInitialize(), 0);
 #ifdef USE_TENSILE_HOST
-    host = createTensileHost();
-    if(!host)
-        throw rocblas_status_internal_error;
+    static TensileHost* hostImpl = createTensileHost();
+    host                         = hostImpl;
+#endif
 #endif
 
     // default device is active device
@@ -69,10 +74,6 @@ _rocblas_handle::~_rocblas_handle()
     }
     if(device_memory)
         (hipFree)(device_memory);
-
-#ifdef USE_TENSILE_HOST
-    delete host;
-#endif
 }
 
 /*******************************************************************************

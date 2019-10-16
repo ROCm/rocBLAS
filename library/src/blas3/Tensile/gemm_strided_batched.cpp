@@ -197,7 +197,6 @@ namespace
             hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
         }
 
-        TensileHostCall<T>           hostCall;
         RocblasContractionProblem<T> problem(ContractionProblemType::GEMMStridedBatch,
                                              trans_a,
                                              trans_b,
@@ -217,7 +216,7 @@ namespace
                                              stride_c,
                                              b_c);
 
-        return callTensileContraction(&problem, handle->host);
+        return handle->host->runContractionProblem(problem);
 
 #else
         rocblas_status validArgs = validateArgs(handle,

@@ -12,42 +12,41 @@ enum ContractionProblemType
 };
 
 template <typename T>
-class RocblasContractionProblem
+struct RocblasContractionProblem
 {
-public:
     ContractionProblemType problem_type;
     rocblas_operation      trans_a;
     rocblas_operation      trans_b;
-    unsigned long          m;
-    unsigned long          n;
-    unsigned long          k;
+    size_t                 m;
+    size_t                 n;
+    size_t                 k;
     const T                alpha;
     const T*               A;
-    const unsigned long    ld_a;
-    unsigned long          stride_a;
+    size_t                 ld_a;
+    size_t                 stride_a;
     const T*               B;
-    unsigned long          ld_b;
-    unsigned long          stride_b;
+    size_t                 ld_b;
+    size_t                 stride_b;
     const T                beta;
     T*                     C;
-    unsigned long          ld_c;
-    unsigned long          stride_c;
-    unsigned long          batch_size;
+    size_t                 ld_c;
+    size_t                 stride_c;
+    size_t                 batch_size;
 
     RocblasContractionProblem(ContractionProblemType problem_type,
                               rocblas_operation      trans_a,
                               rocblas_operation      trans_b,
-                              unsigned long          m,
-                              unsigned long          n,
-                              unsigned long          k,
+                              size_t                 m,
+                              size_t                 n,
+                              size_t                 k,
                               const T                alpha,
                               const T*               A,
-                              unsigned long          ld_a,
+                              size_t                 ld_a,
                               const T*               B,
-                              unsigned long          ld_b,
+                              size_t                 ld_b,
                               const T                beta,
                               T*                     C,
-                              unsigned long          ld_c)
+                              size_t                 ld_c)
         : problem_type(problem_type)
         , trans_a(trans_a)
         , trans_b(trans_b)
@@ -72,21 +71,21 @@ public:
     RocblasContractionProblem(ContractionProblemType problem_type,
                               rocblas_operation      trans_a,
                               rocblas_operation      trans_b,
-                              unsigned long          m,
-                              unsigned long          n,
-                              unsigned long          k,
+                              size_t                 m,
+                              size_t                 n,
+                              size_t                 k,
                               const T                alpha,
                               const T*               A,
-                              unsigned long          ld_a,
-                              unsigned long          stride_a,
+                              size_t                 ld_a,
+                              size_t                 stride_a,
                               const T*               B,
-                              unsigned long          ld_b,
-                              unsigned long          stride_b,
+                              size_t                 ld_b,
+                              size_t                 stride_b,
                               const T                beta,
                               T*                     C,
-                              unsigned long          ld_c,
-                              unsigned long          stride_c,
-                              unsigned long          batch_size)
+                              size_t                 ld_c,
+                              size_t                 stride_c,
+                              size_t                 batch_size)
         : problem_type(problem_type)
         , trans_a(trans_a)
         , trans_b(trans_b)
@@ -109,23 +108,16 @@ public:
     }
 };
 
-class TensileHost
+struct TensileHost
 {
-public:
-    virtual void initializeHost(const char*) {}
-};
+    template <typename T>
+    rocblas_status runContractionProblem(const RocblasContractionProblem<T>& problem);
 
-template <typename T>
-class TensileHostCall
-{
-public:
-    rocblas_status runContractionProblem(RocblasContractionProblem<T>* problem, TensileHost* host);
+protected:
+    TensileHost() = default; // Prevent instantiating this class except as base class
 };
 
 TensileHost* createTensileHost();
-
-template <typename T>
-rocblas_status callTensileContraction(RocblasContractionProblem<T>* problem, TensileHost* host);
 
 #endif
 

@@ -163,7 +163,6 @@ namespace
             hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
         }
 
-        TensileHostCall<T>           hostCall;
         RocblasContractionProblem<T> problem(ContractionProblemType::GEMM,
                                              trans_a,
                                              trans_b,
@@ -179,7 +178,7 @@ namespace
                                              C,
                                              ld_c);
 
-        return callTensileContraction(&problem, handle->host);
+        return handle->host->runContractionProblem(problem);
 
 #else
 
