@@ -83,14 +83,16 @@ namespace
                                                rocblas_int    src_incx,
                                                rocblas_stride src_stride,
                                                rocblas_int    size,
-                                               rocblas_int    offset_src = 0,
-                                               rocblas_int    offset_dst = 0)
+                                               rocblas_int    offset_dst = 0,
+                                               rocblas_int    offset_src = 0)
     {
-        const T* __restrict__ xsrc = load_ptr_batch(src, hipBlockIdx_y, offset_src, src_stride);
-        T* __restrict__ xdst       = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
         ptrdiff_t tx               = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
+        {
+            const T* __restrict__ xsrc = load_ptr_batch(src, hipBlockIdx_y, offset_src, src_stride);
+            T* __restrict__ xdst       = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
             xdst[tx * dst_incx] = xsrc[tx * src_incx];
+        }
     }
 
     template <typename T, typename U, typename V>
@@ -103,8 +105,8 @@ namespace
                              rocblas_stride src_stride,
                              rocblas_int    size,
                              rocblas_int    batch_count,
-                             rocblas_int    offset_src = 0,
-                             rocblas_int    offset_dst = 0)
+                             rocblas_int    offset_dst = 0,
+                             rocblas_int    offset_src = 0)
     {
         rocblas_int blocksX = (size - 1) / NB_X + 1;
         dim3        grid(blocksX, batch_count, 1);
@@ -122,8 +124,8 @@ namespace
                            src_incx,
                            src_stride,
                            size,
-                           offset_src,
-                           offset_dst);
+                           offset_dst,
+                           offset_src);
     }
 
     template <typename T>
@@ -221,7 +223,7 @@ namespace
                                              m - BLOCK,
                                              BLOCK,
                                              &negative_one<T>,
-                                             A ,
+                                             A,
                                              offset_Ain + BLOCK,
                                              lda,
                                              stride_A,
@@ -255,8 +257,8 @@ namespace
                                                  incx,
                                                  stride_B,
                                                  &zero<T>,
-                                                 X + i,
-                                                 0,
+                                                 X,
+                                                 i,
                                                  1,
                                                  stride_X,
                                                  batch_count);
@@ -618,7 +620,7 @@ namespace
                   << stride_X << " stride_B " << stride_B << " incx " << incx << " batch_count "
                   << batch_count << " offset_Ain " << offset_Ain << " offset_Bin " << offset_Bin
                   << " offset_invAin " << offset_invAin << std::endl;
-        rocblas_int i, jb;
+
         bool        parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
         size_t      R      = m / BLOCK;
 
@@ -937,13 +939,13 @@ namespace
                                 B,
                                 abs_incx,
                                 stride_B,
-                                incx < 0 ? (V)x_temp + m - 1 : (V)x_temp,
+                                (V)x_temp,
                                 incx < 0 ? -1 : 1,
                                 x_temp_els,
                                 m,
                                 batch_count,
                                 offset_B,
-                                0);
+                                incx < 0 ? m - 1 : 0);
 
             // for(int i = 0; i < batch_count; i++)
             //     strided_vector_copy_old(

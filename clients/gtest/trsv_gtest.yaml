@@ -75,7 +75,7 @@ Tests:
   incx: [ 1 ]
   stride_scale: [ 1 ]
   # batch_count: [ 1, 3 ]
-  batch_count: [ 1 ] 
+  batch_count: [ 2 ] 
 
 - name: trsv_batched_large
   category: nightly
@@ -107,7 +107,7 @@ Tests:
   incx: [ 1 ]
   stride_scale: [ 1 ]
   # batch_count: [ 1, 3 ]
-  batch_count: [ 2 ] 
+  batch_count: [ 3 ] 
 
 - name: trsv_strided_batched_large
   category: nightly
