@@ -54,6 +54,38 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ -1, 0, 1, 2, 3 ]
 
+- name: trsv_batched_small
+  category: quick
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
+  # incx: [ 1 ]
+  stride_scale: [ 1, 10, 100 ]
+  # stride_scale: [ 1 ]
+  # batch_count: [ -5 , 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
+  batch_count: [ 2 ] 
+
+- name: trsv_batched_medium
+  category: pre_checkin
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *medium_matrix_size_range
+  # incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  incx: [ 1 ]
+  stride_scale: [ 1 ]
+  # batch_count: [ 1, 3 ]
+  batch_count: [ 1 ] 
+
+- name: trsv_batched_large
+  category: nightly
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *large_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 1, 3 ]
+
 - name: trsv_strided_batched_small
   category: quick
   function: trsv_strided_batched

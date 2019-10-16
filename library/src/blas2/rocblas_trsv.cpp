@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#include "rocblas_trsv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -9,7 +10,6 @@
 #include <algorithm>
 #include <cstdio>
 #include <tuple>
-#include "rocblas_trsv.hpp"
 
 namespace
 {
@@ -99,20 +99,20 @@ namespace
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
 
-        void*          mem_x_temp;
-        void*          mem_x_temp_arr;
-        void*          mem_invA;
-        void*          mem_invA_arr;
+        void* mem_x_temp;
+        void* mem_x_temp_arr;
+        void* mem_invA;
+        void* mem_invA_arr;
 
         rocblas_status status = rocblas_trsv_template_mem<BLOCK, false, T>(handle,
-                                                                    m,
-                                                                    1,
-                                                                    &mem_x_temp,
-                                                                    &mem_x_temp_arr,
-                                                                    &mem_invA,
-                                                                    &mem_invA_arr,
-                                                                    supplied_invA,
-                                                                    supplied_invA_size);
+                                                                           m,
+                                                                           1,
+                                                                           &mem_x_temp,
+                                                                           &mem_x_temp_arr,
+                                                                           &mem_invA,
+                                                                           &mem_invA_arr,
+                                                                           supplied_invA,
+                                                                           supplied_invA_size);
 
         rocblas_status status2 = rocblas_trsv_template<BLOCK, false, T>(handle,
                                                                         uplo,
@@ -134,7 +134,7 @@ namespace
                                                                         mem_invA_arr,
                                                                         supplied_invA,
                                                                         supplied_invA_size);
-                                                            
+
         return (status2 == rocblas_status_success) ? status : status2;
     }
 

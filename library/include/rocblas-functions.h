@@ -2681,6 +2681,81 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
 /*! \brief BLAS Level 2 API
 
     \details
+    trsv_batched solves
+
+         A*x = alpha*b or A**T*x = alpha*b,
+
+    where x and b are vectors and A is a triangular matrix.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     rocblas_operation
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         rocblas_int
+              m specifies the number of rows of b. m >= 0.
+
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+
+    @param[in]
+    A         pointer storing matrix A on the GPU,
+              of dimension ( lda, m )
+
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+              lda = max( 1, m ).
+
+    @param[in]
+    x         pointer storing vector x on the GPU.
+
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*  const    A[],
+                                                            rocblas_int       lda,
+                                                            float*  const      x[],
+                                                            rocblas_int       incx,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*  const    A[],
+                                                            rocblas_int       lda,
+                                                            double*  const    x[],
+                                                            rocblas_int       incx,
+                                                            rocblas_int       batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     trsv_strided_batched solves
 
          A*x = alpha*b or A**T*x = alpha*b,

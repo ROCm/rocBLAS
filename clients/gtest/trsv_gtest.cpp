@@ -7,6 +7,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trsv_batched.hpp"
 #include "testing_trsv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
@@ -45,8 +46,8 @@ namespace
         {
             if(!strcmp(arg.function, "trsv"))
                 testing_trsv<T>(arg);
-            // else if(!strcmp(arg.function, "trsv_batched"))
-            //     testing_trsv_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsv_batched"))
+                testing_trsv_batched<T>(arg);
             else if(!strcmp(arg.function, "trsv_strided_batched"))
                 testing_trsv_strided_batched<T>(arg);
             else
@@ -65,7 +66,7 @@ namespace
 
         // Filter for which functions apply to this suite
         static bool function_filter(const Arguments& arg)
-        {   
+        {
             switch(TRSV_TYPE)
             {
             case TRSV:
@@ -84,16 +85,16 @@ namespace
             RocBLAS_TestName<trsv_template> name;
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
-                 << '_' << arg.lda; 
-                
-            if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
-                name << '_' << arg.stride_a;
-                
-            name << '_' << arg.incx;
+                 << '_' << arg.lda;
 
             if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
+                name << '_' << arg.stride_a;
+
+            name << '_' << arg.incx;
+
+            if(TRSV_TYPE != TRSV )
                 name << '_' << arg.stride_x << '_' << arg.batch_count;
-            
+
             return std::move(name);
         }
     };

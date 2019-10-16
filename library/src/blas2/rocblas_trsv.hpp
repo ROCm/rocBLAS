@@ -16,7 +16,7 @@ namespace
     using std::max;
     using std::min;
 
-    constexpr rocblas_int NB_X        = 1024;
+    constexpr rocblas_int NB_X = 1024;
 
     template <typename T>
     constexpr T negative_one = -1;
@@ -27,18 +27,18 @@ namespace
 
     template <typename T, typename U>
     __global__ void flip_vector_kernel(U* __restrict__ dataa,
-                                        rocblas_int m,
-                                    //    U* __restrict__ data_end,
-                                       rocblas_int size,
-                                       rocblas_int abs_incx,
-                                       rocblas_int offset,
+                                       rocblas_int m,
+                                       //    U* __restrict__ data_end,
+                                       rocblas_int    size,
+                                       rocblas_int    abs_incx,
+                                       rocblas_int    offset,
                                        rocblas_stride stride)
     {
         ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
         {
-            T*          data = load_ptr_batch(dataa, hipBlockIdx_y, offset, stride);
-            T*          data_end = data + (m - 1) * abs_incx;
+            T*   data         = load_ptr_batch(dataa, hipBlockIdx_y, offset, stride);
+            T*   data_end     = data + (m - 1) * abs_incx;
             auto offset       = tx * abs_incx;
             auto temp         = data[offset];
             data[offset]      = data_end[-offset];
@@ -47,14 +47,20 @@ namespace
     }
 
     template <typename T, typename U>
-    void flip_vector(rocblas_handle handle, U* data, rocblas_int m, rocblas_int abs_incx, rocblas_stride stride, rocblas_int batch_count, rocblas_int offset = 0)
+    void flip_vector(rocblas_handle handle,
+                     U*             data,
+                     rocblas_int    m,
+                     rocblas_int    abs_incx,
+                     rocblas_stride stride,
+                     rocblas_int    batch_count,
+                     rocblas_int    offset = 0)
     {
         // T*          xdata = load_ptr_batch(data, hipBlockIdx_y, offset_src, src_stride);
         // T*          data_end = data + (m - 1) * abs_incx;
-        rocblas_int size     = (m + 1) / 2;
-        rocblas_int blocksX  = (size - 1) / NB_X + 1;
+        rocblas_int size    = (m + 1) / 2;
+        rocblas_int blocksX = (size - 1) / NB_X + 1;
         dim3        grid(blocksX, batch_count, 1);
-        dim3        threads  = NB_X;
+        dim3        threads = NB_X;
 
         hipLaunchKernelGGL(flip_vector_kernel<T>,
                            grid,
@@ -71,18 +77,18 @@ namespace
 
     template <typename T, typename U, typename V>
     __global__ void strided_vector_copy_kernel(U* __restrict__ dst,
-                                               rocblas_int dst_incx,
+                                               rocblas_int    dst_incx,
                                                rocblas_stride dst_stride,
                                                const V* __restrict__ src,
-                                               rocblas_int src_incx,
+                                               rocblas_int    src_incx,
                                                rocblas_stride src_stride,
-                                               rocblas_int size,
+                                               rocblas_int    size,
                                                rocblas_int    offset_src = 0,
                                                rocblas_int    offset_dst = 0)
-    {        
+    {
         const T* __restrict__ xsrc = load_ptr_batch(src, hipBlockIdx_y, offset_src, src_stride);
-        T* __restrict__       xdst = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
-        ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        T* __restrict__ xdst       = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
+        ptrdiff_t tx               = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
             xdst[tx * dst_incx] = xsrc[tx * src_incx];
     }
@@ -122,10 +128,10 @@ namespace
 
     template <typename T>
     __global__ void strided_vector_copy_old_kernel(T* __restrict__ dst,
-                                               rocblas_int dst_incx,
-                                               const T* __restrict__ src,
-                                               rocblas_int src_incx,
-                                               rocblas_int size)
+                                                   rocblas_int dst_incx,
+                                                   const T* __restrict__ src,
+                                                   rocblas_int src_incx,
+                                                   rocblas_int size)
     {
         ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
@@ -134,11 +140,11 @@ namespace
 
     template <typename T>
     void strided_vector_copy_old(rocblas_handle handle,
-                             T*             dst,
-                             rocblas_int    dst_incx,
-                             T*             src,
-                             rocblas_int    src_incx,
-                             rocblas_int    size)
+                                 T*             dst,
+                                 rocblas_int    dst_incx,
+                                 T*             src,
+                                 rocblas_int    src_incx,
+                                 rocblas_int    size)
     {
         rocblas_int blocksX = (size - 1) / NB_X + 1;
         dim3        grid    = blocksX;
@@ -156,29 +162,30 @@ namespace
                            size);
     }
 
-
     template <rocblas_int BLOCK, typename T, typename U, typename V>
     rocblas_status rocblas_trsv_left(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_int       m,
-                                     const U*          A,
+                                     U          A,
                                      rocblas_int       offset_Ain,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_A,
-                                     V*                B,
+                                     V                B,
                                      rocblas_int       offset_Bin,
                                      rocblas_int       incx,
                                      rocblas_int       stride_B,
-                                     const U*          invA,
+                                     U          invA,
                                      rocblas_int       offset_invAin,
                                      rocblas_stride    stride_invA,
-                                     V*                X,
+                                     V                X,
                                      rocblas_stride    stride_X,
                                      rocblas_int       batch_count)
     {
-        std::cout<<"left m "<<m<<" lda "<<lda<<" stride_a "<<stride_A<<" stride_x "<<stride_X<<" stride_B "<<stride_B<<" incx "<<incx
-    <<" batch_count "<<batch_count<<" offset_Ain "<<offset_Ain<<" offset_Bin "<<offset_Bin<<" offset_invAin "<<offset_invAin<<std::endl;
+        std::cout << "left m " << m << " lda " << lda << " stride_a " << stride_A << " stride_x "
+                  << stride_X << " stride_B " << stride_B << " incx " << incx << " batch_count "
+                  << batch_count << " offset_Ain " << offset_Ain << " offset_Bin " << offset_Bin
+                  << " offset_invAin " << offset_invAin << std::endl;
         rocblas_int i, jb;
 
         if(transA == rocblas_operation_none)
@@ -196,7 +203,7 @@ namespace
                                          offset_invAin,
                                          BLOCK,
                                          stride_invA,
-                                         B,
+                                         (U)B,
                                          offset_Bin,
                                          incx,
                                          stride_B,
@@ -214,17 +221,17 @@ namespace
                                              m - BLOCK,
                                              BLOCK,
                                              &negative_one<T>,
-                                             A + BLOCK,
-                                             offset_Ain,
+                                             A ,
+                                             offset_Ain + BLOCK,
                                              lda,
                                              stride_A,
-                                             X,
+                                             (U)X,
                                              0,
                                              1,
                                              stride_X,
                                              &one<T>,
-                                             B + BLOCK * incx,
-                                             offset_Bin,
+                                             B,
+                                             offset_Bin + BLOCK * incx,
                                              incx,
                                              stride_B,
                                              batch_count);
@@ -239,12 +246,12 @@ namespace
                                                  jb,
                                                  jb,
                                                  &one<T>,
-                                                 invA + i * BLOCK,
-                                                 offset_invAin,
+                                                 invA,
+                                                 offset_invAin + i * BLOCK,
                                                  BLOCK,
                                                  stride_invA,
-                                                 B + i * incx,
-                                                 offset_Bin,
+                                                 (U)B,
+                                                 offset_Bin + i * incx,
                                                  incx,
                                                  stride_B,
                                                  &zero<T>,
@@ -259,17 +266,17 @@ namespace
                                                      m - i - BLOCK,
                                                      BLOCK,
                                                      &negative_one<T>,
-                                                     A + i + BLOCK + i * lda,
-                                                     offset_Ain,
+                                                     A,
+                                                     offset_Ain + i + BLOCK + i * lda,
                                                      lda,
                                                      stride_A,
-                                                     X + i,
-                                                     0,
+                                                     (U)X,
+                                                     i,
                                                      1,
                                                      stride_X,
                                                      &one<T>,
-                                                     B + (i + BLOCK) * incx,
-                                                     offset_Bin,
+                                                     B,
+                                                     offset_Bin + (i + BLOCK) * incx,
                                                      incx,
                                                      stride_B,
                                                      batch_count);
@@ -288,17 +295,17 @@ namespace
                                          jb,
                                          jb,
                                          &one<T>,
-                                         invA + i * BLOCK,
-                                         offset_invAin,
+                                         invA,
+                                         offset_invAin + i * BLOCK,
                                          BLOCK,
                                          stride_invA,
-                                         B + i * incx,
-                                         offset_Bin,
+                                         (U)B,
+                                         offset_Bin + i * incx,
                                          incx,
                                          stride_B,
                                          &zero<T>,
-                                         X + i,
-                                         0,
+                                         X,
+                                         i,
                                          1,
                                          stride_X,
                                          batch_count);
@@ -310,12 +317,12 @@ namespace
                                              i,
                                              jb,
                                              &negative_one<T>,
-                                             A + i * lda,
-                                             offset_Ain,
+                                             A,
+                                             offset_Ain + i * lda,
                                              lda,
                                              stride_A,
-                                             X + i,
-                                             0,
+                                             (U)X,
+                                             i,
                                              1,
                                              stride_X,
                                              &one<T>,
@@ -334,17 +341,17 @@ namespace
                                                  BLOCK,
                                                  BLOCK,
                                                  &one<T>,
-                                                 invA + i * BLOCK,
-                                                 offset_invAin,
+                                                 invA,
+                                                 offset_invAin + i * BLOCK,
                                                  BLOCK,
                                                  stride_invA,
-                                                 B + i * incx,
-                                                 offset_Bin,
+                                                 (U)B,
+                                                 offset_Bin + i * incx,
                                                  incx,
                                                  stride_B,
                                                  &zero<T>,
-                                                 X + i,
-                                                 0,
+                                                 X,
+                                                 i,
                                                  1,
                                                  stride_X,
                                                  batch_count);
@@ -355,12 +362,12 @@ namespace
                                                      i,
                                                      BLOCK,
                                                      &negative_one<T>,
-                                                     A + i * lda,
-                                                     offset_Ain,
+                                                     A,
+                                                     offset_Ain + i * lda,
                                                      lda,
                                                      stride_A,
-                                                     X + i,
-                                                     0,
+                                                     (U)X,
+                                                     i,
                                                      1,
                                                      stride_X,
                                                      &one<T>,
@@ -377,8 +384,10 @@ namespace
         { // transA == rocblas_operation_transpose || transA == rocblas_operation_conjugate_transpose
             if(uplo == rocblas_fill_lower)
             {
-                std::cout<<"offset_invAin "<<offset_invAin<<" stride_invA "<<stride_invA<<" offset_Bin "<<offset_Bin<<" stride_B "<<stride_B
-                <<" stride_X "<<stride_X<<" offset_Ain "<<offset_Ain<<" stride_A "<<stride_A<<std::endl;
+                std::cout << "offset_invAin " << offset_invAin << " stride_invA " << stride_invA
+                          << " offset_Bin " << offset_Bin << " stride_B " << stride_B
+                          << " stride_X " << stride_X << " offset_Ain " << offset_Ain
+                          << " stride_A " << stride_A << std::endl;
                 // left, lower transpose
                 jb = m % BLOCK == 0 ? BLOCK : m % BLOCK;
                 i  = m - jb;
@@ -388,17 +397,17 @@ namespace
                                          jb,
                                          jb,
                                          &one<T>,
-                                         invA + i * BLOCK,
-                                         offset_invAin,
+                                         invA,
+                                         offset_invAin + i * BLOCK,
                                          BLOCK,
                                          stride_invA,
-                                         B + i * incx,
-                                         offset_Bin,
+                                         (U)B,
+                                         offset_Bin + i * incx,
                                          incx,
                                          stride_B,
                                          &zero<T>,
-                                         X + i,
-                                         0,
+                                         X,
+                                         i,
                                          1,
                                          stride_X,
                                          batch_count);
@@ -410,12 +419,12 @@ namespace
                                              jb,
                                              i,
                                              &negative_one<T>,
-                                             A + i,
-                                             offset_Ain,
+                                             A,
+                                             offset_Ain + i,
                                              lda,
                                              stride_A,
-                                             X + i,
-                                             0,
+                                             (U)X,
+                                             i,
                                              1,
                                              stride_X,
                                              &one<T>,
@@ -433,17 +442,17 @@ namespace
                                                  BLOCK,
                                                  BLOCK,
                                                  &one<T>,
-                                                 invA + i * BLOCK,
-                                                 offset_invAin,
+                                                 invA,
+                                                 offset_invAin + i * BLOCK,
                                                  BLOCK,
                                                  stride_invA,
-                                                 B + i * incx,
-                                                 offset_Bin,
+                                                 (U)B,
+                                                 offset_Bin + i * incx,
                                                  incx,
                                                  stride_B,
                                                  &zero<T>,
-                                                 X + i,
-                                                 0,
+                                                 X,
+                                                 i,
                                                  1,
                                                  stride_X,
                                                  batch_count);
@@ -454,12 +463,12 @@ namespace
                                                      BLOCK,
                                                      i,
                                                      &negative_one<T>,
-                                                     A + i,
-                                                     offset_Ain,
+                                                     A,
+                                                     offset_Ain + i,
                                                      lda,
                                                      stride_A,
-                                                     X + i,
-                                                     0,
+                                                     (U)X,
+                                                     i,
                                                      1,
                                                      stride_X,
                                                      &one<T>,
@@ -473,8 +482,10 @@ namespace
             }
             else
             {
-                std::cout<<"offset_invAin "<<offset_invAin<<" stride_invA "<<stride_invA<<" offset_Bin "<<offset_Bin<<" stride_B "<<stride_B
-                <<" stride_X "<<stride_X<<" offset_Ain "<<offset_Ain<<" stride_A "<<stride_A<<std::endl;
+                std::cout << "offset_invAin " << offset_invAin << " stride_invA " << stride_invA
+                          << " offset_Bin " << offset_Bin << " stride_B " << stride_B
+                          << " stride_X " << stride_X << " offset_Ain " << offset_Ain
+                          << " stride_A " << stride_A << std::endl;
                 // left, upper transpose
                 jb = min(BLOCK, m);
                 rocblas_gemv_template<T>(handle,
@@ -486,7 +497,7 @@ namespace
                                          offset_invAin,
                                          BLOCK,
                                          stride_invA,
-                                         B,
+                                         (U)B,
                                          offset_Bin,
                                          incx,
                                          stride_B,
@@ -504,17 +515,17 @@ namespace
                                              BLOCK,
                                              m - BLOCK,
                                              &negative_one<T>,
-                                             A + BLOCK * lda,
-                                             offset_Ain,
+                                             A,
+                                             offset_Ain + BLOCK * lda,
                                              lda,
                                              stride_A,
-                                             X,
+                                             (U)X,
                                              0,
                                              1,
                                              stride_X,
                                              &one<T>,
-                                             B + BLOCK * incx,
-                                             offset_Bin,
+                                             B,
+                                             offset_Bin + BLOCK * incx,
                                              incx,
                                              stride_B,
                                              batch_count);
@@ -528,17 +539,17 @@ namespace
                                                  jb,
                                                  jb,
                                                  &one<T>,
-                                                 invA + i * BLOCK,
-                                                 offset_invAin,
+                                                 invA,
+                                                 offset_invAin + i * BLOCK,
                                                  BLOCK,
                                                  stride_invA,
-                                                 B + i * incx,
-                                                 offset_Bin,
+                                                 (U)B,
+                                                 offset_Bin + i * incx,
                                                  incx,
                                                  stride_B,
                                                  &zero<T>,
-                                                 X + i,
-                                                 0,
+                                                 X,
+                                                 i,
                                                  1,
                                                  stride_X,
                                                  batch_count);
@@ -549,17 +560,17 @@ namespace
                                                      BLOCK,
                                                      m - i - BLOCK,
                                                      &negative_one<T>,
-                                                     A + i + (i + BLOCK) * lda,
-                                                     offset_Ain,
+                                                     A,
+                                                     offset_Ain + i + (i + BLOCK) * lda,
                                                      lda,
                                                      stride_A,
-                                                     X + i,
-                                                     0,
+                                                     (U)X,
+                                                     i,
                                                      1,
                                                      stride_X,
                                                      &one<T>,
-                                                     B + (i + BLOCK) * incx,
-                                                     offset_Bin,
+                                                     B,
+                                                     offset_Bin + (i + BLOCK) * incx,
                                                      incx,
                                                      stride_B,
                                                      batch_count);
@@ -583,31 +594,33 @@ namespace
     //                                      ptrdiff_t         incx,
     //                                      const U*          invA,
     //                                      V*                x_temp)
-    rocblas_status special_trsv_template(rocblas_handle    handle, 
+    rocblas_status special_trsv_template(rocblas_handle    handle,
                                          rocblas_fill      uplo,
                                          rocblas_operation transA,
                                          rocblas_diagonal  diag,
-                                         rocblas_int       m, 
-                                         const U*                 A,
+                                         rocblas_int       m,
+                                         U          A,
                                          rocblas_int       offset_Ain,
                                          rocblas_int       lda,
                                          rocblas_stride    stride_A,
-                                         V*                 B,
+                                         V                B,
                                          rocblas_int       offset_Bin,
                                          rocblas_int       incx,
                                          rocblas_stride    stride_B,
-                                         const U*                 invA,
+                                         U          invA,
                                          rocblas_int       offset_invAin,
                                          rocblas_stride    stride_invA,
-                                         V*                 x_temp,
+                                         V                x_temp,
                                          rocblas_stride    stride_X,
                                          rocblas_int       batch_count)
     {
-                std::cout<<"special m "<<m<<" lda "<<lda<<" stride_a "<<stride_A<<" stride_x "<<stride_X<<" stride_B "<<stride_B<<" incx "<<incx
-    <<" batch_count "<<batch_count<<" offset_Ain "<<offset_Ain<<" offset_Bin "<<offset_Bin<<" offset_invAin "<<offset_invAin<<std::endl;
+        std::cout << "special m " << m << " lda " << lda << " stride_a " << stride_A << " stride_x "
+                  << stride_X << " stride_B " << stride_B << " incx " << incx << " batch_count "
+                  << batch_count << " offset_Ain " << offset_Ain << " offset_Bin " << offset_Bin
+                  << " offset_invAin " << offset_invAin << std::endl;
         rocblas_int i, jb;
-        bool   parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
-        size_t R      = m / BLOCK;
+        bool        parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
+        size_t      R      = m / BLOCK;
 
         for(size_t r = 0; r < R; r++)
         {
@@ -615,26 +628,32 @@ namespace
             size_t j = parity ? q - 1 : r;
 
             // copy a BLOCK*n piece we are solving at a time
-            // strided_vector_copy<T>(handle, x_temp, 1, stride_X, B + incx * j * BLOCK, incx, stride_B, BLOCK, batch_count, 0, offset_Bin);
-            for(int i =0; i<batch_count; i++)
-                strided_vector_copy_old<T>(handle, x_temp+i*stride_X, 1, B + incx * j * BLOCK+i*stride_B, incx, BLOCK);
+            strided_vector_copy<T>(handle, x_temp, 1, stride_X, B , incx, stride_B, BLOCK, batch_count, 0, offset_Bin + incx * j * BLOCK);
+            // for(int i = 0; i < batch_count; i++)
+            //     strided_vector_copy_old<T>(handle,
+            //                                x_temp + i * stride_X,
+            //                                1,
+            //                                B + incx * j * BLOCK + i * stride_B,
+            //                                incx,
+            //                                BLOCK);
 
             if(r)
             {
                 rocblas_int M = BLOCK;
                 rocblas_int N = BLOCK;
-                const T*    A_current;
-                T*          B_current = parity ? B + q * BLOCK * incx : B;
+                // const T*    A_current;
+                rocblas_int offsetA = 0;
+                rocblas_int offsetB = parity ? q * BLOCK * incx : 0;
 
                 if(transA == rocblas_operation_none)
                 {
                     N *= r;
-                    A_current = parity ? A + BLOCK * ((lda + 1) * q - 1) : A + N;
+                    offsetA = parity ? BLOCK * ((lda + 1) * q - 1) : N;
                 }
                 else
                 {
                     M *= r;
-                    A_current = parity ? A + BLOCK * ((lda + 1) * q - lda) : A + M * lda;
+                   offsetA = parity ? BLOCK * ((lda + 1) * q - lda) : M * lda;
                 }
 
                 rocblas_gemv_template<T>(handle,
@@ -642,12 +661,12 @@ namespace
                                          M,
                                          N,
                                          &negative_one<T>,
-                                         A_current,
-                                         offset_Ain,
+                                         A,
+                                         offset_Ain + offsetA,
                                          lda,
                                          stride_A,
-                                         B_current,
-                                         offset_Bin,
+                                         (U)B,
+                                         offset_Bin + offsetB,
                                          incx,
                                          stride_B,
                                          &one<T>,
@@ -663,17 +682,17 @@ namespace
                                      BLOCK,
                                      BLOCK,
                                      &one<T>,
-                                     invA + j * BLOCK * BLOCK,
-                                     0,
+                                     invA,
+                                     j * BLOCK * BLOCK,
                                      BLOCK,
                                      0,
-                                     x_temp,
+                                     (U)x_temp,
                                      0,
                                      1,
                                      stride_X,
                                      &zero<T>,
-                                     B + j * BLOCK * incx,
-                                     offset_Bin,
+                                     B,
+                                     j * BLOCK * incx,
                                      incx,
                                      stride_B,
                                      batch_count);
@@ -684,14 +703,14 @@ namespace
 
     template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
     rocblas_status rocblas_trsv_template_mem(rocblas_handle handle,
-                                            rocblas_int    m,
-                                            rocblas_int    batch_count,
-                                            void**         mem_x_temp,
-                                            void**         mem_x_temp_arr,
-                                            void**         mem_invA,
-                                            void**         mem_invA_arr,
-                                            U              supplied_invA      = nullptr,
-                                            rocblas_int    supplied_invA_size = 0)
+                                             rocblas_int    m,
+                                             rocblas_int    batch_count,
+                                             void**         mem_x_temp,
+                                             void**         mem_x_temp_arr,
+                                             void**         mem_invA,
+                                             void**         mem_invA_arr,
+                                             U              supplied_invA      = nullptr,
+                                             rocblas_int    supplied_invA_size = 0)
     {
 
         // Whether size is an exact multiple of blocksize
@@ -708,8 +727,8 @@ namespace
         if(supplied_invA && supplied_invA_size / BLOCK < m)
         {
             static int msg = fputs("WARNING: TRSV invA_size argument is too small; invA argument "
-                                    "is being ignored; TRSV performance is degraded\n",
-                                    stderr);
+                                   "is being ignored; TRSV performance is degraded\n",
+                                   stderr);
             perf_status    = rocblas_status_perf_degraded;
             supplied_invA  = nullptr;
         }
@@ -735,7 +754,8 @@ namespace
 
         // Temporary solution vector
         // If the special solver can be used, then only BLOCK words are needed instead of m words
-        size_t x_temp_bytes = exact_blocks ? sizeof(T) * BLOCK * batch_count: sizeof(T) * m * batch_count;
+        size_t x_temp_bytes
+            = exact_blocks ? sizeof(T) * BLOCK * batch_count : sizeof(T) * m * batch_count;
 
         // X and C temporaries can share space, so the maximum size is allocated
         size_t x_c_temp_bytes = max(x_temp_bytes, c_temp_bytes);
@@ -747,7 +767,7 @@ namespace
             return handle->set_optimal_device_memory_size(x_c_temp_bytes, invA_bytes);
 
         // Attempt to allocate optimal memory size, returning error if failure
-        auto mem     = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+        auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
         if(!mem)
             return rocblas_status_memory_error;
 
@@ -761,46 +781,46 @@ namespace
 
     template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
     rocblas_status rocblas_trsv_template(rocblas_handle    handle,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal  diag,
-                                     rocblas_int       m,
-                                     const U*                 A,
-                                     rocblas_int       offset_A,
-                                     rocblas_int       lda,
-                                     rocblas_stride    stride_A,
-                                     V*                 B,
-                                     rocblas_int       offset_B,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stride_B,
-                                     rocblas_int       batch_count,
-                                     void*             x_temp,
-                                     void*             x_temparr,
-                                     void*             invA               = nullptr,
-                                     void*             invAarr            = nullptr,
-                                     const U*                 supplied_invA      = nullptr,
-                                     rocblas_int       supplied_invA_size = 0,
-                                     rocblas_int       offset_invA        = 0,
-                                     rocblas_stride    stride_invA        = 0)
+                                         rocblas_fill      uplo,
+                                         rocblas_operation transA,
+                                         rocblas_diagonal  diag,
+                                         rocblas_int       m,
+                                         U          A,
+                                         rocblas_int       offset_A,
+                                         rocblas_int       lda,
+                                         rocblas_stride    stride_A,
+                                         V                B,
+                                         rocblas_int       offset_B,
+                                         rocblas_int       incx,
+                                         rocblas_stride    stride_B,
+                                         rocblas_int       batch_count,
+                                         void*             x_temp,
+                                         void*             x_temparr,
+                                         void*             invA               = nullptr,
+                                         void*             invAarr            = nullptr,
+                                         U          supplied_invA      = nullptr,
+                                         rocblas_int       supplied_invA_size = 0,
+                                         rocblas_int       offset_invA        = 0,
+                                         rocblas_stride    stride_invA        = 0)
     {
         if(batch_count == 0)
             return rocblas_status_success;
 
-        rocblas_status status = rocblas_status_success;
-        const bool exact_blocks = (m % BLOCK) == 0;
-        size_t x_temp_els = exact_blocks ? BLOCK : m ;
+        rocblas_status status       = rocblas_status_success;
+        const bool     exact_blocks = (m % BLOCK) == 0;
+        size_t         x_temp_els   = exact_blocks ? BLOCK : m;
 
         // Temporarily switch to host pointer mode, restoring on return
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         if(supplied_invA)
-            invA = const_cast<T*>(supplied_invA);
+            invA =(U*)(supplied_invA);
         else
         {
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
             auto c_temp = x_temp; // Uses same memory as x_temp
             stride_invA = BLOCK * m;
-            std::cout<<"stride_invA "<<stride_invA<<std::endl;
+            std::cout << "stride_invA " << stride_invA << std::endl;
 
             if(BATCHED)
             {
@@ -809,7 +829,7 @@ namespace
 
                 size_t c_temp_els = (m / BLOCK) * ((BLOCK / 2) * (BLOCK / 2));
                 if(!exact_blocks)
-                    c_temp_els = max(c_temp_els, ROCBLAS_TRTRI_NB * BLOCK * 2);
+                    c_temp_els = max(c_temp_els, size_t(ROCBLAS_TRTRI_NB * BLOCK * 2));
 
                 for(int b = 0; b < batch_count; b++)
                 {
@@ -817,14 +837,26 @@ namespace
                     invarrt[b]   = (T*)invA + b * stride_invA;
                 }
 
-                RETURN_IF_HIP_ERROR(
-                    hipMemcpy(x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
+                RETURN_IF_HIP_ERROR(hipMemcpy(
+                    x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
                 RETURN_IF_HIP_ERROR(
                     hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
             }
 
-            status      = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(
-                handle, (V*)(BATCHED ? x_temparr : c_temp), uplo, diag, m, A, 0, lda, stride_A, (V)(BATCHED ? invAarr : invA), 0, stride_invA, batch_count);
+            status
+                = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
+                                                                 (V)(BATCHED ? x_temparr : c_temp),
+                                                                 uplo,
+                                                                 diag,
+                                                                 m,
+                                                                 A,
+                                                                 0,
+                                                                 lda,
+                                                                 stride_A,
+                                                                 (V)(BATCHED ? invAarr : invA),
+                                                                 0,
+                                                                 stride_invA,
+                                                                 batch_count);
             if(status != rocblas_status_success)
                 return status;
         }
@@ -850,8 +882,25 @@ namespace
 
         if(exact_blocks)
         {
-            status = special_trsv_template<BLOCK,T>(
-                handle, uplo, transA, diag, m, A, offset_A, lda, stride_A, B, offset_B, abs_incx, stride_B, (U*)(BATCHED ? invAarr : invA), offset_invA, stride_invA, (V*)(BATCHED ? x_temparr : x_temp), x_temp_els, batch_count);
+            status = special_trsv_template<BLOCK, T>(handle,
+                                                     uplo,
+                                                     transA,
+                                                     diag,
+                                                     m,
+                                                     A,
+                                                     offset_A,
+                                                     lda,
+                                                     stride_A,
+                                                     B,
+                                                     offset_B,
+                                                     abs_incx,
+                                                     stride_B,
+                                                     (U)(BATCHED ? invAarr : invA),
+                                                     offset_invA,
+                                                     stride_invA,
+                                                     (V)(BATCHED ? x_temparr : x_temp),
+                                                     x_temp_els,
+                                                     batch_count);
             if(status != rocblas_status_success)
                 return status;
 
@@ -861,36 +910,53 @@ namespace
         }
         else
         {
-            status = rocblas_trsv_left<BLOCK,T>(
-                handle, uplo, transA, m, A, offset_A, lda, stride_A, B, offset_B, abs_incx, stride_B, (U*)(BATCHED ? invAarr : invA), offset_invA, stride_invA, (V*)(BATCHED ? x_temparr : x_temp), x_temp_els, batch_count);
+            status = rocblas_trsv_left<BLOCK, T>(handle,
+                                                 uplo,
+                                                 transA,
+                                                 m,
+                                                 A,
+                                                 offset_A,
+                                                 lda,
+                                                 stride_A,
+                                                 B,
+                                                 offset_B,
+                                                 abs_incx,
+                                                 stride_B,
+                                                 (U)(BATCHED ? invAarr : invA),
+                                                 offset_invA,
+                                                 stride_invA,
+                                                 (V)(BATCHED ? x_temparr : x_temp),
+                                                 x_temp_els,
+                                                 batch_count);
             if(status != rocblas_status_success)
                 return status;
 
             // copy solution X into B
             // TODO: workaround to fix negative incx issue
-            // strided_vector_copy<T>(handle,
-            //                     B,
-            //                     abs_incx,
-            //                     stride_B,
-            //                     incx < 0 ? (T*)x_temp + m - 1 : (T*)x_temp,
-            //                     incx < 0 ? -1 : 1,
-            //                     x_temp_els,
-            //                     m,
-            //                     batch_count,
-            //                     offset_B,
-            //                     0);
+            strided_vector_copy<T>(handle,
+                                B,
+                                abs_incx,
+                                stride_B,
+                                incx < 0 ? (V)x_temp + m - 1 : (V)x_temp,
+                                incx < 0 ? -1 : 1,
+                                x_temp_els,
+                                m,
+                                batch_count,
+                                offset_B,
+                                0);
 
-            for(int i=0 ;i<batch_count;i++)
-                strided_vector_copy_old(handle,
-                    B+i*stride_B,
-                    abs_incx,
-                    incx < 0 ? (U*)(BATCHED ? x_temparr : x_temp) + m - 1 + i*x_temp_els : (U*)(BATCHED ? x_temparr : x_temp) +i*x_temp_els,
-                    incx < 0 ? -1 : 1,
-                    m);
+            // for(int i = 0; i < batch_count; i++)
+            //     strided_vector_copy_old(
+            //         handle,
+            //         B + i * stride_B,
+            //         abs_incx,
+            //         incx < 0 ? (U*)(BATCHED ? x_temparr : x_temp) + m - 1 + i * x_temp_els
+            //                  : (U*)(BATCHED ? x_temparr : x_temp) + i * x_temp_els,
+            //         incx < 0 ? -1 : 1,
+            //         m);
         }
 
         return status;
     }
 
 } // namespace
-
