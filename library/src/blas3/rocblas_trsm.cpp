@@ -177,8 +177,8 @@ namespace
         if(supplied_invA && supplied_invA_size / BLOCK < k)
         {
             static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
-                                "is being ignored; TRSM performance is degraded\n",
-                                stderr);
+                                   "is being ignored; TRSM performance is degraded\n",
+                                   stderr);
             perf_status    = rocblas_status_perf_degraded;
             supplied_invA  = nullptr;
         }
@@ -227,8 +227,9 @@ namespace
                                                                         supplied_invA,
                                                                         supplied_invA_size);
 
-        return (perf_status != rocblas_status_success) ? perf_status :
-               (status2 == rocblas_status_success) ? status : status2;
+        return (perf_status != rocblas_status_success)
+                   ? perf_status
+                   : (status2 == rocblas_status_success) ? status : status2;
     }
 
 }

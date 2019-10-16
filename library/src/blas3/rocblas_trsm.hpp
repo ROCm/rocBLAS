@@ -1526,8 +1526,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
 
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        perf_status    = rocblas_status_perf_degraded;
-        supplied_invA  = nullptr;
+        perf_status   = rocblas_status_perf_degraded;
+        supplied_invA = nullptr;
     }
 
     // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
