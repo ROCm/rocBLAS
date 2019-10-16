@@ -842,7 +842,11 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
             trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c);
     }
 
-    if(m == 0 || n == 0 || k == 0 || b_c == 0)
+    if(m == 0 || n == 0 || b_c == 0)
+    {
+        return rocblas_status_success;
+    }
+    if((rocblas_pointer_mode_host == handle->pointer_mode) && (k == 0 || *alpha == 0.0) && (*beta == 1.0))
     {
         return rocblas_status_success;
     }
