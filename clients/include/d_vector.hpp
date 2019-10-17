@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <locale.h>
 
-
 /* ============================================================================================ */
 /*! \brief  base-class to allocate/deallocate device memory */
 template <typename T, size_t PAD, typename U>
@@ -18,8 +17,13 @@ class d_vector
 {
 private:
     size_t size, bytes;
+
 public:
-  inline size_t nmemb() const noexcept { return size; }
+    inline size_t nmemb() const noexcept
+    {
+        return size;
+    }
+
 public:
 #ifdef GOOGLE_TEST
     U guard[PAD];
@@ -41,14 +45,14 @@ public:
     }
 #endif
 public:
-  T* device_vector_setup()
+    T* device_vector_setup()
     {
         T* d;
         if((hipMalloc)(&d, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
             fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
-	    
+
             d = nullptr;
         }
 #ifdef GOOGLE_TEST
@@ -70,31 +74,31 @@ public:
         return d;
     }
 
-  void device_vector_check(T * d)
-  {
+    void device_vector_check(T* d)
+    {
 #ifdef GOOGLE_TEST
-            if(PAD > 0)
-            {
-                U host[PAD];
+        if(PAD > 0)
+        {
+            U host[PAD];
 
-                // Copy device memory after allocated memory to host
-                hipMemcpy(host, d + this->size, sizeof(guard), hipMemcpyDeviceToHost);
+            // Copy device memory after allocated memory to host
+            hipMemcpy(host, d + this->size, sizeof(guard), hipMemcpyDeviceToHost);
 
-                // Make sure no corruption has occurred
-                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
 
-                // Point to guard before allocated memory
-                d -= PAD;
+            // Point to guard before allocated memory
+            d -= PAD;
 
-                // Copy device memory after allocated memory to host
-                hipMemcpy(host, d, sizeof(guard), hipMemcpyDeviceToHost);
+            // Copy device memory after allocated memory to host
+            hipMemcpy(host, d, sizeof(guard), hipMemcpyDeviceToHost);
 
-                // Make sure no corruption has occurred
-                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
-            }
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+        }
 #endif
-  }
-  
+    }
+
     void device_vector_teardown(T* d)
     {
         if(d != nullptr)
