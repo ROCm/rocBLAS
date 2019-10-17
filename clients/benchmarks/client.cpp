@@ -73,6 +73,7 @@ using namespace std::literals;
 #include "testing_trsm.hpp"
 #include "testing_trsm_ex.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trsv_batched.hpp"
 #include "testing_trsv_strided_batched.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
@@ -226,6 +227,8 @@ struct perf_blas<
             testing_trsm_ex<T>(arg);
         else if(!strcmp(arg.function, "trsv"))
             testing_trsv<T>(arg);
+        else if(!strcmp(arg.function, "trsv_batched"))
+            testing_trsv_batched<T>(arg);
         else if(!strcmp(arg.function, "trsv_strided_batched"))
             testing_trsv_strided_batched<T>(arg);
 #endif

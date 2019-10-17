@@ -14,7 +14,7 @@ Definitions:
     - { M:   192, lda:   192, stride_a: 36864 }
     - { M:   256, lda:   256, stride_a: 65536 }
     - { M:   384, lda:   384, stride_a: 147456 }
-    - { M:   600, lda:   600, stride_a: 360000 }
+    - { M:   600, lda:   600, stride_a: 40000 }
     - { M:   800, lda:   801, stride_a: 640800 }
 
   - &large_matrix_size_range
@@ -58,7 +58,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
   stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
+  batch_count: [ -5, 0, 1, 3, 5 ]
 
 - name: trsv_batched_medium
   category: pre_checkin
@@ -83,7 +83,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
   stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
+  batch_count: [ -5, 0, 1, 3, 5 ]
 
 - name: trsv_strided_batched_medium
   category: pre_checkin

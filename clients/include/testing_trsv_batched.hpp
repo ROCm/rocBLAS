@@ -15,8 +15,6 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-// #define ERROR_EPS_MULTIPLIER 640
-// #define RESIDUAL_EPS_MULTIPLIER 320
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 20
 
