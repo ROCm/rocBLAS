@@ -142,13 +142,13 @@ namespace
                             ld_c);
         }
 
-#ifdef USE_TENSILE_HOST
-
         rocblas_status validArgs = validateArgs(
             handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, 0, B, ld_b, 0, beta, C, ld_c, 0, 1);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
+
+#ifdef USE_TENSILE_HOST
 
         T alpha_h;
         T beta_h;
