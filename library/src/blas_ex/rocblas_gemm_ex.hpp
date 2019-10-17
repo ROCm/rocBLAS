@@ -16,13 +16,13 @@
 // Device Side //
 /////////////////
 // clang-format off
-void device_matrix_copy(const void* src,
-                        rocblas_int ld_src,
-                        void* dst,
-                        rocblas_int ld_dst,
-                        rocblas_int n1,
-                        rocblas_int n2,
-                        size_t elem_size)
+inline void device_matrix_copy(const void* src,
+                               rocblas_int ld_src,
+                               void* dst,
+                               rocblas_int ld_dst,
+                               rocblas_int n1,
+                               rocblas_int n2,
+                               size_t elem_size)
 {
     if(src != dst || ld_src != ld_dst) // no copy if src matrix == dst matrix
     {

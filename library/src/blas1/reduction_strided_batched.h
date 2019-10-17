@@ -148,7 +148,7 @@ struct rocblas_default_value
     }
 };
 
-size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
+inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
 {
     if(n <= 0)
         n = 1; // avoid sign loss issues
