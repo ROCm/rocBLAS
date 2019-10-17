@@ -38,9 +38,6 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_status       status;
     rocblas_local_handle handle;
 
-    std::cout << " M " << M << " lda " << lda << " incx " << incx << " batch_count " << batch_count << " uplo "
-              << char_uplo << " transA " << char_transA << " diag " << char_diag << std::endl;
-
     // check here to prevent undefined memory allocation error
     if(M < 0 || lda < M || !incx || batch_count <= 0)
     {
@@ -83,7 +80,6 @@ void testing_trsv_batched(const Arguments& arg)
     size_t size_A   = lda * size_t(M);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx;
-    std::cout << "size_A " << size_A << " size_x " << size_x << std::endl;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA[batch_count];
@@ -244,13 +240,11 @@ void testing_trsv_batched(const Arguments& arg)
                                                             dx_or_b,
                                                             incx,
                                                             batch_count));
-        std::cout<<"HERE after call"<<std::endl;
+
         for(int b = 0; b < batch_count; b++)
-        {
-            std::cout<<"batch count "<<b<<std::endl;                                          
+        {                                
             CHECK_HIP_ERROR(hipMemcpy(hx_or_b_1[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
         }
-        std::cout<<"HERE after copy"<<std::endl;
         
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -276,23 +270,16 @@ void testing_trsv_batched(const Arguments& arg)
         {
             CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
         }
-        bool once = false;
+
         for(int b = 0; b < batch_count; b++)
         {
             max_err_1 = max_err_2 = 0;
-            std::cout << "BATCH " << b << std::endl;
             T err_1 = 0.0;
             T err_2 = 0.0;
 
             for(int i = 0; i < M; i++)
             {
                 int idx = i * abs_incx;
-                // if(hx_or_b_1[idx] != hx[idx] && !once && b > 0)
-                // {
-                //     std::cout << "right " << hx[idx] << " wrong " << hx_or_b_1[idx] << " i " << i
-                //               << " b " << b << std::endl;
-                //     once = true;
-                // }
                 if(hx[b][idx] != 0)
                 {
                     err_1 += std::abs((hx[b][idx] - hx_or_b_1[b][idx]) / hx[b][idx]);
@@ -309,7 +296,7 @@ void testing_trsv_batched(const Arguments& arg)
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
         }
-        std::cout << "T" << std::endl;
+
         for(int b = 0; b < batch_count; b++)
         {
             cblas_trmv<T>(
@@ -317,6 +304,7 @@ void testing_trsv_batched(const Arguments& arg)
             cblas_trmv<T>(
                 uplo, transA, diag, M, hA[b], lda, hx_or_b_2[b], incx);
         }
+
         // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
         //                                                  = hx_or_b - hb
         // res is the one norm of the scaled residual for each column
@@ -325,10 +313,11 @@ void testing_trsv_batched(const Arguments& arg)
             max_res_1 = max_res_2 = 0;
             T res_1               = 0.0;
             T res_2               = 0.0;
+
             for(int i = 0; i < M; i++)
             {
                 int idx = i * abs_incx;
-                if(hb[idx] != 0)
+                if(hb[b][idx] != 0)
                 {
                     res_1 += std::abs((hx_or_b_1[b][idx] - hb[b][idx]) / hb[b][idx]);
                     res_2 += std::abs((hx_or_b_2[b][idx] - hb[b][idx]) / hb[b][idx]);
@@ -339,6 +328,7 @@ void testing_trsv_batched(const Arguments& arg)
                     res_2 += std::abs(hx_or_b_2[b][idx]);
                 }
             }
+
             max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
             max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
 

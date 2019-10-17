@@ -15,8 +15,6 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-// #define ERROR_EPS_MULTIPLIER 640
-// #define RESIDUAL_EPS_MULTIPLIER 320
 #define ERROR_EPS_MULTIPLIER 40
 #define RESIDUAL_EPS_MULTIPLIER 20
 
@@ -39,10 +37,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
     rocblas_status       status;
     rocblas_local_handle handle;
-
-    std::cout << " M " << M << " lda " << lda << " stride_a " << stride_a << " stride_x "
-              << stride_x << " incx " << incx << " batch_count " << batch_count << " uplo "
-              << char_uplo << " transA " << char_transA << " diag " << char_diag << std::endl;
 
     // check here to prevent undefined memory allocation error
     if(M < 0 || lda < M || !incx || batch_count <= 0)
@@ -91,7 +85,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
     size_t size_A   = lda * size_t(M) + stride_a * (batch_count - 1);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx + stride_x * (batch_count - 1);
-    std::cout << "size_A " << size_A << " size_x " << size_x << std::endl;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
@@ -101,7 +94,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
     host_vector<T> hx_or_b_1(size_x);
     host_vector<T> hx_or_b_2(size_x);
     host_vector<T> cpu_x_or_b(size_x);
-    host_vector<T> my_cpu_x_or_b(size_x);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -146,7 +138,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                 hA[idx] = AAT[idx];
                 t += AAT[idx] > 0 ? AAT[idx] : -AAT[idx];
             }
-            hA[i + i * lda] = t;
+            hA[i + i * lda + b * stride_a] = t;
         }
     }
     //  calculate Cholesky factorization of SPD matrix hA
@@ -193,7 +185,6 @@ void testing_trsv_strided_batched(const Arguments& arg)
     cpu_x_or_b    = hb; // cpuXorB <- B
     hx_or_b_1     = hb;
     hx_or_b_2     = hb;
-    my_cpu_x_or_b = hb;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
@@ -237,23 +228,16 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                             stride_x,
                                                             batch_count));
         CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
-        bool once = false;
+
         for(int b = 0; b < batch_count; b++)
         {
             max_err_1 = max_err_2 = 0;
-            std::cout << "BATCH " << b << std::endl;
             T err_1 = 0.0;
             T err_2 = 0.0;
 
             for(int i = 0; i < M; i++)
             {
                 int idx = i * abs_incx + b * stride_x;
-                if(hx_or_b_1[idx] != hx[idx] && !once && b > 0)
-                {
-                    std::cout << "right " << hx[idx] << " wrong " << hx_or_b_1[idx] << " i " << i
-                              << " b " << b << std::endl;
-                    once = true;
-                }
                 if(hx[idx] != 0)
                 {
                     err_1 += std::abs((hx[idx] - hx_or_b_1[idx]) / hx[idx]);
@@ -270,7 +254,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
         }
-        std::cout << "T" << std::endl;
+
         for(int b = 0; b < batch_count; b++)
         {
             cblas_trmv<T>(

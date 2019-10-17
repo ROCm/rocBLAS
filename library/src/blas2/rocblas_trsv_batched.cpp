@@ -95,7 +95,9 @@ namespace
             return rocblas_status_not_implemented;
         if(!A || !B)
             return rocblas_status_invalid_pointer;
-        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
+        if(batch_count < 0)
+            return rocblas_status_invalid_size;
+        if((m < 0 || lda < m || lda < 1 || !incx) && batch_count > 0)
             return rocblas_status_invalid_size;
 
         // quick return if possible.
@@ -109,8 +111,6 @@ namespace
         void*          mem_invA;
         void*          mem_invA_arr;
 
-        std::cout<<"HERE A"<<std::endl;
-
         rocblas_status status = rocblas_trsv_template_mem<BLOCK, true, T>(handle,
                                                                     m,
                                                                     batch_count,
@@ -120,8 +120,6 @@ namespace
                                                                     &mem_invA_arr,
                                                                     supplied_invA,
                                                                     supplied_invA_size);
-
-        std::cout<<"HERE B"<<std::endl;
 
         rocblas_status status2 = rocblas_trsv_template<BLOCK, true, T>(handle,
                                                                         uplo,
@@ -142,9 +140,7 @@ namespace
                                                                         mem_invA,
                                                                         mem_invA_arr,
                                                                         supplied_invA,
-                                                                        supplied_invA_size);
-
-        std::cout<<"HERE END"<<std::endl;    
+                                                                        supplied_invA_size); 
                                                             
         return (status2 == rocblas_status_success) ? status : status2;
     }

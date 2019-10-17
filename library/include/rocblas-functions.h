@@ -2650,7 +2650,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
               specifies the leading dimension of A.
               lda = max( 1, m ).
 
-    @param[in]
+    @param[in, out]
     x         pointer storing vector x on the GPU.
 
     @param[in]
@@ -2683,9 +2683,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
     \details
     trsv_batched solves
 
-         A*x = alpha*b or A**T*x = alpha*b,
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
 
-    where x and b are vectors and A is a triangular matrix.
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an
+    m by m triangular matrix.
 
     The vector x is overwritten on b.
 
@@ -2715,7 +2717,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
               specifies the scalar alpha.
 
     @param[in]
-    A         pointer storing matrix A on the GPU,
+    A         array of pointers storing the different matrices A on the GPU,
               of dimension ( lda, m )
 
     @param[in]
@@ -2723,12 +2725,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
               specifies the leading dimension of A.
               lda = max( 1, m ).
 
-    @param[in]
-    x         pointer storing vector x on the GPU.
+    @param[in, out]
+    x         array of pointers storing the different vectors x on the GPU.
 
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle    handle,
@@ -2758,9 +2764,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle    handle,
     \details
     trsv_strided_batched solves
 
-         A*x = alpha*b or A**T*x = alpha*b,
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
 
-    where x and b are vectors and A is a triangular matrix.
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an
+    m by m triangular matrix.
 
     The vector x is overwritten on b.
 
@@ -2790,20 +2798,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle    handle,
               specifies the scalar alpha.
 
     @param[in]
-    A         pointer storing matrix A on the GPU,
+    A         pointer to the first matrix (A_0) in the batch stored on the GPU,
               of dimension ( lda, m )
+
+    @param[in]
+    stride_a  rocblas_stride
+             "batch stride a": stride from the start of one "A" matrix to the next
 
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
               lda = max( 1, m ).
 
+    @param[in, out]
+    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+
     @param[in]
-    x         pointer storing vector x on the GPU.
+    stride_x rocblas_stride
+             "batch stride a": stride from the start of one "X" vector to the next
 
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,

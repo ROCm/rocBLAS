@@ -4,19 +4,16 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    # - { M:    -1, lda:     1, stride_a: 1 }
-    # - { M:     4, lda:     4, stride_a: 16 }
-    # - { M:    10, lda:    20, stride_a: 300 }
-    # - { M:   5, lda:   5, stride_a: 25 }
+    - { M:    -1, lda:     1, stride_a: 1 }
+    - { M:     4, lda:     4, stride_a: 16 }
+    - { M:    10, lda:    20, stride_a: 300 }
     - { M:   10, lda:   10, stride_a: 100 }
-    - { M:   64, lda:   64, stride_a: 5000 }
-    # - { M:   128, lda:   128, stride_a: 32768 }
-    - { M:   500, lda:   500, stride_a: 250000 }
+    - { M:   128, lda:   128, stride_a: 32768 }
 
   - &medium_matrix_size_range
     - { M:   192, lda:   192, stride_a: 36864 }
-    # - { M:   256, lda:   256, stride_a: 65536 }
-    # - { M:   384, lda:   384, stride_a: 147456 }
+    - { M:   256, lda:   256, stride_a: 65536 }
+    - { M:   384, lda:   384, stride_a: 147456 }
     - { M:   600, lda:   600, stride_a: 360000 }
     - { M:   800, lda:   801, stride_a: 640800 }
 
@@ -60,22 +57,16 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
-  # incx: [ 1 ]
   stride_scale: [ 1, 10, 100 ]
-  # stride_scale: [ 1 ]
-  # batch_count: [ -5 , 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
-  batch_count: [ 2 ] 
+  batch_count: [ -5, 0, 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
 
 - name: trsv_batched_medium
   category: pre_checkin
   function: trsv_batched
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  # incx: [ -2, -1, 0, 1, 2, 3, 10 ]
-  incx: [ 1 ]
-  stride_scale: [ 1 ]
-  # batch_count: [ 1, 3 ]
-  batch_count: [ 2 ] 
+  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  batch_count: [ 1, 3 ]
 
 - name: trsv_batched_large
   category: nightly
@@ -83,7 +74,6 @@ Tests:
   arguments: *common_args
   matrix_size: *large_matrix_size_range
   incx: [ -1, 0, 1, 2, 3 ]
-  stride_scale: [ 1 ]
   batch_count: [ 1, 3 ]
 
 - name: trsv_strided_batched_small
@@ -92,22 +82,18 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
-  # incx: [ 1 ]
   stride_scale: [ 1, 10, 100 ]
-  # stride_scale: [ 1 ]
-  # batch_count: [ -5 , 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
-  batch_count: [ 2 ] 
+  batch_count: [ -5, 0, 1, 3, 5 ] # batch_count 0 removed for now, decide how to behave in testing
 
 - name: trsv_strided_batched_medium
   category: pre_checkin
   function: trsv_strided_batched
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  # incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
   incx: [ 1 ]
   stride_scale: [ 1 ]
-  # batch_count: [ 1, 3 ]
-  batch_count: [ 3 ] 
+  batch_count: [ 1, 3 ]
 
 - name: trsv_strided_batched_large
   category: nightly
