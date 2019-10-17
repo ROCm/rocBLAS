@@ -30,9 +30,11 @@ foreach( exe ${sample_list} )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-  target_include_directories( ${exe}
+
+  target_include_directories( ${exe} 
     PRIVATE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
       )
 
   target_include_directories( ${exe}
@@ -67,4 +69,7 @@ foreach( exe ${sample_list} )
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
 endforeach( )
+
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
