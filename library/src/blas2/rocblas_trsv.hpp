@@ -27,7 +27,7 @@ namespace
 
     template <typename T, typename U>
     __global__ void flip_vector_kernel(U* __restrict__ dataa,
-                                       rocblas_int m,
+                                       rocblas_int    m,
                                        rocblas_int    size,
                                        rocblas_int    abs_incx,
                                        rocblas_int    offset,
@@ -83,21 +83,21 @@ namespace
                                                rocblas_int    offset_dst = 0,
                                                rocblas_int    offset_src = 0)
     {
-        ptrdiff_t tx               = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
         {
             const T* __restrict__ xsrc = load_ptr_batch(src, hipBlockIdx_y, offset_src, src_stride);
             T* __restrict__ xdst       = load_ptr_batch(dst, hipBlockIdx_y, offset_dst, dst_stride);
-            xdst[tx * dst_incx] = xsrc[tx * src_incx];
+            xdst[tx * dst_incx]        = xsrc[tx * src_incx];
         }
     }
 
     template <typename T, typename U, typename V>
     void strided_vector_copy(rocblas_handle handle,
-                             U             dst,
+                             U              dst,
                              rocblas_int    dst_incx,
                              rocblas_stride dst_stride,
-                             V             src,
+                             V              src,
                              rocblas_int    src_incx,
                              rocblas_stride src_stride,
                              rocblas_int    size,
@@ -166,18 +166,18 @@ namespace
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_int       m,
-                                     U          A,
+                                     U                 A,
                                      rocblas_int       offset_Ain,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_A,
-                                     V                B,
+                                     V                 B,
                                      rocblas_int       offset_Bin,
                                      rocblas_int       incx,
                                      rocblas_int       stride_B,
-                                     U          invA,
+                                     U                 invA,
                                      rocblas_int       offset_invAin,
                                      rocblas_stride    stride_invA,
-                                     V                X,
+                                     V                 X,
                                      rocblas_stride    stride_X,
                                      rocblas_int       batch_count)
     {
@@ -575,23 +575,23 @@ namespace
                                          rocblas_operation transA,
                                          rocblas_diagonal  diag,
                                          rocblas_int       m,
-                                         U          A,
+                                         U                 A,
                                          rocblas_int       offset_Ain,
                                          rocblas_int       lda,
                                          rocblas_stride    stride_A,
-                                         V                B,
+                                         V                 B,
                                          rocblas_int       offset_Bin,
                                          rocblas_int       incx,
                                          rocblas_stride    stride_B,
-                                         U          invA,
+                                         U                 invA,
                                          rocblas_int       offset_invAin,
                                          rocblas_stride    stride_invA,
-                                         V                x_temp,
+                                         V                 x_temp,
                                          rocblas_stride    stride_X,
                                          rocblas_int       batch_count)
     {
-        bool        parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
-        size_t      R      = m / BLOCK;
+        bool   parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_lower);
+        size_t R      = m / BLOCK;
 
         for(size_t r = 0; r < R; r++)
         {
@@ -599,12 +599,22 @@ namespace
             size_t j = parity ? q - 1 : r;
 
             // copy a BLOCK*n piece we are solving at a time
-            strided_vector_copy<T>(handle, x_temp, 1, stride_X, B , incx, stride_B, BLOCK, batch_count, 0, offset_Bin + incx * j * BLOCK);
+            strided_vector_copy<T>(handle,
+                                   x_temp,
+                                   1,
+                                   stride_X,
+                                   B,
+                                   incx,
+                                   stride_B,
+                                   BLOCK,
+                                   batch_count,
+                                   0,
+                                   offset_Bin + incx * j * BLOCK);
 
             if(r)
             {
-                rocblas_int M = BLOCK;
-                rocblas_int N = BLOCK;
+                rocblas_int M       = BLOCK;
+                rocblas_int N       = BLOCK;
                 rocblas_int offsetA = 0;
                 rocblas_int offsetB = parity ? q * BLOCK * incx : 0;
 
@@ -616,7 +626,7 @@ namespace
                 else
                 {
                     M *= r;
-                   offsetA = parity ? BLOCK * ((lda + 1) * q - lda) : M * lda;
+                    offsetA = parity ? BLOCK * ((lda + 1) * q - lda) : M * lda;
                 }
 
                 rocblas_gemv_template<T>(handle,
@@ -748,11 +758,11 @@ namespace
                                          rocblas_operation transA,
                                          rocblas_diagonal  diag,
                                          rocblas_int       m,
-                                         U          A,
+                                         U                 A,
                                          rocblas_int       offset_A,
                                          rocblas_int       lda,
                                          rocblas_stride    stride_A,
-                                         V                B,
+                                         V                 B,
                                          rocblas_int       offset_B,
                                          rocblas_int       incx,
                                          rocblas_stride    stride_B,
@@ -761,7 +771,7 @@ namespace
                                          void*             x_temparr,
                                          void*             invA               = nullptr,
                                          void*             invAarr            = nullptr,
-                                         U          supplied_invA      = nullptr,
+                                         U                 supplied_invA      = nullptr,
                                          rocblas_int       supplied_invA_size = 0,
                                          rocblas_int       offset_invA        = 0,
                                          rocblas_stride    stride_invA        = 0)
@@ -777,7 +787,7 @@ namespace
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         if(supplied_invA)
-            invA =(U*)(supplied_invA);
+            invA = (U*)(supplied_invA);
         else
         {
             // batched trtri invert diagonal part (BLOCK*BLOCK) of A into invA
@@ -896,16 +906,16 @@ namespace
             // copy solution X into B
             // TODO: workaround to fix negative incx issue
             strided_vector_copy<T>(handle,
-                                B,
-                                abs_incx,
-                                stride_B,
-                                (V)(BATCHED ? x_temparr : x_temp),
-                                incx < 0 ? -1 : 1,
-                                x_temp_els,
-                                m,
-                                batch_count,
-                                offset_B,
-                                incx < 0 ? m - 1 : 0);
+                                   B,
+                                   abs_incx,
+                                   stride_B,
+                                   (V)(BATCHED ? x_temparr : x_temp),
+                                   incx < 0 ? -1 : 1,
+                                   x_temp_els,
+                                   m,
+                                   batch_count,
+                                   offset_B,
+                                   incx < 0 ? m - 1 : 0);
         }
 
         return status;

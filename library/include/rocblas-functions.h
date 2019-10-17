@@ -2737,27 +2737,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                 number of instances in the batch
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const float*  const    A[],
-                                                            rocblas_int       lda,
-                                                            float*  const      x[],
-                                                            rocblas_int       incx,
-                                                            rocblas_int       batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const double*  const    A[],
-                                                            rocblas_int       lda,
-                                                            double*  const    x[],
-                                                            rocblas_int       incx,
-                                                            rocblas_int       batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
 
 /*! \brief BLAS Level 2 API
 

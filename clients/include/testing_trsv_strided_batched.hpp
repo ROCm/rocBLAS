@@ -182,9 +182,9 @@ void testing_trsv_strided_batched(const Arguments& arg)
     {
         cblas_trmv<T>(uplo, transA, diag, M, hA + stride_a * b, lda, hb + stride_x * b, incx);
     }
-    cpu_x_or_b    = hb; // cpuXorB <- B
-    hx_or_b_1     = hb;
-    hx_or_b_2     = hb;
+    cpu_x_or_b = hb; // cpuXorB <- B
+    hx_or_b_1  = hb;
+    hx_or_b_2  = hb;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
@@ -232,8 +232,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
         for(int b = 0; b < batch_count; b++)
         {
             max_err_1 = max_err_2 = 0;
-            T err_1 = 0.0;
-            T err_2 = 0.0;
+            T err_1               = 0.0;
+            T err_2               = 0.0;
 
             for(int i = 0; i < M; i++)
             {

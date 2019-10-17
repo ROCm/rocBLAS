@@ -52,28 +52,13 @@ void testing_trsv_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                M,
-                                                                dA,
-                                                                lda,
-                                                                dx_or_b,
-                                                                incx,
-                                                                batch_count));
+            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(
+                handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count));
         else
-            EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched<T>(handle,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  M,
-                                                                  dA,
-                                                                  lda,
-                                                                  dx_or_b,
-                                                                  incx,
-                                                                  batch_count),
-                                  rocblas_status_invalid_size);
+            EXPECT_ROCBLAS_STATUS(
+                rocblas_trsv_batched<T>(
+                    handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count),
+                rocblas_status_invalid_size);
         return;
     }
 
@@ -92,12 +77,12 @@ void testing_trsv_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; b++)
     {
-        hA[b]      = host_vector<T>(size_A);
-        AAT[b]     = host_vector<T>(size_A);
-        hb[b]      = host_vector<T>(size_x);
-        hx[b]      = host_vector<T>(size_x);
-        hx_or_b_1[b] = host_vector<T>(size_x);
-        hx_or_b_2[b] = host_vector<T>(size_x);
+        hA[b]         = host_vector<T>(size_A);
+        AAT[b]        = host_vector<T>(size_A);
+        hb[b]         = host_vector<T>(size_x);
+        hx[b]         = host_vector<T>(size_x);
+        hx_or_b_1[b]  = host_vector<T>(size_x);
+        hx_or_b_2[b]  = host_vector<T>(size_x);
         cpu_x_or_b[b] = host_vector<T>(size_x);
     }
 
@@ -116,7 +101,7 @@ void testing_trsv_batched(const Arguments& arg)
     device_batch_vector<T> XorBv(batch_count, size_x);
 
     int last = batch_count - 1;
-    if(!dA || !dx_or_b  || (!Av[last] && size_A) || (!XorBv[last] && size_x))
+    if(!dA || !dx_or_b || (!Av[last] && size_A) || (!XorBv[last] && size_x))
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
@@ -124,7 +109,7 @@ void testing_trsv_batched(const Arguments& arg)
 
     for(int b = 0; b < batch_count; b++)
     {
-      rocblas_init<T>(hA[b], M, M, lda);
+        rocblas_init<T>(hA[b], M, M, lda);
     }
 
     //  calculate AAT = hA * hA ^ T
@@ -153,7 +138,7 @@ void testing_trsv_batched(const Arguments& arg)
             T t = 0.0;
             for(int j = 0; j < M; j++)
             {
-                int idx = i + j * lda;
+                int idx    = i + j * lda;
                 hA[b][idx] = AAT[b][idx];
                 t += AAT[b][idx] > 0 ? AAT[b][idx] : -AAT[b][idx];
             }
@@ -206,16 +191,17 @@ void testing_trsv_batched(const Arguments& arg)
     }
     for(int b = 0; b < batch_count; b++)
     {
-        cpu_x_or_b[b]    = hb[b]; // cpuXorB <- B
-        hx_or_b_1[b]     = hb[b];
-        hx_or_b_2[b]     = hb[b];
+        cpu_x_or_b[b] = hb[b]; // cpuXorB <- B
+        hx_or_b_1[b]  = hb[b];
+        hx_or_b_2[b]  = hb[b];
     }
 
     // 1. User intermediate arrays to access device memory from host
     for(int b = 0; b < batch_count; b++)
     {
         CHECK_HIP_ERROR(hipMemcpy(Av[b], hA[b], sizeof(T) * size_A, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(XorBv[b], hx_or_b_1[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(
+            hipMemcpy(XorBv[b], hx_or_b_1[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
     }
     // 2. Copy intermediate arrays into device arrays
     CHECK_HIP_ERROR(hipMemcpy(dA, Av, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
@@ -230,22 +216,15 @@ void testing_trsv_batched(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(handle,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            M,
-                                                            dA,
-                                                            lda,
-                                                            dx_or_b,
-                                                            incx,
-                                                            batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(
+            handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count));
 
         for(int b = 0; b < batch_count; b++)
-        {                                
-            CHECK_HIP_ERROR(hipMemcpy(hx_or_b_1[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        {
+            CHECK_HIP_ERROR(
+                hipMemcpy(hx_or_b_1[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
         }
-        
+
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         for(int b = 0; b < batch_count; b++)
@@ -255,27 +234,20 @@ void testing_trsv_batched(const Arguments& arg)
         }
         CHECK_HIP_ERROR(hipMemcpy(dx_or_b, XorBv, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(handle,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            M,
-                                                            dA,
-                                                            lda,
-                                                            dx_or_b,
-                                                            incx,
-                                                            batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(
+            handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count));
 
         for(int b = 0; b < batch_count; b++)
         {
-            CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
+            CHECK_HIP_ERROR(
+                hipMemcpy(hx_or_b_2[b], XorBv[b], sizeof(T) * size_x, hipMemcpyDeviceToHost));
         }
 
         for(int b = 0; b < batch_count; b++)
         {
             max_err_1 = max_err_2 = 0;
-            T err_1 = 0.0;
-            T err_2 = 0.0;
+            T err_1               = 0.0;
+            T err_2               = 0.0;
 
             for(int i = 0; i < M; i++)
             {
@@ -299,10 +271,8 @@ void testing_trsv_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; b++)
         {
-            cblas_trmv<T>(
-                uplo, transA, diag, M, hA[b], lda, hx_or_b_1[b], incx);
-            cblas_trmv<T>(
-                uplo, transA, diag, M, hA[b], lda, hx_or_b_2[b], incx);
+            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_1[b], incx);
+            cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hx_or_b_2[b], incx);
         }
 
         // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
@@ -353,30 +323,14 @@ void testing_trsv_batched(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
-            rocblas_trsv_batched<T>(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            dA,
-                                            lda,
-                                            dx_or_b,
-                                            incx,
-                                            batch_count);
+            rocblas_trsv_batched<T>(
+                handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count);
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
-            rocblas_trsv_batched<T>(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            dA,
-                                            lda,
-                                            dx_or_b,
-                                            incx,
-                                            batch_count);
+            rocblas_trsv_batched<T>(
+                handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx, batch_count);
 
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops
@@ -387,8 +341,7 @@ void testing_trsv_batched(const Arguments& arg)
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
-                cblas_trsv<T>(
-                    uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
+                cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
