@@ -57,8 +57,7 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
                            offsetx,
                            incx,
                            stridex);
-    else if(!stride_alpha) // single alpha is on host
-    {
+    else // single alpha is on host
         hipLaunchKernelGGL(rocblas_scal_kernel<T>,
                            blocks,
                            threads,
@@ -71,11 +70,6 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
                            offsetx,
                            incx,
                            stridex);
-    }
-    else // array of alphas on host
-    {
-        return rocblas_status_not_implemented;
-    }
 
     return rocblas_status_success;
 }
