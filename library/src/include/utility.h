@@ -6,6 +6,7 @@
 #define UTILITY_H
 #include "definitions.h"
 #include "rocblas.h"
+#include <cmath>
 #include <complex>
 #include <hip/hip_runtime.h>
 #include <type_traits>
@@ -64,6 +65,51 @@ __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half
 {
     auto x = *reinterpret_cast<const _Float16*>(xp);
     return {x, x};
+}
+
+// Load a batched scalar. This only works on the device. Used for batched functions which may
+// pass an array of scalars rather than a single scalar.
+
+// For device side array of scalars
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(T* x, rocblas_int idx, rocblas_int inc)
+{
+    return x[idx * inc];
+}
+
+// Overload for single scalar value
+template <typename T>
+__forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_int inc)
+{
+    return x;
+}
+
+// Load a pointer from a batch. If the argument is a T**, use block to index it and
+// add the offset, if the argument is a T*, add block * stride to pointer and add offset.
+
+// For device array of device pointers
+
+// For device pointers
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    return p + block * stride + offset;
+}
+
+// For device array of device pointers
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T* const* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    return p[block] + offset;
+}
+
+template <typename T>
+__forceinline__ __device__ __host__ T*
+                                    load_ptr_batch(T** p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    return p[block] + offset;
 }
 
 #endif // GOOGLE_TEST
@@ -240,4 +286,26 @@ constexpr auto get_rocblas_status_for_hip_status(hipError_t status)
         return rocblas_status_internal_error;
     }
 }
+
+// Absolute value
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto rocblas_abs(T x)
+{
+    return x < 0 ? -x : x;
+}
+
+// For complex, we have defined a __device__ __host__ compatible std::abs
+template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+__device__ __host__ inline auto rocblas_abs(T x)
+{
+    return std::abs(x);
+}
+
+// rocblas_bfloat16 is handled specially
+__device__ __host__ inline auto rocblas_abs(rocblas_bfloat16 x)
+{
+    x.data &= 0x7fff;
+    return x;
+}
+
 #endif

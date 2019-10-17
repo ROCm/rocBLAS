@@ -33,6 +33,8 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
   set( CMAKE_Fortran_COMPILER  "gfortran" )
 endif()
 
+
+
 project( rocblas LANGUAGES CXX )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
@@ -139,8 +141,12 @@ include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
 
+include (cmake/os-detection.cmake)
+get_os_id(OS_ID)
+message (STATUS "OS detected is ${OS_ID}")
+
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.7.0" )
+set ( VERSION_STRING "2.11.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -182,12 +188,13 @@ if( BUILD_WITH_TENSILE )
   else()
     # Use the virtual-env setup and download package from specified repot:
     set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    set( tensile_tag 8d594c27375a36d2f6eb4db39086ba6248440bf5 CACHE STRING "Tensile tag to download" )
+    file (STRINGS "tensile_tag.txt" read_tensile_tag)
+    set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
     virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-  find_package(Tensile 4.11.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.13.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 endif()
 
 # Find HCC/HIP dependencies

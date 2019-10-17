@@ -9,7 +9,7 @@
 
 #include "gemm.hpp"
 #include "handle.h"
-#include "rocblas_trtri_batched.hpp"
+#include "rocblas_trtri.hpp"
 
 static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 
@@ -41,21 +41,6 @@ __global__ void trtri_trsm_kernel(
                             invA + ((2 * hipBlockIdx_x) / IBD) * (NB * NB)
                                 + ((2 * hipBlockIdx_x) % IBD) * (IB * NB + IB),
                             NB);
-}
-
-template <rocblas_int NB, typename T>
-rocblas_status rocblas_trtri_template(rocblas_handle   handle,
-                                      rocblas_fill     uplo,
-                                      rocblas_diagonal diag,
-                                      rocblas_int      n,
-                                      const T*         A,
-                                      rocblas_int      lda,
-                                      T*               invA,
-                                      rocblas_int      ldinvA,
-                                      T*               C_tmp)
-{
-    return rocblas_trtri_batched_template<NB>(
-        handle, uplo, diag, n, A, lda, lda * n, invA, ldinvA, ldinvA * n, 1, C_tmp);
 }
 
 /* ============================================================================================ */
@@ -174,7 +159,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         size_t blockSize            = 128;
         size_t tri_elements_to_zero = num_non_tri_elements(NB) * blocks;
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
-        hipLaunchKernelGGL(rocblas_trtri_batched_fill,
+        hipLaunchKernelGGL(rocblas_trtri_fill<T>,
                            dim3(numBlocks),
                            dim3(blockSize),
                            0,
@@ -186,6 +171,8 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            NB,
                            NB * NB,
                            invA,
+                           0,
+                           0,
                            blocks);
 
         constexpr rocblas_int JB          = IB * 4;
@@ -193,61 +180,81 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         rocblas_int           stride_invA = NB * NB;
         rocblas_int           stride_C    = JB * JB;
 
-        trtri_strided_gemm_block(
+        trtri_gemm_block<false, false, T>(handle,
+                                          IB * 2,
+                                          IB * 2,
+                                          (const T*)A,
+                                          lda,
+                                          0,
+                                          stride_A,
+                                          (const T*)invA,
+                                          (const T*)invA,
+                                          (T*)invA,
+                                          NB,
+                                          0,
+                                          stride_invA,
+                                          (T*)C_tmp,
+                                          JB,
+                                          0,
+                                          stride_C,
+                                          1,
+                                          blocks,
+                                          uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * lda,
+                                          uplo == rocblas_fill_lower ? 0 : IB * 2 * NB + IB * 2,
+                                          uplo == rocblas_fill_lower ? IB * 2 * NB + IB * 2 : 0,
+                                          uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * NB,
+                                          0);
+
+        trtri_gemm_block<false, false, T>(
             handle,
             IB * 2,
             IB * 2,
-            (const T*)(A + (uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * lda)),
+            (const T*)A,
             lda,
+            0,
             stride_A,
-            (const T*)(invA + (uplo == rocblas_fill_lower ? 0 : IB * 2 * NB + IB * 2)),
-            (const T*)(invA + (uplo == rocblas_fill_lower ? IB * 2 * NB + IB * 2 : 0)),
-            (T*)(invA + (uplo == rocblas_fill_lower ? IB * 2 : IB * 2 * NB)),
+            (const T*)invA,
+            (const T*)invA,
+            (T*)invA,
             NB,
+            0,
             stride_invA,
             (T*)C_tmp,
             JB,
+            0,
             stride_C,
-            blocks);
+            1,
+            blocks,
+            uplo == rocblas_fill_lower ? IB * 4 * lda + IB * 6 : IB * 6 * lda + IB * 4,
+            uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 4 : IB * 6 * NB + IB * 6,
+            uplo == rocblas_fill_lower ? IB * 6 * NB + IB * 6 : IB * 4 * NB + IB * 4,
+            uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4,
+            0);
 
-        trtri_strided_gemm_block(
-            handle,
-            IB * 2,
-            IB * 2,
-            (const T*)(A
-                       + (uplo == rocblas_fill_lower ? IB * 4 * lda + IB * 6
-                                                     : IB * 6 * lda + IB * 4)),
-            lda,
-            stride_A,
-            (const T*)(invA
-                       + (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 4
-                                                     : IB * 6 * NB + IB * 6)),
-            (const T*)(invA
-                       + (uplo == rocblas_fill_lower ? IB * 6 * NB + IB * 6
-                                                     : IB * 4 * NB + IB * 4)),
-            (T*)(invA + (uplo == rocblas_fill_lower ? IB * 4 * NB + IB * 6 : IB * 6 * NB + IB * 4)),
-            NB,
-            stride_invA,
-            (T*)C_tmp,
-            JB,
-            stride_C,
-            blocks);
-
-        trtri_strided_gemm_block(handle,
-                                 JB,
-                                 JB,
-                                 (const T*)(A + (uplo == rocblas_fill_lower ? JB : JB * lda)),
-                                 lda,
-                                 stride_A,
-                                 (const T*)(invA + (uplo == rocblas_fill_lower ? 0 : JB * NB + JB)),
-                                 (const T*)(invA + (uplo == rocblas_fill_lower ? JB * NB + JB : 0)),
-                                 (T*)(invA + (uplo == rocblas_fill_lower ? JB : JB * NB)),
-                                 NB,
-                                 stride_invA,
-                                 (T*)C_tmp,
-                                 JB,
-                                 stride_C,
-                                 blocks);
+        trtri_gemm_block<false, false, T>(handle,
+                                          JB,
+                                          JB,
+                                          (const T*)A,
+                                          lda,
+                                          0,
+                                          stride_A,
+                                          (const T*)invA,
+                                          (const T*)invA,
+                                          (T*)invA,
+                                          NB,
+                                          0,
+                                          stride_invA,
+                                          (T*)C_tmp,
+                                          JB,
+                                          0,
+                                          stride_C,
+                                          1,
+                                          blocks,
+                                          uplo == rocblas_fill_lower ? JB : JB * lda,
+                                          uplo == rocblas_fill_lower ? 0 : JB * NB + JB,
+                                          uplo == rocblas_fill_lower ? JB * NB + JB : 0,
+                                          uplo == rocblas_fill_lower ? JB : JB * NB,
+                                          0);
 
     } // end if
 
@@ -258,7 +265,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
         size_t blockSize            = 128;
         size_t tri_elements_to_zero = num_non_tri_elements(rem);
         size_t numBlocks            = (tri_elements_to_zero + blockSize - 1) / blockSize;
-        hipLaunchKernelGGL(rocblas_trtri_batched_fill,
+        hipLaunchKernelGGL(rocblas_trtri_fill<T>,
                            dim3(numBlocks),
                            dim3(blockSize),
                            0,
@@ -269,17 +276,28 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            num_non_tri_elements(rem),
                            NB,
                            0,
-                           invA + blocks * NB * NB,
+                           invA,
+                           blocks * NB * NB,
+                           0,
                            1);
-        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB>(handle,
-                                                          uplo,
-                                                          diag,
-                                                          rem,
-                                                          A + blocks * NB * lda + blocks * NB,
-                                                          lda,
-                                                          invA + blocks * NB * NB,
-                                                          NB,
-                                                          C_tmp);
+        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB, false, false, T>(handle,
+                                                                           uplo,
+                                                                           diag,
+                                                                           rem,
+                                                                           A,
+                                                                           blocks * NB * lda
+                                                                               + blocks * NB,
+                                                                           lda,
+                                                                           lda * n,
+                                                                           0,
+                                                                           invA,
+                                                                           blocks * NB * NB,
+                                                                           NB,
+                                                                           NB * n,
+                                                                           0,
+                                                                           1,
+                                                                           1,
+                                                                           C_tmp);
         if(status != rocblas_status_success)
             return status;
     }

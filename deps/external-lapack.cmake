@@ -32,11 +32,15 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/lapack
   GIT_REPOSITORY ${lapack_git_repository}
   GIT_TAG ${lapack_git_tag}
-  CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF
+  CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF -DCMAKE_Fortran_FLAGS='-fno-optimize-sibling-calls'
   LOG_BUILD 1
   INSTALL_COMMAND ""
   LOG_INSTALL 1
 )
+# The fortran flag '-fno-optimize-sibling-calls' has been added as a workaround for a known bug
+# that causes incompatibility issues between gfortran and C lapack calls for gfortran versions 7,8 and 9
+# The ticket can be tracked at https://gcc.gnu.org/bugzilla/show_bug.cgi?id=90329 
+
 
 ExternalProject_Get_Property( lapack source_dir )
 

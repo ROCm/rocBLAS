@@ -1,25 +1,13 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "fetch_template.h"
-#include "handle.h"
+
+#include "rocblas_asum.hpp"
 #include "logging.h"
-#include "reduction.h"
-#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
-    template <class To>
-    struct rocblas_fetch_asum
-    {
-        template <typename Ti>
-        __forceinline__ __device__ To operator()(Ti x, ptrdiff_t)
-        {
-            return {fetch_asum(x)};
-        }
-    };
-
     template <typename>
     constexpr char rocblas_asum_name[] = "unknown";
     template <>
@@ -31,12 +19,9 @@ namespace
     template <>
     constexpr char rocblas_asum_name<rocblas_double_complex>[] = "rocblas_dzasum";
 
-    // HIP support up to 1024 threads/work itmes per thread block/work group
-    constexpr int NB = 512;
-
     // allocate workspace inside this API
-    template <typename Ti, typename To>
-    rocblas_status rocblas_asum(
+    template <rocblas_int NB, typename Ti, typename To>
+    rocblas_status rocblas_asum_impl(
         rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, To* result)
     {
         if(!handle)
@@ -61,28 +46,16 @@ namespace
         if(!x || !result)
             return rocblas_status_invalid_pointer;
 
-        // Quick return if possible.
-        if(n <= 0 || incx <= 0)
-        {
-            if(handle->is_device_memory_size_query())
-                return rocblas_status_size_unchanged;
-            else if(rocblas_pointer_mode_device == handle->pointer_mode)
-                RETURN_IF_HIP_ERROR(hipMemset(result, 0, sizeof(*result)));
-            else
-                *result = 0;
-            return rocblas_status_success;
-        }
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB>(n, 1, result);
 
-        auto blocks = (n - 1) / NB + 1;
         if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(To) * blocks);
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto mem = handle->device_malloc(sizeof(To) * blocks);
+        auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_reduction_kernel<NB, rocblas_fetch_asum<To>>(
-            handle, n, x, incx, result, (To*)mem, blocks);
+        return rocblas_asum_template<NB>(handle, n, x, 0, incx, (To*)mem, result);
     }
 
 } // namespace
@@ -98,13 +71,15 @@ extern "C" {
 rocblas_status rocblas_sasum(
     rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result)
 {
-    return rocblas_asum(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_dasum(
     rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result)
 {
-    return rocblas_asum(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_scasum(rocblas_handle               handle,
@@ -113,7 +88,8 @@ rocblas_status rocblas_scasum(rocblas_handle               handle,
                               rocblas_int                  incx,
                               float*                       result)
 {
-    return rocblas_asum(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_impl<NB>(handle, n, x, incx, result);
 }
 
 rocblas_status rocblas_dzasum(rocblas_handle                handle,
@@ -122,7 +98,8 @@ rocblas_status rocblas_dzasum(rocblas_handle                handle,
                               rocblas_int                   incx,
                               double*                       result)
 {
-    return rocblas_asum(handle, n, x, incx, result);
+    constexpr rocblas_int NB = 512;
+    return rocblas_asum_impl<NB>(handle, n, x, incx, result);
 }
 
 } // extern "C"
