@@ -49,7 +49,7 @@ foreach( exe ${sample_list} )
     target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_NVCC__ )
     target_link_libraries( ${exe} PRIVATE ${CUDA_LIBRARIES} )
   else( )
-    # Unfortunatley, we can't link to hip::hip_hcc because it pulls in flags specific to the
+    # Unfortunately, we can't link to hip::hip_hcc because it pulls in flags specific to the
     # hcc compiler, and we want to be able to build with host compilers
 
     # auto set in hip_common.h
