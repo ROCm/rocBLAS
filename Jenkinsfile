@@ -48,6 +48,7 @@ rocBLASCI:
         def command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
+                    export PATH=/opt/rocm/bin:$PATH
                     ${sudo} LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
                     """
         platform.runCommand(this, command)
