@@ -39,6 +39,7 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   TensileCreateLibraryCmake(
+      ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/hip_lite 
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
       ${Tensile_COMPILER}
