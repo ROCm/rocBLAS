@@ -82,8 +82,7 @@ namespace
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        U* mem = (U*)nullptr;
-        return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, batch_count, mem);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, batch_count);
     }
 }
 
