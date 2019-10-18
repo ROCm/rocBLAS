@@ -108,11 +108,8 @@ void testing_trsv_batched(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         rocblas_init<T>(hA[b], M, M, lda);
-    }
 
-    //  calculate AAT = hA * hA ^ T
-    for(int b = 0; b < batch_count; b++)
-    {
+        //  calculate AAT = hA * hA ^ T
         cblas_gemm<T, T>(rocblas_operation_none,
                          rocblas_operation_transpose,
                          M,
@@ -126,11 +123,8 @@ void testing_trsv_batched(const Arguments& arg)
                          0.0,
                          AAT[b],
                          lda);
-    }
 
-    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    for(int b = 0; b < batch_count; b++)
-    {
+        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < M; i++)
         {
             T t = 0.0;
@@ -142,17 +136,14 @@ void testing_trsv_batched(const Arguments& arg)
             }
             hA[b][i + i * lda] = t;
         }
-    }
-    //  calculate Cholesky factorization of SPD matrix hA
-    for(int b = 0; b < batch_count; b++)
+
+        //  calculate Cholesky factorization of SPD matrix hA
         cblas_potrf<T>(char_uplo, M, hA[b], lda);
 
-    //  make hA unit diagonal if diag == rocblas_diagonal_unit
-    if(char_diag == 'U' || char_diag == 'u')
-    {
-        if('L' == char_uplo || 'l' == char_uplo)
+        //  make hA unit diagonal if diag == rocblas_diagonal_unit
+        if(char_diag == 'U' || char_diag == 'u')
         {
-            for(int b = 0; b < batch_count; b++)
+            if('L' == char_uplo || 'l' == char_uplo)
             {
                 for(int i = 0; i < M; i++)
                 {
@@ -161,10 +152,7 @@ void testing_trsv_batched(const Arguments& arg)
                         hA[b][i + j * lda] = hA[b][i + j * lda] / diag;
                 }
             }
-        }
-        else
-        {
-            for(int b = 0; b < batch_count; b++)
+            else
             {
                 for(int j = 0; j < M; j++)
                 {
@@ -174,21 +162,13 @@ void testing_trsv_batched(const Arguments& arg)
                 }
             }
         }
-    }
 
-    for(int b = 0; b < batch_count; b++)
-    {
         rocblas_init<T>(hx[b], 1, M, abs_incx);
         hb[b] = hx[b];
-    }
 
-    // Calculate hb = hA*hx;
-    for(int b = 0; b < batch_count; b++)
-    {
+        // Calculate hb = hA*hx;
         cblas_trmv<T>(uplo, transA, diag, M, hA[b], lda, hb[b], incx);
-    }
-    for(int b = 0; b < batch_count; b++)
-    {
+
         cpu_x_or_b[b] = hb[b]; // cpuXorB <- B
         hx_or_b_1[b]  = hb[b];
         hx_or_b_2[b]  = hb[b];

@@ -124,11 +124,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
                          0.0,
                          AAT + stride_a * b,
                          lda);
-    }
 
-    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    for(int b = 0; b < batch_count; b++)
-    {
+        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < M; i++)
         {
             T t = 0.0;
@@ -140,17 +137,14 @@ void testing_trsv_strided_batched(const Arguments& arg)
             }
             hA[i + i * lda + b * stride_a] = t;
         }
-    }
-    //  calculate Cholesky factorization of SPD matrix hA
-    for(int b = 0; b < batch_count; b++)
+
+        //  calculate Cholesky factorization of SPD matrix hA
         cblas_potrf<T>(char_uplo, M, hA + stride_a * b, lda);
 
-    //  make hA unit diagonal if diag == rocblas_diagonal_unit
-    if(char_diag == 'U' || char_diag == 'u')
-    {
-        if('L' == char_uplo || 'l' == char_uplo)
+        //  make hA unit diagonal if diag == rocblas_diagonal_unit
+        if(char_diag == 'U' || char_diag == 'u')
         {
-            for(int b = 0; b < batch_count; b++)
+            if('L' == char_uplo || 'l' == char_uplo)
             {
                 for(int i = 0; i < M; i++)
                 {
@@ -159,10 +153,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                         hA[i + j * lda + stride_a * b] = hA[i + j * lda + stride_a * b] / diag;
                 }
             }
-        }
-        else
-        {
-            for(int b = 0; b < batch_count; b++)
+            else
             {
                 for(int j = 0; j < M; j++)
                 {

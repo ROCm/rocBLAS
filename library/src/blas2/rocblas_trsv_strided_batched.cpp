@@ -34,7 +34,7 @@ namespace
                                                         rocblas_stride    stride_A,
                                                         T*                B,
                                                         rocblas_int       incx,
-                                                        rocblas_stride    stride_B,
+                                                        rocblas_stride    stride_x,
                                                         rocblas_int       batch_count,
                                                         const T*          supplied_invA = nullptr,
                                                         rocblas_int       supplied_invA_size = 0,
@@ -56,7 +56,7 @@ namespace
                       stride_A,
                       B,
                       incx,
-                      stride_B,
+                      stride_x,
                       batch_count);
 
         if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
@@ -85,8 +85,8 @@ namespace
                               stride_A,
                               "--incx",
                               incx,
-                              "--stride_B",
-                              stride_B,
+                              "--stride_x",
+                              stride_x,
                               "--batch",
                               batch_count);
             }
@@ -108,8 +108,8 @@ namespace
                             stride_A,
                             "incx",
                             incx,
-                            "stride_B",
-                            stride_B,
+                            "stride_x",
+                            stride_x,
                             "batch",
                             batch_count);
         }
@@ -156,7 +156,7 @@ namespace
                                                                         B,
                                                                         0,
                                                                         incx,
-                                                                        stride_B,
+                                                                        stride_x,
                                                                         batch_count,
                                                                         mem_x_temp,
                                                                         mem_x_temp_arr,

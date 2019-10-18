@@ -26,7 +26,7 @@ namespace
     constexpr T one = 1;
 
     template <typename T, typename U>
-    __global__ void flip_vector_kernel(U* __restrict__ dataa,
+    __global__ void flip_vector_kernel(U* __restrict__ data,
                                        rocblas_int    m,
                                        rocblas_int    size,
                                        rocblas_int    abs_incx,
@@ -36,12 +36,12 @@ namespace
         ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
         if(tx < size)
         {
-            T*   data         = load_ptr_batch(dataa, hipBlockIdx_y, offset, stride);
-            T*   data_end     = data + (m - 1) * abs_incx;
-            auto offset       = tx * abs_incx;
-            auto temp         = data[offset];
-            data[offset]      = data_end[-offset];
-            data_end[-offset] = temp;
+            T*   data_start    = load_ptr_batch(data, hipBlockIdx_y, offset, stride);
+            T*   data_end      = data_start + (m - 1) * abs_incx;
+            auto offset        = tx * abs_incx;
+            auto temp          = data_start[offset];
+            data_start[offset] = data_end[-offset];
+            data_end[-offset]  = temp;
         }
     }
 
@@ -123,42 +123,6 @@ namespace
                            size,
                            offset_dst,
                            offset_src);
-    }
-
-    template <typename T>
-    __global__ void strided_vector_copy_old_kernel(T* __restrict__ dst,
-                                                   rocblas_int dst_incx,
-                                                   const T* __restrict__ src,
-                                                   rocblas_int src_incx,
-                                                   rocblas_int size)
-    {
-        ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-        if(tx < size)
-            dst[tx * dst_incx] = src[tx * src_incx];
-    }
-
-    template <typename T>
-    void strided_vector_copy_old(rocblas_handle handle,
-                                 T*             dst,
-                                 rocblas_int    dst_incx,
-                                 T*             src,
-                                 rocblas_int    src_incx,
-                                 rocblas_int    size)
-    {
-        rocblas_int blocksX = (size - 1) / NB_X + 1;
-        dim3        grid    = blocksX;
-        dim3        threads = NB_X;
-
-        hipLaunchKernelGGL(strided_vector_copy_old_kernel,
-                           grid,
-                           threads,
-                           0,
-                           handle->rocblas_stream,
-                           dst,
-                           dst_incx,
-                           src,
-                           src_incx,
-                           size);
     }
 
     template <rocblas_int BLOCK, typename T, typename U, typename V>
