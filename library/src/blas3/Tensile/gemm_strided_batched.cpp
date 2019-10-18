@@ -206,6 +206,12 @@ namespace
 
 #ifdef USE_TENSILE_HOST
 
+
+        if(m == 0 || n == 0 || k == 0 || b_c == 0)
+        {
+            return rocblas_status_success;
+        }
+
         T alpha_h;
         T beta_h;
         if(rocblas_pointer_mode_host == handle->pointer_mode)
