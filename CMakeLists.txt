@@ -177,7 +177,7 @@ if( BUILD_WITH_TENSILE )
 
   set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite gfx803 gfx900 gfx906 gfx908 other )
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite gfx803 gfx900 gfx906 gfx908 hip_lite other )
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
 
