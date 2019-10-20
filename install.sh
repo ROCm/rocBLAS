@@ -19,6 +19,7 @@ function display_help()
   echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
   echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
   echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
+  echo "    [-a|--architecture] Run GPU-specific tensile kernels (vega10, vega20, etc)"
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
@@ -237,6 +238,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
+tensile_architecture=_
 tensile_cov=V2
 tensile_fork=
 tensile_tag=
@@ -255,7 +257,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nhicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,architecture:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nhicdgl:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -288,6 +290,9 @@ while true; do
         shift ;;
     -l|--logic)
         tensile_logic=${2}
+        shift 2 ;;
+    -a|--architecture)
+        tensile_architecture=${2}
         shift 2 ;;
     -o|--cov)
         tensile_cov=${2}
@@ -403,7 +408,7 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_ARCHITECTURE=${tensile_architecture} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
   cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type

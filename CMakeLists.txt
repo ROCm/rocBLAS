@@ -168,6 +168,7 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+  set( Tensile_ARCHITECTURE "vega20" CACHE STRING "Tensile to use which architecture?")
   set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
   set( Tensile_COMPILER "hcc" CACHE STRING "Tensile compiler")
 
@@ -177,7 +178,8 @@ if( BUILD_WITH_TENSILE )
 
   set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
   set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen asm_arcturus asm_fiji asm_vega10 asm_vega20 hip_lite other )
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS arcturus fiji vega10 vega20 _)
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
 
