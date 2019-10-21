@@ -91,7 +91,6 @@ namespace
                               ld_c,
                               stride_c,
                               b_c);
-
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     log_bench(handle,

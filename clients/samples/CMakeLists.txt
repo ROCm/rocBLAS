@@ -30,9 +30,11 @@ foreach( exe ${sample_list} )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-  target_include_directories( ${exe}
+
+  target_include_directories( ${exe} 
     PRIVATE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
       )
 
   target_include_directories( ${exe}
@@ -49,9 +51,11 @@ foreach( exe ${sample_list} )
     target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_NVCC__ )
     target_link_libraries( ${exe} PRIVATE ${CUDA_LIBRARIES} )
   else( )
-    # Unfortunatley, we can't link to hip::hip_hcc because it pulls in flags specific to the
+    # Unfortunately, we can't link to hip::hip_hcc because it pulls in flags specific to the
     # hcc compiler, and we want to be able to build with host compilers
-    target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
+
+    # auto set in hip_common.h
+    #target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
     target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
   endif( )
 
@@ -65,4 +69,7 @@ foreach( exe ${sample_list} )
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
 endforeach( )
+
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 

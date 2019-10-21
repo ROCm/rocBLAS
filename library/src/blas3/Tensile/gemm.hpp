@@ -86,24 +86,24 @@ hipError_t tensile_helper(T&                alpha_h,
         sizeL, handle->rocblas_stream, 0, nullptr, nullptr
 
 template <>
-hipError_t tensile_helper(rocblas_half&       alpha_h,
-                          rocblas_half&       beta_h,
-                          const rocblas_half* A,
-                          const rocblas_half* B,
-                          rocblas_half*       C,
-                          rocblas_operation   trans_a,
-                          rocblas_operation   trans_b,
-                          rocblas_stride      strideC1,
-                          rocblas_stride      strideC2,
-                          rocblas_stride      strideA1,
-                          rocblas_stride      strideA2,
-                          rocblas_stride      strideB1,
-                          rocblas_stride      strideB2,
-                          rocblas_int         sizeI,
-                          rocblas_int         sizeJ,
-                          rocblas_int         sizeK,
-                          rocblas_int         sizeL,
-                          rocblas_handle      handle)
+inline hipError_t tensile_helper(rocblas_half&       alpha_h,
+                                 rocblas_half&       beta_h,
+                                 const rocblas_half* A,
+                                 const rocblas_half* B,
+                                 rocblas_half*       C,
+                                 rocblas_operation   trans_a,
+                                 rocblas_operation   trans_b,
+                                 rocblas_stride      strideC1,
+                                 rocblas_stride      strideC2,
+                                 rocblas_stride      strideA1,
+                                 rocblas_stride      strideA2,
+                                 rocblas_stride      strideB1,
+                                 rocblas_stride      strideB2,
+                                 rocblas_int         sizeI,
+                                 rocblas_int         sizeJ,
+                                 rocblas_int         sizeK,
+                                 rocblas_int         sizeL,
+                                 rocblas_handle      handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
@@ -132,24 +132,24 @@ hipError_t tensile_helper(rocblas_half&       alpha_h,
 }
 
 template <>
-hipError_t tensile_helper(float&            alpha_h,
-                          float&            beta_h,
-                          const float*      A,
-                          const float*      B,
-                          float*            C,
-                          rocblas_operation trans_a,
-                          rocblas_operation trans_b,
-                          rocblas_stride    strideC1,
-                          rocblas_stride    strideC2,
-                          rocblas_stride    strideA1,
-                          rocblas_stride    strideA2,
-                          rocblas_stride    strideB1,
-                          rocblas_stride    strideB2,
-                          rocblas_int       sizeI,
-                          rocblas_int       sizeJ,
-                          rocblas_int       sizeK,
-                          rocblas_int       sizeL,
-                          rocblas_handle    handle)
+inline hipError_t tensile_helper(float&            alpha_h,
+                                 float&            beta_h,
+                                 const float*      A,
+                                 const float*      B,
+                                 float*            C,
+                                 rocblas_operation trans_a,
+                                 rocblas_operation trans_b,
+                                 rocblas_stride    strideC1,
+                                 rocblas_stride    strideC2,
+                                 rocblas_stride    strideA1,
+                                 rocblas_stride    strideA2,
+                                 rocblas_stride    strideB1,
+                                 rocblas_stride    strideB2,
+                                 rocblas_int       sizeI,
+                                 rocblas_int       sizeJ,
+                                 rocblas_int       sizeK,
+                                 rocblas_int       sizeL,
+                                 rocblas_handle    handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
@@ -178,24 +178,24 @@ hipError_t tensile_helper(float&            alpha_h,
 }
 
 template <>
-hipError_t tensile_helper(double&           alpha_h,
-                          double&           beta_h,
-                          const double*     A,
-                          const double*     B,
-                          double*           C,
-                          rocblas_operation trans_a,
-                          rocblas_operation trans_b,
-                          rocblas_stride    strideC1,
-                          rocblas_stride    strideC2,
-                          rocblas_stride    strideA1,
-                          rocblas_stride    strideA2,
-                          rocblas_stride    strideB1,
-                          rocblas_stride    strideB2,
-                          rocblas_int       sizeI,
-                          rocblas_int       sizeJ,
-                          rocblas_int       sizeK,
-                          rocblas_int       sizeL,
-                          rocblas_handle    handle)
+inline hipError_t tensile_helper(double&           alpha_h,
+                                 double&           beta_h,
+                                 const double*     A,
+                                 const double*     B,
+                                 double*           C,
+                                 rocblas_operation trans_a,
+                                 rocblas_operation trans_b,
+                                 rocblas_stride    strideC1,
+                                 rocblas_stride    strideC2,
+                                 rocblas_stride    strideA1,
+                                 rocblas_stride    strideA2,
+                                 rocblas_stride    strideB1,
+                                 rocblas_stride    strideB2,
+                                 rocblas_int       sizeI,
+                                 rocblas_int       sizeJ,
+                                 rocblas_int       sizeK,
+                                 rocblas_int       sizeL,
+                                 rocblas_handle    handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
@@ -224,24 +224,24 @@ hipError_t tensile_helper(double&           alpha_h,
 }
 
 template <>
-hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
-                          rocblas_float_complex&       beta_h,
-                          const rocblas_float_complex* A,
-                          const rocblas_float_complex* B,
-                          rocblas_float_complex*       C,
-                          rocblas_operation            trans_a,
-                          rocblas_operation            trans_b,
-                          rocblas_stride               strideC1,
-                          rocblas_stride               strideC2,
-                          rocblas_stride               strideA1,
-                          rocblas_stride               strideA2,
-                          rocblas_stride               strideB1,
-                          rocblas_stride               strideB2,
-                          rocblas_int                  sizeI,
-                          rocblas_int                  sizeJ,
-                          rocblas_int                  sizeK,
-                          rocblas_int                  sizeL,
-                          rocblas_handle               handle)
+inline hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
+                                 rocblas_float_complex&       beta_h,
+                                 const rocblas_float_complex* A,
+                                 const rocblas_float_complex* B,
+                                 rocblas_float_complex*       C,
+                                 rocblas_operation            trans_a,
+                                 rocblas_operation            trans_b,
+                                 rocblas_stride               strideC1,
+                                 rocblas_stride               strideC2,
+                                 rocblas_stride               strideA1,
+                                 rocblas_stride               strideA2,
+                                 rocblas_stride               strideB1,
+                                 rocblas_stride               strideB2,
+                                 rocblas_int                  sizeI,
+                                 rocblas_int                  sizeJ,
+                                 rocblas_int                  sizeK,
+                                 rocblas_int                  sizeL,
+                                 rocblas_handle               handle)
 {
     static_assert(std::is_standard_layout<TensileComplexFloat>{},
                   "TensileComplexFloat is not a standard layout type, and thus is "
@@ -291,24 +291,24 @@ hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
 }
 
 template <>
-hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
-                          rocblas_double_complex&       beta_h,
-                          const rocblas_double_complex* A,
-                          const rocblas_double_complex* B,
-                          rocblas_double_complex*       C,
-                          rocblas_operation             trans_a,
-                          rocblas_operation             trans_b,
-                          rocblas_stride                strideC1,
-                          rocblas_stride                strideC2,
-                          rocblas_stride                strideA1,
-                          rocblas_stride                strideA2,
-                          rocblas_stride                strideB1,
-                          rocblas_stride                strideB2,
-                          rocblas_int                   sizeI,
-                          rocblas_int                   sizeJ,
-                          rocblas_int                   sizeK,
-                          rocblas_int                   sizeL,
-                          rocblas_handle                handle)
+inline hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
+                                 rocblas_double_complex&       beta_h,
+                                 const rocblas_double_complex* A,
+                                 const rocblas_double_complex* B,
+                                 rocblas_double_complex*       C,
+                                 rocblas_operation             trans_a,
+                                 rocblas_operation             trans_b,
+                                 rocblas_stride                strideC1,
+                                 rocblas_stride                strideC2,
+                                 rocblas_stride                strideA1,
+                                 rocblas_stride                strideA2,
+                                 rocblas_stride                strideB1,
+                                 rocblas_stride                strideB2,
+                                 rocblas_int                   sizeI,
+                                 rocblas_int                   sizeJ,
+                                 rocblas_int                   sizeK,
+                                 rocblas_int                   sizeL,
+                                 rocblas_handle                handle)
 {
     static_assert(std::is_standard_layout<TensileComplexDouble>{},
                   "TensileComplexDouble is not a standard layout type, and thus is "
@@ -587,18 +587,18 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  * Tensile Solution Name (debug only)
  ******************************************************************************/
 template <typename T>
-const char* tensileGetSolutionName(rocblas_operation trans_a,
-                                   rocblas_operation trans_b,
-                                   rocblas_int       strideC1,
-                                   rocblas_int       strideC2,
-                                   rocblas_int       strideA1,
-                                   rocblas_int       strideA2,
-                                   rocblas_int       strideB1,
-                                   rocblas_int       strideB2,
-                                   rocblas_int       sizeI,
-                                   rocblas_int       sizeJ,
-                                   rocblas_int       sizeK,
-                                   rocblas_int       sizeL)
+inline const char* tensileGetSolutionName(rocblas_operation trans_a,
+                                          rocblas_operation trans_b,
+                                          rocblas_int       strideC1,
+                                          rocblas_int       strideC2,
+                                          rocblas_int       strideA1,
+                                          rocblas_int       strideA2,
+                                          rocblas_int       strideB1,
+                                          rocblas_int       strideB2,
+                                          rocblas_int       sizeI,
+                                          rocblas_int       sizeJ,
+                                          rocblas_int       sizeK,
+                                          rocblas_int       sizeL)
 {
     return "";
 };
@@ -610,18 +610,18 @@ const char* tensileGetSolutionName(rocblas_operation trans_a,
         sizeK, sizeL
 
 template <>
-const char* tensileGetSolutionName<rocblas_half>(rocblas_operation trans_a,
-                                                 rocblas_operation trans_b,
-                                                 rocblas_int       strideC1,
-                                                 rocblas_int       strideC2,
-                                                 rocblas_int       strideA1,
-                                                 rocblas_int       strideA2,
-                                                 rocblas_int       strideB1,
-                                                 rocblas_int       strideB2,
-                                                 rocblas_int       sizeI,
-                                                 rocblas_int       sizeJ,
-                                                 rocblas_int       sizeK,
-                                                 rocblas_int       sizeL)
+inline const char* tensileGetSolutionName<rocblas_half>(rocblas_operation trans_a,
+                                                        rocblas_operation trans_b,
+                                                        rocblas_int       strideC1,
+                                                        rocblas_int       strideC2,
+                                                        rocblas_int       strideA1,
+                                                        rocblas_int       strideA2,
+                                                        rocblas_int       strideB1,
+                                                        rocblas_int       strideB2,
+                                                        rocblas_int       sizeI,
+                                                        rocblas_int       sizeJ,
+                                                        rocblas_int       sizeK,
+                                                        rocblas_int       sizeL)
 {
     switch(GetTransposeMode(trans_a, trans_b))
     {
@@ -642,18 +642,18 @@ const char* tensileGetSolutionName<rocblas_half>(rocblas_operation trans_a,
 }
 
 template <>
-const char* tensileGetSolutionName<float>(rocblas_operation trans_a,
-                                          rocblas_operation trans_b,
-                                          rocblas_int       strideC1,
-                                          rocblas_int       strideC2,
-                                          rocblas_int       strideA1,
-                                          rocblas_int       strideA2,
-                                          rocblas_int       strideB1,
-                                          rocblas_int       strideB2,
-                                          rocblas_int       sizeI,
-                                          rocblas_int       sizeJ,
-                                          rocblas_int       sizeK,
-                                          rocblas_int       sizeL)
+inline const char* tensileGetSolutionName<float>(rocblas_operation trans_a,
+                                                 rocblas_operation trans_b,
+                                                 rocblas_int       strideC1,
+                                                 rocblas_int       strideC2,
+                                                 rocblas_int       strideA1,
+                                                 rocblas_int       strideA2,
+                                                 rocblas_int       strideB1,
+                                                 rocblas_int       strideB2,
+                                                 rocblas_int       sizeI,
+                                                 rocblas_int       sizeJ,
+                                                 rocblas_int       sizeK,
+                                                 rocblas_int       sizeL)
 {
     switch(GetTransposeMode(trans_a, trans_b))
     {
@@ -674,18 +674,18 @@ const char* tensileGetSolutionName<float>(rocblas_operation trans_a,
 }
 
 template <>
-const char* tensileGetSolutionName<double>(rocblas_operation trans_a,
-                                           rocblas_operation trans_b,
-                                           rocblas_int       strideC1,
-                                           rocblas_int       strideC2,
-                                           rocblas_int       strideA1,
-                                           rocblas_int       strideA2,
-                                           rocblas_int       strideB1,
-                                           rocblas_int       strideB2,
-                                           rocblas_int       sizeI,
-                                           rocblas_int       sizeJ,
-                                           rocblas_int       sizeK,
-                                           rocblas_int       sizeL)
+inline const char* tensileGetSolutionName<double>(rocblas_operation trans_a,
+                                                  rocblas_operation trans_b,
+                                                  rocblas_int       strideC1,
+                                                  rocblas_int       strideC2,
+                                                  rocblas_int       strideA1,
+                                                  rocblas_int       strideA2,
+                                                  rocblas_int       strideB1,
+                                                  rocblas_int       strideB2,
+                                                  rocblas_int       sizeI,
+                                                  rocblas_int       sizeJ,
+                                                  rocblas_int       sizeK,
+                                                  rocblas_int       sizeL)
 {
     switch(GetTransposeMode(trans_a, trans_b))
     {
@@ -706,18 +706,18 @@ const char* tensileGetSolutionName<double>(rocblas_operation trans_a,
 }
 
 template <>
-const char* tensileGetSolutionName<rocblas_float_complex>(rocblas_operation trans_a,
-                                                          rocblas_operation trans_b,
-                                                          rocblas_int       strideC1,
-                                                          rocblas_int       strideC2,
-                                                          rocblas_int       strideA1,
-                                                          rocblas_int       strideA2,
-                                                          rocblas_int       strideB1,
-                                                          rocblas_int       strideB2,
-                                                          rocblas_int       sizeI,
-                                                          rocblas_int       sizeJ,
-                                                          rocblas_int       sizeK,
-                                                          rocblas_int       sizeL)
+inline const char* tensileGetSolutionName<rocblas_float_complex>(rocblas_operation trans_a,
+                                                                 rocblas_operation trans_b,
+                                                                 rocblas_int       strideC1,
+                                                                 rocblas_int       strideC2,
+                                                                 rocblas_int       strideA1,
+                                                                 rocblas_int       strideA2,
+                                                                 rocblas_int       strideB1,
+                                                                 rocblas_int       strideB2,
+                                                                 rocblas_int       sizeI,
+                                                                 rocblas_int       sizeJ,
+                                                                 rocblas_int       sizeK,
+                                                                 rocblas_int       sizeL)
 {
     switch(GetTransposeMode(trans_a, trans_b))
     {
@@ -743,18 +743,18 @@ const char* tensileGetSolutionName<rocblas_float_complex>(rocblas_operation tran
 }
 
 template <>
-const char* tensileGetSolutionName<rocblas_double_complex>(rocblas_operation trans_a,
-                                                           rocblas_operation trans_b,
-                                                           rocblas_int       strideC1,
-                                                           rocblas_int       strideC2,
-                                                           rocblas_int       strideA1,
-                                                           rocblas_int       strideA2,
-                                                           rocblas_int       strideB1,
-                                                           rocblas_int       strideB2,
-                                                           rocblas_int       sizeI,
-                                                           rocblas_int       sizeJ,
-                                                           rocblas_int       sizeK,
-                                                           rocblas_int       sizeL)
+inline const char* tensileGetSolutionName<rocblas_double_complex>(rocblas_operation trans_a,
+                                                                  rocblas_operation trans_b,
+                                                                  rocblas_int       strideC1,
+                                                                  rocblas_int       strideC2,
+                                                                  rocblas_int       strideA1,
+                                                                  rocblas_int       strideA2,
+                                                                  rocblas_int       strideB1,
+                                                                  rocblas_int       strideB2,
+                                                                  rocblas_int       sizeI,
+                                                                  rocblas_int       sizeJ,
+                                                                  rocblas_int       sizeK,
+                                                                  rocblas_int       sizeL)
 {
     switch(GetTransposeMode(trans_a, trans_b))
     {
