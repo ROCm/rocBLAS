@@ -108,7 +108,7 @@ namespace
         {
             if(!strcmp(arg.function, "trsm"))
                 testing_trsm<T>(arg);
-            if(!strcmp(arg.function, "trsm_ex"))
+            else if(!strcmp(arg.function, "trsm_ex"))
                 testing_trsm_ex<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched"))
                 testing_trsm_batched<T>(arg);
