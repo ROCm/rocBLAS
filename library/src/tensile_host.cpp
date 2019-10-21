@@ -61,52 +61,48 @@ auto create_gemm_contraction_problem_strided_batched(rocblas_operation trans_a,
 {
     auto transposeA = trans_a != rocblas_operation_none;
     auto transposeB = trans_b != rocblas_operation_none;
+    auto dt         = tensile_datatype<T>;
 
-    auto dt      = tensile_datatype<T>;
+    Tensile::ContractionProblem::FreeIndices  free{2};
+    Tensile::ContractionProblem::BoundIndices bound{1};
+    Tensile::ContractionProblem::BatchIndices batch{1};
 
-    Tensile::ContractionProblem::FreeIndices  free(2);
-    Tensile::ContractionProblem::BoundIndices bound(1);
-    Tensile::ContractionProblem::BatchIndices batch(1);
-
-    free[0].isA=true;
+    free[0].isA = true;
     free[0].i = free[0].c = free[0].d = 0;
-    free[1].isA=false;
+    free[1].isA                       = false;
     free[1].i = free[1].c = free[1].d = 1;
 
     batch[0].a = batch[0].b = batch[0].c = batch[0].d = 2;
 
-    Tensile::TensorDescriptor a, b, c, d;
+    Tensile::TensorDescriptor a, b;
 
     if(transposeA)
     {
-        a = Tensile::TensorDescriptor(dt, {k, m, batchSize}, {1, ld_a, stride_a});
-        free[0].i = 1;
+        a          = {dt, {k, m, batchSize}, {1, ld_a, stride_a}};
+        free[0].i  = 1;
         bound[0].a = 0;
     }
     else
     {
-        a = Tensile::TensorDescriptor(dt, {m, k, batchSize}, {1, ld_a, stride_a});
-        free[0].i = 0;
+        a          = {dt, {m, k, batchSize}, {1, ld_a, stride_a}};
+        free[0].i  = 0;
         bound[0].a = 1;
     }
 
     if(transposeB)
     {
-        b = Tensile::TensorDescriptor(dt, {n, k, batchSize}, {1, ld_b, stride_b});
-        free[1].i = 0;
+        b          = {dt, {n, k, batchSize}, {1, ld_b, stride_b}};
+        free[1].i  = 0;
         bound[0].b = 1;
     }
     else
     {
-        b = Tensile::TensorDescriptor(dt, {k, n, batchSize}, {1, ld_b, stride_b});
-        free[1].i = 1;
+        b          = {dt, {k, n, batchSize}, {1, ld_b, stride_b}};
+        free[1].i  = 1;
         bound[0].b = 0;
     }
 
-    c = Tensile::TensorDescriptor(dt, {m, n, batchSize}, {1, ld_c, stride_c});
-    d = Tensile::TensorDescriptor(dt, {m, n, batchSize}, {1, ld_c, stride_c});
-
-    Tensile::TensorOps nop;
+    Tensile::TensorDescriptor c{dt, {m, n, batchSize}, {1, ld_c, stride_c}};
 
     Tensile::TensorOps aops;
     if(is_complex<T> && trans_a == rocblas_operation_conjugate_transpose)
@@ -116,8 +112,8 @@ auto create_gemm_contraction_problem_strided_batched(rocblas_operation trans_a,
     if(is_complex<T> && trans_b == rocblas_operation_conjugate_transpose)
         bops = {Tensile::TensorOp::Type::ComplexConjugate};
 
-    Tensile::ContractionProblem problem(a, aops, b, bops, c, nop, d, nop,
-                               free, batch, bound, value_category(beta));
+    Tensile::ContractionProblem problem{
+        a, aops, b, bops, c, {}, c, {}, free, batch, bound, value_category(beta)};
 
     return problem;
 }
@@ -140,6 +136,7 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
 {
     auto transposeA = trans_a != rocblas_operation_none;
     auto transposeB = trans_b != rocblas_operation_none;
+    auto dt         = tensile_datatype<T>;
 
     Tensile::ContractionProblem::FreeIndices freeIndex(2);
     Tensile::ContractionProblem::BoundIndex  boundIndex;
@@ -150,7 +147,6 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     freeIndex[1].i = freeIndex[1].c = freeIndex[1].d = 1;
 
     Tensile::TensorDescriptor a, b;
-    auto                      dt = tensile_datatype<T>;
 
     if(transposeA)
     {
