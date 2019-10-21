@@ -55,14 +55,15 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
         device_vector<T>    dXorB(safe_size);
+        device_vector<T>    dinvA(safe_size);
         if(!dA || !dXorB)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        // TODO change this to trsm_ex_strided_batched
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        rocblas_status status = rocblas_trsm_strided_batched<T>(handle,
+        rocblas_status status = rocblas_trsm_ex_strided_batched(handle,
                                                                 side,
                                                                 uplo,
                                                                 transA,
@@ -76,7 +77,12 @@ void testing_trsm_ex_strided_batched(const Arguments& arg)
                                                                 dXorB,
                                                                 ldb,
                                                                 stride_B,
-                                                                batch_count);
+                                                                batch_count,
+                                                                dinvA,
+                                                                TRSM_BLOCK * K,
+                                                                stride_invA,
+                                                                arg.compute_type);
+
         if(batch_count == 0)
             CHECK_ROCBLAS_ERROR(status);
         else
