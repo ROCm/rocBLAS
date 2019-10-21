@@ -195,20 +195,18 @@ constexpr rocblas_side char2rocblas_side(char value)
     }
 }
 
+// clang-format off
 inline rocblas_initialization string2rocblas_initialization(const std::string& value)
 {
-    // clang-format off
     return
         value == "rand_int"   ? rocblas_initialization_random_int :
         value == "trig_float" ? rocblas_initialization_trig_float :
         value == "hpl"        ? rocblas_initialization_hpl        :
         static_cast<rocblas_initialization>(-1);
-    // clang-format on
 }
 
 inline rocblas_datatype string2rocblas_datatype(const std::string& value)
 {
-    // clang-format off
     return
         value == "f16_r" || value == "h" ? rocblas_datatype_f16_r :
         value == "f32_r" || value == "s" ? rocblas_datatype_f32_r :
@@ -227,7 +225,7 @@ inline rocblas_datatype string2rocblas_datatype(const std::string& value)
         value == "u8_c"                  ? rocblas_datatype_u8_c  :
         value == "u32_c"                 ? rocblas_datatype_u32_c :
         static_cast<rocblas_datatype>(-1);
-    // clang-format on
 }
+// clang-format on
 
 #endif

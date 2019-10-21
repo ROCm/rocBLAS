@@ -146,7 +146,7 @@
     Valid: true
     VectorWidth: 1
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -8
+    WorkGroupMapping: 8
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
 - []
