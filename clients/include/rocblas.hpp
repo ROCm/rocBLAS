@@ -1273,24 +1273,6 @@ static constexpr auto rocblas_trsm<float> = rocblas_strsm;
 template <>
 static constexpr auto rocblas_trsm<double> = rocblas_dtrsm;
 
-// trsm_ex
-// template <typename T>
-// rocblas_status(*rocblas_trsm_ex)(rocblas_handle    handle,
-//                                  rocblas_side      side,
-//                                  rocblas_fill      uplo,
-//                                  rocblas_operation transA,
-//                                  rocblas_diagonal  diag,
-//                                  rocblas_int       m,
-//                                  rocblas_int       n,
-//                                  const void*       alpha,
-//                                  const void*       A,
-//                                  rocblas_int       lda,
-//                                  void*             B,
-//                                  rocblas_int       ldb,
-//                                  const void*       invA,
-//                                  rocblas_int       invA_size,
-//                                  rocblas_datatype  compute_type);
-
 // trsm_batched
 template <typename T>
 rocblas_status (*rocblas_trsm_batched)(rocblas_handle    handle,
@@ -1312,47 +1294,6 @@ static constexpr auto rocblas_trsm_batched<float> = rocblas_strsm_batched;
 
 template <>
 static constexpr auto rocblas_trsm_batched<double> = rocblas_dtrsm_batched;
-
-// trsm_ex_batched
-// template <typename T>
-// rocblas_status (*rocblas_trsm_ex_batched)(rocblas_handle    handle,
-//                                           rocblas_side      side,
-//                                           rocblas_fill      uplo,
-//                                           rocblas_operation transA,
-//                                           rocblas_diagonal  diag,
-//                                           rocblas_int       m,
-//                                           rocblas_int       n,
-//                                           const void*       alpha,
-//                                           const void*       A,
-//                                           rocblas_int       lda,
-//                                           void*             B,
-//                                           rocblas_int       ldb,
-//                                           rocblas_int       batch_count,
-//                                           const void*       invA,
-//                                           rocblas_int       invA_size,
-//                                           rocblas_datatype  compute_type);
-
-// // trsm_ex_strided_batched
-// template <typename T>
-// rocblas_status (*rocblas_trsm_ex_strided_batched)(rocblas_handle    handle,
-//                                                   rocblas_side      side,
-//                                                   rocblas_fill      uplo,
-//                                                   rocblas_operation transA,
-//                                                   rocblas_diagonal  diag,
-//                                                   rocblas_int       m,
-//                                                   rocblas_int       n,
-//                                                   const void*       alpha,
-//                                                   const void*       A,
-//                                                   rocblas_int       lda,
-//                                                   rocblas_int       stride_A,
-//                                                   void*             B,
-//                                                   rocblas_int       ldb,
-//                                                   rocblas_int       stride_B,
-//                                                   rocblas_int       batch_count,
-//                                                   const void*       invA,
-//                                                   rocblas_int       invA_size,
-//                                                   rocblas_int       stride_invA,
-//                                                   rocblas_datatype  compute_type);
 
 // trsm_strided_batched
 template <typename T>

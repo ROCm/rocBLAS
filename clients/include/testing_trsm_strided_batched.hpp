@@ -125,13 +125,12 @@ void testing_trsm_strided_batched(const Arguments& arg)
 
     //  pad untouched area into zero
     for(int b = 0; b < batch_count; b++)
+    {
         for(int i = K; i < lda; i++)
             for(int j = 0; j < K; j++)
                 hA[i + j * lda + b * stride_a] = 0.0;
 
-    //  calculate AAT = hA * hA ^ T
-    for(int b = 0; b < batch_count; b++)
-    {
+        //  calculate AAT = hA * hA ^ T
         cblas_gemm<T, T>(rocblas_operation_none,
                          rocblas_operation_transpose,
                          K,
@@ -145,11 +144,8 @@ void testing_trsm_strided_batched(const Arguments& arg)
                          0.0,
                          AAT + stride_a * b,
                          lda);
-    }
 
-    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    for(int b = 0; b < batch_count; b++)
-    {
+        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < K; i++)
         {
             T t = 0.0;
@@ -161,11 +157,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
             }
             hA[i + i * lda + b * stride_a] = t;
         }
-    }
 
-    //  calculate Cholesky factorization of SPD matrix hA
-    for(int b = 0; b < batch_count; b++)
+        //  calculate Cholesky factorization of SPD matrix hA
         cblas_potrf<T>(char_uplo, K, hA + stride_a * b, lda);
+    }
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
     if(char_diag == 'U' || char_diag == 'u')
@@ -309,12 +304,9 @@ void testing_trsm_strided_batched(const Arguments& arg)
             }
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
-        }
 
-        // Residual Check
-        // hXorB <- hA * (A^(-1) B) ;
-        for(int b = 0; b < batch_count; b++)
-        {
+            // Residual Check
+            // hXorB <- hA * (A^(-1) B) ;
             cblas_trmm<T>(side,
                           uplo,
                           transA,
@@ -337,13 +329,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
                           lda,
                           hXorB_2 + stride_b * b,
                           ldb);
-        }
 
-        // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
-        //                                                = hXorB - hB
-        // res is the one norm of the scaled residual for each column
-        for(int b = 0; b < batch_count; b++)
-        {
+            // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
+            //                                                = hXorB - hB
+            // res is the one norm of the scaled residual for each column
             max_res_1 = max_res_2 = 0;
             for(int i = 0; i < N; i++)
             {
@@ -419,7 +408,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
         cblas_gflops  = batch_count * trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        std::cout << "M,N,lda,ldb,side,uplo,transA,diag,batch_count,rocblas-Gflops,us";
 
         if(arg.norm_check)
             std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
@@ -427,8 +416,8 @@ void testing_trsm_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
-                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                  << "," << gpu_time_used;
+                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << batch_count
+                  << ',' << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
