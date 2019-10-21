@@ -148,6 +148,40 @@ namespace
         if(validArgs != rocblas_status_success)
             return validArgs;
 
+#ifdef USE_TENSILE_HOST
+
+        T alpha_h;
+        T beta_h;
+        if(rocblas_pointer_mode_host == handle->pointer_mode)
+        {
+            alpha_h = *alpha;
+            beta_h  = *beta;
+        }
+        else
+        {
+            hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
+            hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
+        }
+
+        RocblasContractionProblem<T> problem(ContractionProblemType::GEMM,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha_h,
+                                             A,
+                                             ld_a,
+                                             B,
+                                             ld_b,
+                                             beta_h,
+                                             C,
+                                             ld_c);
+
+        return handle->host->runContractionProblem(problem);
+
+#else
+
         return rocblas_gemm_template<false, false>(handle,
                                                    trans_a,
                                                    trans_b,
@@ -171,8 +205,10 @@ namespace
                                                    ld_c,
                                                    0,
                                                    1);
+#endif
     }
 
+#ifndef USE_TENSILE_HOST
     template <typename T>
     rocblas_status rocblas_gemm_kernel_name_impl(rocblas_handle    handle,
                                                  rocblas_operation trans_a,
@@ -317,6 +353,7 @@ namespace
 
         return validArgs;
     }
+#endif
 
 }
 
@@ -418,6 +455,8 @@ rocblas_status rocblas_zgemm(rocblas_handle                handle,
     return rocblas_gemm_impl<rocblas_double_complex>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
 }
+
+#ifndef USE_TENSILE_HOST
 
 /*******************************************************************************
  * GEMM Kernel name APIs
@@ -538,4 +577,5 @@ rocblas_status rocblas_dgemm_kernel_name(rocblas_handle    handle,
                                                  stride_c,
                                                  b_c);
 }
+#endif
 }

@@ -25,6 +25,7 @@ function display_help()
   echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
   echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
   echo "    [-n|--no_tensile] build subset of library that doesn't require tensile (testing)"
+  echo "    [-s|--tensile-host] build with tensile host"
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -244,6 +245,7 @@ tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_tensile=true
+build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -255,7 +257,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nhicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nshicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -303,6 +305,9 @@ while true; do
         shift 2 ;;
     -n|--no_tensile)
         build_tensile=false
+        shift ;;
+    -s|--tensile-host)
+        build_tensile_host=true
         shift ;;
     --cuda)
         build_cuda=true
@@ -438,7 +443,11 @@ esac
 
   tensile_opt=""
     if [[ "${build_tensile}" == false ]]; then
-    tensile_opt="-DBUILD_WITH_TENSILE=OFF"
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+  fi
+
+    if [[ "${build_tensile_host}" == true ]]; then
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
   if [[ "${build_clients}" == true ]]; then

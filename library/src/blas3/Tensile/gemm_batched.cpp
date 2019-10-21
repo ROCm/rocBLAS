@@ -177,6 +177,7 @@ namespace
                                                   b_c);
     }
 
+#ifndef USE_TENSILE_HOST
     /**
     * Kernel Name Function.
     */
@@ -332,6 +333,7 @@ namespace
 
         return validArgs;
     }
+#endif
 
 }
 
@@ -440,6 +442,8 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
+#ifndef USE_TENSILE_HOST
+
 /*******************************************************************************
  * Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -502,4 +506,6 @@ rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
     return rocblas_gemm_batched_kernel_name_impl<double>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
+
+#endif
 }

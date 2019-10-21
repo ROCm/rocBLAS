@@ -185,7 +185,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -333,7 +333,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id002 [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -481,7 +481,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id002
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -629,7 +629,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id002
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -777,7 +777,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -925,7 +925,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id005 [8, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1073,7 +1073,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id002
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1221,7 +1221,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id002
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1369,7 +1369,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id005
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1517,7 +1517,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id007 [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1665,7 +1665,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1813,7 +1813,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -1961,7 +1961,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id008 [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2109,7 +2109,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2257,7 +2257,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2405,7 +2405,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2553,7 +2553,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2701,7 +2701,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id013 [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2849,7 +2849,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id010 [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -2997,7 +2997,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id010
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3145,7 +3145,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3293,7 +3293,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3441,7 +3441,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id007
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3589,7 +3589,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3737,7 +3737,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -3885,7 +3885,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id013
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4033,7 +4033,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id010
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4181,7 +4181,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id010
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4329,7 +4329,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4477,7 +4477,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4625,7 +4625,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4773,7 +4773,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -4921,7 +4921,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id010
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5069,7 +5069,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5217,7 +5217,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5365,7 +5365,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id010
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5513,7 +5513,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5661,7 +5661,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id007
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5809,7 +5809,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -5957,7 +5957,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6105,7 +6105,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id013
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6253,7 +6253,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id013
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6401,7 +6401,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id010
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6549,7 +6549,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id008
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6697,7 +6697,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id013
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6845,7 +6845,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id010
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -6993,7 +6993,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7141,7 +7141,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7289,7 +7289,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7437,7 +7437,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id008
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7585,7 +7585,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id010
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7733,7 +7733,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id008
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -7877,7 +7877,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: &id015 [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8021,7 +8021,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id015
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8169,7 +8169,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: &id017 [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8317,7 +8317,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8461,7 +8461,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8609,7 +8609,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8753,7 +8753,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -8901,7 +8901,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9045,7 +9045,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9193,7 +9193,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9341,7 +9341,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9485,7 +9485,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9633,7 +9633,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9777,7 +9777,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -9925,7 +9925,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10069,7 +10069,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10217,7 +10217,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10365,7 +10365,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id017
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10513,7 +10513,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id021 [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10661,7 +10661,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: *id021
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10809,7 +10809,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id023 [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -10957,7 +10957,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: &id024 [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11105,7 +11105,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id023
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11253,7 +11253,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11401,7 +11401,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id024
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11549,7 +11549,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id023
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11697,7 +11697,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id024
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11845,7 +11845,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id023
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -11993,7 +11993,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id024
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -12141,7 +12141,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: *id023
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
 - - - [1024, 128, 1, 128]

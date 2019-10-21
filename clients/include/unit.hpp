@@ -20,34 +20,37 @@
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)
 #define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)
 #else
-// clang-format off
 #define UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, UNIT_ASSERT_EQ)      \
     do                                                                               \
     {                                                                                \
         for(size_t k = 0; k < batch_count; k++)                                      \
             for(size_t j = 0; j < N; j++)                                            \
                 for(size_t i = 0; i < M; i++)                                        \
-                    if (rocblas_isnan(hCPU[i + j * lda + k * strideA])) {            \
+                    if(rocblas_isnan(hCPU[i + j * lda + k * strideA]))               \
+                    {                                                                \
                         ASSERT_TRUE(rocblas_isnan(hGPU[i + j * lda + k * strideA])); \
-                    } else {                                                         \
+                    }                                                                \
+                    else                                                             \
+                    {                                                                \
                         UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],              \
                                        hGPU[i + j * lda + k * strideA]);             \
                     }                                                                \
     } while(0)
-#define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)             \
-    do                                                                               \
-    {                                                                                \
-        for(size_t k = 0; k < batch_count; k++)                                      \
-            for(size_t j = 0; j < N; j++)                                            \
-                for(size_t i = 0; i < M; i++)                                        \
-                    if (rocblas_isnan(hCPU[k][i + j * lda])) {                       \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));            \
-                    } else {                                                         \
-                        UNIT_ASSERT_EQ(hCPU[k][i + j * lda],                         \
-                                       hGPU[k][i + j * lda]);                        \
-                    }                                                                \
+#define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)            \
+    do                                                                              \
+    {                                                                               \
+        for(size_t k = 0; k < batch_count; k++)                                     \
+            for(size_t j = 0; j < N; j++)                                           \
+                for(size_t i = 0; i < M; i++)                                       \
+                    if(rocblas_isnan(hCPU[k][i + j * lda]))                         \
+                    {                                                               \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));           \
+                    }                                                               \
+                    else                                                            \
+                    {                                                               \
+                        UNIT_ASSERT_EQ(hCPU[k][i + j * lda], hGPU[k][i + j * lda]); \
+                    }                                                               \
     } while(0)
-// clang-format on
 #endif
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(half_to_float(a), half_to_float(b))
