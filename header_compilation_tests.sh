@@ -45,7 +45,7 @@ HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTens
 GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
 CLANG=/opt/rocm/llvm/bin/clang
-CLANG_OPTS="-xc-header -std=c99 -D__HIP_PLATFORM_HCC__"
+CLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HCC__
 
 C99="$HCC -xc-header -std=c99"
 CPP11="$HCC -xc++-header -std=c++11"

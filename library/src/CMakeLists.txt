@@ -26,14 +26,18 @@ set( package_targets rocblas )
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# Set up Tensile  Dependency
+# Set up Tensile Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
   if( BUILD_SHARED_LIBS )
     set( ROCBLAS_SHARED_LIBS ON )
     set( BUILD_SHARED_LIBS OFF )
   else( )
-    list( APPEND package_targets Tensile )
+    if( BUILD_WITH_TENSILE_HOST )
+      list( APPEND package_targets Tensile TensileHost )
+    else()
+      list( APPEND package_targets Tensile )
+    endif()
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
@@ -50,6 +54,10 @@ if( BUILD_WITH_TENSILE )
 
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  # build gemm with Tensile Host library
+  if( BUILD_WITH_TENSILE_HOST )
+    target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
+  endif()
   target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
   # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
   if(TARGET hip::device)
@@ -74,6 +82,7 @@ if( BUILD_WITH_TENSILE )
 
   #rocblas_gemm and rocblas_trsm require tensile
   set( Tensile_SRC
+    tensile_host.cpp
     blas3/Tensile/gemm.cpp
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
@@ -205,8 +214,16 @@ target_include_directories( rocblas
 # target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
 
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas PRIVATE Tensile )
+  if( BUILD_WITH_TENSILE_HOST )
+    target_link_libraries( rocblas PRIVATE Tensile TensileHost )
+  else()
+    target_link_libraries( rocblas PRIVATE Tensile )
+  endif()
   target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
+  if( BUILD_WITH_TENSILE_HOST )
+    target_compile_definitions( rocblas PUBLIC USE_TENSILE_HOST )
+  endif()
+
 endif()
 
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )

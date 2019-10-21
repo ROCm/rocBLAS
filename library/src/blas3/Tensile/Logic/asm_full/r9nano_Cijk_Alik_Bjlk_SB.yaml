@@ -148,7 +148,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -262,7 +262,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -376,7 +376,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -490,7 +490,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -604,7 +604,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -718,7 +718,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -832,7 +832,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -946,7 +946,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1060,7 +1060,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1174,7 +1174,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1288,7 +1288,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1402,7 +1402,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1516,7 +1516,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1630,7 +1630,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1744,7 +1744,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1858,7 +1858,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -1972,7 +1972,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2086,7 +2086,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2200,7 +2200,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2314,7 +2314,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2428,7 +2428,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2542,7 +2542,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2656,7 +2656,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2770,7 +2770,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2884,7 +2884,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -2998,7 +2998,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3112,7 +3112,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3226,7 +3226,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3340,7 +3340,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3454,7 +3454,7 @@
     Valid: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3568,7 +3568,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3682,7 +3682,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3796,7 +3796,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -3910,7 +3910,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -4024,7 +4024,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -4138,7 +4138,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -4252,7 +4252,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -4366,7 +4366,7 @@
     Valid: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
 - []
