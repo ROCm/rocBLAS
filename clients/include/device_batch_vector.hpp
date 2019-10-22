@@ -23,9 +23,31 @@ public:
     device_batch_vector(const device_batch_vector&) = delete;
 
     //!
-    //! @brief Disallow or assigning.
+    //! @brief Disallow assigning.
     //!
     device_batch_vector& operator=(const device_batch_vector&) = delete;
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
+    //! @param stride      (UNUSED) The stride.
+    //! @param batch_count The batch count.
+    //!
+    explicit device_batch_vector(rocblas_int    n,
+                                 rocblas_int    inc,
+                                 rocblas_stride stride,
+                                 rocblas_int    batch_count) noexcept
+        : device_batch_vector(batch_count, n * std::abs(inc)){};
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
+    //! @param batch_count The batch count.
+    //!
+    explicit device_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count) noexcept
+        : device_batch_vector(batch_count, n * std::abs(inc)){};
 
     //!
     //! @brief Constructor.
@@ -49,7 +71,7 @@ public:
     inline ~device_batch_vector() noexcept
     {
         this->free_memory();
-    }
+    };
 
     //!
     //! @brief Returns the size of the vectors.
@@ -68,13 +90,21 @@ public:
     };
 
     //!
+    //! @brief Returns the stride value.
+    //!
+    inline rocblas_stride stride() const noexcept
+    {
+        return 0;
+    };
+
+    //!
     //! @brief Access to device data.
     //! @return Pointer to the device data.
     //!
     inline T** ptr_on_device() noexcept
     {
         return this->m_device_data;
-    }
+    };
 
     //!
     //! @brief Const access to device data.
@@ -83,7 +113,7 @@ public:
     inline const T* const* ptr_on_device() const noexcept
     {
         return this->m_device_data;
-    }
+    };
 
     //!
     //! @brief Random access.
@@ -95,7 +125,7 @@ public:
         assert(0 <= batch_index && this->m_batch_count > batch_index);
 
         return this->m_data[batch_index];
-    }
+    };
 
     //!
     //! @brief Constant random access.
@@ -107,7 +137,7 @@ public:
         assert(0 <= batch_index && this->m_batch_count > batch_index);
 
         return this->m_data[batch_index];
-    }
+    };
 
     //!
     //! @brief Const cast of the data on host.
@@ -123,15 +153,15 @@ public:
     inline operator T**() noexcept
     {
         return this->m_data;
-    }
+    };
 
     //!
     //! @brief Tell whether ressources allocation failed.
     //!
     inline explicit operator bool() const noexcept
     {
-        return this->m_data != nullptr;
-    }
+        return nullptr != this->m_data;
+    };
 
     //!
     //! @brief Copy from a host batched vector.
@@ -163,7 +193,16 @@ public:
         }
 
         return hipSuccess;
-    }
+    };
+
+    //!
+    //! @brief Check if memory exists.
+    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //!
+    inline hipError_t memcheck() const noexcept
+    {
+        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
+    };
 
 private:
     rocblas_int m_batch_count{0};

@@ -97,6 +97,11 @@ public:
         }
     };
 
+    inline hipError_t memcheck() const noexcept
+    {
+        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
+    };
+
 private:
     size_t m_size{0};
     T*     m_data{nullptr};

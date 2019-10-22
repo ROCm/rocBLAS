@@ -58,7 +58,7 @@ public:
         {
         case storage::block:
         {
-            if(this->m_stride < this->m_n * this->m_inc)
+            if(std::abs(this->m_stride) < this->m_n * std::abs(this->m_inc))
             {
                 valid_parameters = false;
             }
@@ -66,7 +66,7 @@ public:
         }
         case storage::interleave:
         {
-            if(this->m_inc < this->m_stride * this->m_batch_count)
+            if(std::abs(this->m_inc) < std::abs(this->m_stride) * this->m_batch_count)
             {
                 valid_parameters = false;
             }
@@ -90,7 +90,7 @@ public:
             this->device_vector_teardown(this->m_data);
             this->m_data = nullptr;
         }
-    }
+    };
 
     //!
     //! @brief Returns the length.
@@ -205,6 +205,15 @@ public:
         }
     };
 
+    //!
+    //! @brief Check if memory exists.
+    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //!
+    inline hipError_t memcheck() const noexcept
+    {
+        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
+    };
+
 private:
     storage        m_storage{storage::block};
     rocblas_int    m_n{0};
@@ -220,11 +229,11 @@ private:
         {
         case storage::block:
         {
-            return stride * batch_count;
+            return std::abs(stride) * batch_count;
         }
         case storage::interleave:
         {
-            return n * inc;
+            return n * std::abs(inc);
         }
         default:
         {

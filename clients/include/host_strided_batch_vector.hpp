@@ -50,9 +50,7 @@ public:
         , m_inc(inc)
         , m_stride(stride)
         , m_batch_count(batch_count)
-        ,
-
-        m_size(calculate_size(n, inc, stride, batch_count, stg))
+        , m_size(calculate_size(n, inc, stride, batch_count, stg))
     {
 
         bool valid_parameters = (m_size > 0);
@@ -227,6 +225,37 @@ public:
         {
             return hipErrorInvalidContext;
         }
+    };
+
+    //!
+    //! @brief Initialize with the rocblas random number generator.
+    //! @param seedReset if true reset the seed.
+    //!
+    inline void random_init(bool seedReset = true) noexcept
+    {
+        if(seedReset)
+        {
+            rocblas_seedrand();
+        }
+
+        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        {
+            auto data = (*this)[batch_index];
+            auto inc  = std::abs(this->m_inc);
+            for(rocblas_int i = 0; i < this->m_n; ++i)
+            {
+                data[i * inc] = random_generator<T>();
+            }
+        }
+    };
+
+    //!
+    //! @brief Check if memory exists.
+    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //!
+    inline hipError_t memcheck() const noexcept
+    {
+        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
     };
 
 private:

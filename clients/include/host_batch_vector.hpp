@@ -3,6 +3,7 @@
 //
 #pragma once
 
+#include "rocblas_init.hpp"
 #include <string.h>
 
 //!
@@ -21,6 +22,37 @@ public:
     //! @brief Delete copy assignement.
     //!
     host_batch_vector& operator=(const host_batch_vector<T>& that) = delete;
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
+    //! @param stride      (UNUSED) The stride.
+    //! @param batch_count The batch count.
+    //!
+    explicit host_batch_vector(rocblas_int    n,
+                               rocblas_int    inc,
+                               rocblas_stride stride,
+                               rocblas_int    batch_count) noexcept
+        : host_batch_vector(n, inc, batch_count){};
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
+    //! @param batch_count The batch count.
+    //!
+    explicit host_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count) noexcept
+        : m_n(n)
+        , m_inc(inc)
+        , m_batch_count(batch_count)
+        , m_size(n * std::abs(inc))
+    {
+        if(false == this->try_initialize_memory())
+        {
+            this->free_memory();
+        }
+    };
 
     //!
     //! @brief Constructor.
@@ -62,14 +94,22 @@ public:
     };
 
     //!
+    //! @brief Returns the stride value.
+    //!
+    inline rocblas_stride stride() const noexcept
+    {
+        return 0;
+    };
+
+    //!
     //! @brief Random access to the vectors.
     //! @param batch_index the batch index.
     //! @return The mutable pointer.
     //!
     inline T* operator[](rocblas_int batch_index) noexcept
     {
-        assert(0 <= batch_index && this->m_batch_count > batch_index);
-        return this->m_data[batch_index];
+        return (0 <= batch_index && this->m_batch_count > batch_index) ? this->m_data[batch_index]
+                                                                       : nullptr;
     };
 
     //!
@@ -79,8 +119,8 @@ public:
     //!
     inline const T* operator[](rocblas_int batch_index) const noexcept
     {
-        assert(0 <= batch_index && this->m_batch_count > batch_index);
-        return this->m_data[batch_index];
+        return (0 <= batch_index && this->m_batch_count > batch_index) ? this->m_data[batch_index]
+                                                                       : nullptr;
     };
 
     //!
@@ -148,7 +188,82 @@ public:
         }
     };
 
+    //!
+    //! @brief Initialize with the rocblas random number generator.
+    //! @param seedReset if true reset the seed.
+    //!
+    inline void random_init(bool seedReset = true) noexcept
+    {
+
+        if(seedReset)
+        {
+            rocblas_seedrand();
+        }
+
+        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        {
+            auto data = (*this)[batch_index];
+            for(rocblas_int i = 0; i < this->m_n; ++i)
+            {
+                data[i * this->m_inc] = random_generator<T>();
+            }
+        }
+    };
+
+    //!
+    //! @brief Check if memory exists.
+    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //!
+    inline hipError_t memcheck() const noexcept
+    {
+        return (nullptr != this->m_data) ? hipSuccess : hipErrorOutOfMemory;
+    };
+
+#if 0  
+  void unit_check(const host_batch_vector<T>& that) const noexcept
+  {
+    for (rocblas_int batch_index=0;batch_index < batch_count;++batch_index)
+      {
+	
+	if (rocblas_isnan(hCPU[i + j * lda + k * strideA]))
+	  {								
+	    ASSERT_TRUE(rocblas_isnan(hGPU[i + j * lda + k * strideA])); 
+	  } else {							
+	  UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],		
+			 hGPU[i + j * lda + k * strideA]);		
+	}								
+	
+//    do                                                                               \
+//    {                                                                                \
+//        for(size_t k = 0; k < batch_count; k++)                                      \
+//            for(size_t j = 0; j < N; j++)                                            \
+//                for(size_t i = 0; i < M; i++)                                        \
+//                    if (rocblas_isnan(hCPU[i + j * lda + k * strideA])) {            \
+//                        ASSERT_TRUE(rocblas_isnan(hGPU[i + j * lda + k * strideA])); \
+//                    } else {                                                         \
+//                        UNIT_ASSERT_EQ(hCPU[i + j * lda + k * strideA],              \
+//                                       hGPU[i + j * lda + k * strideA]);             \
+//                    }                                                                \
+//    } while(0)
+//
+      unit_check_general<T2>(batch_count, 1, 1, cpu_result, hr1);
+      unit_check_general<T2>(batch_count, 1, 1, cpu_result, hr);
+      
+        if(that.size() == this->size())
+        {
+            return hipMemcpy(
+                this->data(), (const T*)that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
+        }
+        else
+        {
+            return hipErrorInvalidContext;
+        }
+    };
+#endif
+
 private:
+    rocblas_int m_n{0};
+    rocblas_int m_inc{0};
     rocblas_int m_batch_count{0};
     size_t      m_size{0};
     T**         m_data{nullptr};
@@ -188,4 +303,25 @@ private:
             this->m_data = nullptr;
         }
     };
+};
+
+template <typename T>
+inline std::ostream& operator<<(std::ostream& os, const host_batch_vector<T>& that)
+{
+    auto batch_count = that.batch_count();
+    auto n           = that.n();
+    auto inc         = std::abs(that.inc());
+
+    for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
+    {
+        auto v = that[batch_index];
+        os << "[" << batch_index << "] = { " << v[0];
+        for(rocblas_int i = 1; i < n; ++i)
+        {
+            os << ", " << v[i * inc];
+        }
+        os << " }" << std::endl;
+    }
+
+    return os;
 };

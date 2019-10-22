@@ -45,4 +45,32 @@ struct host_vector : std::vector<T>
             return hipErrorInvalidContext;
         }
     };
+
+    //!
+    //! @brief Initialize with the rocblas random number generator.
+    //! @param seedReset if true reset the seed.
+    //!
+    inline void random_init(bool seedReset = true) noexcept
+    {
+        if(seedReset)
+        {
+            rocblas_seedrand();
+        }
+
+        auto data
+            = (this->m_inc >= 0) ? this->data() : this->data() - (this->m_n - 1) * this->m_inc;
+        for(rocblas_int i = 0; i < this->m_n; ++i)
+        {
+            data[i * this->m_inc] = random_generator<T>();
+        }
+    };
+
+    //!
+    //! @brief Check if memory exists.
+    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //!
+    inline hipError_t memcheck() const noexcept
+    {
+        return (nullptr != (const T*)this) ? hipSuccess : hipErrorOutOfMemory;
+    };
 };
