@@ -1229,7 +1229,6 @@ template <>
 static constexpr auto
     rocblas_gemm_strided_batched<rocblas_double_complex> = rocblas_zgemm_strided_batched;
 
-#if 0
 // trmm
 template <typename T>
 rocblas_status (*rocblas_trmm)(rocblas_handle    handle,
@@ -1250,7 +1249,6 @@ static constexpr auto rocblas_trmm<float> = rocblas_strmm;
 
 template <>
 static constexpr auto rocblas_trmm<double> = rocblas_dtrmm;
-#endif
 
 // trsm
 template <typename T>

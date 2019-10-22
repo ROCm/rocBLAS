@@ -122,6 +122,48 @@ constexpr double geam_gflop_count(rocblas_int m, rocblas_int n)
 
 /* \brief floating point counts of TRSM */
 template <typename T>
+constexpr double trmm_gflop_count(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+template <>
+constexpr double
+    trmm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+template <>
+constexpr double
+    trmm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+/* \brief floating point counts of TRSM */
+template <typename T>
 constexpr double trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
 {
     return (1.0 * m * n * (k + 1)) / 1e9;

@@ -70,6 +70,7 @@ using namespace std::literals;
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
+#include "testing_trmm.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_ex.hpp"
@@ -211,6 +212,8 @@ struct perf_blas<
 #if BUILD_WITH_TENSILE
         else if(!strcmp(arg.function, "geam"))
             testing_geam<T>(arg);
+        else if(!strcmp(arg.function, "trmm"))
+            testing_trmm<T>(arg);
         else if(!strcmp(arg.function, "trtri"))
             testing_trtri<T>(arg);
         else if(!strcmp(arg.function, "trtri_batched"))

@@ -233,6 +233,40 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
     default:                     return 0;
     }
 }
+constexpr auto rocblas_get_status_string(rocblas_status status)
+{
+    switch(status) {
+    case rocblas_status_success: return "rocblas_status_success";
+    case rocblas_status_invalid_handle: return "rocblas_status_invalid_handle";
+    case rocblas_status_not_implemented: return "rocblas_status_not_implemented";
+    case rocblas_status_invalid_pointer: return "rocblas_status_invalid_pointer";
+    case rocblas_status_invalid_size: return "rocblas_status_invalid_size";
+    case rocblas_status_memory_error: return "rocblas_status_memory_error";
+    case rocblas_status_internal_error: return "rocblas_status_internal_error";
+    case rocblas_status_perf_degraded: return "rocblas_status_perf_degraded";
+    case rocblas_status_size_query_mismatch: return "rocblas_status_size_query_mismatch";
+    case rocblas_status_size_increased: return "rocblas_status_size_increased";
+    case rocblas_status_size_unchanged: return "rocblas_status_size_unchanged";
+    default: return "rocblas_status_internal_error";
+    };
+}
+
+#ifndef CHECK_ROCBLAS_ERROR
+#define CHECK_INTERNAL_ROCBLAS_ERROR(error)                 \
+    do                                                      \
+    {                                                       \
+        if(error != rocblas_status_success)                 \
+        {                                                   \
+            fprintf(stderr,                                 \
+                    "rocBLAS error: '%s'(%d) at %s:%d\n",   \
+                    rocblas_get_status_string(error),       \
+                    error,                                  \
+                    __FILE__,                               \
+                    __LINE__);                              \
+            return rocblas_status_internal_error;           \
+        }                                                   \
+    } while(0)
+#endif
 
 // return rocblas_datatype from type
 template <typename> static constexpr rocblas_datatype rocblas_datatype_from_type     = rocblas_datatype(-1);

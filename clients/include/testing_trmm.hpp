@@ -4,6 +4,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -27,138 +28,177 @@ void testing_trmm(const Arguments& arg)
     char char_uplo   = arg.uplo;
     char char_transA = arg.transA;
     char char_diag   = arg.diag;
-    T    alpha       = arg.alpha;
+    T    alpha_h     = arg.alpha;
 
     rocblas_side      side   = char2rocblas_side(char_side);
     rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_int K      = (side == rocblas_side_left ? M : N);
+    rocblas_int K      = side == rocblas_side_left ? M : N;
     size_t      size_A = lda * size_t(K);
     size_t      size_B = ldb * size_t(N);
 
+    rocblas_local_handle handle;
+
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < 0 || ldb < 0)
+    if(M < 0 || N < 0 || lda < K || ldb < M)
     {
-        static const size_t safe_size = 100;
+        static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
         device_vector<T>    dB(safe_size);
-        device_vector<T>    dC(safe_size);
-        if(!dA || !dB || !dC)
+        if(!dA || !dB)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
 
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmm<T>(
-                handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, dC, ldc),
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb),
             rocblas_status_invalid_size);
-
         return;
     }
+
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
-    host_vector<T> hC(size_B);
-    host_vector<T> hB_copy(size_B);
+    host_vector<T> hB_1(size_B);
+    host_vector<T> hB_2(size_B);
+    host_vector<T> cpuB(size_B);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
-
-    rocblas_local_handle handle;
+    double rocblas_error = 0.0;
 
     // allocate memory on device
-    // dB and dC are exact the same size
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
-    device_vector<T> dC(size_B);
-    if(!dA || !dB || !dC)
+    device_vector<T> alpha_d(1);
+    if(!dA || !dB || !alpha_d)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init_symmetric<T>(hA, K, lda);
+    //  initialize full random matrix hA with all entries in [1, 10]
+    rocblas_init<T>(hA, K, K, lda);
+
+    //  pad untouched area into zero
+    for(int i = K; i < lda; i++)
+        for(int j = 0; j < K; j++)
+            hA[i + j * lda] = 0.0;
+
+    // Initial hX
     rocblas_init<T>(hB, M, N, ldb);
-    hB_copy = hB;
+    // pad untouched area into zero
+    for(int i = M; i < ldb; i++)
+        for(int j = 0; j < N; j++)
+            hB[i + j * ldb] = 0.0;
+
+    hB_1 = hB; // hXorB <- B
+    hB_2 = hB; // hXorB <- B
+    cpuB = hB; // cpuB <- B
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
-
-    /* =====================================================================
-           ROCBLAS
-    =================================================================== */
-    if(arg.timing)
-    {
-        gpu_time_used = get_time_us(); // in microseconds
-    }
-
-    CHECK_ROCBLAS_ERROR(
-        rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, dC, ldc));
-
-    if(arg.timing)
-    {
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trmm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
-    }
-
-    // copy output from device to CPU
-    CHECK_HIP_ERROR(hipMemcpy(hC, dC, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
     if(arg.unit_check || arg.norm_check)
     {
-        /* =====================================================================
-           CPU BLAS
-        =================================================================== */
+        // calculate dB <- A^(-1) B   rocblas_device_pointer_host
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_HIP_ERROR(hipMemcpy(dB, hB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb));
+
+        CHECK_HIP_ERROR(hipMemcpy(hB_1, dB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+
+        // calculate dB <- A^(-1) B   rocblas_device_pointer_device
+        //      CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        //      CHECK_HIP_ERROR(hipMemcpy(dB, hB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        //      CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+
+        //      CHECK_ROCBLAS_ERROR(
+        //          rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb));
+
+        //      CHECK_HIP_ERROR(hipMemcpy(hB_2, dB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+
+        // CPU BLAS
         if(arg.timing)
         {
             cpu_time_used = get_time_us();
         }
 
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha, hA, lda, hB_copy, ldb);
+        cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuB, ldb);
 
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = trmm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
+            cblas_gflops  = trmm_gflop_count<T>(M, N, side) / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldb, hB_copy, hC);
+            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<T>;
+                near_check_general<T>(M, N, ldb, cpuB, hB_1, tol);
+                ///             near_check_general<T>(M, N, ldb, cpuB, hB_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(M, N, ldb, cpuB, hB_1);
+                ///             unit_check_general<T>(M, N, ldb, cpuB, hB_2);
+            }
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', M, N, ldb, hB_copy, hC);
+            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_1));
+            ///         auto err2     = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_2));
+            ///         rocblas_error = err1 > err2 ? err1 : err2;
+            rocblas_error = err1;
         }
     }
 
     if(arg.timing)
     {
-        // only norm_check return an norm error, unit check won't return anything
-        cout << "M, N, lda, rocblas-Gflops (us) ";
-        if(arg.norm_check)
-        {
-            cout << "CPU-Gflops(us), norm-error";
-        }
-        cout << endl;
+        int number_cold_calls = 2;
+        int number_hot_calls  = arg.iters;
 
-        cout << M << ',' << N << ',' << lda << ',' << rocblas_gflops << "(" << gpu_time_used
-             << "),";
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        if(arg.norm_check)
+        for(int i = 0; i < number_cold_calls; i++)
         {
-            cout << cblas_gflops << "(" << cpu_time_used << "),";
-            cout << rocblas_error;
+            CHECK_ROCBLAS_ERROR(rocblas_trmm<T>(
+                handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb));
         }
 
-        cout << endl;
+        gpu_time_used = get_time_us(); // in microseconds
+        for(int i = 0; i < number_hot_calls; i++)
+        {
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb);
+        }
+        gpu_time_used  = get_time_us() - gpu_time_used;
+        rocblas_gflops = gemm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
+
+        std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+
+        if(arg.unit_check || arg.norm_check)
+            std::cout << ",CPU-Gflops,us,norm-error";
+
+        std::cout << std::endl;
+
+        std::cout << M << ',' << N << ',' << arg.get_alpha<T>() << ',' << lda << ',' << ldb << ','
+                  << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
+                  << rocblas_gflops << "," << gpu_time_used;
+
+        if(arg.unit_check || arg.norm_check)
+            std::cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
+
+        std::cout << std::endl;
     }
 }
