@@ -19,7 +19,7 @@ function display_help()
   echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
   echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
   echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
-  echo "    [-a|--architecture] Run GPU-specific tensile kernels (vega10, vega20, etc)"
+  echo "    [-a|--architecture] Run GPU-specific tensile kernels (all, arcturus, fiji, vega10, vega20)"
   echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
   echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
 #  echo "    [--cuda] build library for cuda backend"
@@ -238,7 +238,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
-tensile_architecture=_
+tensile_architecture=all
 tensile_cov=V2
 tensile_fork=
 tensile_tag=
