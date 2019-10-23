@@ -205,7 +205,6 @@ namespace
 
 #ifdef USE_TENSILE_HOST
 
-
         if(m == 0 || n == 0 || k == 0 || b_c == 0)
         {
             return rocblas_status_success;
