@@ -16,13 +16,12 @@
 template <typename T1, typename T2 = T1>
 void testing_asum_batched_bad_arg_template(const Arguments& arg)
 {
-    rocblas_int            N                = 100;
-    rocblas_int            incx             = 1;
-    rocblas_int            batch_count      = 5;
-    static const size_t    safe_size        = 100;
-    T2                     rocblas_result   = 10;
-    T2*                    h_rocblas_result = &rocblas_result;
-    static constexpr auto& func             = rocblas_asum_batched<T1, T2>;
+    rocblas_int         N                = 100;
+    rocblas_int         incx             = 1;
+    rocblas_int         batch_count      = 5;
+    static const size_t safe_size        = 100;
+    T2                  rocblas_result   = 10;
+    T2*                 h_rocblas_result = &rocblas_result;
 
     rocblas_local_handle handle;
 
@@ -31,22 +30,23 @@ void testing_asum_batched_bad_arg_template(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-    EXPECT_ROCBLAS_STATUS((func(handle, N, nullptr, incx, batch_count, h_rocblas_result)),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((func(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr)),
-                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (func(nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result)),
-        rocblas_status_invalid_handle);
+        (rocblas_asum_batched<T1, T2>(handle, N, nullptr, incx, batch_count, h_rocblas_result)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_asum_batched<T1, T2>(
+                              nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result)),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T1, typename T2 = T1>
 void testing_asum_batched_template(const Arguments& arg)
 {
-    rocblas_int            N           = arg.N;
-    rocblas_int            incx        = arg.incx;
-    rocblas_int            batch_count = arg.batch_count;
-    static constexpr auto& func        = rocblas_asum_batched<T1, T2>;
+    rocblas_int N           = arg.N;
+    rocblas_int incx        = arg.incx;
+    rocblas_int batch_count = arg.batch_count;
 
     double rocblas_error_1;
     double rocblas_error_2;
@@ -62,7 +62,7 @@ void testing_asum_batched_template(const Arguments& arg)
         CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((func(handle, N, dx, incx, batch_count, dr)),
+        EXPECT_ROCBLAS_STATUS((rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, dr)),
                               rocblas_status_invalid_size);
         return;
     }
@@ -79,7 +79,7 @@ void testing_asum_batched_template(const Arguments& arg)
         CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((func(handle, N, dx, incx, batch_count, dr)));
+        CHECK_ROCBLAS_ERROR((rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, dr)));
         return;
     }
 
@@ -103,7 +103,7 @@ void testing_asum_batched_template(const Arguments& arg)
     //
     // Initialize memory on host.
     //
-    hx.random_init();
+    rocblas_init(hx);
 
     //
     // Transfer from host to device.
@@ -115,11 +115,13 @@ void testing_asum_batched_template(const Arguments& arg)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1)));
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((func(handle, N, dx.ptr_on_device(), incx, batch_count, dr)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, dr)));
 
         //
         // Transfer from device to host.
@@ -159,14 +161,14 @@ void testing_asum_batched_template(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
+            rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
+            rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

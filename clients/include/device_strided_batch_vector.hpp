@@ -78,151 +78,138 @@ public:
         {
             this->m_data = this->device_vector_setup();
         }
-    };
+    }
 
     //!
     //! @brief Destructor.
     //!
-    inline ~device_strided_batch_vector() noexcept
+    ~device_strided_batch_vector()
     {
         if(nullptr != this->m_data)
         {
             this->device_vector_teardown(this->m_data);
             this->m_data = nullptr;
         }
-    };
+    }
 
     //!
     //! @brief Returns the length.
     //!
-    inline rocblas_int n() const noexcept
+    rocblas_int n() const
     {
         return this->m_n;
-    };
+    }
 
     //!
     //! @brief Returns the increment.
     //!
-    inline rocblas_int inc() const noexcept
+    rocblas_int inc() const
     {
         return this->m_inc;
-    };
+    }
 
     //!
     //! @brief Returns the batch count.
     //!
-    inline rocblas_int batch_count() const noexcept
+    rocblas_int batch_count() const
     {
         return this->m_batch_count;
-    };
+    }
 
     //!
     //! @brief Returns the stride value.
     //!
-    inline rocblas_stride stride() const noexcept
+    rocblas_stride stride() const
     {
         return this->m_stride;
-    };
+    }
 
     //!
     //! @brief Returns pointer.
     //! @param batch_index The batch index.
     //! @return A mutable pointer to the batch_index'th vector.
     //!
-    inline T* operator[](rocblas_int batch_index) noexcept
+    T* operator[](rocblas_int batch_index)
     {
-
-        assert(0 <= batch_index && this->m_batch_count > batch_index);
 
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
                    : this->m_data + (batch_index + 1 - this->m_batch_count) * this->m_stride;
-    };
+    }
 
     //!
     //! @brief Returns non-mutable pointer.
     //! @param batch_index The batch index.
     //! @return A non-mutable mutable pointer to the batch_index'th vector.
     //!
-    inline const T* operator[](rocblas_int batch_index) const noexcept
+    const T* operator[](rocblas_int batch_index) const
     {
-
-        assert(0 <= batch_index && this->m_batch_count > batch_index);
 
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
                    : this->m_data + (batch_index + 1 - this->m_batch_count) * this->m_stride;
-    };
+    }
 
     //!
     //! @brief Cast operator.
     //! @remark Returns the pointer of the first vector.
     //!
-    inline operator T*() noexcept
+    operator T*()
     {
         return (*this)[0];
-    };
+    }
 
     //!
     //! @brief Non-mutable cast operator.
     //! @remark Returns the non-mutable pointer of the first vector.
     //!
-    inline operator const T*() const noexcept
+    operator const T*() const
     {
         return (*this)[0];
-    };
+    }
 
     //!
     //! @brief Tell whether ressources allocation failed.
     //!
-    inline explicit operator bool() const noexcept
+    explicit operator bool() const
     {
         return nullptr != this->m_data;
-    };
+    }
 
     //!
     //! @brief Transfer data from a strided batched vector on device.
     //! @param that That strided batched vector on device.
     //! @return The hip error.
     //!
-    inline hipError_t transfer_from(const host_strided_batch_vector<T>& that) noexcept
+    hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
-        if(that.n() == this->m_n && that.inc() == this->m_inc && that.stride() == this->m_stride
-           && that.batch_count() == this->m_batch_count)
+        auto hip_err
+            = hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
+        if(hipSuccess != hip_err)
         {
-            auto hip_err
-                = hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
-            if(hipSuccess != hip_err)
-            {
-                return hip_err;
-            }
-
-            return hipSuccess;
+            return hip_err;
         }
-        else
-        {
-            return hipErrorInvalidContext;
-        }
-    };
+        return hipSuccess;
+    }
 
     //!
     //! @brief Check if memory exists.
     //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
     //!
-    inline hipError_t memcheck() const noexcept
+    hipError_t memcheck() const
     {
         return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
-    };
+    }
 
 private:
     storage        m_storage{storage::block};
-    rocblas_int    m_n{0};
-    rocblas_int    m_inc{0};
-    rocblas_stride m_stride{0};
-    rocblas_int    m_batch_count{0};
-    T*             m_data{nullptr};
+    rocblas_int    m_n{};
+    rocblas_int    m_inc{};
+    rocblas_stride m_stride{};
+    rocblas_int    m_batch_count{};
+    T*             m_data{};
 
-    static inline size_t calculate_size(
+    static size_t calculate_size(
         rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
     {
         switch(st)
@@ -240,5 +227,5 @@ private:
             return 0;
         }
         }
-    };
+    }
 };

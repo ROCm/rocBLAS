@@ -50,7 +50,7 @@ public:
     //!
     //! @brief Returns the size of the vector.
     //!
-    inline size_t size() const noexcept
+    size_t size() const
     {
         return this->m_size;
     }
@@ -58,7 +58,7 @@ public:
     //!
     //! @brief Decay into pointer wherever pointer is expected.
     //!
-    inline operator T*() noexcept
+    operator T*()
     {
         return this->m_data;
     }
@@ -66,7 +66,7 @@ public:
     //!
     //! @brief Decay into constant pointer wherever pointer is expected.
     //!
-    inline operator const T*() const noexcept
+    operator const T*() const
     {
         return this->m_data;
     }
@@ -74,7 +74,7 @@ public:
     //!
     //! @brief Tell whether malloc failed.
     //!
-    inline explicit operator bool() const noexcept
+    explicit operator bool() const
     {
         return nullptr != this->m_data;
     }
@@ -84,23 +84,16 @@ public:
     //! @param that The host vector.
     //! @return the hip error.
     //!
-    inline hipError_t transfer_from(const host_vector<T>& that) noexcept
+    hipError_t transfer_from(const host_vector<T>& that)
     {
-        if(this->size() == that.size())
-        {
-            return hipMemcpy(
-                this->m_data, (const T*)that, this->size() * sizeof(T), hipMemcpyHostToDevice);
-        }
-        else
-        {
-            return hipErrorInvalidContext;
-        }
-    };
+        return hipMemcpy(
+            this->m_data, (const T*)that, this->size() * sizeof(T), hipMemcpyHostToDevice);
+    }
 
-    inline hipError_t memcheck() const noexcept
+    hipError_t memcheck() const
     {
         return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
-    };
+    }
 
 private:
     size_t m_size{0};

@@ -13,9 +13,19 @@ struct host_vector : std::vector<T>
     using std::vector<T>::vector;
 
     //!
+    //! @brief Constructor.
+    //!
+    host_vector(rocblas_int n, rocblas_int inc)
+        : std::vector<T>(n * std::abs(inc))
+        , m_n(n)
+        , m_inc(inc)
+    {
+    }
+
+    //!
     //! @brief Decay into pointer wherever pointer is expected
     //!
-    inline operator T*() noexcept
+    operator T*()
     {
         return this->data();
     }
@@ -23,7 +33,7 @@ struct host_vector : std::vector<T>
     //!
     //! @brief Decay into constant pointer wherever constant pointer is expected
     //!
-    inline operator const T*() const noexcept
+    operator const T*() const
     {
         return this->data();
     }
@@ -33,44 +43,46 @@ struct host_vector : std::vector<T>
     //! @param  that That device vector.
     //! @return the hip error.
     //!
-    hipError_t transfer_from(const device_vector<T>& that) noexcept
+    hipError_t transfer_from(const device_vector<T>& that)
     {
-        if(that.size() == this->size())
-        {
-            return hipMemcpy(
-                this->data(), (const T*)that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
-        }
-        else
-        {
-            return hipErrorInvalidContext;
-        }
-    };
+        return hipMemcpy(
+            this->data(), (const T*)that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
+    }
 
     //!
-    //! @brief Initialize with the rocblas random number generator.
-    //! @param seedReset if true reset the seed.
+    //! @brief Returns the length of the vector.
     //!
-    inline void random_init(bool seedReset = true) noexcept
+    rocblas_int n() const
     {
-        if(seedReset)
-        {
-            rocblas_seedrand();
-        }
+        return m_n;
+    }
 
-        auto data
-            = (this->m_inc >= 0) ? this->data() : this->data() - (this->m_n - 1) * this->m_inc;
-        for(rocblas_int i = 0; i < this->m_n; ++i)
-        {
-            data[i * this->m_inc] = random_generator<T>();
-        }
-    };
+    //!
+    //! @brief Returns the increment of the vector.
+    //!
+    rocblas_int inc() const
+    {
+        return m_inc;
+    }
+
+    //!
+    //! @brief Returns the batch count (always 1).
+    //!
+    rocblas_int batch_count() const
+    {
+        return 1;
+    }
 
     //!
     //! @brief Check if memory exists.
     //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
     //!
-    inline hipError_t memcheck() const noexcept
+    hipError_t memcheck() const
     {
         return (nullptr != (const T*)this) ? hipSuccess : hipErrorOutOfMemory;
-    };
+    }
+
+private:
+    rocblas_int m_n{};
+    rocblas_int m_inc{};
 };

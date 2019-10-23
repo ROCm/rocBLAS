@@ -24,7 +24,6 @@ public:
         return size;
     }
 
-public:
 #ifdef GOOGLE_TEST
     U guard[PAD];
     d_vector(size_t s)
@@ -44,7 +43,7 @@ public:
     {
     }
 #endif
-public:
+
     T* device_vector_setup()
     {
         T* d;
