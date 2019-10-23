@@ -86,6 +86,35 @@ namespace
                            offset_dst);
     }
 
+    // copy helper for batched arrays of pointers
+    template <typename T>
+    __global__ void setup_batched_array_kernel(T*             src,
+                                               rocblas_stride src_stride,
+                                               T*             dst[])
+    {
+        dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
+    }
+
+    template <rocblas_int BLOCK, typename T>
+    void setup_batched_array(rocblas_handle handle,
+                             T*             src,
+                             rocblas_stride src_stride,
+                             T*             dst[],
+                             rocblas_int    batch_count)
+    {
+        dim3 grid(batch_count);
+        dim3 threads(BLOCK);
+
+        hipLaunchKernelGGL(setup_batched_array_kernel<T>,
+                           grid,
+                           threads,
+                           0,
+                           handle->rocblas_stream,
+                           src,
+                           src_stride,
+                           dst);
+    }
+
     /* ===============left==================================================== */
 
     template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
@@ -1544,6 +1573,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     {
         if(stride_alpha != 0)
         {
+            // This should not happen from API calls.
             for(int b = 0; b < batch_count; b++)
                 RETURN_IF_HIP_ERROR(hipMemcpy(
                     &(alpha_h[b]), alpha + b * stride_alpha, sizeof(T), hipMemcpyDeviceToHost));
@@ -1569,26 +1599,12 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
         // c_temp and x_temp can reuse the same device memory
         T* c_temp   = (T*)x_temp;
         stride_invA = BLOCK * k;
-
         if(BATCHED)
         {
-            T* ctemparrt[batch_count];
-            T* invarrt[batch_count];
-
-            size_t c_temp_els = (k / BLOCK) * ((BLOCK / 2) * (BLOCK / 2));
-            if(!exact_blocks)
-                c_temp_els = max(c_temp_els, ROCBLAS_TRTRI_NB * BLOCK * 2);
-
-            for(int b = 0; b < batch_count; b++)
-            {
-                ctemparrt[b] = (T*)c_temp + b * c_temp_els;
-                invarrt[b]   = (T*)invA + b * stride_invA;
-            }
-
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
+            // for c_temp, we currently can use the same memory from each batch since
+            // trtri_batched is naive (since gemm_batched is naive)
+            setup_batched_array<BLOCK>(handle, (T*)c_temp, 0, (T**)x_temparr, batch_count);
+            setup_batched_array<BLOCK>(handle, (T*)invA, stride_invA, (T**)invAarr, batch_count);
         }
 
         status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
@@ -1609,22 +1625,15 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
             return status;
     }
 
+    size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
+    size_t x_temp_els = exact_blocks ? BLOCK * B_chunk_size : m * n;
+    if(BATCHED)
+    {
+        setup_batched_array<BLOCK>(handle, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+    }
+
     if(exact_blocks)
     {
-        size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
-        size_t x_temp_els   = BLOCK * B_chunk_size;
-
-        if(BATCHED)
-        {
-            T* xtemparrt[batch_count];
-
-            for(int b = 0; b < batch_count; b++)
-            {
-                xtemparrt[b] = (T*)x_temp + b * x_temp_els;
-            }
-            hipMemcpy(x_temparr, xtemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice);
-        }
-
         status = special_trsm_template<BLOCK, BATCHED>(handle,
                                                        side,
                                                        uplo,
@@ -1652,19 +1661,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     }
     else
     {
-        size_t x_temp_els = m * n;
-
-        if(BATCHED)
-        {
-            T* xtemparrt[batch_count];
-            for(int b = 0; b < batch_count; b++)
-            {
-                xtemparrt[b] = ((T*)x_temp) + b * x_temp_els;
-            }
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(x_temparr, xtemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
-        }
-
         if(side == rocblas_side_left)
         {
             status = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
