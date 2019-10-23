@@ -88,19 +88,14 @@ namespace
 
     // copy helper for batched arrays of pointers
     template <typename T>
-    __global__ void setup_batched_array_kernel(T*             src,
-                                               rocblas_stride src_stride,
-                                               T*             dst[])
+    __global__ void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
     {
         dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
     }
 
     template <rocblas_int BLOCK, typename T>
-    void setup_batched_array(rocblas_handle handle,
-                             T*             src,
-                             rocblas_stride src_stride,
-                             T*             dst[],
-                             rocblas_int    batch_count)
+    void setup_batched_array(
+        rocblas_handle handle, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
     {
         dim3 grid(batch_count);
         dim3 threads(BLOCK);
@@ -1626,7 +1621,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     }
 
     size_t B_chunk_size = optimal_mem ? size_t(m) + size_t(n) - size_t(k) : 1;
-    size_t x_temp_els = exact_blocks ? BLOCK * B_chunk_size : m * n;
+    size_t x_temp_els   = exact_blocks ? BLOCK * B_chunk_size : m * n;
     if(BATCHED)
     {
         setup_batched_array<BLOCK>(handle, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
