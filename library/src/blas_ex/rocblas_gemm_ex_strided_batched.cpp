@@ -214,7 +214,7 @@ namespace
                                   ldd,
                                   "--stride_d",
                                   stride_d,
-                                  "--batch",
+                                  "--batch_count",
                                   batch_count,
                                   "--compute_type",
                                   compute_type_string,

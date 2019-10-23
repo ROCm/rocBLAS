@@ -59,7 +59,7 @@ namespace
                               incx,
                               "--lda",
                               lda,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
             }
             else

@@ -54,7 +54,7 @@ namespace
                                                      T*                C,
                                                      rocblas_int       ld_c,
                                                      rocblas_stride    stride_c,
-                                                     rocblas_int       b_c)
+                                                     rocblas_int       batch_count)
 
     {
         if(!handle)
@@ -91,7 +91,7 @@ namespace
                               C,
                               ld_c,
                               stride_c,
-                              b_c);
+                              batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
@@ -122,8 +122,8 @@ namespace
                               ld_c,
                               "--stride_c",
                               stride_c,
-                              "--batch",
-                              b_c);
+                              "--batch_count",
+                              batch_count);
                 }
             }
             else
@@ -148,7 +148,7 @@ namespace
                               C,
                               ld_c,
                               stride_c,
-                              b_c);
+                              batch_count);
                 }
             }
 
@@ -179,7 +179,7 @@ namespace
                             "stride_c",
                             stride_c,
                             "batch_count",
-                            b_c);
+                            batch_count);
             }
         }
 
@@ -200,10 +200,55 @@ namespace
                                                 C,
                                                 ld_c,
                                                 stride_c,
-                                                b_c);
+                                                batch_count);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
+
+#ifdef USE_TENSILE_HOST
+
+        if(m == 0 || n == 0 || batch_count == 0)
+            return rocblas_status_success;
+
+        T alpha_h;
+        T beta_h;
+        if(rocblas_pointer_mode_host == handle->pointer_mode)
+        {
+            alpha_h = *alpha;
+            beta_h  = *beta;
+        }
+        else
+        {
+            // TODO: Need to avoid hipMemcpy() and load alpha, beta on device
+            hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
+            hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
+        }
+
+        if(alpha_h == 0 && beta_h == 1)
+            return rocblas_status_success;
+
+        RocblasContractionProblem<T> problem(ContractionProblemType::GEMMStridedBatch,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha_h,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta_h,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
+
+        return handle->host->runContractionProblem(problem);
+
+#else
 
         return rocblas_gemm_template<false, true>(handle,
                                                   trans_a,
@@ -227,9 +272,11 @@ namespace
                                                   0,
                                                   ld_c,
                                                   stride_c,
-                                                  b_c);
+                                                  batch_count);
+#endif
     }
 
+#ifndef USE_TENSILE_HOST
     /*******************************************************************************
     * Batched / Strided GEMM Kernel name implementation
     ******************************************************************************/
@@ -251,7 +298,7 @@ namespace
                                                                  T*                C,
                                                                  rocblas_int       ld_c,
                                                                  rocblas_stride    stride_c,
-                                                                 rocblas_int       b_c)
+                                                                 rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -287,7 +334,7 @@ namespace
                               C,
                               ld_c,
                               stride_c,
-                              b_c);
+                              batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
@@ -317,8 +364,8 @@ namespace
                               ld_c,
                               "--bsc",
                               stride_c,
-                              "--batch",
-                              b_c);
+                              "--batch_count",
+                              batch_count);
             }
             else
             {
@@ -341,7 +388,7 @@ namespace
                               C,
                               ld_c,
                               stride_c,
-                              b_c);
+                              batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -370,7 +417,7 @@ namespace
                             "stride_c",
                             stride_c,
                             "batch_count",
-                            b_c);
+                            batch_count);
         }
 
         rocblas_status validArgs = validateArgs(handle,
@@ -390,16 +437,17 @@ namespace
                                                 C,
                                                 ld_c,
                                                 stride_c,
-                                                b_c);
+                                                batch_count);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
 
-        rocblas_gemm_kernel_name_template<false, T>(
-            trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
+        rocblas_gemm_kernel_name_template<false>(
+            trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, batch_count);
 
         return validArgs;
     }
+#endif
 
 }
 
@@ -426,26 +474,26 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
                                              rocblas_half*       C,
                                              rocblas_int         ld_c,
                                              rocblas_stride      stride_c,
-                                             rocblas_int         b_c)
+                                             rocblas_int         batch_count)
 {
-    return rocblas_gemm_strided_batched_impl<rocblas_half>(handle,
-                                                           trans_a,
-                                                           trans_b,
-                                                           m,
-                                                           n,
-                                                           k,
-                                                           alpha,
-                                                           A,
-                                                           ld_a,
-                                                           stride_a,
-                                                           B,
-                                                           ld_b,
-                                                           stride_b,
-                                                           beta,
-                                                           C,
-                                                           ld_c,
-                                                           stride_c,
-                                                           b_c);
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
 }
 
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
@@ -465,26 +513,26 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              float*            C,
                                              rocblas_int       ld_c,
                                              rocblas_stride    stride_c,
-                                             rocblas_int       b_c)
+                                             rocblas_int       batch_count)
 {
-    return rocblas_gemm_strided_batched_impl<float>(handle,
-                                                    trans_a,
-                                                    trans_b,
-                                                    m,
-                                                    n,
-                                                    k,
-                                                    alpha,
-                                                    A,
-                                                    ld_a,
-                                                    stride_a,
-                                                    B,
-                                                    ld_b,
-                                                    stride_b,
-                                                    beta,
-                                                    C,
-                                                    ld_c,
-                                                    stride_c,
-                                                    b_c);
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
@@ -504,26 +552,26 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
                                              double*           C,
                                              rocblas_int       ld_c,
                                              rocblas_stride    stride_c,
-                                             rocblas_int       b_c)
+                                             rocblas_int       batch_count)
 {
-    return rocblas_gemm_strided_batched_impl<double>(handle,
-                                                     trans_a,
-                                                     trans_b,
-                                                     m,
-                                                     n,
-                                                     k,
-                                                     alpha,
-                                                     A,
-                                                     ld_a,
-                                                     stride_a,
-                                                     B,
-                                                     ld_b,
-                                                     stride_b,
-                                                     beta,
-                                                     C,
-                                                     ld_c,
-                                                     stride_c,
-                                                     b_c);
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle,
@@ -543,26 +591,26 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle
                                              rocblas_float_complex*       C,
                                              rocblas_int                  ld_c,
                                              rocblas_stride               stride_c,
-                                             rocblas_int                  b_c)
+                                             rocblas_int                  batch_count)
 {
-    return rocblas_gemm_strided_batched_impl<rocblas_float_complex>(handle,
-                                                                    trans_a,
-                                                                    trans_b,
-                                                                    m,
-                                                                    n,
-                                                                    k,
-                                                                    alpha,
-                                                                    A,
-                                                                    ld_a,
-                                                                    stride_a,
-                                                                    B,
-                                                                    ld_b,
-                                                                    stride_b,
-                                                                    beta,
-                                                                    C,
-                                                                    ld_c,
-                                                                    stride_c,
-                                                                    b_c);
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
 }
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handle,
@@ -582,28 +630,29 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handl
                                              rocblas_double_complex*       C,
                                              rocblas_int                   ld_c,
                                              rocblas_stride                stride_c,
-                                             rocblas_int                   b_c)
+                                             rocblas_int                   batch_count)
 {
-    return rocblas_gemm_strided_batched_impl<rocblas_double_complex>(handle,
-                                                                     trans_a,
-                                                                     trans_b,
-                                                                     m,
-                                                                     n,
-                                                                     k,
-                                                                     alpha,
-                                                                     A,
-                                                                     ld_a,
-                                                                     stride_a,
-                                                                     B,
-                                                                     ld_b,
-                                                                     stride_b,
-                                                                     beta,
-                                                                     C,
-                                                                     ld_c,
-                                                                     stride_c,
-                                                                     b_c);
+    return rocblas_gemm_strided_batched_impl(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ld_a,
+                                             stride_a,
+                                             B,
+                                             ld_b,
+                                             stride_b,
+                                             beta,
+                                             C,
+                                             ld_c,
+                                             stride_c,
+                                             batch_count);
 }
 
+#ifndef USE_TENSILE_HOST
 /*******************************************************************************
  * Strided Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -624,26 +673,26 @@ rocblas_status rocblas_hgemm_strided_batched_kernel_name(rocblas_handle      han
                                                          rocblas_half*       C,
                                                          rocblas_int         ld_c,
                                                          rocblas_stride      stride_c,
-                                                         rocblas_int         b_c)
+                                                         rocblas_int         batch_count)
 {
-    return rocblas_gemm_strided_batched_kernel_name_impl<rocblas_half>(handle,
-                                                                       trans_a,
-                                                                       trans_b,
-                                                                       m,
-                                                                       n,
-                                                                       k,
-                                                                       alpha,
-                                                                       A,
-                                                                       ld_a,
-                                                                       stride_a,
-                                                                       B,
-                                                                       ld_b,
-                                                                       stride_b,
-                                                                       beta,
-                                                                       C,
-                                                                       ld_c,
-                                                                       stride_c,
-                                                                       b_c);
+    return rocblas_gemm_strided_batched_kernel_name_impl(handle,
+                                                         trans_a,
+                                                         trans_b,
+                                                         m,
+                                                         n,
+                                                         k,
+                                                         alpha,
+                                                         A,
+                                                         ld_a,
+                                                         stride_a,
+                                                         B,
+                                                         ld_b,
+                                                         stride_b,
+                                                         beta,
+                                                         C,
+                                                         ld_c,
+                                                         stride_c,
+                                                         batch_count);
 }
 
 rocblas_status rocblas_sgemm_strided_batched_kernel_name(rocblas_handle    handle,
@@ -663,26 +712,26 @@ rocblas_status rocblas_sgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          float*            C,
                                                          rocblas_int       ld_c,
                                                          rocblas_stride    stride_c,
-                                                         rocblas_int       b_c)
+                                                         rocblas_int       batch_count)
 {
-    return rocblas_gemm_strided_batched_kernel_name_impl<float>(handle,
-                                                                trans_a,
-                                                                trans_b,
-                                                                m,
-                                                                n,
-                                                                k,
-                                                                alpha,
-                                                                A,
-                                                                ld_a,
-                                                                stride_a,
-                                                                B,
-                                                                ld_b,
-                                                                stride_b,
-                                                                beta,
-                                                                C,
-                                                                ld_c,
-                                                                stride_c,
-                                                                b_c);
+    return rocblas_gemm_strided_batched_kernel_name_impl(handle,
+                                                         trans_a,
+                                                         trans_b,
+                                                         m,
+                                                         n,
+                                                         k,
+                                                         alpha,
+                                                         A,
+                                                         ld_a,
+                                                         stride_a,
+                                                         B,
+                                                         ld_b,
+                                                         stride_b,
+                                                         beta,
+                                                         C,
+                                                         ld_c,
+                                                         stride_c,
+                                                         batch_count);
 }
 
 rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handle,
@@ -702,25 +751,28 @@ rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          double*           C,
                                                          rocblas_int       ld_c,
                                                          rocblas_stride    stride_c,
-                                                         rocblas_int       b_c)
+                                                         rocblas_int       batch_count)
 {
-    return rocblas_gemm_strided_batched_kernel_name_impl<double>(handle,
-                                                                 trans_a,
-                                                                 trans_b,
-                                                                 m,
-                                                                 n,
-                                                                 k,
-                                                                 alpha,
-                                                                 A,
-                                                                 ld_a,
-                                                                 stride_a,
-                                                                 B,
-                                                                 ld_b,
-                                                                 stride_b,
-                                                                 beta,
-                                                                 C,
-                                                                 ld_c,
-                                                                 stride_c,
-                                                                 b_c);
+    return rocblas_gemm_strided_batched_kernel_name_impl(handle,
+                                                         trans_a,
+                                                         trans_b,
+                                                         m,
+                                                         n,
+                                                         k,
+                                                         alpha,
+                                                         A,
+                                                         ld_a,
+                                                         stride_a,
+                                                         B,
+                                                         ld_b,
+                                                         stride_b,
+                                                         beta,
+                                                         C,
+                                                         ld_c,
+                                                         stride_c,
+                                                         batch_count);
 }
-}
+
+#endif
+
+} // extern "C"

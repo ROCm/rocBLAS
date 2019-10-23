@@ -35,7 +35,7 @@ namespace
             log_bench(handle,
                       "./rocblas-bench -f rotmg_batched -r",
                       rocblas_precision_string<T>,
-                      "--batch",
+                      "--batch_count",
                       batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_rotmg_name<T>, "batch", batch_count);

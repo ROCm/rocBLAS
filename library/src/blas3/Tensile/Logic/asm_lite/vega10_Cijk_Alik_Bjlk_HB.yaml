@@ -163,7 +163,7 @@
     Valid: true
     VectorWidth: 8
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -292,7 +292,7 @@
     Valid: true
     VectorWidth: 8
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssignedDerivedParameters: true
     AssignedProblemIndependentDerivedParameters: true
@@ -420,7 +420,7 @@
     Valid: true
     VectorWidth: 1
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
 - []

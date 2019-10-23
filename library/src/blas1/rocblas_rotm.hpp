@@ -86,7 +86,7 @@ __global__ void rotm_kernel_batched(rocblas_int    n,
                      h22);
 }
 
-template <typename T>
+template <typename T, typename U>
 __global__ void rotm_kernel_regular(rocblas_int    n,
                                     T*             x_in,
                                     rocblas_int    offset_x,
@@ -96,11 +96,11 @@ __global__ void rotm_kernel_regular(rocblas_int    n,
                                     rocblas_int    offset_y,
                                     rocblas_int    incy,
                                     rocblas_stride stride_y,
-                                    T              flag,
-                                    T              h11,
-                                    T              h21,
-                                    T              h12,
-                                    T              h22)
+                                    U              flag,
+                                    U              h11,
+                                    U              h21,
+                                    U              h12,
+                                    U              h22)
 {
     rotm_kernel_calc(n,
                      x_in,
@@ -111,11 +111,11 @@ __global__ void rotm_kernel_regular(rocblas_int    n,
                      offset_y,
                      incy,
                      stride_y,
-                     flag,
-                     h11,
-                     h21,
-                     h12,
-                     h22);
+                     load_scalar(flag),
+                     load_scalar(h11),
+                     load_scalar(h21),
+                     load_scalar(h12),
+                     load_scalar(h22));
 }
 
 // Workaround to avoid constexpr if - Helper function to quick return when param[0] == -2

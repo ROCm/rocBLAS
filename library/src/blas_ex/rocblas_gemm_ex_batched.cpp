@@ -197,7 +197,7 @@ namespace
                                   d_type_string,
                                   "--ldd",
                                   ldd,
-                                  "--batch",
+                                  "--batch_count",
                                   batch_count,
                                   "--compute_type",
                                   compute_type_string,

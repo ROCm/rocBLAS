@@ -51,7 +51,7 @@ namespace
             log_bench(handle,
                       "./rocblas-bench -f rotmg_strided_batched -r",
                       rocblas_precision_string<T>,
-                      "--batch",
+                      "--batch_count",
                       batch_count,
                       "--stride_a",
                       stride_d1,

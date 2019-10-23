@@ -689,7 +689,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
     // first stage: invert NB * NB diagonal blocks of A and write the result of invA11 and invA22 in
     // invA - Only deals with maximum even and complete NBxNB diagonals
 
-    hipLaunchKernelGGL(trtri_diagonal_kernel<NB, T>,
+    hipLaunchKernelGGL((trtri_diagonal_kernel<NB, T>),
                        grid_trtri,
                        threads,
                        0,
@@ -716,7 +716,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 
         rocblas_int offset_A2    = (n - remainder) + (n - remainder) * lda + offset_Ain;
         rocblas_int offset_invA2 = (n - remainder) + (n - remainder) * ldinvA + offset_invAin;
-        hipLaunchKernelGGL(trtri_remainder_kernel<NB, T>,
+        hipLaunchKernelGGL((trtri_remainder_kernel<NB, T>),
                            grid_remainder,
                            threads_remainder,
                            0,
