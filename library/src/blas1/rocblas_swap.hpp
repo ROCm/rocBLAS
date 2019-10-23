@@ -13,7 +13,7 @@ __forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)
     *x    = tmp;
 }
 
-template <typename T, typename U>
+template <typename U>
 __global__ void rocblas_swap_kernel(rocblas_int    n,
                                     U              xa,
                                     ptrdiff_t      offsetx,
@@ -24,8 +24,8 @@ __global__ void rocblas_swap_kernel(rocblas_int    n,
                                     rocblas_int    incy,
                                     rocblas_stride stridey)
 {
-    T*        x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-    T*        y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
+    auto      x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
+    auto      y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     if(tid < n)
@@ -34,7 +34,7 @@ __global__ void rocblas_swap_kernel(rocblas_int    n,
     }
 }
 
-template <rocblas_int NB, typename T, typename U>
+template <rocblas_int NB, typename U>
 rocblas_status rocblas_swap_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      U              x,
@@ -59,7 +59,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    hipLaunchKernelGGL(rocblas_swap_kernel<T>,
+    hipLaunchKernelGGL(rocblas_swap_kernel,
                        blocks,
                        threads,
                        0,

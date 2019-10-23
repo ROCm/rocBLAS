@@ -89,7 +89,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         constexpr rocblas_int NB = 256;
-        return rocblas_swap_template<NB, T>(
+        return rocblas_swap_template<NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 }
