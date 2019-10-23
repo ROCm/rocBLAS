@@ -255,4 +255,30 @@ inline void near_check_general(rocblas_int         M,
     NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
 
+template <>
+inline void near_check_general(rocblas_int                        M,
+                               rocblas_int                        N,
+                               rocblas_int                        batch_count,
+                               rocblas_int                        lda,
+                               host_vector<rocblas_float_complex> hCPU[],
+                               host_vector<rocblas_float_complex> hGPU[],
+                               double                             abs_error)
+{
+    abs_error *= sqrthalf;
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
+}
+
+template <>
+inline void near_check_general(rocblas_int                         M,
+                               rocblas_int                         N,
+                               rocblas_int                         batch_count,
+                               rocblas_int                         lda,
+                               host_vector<rocblas_double_complex> hCPU[],
+                               host_vector<rocblas_double_complex> hGPU[],
+                               double                              abs_error)
+{
+    abs_error *= sqrthalf;
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
+}
+
 #endif
