@@ -13,19 +13,19 @@ __forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)
     *x    = tmp;
 }
 
-template <typename U>
+template <typename UPtr>
 __global__ void rocblas_swap_kernel(rocblas_int    n,
-                                    U              xa,
+                                    UPtr           xa,
                                     ptrdiff_t      offsetx,
                                     rocblas_int    incx,
                                     rocblas_stride stridex,
-                                    U              ya,
+                                    UPtr           ya,
                                     ptrdiff_t      offsety,
                                     rocblas_int    incy,
                                     rocblas_stride stridey)
 {
-    auto      x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-    auto      y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
+    auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
+    auto*     y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     if(tid < n)
