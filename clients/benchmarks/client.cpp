@@ -60,7 +60,28 @@
 #include <string>
 #include <type_traits>
 
-using namespace std::literals;
+using namespace std::literals; // For std::string literals of form "str"s
+
+struct str_less
+{
+    bool operator()(const char* a, const char* b) const
+    {
+        return strcmp(a, b) < 0;
+    }
+};
+
+// Map from const char* to function taking const Arguments& using comparison above
+using func_map = std::map<const char*, void (*)(const Arguments&), str_less>;
+
+// Run a function by using map to map arg.function to function
+void run_function(const func_map& map, const Arguments& arg, const std::string& msg = "")
+{
+    auto match = map.find(arg.function);
+    if(match == map.end())
+        throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                    + " --a_type "s + rocblas_datatype2string(arg.a_type) + msg);
+    match->second(arg);
+}
 
 #if BUILD_WITH_TENSILE
 
@@ -78,26 +99,6 @@ using namespace std::literals;
 #include "testing_trtri_batched.hpp"
 #include "testing_trtri_strided_batched.hpp"
 
-struct str_less
-{
-    bool operator()(const char* a, const char* b) const
-    {
-        return strcmp(a, b) < 0;
-    }
-};
-
-using func_map = std::map<const char*, void (*)(const Arguments&), str_less>;
-
-// Run a function by using map to map arg.function to a function taking const Arguments&
-void run_function(const func_map& map, const Arguments& arg, const std::string& msg = "")
-{
-    auto match = map.find(arg.function);
-    if(match == map.end())
-        throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                    + " --a_type "s + rocblas_datatype2string(arg.a_type) + msg);
-    match->second(arg);
-}
-
 // Template to dispatch testing_gemm_ex for performance tests
 // When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
@@ -112,11 +113,8 @@ struct perf_gemm_ex<Ti,
                     typename std::enable_if<!std::is_same<Ti, void>{}
                                             && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
                                                  && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -142,11 +140,8 @@ struct perf_gemm_strided_batched_ex<
     typename std::enable_if<!std::is_same<Ti, void>{}
                             && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
                                  && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -156,7 +151,7 @@ struct perf_gemm_strided_batched_ex<
     }
 };
 
-#endif
+#endif // BUILD_WITH_TENSILE
 
 template <typename T, typename U = T, typename = void>
 struct perf_blas : rocblas_test_invalid
@@ -168,11 +163,8 @@ struct perf_blas<
     T,
     U,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map
@@ -222,11 +214,8 @@ struct perf_blas<
 
 template <typename T, typename U>
 struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -238,14 +227,10 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>
 
 template <typename T, typename U>
 struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-
         static const func_map map
             = { {"axpy", testing_axpy<T>},
                 {"dot", testing_dot<T>},
@@ -255,7 +240,6 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
 #endif
               };
-
         run_function(map, arg);
     }
 };
@@ -265,11 +249,8 @@ struct perf_blas<T,
                  U,
                  typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
                                          || std::is_same<T, rocblas_float_complex>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map
@@ -321,13 +302,8 @@ struct perf_blas_rot<
         || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
             && std::is_same<Tc, rocblas_double_complex>{})
         || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
-            && std::is_same<Tc, double>{}))>::type>
+            && std::is_same<Tc, double>{}))>::type> : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
-
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -355,11 +331,8 @@ struct perf_blas_scal<
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -384,12 +357,8 @@ struct perf_blas_rotg<
         (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
         || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>::type>
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>::type> : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
         static const func_map map = {
@@ -589,9 +558,10 @@ using namespace boost::program_options;
 int main(int argc, char* argv[])
 try
 {
+    static char b_c[] = "--batch_count";
     for(int i = 1; i < argc; ++i)
         if(!strcmp(argv[i], "--batch"))
-            argv[i] = "--batch_count";
+            argv[i] = b_c;
 
     Arguments arg;
 

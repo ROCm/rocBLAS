@@ -27,11 +27,8 @@ namespace
     struct trsm_ex_testing<T,
                            typename std::enable_if<std::is_same<T, float>::value
                                                    || std::is_same<T, double>::value>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "trsm_ex"))

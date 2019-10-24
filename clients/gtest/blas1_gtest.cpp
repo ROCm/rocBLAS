@@ -310,8 +310,8 @@ struct blas1_##NAME                                                            \
                    Tc,                                                         \
                    typename std::enable_if<                                    \
                        blas1_enabled<blas1::NAME, Ti, To, Tc>{}>::type>        \
+       : rocblas_test_valid                                                    \
     {                                                                          \
-        explicit operator bool() { return true; }                              \
         void operator()(const Arguments& arg)                                  \
         {                                                                      \
             if(!strcmp(arg.function, #NAME))                                   \
