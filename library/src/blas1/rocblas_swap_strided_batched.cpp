@@ -2,8 +2,8 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "rocblas_swap_strided_batched.hpp"
 #include "logging.h"
+#include "rocblas_swap.hpp"
 #include "utility.h"
 
 namespace
@@ -89,7 +89,7 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         constexpr rocblas_int NB = 256;
-        return rocblas_swap_strided_batched_template<NB>(
+        return rocblas_swap_template<NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 }
