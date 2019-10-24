@@ -5,6 +5,9 @@
 
 #include "d_vector.hpp"
 
+//
+// Local declaration of the host strided batch vector.
+//
 template <typename T>
 class host_batch_vector;
 
@@ -31,6 +34,24 @@ public:
     //! @brief Constructor.
     //! @param n           The length of the vector.
     //! @param inc         The increment.
+    //! @param batch_count The batch count.
+    //!
+    explicit device_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
+        : m_n(n)
+        , m_inc(inc)
+        , m_batch_count(batch_count)
+        , d_vector<T, PAD, U>(size_t(n) * std::abs(inc))
+    {
+        if(false == this->try_initialize_memory())
+        {
+            this->free_memory();
+        }
+    }
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
     //! @param stride      (UNUSED) The stride.
     //! @param batch_count The batch count.
     //!
@@ -38,35 +59,18 @@ public:
                                  rocblas_int    inc,
                                  rocblas_stride stride,
                                  rocblas_int    batch_count)
-        : device_batch_vector(batch_count, n * std::abs(inc))
+        : device_batch_vector(n, inc, batch_count)
     {
     }
 
     //!
-    //! @brief Constructor.
-    //! @param n           The length of the vector.
-    //! @param inc         The increment.
-    //! @param batch_count The batch count.
-    //!
-    explicit device_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
-        : device_batch_vector(batch_count, n * std::abs(inc))
-    {
-    }
-
-    //!
-    //! @brief Constructor.
+    //! @brief Constructor (kept for backward compatibility only, to be removed).
     //! @param batch_count The number of vectors.
     //! @param size_vector The size of each vectors.
     //!
     explicit device_batch_vector(rocblas_int batch_count, size_t size_vector)
-        : m_batch_count(batch_count)
-        , m_size_vector(size_vector)
-        , d_vector<T, PAD, U>(size_vector)
+        : device_batch_vector(size_vector, 1, batch_count)
     {
-        if(false == this->try_initialize_memory())
-        {
-            this->free_memory();
-        }
     }
 
     //!
@@ -78,11 +82,19 @@ public:
     }
 
     //!
-    //! @brief Returns the size of the vectors.
+    //! @brief Returns the length of the vector.
     //!
-    size_t size() const
+    rocblas_int n() const
     {
-        return this->m_size_vector;
+        return this->m_n;
+    }
+
+    //!
+    //! @brief Returns the increment of the vector.
+    //!
+    rocblas_int inc() const
+    {
+        return this->m_inc;
     }
 
     //!
@@ -171,17 +183,17 @@ public:
     //!
     hipError_t transfer_from(const host_batch_vector<T>& that)
     {
-
+        hipError_t hip_err;
         //
         // Copy each vector.
         //
         for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
         {
-            auto hip_err = hipMemcpy((*this)[batch_index],
-                                     that[batch_index],
-                                     sizeof(T) * this->m_size_vector,
-                                     hipMemcpyHostToDevice);
-            if(hipSuccess != hip_err)
+            if(hipSuccess
+               != (hip_err = hipMemcpy((*this)[batch_index],
+                                       that[batch_index],
+                                       sizeof(T) * this->nmemb(),
+                                       hipMemcpyHostToDevice)))
             {
                 return hip_err;
             }
@@ -200,8 +212,9 @@ public:
     }
 
 private:
+    rocblas_int m_n{};
+    rocblas_int m_inc{};
     rocblas_int m_batch_count{};
-    size_t      m_size_vector{};
     T**         m_data{};
     T**         m_device_data{};
 
@@ -219,7 +232,7 @@ private:
             success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
             if(success)
             {
-                for(size_t batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+                for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
                 {
                     success
                         = (nullptr != (this->m_data[batch_index] = this->device_vector_setup()));
@@ -242,12 +255,14 @@ private:
         return success;
     }
 
+    //!
     //! @brief Free the ressources, as much as we can.
+    //!
     void free_memory()
     {
         if(nullptr != this->m_data)
         {
-            for(size_t batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
             {
                 if(nullptr != this->m_data[batch_index])
                 {

@@ -5,6 +5,9 @@
 
 #include "d_vector.hpp"
 
+//
+// Local declaration of the host vector.
+//
 template <typename T>
 class host_vector;
 
@@ -28,11 +31,26 @@ public:
 
     //!
     //! @brief Constructor.
+    //! @param n The length of the vector.
+    //! @param inc The increment.
+    //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
+    //!
+    explicit device_vector(rocblas_int n, rocblas_int inc)
+        : m_n(n)
+        , m_inc(inc)
+        , d_vector<T, PAD, U>(n * std::abs(inc))
+    {
+        this->m_data = this->device_vector_setup();
+    }
+
+    //!
+    //! @brief Constructor (kept for backward compatibility)
     //! @param s the size.
     //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
     //!
     explicit device_vector(size_t s)
-        : m_size(s)
+        : m_n(s)
+        , m_inc(1)
         , d_vector<T, PAD, U>(s)
     {
         this->m_data = this->device_vector_setup();
@@ -48,11 +66,35 @@ public:
     }
 
     //!
-    //! @brief Returns the size of the vector.
+    //! @brief Returns the length of the vector.
     //!
-    size_t size() const
+    rocblas_int n() const
     {
-        return this->m_size;
+        return this->m_n;
+    }
+
+    //!
+    //! @brief Returns the increment of the vector.
+    //!
+    rocblas_int inc() const
+    {
+        return this->m_inc;
+    }
+
+    //!
+    //! @brief Returns the batch count (always 1).
+    //!
+    rocblas_int batch_count() const
+    {
+        return 1;
+    }
+
+    //!
+    //! @brief Returns the stride (out of context, always 0)
+    //!
+    rocblas_stride stride() const
+    {
+        return 0;
     }
 
     //!
@@ -87,7 +129,7 @@ public:
     hipError_t transfer_from(const host_vector<T>& that)
     {
         return hipMemcpy(
-            this->m_data, (const T*)that, this->size() * sizeof(T), hipMemcpyHostToDevice);
+            this->m_data, (const T*)that, this->nmemb() * sizeof(T), hipMemcpyHostToDevice);
     }
 
     hipError_t memcheck() const
@@ -96,6 +138,8 @@ public:
     }
 
 private:
-    size_t m_size{0};
-    T*     m_data{nullptr};
+    size_t      m_size{};
+    rocblas_int m_n{};
+    rocblas_int m_inc{};
+    T*          m_data{};
 };

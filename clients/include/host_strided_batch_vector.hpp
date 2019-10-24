@@ -3,6 +3,9 @@
 //
 #pragma once
 
+//
+// Local declaration of the device strided batch vector.
+//
 template <typename T, size_t PAD, typename U>
 class device_strided_batch_vector;
 
@@ -50,17 +53,17 @@ public:
         , m_inc(inc)
         , m_stride(stride)
         , m_batch_count(batch_count)
-        , m_size(calculate_size(n, inc, stride, batch_count, stg))
+        , m_nmemb(calculate_nmemb(n, inc, stride, batch_count, stg))
     {
 
-        bool valid_parameters = (m_size > 0);
+        bool valid_parameters = this->m_nmemb > 0;
         if(valid_parameters)
         {
             switch(this->m_storage)
             {
             case storage::block:
             {
-                if(this->m_stride < this->m_n * std::abs(this->m_inc))
+                if(std::abs(this->m_stride) < this->m_n * std::abs(this->m_inc))
                 {
                     valid_parameters = false;
                 }
@@ -68,7 +71,7 @@ public:
             }
             case storage::interleave:
             {
-                if(std::abs(this->m_inc) < this->m_stride * this->m_batch_count)
+                if(std::abs(this->m_inc) < std::abs(this->m_stride) * this->m_batch_count)
                 {
                     valid_parameters = false;
                 }
@@ -78,7 +81,7 @@ public:
 
             if(valid_parameters)
             {
-                this->m_data = new T[m_size];
+                this->m_data = new T[this->m_nmemb];
             }
         }
     }
@@ -189,7 +192,7 @@ public:
         if(that.n() == this->m_n && that.inc() == this->m_inc && that.stride() == this->m_stride
            && that.batch_count() == this->m_batch_count)
         {
-            memcpy((*this)[0], that[0], sizeof(T) * this->m_size);
+            memcpy((*this)[0], that[0], sizeof(T) * this->m_nmemb);
             return true;
         }
         else
@@ -207,7 +210,7 @@ public:
     hipError_t transfer_from(const device_strided_batch_vector<T, PAD, U>& that)
     {
         auto hip_err
-            = hipMemcpy((*this)[0], that[0], sizeof(T) * this->m_size, hipMemcpyDeviceToHost);
+            = hipMemcpy((*this)[0], that[0], sizeof(T) * this->m_nmemb, hipMemcpyDeviceToHost);
         if(hipSuccess != hip_err)
         {
             return hip_err;
@@ -230,17 +233,17 @@ private:
     rocblas_int    m_inc{};
     rocblas_stride m_stride{};
     rocblas_int    m_batch_count{};
-    size_t         m_size{};
+    size_t         m_nmemb{};
     T*             m_data{};
 
-    static size_t calculate_size(
+    static size_t calculate_nmemb(
         rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
     {
         switch(st)
         {
         case storage::block:
         {
-            return size_t(stride) * batch_count;
+            return size_t(std::abs(stride)) * batch_count;
         }
         case storage::interleave:
         {
@@ -254,20 +257,25 @@ private:
     }
 };
 
+//!
+//! @brief Overload output operator.
+//! @param os The ostream.
+//! @param that That host strided batch vector.
+//!
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const host_strided_batch_vector<T>& that)
 {
-    auto batch_count = that.batch_count();
     auto n           = that.n();
     auto inc         = std::abs(that.inc());
+    auto batch_count = that.batch_count();
 
     for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
     {
-        auto v = that[batch_index];
-        os << "[" << batch_index << "] = { " << v[0];
+        auto batch_data = that[batch_index];
+        os << "[" << batch_index << "] = { " << batch_data[0];
         for(rocblas_int i = 1; i < n; ++i)
         {
-            os << ", " << v[i * inc];
+            os << ", " << batch_data[i * inc];
         }
         os << " }" << std::endl;
     }

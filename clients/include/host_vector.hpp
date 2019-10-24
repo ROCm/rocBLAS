@@ -54,7 +54,7 @@ struct host_vector : std::vector<T>
     //!
     rocblas_int n() const
     {
-        return m_n;
+        return this->m_n;
     }
 
     //!
@@ -62,7 +62,7 @@ struct host_vector : std::vector<T>
     //!
     rocblas_int inc() const
     {
-        return m_inc;
+        return this->m_inc;
     }
 
     //!
@@ -71,6 +71,14 @@ struct host_vector : std::vector<T>
     rocblas_int batch_count() const
     {
         return 1;
+    }
+
+    //!
+    //! @brief Returns the stride (out of context, always 0)
+    //!
+    rocblas_stride stride() const
+    {
+        return 0;
     }
 
     //!

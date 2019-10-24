@@ -3,6 +3,9 @@
 //
 #pragma once
 
+//
+// Local declaration of the host strided batch vector.
+//
 template <typename T>
 class host_strided_batch_vector;
 
@@ -45,7 +48,7 @@ public:
                                          rocblas_stride stride,
                                          rocblas_int    batch_count,
                                          storage        stg = storage::block)
-        : d_vector<T, PAD, U>(calculate_size(n, inc, stride, batch_count, stg))
+        : d_vector<T, PAD, U>(calculate_nmemb(n, inc, stride, batch_count, stg))
         , m_storage(stg)
         , m_n(n)
         , m_inc(inc)
@@ -131,7 +134,6 @@ public:
     //!
     T* operator[](rocblas_int batch_index)
     {
-
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
                    : this->m_data + (batch_index + 1 - this->m_batch_count) * this->m_stride;
@@ -144,7 +146,6 @@ public:
     //!
     const T* operator[](rocblas_int batch_index) const
     {
-
         return (this->m_stride >= 0)
                    ? this->m_data + batch_index * this->m_stride
                    : this->m_data + (batch_index + 1 - this->m_batch_count) * this->m_stride;
@@ -183,13 +184,7 @@ public:
     //!
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
-        auto hip_err
-            = hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
-        if(hipSuccess != hip_err)
-        {
-            return hip_err;
-        }
-        return hipSuccess;
+        return hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
     }
 
     //!
@@ -209,18 +204,18 @@ private:
     rocblas_int    m_batch_count{};
     T*             m_data{};
 
-    static size_t calculate_size(
+    static size_t calculate_nmemb(
         rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
     {
         switch(st)
         {
         case storage::block:
         {
-            return std::abs(stride) * batch_count;
+            return size_t(std::abs(stride)) * batch_count;
         }
         case storage::interleave:
         {
-            return n * std::abs(inc);
+            return size_t(n) * std::abs(inc);
         }
         default:
         {

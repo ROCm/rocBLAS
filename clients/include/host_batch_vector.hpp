@@ -6,6 +6,12 @@
 #include "rocblas_init.hpp"
 #include <string.h>
 
+//
+// Local declaration of the device batch vector.
+//
+template <typename T, size_t PAD, typename U>
+class device_batch_vector;
+
 //!
 //! @brief Implementation of the batch vector on host.
 //!
@@ -27,6 +33,23 @@ public:
     //! @brief Constructor.
     //! @param n           The length of the vector.
     //! @param inc         The increment.
+    //! @param batch_count The batch count.
+    //!
+    explicit host_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
+        : m_n(n)
+        , m_inc(inc)
+        , m_batch_count(batch_count)
+    {
+        if(false == this->try_initialize_memory())
+        {
+            this->free_memory();
+        }
+    }
+
+    //!
+    //! @brief Constructor.
+    //! @param n           The length of the vector.
+    //! @param inc         The increment.
     //! @param stride      (UNUSED) The stride.
     //! @param batch_count The batch count.
     //!
@@ -39,52 +62,11 @@ public:
     }
 
     //!
-    //! @brief Constructor.
-    //! @param n           The length of the vector.
-    //! @param inc         The increment.
-    //! @param batch_count The batch count.
-    //!
-    explicit host_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
-        : m_n(n)
-        , m_inc(inc)
-        , m_batch_count(batch_count)
-        , m_size(n * std::abs(inc))
-    {
-        if(false == this->try_initialize_memory())
-        {
-            this->free_memory();
-        }
-    }
-
-    //!
-    //! @brief Constructor.
-    //! @param size_vector The size of one of the vectors.
-    //! @param batch_count The number of vectors.
-    //!
-    explicit host_batch_vector(size_t size_vector, rocblas_int batch_count)
-        : m_batch_count(batch_count)
-        , m_size(size_vector)
-    {
-        if(false == this->try_initialize_memory())
-        {
-            this->free_memory();
-        }
-    }
-
-    //!
     //! @brief Destructor.
     //!
     ~host_batch_vector()
     {
         this->free_memory();
-    }
-
-    //!
-    //! @brief Returns the size of the vector.
-    //!
-    size_t size() const
-    {
-        return this->m_size;
     }
 
     //!
@@ -164,10 +146,11 @@ public:
     //!
     bool copy_from(const host_batch_vector<T>& that)
     {
-        if((this->batch_count() == that.batch_count()) && (this->size() == that.size()))
+        if((this->batch_count() == that.batch_count()) && (this->n() == that.n())
+           && (this->inc() == that.inc()))
         {
-            size_t num_bytes = this->size() * sizeof(T);
-            for(size_t batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+            size_t num_bytes = this->n() * std::abs(this->inc()) * sizeof(T);
+            for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
             {
                 memcpy((*this)[batch_index], that[batch_index], num_bytes);
             }
@@ -186,14 +169,15 @@ public:
     //!
     hipError_t transfer_from(const device_batch_vector<T>& that)
     {
-        auto num_bytes = this->size() * sizeof(T);
-        for(size_t batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+        hipError_t hip_err;
+        size_t     num_bytes = size_t(this->m_n) * std::abs(this->m_inc) * sizeof(T);
+        for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
         {
-            auto err = hipMemcpy(
-                (*this)[batch_index], that[batch_index], num_bytes, hipMemcpyDeviceToHost);
-            if(hipSuccess != err)
+            if(hipSuccess
+               != (hip_err = hipMemcpy(
+                       (*this)[batch_index], that[batch_index], num_bytes, hipMemcpyDeviceToHost)))
             {
-                return err;
+                return hip_err;
             }
         }
         return hipSuccess;
@@ -212,7 +196,6 @@ private:
     rocblas_int m_n{};
     rocblas_int m_inc{};
     rocblas_int m_batch_count{};
-    size_t      m_size{};
     T**         m_data{};
 
     bool try_initialize_memory()
@@ -220,10 +203,10 @@ private:
         bool success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
         if(success)
         {
+            size_t nmemb = size_t(this->m_n) * std::abs(this->m_inc);
             for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
             {
-                success = (nullptr
-                           != (this->m_data[batch_index] = (T*)calloc(this->m_size, sizeof(T))));
+                success = (nullptr != (this->m_data[batch_index] = (T*)calloc(nmemb, sizeof(T))));
                 if(false == success)
                 {
                     break;
@@ -252,20 +235,25 @@ private:
     }
 };
 
+//!
+//! @brief Overload output operator.
+//! @param os The ostream.
+//! @param that That host batch vector.
+//!
 template <typename T>
 std::ostream& operator<<(std::ostream& os, const host_batch_vector<T>& that)
 {
-    auto batch_count = that.batch_count();
     auto n           = that.n();
     auto inc         = std::abs(that.inc());
+    auto batch_count = that.batch_count();
 
     for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
     {
-        auto v = that[batch_index];
-        os << "[" << batch_index << "] = { " << v[0];
+        auto batch_data = that[batch_index];
+        os << "[" << batch_index << "] = { " << batch_data[0];
         for(rocblas_int i = 1; i < n; ++i)
         {
-            os << ", " << v[i * inc];
+            os << ", " << batch_data[i * inc];
         }
         os << " }" << std::endl;
     }

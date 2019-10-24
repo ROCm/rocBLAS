@@ -2,6 +2,7 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
+
 #include "d_vector.hpp"
 
 #include "device_batch_vector.hpp"
@@ -12,16 +13,20 @@
 #include "host_strided_batch_vector.hpp"
 #include "host_vector.hpp"
 
-//
-// Get some specialized routine.
-//
-
+//!
+//! @brief Random number with type deductions.
+//!
 template <typename T>
 void random_generator(T& n)
 {
     n = random_generator<T>();
 }
 
+//!
+//! @brief Template for initializing a host (non_batche|batched|strided_batched)vector.
+//! @param that That vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
 template <typename U>
 void rocblas_init_template(U& that, bool seedReset = false)
 {
@@ -32,38 +37,48 @@ void rocblas_init_template(U& that, bool seedReset = false)
 
     for(rocblas_int batch_index = 0; batch_index < that.batch_count(); ++batch_index)
     {
-        auto data = that[batch_index];
-        auto inc  = std::abs(that.inc());
-        auto n    = that.n();
-        if(inc >= 0)
+        auto batched_data = that[batch_index];
+        auto inc          = std::abs(that.inc());
+        auto n            = that.n();
+        if(inc < 0)
         {
-            for(rocblas_int i = 0; i < n; ++i)
-            {
-                random_generator(data[i * inc]);
-            }
+            batched_data -= (n - 1) * inc;
         }
-        else
+
+        for(rocblas_int i = 0; i < n; ++i)
         {
-            for(rocblas_int i = 0; i < n; ++i)
-            {
-                random_generator(data[(i + 1 - n) * inc]);
-            }
+            random_generator(batched_data[i * inc]);
         }
     }
 }
 
+//!
+//! @brief Initialize a host_strided_batch_vector.
+//! @param that The host strided batch vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
 template <typename T>
 void rocblas_init(host_strided_batch_vector<T>& that, bool seedReset = false)
 {
     rocblas_init_template(that, seedReset);
 }
 
+//!
+//! @brief Initialize a host_batch_vector.
+//! @param that The host batch vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
 template <typename T>
 void rocblas_init(host_batch_vector<T>& that, bool seedReset = false)
 {
     rocblas_init_template(that, seedReset);
 }
 
+//!
+//! @brief Initialize a host_vector.
+//! @param that The host vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
 template <typename T>
 void rocblas_init(host_vector<T>& that, bool seedReset = false)
 {
