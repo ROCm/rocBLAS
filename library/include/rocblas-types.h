@@ -51,10 +51,6 @@ typedef uint16_t rocblas_half; // TODO: should be replaced with a struct, to bec
  *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
  */
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /*! \brief Used to specify whether the matrix is to be transposed or not. */
 typedef enum rocblas_operation_
 {
@@ -154,9 +150,5 @@ typedef enum rocblas_gemm_algo_
 {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif
