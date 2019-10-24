@@ -589,6 +589,10 @@ using namespace boost::program_options;
 int main(int argc, char* argv[])
 try
 {
+    for(int i = 1; i < argc; ++i)
+        if(!strcmp(argv[i], "--batch"))
+            argv[i] = "--batch_count";
+
     Arguments arg;
 
     std::string function;
@@ -618,7 +622,7 @@ try
 
         ("sizek,k",
          value<rocblas_int>(&arg.K)->default_value(128),
-         "Specific matrix size:sizek is only applicable to BLAS-3: the number of columns in "
+         "Specific matrix size: sizek is only applicable to BLAS-3: the number of columns in "
          "A and rows in B.")
 
         ("lda",
@@ -740,9 +744,9 @@ try
          value<char>(&arg.diag)->default_value('N'),
          "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
 
-        ("batch",
+        ("batch_count",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines") // xtrsm xtrsm_ex xtrmm xgemm
+         "Number of matrices. Only applicable to batched routines")
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
