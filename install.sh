@@ -135,17 +135,15 @@ install_packages( )
   # dependencies needed for rocblas and clients to build
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "libomp-dev"
-                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
+                                      "llvm-6.0-dev" "hip_hcc" "rocm_smi64" "zlib1g-dev")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "hip_hcc" "rocm_smi64" "libgomp" "zlib-devel" )
+                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "libgomp"
-                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "hip_hcc" "rocm_smi64" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
                                       "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
@@ -364,8 +362,10 @@ esac
 # dependencies
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
-
   install_packages
+fi
+
+if [[ "${build_clients}" == true ]]; then
 
   # The following builds googletest & lapack from source, installs into cmake default /usr/local
   pushd .
@@ -376,25 +376,24 @@ if [[ "${install_dependencies}" == true ]]; then
     elevate_if_not_root make install
   popd
 
-fi
-
-if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
-  git submodule update --init
-  cd extern/blis
-  case "${ID}" in
-      centos|rhel|sles)
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-          ;;
-      ubuntu)
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
-          ;;
-      *)
-          echo "Unsupported OS for this script"
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-          ;;
-  esac
-  make install
-  cd ../..
+  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+    git submodule update --init
+    cd extern/blis
+    case "${ID}" in
+        centos|rhel|sles)
+            ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+            ;;
+        ubuntu)
+            ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+            ;;
+        *)
+            echo "Unsupported OS for this script"
+            ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+            ;;
+    esac
+    make install
+    cd ../..
+  fi
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
