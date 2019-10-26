@@ -136,7 +136,7 @@ install_packages( )
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
                                       "llvm-6.0-dev" "hip_hcc" "rocm_smi64" "zlib1g-dev"
-				      "libboost-program-options-dev" )
+				                      "libboost-program-options-dev" )
   local library_dependencies_centos=( "epel-release" "boost-devel"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
@@ -157,10 +157,10 @@ install_packages( )
   fi
 
   # dependencies to build the client
-  local client_dependencies_ubuntu=( "gfortran" "libomp-dev")
-  local client_dependencies_centos=( "gcc-gfortran" "libgomp")
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp")
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1")
+  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
+  local client_dependencies_centos=( "gcc-gfortran" "libgomp" "boost-devel")
+  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel")
+  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" "boost-devel")
 
   case "${ID}" in
     ubuntu)
