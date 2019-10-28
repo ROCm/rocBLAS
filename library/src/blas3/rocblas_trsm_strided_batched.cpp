@@ -234,7 +234,6 @@ namespace
                                                                         m,
                                                                         n,
                                                                         alpha,
-                                                                        0,
                                                                         (const T*)A,
                                                                         0,
                                                                         lda,
