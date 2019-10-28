@@ -13,6 +13,30 @@
 
 static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 
+// Helper  for trsm and trsv. Copys addresses to array of pointers for batched versions.
+template <typename T>
+__global__ void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
+{
+    dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
+}
+
+template <rocblas_int BLOCK, typename T>
+void setup_batched_array(
+    rocblas_handle handle, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
+{
+    dim3 grid(batch_count);
+    dim3 threads(BLOCK);
+
+    hipLaunchKernelGGL(setup_batched_array_kernel<T>,
+                       grid,
+                       threads,
+                       0,
+                       handle->rocblas_stream,
+                       src,
+                       src_stride,
+                       dst);
+}
+
 /*
     Invert the IB by IB diagonal blocks of A of size n by n, where n is divisible by IB
     and stores the results in part of invA of size NB by NB.
