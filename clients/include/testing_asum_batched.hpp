@@ -25,23 +25,20 @@ void testing_asum_batched_bad_arg_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    device_vector<T1*, 0, T1> dx(safe_size);
-    if(!dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T1> dx(N, 1, batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_asum_batched<T1, T2>(handle, N, nullptr, incx, batch_count, h_rocblas_result)),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, nullptr)),
-                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_asum_batched<T1, T2>(nullptr, N, dx, incx, batch_count, h_rocblas_result)),
-        rocblas_status_invalid_handle);
+        (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_asum_batched<T1, T2>(
+                              nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result)),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T1, typename T2 = T1>
@@ -58,98 +55,80 @@ void testing_asum_batched_template(const Arguments& arg)
 
     if(batch_count < 0)
     {
-        static const size_t       safe_size = 100; //  arbitrarily set to zero
-        device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2>         d_rocblas_result(std::max(batch_count, 1));
-        if(!dx || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        device_batch_vector<T1> dx(100, 1, std::abs(batch_count));
+        CHECK_HIP_ERROR(dx.memcheck());
+
+        device_vector<T2> dr(std::abs(batch_count));
+        CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS(
-            (rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, d_rocblas_result)),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS((rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, dr)),
+                              rocblas_status_invalid_size);
         return;
     }
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count == 0)
     {
-        static const size_t       safe_size = 100; // arbitrarily set to 100
-        device_vector<T1*, 0, T1> dx(safe_size);
-        device_vector<T2>         d_rocblas_result_2(std::max(batch_count, 1));
-        if(!dx || !d_rocblas_result_2)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        static const size_t safe_size = 100; // arbitrarily set to 100
+
+        device_batch_vector<T1> dx(safe_size, 1, std::max(batch_count, 1));
+        CHECK_HIP_ERROR(dx.memcheck());
+
+        device_vector<T2> dr(std::max(batch_count, 1));
+        CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(
-            (rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, d_rocblas_result_2)));
-        return;
-    }
-
-    T2 rocblas_result_1[batch_count];
-    T2 rocblas_result_2[batch_count];
-    T2 cpu_result[batch_count];
-
-    size_t size_x = N * size_t(incx);
-
-    // allocate memory on device
-    device_vector<T2> d_rocblas_result_2(batch_count);
-    if(!d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        CHECK_ROCBLAS_ERROR((rocblas_asum_batched<T1, T2>(handle, N, dx, incx, batch_count, dr)));
         return;
     }
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T1> hx[batch_count];
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    for(int i = 0; i < batch_count; i++)
-    {
-        hx[i] = host_vector<T1>(size_x);
-        rocblas_init<T1>(hx[i], 1, N, incx);
-    }
+    // allocate memory
+    device_batch_vector<T1> dx(N, incx, batch_count);
+    host_batch_vector<T1>   hx(N, incx, batch_count);
 
-    device_batch_vector<T1> dxvec(batch_count, size_x);
-    for(int i = 0; i < batch_count; i++)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(dxvec[i], hx[i], size_x * sizeof(T1), hipMemcpyHostToDevice));
-    }
+    device_vector<T2> dr(batch_count);
+    host_vector<T2>   hr1(batch_count);
+    host_vector<T2>   hr(batch_count);
 
-    // vector pointers on gpu
-    device_vector<T1*, 0, T1> dx_pvec(batch_count);
-    if(!dx_pvec)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
 
-    // copy gpu vector pointers from host to device pointer array
-    CHECK_HIP_ERROR(hipMemcpy(dx_pvec, dxvec, sizeof(T1*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_HIP_ERROR(hr1.memcheck());
+    CHECK_HIP_ERROR(hr.memcheck());
+
+    //
+    // Initialize memory on host.
+    //
+    rocblas_init(hx);
+
+    //
+    // Transfer from host to device.
+    //
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
-
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((
-            rocblas_asum_batched<T1, T2>(handle, N, dx_pvec, incx, batch_count, rocblas_result_1)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1)));
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum_batched<T1, T2>(
-            handle, N, dx_pvec, incx, batch_count, d_rocblas_result_2)));
-        CHECK_HIP_ERROR(hipMemcpy(
-            rocblas_result_2, d_rocblas_result_2, batch_count * sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, dr)));
 
+        //
+        // Transfer from device to host.
+        //
+        CHECK_HIP_ERROR(hr.transfer_from(dr));
+
+        T2 cpu_result[batch_count];
         // CPU BLAS
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
@@ -160,18 +139,17 @@ void testing_asum_batched_template(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T2>(1, batch_count, 1, cpu_result, rocblas_result_1);
-            unit_check_general<T2>(1, batch_count, 1, cpu_result, rocblas_result_2);
+            unit_check_general<T2>(1, batch_count, 1, cpu_result, hr1);
+            unit_check_general<T2>(1, batch_count, 1, cpu_result, hr);
         }
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << std::scientific << cpu_result[0]
-                      << ", gpu_host_ptr=" << rocblas_result_1[0]
-                      << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
+            std::cout << "cpu=" << std::scientific << cpu_result[0] << ", gpu_host_ptr=" << hr1[0]
+                      << ", gpu_dev_ptr=" << hr[0] << "\n";
 
-            rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
-            rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
+            rocblas_error_1 = std::abs((cpu_result[0] - hr1[0]) / cpu_result[0]);
+            rocblas_error_2 = std::abs((cpu_result[0] - hr[0]) / cpu_result[0]);
         }
     }
 
@@ -183,14 +161,14 @@ void testing_asum_batched_template(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum_batched<T1, T2>(handle, N, dx_pvec, incx, batch_count, rocblas_result_1);
+            rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum_batched<T1, T2>(handle, N, dx_pvec, incx, batch_count, rocblas_result_1);
+            rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
