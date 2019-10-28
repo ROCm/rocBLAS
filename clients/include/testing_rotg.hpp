@@ -48,6 +48,7 @@ void testing_rotg(const Arguments& arg)
     rocblas_local_handle handle;
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
+    const U              rel_error = std::numeric_limits<U>::epsilon() * 1000;
     host_vector<T>       a(1);
     host_vector<T>       b(1);
     host_vector<U>       c(1);
@@ -82,10 +83,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, 1, ca, ha);
-                unit_check_general<T>(1, 1, 1, cb, hb);
-                unit_check_general<U>(1, 1, 1, cc, hc);
-                unit_check_general<T>(1, 1, 1, cs, hs);
+                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
@@ -120,10 +121,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, 1, ca, ha);
-                unit_check_general<T>(1, 1, 1, cb, hb);
-                unit_check_general<U>(1, 1, 1, cc, hc);
-                unit_check_general<T>(1, 1, 1, cs, hs);
+                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
