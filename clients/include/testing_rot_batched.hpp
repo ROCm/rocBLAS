@@ -62,6 +62,7 @@ void testing_rot_batched(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
+    const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
@@ -183,8 +184,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, batch_count, incx, cx, rx);
-                unit_check_general<T>(1, N, batch_count, incy, cy, ry);
+                near_check_general<T>(1, N, batch_count, incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, batch_count, incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
@@ -222,8 +223,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, N, batch_count, incx, cx, rx);
-                unit_check_general<T>(1, N, batch_count, incy, cy, ry);
+                near_check_general<T>(1, N, batch_count, incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, batch_count, incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
