@@ -1574,8 +1574,10 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
         {
             // for c_temp, we currently can use the same memory from each batch since
             // trtri_batched is naive (since gemm_batched is naive)
-            setup_batched_array<BLOCK>(handle, (T*)c_temp, 0, (T**)x_temparr, batch_count);
-            setup_batched_array<BLOCK>(handle, (T*)invA, stride_invA, (T**)invAarr, batch_count);
+            setup_batched_array<BLOCK>(
+                handle->rocblas_stream, (T*)c_temp, 0, (T**)x_temparr, batch_count);
+            setup_batched_array<BLOCK>(
+                handle->rocblas_stream, (T*)invA, stride_invA, (T**)invAarr, batch_count);
         }
 
         status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
@@ -1600,7 +1602,8 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     size_t x_temp_els   = exact_blocks ? BLOCK * B_chunk_size : m * n;
     if(BATCHED)
     {
-        setup_batched_array<BLOCK>(handle, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+        setup_batched_array<BLOCK>(
+            handle->rocblas_stream, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
     }
 
     if(exact_blocks)
