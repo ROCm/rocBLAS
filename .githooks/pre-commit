@@ -9,12 +9,6 @@ format=/opt/rocm/hcc/bin/clang-format
 # Redirect stdout to stderr.
 exec >&2
 
-# check if clang-format is installed
-if [[ ! -x $format ]]; then
-    echo "$format is not installed. Pre-commit hook will not be executed."
-    exit 0
-fi
-
 # Do everything from top - level
 cd $(git rev-parse --show-toplevel)
 
@@ -33,11 +27,14 @@ for file in $(git diff-index --cached --name-only $against); do
 done
 
 # do the formatting
-for file in $(git diff-index --cached --name-only $against | grep -E '\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'); do
+for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$|CMakeLists\.txt$'); do
     if [[ -e "$file" ]]; then
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
-        echo "$format $file"
-        "$format" -i -style=file "$file"
+        # if clang-format exists run it on all files except CMakeLists.txt
+        if [[ -x $format && $file != *CMakeLists.txt ]]; then
+            echo "$format $file"
+            "$format" -i -style=file "$file"
+        fi
     fi
 done
