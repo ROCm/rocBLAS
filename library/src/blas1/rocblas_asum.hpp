@@ -40,6 +40,6 @@ rocblas_status rocblas_asum_template(rocblas_handle handle,
         return rocblas_status_success;
     }
 
-    return rocblas_reduction_strided_batched_kernel<NB, Ti, rocblas_fetch_asum<To>>(
+    return rocblas_reduction_strided_batched_kernel<NB, rocblas_fetch_asum<To>>(
         handle, n, x, shiftx, incx, 0, 1, workspace, result);
 }
