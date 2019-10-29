@@ -248,8 +248,10 @@ void testing_dot_batched(const Arguments& arg)
 
             for(int b = 0; b < batch_count; ++b)
             {
-                rocblas_error_1 += std::abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2 += std::abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
             }
         }
     }

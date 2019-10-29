@@ -243,29 +243,11 @@ namespace
                 y -= ptrdiff_t(incy) * (n - 1);
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
-                hipLaunchKernelGGL(axpy_kernel,
-                                   blocks,
-                                   threads,
-                                   0,
-                                   rocblas_stream,
-                                   n,
-                                   (const _Float16*)alpha,
-                                   (const _Float16*)x,
-                                   incx,
-                                   (_Float16*)y,
-                                   incy);
+                hipLaunchKernelGGL(
+                    axpy_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx, y, incy);
             else
-                hipLaunchKernelGGL(axpy_kernel,
-                                   blocks,
-                                   threads,
-                                   0,
-                                   rocblas_stream,
-                                   n,
-                                   *(const _Float16*)alpha,
-                                   (const _Float16*)x,
-                                   incx,
-                                   (_Float16*)y,
-                                   incy);
+                hipLaunchKernelGGL(
+                    axpy_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx, y, incy);
         }
         else
         { // rocblas_half8 load-store and rocblas_half2 arithmetic
@@ -294,9 +276,9 @@ namespace
                                        0,
                                        rocblas_stream,
                                        n_mod_8,
-                                       (const _Float16*)alpha,
-                                       (const _Float16*)x + n_mlt_8,
-                                       (_Float16*)y + n_mlt_8);
+                                       alpha,
+                                       x + n_mlt_8,
+                                       y + n_mlt_8);
             }
             else
             {
@@ -317,9 +299,9 @@ namespace
                                        0,
                                        rocblas_stream,
                                        n_mod_8,
-                                       *(const _Float16*)alpha,
-                                       (const _Float16*)x + n_mlt_8,
-                                       (_Float16*)y + n_mlt_8);
+                                       *alpha,
+                                       x + n_mlt_8,
+                                       y + n_mlt_8);
             }
         }
         return rocblas_status_success;

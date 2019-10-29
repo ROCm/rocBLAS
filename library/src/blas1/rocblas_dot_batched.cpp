@@ -144,12 +144,12 @@ rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
 {
     return rocblas_dot_batched_impl<false>(handle,
                                            n,
-                                           (const _Float16* const*)x,
+                                           (const rocblas_half* const*)x,
                                            incx,
-                                           (const _Float16* const*)y,
+                                           (const rocblas_half* const*)y,
                                            incy,
                                            batch_count,
-                                           (_Float16*)result);
+                                           (rocblas_half*)result);
 }
 
 rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,

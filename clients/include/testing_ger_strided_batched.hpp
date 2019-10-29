@@ -131,7 +131,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     size_t size_y   = N * abs_incy;
 
     // argument check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA_1(safe_size);
@@ -157,39 +157,8 @@ void testing_ger_strided_batched(const Arguments& arg)
                                                              lda,
                                                              stride_a,
                                                              batch_count),
-                              rocblas_status_invalid_size);
-
-        return;
-    }
-
-    //quick return
-    if(!M || !N || !batch_count)
-    {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA_1(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        if(!dA_1 || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
-                                                             M,
-                                                             N,
-                                                             &h_alpha,
-                                                             dx,
-                                                             incx,
-                                                             stride_x,
-                                                             dy,
-                                                             incy,
-                                                             stride_y,
-                                                             dA_1,
-                                                             lda,
-                                                             stride_a,
-                                                             batch_count),
-                              rocblas_status_success);
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
 
         return;
     }

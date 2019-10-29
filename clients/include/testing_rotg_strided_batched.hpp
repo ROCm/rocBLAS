@@ -34,26 +34,61 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
-            nullptr, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)),
-        rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
-            handle, nullptr, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
-            handle, da, stride_a, nullptr, stride_b, dc, stride_c, ds, stride_s, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
-            handle, da, stride_a, db, stride_b, nullptr, stride_c, ds, stride_s, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
-            handle, da, stride_a, db, stride_b, dc, stride_c, nullptr, stride_s, batch_count)),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(nullptr,
+                                                               da,
+                                                               stride_a,
+                                                               db,
+                                                               stride_b,
+                                                               dc,
+                                                               stride_c,
+                                                               ds,
+                                                               stride_s,
+                                                               batch_count),
+                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                               nullptr,
+                                                               stride_a,
+                                                               db,
+                                                               stride_b,
+                                                               dc,
+                                                               stride_c,
+                                                               ds,
+                                                               stride_s,
+                                                               batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                               da,
+                                                               stride_a,
+                                                               nullptr,
+                                                               stride_b,
+                                                               dc,
+                                                               stride_c,
+                                                               ds,
+                                                               stride_s,
+                                                               batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                               da,
+                                                               stride_a,
+                                                               db,
+                                                               stride_b,
+                                                               nullptr,
+                                                               stride_c,
+                                                               ds,
+                                                               stride_s,
+                                                               batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                               da,
+                                                               stride_a,
+                                                               db,
+                                                               stride_b,
+                                                               dc,
+                                                               stride_c,
+                                                               nullptr,
+                                                               stride_s,
+                                                               batch_count),
+                          rocblas_status_invalid_pointer);
 }
 
 template <typename T, typename U = T>
@@ -85,21 +120,18 @@ void testing_rotg_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
-                                                                       da,
-                                                                       stride_a,
-                                                                       db,
-                                                                       stride_b,
-                                                                       dc,
-                                                                       stride_c,
-                                                                       ds,
-                                                                       stride_s,
-                                                                       batch_count),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>(
-                handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)));
+        EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                                   da,
+                                                                   stride_a,
+                                                                   db,
+                                                                   stride_b,
+                                                                   dc,
+                                                                   stride_c,
+                                                                   ds,
+                                                                   stride_s,
+                                                                   batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -142,8 +174,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
             host_vector<U> rc = hc;
             host_vector<T> rs = hs;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>(
-                handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                                     ra,
+                                                                     stride_a,
+                                                                     rb,
+                                                                     stride_b,
+                                                                     rc,
+                                                                     stride_c,
+                                                                     rs,
+                                                                     stride_s,
+                                                                     batch_count));
 
             if(arg.unit_check)
             {
@@ -178,8 +218,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(T) * size_s, hipMemcpyHostToDevice));
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>(
-                handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>)(handle,
+                                                                     da,
+                                                                     stride_a,
+                                                                     db,
+                                                                     stride_b,
+                                                                     dc,
+                                                                     stride_c,
+                                                                     ds,
+                                                                     stride_s,
+                                                                     batch_count));
             host_vector<T> ra(size_a);
             host_vector<T> rb(size_b);
             host_vector<U> rc(size_c);

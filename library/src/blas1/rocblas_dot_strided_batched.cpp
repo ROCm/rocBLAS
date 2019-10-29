@@ -167,16 +167,8 @@ rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
                                             rocblas_int         batch_count,
                                             rocblas_half*       result)
 {
-    return rocblas_dot_strided_batched_impl<false>(handle,
-                                                   n,
-                                                   (const _Float16*)x,
-                                                   incx,
-                                                   stridex,
-                                                   (const _Float16*)y,
-                                                   incy,
-                                                   stridey,
-                                                   batch_count,
-                                                   (_Float16*)result);
+    return rocblas_dot_strided_batched_impl<false>(
+        handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
 }
 
 rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,

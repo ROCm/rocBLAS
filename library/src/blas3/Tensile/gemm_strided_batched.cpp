@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "Tensile.h"
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
@@ -183,72 +182,27 @@ namespace
             }
         }
 
-        rocblas_status validArgs = validateArgs(handle,
-                                                trans_a,
-                                                trans_b,
-                                                m,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                ld_a,
-                                                stride_a,
-                                                B,
-                                                ld_b,
-                                                stride_b,
-                                                beta,
-                                                C,
-                                                ld_c,
-                                                stride_c,
-                                                batch_count);
+        auto validArgs = validateArgs(handle,
+                                      trans_a,
+                                      trans_b,
+                                      m,
+                                      n,
+                                      k,
+                                      alpha,
+                                      A,
+                                      ld_a,
+                                      stride_a,
+                                      B,
+                                      ld_b,
+                                      stride_b,
+                                      beta,
+                                      C,
+                                      ld_c,
+                                      stride_c,
+                                      batch_count);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
-
-#ifdef USE_TENSILE_HOST
-
-        if(m == 0 || n == 0 || batch_count == 0)
-            return rocblas_status_success;
-
-        T alpha_h;
-        T beta_h;
-        if(rocblas_pointer_mode_host == handle->pointer_mode)
-        {
-            alpha_h = *alpha;
-            beta_h  = *beta;
-        }
-        else
-        {
-            // TODO: Need to avoid hipMemcpy() and load alpha, beta on device
-            hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
-            hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
-        }
-
-        if(alpha_h == 0 && beta_h == 1)
-            return rocblas_status_success;
-
-        RocblasContractionProblem<T> problem(ContractionProblemType::GEMMStridedBatch,
-                                             trans_a,
-                                             trans_b,
-                                             m,
-                                             n,
-                                             k,
-                                             alpha_h,
-                                             A,
-                                             ld_a,
-                                             stride_a,
-                                             B,
-                                             ld_b,
-                                             stride_b,
-                                             beta_h,
-                                             C,
-                                             ld_c,
-                                             stride_c,
-                                             batch_count);
-
-        return handle->host->runContractionProblem(problem);
-
-#else
 
         return rocblas_gemm_template<false, true>(handle,
                                                   trans_a,
@@ -257,7 +211,6 @@ namespace
                                                   n,
                                                   k,
                                                   alpha,
-                                                  0,
                                                   A,
                                                   0,
                                                   ld_a,
@@ -267,13 +220,11 @@ namespace
                                                   ld_b,
                                                   stride_b,
                                                   beta,
-                                                  0,
                                                   C,
                                                   0,
                                                   ld_c,
                                                   stride_c,
                                                   batch_count);
-#endif
     }
 
 #ifndef USE_TENSILE_HOST
@@ -420,24 +371,24 @@ namespace
                             batch_count);
         }
 
-        rocblas_status validArgs = validateArgs(handle,
-                                                trans_a,
-                                                trans_b,
-                                                m,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                ld_a,
-                                                stride_a,
-                                                B,
-                                                ld_b,
-                                                stride_b,
-                                                beta,
-                                                C,
-                                                ld_c,
-                                                stride_c,
-                                                batch_count);
+        auto validArgs = validateArgs(handle,
+                                      trans_a,
+                                      trans_b,
+                                      m,
+                                      n,
+                                      k,
+                                      alpha,
+                                      A,
+                                      ld_a,
+                                      stride_a,
+                                      B,
+                                      ld_b,
+                                      stride_b,
+                                      beta,
+                                      C,
+                                      ld_c,
+                                      stride_c,
+                                      batch_count);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
@@ -447,7 +398,7 @@ namespace
 
         return validArgs;
     }
-#endif
+#endif // USE_TENSILE_HOST
 
 }
 
@@ -652,7 +603,6 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handl
                                              batch_count);
 }
 
-#ifndef USE_TENSILE_HOST
 /*******************************************************************************
  * Strided Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -675,6 +625,9 @@ rocblas_status rocblas_hgemm_strided_batched_kernel_name(rocblas_handle      han
                                                          rocblas_stride      stride_c,
                                                          rocblas_int         batch_count)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_strided_batched_kernel_name_impl(handle,
                                                          trans_a,
                                                          trans_b,
@@ -693,6 +646,7 @@ rocblas_status rocblas_hgemm_strided_batched_kernel_name(rocblas_handle      han
                                                          ld_c,
                                                          stride_c,
                                                          batch_count);
+#endif
 }
 
 rocblas_status rocblas_sgemm_strided_batched_kernel_name(rocblas_handle    handle,
@@ -714,6 +668,9 @@ rocblas_status rocblas_sgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          rocblas_stride    stride_c,
                                                          rocblas_int       batch_count)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_strided_batched_kernel_name_impl(handle,
                                                          trans_a,
                                                          trans_b,
@@ -732,6 +689,7 @@ rocblas_status rocblas_sgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          ld_c,
                                                          stride_c,
                                                          batch_count);
+#endif
 }
 
 rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handle,
@@ -753,6 +711,9 @@ rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          rocblas_stride    stride_c,
                                                          rocblas_int       batch_count)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_strided_batched_kernel_name_impl(handle,
                                                          trans_a,
                                                          trans_b,
@@ -771,8 +732,7 @@ rocblas_status rocblas_dgemm_strided_batched_kernel_name(rocblas_handle    handl
                                                          ld_c,
                                                          stride_c,
                                                          batch_count);
-}
-
 #endif
+}
 
 } // extern "C"

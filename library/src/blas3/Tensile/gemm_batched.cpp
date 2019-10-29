@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "Tensile.h"
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
@@ -160,7 +159,6 @@ namespace
                                                   n,
                                                   k,
                                                   alpha,
-                                                  0,
                                                   A,
                                                   0,
                                                   ld_a,
@@ -170,7 +168,6 @@ namespace
                                                   ld_b,
                                                   0,
                                                   beta,
-                                                  0,
                                                   C,
                                                   0,
                                                   ld_c,
@@ -300,12 +297,11 @@ namespace
                             b_c);
         }
 
-        rocblas_stride stride_a;
-        rocblas_stride stride_b;
-        rocblas_stride stride_c;
-
-        infer_batch_strides(
-            trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c);
+        rocblas_stride stride_a
+            = rocblas_stride(ld_a) * (trans_a == rocblas_operation_none ? k : m);
+        rocblas_stride stride_b
+            = rocblas_stride(ld_b) * (trans_b == rocblas_operation_none ? n : k);
+        rocblas_stride stride_c = rocblas_stride(ld_c) * m;
 
         rocblas_status validArgs = validateArgs(handle,
                                                 trans_a,
@@ -443,8 +439,6 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 }
 
-#ifndef USE_TENSILE_HOST
-
 /*******************************************************************************
  * Batched GEMM Kernel name APIs
  ******************************************************************************/
@@ -464,8 +458,12 @@ rocblas_status rocblas_hgemm_batched_kernel_name(rocblas_handle      handle,
                                                  rocblas_int         ld_c,
                                                  rocblas_int         b_c)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_batched_kernel_name_impl<rocblas_half>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+#endif
 }
 
 rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
@@ -484,8 +482,12 @@ rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       ld_c,
                                                  rocblas_int       b_c)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_batched_kernel_name_impl<float>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+#endif
 }
 
 rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
@@ -504,9 +506,12 @@ rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       ld_c,
                                                  rocblas_int       b_c)
 {
+#ifdef USE_TENSILE_HOST
+    return rocblas_status_not_implemented;
+#else
     return rocblas_gemm_batched_kernel_name_impl<double>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
-}
-
 #endif
 }
+
+} // extern "C"

@@ -369,25 +369,41 @@ inline void log_bench(rocblas_handle handle, Ts&&... xs)
 }
 
 /************************************************************************************
- * Log scalar values pointed to by pointer
+ * Trace log scalar values pointed to by pointer
  ************************************************************************************/
 
+inline float log_trace_scalar_value(const rocblas_half* value)
+{
+    return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
+}
+
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
-T log_trace_scalar_value(const T* value)
+inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value : std::numeric_limits<T>::quiet_NaN();
 }
 
 template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
-T log_trace_scalar_value(const T* value)
+inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value
                  : T{std::numeric_limits<typename T::value_type>::quiet_NaN(),
                      std::numeric_limits<typename T::value_type>::quiet_NaN()};
 }
 
+/************************************************************************************
+ * Bench log scalar values pointed to by pointer
+ ************************************************************************************/
+
+inline auto log_bench_scalar_value(const char* name, const rocblas_half* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
+    return ss.str();
+}
+
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
-auto log_bench_scalar_value(const char* name, const T* value)
+inline auto log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
@@ -395,7 +411,7 @@ auto log_bench_scalar_value(const char* name, const T* value)
 }
 
 template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
-auto log_bench_scalar_value(const char* name, const T* value)
+inline auto log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
     ss << "--" << name << " "

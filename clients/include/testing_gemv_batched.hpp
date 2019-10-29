@@ -90,7 +90,7 @@ void testing_gemv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
         device_vector<T*, 0, T> dAA1(1);
         device_vector<T*, 0, T> dxA1(1);
@@ -115,39 +115,8 @@ void testing_gemv_batched(const Arguments& arg)
                                                       dy_1A1,
                                                       incy,
                                                       batch_count),
-                              rocblas_status_invalid_size);
-
-        return;
-    }
-
-    //quick return
-    if(!M || !N || !batch_count)
-    {
-        device_vector<T*, 0, T> dAA1(1);
-        device_vector<T*, 0, T> dxA1(1);
-        device_vector<T*, 0, T> dy_1A1(1);
-
-        if(!dAA1 || !dxA1 || !dy_1A1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      &h_alpha,
-                                                      dAA1,
-                                                      lda,
-                                                      dxA1,
-                                                      incx,
-                                                      &h_beta,
-                                                      dy_1A1,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
-
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
         return;
     }
 

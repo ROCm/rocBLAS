@@ -5,17 +5,15 @@
 #pragma once
 #ifndef _GEMM_HOST_HPP_
 #define _GEMM_HOST_HPP_
-#include "Tensile.h"
+
 #include "handle.h"
-#include "rocblas-types.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <sys/time.h>
+
+#if 1 // TODO: Needs to be changed to #ifndef USE_TENSILE_HOST once *_ex functions refactored
 
 /*******************************************************************************
  * Helper enumeration over different transpose combinations
  ******************************************************************************/
-typedef enum transpose_mode_
+typedef enum
 {
     // First letter refers to A, second letter refers to B
     NN,
@@ -29,7 +27,7 @@ typedef enum transpose_mode_
     CC,
 } transpose_mode;
 
-constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
+constexpr auto GetTransposeMode(rocblas_operation trans_a, rocblas_operation trans_b)
 {
     if(trans_a == rocblas_operation_none)
     {
@@ -57,28 +55,38 @@ constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_ope
     }
 }
 
+#endif
+
+#ifdef USE_TENSILE_HOST
+
+#include "tensile_host.hpp"
+
+#else // USE_TENSILE_HOST
+
+#include "Tensile.h"
+
 /*******************************************************************************
- * Tensile Helper Funcation call
+ * Tensile Helper Function call
  ******************************************************************************/
 template <typename T>
-hipError_t tensile_helper(T&                alpha_h,
-                          T&                beta_h,
-                          const T*          A,
-                          const T*          B,
-                          T*                C,
-                          rocblas_operation trans_a,
-                          rocblas_operation trans_b,
-                          rocblas_stride    strideC1,
-                          rocblas_stride    strideC2,
-                          rocblas_stride    strideA1,
-                          rocblas_stride    strideA2,
-                          rocblas_stride    strideB1,
-                          rocblas_stride    strideB2,
-                          rocblas_int       sizeI,
-                          rocblas_int       sizeJ,
-                          rocblas_int       sizeK,
-                          rocblas_int       sizeL,
-                          rocblas_handle    handle);
+rocblas_status tensile_helper(T&                alpha_h,
+                              T&                beta_h,
+                              const T*          A,
+                              const T*          B,
+                              T*                C,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_stride    strideC1,
+                              rocblas_stride    strideC2,
+                              rocblas_stride    strideA1,
+                              rocblas_stride    strideA2,
+                              rocblas_stride    strideB1,
+                              rocblas_stride    strideB2,
+                              rocblas_int       sizeI,
+                              rocblas_int       sizeJ,
+                              rocblas_int       sizeK,
+                              rocblas_int       sizeL,
+                              rocblas_handle    handle);
 
 #define TENSILE_ARGS(T)                                                                            \
     (T*)C, (const T*)C, (const T*)A, (const T*)B, *((T*)&alpha_h), *((T*)&beta_h), strideC1,       \
@@ -86,70 +94,70 @@ hipError_t tensile_helper(T&                alpha_h,
         sizeL, handle->rocblas_stream, 0, nullptr, nullptr
 
 template <>
-inline hipError_t tensile_helper(rocblas_half&       alpha_h,
-                                 rocblas_half&       beta_h,
-                                 const rocblas_half* A,
-                                 const rocblas_half* B,
-                                 rocblas_half*       C,
-                                 rocblas_operation   trans_a,
-                                 rocblas_operation   trans_b,
-                                 rocblas_stride      strideC1,
-                                 rocblas_stride      strideC2,
-                                 rocblas_stride      strideA1,
-                                 rocblas_stride      strideA2,
-                                 rocblas_stride      strideB1,
-                                 rocblas_stride      strideB2,
-                                 rocblas_int         sizeI,
-                                 rocblas_int         sizeJ,
-                                 rocblas_int         sizeK,
-                                 rocblas_int         sizeL,
-                                 rocblas_handle      handle)
+rocblas_status tensile_helper(rocblas_half&       alpha_h,
+                              rocblas_half&       beta_h,
+                              const rocblas_half* A,
+                              const rocblas_half* B,
+                              rocblas_half*       C,
+                              rocblas_operation   trans_a,
+                              rocblas_operation   trans_b,
+                              rocblas_stride      strideC1,
+                              rocblas_stride      strideC2,
+                              rocblas_stride      strideA1,
+                              rocblas_stride      strideA2,
+                              rocblas_stride      strideB1,
+                              rocblas_stride      strideB2,
+                              rocblas_int         sizeI,
+                              rocblas_int         sizeJ,
+                              rocblas_int         sizeK,
+                              rocblas_int         sizeL,
+                              rocblas_handle      handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
     switch(GetTransposeMode(trans_a, trans_b))
     {
     case NN:
-        status = tensile_Cijk_Ailk_Bljk_HB(TENSILE_ARGS(_Float16));
+        status = tensile_Cijk_Ailk_Bljk_HB(TENSILE_ARGS(rocblas_half));
         break;
     case NT:
     case NC:
-        status = tensile_Cijk_Ailk_Bjlk_HB(TENSILE_ARGS(_Float16));
+        status = tensile_Cijk_Ailk_Bjlk_HB(TENSILE_ARGS(rocblas_half));
         break;
     case TN:
     case CN:
-        status = tensile_Cijk_Alik_Bljk_HB(TENSILE_ARGS(_Float16));
+        status = tensile_Cijk_Alik_Bljk_HB(TENSILE_ARGS(rocblas_half));
         break;
     case TT:
     case TC:
     case CT:
     case CC:
-        status = tensile_Cijk_Alik_Bjlk_HB(TENSILE_ARGS(_Float16));
+        status = tensile_Cijk_Alik_Bjlk_HB(TENSILE_ARGS(rocblas_half));
         break;
     }
 
-    return status;
+    return get_rocblas_status_for_hip_status(status);
 }
 
 template <>
-inline hipError_t tensile_helper(float&            alpha_h,
-                                 float&            beta_h,
-                                 const float*      A,
-                                 const float*      B,
-                                 float*            C,
-                                 rocblas_operation trans_a,
-                                 rocblas_operation trans_b,
-                                 rocblas_stride    strideC1,
-                                 rocblas_stride    strideC2,
-                                 rocblas_stride    strideA1,
-                                 rocblas_stride    strideA2,
-                                 rocblas_stride    strideB1,
-                                 rocblas_stride    strideB2,
-                                 rocblas_int       sizeI,
-                                 rocblas_int       sizeJ,
-                                 rocblas_int       sizeK,
-                                 rocblas_int       sizeL,
-                                 rocblas_handle    handle)
+rocblas_status tensile_helper(float&            alpha_h,
+                              float&            beta_h,
+                              const float*      A,
+                              const float*      B,
+                              float*            C,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_stride    strideC1,
+                              rocblas_stride    strideC2,
+                              rocblas_stride    strideA1,
+                              rocblas_stride    strideA2,
+                              rocblas_stride    strideB1,
+                              rocblas_stride    strideB2,
+                              rocblas_int       sizeI,
+                              rocblas_int       sizeJ,
+                              rocblas_int       sizeK,
+                              rocblas_int       sizeL,
+                              rocblas_handle    handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
@@ -174,28 +182,28 @@ inline hipError_t tensile_helper(float&            alpha_h,
         break;
     }
 
-    return status;
+    return get_rocblas_status_for_hip_status(status);
 }
 
 template <>
-inline hipError_t tensile_helper(double&           alpha_h,
-                                 double&           beta_h,
-                                 const double*     A,
-                                 const double*     B,
-                                 double*           C,
-                                 rocblas_operation trans_a,
-                                 rocblas_operation trans_b,
-                                 rocblas_stride    strideC1,
-                                 rocblas_stride    strideC2,
-                                 rocblas_stride    strideA1,
-                                 rocblas_stride    strideA2,
-                                 rocblas_stride    strideB1,
-                                 rocblas_stride    strideB2,
-                                 rocblas_int       sizeI,
-                                 rocblas_int       sizeJ,
-                                 rocblas_int       sizeK,
-                                 rocblas_int       sizeL,
-                                 rocblas_handle    handle)
+rocblas_status tensile_helper(double&           alpha_h,
+                              double&           beta_h,
+                              const double*     A,
+                              const double*     B,
+                              double*           C,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_stride    strideC1,
+                              rocblas_stride    strideC2,
+                              rocblas_stride    strideA1,
+                              rocblas_stride    strideA2,
+                              rocblas_stride    strideB1,
+                              rocblas_stride    strideB2,
+                              rocblas_int       sizeI,
+                              rocblas_int       sizeJ,
+                              rocblas_int       sizeK,
+                              rocblas_int       sizeL,
+                              rocblas_handle    handle)
 {
     hipError_t status = hipErrorInvalidValue;
 
@@ -220,28 +228,28 @@ inline hipError_t tensile_helper(double&           alpha_h,
         break;
     }
 
-    return status;
+    return get_rocblas_status_for_hip_status(status);
 }
 
 template <>
-inline hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
-                                 rocblas_float_complex&       beta_h,
-                                 const rocblas_float_complex* A,
-                                 const rocblas_float_complex* B,
-                                 rocblas_float_complex*       C,
-                                 rocblas_operation            trans_a,
-                                 rocblas_operation            trans_b,
-                                 rocblas_stride               strideC1,
-                                 rocblas_stride               strideC2,
-                                 rocblas_stride               strideA1,
-                                 rocblas_stride               strideA2,
-                                 rocblas_stride               strideB1,
-                                 rocblas_stride               strideB2,
-                                 rocblas_int                  sizeI,
-                                 rocblas_int                  sizeJ,
-                                 rocblas_int                  sizeK,
-                                 rocblas_int                  sizeL,
-                                 rocblas_handle               handle)
+rocblas_status tensile_helper(rocblas_float_complex&       alpha_h,
+                              rocblas_float_complex&       beta_h,
+                              const rocblas_float_complex* A,
+                              const rocblas_float_complex* B,
+                              rocblas_float_complex*       C,
+                              rocblas_operation            trans_a,
+                              rocblas_operation            trans_b,
+                              rocblas_stride               strideC1,
+                              rocblas_stride               strideC2,
+                              rocblas_stride               strideA1,
+                              rocblas_stride               strideA2,
+                              rocblas_stride               strideB1,
+                              rocblas_stride               strideB2,
+                              rocblas_int                  sizeI,
+                              rocblas_int                  sizeJ,
+                              rocblas_int                  sizeK,
+                              rocblas_int                  sizeL,
+                              rocblas_handle               handle)
 {
     static_assert(std::is_standard_layout<TensileComplexFloat>{},
                   "TensileComplexFloat is not a standard layout type, and thus is "
@@ -287,28 +295,28 @@ inline hipError_t tensile_helper(rocblas_float_complex&       alpha_h,
         break;
     }
 
-    return status;
+    return get_rocblas_status_for_hip_status(status);
 }
 
 template <>
-inline hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
-                                 rocblas_double_complex&       beta_h,
-                                 const rocblas_double_complex* A,
-                                 const rocblas_double_complex* B,
-                                 rocblas_double_complex*       C,
-                                 rocblas_operation             trans_a,
-                                 rocblas_operation             trans_b,
-                                 rocblas_stride                strideC1,
-                                 rocblas_stride                strideC2,
-                                 rocblas_stride                strideA1,
-                                 rocblas_stride                strideA2,
-                                 rocblas_stride                strideB1,
-                                 rocblas_stride                strideB2,
-                                 rocblas_int                   sizeI,
-                                 rocblas_int                   sizeJ,
-                                 rocblas_int                   sizeK,
-                                 rocblas_int                   sizeL,
-                                 rocblas_handle                handle)
+rocblas_status tensile_helper(rocblas_double_complex&       alpha_h,
+                              rocblas_double_complex&       beta_h,
+                              const rocblas_double_complex* A,
+                              const rocblas_double_complex* B,
+                              rocblas_double_complex*       C,
+                              rocblas_operation             trans_a,
+                              rocblas_operation             trans_b,
+                              rocblas_stride                strideC1,
+                              rocblas_stride                strideC2,
+                              rocblas_stride                strideA1,
+                              rocblas_stride                strideA2,
+                              rocblas_stride                strideB1,
+                              rocblas_stride                strideB2,
+                              rocblas_int                   sizeI,
+                              rocblas_int                   sizeJ,
+                              rocblas_int                   sizeK,
+                              rocblas_int                   sizeL,
+                              rocblas_handle                handle)
 {
     static_assert(std::is_standard_layout<TensileComplexDouble>{},
                   "TensileComplexDouble is not a standard layout type, and thus is "
@@ -354,131 +362,84 @@ inline hipError_t tensile_helper(rocblas_double_complex&       alpha_h,
         break;
     }
 
-    return status;
+    return get_rocblas_status_for_hip_status(status);
 }
 #undef TENSILE_ARGS
+
+#endif // USE_TENSILE_HOST
 
 /*******************************************************************************
  * Tensile Function call
  ******************************************************************************/
 template <typename T>
-hipError_t call_tensile(const T*          alpha,
-                        rocblas_stride    stride_alpha,
-                        const T*          beta,
-                        rocblas_stride    stride_beta,
-                        const T*          A,
-                        const T*          B,
-                        T*                C,
-                        rocblas_operation trans_a,
-                        rocblas_operation trans_b,
-                        rocblas_stride    strideC1,
-                        rocblas_stride    strideC2,
-                        rocblas_stride    strideA1,
-                        rocblas_stride    strideA2,
-                        rocblas_stride    strideB1,
-                        rocblas_stride    strideB2,
-                        rocblas_int       sizeI,
-                        rocblas_int       sizeJ,
-                        rocblas_int       sizeK,
-                        rocblas_int       sizeL,
-                        rocblas_handle    handle)
+rocblas_status call_tensile(rocblas_handle    handle,
+                            const T*          alpha,
+                            const T*          beta,
+                            const T*          A,
+                            const T*          B,
+                            T*                C,
+                            rocblas_operation trans_a,
+                            rocblas_operation trans_b,
+                            rocblas_stride    ld_c,
+                            rocblas_stride    stride_c,
+                            rocblas_stride    ld_a,
+                            rocblas_stride    stride_a,
+                            rocblas_stride    ld_b,
+                            rocblas_stride    stride_b,
+                            rocblas_int       m,
+                            rocblas_int       n,
+                            rocblas_int       k,
+                            rocblas_int       batch_count = 1)
+
 {
+#ifdef USE_TENSILE_HOST
 
-    // Collect alpha / beta (either from host or device).
-    // Tensile doesn't support arrays of scalars for now, so we must handle
-    // this case before we enter call_tensile and only pass a single scalar
-    T alpha_h;
-    T beta_h;
-    if(rocblas_pointer_mode_host == handle->pointer_mode)
-    {
-        alpha_h = *alpha;
-        beta_h  = *beta;
-    }
-    else
-    {
-        hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
-        hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost);
-    }
+    // Tensile doesn't support arrays of scalars for now, and expects alpha and beta by value,
+    // so we must pass single scalars for alpha and beta, assuming that they are on the host.
+    RocblasContractionProblem<T> problem(trans_a,
+                                         trans_b,
+                                         m,
+                                         n,
+                                         k,
+                                         *alpha,
+                                         A,
+                                         ld_a,
+                                         stride_a,
+                                         B,
+                                         ld_b,
+                                         stride_b,
+                                         *beta,
+                                         C,
+                                         ld_c,
+                                         stride_c,
+                                         batch_count);
 
-    hipError_t status = tensile_helper(alpha_h,
-                                       beta_h,
-                                       A,
-                                       B,
-                                       C,
-                                       trans_a,
-                                       trans_b,
-                                       strideC1,
-                                       strideC2,
-                                       strideA1,
-                                       strideA2,
-                                       strideB1,
-                                       strideB2,
-                                       sizeI,
-                                       sizeJ,
-                                       sizeK,
-                                       sizeL,
-                                       handle);
+    return handle->host->runContractionProblem(problem);
 
-#ifndef NDEBUG
-    std::cout << "Return Status: " << status << std::endl;
-#endif
+#else // USE_TENSILE_HOST
 
-    return status;
+    // Tensile doesn't support arrays of scalars for now, and expects alpha and beta by value,
+    // so we must pass single scalars for alpha and beta, assuming that they are on the host.
+    return tensile_helper(*alpha,
+                          *beta,
+                          A,
+                          B,
+                          C,
+                          trans_a,
+                          trans_b,
+                          ld_c,
+                          stride_c,
+                          ld_a,
+                          stride_a,
+                          ld_b,
+                          stride_b,
+                          m,
+                          n,
+                          batch_count,
+                          k,
+                          handle);
+#endif // USE_TENSILE_HOST
 }
-
-template <typename T>
-hipError_t call_tensile(const T*          alpha,
-                        rocblas_stride    stride_alpha,
-                        const T*          beta,
-                        rocblas_stride    stride_beta,
-                        const T* const    A[],
-                        const T* const    B[],
-                        T* const          C[],
-                        rocblas_operation trans_a,
-                        rocblas_operation trans_b,
-                        rocblas_stride    strideC1,
-                        rocblas_stride    strideC2,
-                        rocblas_stride    strideA1,
-                        rocblas_stride    strideA2,
-                        rocblas_stride    strideB1,
-                        rocblas_stride    strideB2,
-                        rocblas_int       sizeI,
-                        rocblas_int       sizeJ,
-                        rocblas_int       sizeK,
-                        rocblas_int       sizeL,
-                        rocblas_handle    handle)
-{
-    return hipErrorUnknown;
-}
-
-/*******************************************************************************
- * Infer Batch Strides
- ******************************************************************************/
-inline void infer_batch_strides(rocblas_operation trans_a,
-                                rocblas_operation trans_b,
-                                rocblas_int       m,
-                                rocblas_int       n,
-                                rocblas_int       k,
-                                rocblas_int       ld_a,
-                                rocblas_stride*   stride_a,
-                                rocblas_int       ld_b,
-                                rocblas_stride*   stride_b,
-                                rocblas_int       ld_c,
-                                rocblas_stride*   stride_c)
-{
-
-    rocblas_int num_cols_c = n;
-    rocblas_int num_rows_c = m;
-    rocblas_int num_cols_a = (trans_a == rocblas_operation_none ? k : m);
-    rocblas_int num_rows_a = (trans_a == rocblas_operation_none ? m : k);
-    rocblas_int num_cols_b = (trans_b == rocblas_operation_none ? n : k);
-    rocblas_int num_rows_b = (trans_b == rocblas_operation_none ? k : n);
-
-    *stride_a = ld_a * num_cols_a;
-    *stride_b = ld_b * num_cols_b;
-    *stride_c = ld_c * num_cols_c;
-
-} // infer batched strides
 
 /*******************************************************************************
  * Validate Arguments
@@ -503,7 +464,8 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_int       batch_count)
 {
     // quick return 0 is valid in BLAS
-    if(!m || !n || !k || !batch_count)
+    // Note: k==0 is NOT a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
         return rocblas_status_success;
 
     // sizes must not be negative
@@ -518,19 +480,16 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!c || !a || !b || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    rocblas_int num_cols_c = n;
-    rocblas_int num_rows_c = m;
-    rocblas_int num_cols_a = trans_a == rocblas_operation_none ? k : m;
     rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
-    rocblas_int num_cols_b = trans_b == rocblas_operation_none ? n : k;
     rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
+    rocblas_int num_rows_c = m;
 
     // leading dimensions must be valid
     if(num_rows_a > ld_a || num_rows_b > ld_b || num_rows_c > ld_c)
         return rocblas_status_invalid_size;
 
     return rocblas_status_success;
-} // validate parameters
+}
 
 template <typename T>
 inline rocblas_status validateArgs(rocblas_handle    handle,
@@ -550,7 +509,8 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_int       batch_count)
 {
     // quick return 0 is valid in BLAS
-    if(!m || !n || !k || !batch_count)
+    // Note: k==0 is NOT a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
         return rocblas_status_success;
 
     // sizes must not be negative
@@ -569,19 +529,18 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     //     if(!a[i] || !b[i] || !c[i])
     //         return rocblas_status_invalid_pointer;
 
-    rocblas_int num_cols_c = n;
-    rocblas_int num_rows_c = m;
-    rocblas_int num_cols_a = trans_a == rocblas_operation_none ? k : m;
     rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
-    rocblas_int num_cols_b = trans_b == rocblas_operation_none ? n : k;
     rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
+    rocblas_int num_rows_c = m;
 
     // leading dimensions must be valid
     if(num_rows_a > ld_a || num_rows_b > ld_b || num_rows_c > ld_c)
         return rocblas_status_invalid_size;
 
     return rocblas_status_success;
-} // validate parameters
+}
+
+#ifndef USE_TENSILE_HOST
 
 /*******************************************************************************
  * Tensile Solution Name (debug only)
@@ -781,178 +740,132 @@ inline const char* tensileGetSolutionName<rocblas_double_complex>(rocblas_operat
 
 #undef TENSILE_ARG_NAMES
 
-/* ============================================================================================ */
+#endif // USE_TENSILE_HOST
 
 /*
  * ===========================================================================
  *    template interface
- *    template specialization
- *    call GEMM C interfaces (see gemm.cpp in the same dir)
  * ===========================================================================
  */
 
-/* ============================================================================================ */
-
 template <bool BATCHED, bool STRIDED, typename T, typename U, typename V>
-inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
-                                            rocblas_operation trans_a,
-                                            rocblas_operation trans_b,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const T*          alpha,
-                                            rocblas_stride    stride_alpha,
-                                            const U           A,
-                                            rocblas_int       offset_a,
-                                            rocblas_int       ld_a,
-                                            rocblas_stride    stride_a,
-                                            const U           B,
-                                            rocblas_int       offset_b,
-                                            rocblas_int       ld_b,
-                                            rocblas_stride    stride_b,
-                                            const T*          beta,
-                                            rocblas_stride    stride_beta,
-                                            V                 C,
-                                            rocblas_int       offset_c,
-                                            rocblas_int       ld_c,
-                                            rocblas_stride    stride_c,
-                                            rocblas_int       b_c)
+rocblas_status rocblas_gemm_template(rocblas_handle    handle,
+                                     rocblas_operation trans_a,
+                                     rocblas_operation trans_b,
+                                     rocblas_int       m,
+                                     rocblas_int       n,
+                                     rocblas_int       k,
+                                     const T*          alpha,
+                                     const U*          A,
+                                     rocblas_int       offset_a,
+                                     rocblas_int       ld_a,
+                                     rocblas_stride    stride_a,
+                                     const U*          B,
+                                     rocblas_int       offset_b,
+                                     rocblas_int       ld_b,
+                                     rocblas_stride    stride_b,
+                                     const T*          beta,
+                                     V*                C,
+                                     rocblas_int       offset_c,
+                                     rocblas_int       ld_c,
+                                     rocblas_stride    stride_c,
+                                     rocblas_int       batch_count)
 {
-    if(!STRIDED)
-    {
-        infer_batch_strides(
-            trans_a, trans_b, m, n, k, ld_a, &stride_a, ld_b, &stride_b, ld_c, &stride_c);
-    }
-
-    if(m == 0 || n == 0 || k == 0 || b_c == 0)
-    {
+    // Early exit. Note: k==0 is not an early exit, since C still needs to be multiplied by beta.
+    if(m == 0 || n == 0 || batch_count == 0)
         return rocblas_status_success;
+
+    T alpha_h, beta_h;
+
+    // Right now Tensile requires alpha and beta to be passed by value.
+    // If in device pointer mode, copy alpha and beta to host.
+    if(handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
+        alpha = &alpha_h;
+        beta  = &beta_h;
     }
 
-    unsigned int strideC1 = unsigned(ld_c);
-    unsigned int strideC2 = unsigned(stride_c);
-    unsigned int strideA1 = unsigned(ld_a);
-    unsigned int strideA2 = unsigned(stride_a);
-    unsigned int strideB1 = unsigned(ld_b);
-    unsigned int strideB2 = unsigned(stride_b);
-    unsigned int sizeI    = unsigned(m);
-    unsigned int sizeJ    = unsigned(n);
-    unsigned int sizeK    = unsigned(b_c);
-    unsigned int sizeL    = unsigned(k);
+    // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
+    if(*beta == 1 && (k == 0 || *alpha == 0))
+        return rocblas_status_success;
 
-    hipError_t status;
+    rocblas_status status = rocblas_status_success;
     if(BATCHED)
     {
-        sizeK = 1;
+        // We cannot do this with a device array, so array of pointers must be on host for now
 
-        size_t sizecopy = b_c * sizeof(T*);
         // Host arrays of device pointers.
-        T* hostA[b_c];
-        T* hostB[b_c];
-        T* hostC[b_c];
+        T* hostA[batch_count];
+        T* hostB[batch_count];
+        T* hostC[batch_count];
 
-        hipError_t errA = hipMemcpy(hostA, A, sizecopy, hipMemcpyDeviceToHost);
-        hipError_t errB = hipMemcpy(hostB, B, sizecopy, hipMemcpyDeviceToHost);
-        hipError_t errC = hipMemcpy(hostC, C, sizecopy, hipMemcpyDeviceToHost);
+        RETURN_IF_HIP_ERROR(hipMemcpy(hostA, A, sizeof(hostA), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(hostB, B, sizeof(hostB), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(hostC, C, sizeof(hostC), hipMemcpyDeviceToHost));
 
-        if(get_rocblas_status_for_hip_status(errA) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errA);
-        else if(get_rocblas_status_for_hip_status(errB) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errB);
-        else if(get_rocblas_status_for_hip_status(errC) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errC);
-
-        for(int b = 0; b < b_c; b++)
+        for(rocblas_int b = 0; b < batch_count; b++)
         {
-            // We cannot do this with a device array, so array of pointers
-            // must be on host for now
-            status = call_tensile<T>(alpha + b * stride_alpha,
-                                     0,
-                                     beta + b * stride_beta,
-                                     0,
-                                     hostA[b] + offset_a,
-                                     hostB[b] + offset_b,
-                                     hostC[b] + offset_c,
-                                     trans_a,
-                                     trans_b,
-                                     strideC1,
-                                     strideC2,
-                                     strideA1,
-                                     strideA2,
-                                     strideB1,
-                                     strideB2,
-                                     sizeI,
-                                     sizeJ,
-                                     sizeK,
-                                     sizeL,
-                                     handle);
+            status = call_tensile(handle,
+                                  alpha,
+                                  beta,
+                                  hostA[b] + offset_a,
+                                  hostB[b] + offset_b,
+                                  hostC[b] + offset_c,
+                                  trans_a,
+                                  trans_b,
+                                  ld_c,
+                                  stride_c,
+                                  ld_a,
+                                  stride_a,
+                                  ld_b,
+                                  stride_b,
+                                  m,
+                                  n,
+                                  k);
 
-            if(get_rocblas_status_for_hip_status(status) != rocblas_status_success)
+            if(status != rocblas_status_success)
                 break;
         }
     }
     else
     {
-        if(stride_alpha > 0 || stride_beta > 0)
+        // If STRIDED == false, compute the strides from the sizes of the arrays
+        // so that they are interpreted as consecutive matrices in memory
+        if(!STRIDED)
         {
-            // We can do this, but performance will be degraded,
-            // we will have to use a loop to go over batches rather
-            // than using tensile, since tensile does not support
-            // different scalars as of now.
+            stride_a = ld_a * (trans_a == rocblas_operation_none ? k : m);
+            stride_b = ld_b * (trans_b == rocblas_operation_none ? n : k);
+            stride_c = ld_c * n;
+        }
 
-            sizeK = 1;
-            for(int b = 0; b < b_c; b++)
-            {
-                status = call_tensile<T>(alpha + b * stride_alpha,
-                                         0,
-                                         beta + b * stride_beta,
-                                         0,
-                                         A + b * stride_a + offset_a,
-                                         B + b * stride_b + offset_b,
-                                         C + b * stride_c + offset_c,
-                                         trans_a,
-                                         trans_b,
-                                         strideC1,
-                                         strideC2,
-                                         strideA1,
-                                         strideA2,
-                                         strideB1,
-                                         strideB2,
-                                         sizeI,
-                                         sizeJ,
-                                         sizeK,
-                                         sizeL,
-                                         handle);
-            }
-        }
-        else
-        {
-            status = call_tensile<T>(alpha,
-                                     stride_alpha, // == 0, otherwise not supported
-                                     beta,
-                                     stride_beta, // see ^
-                                     A + offset_a,
-                                     B + offset_b,
-                                     C + offset_c,
-                                     trans_a,
-                                     trans_b,
-                                     strideC1,
-                                     strideC2,
-                                     strideA1,
-                                     strideA2,
-                                     strideB1,
-                                     strideB2,
-                                     sizeI,
-                                     sizeJ,
-                                     sizeK,
-                                     sizeL,
-                                     handle);
-        }
+        // The (T*) casts are to prevent template deduction errors when BATCHED==true and the A, B, C
+        // pointers are pointers to arrays of pointers. constexpr if(BATCHED) above could avoid this.
+        status = call_tensile(handle,
+                              alpha,
+                              beta,
+                              (T*)A + offset_a,
+                              (T*)B + offset_b,
+                              (T*)C + offset_c,
+                              trans_a,
+                              trans_b,
+                              ld_c,
+                              stride_c,
+                              ld_a,
+                              stride_a,
+                              ld_b,
+                              stride_b,
+                              m,
+                              n,
+                              k,
+                              batch_count);
     }
 
-    return get_rocblas_status_for_hip_status(status);
+    return status;
 }
 
+#ifndef USE_TENSILE_HOST
 /* ============================================================================================ */
 template <bool BATCHED, typename T>
 inline void rocblas_gemm_kernel_name_template(rocblas_operation trans_a,
@@ -966,19 +879,8 @@ inline void rocblas_gemm_kernel_name_template(rocblas_operation trans_a,
                                               rocblas_stride    stride_b,
                                               rocblas_int       ld_c,
                                               rocblas_stride    stride_c,
-                                              rocblas_int       b_c)
+                                              rocblas_int       batch_count)
 {
-    unsigned int strideC1 = unsigned(ld_c);
-    unsigned int strideC2 = unsigned(stride_c);
-    unsigned int strideA1 = unsigned(ld_a);
-    unsigned int strideA2 = unsigned(stride_a);
-    unsigned int strideB1 = unsigned(ld_b);
-    unsigned int strideB2 = unsigned(stride_b);
-    unsigned int sizeI    = unsigned(m);
-    unsigned int sizeJ    = unsigned(n);
-    unsigned int sizeK    = unsigned(b_c);
-    unsigned int sizeL    = unsigned(k);
-
     std::cout << "gemm kernel Name: ";
     if(BATCHED)
     {
@@ -986,20 +888,11 @@ inline void rocblas_gemm_kernel_name_template(rocblas_operation trans_a,
         return;
     }
 
-    const char* solution_name = tensileGetSolutionName<T>(trans_a,
-                                                          trans_b,
-                                                          strideC1,
-                                                          strideC2,
-                                                          strideA1,
-                                                          strideA2,
-                                                          strideB1,
-                                                          strideB2,
-                                                          sizeI,
-                                                          sizeJ,
-                                                          sizeK,
-                                                          sizeL);
+    const char* solution_name = tensileGetSolutionName<T>(
+        trans_a, trans_b, ld_c, stride_c, ld_a, stride_a, ld_b, stride_b, m, n, batch_count, k);
 
     std::cout << solution_name << std::endl;
 }
+#endif // USE_TENSILE_HOST
 
 #endif // _GEMM_HOST_HPP_

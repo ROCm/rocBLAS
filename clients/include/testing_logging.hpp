@@ -214,8 +214,8 @@ void testing_logging()
             void*             beta        = 0;
             float             alpha_float = 1.0;
             float             beta_float  = 1.0;
-            rocblas_half      alpha_half  = float_to_half(alpha_float);
-            rocblas_half      beta_half   = float_to_half(beta_float);
+            rocblas_half      alpha_half(alpha_float);
+            rocblas_half      beta_half(beta_float);
             double            alpha_double(alpha_float);
             double            beta_double(beta_float);
             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;

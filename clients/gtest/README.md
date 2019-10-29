@@ -51,7 +51,7 @@ if(!dx || !dy)
 ```
 
 The general outline of the function should be:
-1. Adjust any arguments (e.g. use `float_to_half` when the data type is `rocblas_half`).
+1. Convert any scalar arguments (e.g., `alpha` and `beta`) to `double`.
 2. If the problem size arguments are invalid, use a `safe_size` to allocate arrays,
 call the rocBLAS routine with the original arguments, and verify that it returns
 `rocblas_status_invalid_size`. Return.

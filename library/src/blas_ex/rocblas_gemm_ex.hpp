@@ -637,19 +637,11 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     To* hostC[batch_count];
     To* hostD[batch_count];
 
-    hipError_t errA = hipMemcpy(hostA, a, batch_count * sizeof(Ti*), hipMemcpyDeviceToHost);
-    hipError_t errB = hipMemcpy(hostB, b, batch_count * sizeof(Ti*), hipMemcpyDeviceToHost);
-    hipError_t errC = hipMemcpy(hostC, c, batch_count * sizeof(To*), hipMemcpyDeviceToHost);
-    hipError_t errD = hipMemcpy(hostD, d, batch_count * sizeof(To*), hipMemcpyDeviceToHost);
+    RETURN_IF_HIP_ERROR(hipMemcpy(hostA, a, sizeof(hostA), hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(hostB, b, sizeof(hostB), hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(hostC, c, sizeof(hostC), hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(hostD, d, sizeof(hostD), hipMemcpyDeviceToHost));
 
-    if(get_rocblas_status_for_hip_status(errA) != rocblas_status_success)
-        return get_rocblas_status_for_hip_status(errA);
-    else if(get_rocblas_status_for_hip_status(errB) != rocblas_status_success)
-        return get_rocblas_status_for_hip_status(errB);
-    else if(get_rocblas_status_for_hip_status(errC) != rocblas_status_success)
-        return get_rocblas_status_for_hip_status(errC);
-    else if(get_rocblas_status_for_hip_status(errD) != rocblas_status_success)
-        return get_rocblas_status_for_hip_status(errD);
     stride_a = trans_a == rocblas_operation_none ? lda * k : lda * m;
     stride_b = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
     stride_c = ldc * n;
@@ -973,11 +965,11 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     {
         // copy alpha and beta from device to host and convert type
         for(int b = 0; b < batch_count; b++)
-            hipMemcpy(
-                &h_alpha[b], (Tc*)alpha + b * stride_alpha, sizeof(Tc), hipMemcpyDeviceToHost);
+            RETURN_IF_HIP_ERROR(hipMemcpy(
+                                    &h_alpha[b], (Tc*)alpha + b * stride_alpha, sizeof(Tc), hipMemcpyDeviceToHost));
 
         for(int b = 0; b < batch_count; b++)
-            hipMemcpy(&h_beta[b], (Tc*)beta + b * stride_beta, sizeof(Tc), hipMemcpyDeviceToHost);
+            RETURN_IF_HIP_ERROR(hipMemcpy(&h_beta[b], (Tc*)beta + b * stride_beta, sizeof(Tc), hipMemcpyDeviceToHost));
     }
     else
     {

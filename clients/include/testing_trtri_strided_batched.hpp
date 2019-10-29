@@ -47,11 +47,10 @@ void testing_trtri_strided_batched(const Arguments& arg)
             return;
         }
 
-        if(N < 0 || lda < 0 || lda < N || batch_count < 0)
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_trtri_strided_batched<T>(
-                    handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count),
-                rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trtri_strided_batched<T>(
+                handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count),
+            rocblas_status_invalid_size);
         return;
     }
 

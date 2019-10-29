@@ -182,9 +182,9 @@ namespace rocblas_cblas
         return x < 0 ? -x : x;
     }
 
-    rocblas_half asum(rocblas_half x)
+    rocblas_half asum(rocblas_half arg)
     {
-        return x & 0x7fff;
+        return rocblas_half(asum(float(arg)));
     }
 
     template <typename T>
@@ -195,7 +195,7 @@ namespace rocblas_cblas
 
     bool lessthan(rocblas_half x, rocblas_half y)
     {
-        return half_to_float(x) < half_to_float(y);
+        return float(x) < float(y);
     }
 
     template <typename T>
@@ -206,7 +206,7 @@ namespace rocblas_cblas
 
     bool greatherthan(rocblas_half x, rocblas_half y)
     {
-        return half_to_float(x) > half_to_float(y);
+        return float(x) > float(y);
     }
 
     template <typename T>

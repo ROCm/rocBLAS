@@ -59,14 +59,9 @@ void testing_copy_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-
-        if(N > 0 && batch_count < 0)
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
-                rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR(
-                rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count));
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 

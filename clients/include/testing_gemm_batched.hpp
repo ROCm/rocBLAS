@@ -18,41 +18,26 @@
 template <typename T>
 void testing_gemm_batched(const Arguments& arg)
 {
-    rocblas_int M = arg.M;
-    rocblas_int N = arg.N;
-    rocblas_int K = arg.K;
-
-    T h_alpha;
-    T h_beta;
-    if(std::is_same<T, rocblas_half>{})
-    {
-        h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(rocblas_isnan(arg.beta) ? 0 : arg.beta);
-    }
-    else
-    {
-        h_alpha = arg.alpha;
-        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
-    }
-
-    rocblas_int lda = arg.lda;
-    rocblas_int ldb = arg.ldb;
-    rocblas_int ldc = arg.ldc;
-
-    rocblas_int batch_count = arg.batch_count;
-
-    rocblas_operation transA = char2rocblas_operation(arg.transA);
-    rocblas_operation transB = char2rocblas_operation(arg.transB);
-
     rocblas_local_handle handle;
-
-    rocblas_int A_row = transA == rocblas_operation_none ? M : K;
-    rocblas_int A_col = transA == rocblas_operation_none ? K : M;
-    rocblas_int B_row = transB == rocblas_operation_none ? K : N;
-    rocblas_int B_col = transB == rocblas_operation_none ? N : K;
+    rocblas_int          M           = arg.M;
+    rocblas_int          N           = arg.N;
+    rocblas_int          K           = arg.K;
+    T                    h_alpha     = arg.alpha;
+    T                    h_beta      = rocblas_isnan(arg.beta) ? 0 : arg.beta;
+    rocblas_int          lda         = arg.lda;
+    rocblas_int          ldb         = arg.ldb;
+    rocblas_int          ldc         = arg.ldc;
+    rocblas_int          batch_count = arg.batch_count;
+    rocblas_operation    transA      = char2rocblas_operation(arg.transA);
+    rocblas_operation    transB      = char2rocblas_operation(arg.transB);
+    rocblas_int          A_row       = transA == rocblas_operation_none ? M : K;
+    rocblas_int          A_col       = transA == rocblas_operation_none ? K : M;
+    rocblas_int          B_row       = transB == rocblas_operation_none ? K : N;
+    rocblas_int          B_col       = transB == rocblas_operation_none ? N : K;
 
     // check here to prevent undefined memory allocation error
-    if(M <= 0 || N <= 0 || K <= 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
+    // Note: K==0 is not an early exit, since C still needs to be multiplied by beta.
+    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
     {
         rocblas_int safe_size = 100;
         rocblas_int num_batch = batch_count < 0 ? 1 : batch_count;
@@ -67,39 +52,23 @@ void testing_gemm_batched(const Arguments& arg)
             return;
         }
 
-        if(batch_count == 0 || M == 0 || N == 0 || K == 0)
-            CHECK_ROCBLAS_ERROR((rocblas_gemm_batched<T>)(handle,
-                                                          transA,
-                                                          transB,
-                                                          M,
-                                                          N,
-                                                          K,
-                                                          &h_alpha,
-                                                          dA,
-                                                          lda,
-                                                          dB,
-                                                          ldb,
-                                                          &h_beta,
-                                                          dC,
-                                                          ldc,
-                                                          batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS((rocblas_gemm_batched<T>)(handle,
-                                                            transA,
-                                                            transB,
-                                                            M,
-                                                            N,
-                                                            K,
-                                                            &h_alpha,
-                                                            dA,
-                                                            lda,
-                                                            dB,
-                                                            ldb,
-                                                            &h_beta,
-                                                            dC,
-                                                            ldc,
-                                                            batch_count),
-                                  rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      K,
+                                                      &h_alpha,
+                                                      dA,
+                                                      lda,
+                                                      dB,
+                                                      ldb,
+                                                      &h_beta,
+                                                      dC,
+                                                      ldc,
+                                                      batch_count),
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
 
         return;
     }

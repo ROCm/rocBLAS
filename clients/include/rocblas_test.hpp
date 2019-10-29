@@ -46,6 +46,14 @@ inline const char* rocblas_status_to_string(rocblas_status status)
         return "rocblas_status_memory_error";
     case rocblas_status_internal_error:
         return "rocblas_status_internal_error";
+    case rocblas_status_perf_degraded:
+        return "rocblas_status_perf_degraded";
+    case rocblas_status_size_query_mismatch:
+        return "rocblas_status_size_query_mismatch";
+    case rocblas_status_size_increased:
+        return "rocblas_status_size_increased";
+    case rocblas_status_size_unchanged:
+        return "rocblas_status_size_unchanged";
     default:
         return "<undefined rocblas_status value>";
     }

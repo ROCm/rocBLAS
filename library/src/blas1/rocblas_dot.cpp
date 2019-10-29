@@ -135,8 +135,7 @@ rocblas_status rocblas_hdot(rocblas_handle      handle,
                             rocblas_int         incy,
                             rocblas_half*       result)
 {
-    return rocblas_dot_impl<false>(
-        handle, n, (const _Float16*)x, incx, (const _Float16*)y, incy, (_Float16*)result);
+    return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
 }
 
 rocblas_status rocblas_bfdot(rocblas_handle          handle,

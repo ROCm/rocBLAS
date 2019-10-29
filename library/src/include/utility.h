@@ -63,7 +63,7 @@ __forceinline__ __device__ __host__ T load_scalar(const T* xp)
 template <>
 __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half2* xp)
 {
-    auto x = *reinterpret_cast<const _Float16*>(xp);
+    auto x = *reinterpret_cast<const rocblas_half*>(xp);
     return {x, x};
 }
 
@@ -308,4 +308,21 @@ __device__ __host__ inline auto rocblas_abs(rocblas_bfloat16 x)
     return x;
 }
 
+// rocblas_half
+__device__ __host__ inline auto rocblas_abs(rocblas_half x)
+{
+    union
+    {
+        rocblas_half x;
+        uint16_t     data;
+    } t = {x};
+    t.data &= 0x7fff;
+    return t.x;
+}
+
+// Output rocblas_half value
+inline auto& operator<<(std::ostream& os, rocblas_half x)
+{
+    return os << float(x);
+}
 #endif
