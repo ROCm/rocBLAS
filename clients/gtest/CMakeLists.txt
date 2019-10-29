@@ -41,7 +41,6 @@ if( BUILD_WITH_TENSILE )
       gemm_gtest.cpp
       gemm_parallel_gtest.cpp
       trsm_gtest.cpp
-      trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
 

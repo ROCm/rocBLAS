@@ -843,9 +843,9 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
     hipError_t status;
     if(BATCHED)
     {
-        sizeK = 1;
-
+        sizeK           = 1;
         size_t sizecopy = b_c * sizeof(T*);
+
         // Host arrays of device pointers.
         T* hostA[b_c];
         T* hostB[b_c];

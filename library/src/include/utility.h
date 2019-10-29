@@ -112,6 +112,25 @@ __forceinline__ __device__ __host__ T*
     return p[block] + offset;
 }
 
+// Helper for batched functions with temporary memory, currently just trsm and trsv.
+// Copys addresses to array of pointers for batched versions.
+template <typename T>
+__global__ void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
+{
+    dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
+}
+
+template <rocblas_int BLOCK, typename T>
+void setup_batched_array(
+    hipStream_t stream, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
+{
+    dim3 grid(batch_count);
+    dim3 threads(BLOCK);
+
+    hipLaunchKernelGGL(
+        setup_batched_array_kernel<T>, grid, threads, 0, stream, src, src_stride, dst);
+}
+
 #endif // GOOGLE_TEST
 
 inline bool isAligned(const void* pointer, size_t byte_count)
