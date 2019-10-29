@@ -27,12 +27,13 @@ for file in $(git diff-index --cached --name-only $against); do
 done
 
 # do the formatting
-for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$|CMakeLists\.txt$'); do
+for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$|\.txt$'); do
     if [[ -e "$file" ]]; then
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
-        # if clang-format exists run it on all files except CMakeLists.txt
-        if [[ -x $format && $file != *CMakeLists.txt ]]; then
+
+        # if clang-format exists run it on all files except *.txt
+        if [[ -x $format && $file != *.txt ]]; then
             echo "$format $file"
             "$format" -i -style=file "$file"
         fi
