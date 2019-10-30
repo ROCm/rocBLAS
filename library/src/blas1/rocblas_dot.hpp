@@ -91,7 +91,7 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
 
-    hipLaunchKernelGGL(dot_kernel_part1<NB, CONJ, T>,
+    hipLaunchKernelGGL((dot_kernel_part1<NB, CONJ, T>),
                        grid,
                        threads,
                        0,

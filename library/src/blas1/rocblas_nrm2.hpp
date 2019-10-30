@@ -50,7 +50,6 @@ rocblas_status rocblas_nrm2_template(rocblas_handle handle,
     }
 
     return rocblas_reduction_strided_batched_kernel<NB,
-                                                    Ti,
                                                     rocblas_fetch_nrm2<To>,
                                                     rocblas_reduce_sum,
                                                     rocblas_finalize_nrm2>(

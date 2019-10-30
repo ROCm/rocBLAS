@@ -760,23 +760,8 @@ namespace
 
             if(BATCHED)
             {
-                T* ctemparrt[batch_count];
-                T* invarrt[batch_count];
-
-                size_t c_temp_els = (m / BLOCK) * ((BLOCK / 2) * (BLOCK / 2));
-                if(!exact_blocks)
-                    c_temp_els = max(c_temp_els, size_t(ROCBLAS_TRTRI_NB * BLOCK * 2));
-
-                for(int b = 0; b < batch_count; b++)
-                {
-                    ctemparrt[b] = (T*)c_temp + b * c_temp_els;
-                    invarrt[b]   = (T*)invA + b * stride_invA;
-                }
-
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    x_temparr, ctemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
-                RETURN_IF_HIP_ERROR(
-                    hipMemcpy(invAarr, invarrt, batch_count * sizeof(T*), hipMemcpyHostToDevice));
+                setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)c_temp, 0, (T**)x_temparr, batch_count);
+                setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)invA, stride_invA, (T**)invAarr, batch_count);
             }
 
             status
@@ -807,13 +792,7 @@ namespace
 
         if(BATCHED)
         {
-            T* xtemparrt[batch_count];
-
-            for(int b = 0; b < batch_count; b++)
-            {
-                xtemparrt[b] = (T*)x_temp + b * x_temp_els;
-            }
-            hipMemcpy(x_temparr, xtemparrt, batch_count * sizeof(T*), hipMemcpyHostToDevice);
+            setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
         }
 
         if(exact_blocks)

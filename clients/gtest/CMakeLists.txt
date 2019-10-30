@@ -41,7 +41,6 @@ if( BUILD_WITH_TENSILE )
       gemm_gtest.cpp
       gemm_parallel_gtest.cpp
       trsm_gtest.cpp
-      trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
 
@@ -89,6 +88,7 @@ endif()
 target_include_directories( rocblas-test
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
 )
 
 # External header includes included as system files
@@ -172,7 +172,8 @@ if( CUDA_FOUND )
   target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_NVCC__ )
   target_link_libraries( rocblas-test PRIVATE ${CUDA_LIBRARIES} )
 else( )
-  target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
+  # auto set in hip_common.h
+  #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 
@@ -201,6 +202,9 @@ if( OS_ID_rhel OR OS_ID_centos)
     # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
+
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
 if( CXX_VERSION_STRING MATCHES "clang" )
   target_link_libraries( rocblas-test PRIVATE -lpthread -lm )

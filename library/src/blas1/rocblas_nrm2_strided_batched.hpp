@@ -9,10 +9,10 @@
 #include "rocblas.h"
 #include "rocblas_nrm2.hpp"
 
-template <rocblas_int NB, typename Ti, typename To>
+template <rocblas_int NB, typename U, typename To>
 rocblas_status rocblas_nrm2_strided_batched_template(rocblas_handle handle,
                                                      rocblas_int    n,
-                                                     const Ti*      x,
+                                                     U              x,
                                                      rocblas_int    shiftx,
                                                      rocblas_int    incx,
                                                      rocblas_stride stridex,
@@ -38,7 +38,6 @@ rocblas_status rocblas_nrm2_strided_batched_template(rocblas_handle handle,
     }
 
     return rocblas_reduction_strided_batched_kernel<NB,
-                                                    Ti,
                                                     rocblas_fetch_nrm2<To>,
                                                     rocblas_reduce_sum,
                                                     rocblas_finalize_nrm2>(

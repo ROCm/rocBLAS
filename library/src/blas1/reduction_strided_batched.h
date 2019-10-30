@@ -148,7 +148,7 @@ struct rocblas_default_value
     }
 };
 
-size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
+inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB)
 {
     if(n <= 0)
         n = 1; // avoid sign loss issues
@@ -178,7 +178,6 @@ size_t
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
 template <rocblas_int NB,
-          typename Ti,
           typename FETCH,
           typename REDUCE = rocblas_reduce_sum,
           typename TPtrX,
@@ -197,7 +196,7 @@ __global__ void
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
-    const Ti* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
+    const auto* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
 
     // bound
     if(tid < n)
@@ -299,7 +298,6 @@ __global__ void
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 template <rocblas_int NB,
-          typename Ti,
           typename FETCH,
           typename REDUCE   = rocblas_reduce_sum,
           typename FINALIZE = rocblas_finalize_identity,
@@ -318,7 +316,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
 {
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, Ti, FETCH, REDUCE>),
+    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,
                        0,
