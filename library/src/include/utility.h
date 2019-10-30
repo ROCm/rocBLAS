@@ -251,7 +251,7 @@ constexpr auto rocblas_get_status_string(rocblas_status status)
     };
 }
 
-#ifndef CHECK_ROCBLAS_ERROR
+#ifndef CHECK_INTERNAL_ROCBLAS_ERROR
 #define CHECK_INTERNAL_ROCBLAS_ERROR(error)                 \
     do                                                      \
     {                                                       \

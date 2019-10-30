@@ -199,8 +199,7 @@ namespace
                                                                      0,
                                                                      1,
                                                                      0,
-                                                                     1,
-                                                                     (T*)nullptr)));
+                                                                     1)));
                                     if(pointer_mode_host)
                                     {
                                         CHECK_INTERNAL_ROCBLAS_ERROR((rocblas_set_pointer_mode(
@@ -219,8 +218,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -381,8 +379,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -403,8 +400,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -590,8 +586,7 @@ namespace
                                                                      0,
                                                                      1,
                                                                      0,
-                                                                     1,
-                                                                     (T*)nullptr)));
+                                                                     1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -611,8 +606,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -774,8 +768,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -795,8 +788,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -942,8 +934,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -963,8 +954,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -1104,8 +1094,7 @@ namespace
                                                                      0,
                                                                      1,
                                                                      0,
-                                                                     1,
-                                                                     (T*)nullptr)));
+                                                                     1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -1125,8 +1114,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -1251,8 +1239,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -1272,8 +1259,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
@@ -1414,8 +1400,7 @@ namespace
                                                                      0,
                                                                      1,
                                                                      0,
-                                                                     1,
-                                                                     (T*)nullptr)));
+                                                                     1)));
 
                                     if(pointer_mode_host)
                                     {
@@ -1435,8 +1420,7 @@ namespace
                                                                       0,
                                                                       1,
                                                                       0,
-                                                                      1,
-                                                                      (T*)nullptr)));
+                                                                      1)));
                                 }
                                 else
                                 {
