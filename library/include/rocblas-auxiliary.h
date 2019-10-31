@@ -88,6 +88,47 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
                                                  void*       b,
                                                  rocblas_int ldb);
 
+/*! \brief asynchronous copy vector from host to device
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_set_vector_async(rocblas_handle handle,
+                                                       rocblas_int    n,
+                                                       rocblas_int    elem_size,
+                                                       const void*    x,
+                                                       rocblas_int    incx,
+                                                       void*          y,
+                                                       rocblas_int    incy);
+
+/*! \brief asynchronous copy vector from device to host
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_get_vector_async(rocblas_handle handle,
+                                                       rocblas_int    n,
+                                                       rocblas_int    elem_size,
+                                                       const void*    x,
+                                                       rocblas_int    incx,
+                                                       void*          y,
+                                                       rocblas_int    incy);
+
+/*! \brief asynchronous copy matrix from host to device
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_async(rocblas_handle handle,
+                                                       rocblas_int    rows,
+                                                       rocblas_int    cols,
+                                                       rocblas_int    elem_size,
+                                                       const void*    a,
+                                                       rocblas_int    lda,
+                                                       void*          b,
+                                                       rocblas_int    ldb);
+
+/*! \brief asynchronous copy matrix from device to host
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_async(rocblas_handle handle,
+                                                       rocblas_int    rows,
+                                                       rocblas_int    cols,
+                                                       rocblas_int    elem_size,
+                                                       const void*    a,
+                                                       rocblas_int    lda,
+                                                       void*          b,
+                                                       rocblas_int    ldb);
 #ifdef __cplusplus
 }
 
