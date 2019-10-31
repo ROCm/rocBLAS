@@ -32,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx900 && hip-clang', 'ubuntu && gfx906 && hip-clang', 'ubuntu && gfx908 && hip-clang'], rocblas)
 
     boolean formatCheck = true
 
@@ -42,33 +42,11 @@ rocBLASCI:
 
         project.paths.construct_build_prefix()
 
-        def command
-
-        if(platform.jenkinsLabel.contains('hip-clang'))
-        {
-            command = """#!/usr/bin/env bash
+        def command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
                     LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
-        }
-        else if(platform.jenkinsLabel.contains('sles'))
-        {
-            command = """#!/usr/bin/env bash
-                    set -x
-                    cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc sudo ${project.paths.build_command}
-                    """
-        }
-
-        else
-        {
-            command = """#!/usr/bin/env bash
-                    set -x
-                    cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command}
-                    """
-        }
         platform.runCommand(this, command)
     }
 
@@ -92,31 +70,8 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
-        String sudo = auxiliary.sudo(platform.jenkinsLabel)
 
-        def command
-
-        if(platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
-        {
-            command = """
-                    set -x
-                    cd ${project.paths.project_build_prefix}/build/release
-                    ${sudo} make package
-                    ${sudo} mkdir -p package
-                    ${sudo} mv *.rpm package/
-                    ${sudo} rpm -qlp package/*.rpm
-                """
-
-            platform.runCommand(this, command)
-            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.rpm""")
-        }
-        else if(platform.jenkinsLabel.contains('hip-clang') || platform.jenkinsLabel.contains('sles'))
-        {
-            packageCommand = null
-        }
-        else
-        {
-            command = """
+        def command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
                     make package
