@@ -11,21 +11,31 @@ Exported BLAS functions
 rocBLAS includes the following auxiliary functions
 ==================================================
 
-========================
-Function name
-========================
-rocblas_create_handle
-rocblas_destroy_handle
-rocblas_add_stream
-rocblas_set_stream
-rocblas_get_stream
-rocblas_set_pointer_mode
-rocblas_get_pointer_mode
-rocblas_set_vector
-rocblas_get_vector
-rocblas_set_matrix
-rocblas_get_matrix
-========================
++--------------------------+
+|Function name             |
++--------------------------+
+| rocblas_create_handle    |
++--------------------------+
+| rocblas_destroy_handle   |
++--------------------------+
+| rocblas_add_stream       |
++--------------------------+
+| rocblas_set_stream       |
++--------------------------+
+| rocblas_get_stream       |
++--------------------------+
+| rocblas_set_pointer_mode |
++--------------------------+
+| rocblas_get_pointer_mode |
++--------------------------+
+| rocblas_set_vector       |
++--------------------------+
+| rocblas_get_vector       |
++--------------------------+
+| rocblas_set_matrix       |
++--------------------------+
+| rocblas_get_matrix       |
++--------------------------+
 
 rocBLAS includes the following Level 1, 2, and 3 functions
 ==========================================================
