@@ -3,11 +3,12 @@
    :maxdepth: 4 
    :caption: Contents:
 
+============
 Introduction
-------------
+============
 
 Overview
-********
+========
 
 A BLAS implementation on top of AMD’s Radeon Open Compute ROCm runtime and toolchains. 
 rocBLAS is implemented in the HIP programming language and optimized for AMD’s latest 

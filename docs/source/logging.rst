@@ -3,8 +3,9 @@
    :maxdepth: 4 
    :caption: Contents:
 
+=======
 Logging
--------
+=======
 
 Four environment variables can be set to control logging: \*
 ``ROCBLAS_LAYER`` \* ``ROCBLAS_LOG_TRACE_PATH`` \*

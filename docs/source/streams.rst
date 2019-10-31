@@ -3,11 +3,12 @@
    :maxdepth: 4 
    :caption: Contents:
 
+============================
 Device and Stream Management
-----------------------------
+============================
 
 HIP Device management
-*********************
+=====================
 
 hipSetDevice() & hipGetDevice() are HIP device management APIs. They are
 NOT part of the rocBLAS API.
@@ -38,7 +39,7 @@ change device, they must destroy the current handle, and create another
 rocBLAS handle (context).
 
 Stream management
-*****************
+=================
 
 HIP kernels are always launched in a queue (otherwise known as a stream,
 they are the same thing).
@@ -55,7 +56,7 @@ single invocation. If users create a stream, they are responsible for
 destroying it.
 
 Multiple streams and multiple devices
-*************************************
+=====================================
 
 If the system under test has 4 HIP devices, users can run 4 rocBLAS
 handles (also known as contexts) on 4 devices concurrently, but can NOT

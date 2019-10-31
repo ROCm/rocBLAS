@@ -3,10 +3,12 @@
    :maxdepth: 4 
    :caption: Contents:
 
+***********************
 Building and Installing
------------------------
+***********************
+
 Installing pre-build packages
-*****************************
+=============================
 rocBLAS can be installed on Ubuntu using
 
 ::
@@ -17,10 +19,10 @@ rocBLAS can be installed on Ubuntu using
 rocBLAS Debian packages can also be downloaded from the `rocBLAS releases tag <https://github.com/ROCmSoftwarePlatform/rocBLAS/releases>`_. These may be newer than the package from apt-get.
 
 Building from Source
-********************
+====================
 
 Download rocBLAS
-````````````````
+----------------
 
 Download the master branch of rocBLAS from github using:
 
@@ -30,8 +32,7 @@ Download the master branch of rocBLAS from github using:
    cd rocBLAS
 
 Note if you want to contribute to rocBLAS, you will need the develop
-branch, not the master branch, and you will need to read
-.github/CONTRIBUTING.md.
+branch, not the master branch, and you will need to read :ref:`contributing_label`.
 
 Below are steps to build either (dependencies + library) or
 (dependencies + library + client). You only need (dependencies +
@@ -42,7 +43,7 @@ It is recommended that the script install.sh be used to build rocBLAS.
 If you need individual commands, they are also given.
 
 Use install.sh to build (library dependencies + library)
-````````````````````````````````````````````````````````
+--------------------------------------------------------
 
 Common uses of install.sh to build (library dependencies + library) are
 in the table below.
@@ -81,7 +82,7 @@ in the table below.
 +-------------------------------------------+--------------------------+
 
 Use install.sh to build (library dependencies + client dependencies + library + client)
-```````````````````````````````````````````````````````````````````````````````````````
+---------------------------------------------------------------------------------------
 
 The client contains executables in the table below.
 
@@ -148,12 +149,13 @@ in the table below.
 +-------------------------------------------+--------------------------+
 
 Build (library dependencies + library) Using Individual Commands
-````````````````````````````````````````````````````````````````
+----------------------------------------------------------------
 
 Before building the library please install the library dependencies
 CMake, Python 2.7, and Python-yaml.
 
-**CMake 3.5 or later**
+CMake 3.5 or later
+******************
 
 The build infrastructure for rocBLAS is based on
 `Cmake <https://cmake.org/>`__ v3.5. This is the version of cmake
@@ -164,14 +166,16 @@ access to X-windows, we recommend using **cmake-gui**.
 Install one-liners cmake: \* Ubuntu: ``sudo apt install cmake-qt-gui``
 \* Fedora: ``sudo dnf install cmake-gui``
 
-**Python 2.7**
+Python 2.7
+**********
 
 By default both python2 and python3 are on Ubuntu. You can check the
 installation with ``python -V``. Python is used in Tensile, and Tensile
 is part of rocBLAS. To build rocBLAS the default version of Python must
 be Python 2.7, not Python 3.
 
-**Python-yaml**
+Python-yaml
+***********
 
 PyYAML files contain training information from Tensile that is used to
 build gemm kernels in rocBLAS.
@@ -180,7 +184,8 @@ Install one-liners PyYAML: \* Ubuntu:
 ``sudo apt install python2.7 python-yaml`` \* Fedora:
 ``sudo dnf install python PyYAML``
 
-**Build library**
+Build library
+*************
 
 The rocBLAS library contains both host and device code, so the HCC
 compiler must be specified during cmake configuration to properly
@@ -199,9 +204,10 @@ initialize build tools. Example steps to build rocBLAS:
    sudo make install # sudo required if installing into system directory such as /opt/rocm
 
 Build (library dependencies + client dependencies + library + client) using Individual Commands
-```````````````````````````````````````````````````````````````````````````````````````````````
+-----------------------------------------------------------------------------------------------
 
-**Additional dependencies for the rocBLAS clients**
+Additional dependencies for the rocBLAS clients
+***********************************************
 
 The unit tests and benchmarking applications in the client introduce the
 following dependencies: 1. `boost <http://www.boost.org/>`__ 2.
@@ -210,7 +216,8 @@ following dependencies: 1. `boost <http://www.boost.org/>`__ 2.
 lapack itself brings a dependency on a fortran compiler 3.
 `googletest <https://github.com/google/googletest>`__
 
-**boost**
+boost
+`````
 
 Linux distros typically have an easy installation mechanism for boost
 through the native package manager.
@@ -228,7 +235,8 @@ and help cmake find them by setting the CMAKE_PREFIX_PATH definition.
 The following is a sequence of steps to build dependencies and install
 them to the cmake default /usr/local.
 
-**gfortran and lapack**
+gfortran and lapack
+```````````````````
 
 LAPACK is used in the client to test rocBLAS. LAPACK is a Fortran
 Library, so gfortran is required for building the client.
@@ -247,7 +255,7 @@ Library, so gfortran is required for building the client.
    make -j$(nproc) install
 
 Build Library and Client Using Individual Commands
-``````````````````````````````````````````````````
+--------------------------------------------------
 
 Once dependencies are available on the system, it is possible to
 configure the clients to build. This requires a few extra cmake flags to
@@ -267,7 +275,7 @@ CMAKE_PREFIX_PATH to cmake to help find them. \*
    sudo make install   # sudo required if installing into system directory such as /opt/rocm
 
 Use of Tensile
-``````````````
+--------------
 
 The rocBLAS library uses
 `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`__, which
@@ -277,7 +285,7 @@ configured as part of the build, so no further action is required by the
 user to set it up.
 
 CUDA build errata
-`````````````````
+-----------------
 
 rocBLAS is written with HiP kernels, so it should build and run on CUDA
 platforms. However, currently the cmake infrastructure is broken with a
@@ -286,7 +294,7 @@ interface for both ROCm and CUDA backends can be found with
 `hipBLAS <https://github.com/ROCmSoftwarePlatform/hipBLAS>`__.
 
 Common build problems
-`````````````````````
+---------------------
 
 -  **Issue:** Could not find a configuration file for package “LLVM”
    that is compatible with requested version “7.0”.
