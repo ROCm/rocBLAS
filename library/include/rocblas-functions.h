@@ -925,7 +925,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    stridey   rocblas_stride  
+    stridey   rocblas_stride
               stride from the start of one vector (y_i) and the next one (y_i+1).
               There are no restrictions placed on stride_x, however the user should
               take care to ensure that stride_y is of appropriate size, for a typical
@@ -1453,7 +1453,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
     \details
     rot applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1536,7 +1536,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
     \details
     rot_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x and y.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1628,7 +1628,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     \details
     rot_strided_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x and y.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1740,7 +1740,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
          Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1780,7 +1780,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
          a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1833,7 +1833,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
          a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1911,7 +1911,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle      
 
     \details
     rotm applies the modified Givens rotation matrix defined by param to vectors x and y.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1964,7 +1964,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
 
     \details
     rotm_batched applies the modified Givens rotation matrix defined by param to batched vectors x and y.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2022,7 +2022,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
 
     \details
     rotm_strided_batched applies the modified Givens rotation matrix defined by param to strided batched vectors x and y.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2098,7 +2098,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2142,7 +2142,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2196,7 +2196,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2822,7 +2822,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
                                            double*        A,
                                            rocblas_int    lda);
 
-/*! \brief BLAS Level 2 API 
+/*! \brief BLAS Level 2 API
 
     \details
     xGER_BATCHED performs a batch of the matrix-vector operations
@@ -6171,6 +6171,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    
                                                               rocblas_int       invA_size,
                                                               rocblas_stride    stride_invA,
                                                               rocblas_datatype  compute_type);
+
+/*! BLAS Auxiliary API
+
+    \details
+    rocblas_status_to_string
+
+    Returns string representing rocblas_status value
+
+    @param[in]
+    status  rocblas_status
+            rocBLAS status to convert to string
+*/
+
+ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 
 /*
  * ===========================================================================
