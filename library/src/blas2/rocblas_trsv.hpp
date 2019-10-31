@@ -760,8 +760,10 @@ namespace
 
             if(BATCHED)
             {
-                setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)c_temp, 0, (T**)x_temparr, batch_count);
-                setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)invA, stride_invA, (T**)invAarr, batch_count);
+                setup_batched_array<BLOCK>(
+                    handle->rocblas_stream, (T*)c_temp, 0, (T**)x_temparr, batch_count);
+                setup_batched_array<BLOCK>(
+                    handle->rocblas_stream, (T*)invA, stride_invA, (T**)invAarr, batch_count);
             }
 
             status
@@ -792,7 +794,8 @@ namespace
 
         if(BATCHED)
         {
-            setup_batched_array<BLOCK>(handle->rocblas_stream, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+            setup_batched_array<BLOCK>(
+                handle->rocblas_stream, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
         }
 
         if(exact_blocks)
