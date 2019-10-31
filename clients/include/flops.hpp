@@ -140,11 +140,11 @@ constexpr double
 {
     if(rocblas_side_left == side)
     {
-        return (1.0 * m * n * (m + 1)) / 1e9;
+        return 4 * (1.0 * m * n * (m + 1)) / 1e9;
     }
     else
     {
-        return (1.0 * m * n * (n + 1)) / 1e9;
+        return 4 * (1.0 * m * n * (n + 1)) / 1e9;
     }
 }
 

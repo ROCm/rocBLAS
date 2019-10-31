@@ -183,7 +183,7 @@ void testing_trmm(const Arguments& arg)
             rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
+        rocblas_gflops = trmm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
