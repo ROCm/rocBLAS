@@ -7,8 +7,17 @@
 Building and Installing
 ***********************
 
+Prerequisites
+=============
+
+-  A ROCm enabled platform, more information `here <https://rocm.github.io/install.html>`_.
+-  Base software stack, which includes:
+   - `HIP <https://github.com/ROCm-Developer-Tools/HIP>`_
+
+
 Installing pre-build packages
 =============================
+
 rocBLAS can be installed on Ubuntu using
 
 ::
@@ -24,7 +33,7 @@ Building from Source
 Download rocBLAS
 ----------------
 
-Download the master branch of rocBLAS from github using:
+The rocBLAS source code is available at the `rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS>`_. Download the master branch of rocBLAS from github using:
 
 ::
 

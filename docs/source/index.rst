@@ -12,6 +12,7 @@ Welcome to rocBLAS's documentation!
 
    intro
    install
+   exports
    logging
    contributing
    streams
