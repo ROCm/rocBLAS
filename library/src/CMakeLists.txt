@@ -87,6 +87,8 @@ if( BUILD_WITH_TENSILE )
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_trsm.cpp
+    blas3/rocblas_trsm_batched.cpp
+    blas3/rocblas_trsm_strided_batched.cpp
   )
 
   set( Tensile_INC
@@ -95,8 +97,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
-    blas_ex/rocblas_gemm_ex_batched.cpp
-    blas_ex/rocblas_gemm_ex_strided_batched.cpp
+    blas_ex/rocblas_gemm_batched_ex.cpp
+    blas_ex/rocblas_gemm_strided_batched_ex.cpp
   )
 
   set( rocblas_blas3_source
