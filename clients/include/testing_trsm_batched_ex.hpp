@@ -20,7 +20,7 @@
 #define TRSM_BLOCK 128
 
 template <typename T>
-void testing_trsm_ex_batched(const Arguments& arg)
+void testing_trsm_batched_ex(const Arguments& arg)
 {
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -61,7 +61,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        rocblas_status status = rocblas_trsm_ex_batched(handle,
+        rocblas_status status = rocblas_trsm_batched_ex(handle,
                                                         side,
                                                         uplo,
                                                         transA,
@@ -287,7 +287,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
         }
 
         size_t x_temp_size = M * N;
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_batched(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -322,7 +322,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_batched(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -429,7 +429,7 @@ void testing_trsm_ex_batched(const Arguments& arg)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_batched(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
                                                     side,
                                                     uplo,
                                                     transA,

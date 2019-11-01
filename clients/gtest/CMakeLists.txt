@@ -203,7 +203,7 @@ if( OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
 
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
 set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
 if( CXX_VERSION_STRING MATCHES "clang" )
