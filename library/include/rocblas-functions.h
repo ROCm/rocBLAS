@@ -34,7 +34,6 @@
 #define ROCBLAS_VA_OPT_SUPPORTED(...) ROCBLAS_VA_OPT_3RD_ARG(__VA_OPT__(, ), 1, 0, )
 
 #if ROCBLAS_VA_OPT_SUPPORTED(?)
-
 #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
 
 #else // ROCBLAS_VA_OPT_SUPPORTED
@@ -4355,7 +4354,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
     {
         A_packed = A;
     }
-    if(trans_b == rocblas_operation_transpose)
+    if(transB == rocblas_operation_transpose)
     {
         int nb = 4;
         for(int i_n = 0; i_n < m; i_n++)
@@ -4450,7 +4449,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                                               rocblas_operation transA,
-                                              rocblas_operation trans_b,
+                                              rocblas_operation transB,
                                               rocblas_int       m,
                                               rocblas_int       n,
                                               rocblas_int       k,
@@ -4477,7 +4476,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
 // clang-format off
 #define rocblas_gemm_ex(handle,         \
                         transA,         \
-                        trans_b,        \
+                        transB,         \
                         m,              \
                         n,              \
                         k,              \
@@ -4503,7 +4502,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                         ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
         rocblas_gemm_ex(handle,         \
                         transA,         \
-                        trans_b,        \
+                        transB,         \
                         m,              \
                         n,              \
                         k,              \
@@ -4584,7 +4583,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     {
         A_packed = A;
     }
-    if(trans_b == rocblas_operation_transpose)
+    if(transB == rocblas_operation_transpose)
     {
         int nb = 4;
         for(int i_n = 0; i_n < m; i_n++)
@@ -4681,198 +4680,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
                                                       rocblas_operation transA,
-                                                      rocblas_operation trans_b,
-                                                      rocblas_int       m,
-                                                      rocblas_int       n,
-                                                      rocblas_int       k,
-                                                      const void*       alpha,
-                                                      const void*       a,
-                                                      rocblas_datatype  a_type,
-                                                      rocblas_int       lda,
-                                                      const void*       b,
-                                                      rocblas_datatype  b_type,
-                                                      rocblas_int       ldb,
-                                                      const void*       beta,
-                                                      const void*       c,
-                                                      rocblas_datatype  c_type,
-                                                      rocblas_int       ldc,
-                                                      void*             d,
-                                                      rocblas_datatype  d_type,
-                                                      rocblas_int       ldd,
-                                                      rocblas_int       batch_count,
-                                                      rocblas_datatype  compute_type,
-                                                      rocblas_gemm_algo algo,
-                                                      int32_t           solution_index,
-                                                      uint32_t          flags);
-
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_BATCHED_EX performs one of the batched matrix-matrix operations
-        D[i] = alpha*op(A[i])*op(B[i]) + beta*C[i], for i in
-   [0,batch_count-1]
-    where op( X ) is one of
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-    alpha and beta are scalars, and A, B, C, and D are batched pointers to matrices, with
-    op( A ) an m by k by batch_count batched matrix,
-    op( B ) a k by n by batch_count batched matrix and
-    C and D are m by n by batch_count batched matrices.
-    The batched matrices are an array of pointers to matrices.
-    The number of pointers to matrices is batch_count.
-    Supported types are as follows:
-        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_bf16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
-   compute_type
-        - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type:
-        - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
-    @code
-    if(transA == rocblas_operation_none)
-    {
-        int nb = 4;
-        for(int i_m = 0; i_m < m; i_m++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                A_packed[i_k % nb + (i_m + (i_k / nb) * lda) * nb] = A[i_m + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        A_packed = A;
-    }
-    if(trans_b == rocblas_operation_transpose)
-    {
-        int nb = 4;
-        for(int i_n = 0; i_n < m; i_n++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                B_packed[i_k % nb + (i_n + (i_k / nb) * lda) * nb] = B[i_n + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        B_packed = B;
-    }
-    @endcode
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation.
-              specifies the form of op( A ).
-    @param[in]
-    transB    rocblas_operation.
-              specifies the form of op( B ).
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m.
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n.
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k.
-    @param[in]
-    alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *.
-              pointer storing array of pointers to matrices A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype.
-              specifies the datatype of matrix A.
-    @param[in]
-    lda       rocblas_int.
-              specifies the leading dimension of A.
-    @param[in]
-    stride_a  rocblas_stride.
-              specifies stride from start of one "A" matrix to the next.
-    @param[in]
-    b         void *.
-              pointer storing array of pointers to matrices B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype.
-              specifies the datatype of matrix B.
-    @param[in]
-    ldb       rocblas_int.
-              specifies the leading dimension of B.
-    @param[in]
-    stride_b  rocblas_stride.
-              specifies stride from start of one "B" matrix to the next.
-    @param[in]
-    beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *.
-              pointer storing array of pointers to matrices C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype.
-              specifies the datatype of matrix C.
-    @param[in]
-    ldc       rocblas_int.
-              specifies the leading dimension of C.
-    @param[in]
-    stride_c  rocblas_stride.
-              specifies stride from start of one "C" matrix to the next.
-    @param[out]
-    d         void *.
-              pointer storing array of pointers to matrices D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype.
-              specifies the datatype of matrix D.
-    @param[in]
-    ldd       rocblas_int.
-              specifies the leading dimension of D.
-    @param[in]
-    stride_d  rocblas_stride.
-              specifies stride from start of one "D" matrix to the next.
-    @param[in]
-    batch_count
-              rocblas_int.
-              number of gemm operations in the batch.
-    @param[in]
-    compute_type
-              rocblas_datatype.
-              specifies the datatype of computation.
-    @param[in]
-    algo      rocblas_gemm_algo.
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t.
-              reserved for future use.
-    @param[in]
-    flags     uint32_t.
-              reserved for future use.
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
-                                                      rocblas_operation transA,
-                                                      rocblas_operation trans_b,
+                                                      rocblas_operation transB,
                                                       rocblas_int       m,
                                                       rocblas_int       n,
                                                       rocblas_int       k,
@@ -4962,271 +4770,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     {
         A_packed = A;
     }
-    if(trans_b == rocblas_operation_transpose)
-    {
-        int nb = 4;
-        for(int i_n = 0; i_n < m; i_n++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                B_packed[i_k % nb + (i_n + (i_k / nb) * lda) * nb] = B[i_n + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        B_packed = B;
-    }
-    @endcode
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation.
-              specifies the form of op( A ).
-    @param[in]
-    transB    rocblas_operation.
-              specifies the form of op( B ).
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m.
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n.
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k.
-    @param[in]
-    alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *.
-              pointer storing matrix A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype.
-              specifies the datatype of matrix A.
-    @param[in]
-    lda       rocblas_int.
-              specifies the leading dimension of A.
-    @param[in]
-    stride_a  rocblas_stride.
-              specifies stride from start of one "A" matrix to the next.
-    @param[in]
-    b         void *.
-              pointer storing matrix B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype.
-              specifies the datatype of matrix B.
-    @param[in]
-    ldb       rocblas_int.
-              specifies the leading dimension of B.
-    @param[in]
-    stride_b  rocblas_stride.
-              specifies stride from start of one "B" matrix to the next.
-    @param[in]
-    beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *.
-              pointer storing matrix C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype.
-              specifies the datatype of matrix C.
-    @param[in]
-    ldc       rocblas_int.
-              specifies the leading dimension of C.
-    @param[in]
-    stride_c  rocblas_stride.
-              specifies stride from start of one "C" matrix to the next.
-    @param[out]
-    d         void *.
-              pointer storing matrix D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype.
-              specifies the datatype of matrix D.
-    @param[in]
-    ldd       rocblas_int.
-              specifies the leading dimension of D.
-    @param[in]
-    stride_d  rocblas_stride.
-              specifies stride from start of one "D" matrix to the next.
-    @param[in]
-    batch_count
-              rocblas_int.
-              number of gemm operations in the batch.
-    @param[in]
-    compute_type
-              rocblas_datatype.
-              specifies the datatype of computation.
-    @param[in]
-    algo      rocblas_gemm_algo.
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t.
-              reserved for future use.
-    @param[in]
-    flags     uint32_t.
-              reserved for future use.
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
-                                                      rocblas_operation transA,
-                                                      rocblas_operation trans_b,
-                                                      rocblas_int       m,
-                                                      rocblas_int       n,
-                                                      rocblas_int       k,
-                                                      const void*       alpha,
-                                                      const void*       a,
-                                                      rocblas_datatype  a_type,
-                                                      rocblas_int       lda,
-                                                      const void*       b,
-                                                      rocblas_datatype  b_type,
-                                                      rocblas_int       ldb,
-                                                      const void*       beta,
-                                                      const void*       c,
-                                                      rocblas_datatype  c_type,
-                                                      rocblas_int       ldc,
-                                                      void*             d,
-                                                      rocblas_datatype  d_type,
-                                                      rocblas_int       ldd,
-                                                      rocblas_int       batch_count,
-                                                      rocblas_datatype  compute_type,
-                                                      rocblas_gemm_algo algo,
-                                                      int32_t           solution_index,
-                                                      uint32_t          flags);
-
-/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
-// clang-format off
-#define rocblas_gemm_strided_batched_ex(handle,         \
-                                        transA,         \
-                                        trans_b,        \
-                                        m,              \
-                                        n,              \
-                                        k,              \
-                                        alpha,          \
-                                        a,              \
-                                        a_type,         \
-                                        lda,            \
-                                        stride_a,       \
-                                        b,              \
-                                        b_type,         \
-                                        ldb,            \
-                                        stride_b,       \
-                                        beta,           \
-                                        c,              \
-                                        c_type,         \
-                                        ldc,            \
-                                        stride_c,       \
-                                        d,              \
-                                        d_type,         \
-                                        ldd,            \
-                                        stride_d,       \
-                                        batch_count,    \
-                                        compute_type,   \
-                                        algo,           \
-                                        solution_index, \
-                                        flags,          \
-                                        ...)            \
-                                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
-        rocblas_gemm_strided_batched_ex(handle,         \
-                                        transA,         \
-                                        trans_b,        \
-                                        m,              \
-                                        n,              \
-                                        k,              \
-                                        alpha,          \
-                                        a,              \
-                                        a_type,         \
-                                        lda,            \
-                                        stride_a,       \
-                                        b,              \
-                                        b_type,         \
-                                        ldb,            \
-                                        stride_b,       \
-                                        beta,           \
-                                        c,              \
-                                        c_type,         \
-                                        ldc,            \
-                                        stride_c,       \
-                                        d,              \
-                                        d_type,         \
-                                        ldd,            \
-                                        stride_d,       \
-                                        batch_count,    \
-                                        compute_type,   \
-                                        algo,           \
-                                        solution_index, \
-                                        flags)
-
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
-
-        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
-   [0,batch_count-1]
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix,
-    op( B ) a k by n by batch_count strided_batched matrix and
-    C and D are m by n by batch_count strided_batched matrices.
-
-    The strided_batched matrices are multiple matrices separated by a constant stride.
-    The number of matrices is batch_count.
-
-    Supported types are as follows:
-        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_bf16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
-   compute_type
-        - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
-
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type:
-        - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
-
-    @code
-    if(transA == rocblas_operation_none)
-    {
-        int nb = 4;
-        for(int i_m = 0; i_m < m; i_m++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                A_packed[i_k % nb + (i_m + (i_k / nb) * lda) * nb] = A[i_m + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        A_packed = A;
-    }
-    if(trans_b == rocblas_operation_transpose)
+    if(transB == rocblas_operation_transpose)
     {
         int nb = 4;
         for(int i_n = 0; i_n < m; i_n++)
@@ -5337,7 +4881,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
                                                               rocblas_operation transA,
-                                                              rocblas_operation trans_b,
+                                                              rocblas_operation transB,
                                                               rocblas_int       m,
                                                               rocblas_int       n,
                                                               rocblas_int       k,
@@ -5369,7 +4913,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 // clang-format off
 #define rocblas_gemm_strided_batched_ex(handle,         \
                                         transA,         \
-                                        trans_b,        \
+                                        transB,         \
                                         m,              \
                                         n,              \
                                         k,              \
@@ -5400,7 +4944,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                         ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
         rocblas_gemm_strided_batched_ex(handle,         \
                                         transA,         \
-                                        trans_b,        \
+                                        transB,         \
                                         m,              \
                                         n,              \
                                         k,              \
@@ -5428,273 +4972,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                         solution_index, \
                                         flags)
 
-/*! \brief BLAS EX API
-
-    \details
-    GEMM_STRIDED_BATCHED_EX performs one of the strided_batched matrix-matrix operations
-
-        D[i*stride_d] = alpha*op(A[i*stride_a])*op(B[i*stride_b]) + beta*C[i*stride_c], for i in
-   [0,batch_count-1]
-
-    where op( X ) is one of
-
-        op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B, C, and D are strided_batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix,
-    op( B ) a k by n by batch_count strided_batched matrix and
-    C and D are m by n by batch_count strided_batched matrices.
-
-    The strided_batched matrices are multiple matrices separated by a constant stride.
-    The number of matrices is batch_count.
-
-    Supported types are as follows:
-        - rocblas_datatype_f64_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f32_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_bf16_r = a_type = b_type = c_type = d_type; rocblas_datatype_f32_r =
-   compute_type
-        - rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r = c_type = d_type =
-   compute_type
-        - rocblas_datatype_f32_c  = a_type = b_type = c_type = d_type = compute_type
-        - rocblas_datatype_f64_c  = a_type = b_type = c_type = d_type = compute_type
-
-    Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
-   c_type = d_type = compute_type:
-        - k must be a multiple of 4
-        - lda must be a multiple of 4 if transA == rocblas_operation_transpose
-        - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
-   A and B must
-          have each 4 consecutive values in the k dimension packed. This packing can be achieved
-   with the following
-          pseudo-code. The code assumes the original matrices are in A and B, and the packed
-   matrices are A_packed
-          and B_packed. The size of the A_packed matrix is the same as the size of the A matrix, and
-   the size of
-          the B_packed matrix is the same as the size of the B matrix.
-
-    @code
-    if(transA == rocblas_operation_none)
-    {
-        int nb = 4;
-        for(int i_m = 0; i_m < m; i_m++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                A_packed[i_k % nb + (i_m + (i_k / nb) * lda) * nb] = A[i_m + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        A_packed = A;
-    }
-    if(trans_b == rocblas_operation_transpose)
-    {
-        int nb = 4;
-        for(int i_n = 0; i_n < m; i_n++)
-        {
-            for(int i_k = 0; i_k < k; i_k++)
-            {
-                B_packed[i_k % nb + (i_n + (i_k / nb) * lda) * nb] = B[i_n + i_k * lda];
-            }
-        }
-    }
-    else
-    {
-        B_packed = B;
-    }
-    @endcode
-
-    @param[in]
-    handle    rocblas_handle.
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    rocblas_operation.
-              specifies the form of op( A ).
-    @param[in]
-    transB    rocblas_operation.
-              specifies the form of op( B ).
-    @param[in]
-    m         rocblas_int.
-              matrix dimension m.
-    @param[in]
-    n         rocblas_int.
-              matrix dimension n.
-    @param[in]
-    k         rocblas_int.
-              matrix dimension k.
-    @param[in]
-    alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
-    @param[in]
-    a         void *.
-              pointer storing matrix A on the GPU.
-    @param[in]
-    a_type    rocblas_datatype.
-              specifies the datatype of matrix A.
-    @param[in]
-    lda       rocblas_int.
-              specifies the leading dimension of A.
-    @param[in]
-    stride_a  rocblas_stride.
-              specifies stride from start of one "A" matrix to the next.
-    @param[in]
-    b         void *.
-              pointer storing matrix B on the GPU.
-    @param[in]
-    b_type    rocblas_datatype.
-              specifies the datatype of matrix B.
-    @param[in]
-    ldb       rocblas_int.
-              specifies the leading dimension of B.
-    @param[in]
-    stride_b  rocblas_stride.
-              specifies stride from start of one "B" matrix to the next.
-    @param[in]
-    beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
-    @param[in]
-    c         void *.
-              pointer storing matrix C on the GPU.
-    @param[in]
-    c_type    rocblas_datatype.
-              specifies the datatype of matrix C.
-    @param[in]
-    ldc       rocblas_int.
-              specifies the leading dimension of C.
-    @param[in]
-    stride_c  rocblas_stride.
-              specifies stride from start of one "C" matrix to the next.
-    @param[out]
-    d         void *.
-              pointer storing matrix D on the GPU.
-    @param[in]
-    d_type    rocblas_datatype.
-              specifies the datatype of matrix D.
-    @param[in]
-    ldd       rocblas_int.
-              specifies the leading dimension of D.
-    @param[in]
-    stride_d  rocblas_stride.
-              specifies stride from start of one "D" matrix to the next.
-    @param[in]
-    batch_count
-              rocblas_int.
-              number of gemm operations in the batch.
-    @param[in]
-    compute_type
-              rocblas_datatype.
-              specifies the datatype of computation.
-    @param[in]
-    algo      rocblas_gemm_algo.
-              enumerant specifying the algorithm type.
-    @param[in]
-    solution_index
-              int32_t.
-              reserved for future use.
-    @param[in]
-    flags     uint32_t.
-              reserved for future use.
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
-                                                              rocblas_operation transA,
-                                                              rocblas_operation trans_b,
-                                                              rocblas_int       m,
-                                                              rocblas_int       n,
-                                                              rocblas_int       k,
-                                                              const void*       alpha,
-                                                              const void*       a,
-                                                              rocblas_datatype  a_type,
-                                                              rocblas_int       lda,
-                                                              rocblas_stride    stride_a,
-                                                              const void*       b,
-                                                              rocblas_datatype  b_type,
-                                                              rocblas_int       ldb,
-                                                              rocblas_stride    stride_b,
-                                                              const void*       beta,
-                                                              const void*       c,
-                                                              rocblas_datatype  c_type,
-                                                              rocblas_int       ldc,
-                                                              rocblas_stride    stride_c,
-                                                              void*             d,
-                                                              rocblas_datatype  d_type,
-                                                              rocblas_int       ldd,
-                                                              rocblas_stride    stride_d,
-                                                              rocblas_int       batch_count,
-                                                              rocblas_datatype  compute_type,
-                                                              rocblas_gemm_algo algo,
-                                                              int32_t           solution_index,
-                                                              uint32_t          flags);
-
-/* For backward compatiblity, unused workspace_size and workspace arguments are ignored */
-// clang-format off
-#define rocblas_gemm_strided_batched_ex(handle,         \
-                                        transA,         \
-                                        trans_b,        \
-                                        m,              \
-                                        n,              \
-                                        k,              \
-                                        alpha,          \
-                                        a,              \
-                                        a_type,         \
-                                        lda,            \
-                                        stride_a,       \
-                                        b,              \
-                                        b_type,         \
-                                        ldb,            \
-                                        stride_b,       \
-                                        beta,           \
-                                        c,              \
-                                        c_type,         \
-                                        ldc,            \
-                                        stride_c,       \
-                                        d,              \
-                                        d_type,         \
-                                        ldd,            \
-                                        stride_d,       \
-                                        batch_count,    \
-                                        compute_type,   \
-                                        algo,           \
-                                        solution_index, \
-                                        flags,          \
-                                        ...)            \
-                                        ROCBLAS_VA_OPT_PRAGMA(GCC warning "rocblas_gemm_strided_batched_ex: The workspace_size and workspace arguments are obsolete, and will be ignored", __VA_ARGS__) \
-        rocblas_gemm_strided_batched_ex(handle,         \
-                                        transA,         \
-                                        trans_b,        \
-                                        m,              \
-                                        n,              \
-                                        k,              \
-                                        alpha,          \
-                                        a,              \
-                                        a_type,         \
-                                        lda,            \
-                                        stride_a,       \
-                                        b,              \
-                                        b_type,         \
-                                        ldb,            \
-                                        stride_b,       \
-                                        beta,           \
-                                        c,              \
-                                        c_type,         \
-                                        ldc,            \
-                                        stride_c,       \
-                                        d,              \
-                                        d_type,         \
-                                        ldd,            \
-                                        stride_d,       \
-                                        batch_count,    \
-                                        compute_type,   \
-                                        algo,           \
-                                        solution_index, \
-                                        flags)
 // clang-format on
 
 /*! BLAS EX API
@@ -5875,7 +5152,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_EX_BATCHED solves
+    TRSM_BATCHED_EX solves
 
         op(A)*X = alpha*B or X*op(A) = alpha*B,
 
@@ -5887,7 +5164,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
     The matrix X is overwritten on B.
 
     TRSM_EX gives the user the ability to reuse the invA matrix between runs.
-    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate invA on every run.
+    If invA == NULL, rocblas_trsm_batched_ex will automatically calculate invA on every run.
 
     Setting up invA:
     The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
@@ -5997,7 +5274,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
             specifies the datatype of computation
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
                                                       rocblas_side      side,
                                                       rocblas_fill      uplo,
                                                       rocblas_operation transA,
@@ -6018,7 +5295,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_EX_BATCHED solves
+    TRSM_STRIDED_BATCHED_EX solves
 
         op(A)*X = alpha*B or X*op(A) = alpha*B,
 
@@ -6030,7 +5307,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
     The matrix X is overwritten on B.
 
     TRSM_EX gives the user the ability to reuse the invA matrix between runs.
-    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate invA on every run.
+    If invA == NULL, rocblas_trsm_batched_ex will automatically calculate invA on every run.
 
     Setting up invA:
     The accepted invA matrix consists of the packed 128x128 inverses of the diagonal blocks of
@@ -6152,7 +5429,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
             specifies the datatype of computation
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
                                                               rocblas_side      side,
                                                               rocblas_fill      uplo,
                                                               rocblas_operation transA,

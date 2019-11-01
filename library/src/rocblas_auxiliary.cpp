@@ -759,7 +759,9 @@ catch(...) // catch all exceptions
 // Convert rocblas_status to string
 extern "C" const char* rocblas_status_to_string(rocblas_status status)
 {
-#define CASE(x) case x: return #x
+#define CASE(x) \
+    case x:     \
+        return #x
     switch(status)
     {
         CASE(rocblas_status_success);

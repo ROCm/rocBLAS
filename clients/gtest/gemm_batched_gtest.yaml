@@ -30,10 +30,10 @@ Definitions:
     - { M:   501, N:   502, K:   103, lda:   504, ldb:   605, ldc:   506, ldd:   506 }
 
   - &large_matrix_size_range
-    - { M:   511, N:   511, K:   511, lda:   511, ldb:   511, ldc:   511, ldd:   511 } 
-    - { M:   512, N:   512, K:   512, lda:   512, ldb:   512, ldc:   512, ldd:   512 } 
-    - { M:   513, N:   513, K:   513, lda:   513, ldb:   513, ldc:   513, ldd:   513 } 
-    - { M:   513, N:   514, K:   515, lda:   516, ldb:   517, ldc:   518, ldd:   518 } 
+    - { M:   511, N:   511, K:   511, lda:   511, ldb:   511, ldc:   511, ldd:   511 }
+    - { M:   512, N:   512, K:   512, lda:   512, ldb:   512, ldc:   512, ldd:   512 }
+    - { M:   513, N:   513, K:   513, lda:   513, ldb:   513, ldc:   513, ldd:   513 }
+    - { M:   513, N:   514, K:   515, lda:   516, ldb:   517, ldc:   518, ldd:   518 }
 
   - &deepbench_vec
     - { M: 12544, N:    64, K:    64, lda: 12544, ldb:    64, ldc: 12544, ldd: 12544 }
