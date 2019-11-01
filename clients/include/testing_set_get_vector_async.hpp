@@ -13,6 +13,7 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
+#include "pinned_memory_allocator.hpp"
 
 template <typename T>
 void testing_set_get_vector_async(const Arguments& arg)
@@ -45,10 +46,15 @@ void testing_set_get_vector_async(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hx(M * size_t(incx));
-    host_vector<T> hy(M * size_t(incy));
-    host_vector<T> hb(M * size_t(incb));
-    host_vector<T> hy_gold(M * size_t(incy));
+    //pinned_memory_allocator<T> hipPinned;
+    T* hx;
+    hipHostMalloc(&hx, sizeof(T) * M * size_t(incx), hipHostMallocDefault);    
+    T* hy;
+    hipHostMalloc(&hy, sizeof(T) * M * size_t(incy), hipHostMallocDefault);  
+    //host_pinned_vector<T> hxvec(M, incx );
+    host_vector<T> hyvec(M, size_t(incy));
+    //host_vector<T> hb(M * size_t(incb));
+    host_vector<T> hy_gold(M, size_t(incy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
@@ -64,16 +70,20 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, M, incx);
-    rocblas_init<T>(hy, 1, M, incy);
-    rocblas_init<T>(hb, 1, M, incb);
-    hy_gold = hy;
+    for(int i = 0; i < M; i++)
+    {
+        *(hx+i*incx) = T(i);
+    }
+    //rocblas_init<T>(hxvec, 1, M, incx);
+    //rocblas_init<T>(hy, 1, M, incy);
+    //rocblas_init<T>(hb, 1, M, incb);
+    //hy_gold = hy;
 
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        rocblas_init<T>(hy, 1, M, incy);
-        rocblas_init<T>(hb, 1, M, incb);
+        //rocblas_init<T>(hy, 1, M, incy);
+        //rocblas_init<T>(hb, 1, M, incb);
         //CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * incb * M, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(handle, M, sizeof(T), hx, incx, db, incb));
@@ -83,6 +93,8 @@ void testing_set_get_vector_async(const Arguments& arg)
         hipStreamSynchronize(rocblas_stream);
 
         cpu_time_used = get_time_us();
+
+        hyvec.assign(hy, hy+M*incy); // copy to host_vector for checks
 
         // reference calculation
         for(int i = 0; i < M; i++)
@@ -95,12 +107,12 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incy, hy, hy_gold);
+            unit_check_general<T>(1, M, incy, hyvec, hy_gold);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, incy, hy, hy_gold);
+            rocblas_error = norm_check_general<T>('F', 1, M, incy, hyvec, hy_gold);
         }
     }
 
@@ -135,4 +147,7 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         std::cout << std::endl;
     }
+
+    hipHostFree(hx);
+    hipHostFree(hy);
 }
