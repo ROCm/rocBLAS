@@ -28,8 +28,9 @@ rocBLASCI:
 {
 
     def rocblas = new rocProject('rocBLAS')
+    
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c'
+    rocblas.paths.build_command = './install.sh -lasm_ci -c --hip-clang -oV3'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['ubuntu && gfx900 && hip-clang', 'ubuntu && gfx906 && hip-clang', 'ubuntu && gfx908 && hip-clang'], rocblas)
@@ -42,11 +43,13 @@ rocBLASCI:
 
         project.paths.construct_build_prefix()
 
+        String sudo = auxiliary.sudo(platform.jenkinsLabel)
         def command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                    LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
                     """
+
         platform.runCommand(this, command)
     }
 
@@ -57,35 +60,40 @@ rocBLASCI:
         String sudo = auxiliary.sudo(platform.jenkinsLabel)
         def gfilter = auxiliary.isJobStartedByTimer() ? "*nightly*" : "*quick*:*pre_checkin*"
 
-        def command = """#!/usr/bin/env bash
+        try
+        {
+            def command = """#!/usr/bin/env bash
                         set -x
                         cd ${project.paths.project_build_prefix}/build/release/clients/staging
                         ${sudo} LD_LIBRARY_PATH=/opt/rocm/hcc/lib GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
-                    """
-
-        platform.runCommand(this, command)
-        junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+                        """
+            platform.runCommand(this, command)
+        }
+        finally
+        {
+            junit "${project.paths.project_build_prefix}/build/release/clients/staging/*.xml"
+        }
     }
 
     def packageCommand =
     {
         platform, project->
 
+        String sudo = auxiliary.sudo(platform.jenkinsLabel)
+
         def command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
-                    make package
-                    make package_clients
-                    mkdir -p package
-                    mv *.deb package/
-                    mv clients/*.deb package/
+                    ${sudo} make package
+                    ${sudo} make package_clients
+                    ${sudo} mkdir -p package
+                    ${sudo} mv *.deb package/
+                    ${sudo} mv clients/*.deb package/
                 """
 
-            platform.runCommand(this, command)
-            platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.deb""")
-        }
+        platform.runCommand(this, command)
+        platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/build/release/package/*.deb""")
     }
 
     buildProject(rocblas, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
-
 }

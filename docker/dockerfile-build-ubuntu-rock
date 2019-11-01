@@ -19,6 +19,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     rocm_smi64 \
     ca-certificates \
     git \
+    g++ \
     make \
     cmake \
     clang-format-3.8 \
