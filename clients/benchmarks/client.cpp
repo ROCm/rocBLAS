@@ -77,6 +77,8 @@ using namespace std::literals;
 #include "testing_trsm_strided_batched.hpp"
 #include "testing_trsm_strided_batched_ex.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trsv_batched.hpp"
+#include "testing_trsv_strided_batched.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "testing_trtri_strided_batched.hpp"
@@ -237,6 +239,10 @@ struct perf_blas<
             testing_trsm_strided_batched_ex<T>(arg);
         else if(!strcmp(arg.function, "trsv"))
             testing_trsv<T>(arg);
+        else if(!strcmp(arg.function, "trsv_batched"))
+            testing_trsv_batched<T>(arg);
+        else if(!strcmp(arg.function, "trsv_strided_batched"))
+            testing_trsv_strided_batched<T>(arg);
 #endif
         else
             throw std::invalid_argument("Invalid combination --function "s + arg.function
