@@ -94,10 +94,10 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
+#include "testing_trsm_batched_ex.hpp"
 #include "testing_trsm_ex.hpp"
-#include "testing_trsm_ex_batched.hpp"
-#include "testing_trsm_ex_strided_batched.hpp"
 #include "testing_trsm_strided_batched.hpp"
+#include "testing_trsm_strided_batched_ex.hpp"
 #include "testing_trsv.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
@@ -124,7 +124,7 @@ struct perf_gemm_ex<Ti,
         static const func_map map = {
             {"gemm_ex", testing_gemm_ex<Ti, To, Tc>},
             {"gemm_batched_ex", testing_gemm_batched_ex<Ti, To, Tc>},
-        };
+         };
         run_function(map, arg);
     }
 };
@@ -210,9 +210,9 @@ struct perf_blas<
                 {"trsm", testing_trsm<T>},
                 {"trsm_ex", testing_trsm_ex<T>},
                 {"trsm_batched", testing_trsm_batched<T>},
-                {"trsm_ex_batched", testing_trsm_ex_batched<T>},
+                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
-                {"trsm_ex_strided_batched", testing_trsm_ex_strided_batched<T>},
+                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
                 {"trsv", testing_trsv<T>},
 #endif
               };

@@ -276,7 +276,7 @@ rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 
-rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
+rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
                                        rocblas_side      side,
                                        rocblas_fill      uplo,
                                        rocblas_operation transA,

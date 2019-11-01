@@ -242,18 +242,11 @@ private:
         switch(st)
         {
         case storage::block:
-        {
             return size_t(std::abs(stride)) * batch_count;
-        }
         case storage::interleave:
-        {
             return size_t(n) * std::abs(inc);
         }
-        default:
-        {
-            return 0;
-        }
-        }
+        return 0;
     }
 };
 

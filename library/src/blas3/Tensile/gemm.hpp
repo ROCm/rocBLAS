@@ -69,8 +69,8 @@ constexpr auto GetTransposeMode(rocblas_operation trans_a, rocblas_operation tra
  * Tensile Helper Function call
  ******************************************************************************/
 template <typename T>
-rocblas_status tensile_helper(T&                alpha_h,
-                              T&                beta_h,
+rocblas_status tensile_helper(const T&          alpha_h,
+                              const T&          beta_h,
                               const T*          A,
                               const T*          B,
                               T*                C,
@@ -88,14 +88,14 @@ rocblas_status tensile_helper(T&                alpha_h,
                               rocblas_int       sizeL,
                               rocblas_handle    handle);
 
-#define TENSILE_ARGS(T)                                                                            \
-    (T*)C, (const T*)C, (const T*)A, (const T*)B, *((T*)&alpha_h), *((T*)&beta_h), strideC1,       \
-        strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, sizeJ, sizeK, \
-        sizeL, handle->rocblas_stream, 0, nullptr, nullptr
+#define TENSILE_ARGS(T)                                                                        \
+    (T*)C, (const T*)C, (const T*)A, (const T*)B, *((const T*)&alpha_h), *((const T*)&beta_h), \
+        strideC1, strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, \
+        sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, nullptr, nullptr
 
 template <>
-rocblas_status tensile_helper(rocblas_half&       alpha_h,
-                              rocblas_half&       beta_h,
+rocblas_status tensile_helper(const rocblas_half& alpha_h,
+                              const rocblas_half& beta_h,
                               const rocblas_half* A,
                               const rocblas_half* B,
                               rocblas_half*       C,
@@ -140,8 +140,8 @@ rocblas_status tensile_helper(rocblas_half&       alpha_h,
 }
 
 template <>
-rocblas_status tensile_helper(float&            alpha_h,
-                              float&            beta_h,
+rocblas_status tensile_helper(const float&      alpha_h,
+                              const float&      beta_h,
                               const float*      A,
                               const float*      B,
                               float*            C,
@@ -186,8 +186,8 @@ rocblas_status tensile_helper(float&            alpha_h,
 }
 
 template <>
-rocblas_status tensile_helper(double&           alpha_h,
-                              double&           beta_h,
+rocblas_status tensile_helper(const double&     alpha_h,
+                              const double&     beta_h,
                               const double*     A,
                               const double*     B,
                               double*           C,
@@ -232,8 +232,8 @@ rocblas_status tensile_helper(double&           alpha_h,
 }
 
 template <>
-rocblas_status tensile_helper(rocblas_float_complex&       alpha_h,
-                              rocblas_float_complex&       beta_h,
+rocblas_status tensile_helper(const rocblas_float_complex& alpha_h,
+                              const rocblas_float_complex& beta_h,
                               const rocblas_float_complex* A,
                               const rocblas_float_complex* B,
                               rocblas_float_complex*       C,
@@ -299,8 +299,8 @@ rocblas_status tensile_helper(rocblas_float_complex&       alpha_h,
 }
 
 template <>
-rocblas_status tensile_helper(rocblas_double_complex&       alpha_h,
-                              rocblas_double_complex&       beta_h,
+rocblas_status tensile_helper(const rocblas_double_complex& alpha_h,
+                              const rocblas_double_complex& beta_h,
                               const rocblas_double_complex* A,
                               const rocblas_double_complex* B,
                               rocblas_double_complex*       C,
@@ -541,8 +541,8 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
 }
 
 #ifndef USE_TENSILE_HOST
-/
-*******************************************************************************
+
+/*******************************************************************************
  * Tensile Solution Name (debug only)
  ******************************************************************************/
 template <typename T>
@@ -865,7 +865,6 @@ rocblas_status rocblas_gemm_template(rocblas_handle    handle,
     return status;
 }
 
-#ifndef USE_TENSILE_HOST
 /* ============================================================================================ */
 template <bool BATCHED, typename T>
 inline void rocblas_gemm_kernel_name_template(rocblas_operation trans_a,
@@ -893,6 +892,5 @@ inline void rocblas_gemm_kernel_name_template(rocblas_operation trans_a,
 
     std::cout << solution_name << std::endl;
 }
-#endif // USE_TENSILE_HOST
 
 #endif // _GEMM_HOST_HPP_

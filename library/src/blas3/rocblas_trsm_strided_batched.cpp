@@ -319,7 +319,7 @@ rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
                                                              batch_count);
 }
 
-rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
+rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
                                                rocblas_side      side,
                                                rocblas_fill      uplo,
                                                rocblas_operation transA,
