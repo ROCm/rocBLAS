@@ -8,10 +8,10 @@
 #include "rocblas_test.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
+#include "testing_trsm_batched_ex.hpp"
 #include "testing_trsm_ex.hpp"
-#include "testing_trsm_ex_batched.hpp"
-#include "testing_trsm_ex_strided_batched.hpp"
 #include "testing_trsm_strided_batched.hpp"
+#include "testing_trsm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -25,9 +25,9 @@ namespace
         TRSM,
         TRSM_EX,
         TRSM_BATCHED,
-        TRSM_EX_BATCHED,
+        TRSM_BATCHED_EX,
         TRSM_STRIDED_BATCHED,
-        TRSM_EX_STRIDED_BATCHED,
+        TRSM_STRIDED_BATCHED_EX,
     };
 
     // trsm test template
@@ -51,12 +51,12 @@ namespace
                 return !strcmp(arg.function, "trsm_ex");
             case TRSM_BATCHED:
                 return !strcmp(arg.function, "trsm_batched");
-            case TRSM_EX_BATCHED:
-                return !strcmp(arg.function, "trsm_ex_batched");
+            case TRSM_BATCHED_EX:
+                return !strcmp(arg.function, "trsm_batched_ex");
             case TRSM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "trsm_strided_batched");
-            case TRSM_EX_STRIDED_BATCHED:
-                return !strcmp(arg.function, "trsm_ex_strided_batched");
+            case TRSM_STRIDED_BATCHED_EX:
+                return !strcmp(arg.function, "trsm_strided_batched_ex");
             }
             return false;
         }
@@ -71,15 +71,15 @@ namespace
                  << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
                  << '_' << arg.lda << '_';
 
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_EX_STRIDED_BATCHED)
+            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
                 name << arg.stride_a << '_';
 
             name << arg.ldb;
 
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_EX_STRIDED_BATCHED)
+            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX)
                 name << '_' << arg.stride_b;
-            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_EX_STRIDED_BATCHED
-               || TRSM_TYPE == TRSM_BATCHED || TRSM_TYPE == TRSM_EX_BATCHED)
+            if(TRSM_TYPE == TRSM_STRIDED_BATCHED || TRSM_TYPE == TRSM_STRIDED_BATCHED_EX
+               || TRSM_TYPE == TRSM_BATCHED || TRSM_TYPE == TRSM_BATCHED_EX)
                 name << '_' << arg.batch_count;
 
             return std::move(name);
@@ -112,12 +112,12 @@ namespace
                 testing_trsm_ex<T>(arg);
             else if(!strcmp(arg.function, "trsm_batched"))
                 testing_trsm_batched<T>(arg);
-            else if(!strcmp(arg.function, "trsm_ex_batched"))
-                testing_trsm_ex_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsm_batched_ex"))
+                testing_trsm_batched_ex<T>(arg);
             else if(!strcmp(arg.function, "trsm_strided_batched"))
                 testing_trsm_strided_batched<T>(arg);
-            else if(!strcmp(arg.function, "trsm_ex_strided_batched"))
-                testing_trsm_ex_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "trsm_strided_batched_ex"))
+                testing_trsm_strided_batched_ex<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -144,12 +144,12 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_batched);
 
-    using trsm_ex_batched = trsm_template<trsm_testing, TRSM_EX_BATCHED>;
-    TEST_P(trsm_ex_batched, blas3)
+    using trsm_batched_ex = trsm_template<trsm_testing, TRSM_BATCHED_EX>;
+    TEST_P(trsm_batched_ex, blas3)
     {
         rocblas_simple_dispatch<trsm_testing>(GetParam());
     }
-    INSTANTIATE_TEST_CATEGORIES(trsm_ex_batched);
+    INSTANTIATE_TEST_CATEGORIES(trsm_batched_ex);
 
     using trsm_strided_batched = trsm_template<trsm_testing, TRSM_STRIDED_BATCHED>;
     TEST_P(trsm_strided_batched, blas3)
@@ -158,11 +158,11 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_strided_batched);
 
-    using trsm_ex_strided_batched = trsm_template<trsm_testing, TRSM_EX_STRIDED_BATCHED>;
-    TEST_P(trsm_ex_strided_batched, blas3)
+    using trsm_strided_batched_ex = trsm_template<trsm_testing, TRSM_STRIDED_BATCHED_EX>;
+    TEST_P(trsm_strided_batched_ex, blas3)
     {
         rocblas_simple_dispatch<trsm_testing>(GetParam());
     }
-    INSTANTIATE_TEST_CATEGORIES(trsm_ex_strided_batched);
+    INSTANTIATE_TEST_CATEGORIES(trsm_strided_batched_ex);
 
 } // namespace

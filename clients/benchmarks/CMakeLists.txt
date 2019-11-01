@@ -57,7 +57,7 @@ else()
 endif()
 
 # Internal header includes
-target_include_directories( rocblas-bench 
+target_include_directories( rocblas-bench
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
@@ -154,7 +154,7 @@ if( OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
 
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
 set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
