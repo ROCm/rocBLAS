@@ -40,7 +40,6 @@ if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
       gemm_gtest.cpp
       trsm_gtest.cpp
-      trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
 

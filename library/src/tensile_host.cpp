@@ -231,6 +231,8 @@ struct TensileHostImpl : TensileHost
         else
         {
             Dl_info info;
+
+            // Find the location of librocblas.so
             if(dladdr((void*)createTensileHost, &info))
             {
                 path = info.dli_fname;

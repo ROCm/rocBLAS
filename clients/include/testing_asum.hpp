@@ -16,6 +16,7 @@
 template <typename T1, typename T2 = T1>
 void testing_asum_bad_arg_template(const Arguments& arg)
 {
+
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
     static const size_t safe_size        = 100;
@@ -24,11 +25,7 @@ void testing_asum_bad_arg_template(const Arguments& arg)
 
     rocblas_local_handle handle;
     device_vector<T1>    dx(safe_size);
-    if(!dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_asum<T1, T2>(handle, N, nullptr, incx, h_rocblas_result)),
                           rocblas_status_invalid_pointer);
@@ -41,6 +38,7 @@ void testing_asum_bad_arg_template(const Arguments& arg)
 template <typename T1, typename T2 = T1>
 void testing_asum_template(const Arguments& arg)
 {
+
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
 
@@ -56,15 +54,13 @@ void testing_asum_template(const Arguments& arg)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T1>   dx(safe_size);
-        device_vector<T2>   d_rocblas_result_2(1);
-        if(!dx || !d_rocblas_result_2)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_HIP_ERROR(dx.memcheck());
+
+        device_vector<T2> dr(1);
+        CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, d_rocblas_result_2)));
+        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, dr)));
         return;
     }
 
@@ -72,22 +68,20 @@ void testing_asum_template(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T1> dx(size_x);
-    device_vector<T2> d_rocblas_result_2(1);
-    if(!dx || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dx.memcheck());
+
+    device_vector<T2> dr(1);
+    CHECK_HIP_ERROR(dr.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<T1> hx(size_x);
+    CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T1>(hx, 1, N, incx);
+    rocblas_init(hx);
 
-    // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * size_x, hipMemcpyHostToDevice));
+    // copy data from CPU to device
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 
@@ -98,11 +92,11 @@ void testing_asum_template(const Arguments& arg)
         CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, &rocblas_result_1)));
 
         // GPU BLAS rocblas_pointer_mode_device
-        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, d_rocblas_result_2)));
-        CHECK_HIP_ERROR(
-            hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, dr)));
+        CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(T2), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();

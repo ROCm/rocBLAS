@@ -51,7 +51,7 @@ namespace
         if(!x || !y)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_swap_template<NB>(handle, n, x, incx, y, incy);
+        return rocblas_swap_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0);
     }
 
 } // namespace

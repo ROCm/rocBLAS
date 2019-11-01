@@ -104,6 +104,7 @@ void testing_rotg_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
     double               gpu_time_used, cpu_time_used;
     double               norm_error_host = 0.0, norm_error_device = 0.0;
+    const U              rel_error = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -187,7 +188,6 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                double rel_error = std::numeric_limits<U>::epsilon() * 100;
                 near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
                 near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
                 near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
@@ -239,7 +239,6 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                double rel_error = std::numeric_limits<U>::epsilon() * 100;
                 near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
                 near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
                 near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);

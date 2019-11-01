@@ -55,6 +55,7 @@ void testing_rotmg_batched(const Arguments& arg)
 
     double gpu_time_used, cpu_time_used;
     double norm_error_host = 0.0, norm_error_device = 0.0;
+    T      rel_error = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -160,11 +161,11 @@ void testing_rotmg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
+                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)
@@ -233,11 +234,11 @@ void testing_rotmg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
+                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)

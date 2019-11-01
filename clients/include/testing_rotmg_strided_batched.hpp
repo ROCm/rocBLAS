@@ -64,8 +64,9 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     rocblas_int          stride_param = arg.stride_c;
     rocblas_local_handle handle;
 
-    double gpu_time_used, cpu_time_used;
-    double norm_error_host = 0.0, norm_error_device = 0.0;
+    double  gpu_time_used, cpu_time_used;
+    double  norm_error_host = 0.0, norm_error_device = 0.0;
+    const T rel_error = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -165,11 +166,12 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, stride_param, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
+                    1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)
@@ -231,11 +233,12 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, stride_param, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
+                    1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)
