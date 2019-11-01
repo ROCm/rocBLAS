@@ -30,10 +30,10 @@ rocBLASCI:
     def rocblas = new rocProject('rocBLAS')
     
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c --hip-clang'
+    rocblas.paths.build_command = './install.sh -lasm_ci -c --hip-clang -oV3'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu16 && gfx900 && hip-clang', 'ubuntu16 && gfx906 && hip-clang'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx900 && hip-clang', 'ubuntu && gfx906 && hip-clang', 'ubuntu && gfx908 && hip-clang'], rocblas)
 
     boolean formatCheck = true
 
@@ -44,13 +44,12 @@ rocBLASCI:
         project.paths.construct_build_prefix()
 
         String sudo = auxiliary.sudo(platform.jenkinsLabel)
-        
         def command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    export PATH=/opt/rocm/bin:$PATH
-                    ${sudo} LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
+                    LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command}
                     """
+
         platform.runCommand(this, command)
     }
 

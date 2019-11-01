@@ -383,24 +383,6 @@ hipError_t call_tensile(const T*          alpha,
                         rocblas_int       sizeL,
                         rocblas_handle    handle)
 {
-    // Currently alpha and beta can only be single values as
-    // tensile does not support arrays for scalars yet.
-#ifndef NDEBUG
-    std::cout << "Solution Name: "
-              << tensileGetSolutionName<T>(trans_a,
-                                           trans_b,
-                                           strideC1,
-                                           strideC2,
-                                           strideA1,
-                                           strideA2,
-                                           strideB1,
-                                           strideB2,
-                                           sizeI,
-                                           sizeJ,
-                                           sizeK,
-                                           sizeL)
-              << std::endl;
-#endif
 
     // Collect alpha / beta (either from host or device).
     // Tensile doesn't support arrays of scalars for now, so we must handle
@@ -861,9 +843,9 @@ inline rocblas_status rocblas_gemm_template(rocblas_handle    handle,
     hipError_t status;
     if(BATCHED)
     {
-        sizeK = 1;
-
+        sizeK           = 1;
         size_t sizecopy = b_c * sizeof(T*);
+
         // Host arrays of device pointers.
         T* hostA[b_c];
         T* hostB[b_c];

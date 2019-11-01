@@ -41,33 +41,33 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
 #define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)
 #define NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, err, NEAR_ASSERT)
 #else
-// clang-format off
-#define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT) \
-    do                                                            \
-    {                                                             \
-        for(size_t k = 0; k < batch_count; k++)                   \
-            for(size_t j = 0; j < N; j++)                         \
-                for(size_t i = 0; i < M; i++)                     \
-                    NEAR_ASSERT(hCPU[i + j * lda + k * strideA],  \
-                                hGPU[i + j * lda + k * strideA],  \
-                                err);                             \
+
+#define NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, err, NEAR_ASSERT)               \
+    do                                                                                          \
+    {                                                                                           \
+        for(size_t k = 0; k < batch_count; k++)                                                 \
+            for(size_t j = 0; j < N; j++)                                                       \
+                for(size_t i = 0; i < M; i++)                                                   \
+                    NEAR_ASSERT(                                                                \
+                        hCPU[i + j * lda + k * strideA], hGPU[i + j * lda + k * strideA], err); \
     } while(0)
 
-#define NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, err, NEAR_ASSERT)           \
-    do                                                                               \
-    {                                                                                \
-        for(size_t k = 0; k < batch_count; k++)                                      \
-            for(size_t j = 0; j < N; j++)                                            \
-                for(size_t i = 0; i < M; i++)                                        \
-                    if(rocblas_isnan(hCPU[k][i + j * lda])) {                        \
-                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));            \
-                    } else {                                                         \
-                        NEAR_ASSERT(hCPU[k][i + j * lda],                            \
-                                    hGPU[k][i + j * lda],                            \
-                                    err);                                            \
-                    }                                                                \
+#define NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, err, NEAR_ASSERT)            \
+    do                                                                                \
+    {                                                                                 \
+        for(size_t k = 0; k < batch_count; k++)                                       \
+            for(size_t j = 0; j < N; j++)                                             \
+                for(size_t i = 0; i < M; i++)                                         \
+                    if(rocblas_isnan(hCPU[k][i + j * lda]))                           \
+                    {                                                                 \
+                        ASSERT_TRUE(rocblas_isnan(hGPU[k][i + j * lda]));             \
+                    }                                                                 \
+                    else                                                              \
+                    {                                                                 \
+                        NEAR_ASSERT(hCPU[k][i + j * lda], hGPU[k][i + j * lda], err); \
+                    }                                                                 \
     } while(0)
-// clang-format on
+
 #endif
 
 #define NEAR_ASSERT_HALF(a, b, err) ASSERT_NEAR(half_to_float(a), half_to_float(b), err)
@@ -253,6 +253,32 @@ inline void near_check_general(rocblas_int         M,
                                double              abs_error)
 {
     NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
+}
+
+template <>
+inline void near_check_general(rocblas_int                        M,
+                               rocblas_int                        N,
+                               rocblas_int                        batch_count,
+                               rocblas_int                        lda,
+                               host_vector<rocblas_float_complex> hCPU[],
+                               host_vector<rocblas_float_complex> hGPU[],
+                               double                             abs_error)
+{
+    abs_error *= sqrthalf;
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
+}
+
+template <>
+inline void near_check_general(rocblas_int                         M,
+                               rocblas_int                         N,
+                               rocblas_int                         batch_count,
+                               rocblas_int                         lda,
+                               host_vector<rocblas_double_complex> hCPU[],
+                               host_vector<rocblas_double_complex> hGPU[],
+                               double                              abs_error)
+{
+    abs_error *= sqrthalf;
+    NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, NEAR_ASSERT_COMPLEX);
 }
 
 #endif
