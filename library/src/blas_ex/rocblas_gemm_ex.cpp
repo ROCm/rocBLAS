@@ -302,95 +302,43 @@ namespace
 
         rocblas_status rb_status   = rocblas_status_internal_error;
         rocblas_int    batch_count = 1;
-        rocblas_int    stride_a    = trans_a == rocblas_operation_none ? lda * k : lda * m;
-        rocblas_int    stride_b    = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
-        rocblas_int    stride_c    = ldc * n;
-        rocblas_int    stride_d    = ldd * n;
+        rocblas_stride stride_a    = trans_a == rocblas_operation_none ? lda * k : lda * m;
+        rocblas_stride stride_b    = trans_b == rocblas_operation_none ? ldb * n : ldb * k;
+        rocblas_stride stride_c    = ldc * n;
+        rocblas_stride stride_d    = ldd * n;
 
-#define EX_TYPECASTING_PARM                                                                      \
-    handle, trans_a, trans_b, m, n, k, alpha, 0, a, 0, lda, stride_a, b, 0, ldb, stride_b, beta, \
-        0, c, 0, ldc, stride_c, d, 0, ldd, stride_d, batch_count
-
-        if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
-           && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
-           && compute_type == rocblas_datatype_f64_r)
-        {
-            rb_status = gemm_ex_typecasting<false, double, double, double>(EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-                && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
-                && compute_type == rocblas_datatype_f32_r)
-        {
-            rb_status = gemm_ex_typecasting<false, float, float, float>(EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-                && compute_type == rocblas_datatype_f16_r)
-        {
-            rb_status
-                = gemm_ex_typecasting<false, _Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-                && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-                && compute_type == rocblas_datatype_f32_r)
-        {
-            rb_status = gemm_ex_typecasting<false, _Float16, _Float16, float>(EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-                && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
-                && compute_type == rocblas_datatype_f32_r)
-        {
-            rb_status = gemm_ex_typecasting<false, tensile_bfloat16, tensile_bfloat16, float>(
-                EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
-                && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
-                && compute_type == rocblas_datatype_i32_r)
-        {
-            // For now, K must be a multiple of 4, and/or LDA/LDB based on transpose mode
-            if(k % 4 != 0 || (trans_a == rocblas_operation_transpose && lda % 4 != 0)
-               || (trans_b == rocblas_operation_none && ldb % 4 != 0))
-            {
-                rb_status = rocblas_status_invalid_size;
-            }
-            else
-            {
-                // adjust by 4 for Tensile
-                lda      = (trans_a == rocblas_operation_none) ? lda : lda / 4;
-                ldb      = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-                stride_a = stride_a / 4;
-                stride_b = stride_b / 4;
-                k        = k / 4;
-
-                rb_status = gemm_ex_typecasting<false, TensileInt8x4, TensileInt32, TensileInt32>(
-                    EX_TYPECASTING_PARM);
-            }
-        }
-        else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c
-                && c_type == rocblas_datatype_f32_c && d_type == rocblas_datatype_f32_c
-                && compute_type == rocblas_datatype_f32_c)
-        {
-            rb_status = gemm_ex_typecasting<false,
-                                            rocblas_float_complex,
-                                            rocblas_float_complex,
-                                            rocblas_float_complex>(EX_TYPECASTING_PARM);
-        }
-        else if(a_type == rocblas_datatype_f64_c && b_type == rocblas_datatype_f64_c
-                && c_type == rocblas_datatype_f64_c && d_type == rocblas_datatype_f64_c
-                && compute_type == rocblas_datatype_f64_c)
-        {
-            rb_status = gemm_ex_typecasting<false,
-                                            rocblas_double_complex,
-                                            rocblas_double_complex,
-                                            rocblas_double_complex>(EX_TYPECASTING_PARM);
-        }
-        else
-        {
-            rb_status = rocblas_status_not_implemented;
-        }
-#undef EX_TYPECASTING_PARM
-
-        return rb_status;
+        return rocblas_gemm_ex_template<false>(handle,
+                                               trans_a,
+                                               trans_b,
+                                               m,
+                                               n,
+                                               k,
+                                               alpha,
+                                               0,
+                                               a,
+                                               a_type,
+                                               0,
+                                               lda,
+                                               stride_a,
+                                               b,
+                                               b_type,
+                                               0,
+                                               ldb,
+                                               stride_b,
+                                               beta,
+                                               0,
+                                               c,
+                                               c_type,
+                                               0,
+                                               ldc,
+                                               stride_c,
+                                               d,
+                                               d_type,
+                                               0,
+                                               ldd,
+                                               stride_d,
+                                               batch_count,
+                                               compute_type);
     }
 
 }
