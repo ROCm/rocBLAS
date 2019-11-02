@@ -2,11 +2,11 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_nrm2_strided_batched.hpp"
-#include "logging.h"
-#include "utility.h"
+#include "rocblas_reduction_impl.hpp"
 
 namespace
 {
+
     template <typename>
     constexpr char rocblas_nrm2_strided_batched_name[] = "unknown";
     template <>
@@ -33,56 +33,21 @@ namespace
                                                      rocblas_int    batch_count,
                                                      To*            results)
     {
-        if(!handle)
-            return rocblas_status_invalid_handle;
-
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(
-                handle, rocblas_nrm2_strided_batched_name<Ti>, n, x, incx, stridex, batch_count);
-
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f nrm2_strided_batched -r",
-                      rocblas_precision_string<Ti>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--stride_x",
-                      stridex,
-                      "--batch_count",
-                      batch_count);
-
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_nrm2_strided_batched_name<Ti>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stride_x",
-                        stridex,
-                        "batch",
-                        batch_count);
-
-        if(!x || !results)
-            return rocblas_status_invalid_pointer;
-
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
-
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
-
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
-            return rocblas_status_memory_error;
-
-        return rocblas_nrm2_strided_batched_template<NB>(
-            handle, n, x, 0, incx, stridex, batch_count, (To*)mem, results);
+        static constexpr bool isbatched = true;
+        return rocblas_reduction_impl<NB,
+                                      isbatched,
+                                      rocblas_fetch_nrm2<To>,
+                                      rocblas_reduce_sum,
+                                      rocblas_finalize_nrm2,
+                                      To>(handle,
+                                          n,
+                                          x,
+                                          incx,
+                                          stridex,
+                                          batch_count,
+                                          results,
+                                          rocblas_nrm2_strided_batched_name<Ti>,
+                                          "nrm2_strided_batched");
     }
 
 }
@@ -95,52 +60,29 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             const float*   x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             rocblas_int    batch_count,
-                                             float*         result)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
-}
+#ifdef IMPL
+#error IMPL IS ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
-                                             rocblas_int    n,
-                                             const double*  x,
-                                             rocblas_int    incx,
-                                             rocblas_stride stridex,
-                                             rocblas_int    batch_count,
-                                             double*        result)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
-}
+#define IMPL(name_, typei_, typeo_)                             \
+    rocblas_status name_(rocblas_handle handle,                 \
+                         rocblas_int    n,                      \
+                         const typei_*  x,                      \
+                         rocblas_int    incx,                   \
+                         rocblas_stride stridex,                \
+                         rocblas_int    batch_count,            \
+                         typeo_*        results)                \
+    {                                                           \
+        constexpr rocblas_int NB = 512;                         \
+        return rocblas_nrm2_strided_batched_impl<NB>(           \
+            handle, n, x, incx, stridex, batch_count, results); \
+    }
 
-rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
-                                              rocblas_int                  n,
-                                              const rocblas_float_complex* x,
-                                              rocblas_int                  incx,
-                                              rocblas_stride               stridex,
-                                              rocblas_int                  batch_count,
-                                              float*                       result)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
-}
+IMPL(rocblas_snrm2_strided_batched, float, float);
+IMPL(rocblas_dnrm2_strided_batched, double, double);
+IMPL(rocblas_scnrm2_strided_batched, rocblas_float_complex, float);
+IMPL(rocblas_dznrm2_strided_batched, rocblas_double_complex, double);
 
-rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                handle,
-                                              rocblas_int                   n,
-                                              const rocblas_double_complex* x,
-                                              rocblas_int                   incx,
-                                              rocblas_stride                stridex,
-                                              rocblas_int                   batch_count,
-                                              double*                       result)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_nrm2_strided_batched_impl<NB>(handle, n, x, incx, stridex, batch_count, result);
-}
+#undef IMPL
 
 } // extern "C"

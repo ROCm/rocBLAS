@@ -3,11 +3,8 @@
  * ************************************************************************ */
 #pragma once
 
-#include "fetch_template.h"
-#include "handle.h"
-#include "reduction_strided_batched.h"
-#include "rocblas.h"
 #include "rocblas_asum.hpp"
+#include "rocblas_reduction_impl.hpp"
 
 template <rocblas_int NB, typename U, typename To>
 rocblas_status rocblas_asum_batched_template(rocblas_handle handle,
@@ -19,23 +16,12 @@ rocblas_status rocblas_asum_batched_template(rocblas_handle handle,
                                              To*            workspace,
                                              To*            results)
 {
-    // Quick return if possible.
-    if(!batch_count)
-        return rocblas_status_success;
-    if(n <= 0 || incx <= 0)
-    {
-        if(handle->is_device_memory_size_query())
-            return rocblas_status_size_unchanged;
-        else if(rocblas_pointer_mode_device == handle->pointer_mode)
-            RETURN_IF_HIP_ERROR(hipMemsetAsync(results, 0, batch_count * sizeof(To)));
-        else
-        {
-            for(int i = 0; i < batch_count; i++)
-                results[i] = 0;
-        }
-        return rocblas_status_success;
-    }
-
-    return rocblas_reduction_strided_batched_kernel<NB, rocblas_fetch_asum<To>>(
-        handle, n, x, shiftx, incx, 0, batch_count, workspace, results);
+    static constexpr bool           isbatched = true;
+    static constexpr rocblas_stride stridex_0 = 0;
+    return rocblas_reduction_template<NB,
+                                      isbatched,
+                                      rocblas_fetch_asum<To>,
+                                      rocblas_reduce_sum,
+                                      rocblas_finalize_identity>(
+        handle, n, x, shiftx, incx, stridex_0, batch_count, results, workspace);
 }

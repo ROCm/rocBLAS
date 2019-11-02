@@ -2,8 +2,7 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_asum_batched.hpp"
-#include "logging.h"
-#include "utility.h"
+#include "rocblas_reduction_impl.hpp"
 
 namespace
 {
@@ -27,54 +26,23 @@ namespace
                                              rocblas_int     batch_count,
                                              To*             results)
     {
-        if(!handle)
-            return rocblas_status_invalid_handle;
 
-        if(!handle->is_device_memory_size_query())
-        {
-            auto layer_mode = handle->layer_mode;
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_asum_batched_name<Ti>, n, x, incx, batch_count);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f asum_batched -r",
-                          rocblas_precision_string<Ti>,
-                          "-n",
-                          n,
-                          "--incx",
-                          incx,
-                          "--batch_count",
-                          batch_count);
-
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_asum_batched_name<Ti>,
-                            "N",
-                            n,
-                            "incx",
-                            incx,
-                            "batch",
-                            batch_count);
-        }
-
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
-
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
-
-        if(!x || !results)
-            return rocblas_status_invalid_pointer;
-
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
-            return rocblas_status_memory_error;
-
-        return rocblas_asum_batched_template<NB>(
-            handle, n, x, 0, incx, batch_count, (To*)mem, results);
+        static constexpr bool           isbatched = true;
+        static constexpr rocblas_stride stridex_0 = 0;
+        return rocblas_reduction_impl<NB,
+                                      isbatched,
+                                      rocblas_fetch_asum<To>,
+                                      rocblas_reduce_sum,
+                                      rocblas_finalize_identity,
+                                      To>(handle,
+                                          n,
+                                          x,
+                                          incx,
+                                          stridex_0,
+                                          batch_count,
+                                          results,
+                                          rocblas_asum_batched_name<Ti>,
+                                          "asum_batched");
     }
 }
 
@@ -86,48 +54,27 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
-                                     rocblas_int        n,
-                                     const float* const x[],
-                                     rocblas_int        incx,
-                                     rocblas_int        batch_count,
-                                     float*             results)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
-}
+#ifdef IMPL
+#error IMPL IS ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
-                                     rocblas_int         n,
-                                     const double* const x[],
-                                     rocblas_int         incx,
-                                     rocblas_int         batch_count,
-                                     double*             results)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
-}
+#define IMPL(name_, typei_, typeo_)                                                    \
+    rocblas_status name_(rocblas_handle      handle,                                   \
+                         rocblas_int         n,                                        \
+                         const typei_* const x[],                                      \
+                         rocblas_int         incx,                                     \
+                         rocblas_int         batch_count,                              \
+                         typeo_*             result)                                   \
+    {                                                                                  \
+        constexpr rocblas_int NB = 512;                                                \
+        return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, result); \
+    }
 
-rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
-                                      rocblas_int                        n,
-                                      const rocblas_float_complex* const x[],
-                                      rocblas_int                        incx,
-                                      rocblas_int                        batch_count,
-                                      float*                             results)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
-}
+IMPL(rocblas_sasum_batched, float, float);
+IMPL(rocblas_dasum_batched, double, double);
+IMPL(rocblas_scasum_batched, rocblas_float_complex, float);
+IMPL(rocblas_dzasum_batched, rocblas_double_complex, double);
 
-rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
-                                      rocblas_int                         n,
-                                      const rocblas_double_complex* const x[],
-                                      rocblas_int                         incx,
-                                      rocblas_int                         batch_count,
-                                      double*                             results)
-{
-    constexpr rocblas_int NB = 512;
-    return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, results);
-}
+#undef IMPL
 
 } // extern "C"

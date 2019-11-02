@@ -2649,7 +2649,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
               specifies the leading dimension of A.
               lda = max( 1, m ).
 
-    @param[in]
+    @param[in, out]
     x         pointer storing vector x on the GPU.
 
     @param[in]
@@ -2676,6 +2676,180 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                                             rocblas_int       lda,
                                             double*           x,
                                             rocblas_int       incx);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    trsv_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
+
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an
+    m by m triangular matrix.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     rocblas_operation
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         rocblas_int
+              m specifies the number of rows of b. m >= 0.
+
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+
+    @param[in]
+    A         array of pointers storing the different matrices A on the GPU,
+              of dimension ( lda, m )
+
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+              lda = max( 1, m ).
+
+    @param[in, out]
+    x         array of pointers storing the different vectors x on the GPU.
+
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    trsv_strided_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
+
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an
+    m by m triangular matrix.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     rocblas_operation
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         rocblas_int
+              m specifies the number of rows of b. m >= 0.
+
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+
+    @param[in]
+    A         pointer to the first matrix (A_0) in the batch stored on the GPU,
+              of dimension ( lda, m )
+
+    @param[in]
+    stride_a  rocblas_stride
+             "batch stride a": stride from the start of one "A" matrix to the next
+
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of A.
+              lda = max( 1, m ).
+
+    @param[in, out]
+    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+
+    @param[in]
+    stride_x rocblas_stride
+             "batch stride a": stride from the start of one "X" vector to the next
+
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
 
 /*! \brief BLAS Level 2 API
 
