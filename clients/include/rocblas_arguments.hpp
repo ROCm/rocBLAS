@@ -62,6 +62,8 @@ struct Arguments
     rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
     rocblas_int stride_c; //  stride_c > ldc * N
     rocblas_int stride_d; //  stride_d > ldd * N
+    rocblas_int stride_x;
+    rocblas_int stride_y;
 
     rocblas_int norm_check;
     rocblas_int unit_check;
@@ -145,6 +147,8 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(stride_b);
         ROCBLAS_FORMAT_CHECK(stride_c);
         ROCBLAS_FORMAT_CHECK(stride_d);
+        ROCBLAS_FORMAT_CHECK(stride_x);
+        ROCBLAS_FORMAT_CHECK(stride_y);
         ROCBLAS_FORMAT_CHECK(norm_check);
         ROCBLAS_FORMAT_CHECK(unit_check);
         ROCBLAS_FORMAT_CHECK(timing);
@@ -161,13 +165,16 @@ struct Arguments
     template <typename T>
     T get_alpha() const
     {
-        return rocblas_isnan(alpha) ? T(0) : convert_alpha_beta<T>(alpha, alphai);
+        return (rocblas_isnan(alpha) || rocblas_isnan(alphai))
+                   ? T(0)
+                   : convert_alpha_beta<T>(alpha, alphai);
     }
 
     template <typename T>
     T get_beta() const
     {
-        return rocblas_isnan(beta) ? T(0) : convert_alpha_beta<T>(beta, betai);
+        return (rocblas_isnan(beta) || rocblas_isnan(betai)) ? T(0)
+                                                             : convert_alpha_beta<T>(beta, betai);
     }
 
 private:
@@ -291,6 +298,8 @@ private:
         print("stride_b", arg.stride_b);
         print("stride_c", arg.stride_c);
         print("stride_d", arg.stride_d);
+        print("stride_x", arg.stride_x);
+        print("stride_y", arg.stride_y);
         print("algo", arg.algo);
         print("solution_index", arg.solution_index);
         print("flags", arg.flags);
