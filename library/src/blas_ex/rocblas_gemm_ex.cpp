@@ -62,80 +62,83 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
                     std::stringstream alphass, betass;
-                    RETURN_IF_ROCBLAS_ERROR(
-                        log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass));
-
-                    log_trace(handle,
-                              "rocblas_gemm_ex",
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              alphass.str(),
-                              a,
-                              a_type_string,
-                              lda,
-                              b,
-                              b_type_string,
-                              ldb,
-                              betass.str(),
-                              c,
-                              c_type_string,
-                              ldc,
-                              d,
-                              d_type_string,
-                              ldd,
-                              compute_type_string,
-                              algo,
-                              solution_index,
-                              flags);
+                    if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
+                       == rocblas_status_success)
+                    {
+                        log_trace(handle,
+                                  "rocblas_gemm_ex",
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alphass.str(),
+                                  a,
+                                  a_type_string,
+                                  lda,
+                                  b,
+                                  b_type_string,
+                                  ldb,
+                                  betass.str(),
+                                  c,
+                                  c_type_string,
+                                  ldc,
+                                  d,
+                                  d_type_string,
+                                  ldd,
+                                  compute_type_string,
+                                  algo,
+                                  solution_index,
+                                  flags);
+                    }
                 }
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     std::string alphas, betas;
-                    RETURN_IF_ROCBLAS_ERROR(
-                        log_bench_alpha_beta_ex(compute_type, alpha, beta, alphas, betas));
+                    if(log_bench_alpha_beta_ex(compute_type, alpha, beta, alphas, betas)
+                       == rocblas_status_success)
+                    {
 
-                    log_bench(handle,
-                              "./rocblas-bench -f gemm_ex",
-                              "--transposeA",
-                              trans_a_letter,
-                              "--transposeB",
-                              trans_b_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              alphas,
-                              "--a_type",
-                              a_type_string,
-                              "--lda",
-                              lda,
-                              "--b_type",
-                              b_type_string,
-                              "--ldb",
-                              ldb,
-                              betas,
-                              "--c_type",
-                              c_type_string,
-                              "--ldc",
-                              ldc,
-                              "--d_type",
-                              d_type_string,
-                              "--ldd",
-                              ldd,
-                              "--compute_type",
-                              compute_type_string,
-                              "--algo",
-                              algo,
-                              "--solution_index",
-                              solution_index,
-                              "--flags",
-                              flags);
+                        log_bench(handle,
+                                  "./rocblas-bench -f gemm_ex",
+                                  "--transposeA",
+                                  trans_a_letter,
+                                  "--transposeB",
+                                  trans_b_letter,
+                                  "-m",
+                                  m,
+                                  "-n",
+                                  n,
+                                  "-k",
+                                  k,
+                                  alphas,
+                                  "--a_type",
+                                  a_type_string,
+                                  "--lda",
+                                  lda,
+                                  "--b_type",
+                                  b_type_string,
+                                  "--ldb",
+                                  ldb,
+                                  betas,
+                                  "--c_type",
+                                  c_type_string,
+                                  "--ldc",
+                                  ldc,
+                                  "--d_type",
+                                  d_type_string,
+                                  "--ldd",
+                                  ldd,
+                                  "--compute_type",
+                                  compute_type_string,
+                                  "--algo",
+                                  algo,
+                                  "--solution_index",
+                                  solution_index,
+                                  "--flags",
+                                  flags);
+                    }
                 }
             }
             else
@@ -211,7 +214,7 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     }
 
     // quick return m,n,k equal to 0 is valid in BLAS
-    // Note: k==0 is NOT a quick return, because C still has to be multiplied by beta
+    // Note: k==0 is not a quick return, because C still has to be multiplied by beta
     if(!m || !n)
         return rocblas_status_success;
 
@@ -219,18 +222,14 @@ extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
     if(m < 0 || n < 0 || k < 0)
         return rocblas_status_invalid_size;
 
+    // leading dimensions must be valid
+    if(ldc < m || ldd < m || lda < (trans_a == rocblas_operation_none ? m : k)
+       || ldb < (trans_b == rocblas_operation_none ? k : n))
+        return rocblas_status_invalid_size;
+
     // pointers must be valid
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
-
-    auto num_rows_a = trans_a == rocblas_operation_none ? m : k;
-    auto num_rows_b = trans_b == rocblas_operation_none ? k : n;
-    auto num_rows_c = m;
-    auto num_rows_d = m;
-
-    // leading dimensions must be valid
-    if(num_rows_a > lda || num_rows_b > ldb || num_rows_c > ldc || num_rows_d > ldd)
-        return rocblas_status_invalid_size;
 
     auto stride_a    = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
     auto stride_b    = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
