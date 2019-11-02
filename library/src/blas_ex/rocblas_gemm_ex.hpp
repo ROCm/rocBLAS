@@ -1060,13 +1060,13 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ex_typecasting<BATCHED, _Float16, _Float16, _Float16>(EX_TYPECASTING_PARM);
+        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, rocblas_half>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<BATCHED, _Float16, _Float16, float>(EX_TYPECASTING_PARM);
+        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
             && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r

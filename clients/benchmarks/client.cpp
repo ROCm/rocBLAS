@@ -565,19 +565,27 @@ int rocblas_bench_datafile()
     return ret;
 }
 
+// Replace --batch with --batch_count for backward compatibility
+void fix_batch(int argc, char* argv[])
+{
+    static char b_c[] = "--batch_count";
+    for(int i = 1; i < argc; ++i)
+        if(!strcmp(argv[i], "--batch"))
+        {
+            static int once = fprintf(
+                stderr,
+                "%s warning: --batch is deprecated, and --batch_count should be used instead.\n",
+                argv[0]);
+            argv[i] = b_c;
+        }
+}
+
 using namespace boost::program_options;
 
 int main(int argc, char* argv[])
 try
 {
-    // Replace --batch with --batch_count for backward compatibility
-    for(int i = 1; i < argc; ++i)
-        if(!strcmp(argv[i], "--batch"))
-        {
-            static constexpr char b_c[] = "--batch_count";
-            argv[i]                     = b_c;
-        }
-
+    fix_batch(argc, argv);
     Arguments   arg;
     std::string function;
     std::string precision;
