@@ -55,7 +55,7 @@ namespace
                         incx,
                         "incy",
                         incy,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!x || !y || !param)

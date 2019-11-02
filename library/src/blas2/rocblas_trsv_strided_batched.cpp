@@ -87,7 +87,7 @@ namespace
                               incx,
                               "--stride_x",
                               stride_x,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
             }
 
@@ -110,7 +110,7 @@ namespace
                             incx,
                             "stride_x",
                             stride_x,
-                            "batch",
+                            "batch_count",
                             batch_count);
         }
 

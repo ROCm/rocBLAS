@@ -89,7 +89,7 @@ namespace
                         incx,
                         "stride_x",
                         stridex,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!x)

@@ -75,7 +75,7 @@ namespace
         }
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(
-                handle, rocblas_scal_name<T, U>, "N", n, "incx", incx, "batch", batch_count);
+                handle, rocblas_scal_name<T, U>, "N", n, "incx", incx, "batch_count", batch_count);
 
         if(!x)
             return rocblas_status_invalid_pointer;

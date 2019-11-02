@@ -56,7 +56,7 @@ namespace
                         incx,
                         "incy",
                         incy,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         // Quick return if possible.

@@ -114,7 +114,7 @@ namespace
                                   ldb,
                                   "--stride_B",
                                   stride_B,
-                                  "--batch",
+                                  "--batch_count",
                                   batch_count);
                     }
                 }
@@ -163,7 +163,7 @@ namespace
                                 ldb,
                                 "stride_B",
                                 stride_B,
-                                "batch",
+                                "batch_count",
                                 batch_count);
                 }
             }

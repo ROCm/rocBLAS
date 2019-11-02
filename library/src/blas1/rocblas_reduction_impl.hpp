@@ -30,7 +30,7 @@ void reduction_log_bench(rocblas_handle handle,
                   incx,
                   "--stride_x",
                   stridex,
-                  "--batch",
+                  "--batch_count",
                   batch_count);
     }
     else
@@ -67,7 +67,7 @@ void reduction_log_bench(rocblas_handle   handle,
               n,
               "--incx",
               incx,
-              "--batch",
+              "--batch_count",
               batch_count);
 }
 
@@ -82,7 +82,7 @@ void reduction_log_profile(rocblas_handle handle,
 {
     if(ISBATCHED)
     {
-        log_profile(handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch", batch_count);
+        log_profile(handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch_count", batch_count);
     }
     else
     {
@@ -99,7 +99,7 @@ void reduction_log_profile(rocblas_handle   handle,
                            rocblas_int      batch_count,
                            const char*      name)
 {
-    log_profile(handle, name, "N", n, "incx", incx, "batch", batch_count);
+    log_profile(handle, name, "N", n, "incx", incx, "batch_count", batch_count);
 }
 
 template <bool ISBATCHED, typename Ti>

@@ -78,7 +78,7 @@ namespace
                         incy,
                         "stride_y",
                         stridey,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!batch_count || n <= 0)

@@ -91,7 +91,7 @@ namespace
                         incy,
                         "stride_y",
                         stride_y,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!x || !y || !c || !s)

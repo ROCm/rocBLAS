@@ -126,7 +126,7 @@ struct perf_gemm_ex<Ti,
         static const func_map map = {
             {"gemm_ex", testing_gemm_ex<Ti, To, Tc>},
             {"gemm_batched_ex", testing_gemm_batched_ex<Ti, To, Tc>},
-         };
+        };
         run_function(map, arg);
     }
 };
@@ -570,13 +570,15 @@ using namespace boost::program_options;
 int main(int argc, char* argv[])
 try
 {
-    static char b_c[] = "--batch_count";
+    // Replace --batch with --batch_count for backward compatibility
     for(int i = 1; i < argc; ++i)
         if(!strcmp(argv[i], "--batch"))
-            argv[i] = b_c;
+        {
+            static constexpr char b_c[] = "--batch_count";
+            argv[i]                     = b_c;
+        }
 
-    Arguments arg;
-
+    Arguments   arg;
     std::string function;
     std::string precision;
     std::string a_type;
@@ -585,7 +587,6 @@ try
     std::string d_type;
     std::string compute_type;
     std::string initialization;
-
     rocblas_int device_id;
     bool        datafile = rocblas_parse_data(argc, argv);
 

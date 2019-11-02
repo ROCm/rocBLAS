@@ -105,7 +105,7 @@ namespace
                                   lda,
                                   "--ldb",
                                   ldb,
-                                  "--batch",
+                                  "--batch_count",
                                   batch_count);
                     }
                 }
@@ -148,7 +148,7 @@ namespace
                                 lda,
                                 "ldb",
                                 ldb,
-                                "batch",
+                                "batch_count",
                                 batch_count);
                 }
             }
