@@ -301,6 +301,7 @@ private:
         PRINT(iters);
         PRINT(initialization);
 
+#undef PRINT
         return str << " }\n";
     }
 };
