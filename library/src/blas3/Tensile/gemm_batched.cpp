@@ -2,12 +2,7 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "gemm.hpp"
-#include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <limits>
-#include <sys/time.h>
 
 namespace
 {
@@ -174,164 +169,6 @@ namespace
                                                   0,
                                                   b_c);
     }
-
-#ifndef USE_TENSILE_HOST
-    /**
-    * Kernel Name Function.
-    */
-    template <typename T>
-    rocblas_status rocblas_gemm_batched_kernel_name_impl(rocblas_handle    handle,
-                                                         rocblas_operation trans_a,
-                                                         rocblas_operation trans_b,
-                                                         rocblas_int       m,
-                                                         rocblas_int       n,
-                                                         rocblas_int       k,
-                                                         const T*          alpha,
-                                                         const T*          A[],
-                                                         rocblas_int       ld_a,
-                                                         const T*          B[],
-                                                         rocblas_int       ld_b,
-                                                         const T*          beta,
-                                                         T*                C[],
-                                                         rocblas_int       ld_c,
-                                                         rocblas_int       b_c)
-    {
-        if(!handle)
-            return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
-        {
-            auto trans_a_letter = rocblas_transpose_letter(trans_a);
-            auto trans_b_letter = rocblas_transpose_letter(trans_b);
-
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gemm_batched_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              ld_a,
-                              B,
-                              ld_b,
-                              log_trace_scalar_value(beta),
-                              C,
-                              ld_c,
-                              b_c);
-
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              "./rocblas-bench -f gemm_batched -r",
-                              rocblas_precision_string<T>,
-                              "--transposeA",
-                              trans_a_letter,
-                              "--transposeB",
-                              trans_b_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              ld_a,
-                              "--ldb",
-                              ld_b,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--ldc",
-                              ld_c,
-                              "--batch_count",
-                              b_c);
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gemm_batched_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              alpha,
-                              A,
-                              ld_a,
-                              B,
-                              ld_b,
-                              beta,
-                              C,
-                              ld_c,
-                              b_c);
-            }
-
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_gemm_batched_name<T>,
-                            "transA",
-                            trans_a_letter,
-                            "transB",
-                            trans_b_letter,
-                            "M",
-                            m,
-                            "N",
-                            n,
-                            "K",
-                            k,
-                            "lda",
-                            ld_a,
-                            "ldb",
-                            ld_b,
-                            "ldc",
-                            ld_c,
-                            "batch",
-                            b_c);
-        }
-
-        rocblas_stride stride_a
-            = rocblas_stride(ld_a) * (trans_a == rocblas_operation_none ? k : m);
-        rocblas_stride stride_b
-            = rocblas_stride(ld_b) * (trans_b == rocblas_operation_none ? n : k);
-        rocblas_stride stride_c = rocblas_stride(ld_c) * m;
-
-        rocblas_status validArgs = validateArgs(handle,
-                                                trans_a,
-                                                trans_b,
-                                                m,
-                                                n,
-                                                k,
-                                                alpha,
-                                                A,
-                                                ld_a,
-                                                stride_a,
-                                                B,
-                                                ld_b,
-                                                stride_b,
-                                                beta,
-                                                C,
-                                                ld_c,
-                                                stride_c,
-                                                b_c);
-
-        if(validArgs != rocblas_status_success)
-            return validArgs;
-
-        rocblas_gemm_kernel_name_template<true, T>(
-            trans_a, trans_b, m, n, k, ld_a, stride_a, ld_b, stride_b, ld_c, stride_c, b_c);
-
-        return validArgs;
-    }
-#endif
-
 }
 
 /*******************************************************************************
@@ -458,12 +295,7 @@ rocblas_status rocblas_hgemm_batched_kernel_name(rocblas_handle      handle,
                                                  rocblas_int         ld_c,
                                                  rocblas_int         b_c)
 {
-#ifdef USE_TENSILE_HOST
     return rocblas_status_not_implemented;
-#else
-    return rocblas_gemm_batched_kernel_name_impl<rocblas_half>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
-#endif
 }
 
 rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
@@ -482,12 +314,7 @@ rocblas_status rocblas_sgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       ld_c,
                                                  rocblas_int       b_c)
 {
-#ifdef USE_TENSILE_HOST
     return rocblas_status_not_implemented;
-#else
-    return rocblas_gemm_batched_kernel_name_impl<float>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
-#endif
 }
 
 rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
@@ -506,12 +333,7 @@ rocblas_status rocblas_dgemm_batched_kernel_name(rocblas_handle    handle,
                                                  rocblas_int       ld_c,
                                                  rocblas_int       b_c)
 {
-#ifdef USE_TENSILE_HOST
     return rocblas_status_not_implemented;
-#else
-    return rocblas_gemm_batched_kernel_name_impl<double>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
-#endif
 }
 
 } // extern "C"

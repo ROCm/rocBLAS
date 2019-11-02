@@ -2,10 +2,7 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  ************************************************************************** */
 #include "gemm.hpp"
-#include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 namespace
 {
