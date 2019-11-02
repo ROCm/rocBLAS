@@ -35,54 +35,38 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(nullptr,
-                                                            N,
-                                                            dx,
-                                                            incx,
-                                                            stride_x,
-                                                            dy,
-                                                            incy,
-                                                            stride_y,
-                                                            dparam,
-                                                            stride_param,
-                                                            batch_count),
-                          rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(handle,
-                                                            N,
-                                                            nullptr,
-                                                            incx,
-                                                            stride_x,
-                                                            dy,
-                                                            incy,
-                                                            stride_y,
-                                                            dparam,
-                                                            stride_param,
-                                                            batch_count),
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_rotm_strided_batched<T>(
+            nullptr, N, dx, incx, stride_x, dy, incy, stride_y, dparam, stride_param, batch_count)),
+        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+                                                           N,
+                                                           nullptr,
+                                                           incx,
+                                                           stride_x,
+                                                           dy,
+                                                           incy,
+                                                           stride_y,
+                                                           dparam,
+                                                           stride_param,
+                                                           batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(handle,
-                                                            N,
-                                                            dx,
-                                                            incx,
-                                                            stride_x,
-                                                            nullptr,
-                                                            incy,
-                                                            stride_y,
-                                                            dparam,
-                                                            stride_param,
-                                                            batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+                                                           N,
+                                                           dx,
+                                                           incx,
+                                                           stride_x,
+                                                           nullptr,
+                                                           incy,
+                                                           stride_y,
+                                                           dparam,
+                                                           stride_param,
+                                                           batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(handle,
-                                                            N,
-                                                            dx,
-                                                            incx,
-                                                            stride_x,
-                                                            dy,
-                                                            incy,
-                                                            stride_y,
-                                                            nullptr,
-                                                            stride_param,
-                                                            batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_rotm_strided_batched<T>(
+            handle, N, dx, incx, stride_x, dy, incy, stride_y, nullptr, stride_param, batch_count)),
+        rocblas_status_invalid_pointer);
 }
 
 template <typename T>
@@ -116,17 +100,17 @@ void testing_rotm_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(handle,
-                                                                N,
-                                                                dx,
-                                                                incx,
-                                                                stride_x,
-                                                                dy,
-                                                                incy,
-                                                                stride_y,
-                                                                dparam,
-                                                                stride_param,
-                                                                batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+                                                               N,
+                                                               dx,
+                                                               incx,
+                                                               stride_x,
+                                                               dy,
+                                                               incy,
+                                                               stride_y,
+                                                               dparam,
+                                                               stride_param,
+                                                               batch_count)),
                               batch_count < 0 ? rocblas_status_invalid_size
                                               : rocblas_status_success);
         return;
