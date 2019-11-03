@@ -49,29 +49,30 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
     //
     if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
     {
-        CHECK_INTERNAL_ROCBLAS_ERROR((rocblas_gemm_template<false, false>)(handle,
-                                                                           rocblas_operation_none,
-                                                                           rocblas_operation_none,
-                                                                           m,
-                                                                           n,
-                                                                           0,
-                                                                           &zero,
-                                                                           0,
-                                                                           c,
-                                                                           0,
-                                                                           lda > ldc ? lda : ldc,
-                                                                           0,
-                                                                           c,
-                                                                           0,
-                                                                           lda > ldc ? lda : ldc,
-                                                                           0,
-                                                                           &zero,
-                                                                           0,
-                                                                           c,
-                                                                           0,
-                                                                           ldc,
-                                                                           0,
-                                                                           1));
+        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
+            (rocblas_gemm_template<false, false>)(handle,
+                                                  rocblas_operation_none,
+                                                  rocblas_operation_none,
+                                                  m,
+                                                  n,
+                                                  0,
+                                                  &zero,
+                                                  0,
+                                                  c,
+                                                  0,
+                                                  lda > ldc ? lda : ldc,
+                                                  0,
+                                                  c,
+                                                  0,
+                                                  lda > ldc ? lda : ldc,
+                                                  0,
+                                                  &zero,
+                                                  0,
+                                                  c,
+                                                  0,
+                                                  ldc,
+                                                  0,
+                                                  1));
         return rocblas_status_success;
     }
 
@@ -108,7 +109,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     for(int i = ii + offd; i <= ii + isec - 1; i++)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_copy_template<NB, T>)(handle,
                                                            i - ii + 1 - offd,
                                                            &a[ii - 1 + (i - 1) * lda],
@@ -132,7 +133,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    isec,
                                                                    &c[ii - 1 + (j - 1) * ldc],
@@ -150,7 +151,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &c[i - 1 + (jj - 1) * ldc],
@@ -178,7 +179,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &dt2[i - ii + (i - ii) * ldt2],
@@ -192,7 +193,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = ii + isec - 1 - i;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    alpha,
@@ -205,7 +206,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                jsec,
@@ -233,7 +234,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &dt1[j - jj],
@@ -253,7 +254,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(ii + isec <= m)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
                                                                   rocblas_operation_none,
@@ -302,7 +303,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    isec,
                                                                    &c[ii - 1 + (j - 1) * ldc],
@@ -320,7 +321,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &c[i - 1 + (jj - 1) * ldc],
@@ -348,7 +349,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &a[i - 1 + (i - 1) * lda],
@@ -363,7 +364,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = i - ii;
                             if(0 == tsec)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    alpha,
@@ -376,7 +377,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                jsec,
@@ -404,7 +405,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &dt1[j - jj],
@@ -425,7 +426,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(ii > 1)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_transpose,
                                                                   rocblas_operation_none,
@@ -472,7 +473,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     for(int i = ii; i <= ii + isec - 1 - offd; i++)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_copy_template<NB, T>)(handle,
                                                            ii + isec - i - offd,
                                                            &a[i + offd - 1 + (i - 1) * lda],
@@ -496,7 +497,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    isec,
                                                                    &c[ii - 1 + (j - 1) * ldc],
@@ -514,7 +515,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &c[i - 1 + (jj - 1) * ldc],
@@ -542,7 +543,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &dt2[i - ii + (i - ii) * ldt2],
@@ -556,7 +557,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = i - ii;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    alpha,
@@ -569,7 +570,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                jsec,
@@ -597,7 +598,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &dt1[j - jj],
@@ -617,7 +618,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(ii > 1)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
                                                                   rocblas_operation_none,
@@ -665,7 +666,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    isec,
                                                                    &c[ii - 1 + (j - 1) * ldc],
@@ -683,7 +684,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         {
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &c[i - 1 + (jj - 1) * ldc],
@@ -711,7 +712,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    &a[i - 1 + (i - 1) * lda],
@@ -725,7 +726,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = ii + isec - 1 - i;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
                                                                    alpha,
@@ -738,7 +739,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                jsec,
@@ -766,7 +767,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &dt1[j - jj],
@@ -787,7 +788,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(ii + isec <= m)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_transpose,
                                                                   rocblas_operation_none,
@@ -838,7 +839,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &c[ii - 1 + (j - 1) * ldc],
@@ -865,7 +866,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    &a[j - 1 + (j - 1) * lda],
@@ -879,7 +880,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = j - jj;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    alpha,
@@ -892,7 +893,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                isec,
@@ -921,7 +922,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(jj > 1)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
                                                                   rocblas_operation_none,
@@ -963,7 +964,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     for(int j = jj + offd; j <= jj + jsec - 1; j++)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_copy_template<NB, T>)(handle,
                                                            j - jj + 1 - offd,
                                                            &a[jj - 1 + (j - 1) * lda],
@@ -985,7 +986,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &c[ii - 1 + (j - 1) * ldc],
@@ -1012,7 +1013,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    &dt2[j - jj + (j - jj) * ldt2],
@@ -1026,7 +1027,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = jj + jsec - 1 - j;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    alpha,
@@ -1039,7 +1040,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                isec,
@@ -1069,7 +1070,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(jj + jsec <= n)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false,
                                                    false>)(handle,
                                                            rocblas_operation_none,
@@ -1119,7 +1120,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &c[ii - 1 + (j - 1) * ldc],
@@ -1146,7 +1147,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    &a[j - 1 + (j - 1) * lda],
@@ -1160,7 +1161,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = jj + jsec - 1 - j;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    alpha,
@@ -1173,7 +1174,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                isec,
@@ -1202,7 +1203,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(jj + jsec <= n)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
                                                                   rocblas_operation_none,
@@ -1247,7 +1248,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     for(int j = jj; j <= jj + jsec - 1 - offd; j++)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_copy_template<NB, T>)(handle,
                                                            jj + jsec - j - offd,
                                                            &a[j + offd - 1 + (j - 1) * lda],
@@ -1269,7 +1270,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
-                            CHECK_INTERNAL_ROCBLAS_ERROR(
+                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<NB, T>)(handle,
                                                                isec,
                                                                &c[ii - 1 + (j - 1) * ldc],
@@ -1296,7 +1297,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             {
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    &dt2[j - jj + (j - jj) * ldt2],
@@ -1310,7 +1311,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             tsec = j - jj;
                             if(tsec == 0)
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    isec,
                                                                    alpha,
@@ -1323,7 +1324,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             }
                             else
                             {
-                                CHECK_INTERNAL_ROCBLAS_ERROR(
+                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_gemv_template<T>)(handle,
                                                                rocblas_operation_none,
                                                                isec,
@@ -1351,7 +1352,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //
                     if(jj > 1)
                     {
-                        CHECK_INTERNAL_ROCBLAS_ERROR(
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
                                                                   rocblas_operation_transpose,
