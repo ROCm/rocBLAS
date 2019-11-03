@@ -211,8 +211,8 @@ def setdefaults(test):
         if all([x in test for x in ('stride_scale')]):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
 
-    elif test['function'] in ('gemv_strided_batched', 'ger_strided_batched'):
-        if test['function'] in ('ger_strided_batched') or test['transA'] in ('T', 'C'):
+    elif test['function'] in ('gemv_strided_batched', 'ger_strided_batched', 'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched') or test['transA'] in ('T', 'C'):
             if all([x in test for x in ('M', 'incx', 'stride_scale')]):
                 ldx = int(test['M'] * abs(test['incx']) * test['stride_scale'])
                 test.setdefault('stride_x', ldx)
@@ -247,7 +247,7 @@ def setdefaults(test):
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 
-    elif test['function'] in ('trsm_strided_batched', 'trsm_ex_strided_batched'):
+    elif test['function'] in ('trsm_strided_batched', 'trsm_strided_batched_ex'):
         if all([x in test for x in ('N', 'ldb', 'stride_scale')]):
             ldN = int(test['N'] * test['ldb'] * test['stride_scale'])
             test.setdefault('stride_b', ldN)

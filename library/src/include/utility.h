@@ -147,8 +147,8 @@ constexpr auto rocblas_transpose_letter(rocblas_operation trans)
     case rocblas_operation_none:                return 'N';
     case rocblas_operation_transpose:           return 'T';
     case rocblas_operation_conjugate_transpose: return 'C';
-    default:                                    return ' ';
     }
+    return ' ';
 }
 
 // return letter L, R, B in place of rocblas_side enum
@@ -159,8 +159,8 @@ constexpr auto rocblas_side_letter(rocblas_side side)
     case rocblas_side_left:  return 'L';
     case rocblas_side_right: return 'R';
     case rocblas_side_both:  return 'B';
-    default:                 return ' ';
     }
+    return ' ';
 }
 
 // return letter U, L, B in place of rocblas_fill enum
@@ -171,8 +171,8 @@ constexpr auto rocblas_fill_letter(rocblas_fill fill)
     case rocblas_fill_upper: return 'U';
     case rocblas_fill_lower: return 'L';
     case rocblas_fill_full:  return 'F';
-    default:                 return ' ';
     }
+    return ' ';
 }
 
 // return letter N, U in place of rocblas_diagonal enum
@@ -182,8 +182,8 @@ constexpr auto rocblas_diag_letter(rocblas_diagonal diag)
     {
     case rocblas_diagonal_non_unit: return 'N';
     case rocblas_diagonal_unit:     return 'U';
-    default:                        return ' ';
     }
+    return ' ';
 }
 
 // return precision string for rocblas_datatype
@@ -207,8 +207,8 @@ constexpr auto rocblas_datatype_string(rocblas_datatype type)
     case rocblas_datatype_u32_c:  return "u32_c";
     case rocblas_datatype_bf16_r: return "bf16_r";
     case rocblas_datatype_bf16_c: return "bf16_c";
-    default:                      return "invalid";
     }
+    return "invalid";
 }
 
 // return sizeof rocblas_datatype
@@ -216,22 +216,24 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
 {
     switch(type)
     {
-    case rocblas_datatype_f16_r: return 2;
-    case rocblas_datatype_f32_r: return 4;
-    case rocblas_datatype_f64_r: return 8;
-    case rocblas_datatype_f16_c: return 4;
-    case rocblas_datatype_f32_c: return 8;
-    case rocblas_datatype_f64_c: return 16;
-    case rocblas_datatype_i8_r:  return 1;
-    case rocblas_datatype_u8_r:  return 1;
-    case rocblas_datatype_i32_r: return 4;
-    case rocblas_datatype_u32_r: return 4;
-    case rocblas_datatype_i8_c:  return 2;
-    case rocblas_datatype_u8_c:  return 2;
-    case rocblas_datatype_i32_c: return 8;
-    case rocblas_datatype_u32_c: return 8;
-    default:                     return 0;
+    case rocblas_datatype_f16_r:  return 2;
+    case rocblas_datatype_f32_r:  return 4;
+    case rocblas_datatype_f64_r:  return 8;
+    case rocblas_datatype_f16_c:  return 4;
+    case rocblas_datatype_f32_c:  return 8;
+    case rocblas_datatype_f64_c:  return 16;
+    case rocblas_datatype_i8_r:   return 1;
+    case rocblas_datatype_u8_r:   return 1;
+    case rocblas_datatype_i32_r:  return 4;
+    case rocblas_datatype_u32_r:  return 4;
+    case rocblas_datatype_i8_c:   return 2;
+    case rocblas_datatype_u8_c:   return 2;
+    case rocblas_datatype_i32_c:  return 8;
+    case rocblas_datatype_u32_c:  return 8;
+    case rocblas_datatype_bf16_r: return 2;
+    case rocblas_datatype_bf16_c: return 4;
     }
+    return 0;
 }
 constexpr auto rocblas_get_status_string(rocblas_status status)
 {

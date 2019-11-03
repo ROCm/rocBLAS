@@ -98,8 +98,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
-    blas_ex/rocblas_gemm_ex_batched.cpp
-    blas_ex/rocblas_gemm_ex_strided_batched.cpp
+    blas_ex/rocblas_gemm_batched_ex.cpp
+    blas_ex/rocblas_gemm_strided_batched_ex.cpp
   )
 
   set( rocblas_blas3_source
@@ -112,6 +112,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_blas2_tensile_source
     blas2/rocblas_trsv.cpp
+    blas2/rocblas_trsv_strided_batched.cpp
+    blas2/rocblas_trsv_batched.cpp
   )
 
 endif( ) # BUILD_WITH_TENSILE
