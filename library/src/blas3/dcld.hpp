@@ -1,4 +1,4 @@
-bool dcld(rocblas_int ld)
+inline bool dcld(rocblas_int ld)
 {
     // Purpose
     // =======
