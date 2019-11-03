@@ -60,8 +60,8 @@ void testing_copy_batched(const Arguments& arg)
             return;
         }
         EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
+                                                       : rocblas_status_success);
         return;
     }
 
