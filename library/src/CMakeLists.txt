@@ -137,8 +137,12 @@ set( rocblas_auxiliary_source
 )
 
 set( rocblas_blas1_source
-  blas1/rocblas_amin.cpp
-  blas1/rocblas_amax.cpp
+  blas1/rocblas_iamin.cpp
+  blas1/rocblas_iamin_batched.cpp
+  blas1/rocblas_iamin_strided_batched.cpp
+  blas1/rocblas_iamax.cpp
+  blas1/rocblas_iamax_batched.cpp
+  blas1/rocblas_iamax_strided_batched.cpp
   blas1/rocblas_asum.cpp
   blas1/rocblas_asum_batched.cpp
   blas1/rocblas_asum_strided_batched.cpp

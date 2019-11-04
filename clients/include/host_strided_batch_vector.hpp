@@ -99,6 +99,22 @@ public:
     }
 
     //!
+    //! @brief Returns the data pointer.
+    //!
+    T* data()
+    {
+        return this->m_data;
+    }
+
+    //!
+    //! @brief Returns the data pointer.
+    //!
+    const T* data() const
+    {
+        return this->m_data;
+    }
+
+    //!
     //! @brief Returns the length.
     //!
     rocblas_int n() const
@@ -192,7 +208,7 @@ public:
         if(that.n() == this->m_n && that.inc() == this->m_inc && that.stride() == this->m_stride
            && that.batch_count() == this->m_batch_count)
         {
-            memcpy((*this)[0], that[0], sizeof(T) * this->m_nmemb);
+            memcpy(this->m_data, that.data(), sizeof(T) * this->m_nmemb);
             return true;
         }
         else
@@ -209,13 +225,8 @@ public:
     template <size_t PAD, typename U>
     hipError_t transfer_from(const device_strided_batch_vector<T, PAD, U>& that)
     {
-        auto hip_err
-            = hipMemcpy((*this)[0], that[0], sizeof(T) * this->m_nmemb, hipMemcpyDeviceToHost);
-        if(hipSuccess != hip_err)
-        {
-            return hip_err;
-        }
-        return hipSuccess;
+        return hipMemcpy(
+            this->m_data, that.data(), sizeof(T) * this->m_nmemb, hipMemcpyDeviceToHost);
     }
 
     //!
