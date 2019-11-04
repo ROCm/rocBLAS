@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #pragma once
 
-#include "rocblas_reduction_template.hpp"
 #include "rocblas_amax_amin.h"
 
 // Replaces x with y if y.value < x.value or y.value == x.value and y.index < x.index

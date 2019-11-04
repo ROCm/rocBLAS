@@ -2,6 +2,8 @@
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "rocblas_reduction_template.hpp"
+
 //!
 //! @brief Struct to define pair of value and index.
 //!
