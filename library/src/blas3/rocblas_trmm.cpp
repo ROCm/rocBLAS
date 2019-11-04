@@ -35,8 +35,9 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile)
+           && (!handle->is_device_memory_size_query()))
         {
             auto side_letter   = rocblas_side_letter(side);
             auto uplo_letter   = rocblas_fill_letter(uplo);
@@ -132,7 +133,12 @@ namespace
             return rocblas_status_invalid_size;
 
         if(m == 0 || n == 0)
-            return rocblas_status_success;
+        {
+            if(handle->is_device_memory_size_query())
+                return rocblas_status_size_unchanged;
+            else
+                return rocblas_status_success;
+        }
 
         if(!a || !c || !alpha)
             return rocblas_status_invalid_pointer;
