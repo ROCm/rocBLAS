@@ -154,7 +154,7 @@ rocBLAS interface examples
 ==========================
 
 In general, the rocBLAS interface is compatible with CPU oriented
-[Netlib BLAS][] and the cuBLAS-v2 API, with the explicit exception that
+`Netlib BLAS <http://www.netlib.org/blas/>`__ and the cuBLAS-v2 API, with the explicit exception that
 traditional BLAS interfaces do not accept handles. The cuBLAS’
 cublasHandle_t is replaced with rocblas_handle everywhere. Thus, porting
 a CUDA application which originally calls the cuBLAS API to a HIP

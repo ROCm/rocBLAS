@@ -73,12 +73,14 @@ extern "C" {
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x.
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     host pointer or device pointer for the scalar alpha.
     @param[inout]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int.
+              specifies the increment for the elements of x.
 
 
     ********************************************************************/
@@ -122,13 +124,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle          handle,
     handle      rocblas_handle.
                 handle to the rocblas library context queue.
     @param[in]
-    n           the number of elements in each batch.
+    n           rocblas_int.
+                the number of elements in each x_i.
     @param[in]
-    alpha       specifies the scalar alpha.
+    alpha       host pointer or device pointer for the scalar alpha.
     @param[inout]
-    x           pointer storing batches of vectors on the GPU.
+    x           device array of device pointers storing vectors x_i.
     @param[in]
-    incx        specifies the increment for the elements of x_i.
+    incx        rocblas_int.
+                specifies the increment for the elements of x_i.
     @param[in]
     batch_count specifies the number of batches in x.
      ********************************************************************/
@@ -185,10 +189,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle             
                 handle to the rocblas library context queue.
     @param[in]
     n           rocblas_int.
+                the number of elements in each x_i.
     @param[in]
-    alpha       specifies the scalar alpha.
+    alpha       host pointer or device pointer for the scalar alpha.
     @param[inout]
-    x           pointer storing vector x on the GPU.
+    x           device pointer storing vector x.
     @param[in]
     incx        rocblas_int
                 specifies the increment for the elements of x.
@@ -262,12 +267,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle     
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x to be copied to y.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
-    incx      specifies the increment for the elements of x.
+    incx      rocblas_int.
+              specifies the increment for the elements of x.
     @param[out]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -317,12 +324,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in each x_i to be copied to y_i.
     @param[in]
-    x         array of pointers storing the different vectors x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
-    incx      specifies the increment for the elements of vectors x_i.
+    incx      rocblas_int.
+              specifies the increment for the elements of vectors x_i.
     @param[out]
-    y         array of pointers storing the different vectors y_i on the GPU.
+    y         device array of device pointers storing vectors y_i.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
@@ -379,8 +388,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in each x_i to be copied to y_i.
     @param[in]
-    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+    x         device pointer to the first vector (x_0) in the batch.
     @param[in]
     incx      rocblas_int
               specifies the increments for the elements of vectors x_i.
@@ -391,7 +401,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
                 take care to ensure that stride_x is of appropriate size, for a typical
                 case this means stride_x >= n * incx.
     @param[out]
-    y         pointer to the first vector (y_0) in the batch stored on the GPU.
+    y         device pointer to the first vector (y_0) in the batch.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
@@ -466,19 +476,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle      
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x and y.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the dot product. either on the host CPU or device GPU.
+              device pointer or host pointer to store the dot product.
               return is 0.0 if n <= 0.
 
     ********************************************************************/
@@ -566,13 +577,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in each x_i and y_i.
     @param[in]
-    x         array of pointers storing the different vectors x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x_i.
     @param[in]
-    y         array of pointers storing the different vectors y_i on the GPU.
+    y         device array of device pointers storing vectors y_i.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y_i.
@@ -581,8 +593,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle
                 number of instances in the batch
     @param[inout]
     result
-              store the dot products. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              device array or host array of batch_coutn size to store the dot products of each batch.
+              return 0.0 for each element if n <= 0.
 
     ********************************************************************/
 
@@ -676,9 +688,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
     handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int
+    n         rocblas_int.
+              the number of elements in each x_i and y_i.
     @param[in]
-    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+    x         device pointer to the first vector (x_0) in the batch.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x_i.
@@ -686,7 +699,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
     stridex     rocblas_stride
                 stride from the start of one vector (x_i) and the next one (x_i+1)
     @param[in]
-    y         pointer to the first vector (y_0) in the batch stored on the GPU.
+    y         device pointer to the first vector (y_0) in the batch.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y_i.
@@ -698,8 +711,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
                 number of instances in the batch
     @param[inout]
     result
-              store the dot products. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0.
+              device array or host array of batch_count size to store the dot products of each batch.
+              return 0.0 for each element if n <= 0.
 
     ********************************************************************/
 
@@ -802,14 +815,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle      
     handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int
+    n         rocblas_int.
+              the number of elements in x and y.
     @param[inout]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[inout]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -847,20 +861,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
     handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int
+    n         rocblas_int.
+              the number of elements in each x_i and y_i.
     @param[inout]
-    x         array of pointers storing the different vector x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[inout]
-    y         array of pointers storing the different vector y_i on the GPU.
+    y         device array of device pointers storing vectors y_i.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
     batch_count rocblas_int
-                number of instances in the batch
+                number of instances in the batch.
 
     ********************************************************************/
 
@@ -907,9 +922,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
     handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int
+    n         rocblas_int.
+              the number of elements in each x_i and y_i.
     @param[inout]
-    x         a pointer to the first vector x_i on the GPU.
+    x         device pointer to the first vector x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
@@ -920,7 +936,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
               take care to ensure that stride_x is of appropriate size, for a typical
               case this means stride_x >= n * incx.
     @param[inout]
-    y         a pointer to the first vector y_i on the GPU.
+    y         device pointer to the first vector y_i.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -932,7 +948,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
               case this means stride_y >= n * incy. stridey should be non zero.
      @param[in]
      batch_count rocblas_int
-                 number of instances in the batch
+                 number of instances in the batch.
 
     ********************************************************************/
 
@@ -985,16 +1001,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle      
     handle    rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
-    n         rocblas_int
+    n         rocblas_int.
+              the number of elements in x and y.
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host poitner to specify the scalar alpha.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[out]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[inout]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -1053,14 +1070,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x and y.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x. incx must be > 0.
     @param[inout]
     result
-              store the asum product. either on the host CPU or device GPU.
+              device pointer or host pointer to store the asum product.
               return is 0.0 if n <= 0.
 
     ********************************************************************/
@@ -1097,17 +1115,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum(rocblas_handle                handl
     n         rocblas_int
               number of elements in each vector x_i
     @param[in]
-    x         array of pointers storing the different vector x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[out]
     result
-              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              device array or host array of batch_count size for results.
               return is 0.0 if n, incx<=0.
     @param[in]
     batch_count rocblas_int
-              number of instances in the batch
+              number of instances in the batch.
     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
@@ -1152,7 +1170,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
     n         rocblas_int
               number of elements in each vector x_i
     @param[in]
-    x         pointer to the first vector x_i on the GPU.
+    x         device pointer to the first vector x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
@@ -1164,7 +1182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
               case this means stride_x >= n * incx.
     @param[out]
     results
-              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              device pointer or host pointer to array for storing contiguous batch_count results.
               return is 0.0 if n, incx<=0.
     @param[in]
     batch_count rocblas_int
@@ -1215,14 +1233,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle     
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the nrm2 product. either on the host CPU or device GPU.
+              device pointer or host pointer to store the nrm2 product.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
@@ -1256,9 +1275,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int
-              number of elements in each vector x_i
+              number of elements in each x_i.
     @param[in]
-    x         array of pointers storing the different vector x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
@@ -1267,8 +1286,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
               number of instances in the batch
     @param[out]
     result
-              pointers to array of batch_count size for nrm2 results. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0, incx<=0.
+              device pointer or host pointer to array of batch_count size for nrm2 results.
+              return is 0.0 for each element if n <= 0, incx<=0.
 
     ********************************************************************/
 
@@ -1312,9 +1331,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int
-              number of elements in each vector x_i
+              number of elements in each x_i.
     @param[in]
-    x         pointer to the first vector x_i on the GPU.
+    x         device pointer to the first vector x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
@@ -1329,8 +1348,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
               number of instances in the batch
     @param[out]
     results
-              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
-              return is 0.0 if n <= 0, incx<=0.
+              device pointer or host pointer to array for storing contiguous batch_count results.
+              return is 0.0 for each element if n <= 0, incx<=0.
 
     ********************************************************************/
 
@@ -1378,14 +1397,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amax index. either on the host CPU or device GPU.
+              device pointer or host pointer to store the amax index.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
@@ -1419,14 +1439,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int.
+              the number of elements in x.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of y.
     @param[inout]
     result
-              store the amin index. either on the host CPU or device GPU.
+              device pointer or host pointer to store the amin index.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
@@ -1461,19 +1482,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointer storing vector x in device memory.
+    x       device pointer storing vector x.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
     @param[inout]
-    y       pointer storing vector y in device memory.
+    y       device pointer storing vector y.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
     @param[in]
-    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
     @param[in]
-    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+    s       device pointer or host pointer storing scalar sine component of the rotation matrix.
 
     ********************************************************************/
 
@@ -1542,21 +1563,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
             handle to the rocblas library context queue.
     @param[in]
     n       rocblas_int
-            number of elements in the x and y vectors.
+            number of elements in each x_i and y_i vectors.
     @param[inout]
-    x       array of pointers storing vector x in device memory.
+    x       device array of deivce pointers storing vectors x_i.
     @param[in]
     incx    rocblas_int
-            specifies the increment between elements of x.
+            specifies the increment between elements of each x_i.
     @param[inout]
-    y       array of pointers storing vector y in device memory.
+    y       device array of device pointers storing vectors y_i.
     @param[in]
     incy    rocblas_int
-            specifies the increment between elements of y.
+            specifies the increment between elements of each y_i.
     @param[in]
-    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
     @param[in]
-    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
     @param[in]
     batch_count rocblas_int
                 the number of x and y arrays, i.e. the number of batches.
@@ -1634,9 +1655,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
             handle to the rocblas library context queue.
     @param[in]
     n       rocblas_int
-            number of elements in the x and y vectors.
+            number of elements in each x_i and y_i vectors.
     @param[inout]
-    x       pointer storing strided vectors x in device memory.
+    x       device pointer storing strided vectors x_i.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
@@ -1644,7 +1665,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     stride_x rocblas_stride
              specifies the increment from the beginning of x_i to the beginning of x_(i+1)
     @param[inout]
-    y       pointer storing strided vectors y in device memory.
+    y       pointer storing strided vectors y_i.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
@@ -1652,12 +1673,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     stride_y rocblas_stride
              specifies the increment from the beginning of y_i to the beginning of y_(i+1)
     @param[in]
-    c       scalar cosine component of the rotation matrix, may be stored in host or device memory.
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
     @param[in]
-    s       scalar sine component of the rotation matrix, may be stored in host or device memory.
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
     @param[in]
     batch_count rocblas_int
-                the number of x and y arrays, i.e. the number of batches.
+            the number of x and y arrays, i.e. the number of batches.
 
     ********************************************************************/
 
@@ -1737,7 +1758,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
 
     \details
     rotg creates the Givens rotation matrix for the vector (a b).
-         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+         Scalars c and s and arrays a and b may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
     
@@ -1745,13 +1766,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    a       input vector element, overwritten with r.
+    a       device pointer or host pointer to input vector element, overwritten with r.
     @param[inout]
-    b       input vector element, overwritten with z.
+    b       device pointer or host pointer to input vector element, overwritten with z.
     @param[inout]
-    c       cosine element of Givens rotation.
+    c       device pointer or host pointer to cosine element of Givens rotation.
     @param[inout]
-    s       sine element of Givens rotation.
+    s       device pointer or host pointer sine element of Givens rotation.
 
     ********************************************************************/
 
@@ -1785,11 +1806,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    a       batched array of single input vector elements, overwritten with r.
+    a       device pointer or host pointer to batched array of single input vector elements, overwritten with r.
     @param[inout]
-    b       batched array of single input vector elements, overwritten with z.
+    b       device pointer or host pointer to batched array of single input vector elements, overwritten with z.
     @param[inout]
-    c       batched array of cosine elements of Givens rotations.
+    c       device pointer or host pointer batched array of cosine elements of Givens rotations.
     @param[inout]
     s       batched array of sine elements of Givens rotations.
     @param[in]
@@ -1838,22 +1859,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    a       strided_batched pointer to single input vector elements, overwritten with r.
+    a       device strided_batched pointer or host strided_batched pointer to single input vector elements, overwritten with r.
     @param[in]
     stride_a rocblas_stride
              distance between elements of a in batch (distance between a_i and a_(i + 1))
     @param[inout]
-    b       strided_batched pointer to single input vector elements, overwritten with z.
+    b       device strided_batched pointer or host strided_batched pointer to single input vector elements, overwritten with z.
     @param[in]
     stride_b rocblas_stride
              distance between elements of b in batch (distance between b_i and b_(i + 1))
     @param[inout]
-    c       strided_batched pointer to cosine elements of Givens rotations.
+    c       device strided_batched pointer or host strided_batched pointer to cosine elements of Givens rotations.
     @param[in]
     stride_c rocblas_stride
              distance between elements of c in batch (distance between c_i and c_(i + 1))
     @param[inout]
-    s       strided_batched pointer to sine elements of Givens rotations.
+    s       device strided_batched pointer or host strided_batched pointer to sine elements of Givens rotations.
     @param[in]
     stride_s rocblas_stride
              distance between elements of s in batch (distance between s_i and s_(i + 1))
@@ -1919,17 +1940,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle      
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointer storing vector x on the GPU.
+    x       device pointer storing vector x.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
     @param[inout]
-    y       pointer storing vector y on the GPU.
+    y       device pointer storing vector y.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
     @param[in]
-    param   vector of 5 elements defining the rotation.
+    param   device vector or host vector of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -1972,17 +1993,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       array of pointers storing vectors x on the GPU.
+    x       device array of device pointers storing vectors x on the GPU.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
     @param[inout]
-    y       array of pointers storing vectors y on the GPU.
+    y       device array of device pointers storing vectors y on the GPU.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
     @param[in]
-    param   array of vectors of 5 elements defining the rotation.
+    param   device array or host array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2030,7 +2051,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
     n       rocblas_int
             number of elements in the x and y vectors.
     @param[inout]
-    x       pointers storing strided batched vectors x on the GPU.
+    x       device pointer storing strided batched vectors x.
     @param[in]
     incx    rocblas_int
             specifies the increment between elements of x.
@@ -2038,7 +2059,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
     stride_x rocblas_stride
              specifies the increment between the beginning of x_i and x_(i + 1)
     @param[inout]
-    y       pointers storing strided batched vectors y on the GPU.
+    y       device pointer storing strided batched vectors y.
     @param[in]
     incy    rocblas_int
             specifies the increment between elements of y.
@@ -2046,7 +2067,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
     stride_y rocblas_stride
              specifies the increment between the beginning of y_i and y_(i + 1)
     @param[in]
-    param   strided_batched array of vectors of 5 elements defining the rotation.
+    param   device strided_batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2103,15 +2124,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    d1      input scalar that is overwritten.
+    d1      device pointer or host pointer to input scalar that is overwritten.
     @param[inout]
-    d2      input scalar that is overwritten.
+    d2      device pointer or host pointer to input scalar that is overwritten.
     @param[inout]
-    x1      input scalar that is overwritten.
+    x1      device pointer or host pointer to input scalar that is overwritten.
     @param[in]
-    y1      input scalar.
+    y1      device pointer or host poitner to input scalar.
     @param[out]
-    param   vector of 5 elements defining the rotation.
+    param   device vector or host vector of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2147,15 +2168,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    d1      batched array of input scalars that is overwritten.
+    d1      device batched array or host batched array of input scalars that is overwritten.
     @param[inout]
-    d2      batched array of input scalars that is overwritten.
+    d2      device batched array or host batched array of input scalars that is overwritten.
     @param[inout]
-    x1      batched array of input scalars that is overwritten.
+    x1      device batched array or host batched array of input scalars that is overwritten.
     @param[in]
-    y1      batched array of input scalars.
+    y1      device batched array or host batched array of input scalars.
     @param[out]
-    param   batched array of vectors of 5 elements defining the rotation.
+    param   device batched array or host batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2201,27 +2222,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
     handle  rocblas_handle
             handle to the rocblas library context queue.
     @param[inout]
-    d1      batched array of input scalars that is overwritten.
+    d1      device strided_batched array or host strided_batched array of input scalars that is overwritten.
     @param[in]
     stride_d1 rocblas_stride
               specifies the increment between the beginning of d1_i and d1_(i+1)
     @param[inout]
-    d2      batched array of input scalars that is overwritten.
+    d2      device strided_batched array or host strided_batched array of input scalars that is overwritten.
     @param[in]
     stride_d2 rocblas_stride
               specifies the increment between the beginning of d2_i and d2_(i+1)
     @param[inout]
-    x1      batched array of input scalars that is overwritten.
+    x1      device strided_batched array or host strided_batched array of input scalars that is overwritten.
     @param[in]
     stride_x1 rocblas_stride
               specifies the increment between the beginning of x1_i and x1_(i+1)
     @param[in]
-    y1      batched array of input scalars.
+    y1      device strided_batched array or host strided_batched array of input scalars.
     @param[in]
     stride_y1 rocblas_stride
               specifies the increment between the beginning of y1_i and y1_(i+1)
     @param[out]
-    param   batched array of vectors of 5 elements defining the rotation.
+    param   device strided_batched array or host strided_batched array of vectors of 5 elements defining the rotation.
             param[0] = flag
             param[1] = H11
             param[2] = H21
@@ -2296,21 +2317,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
     n         rocblas_int
               number of columns of matrix A
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host pointer to scalar alpha.
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[in]
-    beta      specifies the scalar beta.
+    beta      device pointer or host pointer to scalar beta.
     @param[inout]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -2394,21 +2415,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle
     n           rocblas_int
                 number of columns of matrices A_i
     @param[in]
-    alpha       specifies the scalar alpha.
+    alpha       device pointer or host pointer to scalar alpha.
     @param[in]
-    A           array of pointers storing the different matrices A_i on the GPU.
+    A           device array of device pointers storing matrices A_i.
     @param[in]
     lda         rocblas_int
                 specifies the leading dimension of matrices A_i.
     @param[in]
-    x           array of pointers storing the different vectors x_i on the GPU.
+    x           device array of device pointers storing vectors x_i.
     @param[in]
     incx        rocblas_int
                 specifies the increment for the elements of vectors x_i.
     @param[in]
-    beta        specifies the scalar beta.
+    beta        device pointer or host pointer to scalar beta.
     @param[inout]
-    y           array of pointers storing the different vectors y_i on the GPU.
+    y           device array of device pointers storing vectors y_i.
     @param[in]
     incy        rocblas_int
                 specifies the increment for the elements of vectors y_i.
@@ -2499,9 +2520,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
     n           rocblas_int
                 number of columns of matrices A_i
     @param[in]
-    alpha       specifies the scalar alpha.
+    alpha       device pointer or host pointer to scalar alpha.
     @param[in]
-    A           pointer to the first matrix (A_0) in the batch stored on the GPU.
+    A           device pointer to the first matrix (A_0) in the batch.
     @param[in]
     lda         rocblas_int
                 specifies the leading dimension of matrices A_i.
@@ -2509,7 +2530,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
     strideA     rocblas_stride
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
-    x           pointer to the first vector (x_0) in the batch stored on the GPU.
+    x           device pointer to the first vector (x_0) in the batch.
     @param[in]
     incx        rocblas_int
                 specifies the increment for the elements of vectors x_i.
@@ -2520,9 +2541,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
                 take care to ensure that stride_x is of appropriate size. When trans equals rocblas_operation_none
                 this typically means stride_x >= n * incx, otherwise stride_x >= m * incx.
     @param[in]
-    beta        specifies the scalar beta.
+    beta        device pointer or host pointer to scalar beta.
     @param[inout]
-    y           pointer to the first vector (y_0) in the batch stored on the GPU.
+    y           device pointer to the first vector (y_0) in the batch.
     @param[in]
     incy        rocblas_int
                 specifies the increment for the elements of vectors y_i.
@@ -2639,10 +2660,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
 
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
 
     @param[in]
-    A         pointer storing matrix A on the GPU,
+    A         device pointer storing matrix A,
               of dimension ( lda, m )
 
     @param[in]
@@ -2651,7 +2672,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
               lda = max( 1, m ).
 
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
 
     @param[in]
     incx      rocblas_int
@@ -2777,23 +2798,25 @@ rocblas_zhemv(rocblas_handle handle,
               handle to the rocblas library context queue.
     @param[in]
     m         rocblas_int
+              the number of rows of the matrix A.
     @param[in]
     n         rocblas_int
+              the number of columns of the matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[in]
-    y         pointer storing vector y on the GPU.
+    y         device pointer storing vector y.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[inout]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -2838,23 +2861,25 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
               handle to the rocblas library context queue.
     @param[in]
     m         rocblas_int
+              the number of rows of the matrix A.
     @param[in]
     n         rocblas_int
+              the number of columns of the matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
     @param[in]
-    x         array of pointers storing the different vectors x_i on the GPU.
+    x         device array of device pointers storing vectors x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of vectors x_i.
     @param[in]
-    y         array of pointesr storing the different vectors y_i on the GPU.
+    y         device array of device pointers storing vectors y_i.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
     @param[inout]
-    A         array of pointers storing the different matrices A_i on the GPU.
+    A         device array of device pointers storing matrices A_i.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -2904,13 +2929,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
               handle to the rocblas library context queue.
     @param[in]
     m         rocblas_int
+              the number of rows of the matrix A.
     @param[in]
     n         rocblas_int
+              the number of columns of the matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
     @param[in]
-    x         pointer to the first vector (x_0) in the batch stored on the GPU.
+    x         device pointer to the first vector (x_0) in the batch.
     @param[in]
     incx      rocblas_int
               specifies the increments for the elements of vectors x_i.
@@ -2921,7 +2948,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
               take care to ensure that stride_x is of appropriate size, for a typical
               case this means stride_x >= m * incx.
     @param[inout]
-    y         pointer to the first vector (y_0) in the batch stored on the GPU.
+    y         device pointer to the first vector (y_0) in the batch.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of vectors y_i.
@@ -2932,7 +2959,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
               take care to ensure that stride_y is of appropriate size, for a typical
               case this means stride_y >= n * incy.
     @param[inout]
-    A         pointer to the first matrix (A_0) in the batch stored on the GPU.
+    A         device pointer to the first matrix (A_0) in the batch.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -3008,16 +3035,17 @@ rocblas_zger(rocblas_handle handle,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int
+              the number of rows and columns of matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
     @param[in]
-    x         pointer storing vector x on the GPU.
+    x         device pointer storing vector x.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[inout]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -3073,16 +3101,17 @@ rocblas_zsyr(rocblas_handle handle,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int
+              the number of rows and columns of matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host pointer to scalar alpha.
     @param[in]
-    x         array of pointers storing the different vector x_i on the GPU.
+    x         device array of device pointers storing the different vector x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[inout]
-    A         array of pointers storing matrices A on the GPU.
+    A         device array of device pointers storing matrices A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -3127,11 +3156,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
               handle to the rocblas library context queue.
     @param[in]
     n         rocblas_int
+              the number of rows and columns of matrix A.
     @param[in]
     alpha
-              specifies the scalar alpha.
+              device pointer or host poitner to scalar alpha.
     @param[in]
-    x         a pointer to the first vector x_i on the GPU.
+    x         device pointer to the first vector x_i.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x_i.
@@ -3139,7 +3169,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
     stridex   rocblas_stride
               specifies the pointer increment between vectors (x_i) and (x_i+1).
     @param[inout]
-    A         pointer to the first matrix A on the GPU.
+    A         device pointer to the first matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -3205,12 +3235,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle
     n         rocblas_int.
               size of matrix A and invA
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[output]
-    invA      pointer storing matrix invA on the GPU.
+    invA      device pointer storing matrix invA.
     @param[in]
     ldinvA    rocblas_int
               specifies the leading dimension of invA.
@@ -3255,12 +3285,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
     @param[in]
     n         rocblas_int.
     @param[in]
-    A         array of pointers storing matrices A on the GPU.
+    A         device array of device pointers storing matrices A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[out]
-    invA      array of pointers storing the inverse matrices A on the GPU.
+    invA      device array of device pointers storing the inverse matrices A.
               Partial inplace operation is supported, see below.
               If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
               the inverse of the upper triangular matrix, and the strictly lower
@@ -3316,7 +3346,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
     @param[in]
     n         rocblas_int.
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
@@ -3324,7 +3354,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
     stride_a  rocblas_stride
              "batch stride a": stride from the start of one "A" matrix to the next
     @param[out]
-    invA      pointer storing the inverse matrix A on the GPU.
+    invA      device pointer storing the inverse matrix A.
               Partial inplace operation is supported, see below.
               If UPLO = 'U', the leading N-by-N upper triangular part of the invA will store
               the inverse of the upper triangular matrix, and the strictly lower
@@ -3428,12 +3458,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   ha
 
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer specifying the scalar alpha. When alpha is
             &zero then A is not referenced and B need not be set before
             entry.
 
     @param[in]
-    A       pointer storing matrix A on the GPU.
+    A       device pointer storing matrix A.
             of dimension ( lda, k ), where k is m
             when  rocblas_side_left  and
             is  n  when  rocblas_side_right
@@ -3446,7 +3476,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   ha
             if side = rocblas_side_right, lda >= max( 1, n ).
 
     @param[in,output]
-    B       pointer storing matrix B on the GPU.
+    B       device pointer storing matrix B.
 
     @param[in]
     ldb    rocblas_int.
@@ -3526,11 +3556,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
             n specifies the number of columns of B. n >= 0.
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer specifying the scalar alpha. When alpha is
             &zero then A is not referenced and B need not be set before
             entry.
     @param[in]
-    A       HOST array of DEVICE pointers storing matricies A on the GPU.
+    A       device array of device pointers storing matricies A on the GPU.
             Matricies are of dimension ( lda, k ), where k is m
             when  rocblas_side_left  and is  n  when  rocblas_side_right
             only the upper/lower triangular part is accessed.
@@ -3540,7 +3570,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
             if side = rocblas_side_left,  lda >= max( 1, m ),
             if side = rocblas_side_right, lda >= max( 1, n ).
     @param[in,output]
-    B       HOST array of DEVICE pointers storing matricies B on the GPU.
+    B       device array of device pointers storing matricies B on the GPU.
     @param[in]
     ldb    rocblas_int.
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
@@ -3623,11 +3653,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
             n specifies the number of columns of B. n >= 0.
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer specifying the scalar alpha. When alpha is
             &zero then A is not referenced and B need not be set before
             entry.
     @param[in]
-    A       pointer storing matrix A on the GPU.
+    A       device pointer storing matrix A.
             of dimension ( lda, k ), where k is m
             when  rocblas_side_left  and
             is  n  when  rocblas_side_right
@@ -3641,7 +3671,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
     stride_a rocblas_stride
              stride from the start of one "A" matrix to the next.
     @param[in,output]
-    B       pointer storing matrix B on the GPU.
+    B       device pointer storing matrix B.
     @param[in]
     ldb    rocblas_int.
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
@@ -3720,21 +3750,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    ha
     k         rocblas_int,
               number of columns of matrix op( A ) and number of rows of matrix op( B )
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host pointer specifying the scalar alpha.
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int,
               specifies the leading dimension of A.
     @param[in]
-    B         pointer storing matrix B on the GPU.
+    B         device pointer storing matrix B.
     @param[in]
     ldb       rocblas_int,
               specifies the leading dimension of B.
     @param[in]
-    beta      specifies the scalar beta.
+    beta      device pointer or host pointer specifying the scalar beta.
     @param[in, out]
-    C         pointer storing matrix C on the GPU.
+    C         device pointer storing matrix C on the GPU.
     @param[in]
     ldc       rocblas_int,
               specifies the leading dimension of C.
@@ -3861,21 +3891,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm(rocblas_handle                handle
     k         rocblas_int.
               matrix dimention k.
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host pointer specifying the scalar alpha.
     @param[in]
-    A         Device array of device pointers storing A matricies on the GPU.
+    A         device array of device pointers storing A matricies.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of "A".
     @param[in]
-    B         Device array of device pointers storing B matricies on the GPU.
+    B         device array of device pointers storing B matricies.
     @param[in]
     ldb       rocblas_int
               specifies the leading dimension of "B".
     @param[in]
     beta      specifies the scalar beta.
     @param[in, out]
-    C         Device array of device pointers storing C matricies on the GPU.
+    C         device array of device pointers storing C matricies.
     @param[in]
     ldc       rocblas_int
               specifies the leading dimension of "C".
@@ -4010,9 +4040,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     k         rocblas_int.
               matrix dimention k.
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host pointer specifying the scalar alpha.
     @param[in]
-    A         pointer storing strided batched matrix A on the GPU.
+    A         device pointer storing strided batched matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of "A".
@@ -4020,7 +4050,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     stride_a  rocblas_stride
               stride from the start of one "A" matrix to the next
     @param[in]
-    B         pointer storing strided batched matrix B on the GPU.
+    B         device pointer storing strided batched matrix B.
     @param[in]
     ldb       rocblas_int
               specifies the leading dimension of "B".
@@ -4028,9 +4058,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     stride_b  rocblas_stride
               stride from the start of one "B" matrix to the next
     @param[in]
-    beta      specifies the scalar beta.
+    beta      device pointer or host pointer specifying the scalar beta.
     @param[in, out]
-    C         pointer storing strided batched matrix C on the GPU.
+    C         device pointer storing strided batched matrix C.
     @param[in]
     ldc       rocblas_int
               specifies the leading dimension of "C".
@@ -4240,21 +4270,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle      
     @param[in]
     n         rocblas_int.
     @param[in]
-    alpha     specifies the scalar alpha.
+    alpha     device pointer or host pointer specifying the scalar alpha.
     @param[in]
-    A         pointer storing matrix A on the GPU.
+    A         device pointer storing matrix A.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    beta      specifies the scalar beta.
+    beta      device pointer or host pointer specifying the scalar beta.
     @param[in]
-    B         pointer storing matrix B on the GPU.
+    B         device pointer storing matrix B.
     @param[in]
     ldb       rocblas_int
               specifies the leading dimension of B.
     @param[in, out]
-    C         pointer storing matrix C on the GPU.
+    C         device pointer storing matrix C.
     @param[in]
     ldc       rocblas_int
               specifies the leading dimension of C.
@@ -4392,10 +4422,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing matrix A on the GPU.
+              device pointer storing matrix A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -4404,7 +4434,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
               specifies the leading dimension of A.
     @param[in]
     b         void *.
-              pointer storing matrix B on the GPU.
+              device pointer storing matrix B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -4413,10 +4443,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
               specifies the leading dimension of B.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing matrix C on the GPU.
+              device pointer storing matrix C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -4425,7 +4455,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
               specifies the leading dimension of C.
     @param[out]
     d         void *.
-              pointer storing matrix D on the GPU.
+              device pointer storing matrix D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -4620,10 +4650,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing array of pointers to matrices A on the GPU.
+              device pointer storing array of pointers to matrices A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -4632,7 +4662,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               specifies the leading dimension of A.
     @param[in]
     b         void *.
-              pointer storing array of pointers to matrices B on the GPU.
+              device pointer storing array of pointers to matrices B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -4641,10 +4671,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               specifies the leading dimension of B.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing array of pointers to matrices C on the GPU.
+              device array of device pointers to matrices C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -4653,7 +4683,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               specifies the leading dimension of C.
     @param[out]
     d         void *.
-              pointer storing array of pointers to matrices D on the GPU.
+              device array of device pointers to matrices D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -4799,10 +4829,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host poitner specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing array of pointers to matrices A on the GPU.
+              device array of device pointers to matrices A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -4814,7 +4844,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
-              pointer storing array of pointers to matrices B on the GPU.
+              device array of device pointers to matrices B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -4826,10 +4856,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing array of pointers to matrices C on the GPU.
+              device array of device pointers to matrices C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -4841,7 +4871,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
-              pointer storing array of pointers to matrices D on the GPU.
+              device array of device poitners to matrices D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -4999,10 +5029,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing matrix A on the GPU.
+              device pointer storing matrix A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -5014,7 +5044,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
-              pointer storing matrix B on the GPU.
+              device pointer storing matrix B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -5026,10 +5056,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing matrix C on the GPU.
+              device pointer storing matrix C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -5041,7 +5071,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
-              pointer storing matrix D on the GPU.
+              device pointer storing matrix D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -5263,10 +5293,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing matrix A on the GPU.
+              device pointer storing matrix A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -5278,7 +5308,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
-              pointer storing matrix B on the GPU.
+              device pointer storing matrix B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -5290,10 +5320,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device poitner or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing matrix C on the GPU.
+              device pointer storing matrix C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -5305,7 +5335,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
-              pointer storing matrix D on the GPU.
+              device pointer storing matrix D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -5531,10 +5561,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               matrix dimension k.
     @param[in]
     alpha     const void *.
-              specifies the scalar alpha. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
     @param[in]
     a         void *.
-              pointer storing matrix A on the GPU.
+              device pointer storing matrix A.
     @param[in]
     a_type    rocblas_datatype.
               specifies the datatype of matrix A.
@@ -5546,7 +5576,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               specifies stride from start of one "A" matrix to the next.
     @param[in]
     b         void *.
-              pointer storing matrix B on the GPU.
+              device pointer storing matrix B.
     @param[in]
     b_type    rocblas_datatype.
               specifies the datatype of matrix B.
@@ -5558,10 +5588,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               specifies stride from start of one "B" matrix to the next.
     @param[in]
     beta      const void *.
-              specifies the scalar beta. Same datatype as compute_type.
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
     @param[in]
     c         void *.
-              pointer storing matrix C on the GPU.
+              device pointer storing matrix C.
     @param[in]
     c_type    rocblas_datatype.
               specifies the datatype of matrix C.
@@ -5573,7 +5603,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               specifies stride from start of one "C" matrix to the next.
     @param[out]
     d         void *.
-              pointer storing matrix D on the GPU.
+              device pointer storing matrix D.
     @param[in]
     d_type    rocblas_datatype.
               specifies the datatype of matrix D.
@@ -5771,13 +5801,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer specifying the scalar alpha. When alpha is
             &zero then A is not referenced, and B need not be set before
             entry.
 
     @param[in]
     A       void *
-            pointer storing matrix A on the GPU.
+            device pointer storing matrix A.
             of dimension ( lda, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right
@@ -5791,7 +5821,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 
     @param[in, out]
     B       void *
-            pointer storing matrix B on the GPU.
+            device pointer storing matrix B.
             B is of dimension ( ldb, n ).
             Before entry, the leading m by n part of the array B must
             contain the right-hand side matrix B, and on exit is
@@ -5803,7 +5833,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
 
     @param[in]
     invA    void *
-            pointer storing the inverse diagonal blocks of A on the GPU.
+            device pointer storing the inverse diagonal blocks of A.
             invA is of dimension ( ld_invA, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right.
@@ -5946,13 +5976,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer alpha specifying the scalar alpha. When alpha is
             &zero then A is not referenced, and B need not be set before
             entry.
 
     @param[in]
     A       void *
-            pointer storing matrix A on the GPU.
+            device pointer storing matrix A.
             of dimension ( lda, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right
@@ -5966,7 +5996,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 
     @param[in, out]
     B       void *
-            pointer storing matrix B on the GPU.
+            device pointer storing matrix B.
             B is of dimension ( ldb, n ).
             Before entry, the leading m by n part of the array B must
             contain the right-hand side matrix B, and on exit is
@@ -5982,7 +6012,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 
     @param[in]
     invA    void *
-            pointer storing the inverse diagonal blocks of A on the GPU.
+            device pointer storing the inverse diagonal blocks of A.
             invA is of dimension ( ld_invA, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right.
@@ -6089,13 +6119,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
 
     @param[in]
     alpha
-            alpha specifies the scalar alpha. When alpha is
+            device pointer or host pointer specifying the scalar alpha. When alpha is
             &zero then A is not referenced, and B need not be set before
             entry.
 
     @param[in]
     A       void *
-            pointer storing matrix A on the GPU.
+            device pointer storing matrix A.
             of dimension ( lda, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right
@@ -6113,7 +6143,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
 
     @param[in, out]
     B       void *
-            pointer storing matrix B on the GPU.
+            device pointer storing matrix B.
             B is of dimension ( ldb, n ).
             Before entry, the leading m by n part of the array B must
             contain the right-hand side matrix B, and on exit is
@@ -6133,7 +6163,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
 
     @param[in]
     invA    void *
-            pointer storing the inverse diagonal blocks of A on the GPU.
+            device pointer storing the inverse diagonal blocks of A.
             invA is of dimension ( ld_invA, k ), where k is m
             when rocblas_side_left and
             is n when rocblas_side_right.
