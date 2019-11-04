@@ -1368,8 +1368,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
 /*! \brief BLAS Level 1 API
 
     \details
-    amax finds the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+    amax finds the first index of the element of maximum magnitude of a vector x.
    vector
 
     @param[in]
@@ -1409,8 +1408,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
 /*! \brief BLAS Level 1 API
 
     \details
-     amax_batched finds over a batch of vectors the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+     amax_batched finds over a batch of vectors the first index of the element of maximum magnitude of a  vector x.
 
     @param[in]
     handle    rocblas_handle.
@@ -1463,8 +1461,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
 /*! \brief BLAS Level 1 API
 
     \details
-     amax_strided_batched finds over a strided batch of vectors the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+     amax_strided_batched finds over a strided batch of vectors the first index of the element of maximum magnitude of a vector x.
 
     @param[in]
     handle    rocblas_handle.
@@ -1478,7 +1475,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   rocbla_stride
+    stridex   rocblas_stride
               specifies the pointer increment between batches for x. 
     @param[in]
     batch_count rocblas_int
@@ -1525,8 +1522,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle     
 /*! \brief BLAS Level 1 API
 
     \details
-    amin finds the first index of the element of minimum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+    amin finds the first index of the element of minimum magnitude of a vector x.
+
    vector
 
     @param[in]
@@ -1566,8 +1563,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
 /*! \brief BLAS Level 1 API
 
     \details
-    amin_batched finds over a batch of vectors the first index of the element of minimum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+    amin_batched finds over a batch of vectors the first index of the element of minimum magnitude of a vector x.
 
     @param[in]
     handle    rocblas_handle.
@@ -1620,8 +1616,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
 /*! \brief BLAS Level 1 API
 
     \details
-     amin_strided_batched finds over a strided batch of vectors the first index of the element of minimum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+     amin_strided_batched finds over a strided batch of vectors the first index of the element of minimum magnitude of a vector x.
 
     @param[in]
     handle    rocblas_handle.
@@ -1635,7 +1630,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
     incx      rocblas_int
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
-    stridex   rocbla_stride
+    stridex   rocblas_stride
               specifies the pointer increment between batches for x. 
     @param[in]
     batch_count rocblas_int
