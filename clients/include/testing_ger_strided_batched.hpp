@@ -126,7 +126,7 @@ void testing_ger_strided_batched(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
+    size_t size_A   = size_t(lda) * N;
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 
@@ -157,8 +157,10 @@ void testing_ger_strided_batched(const Arguments& arg)
                                                              lda,
                                                              stride_a,
                                                              batch_count),
-                              !M || !N || !batch_count ? rocblas_status_success
-                                                       : rocblas_status_invalid_size);
+                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                                      || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
 
         return;
     }
