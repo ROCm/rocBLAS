@@ -92,9 +92,10 @@ void testing_gemv_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        device_vector<T*, 0, T> dAA1(1);
-        device_vector<T*, 0, T> dxA1(1);
-        device_vector<T*, 0, T> dy_1A1(1);
+        static constexpr size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T*, 0, T> dAA1(safe_size);
+        device_vector<T*, 0, T> dxA1(safe_size);
+        device_vector<T*, 0, T> dy_1A1(safe_size);
 
         if(!dAA1 || !dxA1 || !dy_1A1)
         {
@@ -115,8 +116,10 @@ void testing_gemv_batched(const Arguments& arg)
                                                       dy_1A1,
                                                       incy,
                                                       batch_count),
-                              !M || !N || !batch_count ? rocblas_status_success
-                                                       : rocblas_status_invalid_size);
+                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                                      || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
