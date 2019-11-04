@@ -60,7 +60,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || batch_count == 0)
+    if(N <= 0 || batch_count <= 0)
     {
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
@@ -71,8 +71,10 @@ void testing_swap_strided_batched(const Arguments& arg)
             return;
         }
 
-        CHECK_ROCBLAS_ERROR(rocblas_swap_strided_batched<T>(
-            handle, N, dx, incx, stridex, dy, incy, stridey, batch_count));
+        EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
+                                  handle, N, dx, incx, stridex, dy, incy, stridey, batch_count),
+                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
+                                                       : rocblas_status_success);
         return;
     }
 
