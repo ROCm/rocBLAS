@@ -160,7 +160,7 @@ void testing_ger_strided_batched(const Arguments& arg)
                               M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
                                       || batch_count < 0
                                   ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              : rocblas_status_success);
 
         return;
     }

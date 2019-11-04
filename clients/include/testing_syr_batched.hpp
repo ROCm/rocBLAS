@@ -78,7 +78,8 @@ void testing_syr_batched(const Arguments& arg)
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_syr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda, batch_count),
-            N <= 0 || !batch_count ? rocblas_status_success : rocblas_status_invalid_size);
+            N < 0 || lda < N || lda < 1 || !incx || batch_count < 0 ? rocblas_status_invalid_size
+                                                                   : rocblas_status_success);
         return;
     }
 
