@@ -12,7 +12,7 @@ Definitions:
     - { N:    21, lda:    14 }
     - { N:    32, lda:    32 }
     - { N:    64, lda:    192 }
-    - { N:    96, lda:    96 } 
+    - { N:    96, lda:    96 }
 
   - &medium_matrix_size_range
     - { N:    128, lda:    128 }
@@ -20,32 +20,50 @@ Definitions:
     - { N:    111, lda:    111 }
     - { N:    160, lda:    160 }
     - { N:    181, lda:    181 }
-    - { N:    197, lda:    275 }  
+    - { N:    197, lda:    275 }
 
 Tests:
 - name: trtri
-  category: pre_checkin
+  category: quick
   function: trtri
   precision: *single_double_precisions
   uplo: [ U, L ]
-  diag: [ N, U ] 
+  diag: [ N, U ]
   matrix_size: *small_matrix_size_range
 
 - name: trtri_batched
-  category: pre_checkin               
+  category: quick
   function: trtri_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
-  batch_count: [ -1, 1, 100, 1000 ]
+  batch_count: [ -1, 0, 1, 25 ]
+
+- name: trtri_strided_batched
+  category: quick
+  function: trtri_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *small_matrix_size_range
+  batch_count: [ -1, 0, 1, 25 ]
 
 - name: trtri_batched
-  category: pre_checkin               
+  category: pre_checkin
   function: trtri_batched
   precision: *single_double_precisions
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *medium_matrix_size_range
-  batch_count: [ -1, 1, 100, 1000 ]
+  batch_count: [ -1, 1, 25 ]
+
+- name: trtri_strided_batched
+  category: pre_checkin
+  function: trtri_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  diag: [ N, U ]
+  matrix_size: *medium_matrix_size_range
+  batch_count: [ -1, 1, 25 ]
 ...

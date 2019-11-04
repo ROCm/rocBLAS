@@ -15,6 +15,10 @@
 #include <type_traits>
 #include <utility>
 
+#ifdef USE_TENSILE_HOST
+#include "tensile_host.hpp"
+#endif
+
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle() and the returned handle mus
@@ -35,6 +39,9 @@ private:
     };
 
 public:
+#ifdef USE_TENSILE_HOST
+    TensileHost* host = nullptr;
+#endif
     _rocblas_handle();
     ~_rocblas_handle();
 

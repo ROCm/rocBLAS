@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "gemv_device.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemv.hpp"
 #include "utility.h"
 
 namespace
@@ -21,26 +21,23 @@ namespace
     constexpr char rocblas_gemv_name<rocblas_double_complex>[] = "rocblas_zgemv_batched";
 
     template <typename T>
-    rocblas_status rocblas_gemv_batched(rocblas_handle    handle,
-                                        rocblas_operation transA,
-                                        rocblas_int       m,
-                                        rocblas_int       n,
-                                        const T*          alpha,
-                                        const T* const    A[],
-                                        rocblas_int       lda,
-                                        const T* const    x[],
-                                        rocblas_int       incx,
-                                        const T*          beta,
-                                        T* const          y[],
-                                        rocblas_int       incy,
-                                        rocblas_int       batch_count)
+    rocblas_status rocblas_gemv_batched_impl(rocblas_handle    handle,
+                                             rocblas_operation transA,
+                                             rocblas_int       m,
+                                             rocblas_int       n,
+                                             const T*          alpha,
+                                             const T* const    A[],
+                                             rocblas_int       lda,
+                                             const T* const    x[],
+                                             rocblas_int       incx,
+                                             const T*          beta,
+                                             T* const          y[],
+                                             rocblas_int       incy,
+                                             rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
@@ -57,17 +54,18 @@ namespace
                               transA,
                               m,
                               n,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               lda,
                               x,
                               incx,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               y,
                               incy,
                               batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
+                {
                     log_bench(handle,
                               "./rocblas-bench -f gemv_batched -r",
                               rocblas_precision_string<T>,
@@ -77,21 +75,17 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
-                              *alpha,
-                              std::imag(*alpha) != 0
-                                  ? "--alphai " + std::to_string(std::imag(*alpha))
-                                  : "",
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
                               "--incx",
                               incx,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--incy",
                               incy,
-                              "--batch_count",
+                              "--batch",
                               batch_count);
+                }
             }
             else
             {
@@ -131,165 +125,35 @@ namespace
                             batch_count);
         }
 
-        if(!A || !x || !y)
-            return rocblas_status_invalid_pointer;
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
+        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
-        // Quick return if possible. Not Argument error
-        if(!m || !n)
+
+        if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-        hipStream_t rocblas_stream = handle->rocblas_stream;
+        if(!A || !x || !y || !alpha || !beta)
+            return rocblas_status_invalid_pointer;
 
-        if(transA == rocblas_operation_none)
-        {
-            // GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
-            static constexpr int GEMVN_DIM_X = 64;
-            static constexpr int GEMVN_DIM_Y = 16;
-            rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
-
-            dim3 gemvn_grid(blocks, batch_count);
-            dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
-
-            if(handle->pointer_mode == rocblas_pointer_mode_device)
-            {
-                hipLaunchKernelGGL((gemvn_kernel_batched<GEMVN_DIM_X, GEMVN_DIM_Y>),
-                                   gemvn_grid,
-                                   gemvn_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   beta,
-                                   y,
-                                   incy);
-            }
-            else
-            {
-                if(!*alpha && *beta == 1)
-                    return rocblas_status_success;
-
-                hipLaunchKernelGGL((gemvn_kernel_batched<GEMVN_DIM_X, GEMVN_DIM_Y>),
-                                   gemvn_grid,
-                                   gemvn_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   *beta,
-                                   y,
-                                   incy);
-            }
-        }
-        else if(transA == rocblas_operation_transpose)
-        {
-            // transpose
-            // number of columns on the y-dim of the grid
-            static constexpr int NB = 256;
-            dim3                 gemvt_grid(n, batch_count);
-            dim3                 gemvt_threads(NB);
-
-            if(handle->pointer_mode == rocblas_pointer_mode_device)
-            {
-                hipLaunchKernelGGL(gemvt_kernel_batched<NB>,
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   beta,
-                                   y,
-                                   incy);
-            }
-            else
-            {
-                if(!*alpha && *beta == 1)
-                    return rocblas_status_success;
-
-                hipLaunchKernelGGL(gemvt_kernel_batched<NB>,
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   *beta,
-                                   y,
-                                   incy);
-            }
-        }
-        else // conjugate transpose
-        {
-            // conjugate transpose
-            // number of columns on the y-dim of the grid
-            static constexpr int NB = 256;
-            dim3                 gemvc_grid(n, 1);
-            dim3                 gemvc_threads(NB);
-
-            if(handle->pointer_mode == rocblas_pointer_mode_device)
-            {
-                hipLaunchKernelGGL(gemvc_kernel_batched<NB>,
-                                   gemvc_grid,
-                                   gemvc_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   beta,
-                                   y,
-                                   incy);
-            }
-            else
-            {
-                if(!*alpha && *beta == 1)
-                    return rocblas_status_success;
-
-                hipLaunchKernelGGL(gemvc_kernel_batched<NB>,
-                                   gemvc_grid,
-                                   gemvc_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   A,
-                                   lda,
-                                   x,
-                                   incx,
-                                   *beta,
-                                   y,
-                                   incy);
-            }
-        }
-        return rocblas_status_success;
+        return rocblas_gemv_template<T>(handle,
+                                        transA,
+                                        m,
+                                        n,
+                                        alpha,
+                                        A,
+                                        0,
+                                        lda,
+                                        0,
+                                        x,
+                                        0,
+                                        incx,
+                                        0,
+                                        beta,
+                                        y,
+                                        0,
+                                        incy,
+                                        0,
+                                        batch_count);
     }
-
 } // namespace
 
 /*
@@ -314,7 +178,7 @@ rocblas_status rocblas_sgemv_batched(rocblas_handle     handle,
                                      rocblas_int        incy,
                                      rocblas_int        batch_count)
 {
-    return rocblas_gemv_batched(
+    return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 
@@ -332,7 +196,7 @@ rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
                                      rocblas_int         incy,
                                      rocblas_int         batch_count)
 {
-    return rocblas_gemv_batched(
+    return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 
@@ -350,7 +214,7 @@ rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
                                      rocblas_int                        incy,
                                      rocblas_int                        batch_count)
 {
-    return rocblas_gemv_batched(
+    return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 
@@ -368,7 +232,7 @@ rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
                                      rocblas_int                         incy,
                                      rocblas_int                         batch_count)
 {
-    return rocblas_gemv_batched(
+    return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
 }
 

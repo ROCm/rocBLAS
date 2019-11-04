@@ -2,7 +2,6 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include "Tensile.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
@@ -64,19 +63,19 @@ extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
 {
     // if handle not valid
     if(!handle)
-        return rocblas_status_invalid_pointer;
+        return rocblas_status_invalid_handle;
+
     // allocate on heap
     try
     {
-        static int dummy = (tensileInitialize(), 0);
-        *handle          = new _rocblas_handle();
+        *handle = new _rocblas_handle();
 
         if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
             log_trace(*handle, "rocblas_create_handle");
     }
-    catch(rocblas_status status)
+    catch(...)
     {
-        return status;
+        return rocblas_status_internal_error;
     }
     return rocblas_status_success;
 }
@@ -755,4 +754,30 @@ try
 catch(...) // catch all exceptions
 {
     return rocblas_status_internal_error;
+}
+
+// Convert rocblas_status to string
+extern "C" const char* rocblas_status_to_string(rocblas_status status)
+{
+#define CASE(x) \
+    case x:     \
+        return #x
+    switch(status)
+    {
+        CASE(rocblas_status_success);
+        CASE(rocblas_status_invalid_handle);
+        CASE(rocblas_status_not_implemented);
+        CASE(rocblas_status_invalid_pointer);
+        CASE(rocblas_status_invalid_size);
+        CASE(rocblas_status_memory_error);
+        CASE(rocblas_status_internal_error);
+        CASE(rocblas_status_perf_degraded);
+        CASE(rocblas_status_size_query_mismatch);
+        CASE(rocblas_status_size_increased);
+        CASE(rocblas_status_size_unchanged);
+    }
+#undef CASE
+    // We don't use default: so that the compiler warns us if any valid enums are missing
+    // from our switch. If the value is not a valid rocblas_status, we return this string.
+    return "<undefined rocblas_status value>";
 }
