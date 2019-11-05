@@ -53,37 +53,19 @@ void testing_asum_strided_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(batch_count < 0)
-    {
-        static const size_t safe_size = 100; //  arbitrarily set to zero
-        device_vector<T1>   dx(safe_size);
-        CHECK_HIP_ERROR(dx.memcheck());
-
-        device_vector<T2> dr(std::max(batch_count, 1));
-        CHECK_HIP_ERROR(dr.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS(
-            (rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, dr)),
-            rocblas_status_invalid_size);
-
-        return;
-    }
-
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || batch_count == 0)
+    if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T1>   dx(safe_size);
+        device_strided_batch_vector<T1> dx(3, 1, 3, 3);
         CHECK_HIP_ERROR(dx.memcheck());
-
-        device_vector<T2> dr(std::max(batch_count, 1));
+        device_vector<T2> dr(std::max(3, std::abs(batch_count)));
         CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(
-            (rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, dr)));
-
+        EXPECT_ROCBLAS_STATUS((rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, dr)),
+                              (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
+			      : rocblas_status_success);
+	
         return;
     }
 
