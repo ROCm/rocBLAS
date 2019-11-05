@@ -15,105 +15,46 @@
 /////////////////
 // Device Side //
 /////////////////
-inline void device_matrix_copy(const void* src,
-                               rocblas_int ld_src,
-                               void*       dst,
-                               rocblas_int ld_dst,
-                               rocblas_int n1,
-                               rocblas_int n2,
-                               size_t      elem_size)
-{
-    if(src != dst || ld_src != ld_dst) // no copy if src matrix == dst matrix
-    {
-        if(n1 == ld_src && n1 == ld_dst)
-        {
-            // src and dst matrices are contiguous, use single copy
-            size_t matrix_size = n1 * n2 * elem_size;
-            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice));
-        }
-        else
-        {
-            // matrices not contiguous, one copy for each contiguous column
-            size_t      column_size = n1 * elem_size;
-            const void* src_void;
-            void*       dst_void;
-
-            for(int i2 = 0; i2 < n2; i2++)
-            {
-                src_void = static_cast<const void*>(static_cast<const uint8_t*>(src)
-                                                    + (i2 * ld_src * elem_size));
-                dst_void
-                    = static_cast<void*>(static_cast<uint8_t*>(dst) + (i2 * ld_dst * elem_size));
-                PRINT_IF_HIP_ERROR(
-                    hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice));
-            }
-        }
-    }
-}
-
-static void device_strided_batched_matrix_copy(const void*    src,
-                                               rocblas_int    ld_src,
+template <typename To>
+static auto device_strided_batched_matrix_copy(const To*      src,
+                                               rocblas_stride ld_src,
                                                rocblas_stride stride_src,
-                                               void*          dst,
-                                               rocblas_int    ld_dst,
+                                               To*            dst,
+                                               rocblas_stride ld_dst,
                                                rocblas_stride stride_dst,
                                                rocblas_int    n1,
                                                rocblas_int    n2,
-                                               rocblas_int    batch_count,
-                                               size_t         elem_size)
+                                               rocblas_int    batch_count)
 {
-    if(src != dst || ld_src != ld_dst
-       || stride_src != stride_dst) // no copy if src matrix == dst matrix
+    if(src == dst && ld_src == ld_dst && stride_src == stride_dst)
+        return rocblas_status_success; // no copy if src matrix == dst matrix
+
+    if(n1 == ld_src && n1 == ld_dst && stride_src == n2 * ld_src && stride_dst == n2 * ld_dst)
     {
-        const void* src_void;
-        void*       dst_void;
-
-        if(n1 == ld_src && n1 == ld_dst && stride_src == n2 * ld_src && stride_dst == n2 * ld_dst)
-        {
-            // src and dst batch matrices are contiguous, use single copy
-            size_t matrix_size = n1 * n2 * batch_count * elem_size;
-            PRINT_IF_HIP_ERROR(hipMemcpy(dst, src, matrix_size, hipMemcpyDeviceToDevice));
-        }
-        else if(n1 == ld_src && n1 == ld_dst)
-        {
-            // individual matrices in batch matrix are contiguous, one copy for each matrix
-            size_t matrix_size = n1 * n2 * elem_size;
-            for(int i3 = 0; i3 < batch_count; i3++)
-            {
-                src_void = static_cast<const void*>(static_cast<const uint8_t*>(src)
-                                                    + (i3 * stride_src * elem_size));
-
-                dst_void = static_cast<void*>(static_cast<uint8_t*>(dst)
-                                              + (i3 * stride_dst * elem_size));
-
-                PRINT_IF_HIP_ERROR(
-                    hipMemcpy(dst_void, src_void, matrix_size, hipMemcpyDeviceToDevice));
-            }
-        }
-        else
-        {
-            // individual matrices not contiguous, one copy for each contiguous column
-            size_t      column_size = n1 * elem_size;
-            const void* src_void;
-            void*       dst_void;
-            for(int i3 = 0; i3 < batch_count; i3++)
-            {
-                for(int i2 = 0; i2 < n2; i2++)
-                {
-                    src_void = static_cast<const void*>(static_cast<const uint8_t*>(src)
-                                                        + (i2 * ld_src * elem_size)
-                                                        + (i3 * stride_src * elem_size));
-
-                    dst_void
-                        = static_cast<void*>(static_cast<uint8_t*>(dst) + (i2 * ld_dst * elem_size)
-                                             + (i3 * stride_dst * elem_size));
-
-                    PRINT_IF_HIP_ERROR(
-                        hipMemcpy(dst_void, src_void, column_size, hipMemcpyDeviceToDevice));
-                }
-            }
-        }
+        // src and dst batch matrices are contiguous, use single copy
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(dst, src, sizeof(To) * n1 * n2 * batch_count, hipMemcpyDeviceToDevice));
     }
+    else if(n1 == ld_src && n1 == ld_dst)
+    {
+        // individual matrices in batch matrix are contiguous, one copy for each matrix
+        for(size_t i3 = 0; i3 < batch_count; i3++)
+            RETURN_IF_HIP_ERROR(hipMemcpy(dst + i3 * stride_dst,
+                                          src + i3 * stride_src,
+                                          sizeof(To) * n1 * n2,
+                                          hipMemcpyDeviceToDevice));
+    }
+    else
+    {
+        // individual matrices not contiguous, one copy for each contiguous column
+        for(int i3 = 0; i3 < batch_count; i3++)
+            for(int i2 = 0; i2 < n2; i2++)
+                RETURN_IF_HIP_ERROR(hipMemcpy(dst + i2 * ld_dst + i3 * stride_dst,
+                                              src + i2 * ld_src + i3 * stride_src,
+                                              sizeof(To) * n1,
+                                              hipMemcpyDeviceToDevice));
+    }
+    return rocblas_status_success;
 }
 
 //------------------------------------------------------------------------------
@@ -678,31 +619,31 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
 }
 
 template <typename Ti, typename To, typename Tc>
-rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
-                                        rocblas_operation trans_a,
-                                        rocblas_operation trans_b,
-                                        rocblas_int       m,
-                                        rocblas_int       n,
-                                        rocblas_int       k,
-                                        const Tc*         alpha,
-                                        const Ti*         a,
-                                        size_t            offset_a,
-                                        rocblas_int       lda,
-                                        rocblas_stride    stride_a,
-                                        const Ti*         b,
-                                        size_t            offset_b,
-                                        rocblas_int       ldb,
-                                        rocblas_stride    stride_b,
-                                        const Tc*         beta,
-                                        const To*         c,
-                                        size_t            offset_c,
-                                        rocblas_int       ldc,
-                                        rocblas_stride    stride_c,
-                                        To*               d,
-                                        size_t            offset_d,
-                                        rocblas_int       ldd,
-                                        rocblas_stride    stride_d,
-                                        rocblas_int       batch_count)
+auto gemm_ex_handle_transpose(rocblas_handle    handle,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_int       m,
+                              rocblas_int       n,
+                              rocblas_int       k,
+                              const Tc*         alpha,
+                              const Ti*         a,
+                              size_t            offset_a,
+                              rocblas_int       lda,
+                              rocblas_stride    stride_a,
+                              const Ti*         b,
+                              size_t            offset_b,
+                              rocblas_int       ldb,
+                              rocblas_stride    stride_b,
+                              const Tc*         beta,
+                              const To*         c,
+                              size_t            offset_c,
+                              rocblas_int       ldc,
+                              rocblas_stride    stride_c,
+                              To*               d,
+                              size_t            offset_d,
+                              rocblas_int       ldd,
+                              rocblas_stride    stride_d,
+                              rocblas_int       batch_count)
 {
     a += offset_a;
     b += offset_b;
@@ -726,8 +667,7 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
     }
     else
     {
-        device_strided_batched_matrix_copy(
-            c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count, sizeof(To));
+        device_strided_batched_matrix_copy(c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
         c_in     = d;
         ldi      = ldd;
         stride_i = stride_d;
@@ -762,31 +702,31 @@ rocblas_status gemm_ex_handle_transpose(rocblas_handle    handle,
 #if defined(USE_CHUNKING)
 
 template <typename Ti, typename To, typename To2, typename Tc>
-rocblas_status gemm_ex_chunking(rocblas_handle    handle,
-                                rocblas_operation trans_a,
-                                rocblas_operation trans_b,
-                                unsigned          m,
-                                unsigned          n,
-                                unsigned          k,
-                                const Tc*         alpha,
-                                Ti                a,
-                                unsigned          offsetAin,
-                                unsigned          lda,
-                                unsigned          stride_a,
-                                Ti                b,
-                                unsigned          offsetBin,
-                                unsigned          ldb,
-                                unsigned          stride_b,
-                                const Tc*         beta,
-                                To                c,
-                                unsigned          offsetCin,
-                                unsigned          ldc,
-                                unsigned          stride_c,
-                                To2               d,
-                                unsigned          offsetDin,
-                                unsigned          ldd,
-                                unsigned          stride_d,
-                                unsigned          batch_count)
+auto gemm_ex_chunking(rocblas_handle    handle,
+                      rocblas_operation trans_a,
+                      rocblas_operation trans_b,
+                      unsigned          m,
+                      unsigned          n,
+                      unsigned          k,
+                      const Tc*         alpha,
+                      Ti                a,
+                      unsigned          offsetAin,
+                      unsigned          lda,
+                      unsigned          stride_a,
+                      Ti                b,
+                      unsigned          offsetBin,
+                      unsigned          ldb,
+                      unsigned          stride_b,
+                      const Tc*         beta,
+                      To                c,
+                      unsigned          offsetCin,
+                      unsigned          ldc,
+                      unsigned          stride_c,
+                      To2               d,
+                      unsigned          offsetDin,
+                      unsigned          ldd,
+                      unsigned          stride_d,
+                      unsigned          batch_count)
 {
     unsigned int_limit    = std::numeric_limits<int>::max() / sizeof(To);
     unsigned m_chunk_size = m;
@@ -885,31 +825,31 @@ rocblas_status gemm_ex_chunking(rocblas_handle    handle,
 #endif // defined(USE_CHUNKING)
 
 template <bool BATCHED, typename Ti, typename To, typename Tc>
-rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
-                                   rocblas_operation trans_a,
-                                   rocblas_operation trans_b,
-                                   rocblas_int       m,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   const void*       alpha,
-                                   const void*       a,
-                                   rocblas_int       offsetAin,
-                                   rocblas_int       lda,
-                                   rocblas_stride    stride_a,
-                                   const void*       b,
-                                   rocblas_int       offsetBin,
-                                   rocblas_int       ldb,
-                                   rocblas_stride    stride_b,
-                                   const void*       beta,
-                                   const void*       c,
-                                   rocblas_int       offsetCin,
-                                   rocblas_int       ldc,
-                                   rocblas_stride    stride_c,
-                                   void*             d,
-                                   rocblas_int       offsetDin,
-                                   rocblas_int       ldd,
-                                   rocblas_stride    stride_d,
-                                   rocblas_int       batch_count)
+auto gemm_ex_typecasting(rocblas_handle    handle,
+                         rocblas_operation trans_a,
+                         rocblas_operation trans_b,
+                         rocblas_int       m,
+                         rocblas_int       n,
+                         rocblas_int       k,
+                         const void*       alpha,
+                         const void*       a,
+                         rocblas_int       offsetAin,
+                         rocblas_int       lda,
+                         rocblas_stride    stride_a,
+                         const void*       b,
+                         rocblas_int       offsetBin,
+                         rocblas_int       ldb,
+                         rocblas_stride    stride_b,
+                         const void*       beta,
+                         const void*       c,
+                         rocblas_int       offsetCin,
+                         rocblas_int       ldc,
+                         rocblas_stride    stride_c,
+                         void*             d,
+                         rocblas_int       offsetDin,
+                         rocblas_int       ldd,
+                         rocblas_stride    stride_d,
+                         rocblas_int       batch_count)
 {
     Tc alpha_h, beta_h;
 
@@ -995,38 +935,38 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
 }
 
 template <bool BATCHED>
-rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
-                                        rocblas_operation trans_a,
-                                        rocblas_operation trans_b,
-                                        rocblas_int       m,
-                                        rocblas_int       n,
-                                        rocblas_int       k,
-                                        const void*       alpha,
-                                        const void*       a,
-                                        rocblas_datatype  a_type,
-                                        rocblas_int       offsetAin,
-                                        rocblas_int       lda,
-                                        rocblas_stride    stride_a,
-                                        const void*       b,
-                                        rocblas_datatype  b_type,
-                                        rocblas_int       offsetBin,
-                                        rocblas_int       ldb,
-                                        rocblas_stride    stride_b,
-                                        const void*       beta,
-                                        const void*       c,
-                                        rocblas_datatype  c_type,
-                                        rocblas_int       offsetCin,
-                                        rocblas_int       ldc,
-                                        rocblas_stride    stride_c,
-                                        void*             d,
-                                        rocblas_datatype  d_type,
-                                        rocblas_int       offsetDin,
-                                        rocblas_int       ldd,
-                                        rocblas_stride    stride_d,
-                                        rocblas_int       batch_count,
-                                        rocblas_datatype  compute_type)
+auto rocblas_gemm_ex_template(rocblas_handle    handle,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_int       m,
+                              rocblas_int       n,
+                              rocblas_int       k,
+                              const void*       alpha,
+                              const void*       a,
+                              rocblas_datatype  a_type,
+                              rocblas_int       offsetAin,
+                              rocblas_int       lda,
+                              rocblas_stride    stride_a,
+                              const void*       b,
+                              rocblas_datatype  b_type,
+                              rocblas_int       offsetBin,
+                              rocblas_int       ldb,
+                              rocblas_stride    stride_b,
+                              const void*       beta,
+                              const void*       c,
+                              rocblas_datatype  c_type,
+                              rocblas_int       offsetCin,
+                              rocblas_int       ldc,
+                              rocblas_stride    stride_c,
+                              void*             d,
+                              rocblas_datatype  d_type,
+                              rocblas_int       offsetDin,
+                              rocblas_int       ldd,
+                              rocblas_stride    stride_d,
+                              rocblas_int       batch_count,
+                              rocblas_datatype  compute_type)
 {
-    // Note: k==0 is NOT an early exit, since C still needs to be multiplied by beta
+    // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
@@ -1060,13 +1000,15 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, rocblas_half>(EX_TYPECASTING_PARM);
+        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, rocblas_half>(
+            EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
             && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
             && compute_type == rocblas_datatype_f32_r)
     {
-        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
+        rb_status
+            = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
     }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
             && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
