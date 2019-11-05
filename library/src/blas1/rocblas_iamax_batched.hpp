@@ -19,8 +19,8 @@ rocblas_status rocblas_iamax_batched_template(rocblas_handle    handle,
     static constexpr rocblas_stride stridex_0 = 0;
     return rocblas_reduction_template<NB,
                                       isbatched,
-                                      rocblas_fetch_index_value<S>,
+                                      rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amax,
-                                      rocblas_finalize_index_value>(
+                                      rocblas_finalize_amax_amin>(
         handle, n, x, shiftx, incx, stridex_0, batch_count, result, workspace);
 }

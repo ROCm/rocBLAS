@@ -34,7 +34,7 @@ struct rocblas_default_value<index_value_t<T>>
 //! @brief Struct-operator to fetch absolute value
 //!
 template <typename To>
-struct rocblas_fetch_index_value
+struct rocblas_fetch_amax_amin
 {
     template <typename Ti>
     __forceinline__ __host__ __device__ index_value_t<To> operator()(Ti x, rocblas_int index)
@@ -46,7 +46,7 @@ struct rocblas_fetch_index_value
 //!
 //! @brief Struct-operator to finalize the data.
 //!
-struct rocblas_finalize_index_value
+struct rocblas_finalize_amax_amin
 {
     template <typename To>
     __forceinline__ __host__ __device__ auto operator()(const index_value_t<To>& x)

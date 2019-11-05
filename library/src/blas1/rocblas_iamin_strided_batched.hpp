@@ -20,8 +20,8 @@ rocblas_status rocblas_iamin_strided_batched_template(rocblas_handle    handle,
     static constexpr bool isbatched = true;
     return rocblas_reduction_template<NB,
                                       isbatched,
-                                      rocblas_fetch_index_value<S>,
+                                      rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amin,
-                                      rocblas_finalize_index_value>(
+                                      rocblas_finalize_amax_amin>(
         handle, n, x, shiftx, incx, stridex, batch_count, result, workspace);
 }

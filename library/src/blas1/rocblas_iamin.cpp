@@ -30,9 +30,9 @@ namespace
 
         return rocblas_reduction_impl<NB,
                                       isbatched,
-                                      rocblas_fetch_index_value<S>,
+                                      rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amin,
-                                      rocblas_finalize_index_value,
+                                      rocblas_finalize_amax_amin,
                                       index_value_t<S>>(
             handle, n, x, incx, stridex_0, batch_count_1, result, rocblas_iamin_name<T>, "iamin");
     }
