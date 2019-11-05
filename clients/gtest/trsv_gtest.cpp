@@ -92,8 +92,11 @@ namespace
 
             name << '_' << arg.incx;
 
-            if(TRSV_TYPE != TRSV)
-                name << '_' << arg.stride_x << '_' << arg.batch_count;
+            if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
+                name << '_' << arg.stride_x;
+
+            if(TRSV_TYPE == TRSV)
+                name << '_' << arg.batch_count;
 
             return std::move(name);
         }
