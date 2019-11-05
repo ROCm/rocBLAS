@@ -56,7 +56,6 @@ void testing_nrm2_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
@@ -65,9 +64,10 @@ void testing_nrm2_batched_template(const Arguments& arg)
         device_vector<T2> dr(std::max(2, std::abs(batch_count)));
         CHECK_HIP_ERROR(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_nrm2_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, dr)),
-                              (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
-                                                                     : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_nrm2_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, dr)),
+            (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
+                                                   : rocblas_status_success);
         return;
     }
 
