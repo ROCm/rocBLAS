@@ -31,24 +31,24 @@ namespace
     * Strided / Batched GEMM implementation
     ******************************************************************************/
     template <typename T>
-    rocblas_status rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
-                                                     rocblas_operation trans_a,
-                                                     rocblas_operation trans_b,
-                                                     rocblas_int       m,
-                                                     rocblas_int       n,
-                                                     rocblas_int       k,
-                                                     const T*          alpha,
-                                                     const T*          A,
-                                                     rocblas_int       ld_a,
-                                                     rocblas_stride    stride_a,
-                                                     const T*          B,
-                                                     rocblas_int       ld_b,
-                                                     rocblas_stride    stride_b,
-                                                     const T*          beta,
-                                                     T*                C,
-                                                     rocblas_int       ld_c,
-                                                     rocblas_stride    stride_c,
-                                                     rocblas_int       batch_count)
+    auto rocblas_gemm_strided_batched_impl(rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           const T*          alpha,
+                                           const T*          A,
+                                           rocblas_int       ld_a,
+                                           rocblas_stride    stride_a,
+                                           const T*          B,
+                                           rocblas_int       ld_b,
+                                           rocblas_stride    stride_b,
+                                           const T*          beta,
+                                           T*                C,
+                                           rocblas_int       ld_c,
+                                           rocblas_stride    stride_c,
+                                           rocblas_int       batch_count)
 
     {
         if(!handle)
@@ -177,24 +177,8 @@ namespace
             }
         }
 
-        auto validArgs = validateArgs(handle,
-                                      trans_a,
-                                      trans_b,
-                                      m,
-                                      n,
-                                      k,
-                                      alpha,
-                                      A,
-                                      ld_a,
-                                      stride_a,
-                                      B,
-                                      ld_b,
-                                      stride_b,
-                                      beta,
-                                      C,
-                                      ld_c,
-                                      stride_c,
-                                      batch_count);
+        auto validArgs = validateArgs(
+            handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, batch_count);
 
         if(validArgs != rocblas_status_success)
             return validArgs;

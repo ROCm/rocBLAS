@@ -141,7 +141,7 @@ namespace
                             b_c);
         }
 
-        rocblas_status validArgs = validateArgs(
+        auto validArgs = validateArgs(
             handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
 
         if(validArgs != rocblas_status_success)

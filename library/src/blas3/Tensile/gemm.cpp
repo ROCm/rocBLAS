@@ -23,20 +23,20 @@ namespace
     * GEMM implementation
     ******************************************************************************/
     template <typename T>
-    rocblas_status rocblas_gemm_impl(rocblas_handle    handle,
-                                     rocblas_operation trans_a,
-                                     rocblas_operation trans_b,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     rocblas_int       k,
-                                     const T*          alpha,
-                                     const T*          A,
-                                     rocblas_int       ld_a,
-                                     const T*          B,
-                                     rocblas_int       ld_b,
-                                     const T*          beta,
-                                     T*                C,
-                                     rocblas_int       ld_c)
+    auto rocblas_gemm_impl(rocblas_handle    handle,
+                           rocblas_operation trans_a,
+                           rocblas_operation trans_b,
+                           rocblas_int       m,
+                           rocblas_int       n,
+                           rocblas_int       k,
+                           const T*          alpha,
+                           const T*          A,
+                           rocblas_int       ld_a,
+                           const T*          B,
+                           rocblas_int       ld_b,
+                           const T*          beta,
+                           T*                C,
+                           rocblas_int       ld_c)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -137,8 +137,8 @@ namespace
                             ld_c);
         }
 
-        rocblas_status validArgs = validateArgs(
-            handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, 0, B, ld_b, 0, beta, C, ld_c, 0, 1);
+        auto validArgs = validateArgs(
+            handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
 
         if(validArgs != rocblas_status_success)
             return validArgs;
@@ -167,10 +167,11 @@ namespace
     }
 }
 
-extern "C" {
 /*******************************************************************************
  * GEMM APIs
  ******************************************************************************/
+extern "C" {
+
 rocblas_status rocblas_hgemm(rocblas_handle      handle,
                              rocblas_operation   trans_a,
                              rocblas_operation   trans_b,
