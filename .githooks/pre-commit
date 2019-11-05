@@ -24,6 +24,7 @@ for file in $(git diff-index --cached --name-only $against); do
     /usr/bin/perl -pi -e 'INIT { exit if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 }
             s/^([*\/#[:space:]]*)Copyright\s+(?:\(C\)\s*)?(\d+)(?:\s*-\s*\d+)?/qq($1Copyright $2@{[$year != $2 ? "-$year" : ""]})/ie
             if $. < 10' "$file"
+    git add "$file"
 done
 
 # do the formatting
@@ -37,5 +38,6 @@ for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|
             echo "$format $file"
             "$format" -i -style=file "$file"
         fi
+        git add "$file"
     fi
 done
