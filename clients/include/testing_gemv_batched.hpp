@@ -272,7 +272,7 @@ void testing_gemv_batched(const Arguments& arg)
                 transA, M, N, h_alpha, hAA[b], lda, hxA[b], incx, h_beta, hy_goldA[b], incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * gemv_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -332,7 +332,7 @@ void testing_gemv_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = batch_count * gemv_gflop_count<T>(transA, M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
