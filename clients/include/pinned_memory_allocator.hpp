@@ -7,43 +7,50 @@
 //!
 //! @brief  Allocator which uses pinned host memory.
 //!
-// template <typename T>
-// class pinned_memory_allocator : public std::allocator<T>
-// {
-// public:
-    
-//     T* allocate(size_t n, const void *hint=0)
-//     {
-//       T* ptr;
-//       hipHostMalloc(&ptr, sizeof(T) * n, hipHostMallocDefault);   
-//       return ptr; 
-//     }
-
-//     void deallocate(T* ptr, size_t n)
-//     {
-//       hipHostFree(ptr);   
-//       return; 
-//     }
-// };
-
 template <class T>
-struct pinned_memory_allocator {
-  typedef T value_type;
-  pinned_memory_allocator() noexcept {}
-  template <class U> pinned_memory_allocator (const pinned_memory_allocator<U>&) noexcept {}
-  T* allocate (std::size_t n) {       
-      T* ptr;
-      hipHostMalloc(&ptr, sizeof(T) * n, hipHostMallocDefault);   
-      return ptr;  
-      }
-  void deallocate (T* ptr, std::size_t n) { hipHostFree(ptr); }
+struct pinned_memory_allocator
+{
+    using value_type = T;
+
+    pinned_memory_allocator() = default;
+
+    template <class U>
+    pinned_memory_allocator(const pinned_memory_allocator<U>&)
+    {
+    }
+
+    T* allocate(std::size_t n)
+    {
+        T*         ptr;
+        hipError_t status = hipHostMalloc(&ptr, sizeof(T) * n, hipHostMallocDefault);
+        if(status != hipSuccess)
+        {
+            ptr = nullptr;
+            std::cerr << "rocBLAS pinned_memory_allocator failed to allocate memory: "
+                      << hipGetErrorString(status) << std::endl;
+        }
+        return ptr;
+    }
+
+    void deallocate(T* ptr, std::size_t n)
+    {
+        hipError_t status = hipHostFree(ptr);
+        if(status != hipSuccess)
+        {
+            std::cerr << "rocBLAS pinned_memory_allocator failed to free memory: "
+                      << hipGetErrorString(status) << std::endl;
+        }
+    }
 };
 
 template <class T, class U>
-constexpr bool operator== (const pinned_memory_allocator<T>&, const pinned_memory_allocator<U>&) noexcept
-{return true;}
+constexpr bool operator==(const pinned_memory_allocator<T>&, const pinned_memory_allocator<U>&)
+{
+    return true;
+}
 
 template <class T, class U>
-constexpr bool operator!= (const pinned_memory_allocator<T>&, const pinned_memory_allocator<U>&) noexcept
-{return false;}
-
+constexpr bool operator!=(const pinned_memory_allocator<T>&, const pinned_memory_allocator<U>&)
+{
+    return false;
+}
