@@ -5,7 +5,6 @@
 #include "cblas_interface.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
-#include "rocblas_cblas.hpp"
 #include "rocblas_init.hpp"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
@@ -49,38 +48,26 @@ void template_testing_reduction_batched_bad_arg(const Arguments&                
 }
 
 template <typename T, typename R>
-void template_testing_reduction_batched(const Arguments&                  arg,
-                                        rocblas_reduction_batched_t<T, R> func,
-                                        void (*CBLAS_FUNC)(rocblas_int, const T*, rocblas_int, R*))
+void template_testing_reduction_batched(
+    const Arguments&                  arg,
+    rocblas_reduction_batched_t<T, R> func,
+    void (*REFBLAS_FUNC)(rocblas_int, const T*, rocblas_int, R*))
 {
     rocblas_int          N = arg.N, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride       stride_x = arg.stride_x;
     double               rocblas_error_1, rocblas_error_2;
     rocblas_local_handle handle;
 
-    if(batch_count < 0)
+    if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        device_batch_vector<T> dx(10, 1, 10);
+        device_batch_vector<T> dx(3, 1, 2);
         CHECK_HIP_ERROR(dx.memcheck());
-        device_vector<R> dr(10);
-        CHECK_HIP_ERROR(dr.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr),
-                              rocblas_status_invalid_size);
-        return;
-    }
-
-    // check to prevent undefined memory allocation error
-
-    if(N <= 0 || incx <= 0 || batch_count == 0)
-    {
-        device_batch_vector<T> dx(10, 1, 2);
-        CHECK_HIP_ERROR(dx.memcheck());
-        device_vector<R> dr(std::max(10, batch_count));
+        device_vector<R> dr(std::max(2, std::abs(batch_count)));
         CHECK_HIP_ERROR(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
+        EXPECT_ROCBLAS_STATUS(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr),
+                              (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
+                                                                     : rocblas_status_success);
         return;
     }
 
@@ -135,11 +122,7 @@ void template_testing_reduction_batched(const Arguments&                  arg,
             cpu_time_used = get_time_us();
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
-                CBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
-                //
-                // make index 1 based as in Fortran BLAS, not 0 based as in CBLAS
-                //
-                *(cpu_result + batch_index) += 1;
+                REFBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
             }
             cpu_time_used = get_time_us() - cpu_time_used;
         }

@@ -40,9 +40,8 @@ void template_testing_reduction_strided_batched_bad_arg(
 
     R h_rocblas_result;
 
-    EXPECT_ROCBLAS_STATUS(
-        (func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result)),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result),
+                          rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, incx * N, batch_count, nullptr),
                           rocblas_status_invalid_pointer);
@@ -55,34 +54,27 @@ template <typename T, typename R>
 void template_testing_reduction_strided_batched(
     const Arguments&                          arg,
     rocblas_reduction_strided_batched_t<T, R> func,
-    void (*CBLAS_FUNC)(rocblas_int, const T*, rocblas_int, R*))
+    void (*REFBLAS_FUNC)(rocblas_int, const T*, rocblas_int, R*))
 {
+
     rocblas_int    N = arg.N, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride stridex = arg.stride_x;
 
     double               rocblas_error_1, rocblas_error_2;
     rocblas_local_handle handle;
-    if(batch_count < 0)
+
+    // check to prevent undefined memory allocation error
+    if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        device_strided_batch_vector<T> dx(10, 1, 10, 10);
+        device_strided_batch_vector<T> dx(3, 1, 3, 3);
         CHECK_HIP_ERROR(dx.memcheck());
-        device_vector<R> dr(10);
+        device_vector<R> dr(std::max(3, std::abs(batch_count)));
         CHECK_HIP_ERROR(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, stridex, batch_count, dr),
-                              rocblas_status_invalid_size);
-        return;
-    }
+                              (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
+                                                                     : rocblas_status_success);
 
-    // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || batch_count == 0)
-    {
-        device_strided_batch_vector<T> dx(10, 1, 10, 10);
-        CHECK_HIP_ERROR(dx.memcheck());
-        device_vector<R> dr(std::max(10, batch_count));
-        CHECK_HIP_ERROR(dr.memcheck());
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
         return;
     }
 
@@ -142,8 +134,7 @@ void template_testing_reduction_strided_batched(
             cpu_time_used = get_time_us();
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
-                CBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
-                *(cpu_result + batch_index) += 1;
+                REFBLAS_FUNC(N, hx[batch_index], incx, cpu_result + batch_index);
             }
             cpu_time_used = get_time_us() - cpu_time_used;
         }

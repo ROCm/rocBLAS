@@ -3,12 +3,7 @@
  * ************************************************************************ */
 #pragma once
 
-//
-//  CBLAS does not have an  function iamin
-//  neither a rocblas_half based function iamax,
-//  so we write our own version of it
-//
-namespace rocblas_cblas
+namespace rocblas_iamax_iamin_ref
 {
     template <typename T>
     T asum(T x)
@@ -44,7 +39,7 @@ namespace rocblas_cblas
     }
 
     template <typename T>
-    void iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
     {
         rocblas_int minpos = -1;
         if(N > 0 && incx > 0)
@@ -65,7 +60,10 @@ namespace rocblas_cblas
     }
 
     template <typename T>
-    void iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    void cblas_iamax_ensure_minimum_index(rocblas_int  N,
+                                          const T*     X,
+                                          rocblas_int  incx,
+                                          rocblas_int* result)
     {
         rocblas_int maxpos = -1;
         if(N > 0 && incx > 0)
@@ -85,4 +83,18 @@ namespace rocblas_cblas
         *result = maxpos;
     }
 
-} // namespace rocblas_cblas
+    template <typename T>
+    void iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    {
+        cblas_iamin(N, X, incx, result);
+        *result += 1;
+    }
+
+    template <typename T>
+    void iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
+    {
+        cblas_iamax_ensure_minimum_index(N, X, incx, result);
+        *result += 1;
+    }
+
+}
