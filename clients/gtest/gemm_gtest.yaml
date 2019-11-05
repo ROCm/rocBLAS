@@ -2841,4 +2841,21 @@ Tests:
     - { M: 1536, N: 1536 }
     - { M: 3072, N: 3072 }
     - { M: 6144, N: 6144 }
+
+- name: gemm_bf16
+  category: quick
+  function: gemm_ex
+  precision: *hpa_bf16_precision
+  transA: T
+  transB: N
+  alpha: 1
+  beta: 0
+  matrix_size:
+    - { M:  512, N:  512, K:  512 }
+    - { M: 1024, N: 1024, K: 1024 }
+    - { M: 2048, N: 2048, K: 2048 }
+    - { M: 4096, N: 4096, K: 4096 }
+    - { M:  960, N: 1024, K: 1024 }
+    - { M: 3840, N: 4096, K: 4096 }
+
 ...
