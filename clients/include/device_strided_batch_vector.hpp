@@ -201,7 +201,7 @@ public:
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
         return hipMemcpy(
-            this->m_data, that.data(), sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
+            this->data(), that.data(), sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
     }
 
     //!

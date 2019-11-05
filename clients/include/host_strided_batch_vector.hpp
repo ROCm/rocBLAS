@@ -208,7 +208,7 @@ public:
         if(that.n() == this->m_n && that.inc() == this->m_inc && that.stride() == this->m_stride
            && that.batch_count() == this->m_batch_count)
         {
-            memcpy(this->m_data, that.data(), sizeof(T) * this->m_nmemb);
+            memcpy(this->data(), that.data(), sizeof(T) * this->m_nmemb);
             return true;
         }
         else
