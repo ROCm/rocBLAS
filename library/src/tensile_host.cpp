@@ -211,9 +211,6 @@ static auto GetTensileInputs(const RocblasContractionProblem<T, U, V>& problem)
     return inputs;
 }
 
-// Predeclare createTensileHost() to allow it to be used in TensileHostImpl
-TensileHost* createTensileHost();
-
 // TensileHostImpl class implements TensileHost as an opaque derived class
 struct TensileHostImpl : TensileHost
 {
