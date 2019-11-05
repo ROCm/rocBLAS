@@ -66,7 +66,7 @@ void template_testing_reduction_batched(const Arguments&                  arg,
         CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS((func(handle, N, dx.ptr_on_device(), incx, batch_count, dr)),
+        EXPECT_ROCBLAS_STATUS(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr),
                               rocblas_status_invalid_size);
         return;
     }
@@ -80,7 +80,7 @@ void template_testing_reduction_batched(const Arguments&                  arg,
         device_vector<R> dr(std::max(10, batch_count));
         CHECK_HIP_ERROR(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((func(handle, N, dx.ptr_on_device(), incx, batch_count, dr)));
+        CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
         return;
     }
 
@@ -116,7 +116,7 @@ void template_testing_reduction_batched(const Arguments&                  arg,
         //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR((func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1)));
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, hr1));
         }
 
         //
@@ -124,7 +124,7 @@ void template_testing_reduction_batched(const Arguments&                  arg,
         //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((func(handle, N, dx.ptr_on_device(), incx, batch_count, dr)));
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
             CHECK_HIP_ERROR(hr2.transfer_from(dr));
         }
 

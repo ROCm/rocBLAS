@@ -44,10 +44,10 @@ void template_testing_reduction_strided_batched_bad_arg(
         (func(handle, N, nullptr, incx, incx * N, batch_count, &h_rocblas_result)),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((func(handle, N, dx, incx, incx * N, batch_count, nullptr)),
+    EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, incx * N, batch_count, nullptr),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((func(nullptr, N, dx, incx, incx * N, batch_count, &h_rocblas_result)),
+    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, incx * N, batch_count, &h_rocblas_result),
                           rocblas_status_invalid_handle);
 }
 
@@ -108,7 +108,7 @@ void template_testing_reduction_strided_batched(
     //
     // Transfer host data to device.
     //
-    CHECK_HIP_ERROR((dx.transfer_from(hx)));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -117,7 +117,7 @@ void template_testing_reduction_strided_batched(
         //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR((func(handle, N, dx, incx, stridex, batch_count, hr1)));
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, hr1));
         }
 
         //
@@ -125,11 +125,11 @@ void template_testing_reduction_strided_batched(
         //
         {
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((func(handle, N, dx, incx, stridex, batch_count, dr)));
+            CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, stridex, batch_count, dr));
             //
             // Copy result back to host.
             //
-            CHECK_HIP_ERROR((hr2.transfer_from(dr)));
+            CHECK_HIP_ERROR(hr2.transfer_from(dr));
         }
 
         //
