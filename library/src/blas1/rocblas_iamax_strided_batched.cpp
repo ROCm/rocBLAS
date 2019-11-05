@@ -8,29 +8,27 @@
 namespace
 {
     template <typename>
-    static constexpr char rocblas_iamax_strided_batched_name[] = "unknown";
+    constexpr char rocblas_iamax_strided_batched_name[] = "unknown";
     template <>
-    static constexpr char rocblas_iamax_strided_batched_name<float>[]
-        = "rocblas_isamax_strided_batched";
+    constexpr char rocblas_iamax_strided_batched_name<float>[] = "rocblas_isamax_strided_batched";
     template <>
-    static constexpr char rocblas_iamax_strided_batched_name<double>[]
-        = "rocblas_idamax_strided_batched";
+    constexpr char rocblas_iamax_strided_batched_name<double>[] = "rocblas_idamax_strided_batched";
     template <>
-    static constexpr char rocblas_iamax_strided_batched_name<rocblas_float_complex>[]
+    constexpr char rocblas_iamax_strided_batched_name<rocblas_float_complex>[]
         = "rocblas_icamax_strided_batched";
     template <>
-    static constexpr char rocblas_iamax_strided_batched_name<rocblas_double_complex>[]
+    constexpr char rocblas_iamax_strided_batched_name<rocblas_double_complex>[]
         = "rocblas_izamax_strided_batched";
 
     // allocate workspace inside this API
     template <typename S, typename T>
-    static rocblas_status rocblas_iamax_strided_batched_impl(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const T*       x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             rocblas_int*   result)
+    rocblas_status rocblas_iamax_strided_batched_impl(rocblas_handle handle,
+                                                      rocblas_int    n,
+                                                      const T*       x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stridex,
+                                                      rocblas_int    batch_count,
+                                                      rocblas_int*   result)
     {
         static constexpr bool isbatched = true;
         static constexpr int  NB        = 1024;

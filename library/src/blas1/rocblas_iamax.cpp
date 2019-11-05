@@ -8,19 +8,19 @@
 namespace
 {
     template <typename>
-    static constexpr char rocblas_iamax_name[] = "unknown";
+    constexpr char rocblas_iamax_name[] = "unknown";
     template <>
-    static constexpr char rocblas_iamax_name<float>[] = "rocblas_isamax";
+    constexpr char rocblas_iamax_name<float>[] = "rocblas_isamax";
     template <>
-    static constexpr char rocblas_iamax_name<double>[] = "rocblas_idamax";
+    constexpr char rocblas_iamax_name<double>[] = "rocblas_idamax";
     template <>
-    static constexpr char rocblas_iamax_name<rocblas_float_complex>[] = "rocblas_icamax";
+    constexpr char rocblas_iamax_name<rocblas_float_complex>[] = "rocblas_icamax";
     template <>
-    static constexpr char rocblas_iamax_name<rocblas_double_complex>[] = "rocblas_izamax";
+    constexpr char rocblas_iamax_name<rocblas_double_complex>[] = "rocblas_izamax";
 
     // allocate workspace inside this API
     template <typename S, typename T>
-    static rocblas_status rocblas_iamax_impl(
+    rocblas_status rocblas_iamax_impl(
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result)
     {
         static constexpr bool           isbatched     = false;
