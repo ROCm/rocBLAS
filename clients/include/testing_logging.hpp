@@ -554,8 +554,8 @@ void testing_logging()
                        << " --transposeB " << transB_letter << " -m " << m << " -n " << n << " -k "
                        << k << " --alpha " << alpha << " --lda " << lda << " --stride_a "
                        << stride_a << " --ldb " << ldb << " --stride_b " << stride_b << " --beta "
-                       << beta << " --ldc " << ldc << " --stride_c " << stride_c << " --batch_count "
-                       << batch_count << '\n';
+                       << beta << " --ldc " << ldc << " --stride_c " << stride_c
+                       << " --batch_count " << batch_count << '\n';
         }
         else
         {

@@ -88,7 +88,7 @@ void testing_syr_strided_batched(const Arguments& arg)
             rocblas_syr_strided_batched<T>(
                 handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
             N < 0 || lda < N || lda < 1 || !incx || batch_count < 0 ? rocblas_status_invalid_size
-                                                                   : rocblas_status_success);
+                                                                    : rocblas_status_success);
         return;
     }
 

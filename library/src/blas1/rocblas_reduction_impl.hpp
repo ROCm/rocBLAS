@@ -82,7 +82,8 @@ void reduction_log_profile(rocblas_handle handle,
 {
     if(ISBATCHED)
     {
-        log_profile(handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch_count", batch_count);
+        log_profile(
+            handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch_count", batch_count);
     }
     else
     {
