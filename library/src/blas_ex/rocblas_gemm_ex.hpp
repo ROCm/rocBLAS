@@ -699,131 +699,6 @@ auto gemm_ex_handle_transpose(rocblas_handle    handle,
     return rb_status;
 }
 
-#if defined(USE_CHUNKING)
-
-template <typename Ti, typename To, typename To2, typename Tc>
-auto gemm_ex_chunking(rocblas_handle    handle,
-                      rocblas_operation trans_a,
-                      rocblas_operation trans_b,
-                      unsigned          m,
-                      unsigned          n,
-                      unsigned          k,
-                      const Tc*         alpha,
-                      Ti                a,
-                      unsigned          offsetAin,
-                      unsigned          lda,
-                      unsigned          stride_a,
-                      Ti                b,
-                      unsigned          offsetBin,
-                      unsigned          ldb,
-                      unsigned          stride_b,
-                      const Tc*         beta,
-                      To                c,
-                      unsigned          offsetCin,
-                      unsigned          ldc,
-                      unsigned          stride_c,
-                      To2               d,
-                      unsigned          offsetDin,
-                      unsigned          ldd,
-                      unsigned          stride_d,
-                      unsigned          batch_count)
-{
-    unsigned int_limit    = std::numeric_limits<int>::max() / sizeof(To);
-    unsigned m_chunk_size = m;
-    unsigned n_chunk_size = n;
-
-    unsigned m_chunk_size_a;
-    unsigned n_chunk_size_b;
-    unsigned n_chunk_size_c = int_limit / ldc;
-    unsigned n_chunk_size_d = int_limit / ldd;
-
-    n_chunk_size = n_chunk_size < n_chunk_size_c ? n_chunk_size : n_chunk_size_c;
-    n_chunk_size = n_chunk_size < n_chunk_size_d ? n_chunk_size : n_chunk_size_d;
-
-    if(trans_b == rocblas_operation_none)
-    {
-        n_chunk_size_b = int_limit / ldb;
-        n_chunk_size   = n_chunk_size < n_chunk_size_b ? n_chunk_size : n_chunk_size_b;
-    }
-
-    if(trans_a == rocblas_operation_transpose || trans_a == rocblas_operation_conjugate_transpose)
-    {
-        m_chunk_size_a = int_limit / lda;
-        m_chunk_size   = m_chunk_size < m_chunk_size_a ? m_chunk_size : m_chunk_size_a;
-    }
-
-    // if chunk_size < 1 return error because offset for a single row or column is larger than
-    // can fit into 32 bit register
-    if(m_chunk_size < 1)
-        return rocblas_status_invalid_size;
-    if(n_chunk_size < 1)
-        return rocblas_status_invalid_size;
-
-    unsigned n_chunk_count = ((n - 1) / n_chunk_size) + 1;
-    unsigned m_chunk_count = ((m - 1) / m_chunk_size) + 1;
-
-    for(int n_chunk_iterator = 0; n_chunk_iterator < n_chunk_count; n_chunk_iterator++)
-    {
-        unsigned n_chunk_remaining = n - (n_chunk_size * n_chunk_iterator);
-
-        unsigned n_chunk_size_corrected
-            = n_chunk_size < n_chunk_remaining ? n_chunk_size : n_chunk_remaining;
-
-        for(int m_chunk_iterator = 0; m_chunk_iterator < m_chunk_count; m_chunk_iterator++)
-        {
-            unsigned m_chunk_remaining = m - (m_chunk_size * m_chunk_iterator);
-
-            unsigned m_chunk_size_corrected
-                = m_chunk_size < m_chunk_remaining ? m_chunk_size : m_chunk_remaining;
-
-            size_t c_offset
-                = n_chunk_iterator * n_chunk_size * ldc + m_chunk_iterator * m_chunk_size;
-            size_t d_offset
-                = n_chunk_iterator * n_chunk_size * ldd + m_chunk_iterator * m_chunk_size;
-            size_t a_offset = m_chunk_iterator * m_chunk_size;
-            size_t b_offset = n_chunk_iterator * n_chunk_size;
-
-            if(trans_b == rocblas_operation_none)
-                b_offset *= ldb;
-            if(trans_a != rocblas_operation_none)
-                a_offset *= lda;
-
-            rocblas_status status = gemm_ex_handle_transpose(handle,
-                                                             trans_a,
-                                                             trans_b,
-                                                             m_chunk_size_corrected,
-                                                             n_chunk_size_corrected,
-                                                             k,
-                                                             alpha,
-                                                             a,
-                                                             a_offset + offsetAin,
-                                                             lda,
-                                                             stride_a,
-                                                             b,
-                                                             b_offset + offsetBin,
-                                                             ldb,
-                                                             stride_b,
-                                                             beta,
-                                                             c,
-                                                             c_offset + offsetCin,
-                                                             ldc,
-                                                             stride_c,
-                                                             d,
-                                                             d_offset + offsetDin,
-                                                             ldd,
-                                                             stride_d,
-                                                             batch_count);
-
-            if(status != rocblas_status_success)
-                return status;
-        }
-    }
-    return rocblas_status_success;
-}
-#else
-#define gemm_ex_chunking gemm_ex_handle_transpose
-#endif // defined(USE_CHUNKING)
-
 template <bool BATCHED, typename Ti, typename To, typename Tc>
 auto gemm_ex_typecasting(rocblas_handle    handle,
                          rocblas_operation trans_a,
@@ -874,31 +749,31 @@ auto gemm_ex_typecasting(rocblas_handle    handle,
         // Pass alpha and beta as simple array (stride of 1)
         // since Tensile does not have gemm_batched, we will have to iterate
         // over batches either way
-        return gemm_ex_chunking(handle,
-                                trans_a,
-                                trans_b,
-                                unsigned(m),
-                                unsigned(n),
-                                unsigned(k),
-                                &alpha_h,
-                                (const Ti**)a,
-                                unsigned(offsetAin),
-                                unsigned(lda),
-                                unsigned(stride_a),
-                                (const Ti**)b,
-                                unsigned(offsetBin),
-                                unsigned(ldb),
-                                unsigned(stride_b),
-                                &beta_h,
-                                (const To**)c,
-                                unsigned(offsetCin),
-                                unsigned(ldc),
-                                unsigned(stride_c),
-                                (To**)d,
-                                unsigned(offsetDin),
-                                unsigned(ldd),
-                                unsigned(stride_d),
-                                unsigned(batch_count));
+        return gemm_ex_handle_transpose(handle,
+                                        trans_a,
+                                        trans_b,
+                                        unsigned(m),
+                                        unsigned(n),
+                                        unsigned(k),
+                                        &alpha_h,
+                                        (const Ti**)a,
+                                        unsigned(offsetAin),
+                                        unsigned(lda),
+                                        unsigned(stride_a),
+                                        (const Ti**)b,
+                                        unsigned(offsetBin),
+                                        unsigned(ldb),
+                                        unsigned(stride_b),
+                                        &beta_h,
+                                        (const To**)c,
+                                        unsigned(offsetCin),
+                                        unsigned(ldc),
+                                        unsigned(stride_c),
+                                        (To**)d,
+                                        unsigned(offsetDin),
+                                        unsigned(ldd),
+                                        unsigned(stride_d),
+                                        unsigned(batch_count));
     }
     else
     {
@@ -906,31 +781,31 @@ auto gemm_ex_typecasting(rocblas_handle    handle,
            || !isAligned(d, sizeof(To)))
             return rocblas_status_invalid_size;
 
-        return gemm_ex_chunking(handle,
-                                trans_a,
-                                trans_b,
-                                unsigned(m),
-                                unsigned(n),
-                                unsigned(k),
-                                &alpha_h,
-                                (const Ti*)a,
-                                unsigned(offsetAin),
-                                unsigned(lda),
-                                unsigned(stride_a),
-                                (const Ti*)b,
-                                unsigned(offsetBin),
-                                unsigned(ldb),
-                                unsigned(stride_b),
-                                &beta_h,
-                                (const To*)c,
-                                unsigned(offsetCin),
-                                unsigned(ldc),
-                                unsigned(stride_c),
-                                (To*)d,
-                                unsigned(offsetDin),
-                                unsigned(ldd),
-                                unsigned(stride_d),
-                                unsigned(batch_count));
+        return gemm_ex_handle_transpose(handle,
+                                        trans_a,
+                                        trans_b,
+                                        unsigned(m),
+                                        unsigned(n),
+                                        unsigned(k),
+                                        &alpha_h,
+                                        (const Ti*)a,
+                                        unsigned(offsetAin),
+                                        unsigned(lda),
+                                        unsigned(stride_a),
+                                        (const Ti*)b,
+                                        unsigned(offsetBin),
+                                        unsigned(ldb),
+                                        unsigned(stride_b),
+                                        &beta_h,
+                                        (const To*)c,
+                                        unsigned(offsetCin),
+                                        unsigned(ldc),
+                                        unsigned(stride_c),
+                                        (To*)d,
+                                        unsigned(offsetDin),
+                                        unsigned(ldd),
+                                        unsigned(stride_d),
+                                        unsigned(batch_count));
     }
 }
 
