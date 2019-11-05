@@ -166,13 +166,29 @@ inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>
-size_t
-    rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count, To* output_type)
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
     auto blocks = rocblas_reduction_kernel_block_count(n, NB);
     return sizeof(To) * (blocks + 1) * batch_count;
+}
+
+/*! \brief rocblas_reduction_batched_kernel_workspace_size 
+    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
+
+    @param[in]
+    outputType To* 
+        Type of output values
+    @param[in]
+    batch_count rocblas_int 
+        Number of batches
+    ********************************************************************/
+template <rocblas_int NB, typename To>
+size_t
+    rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count, To* output_type)
+{
+    return rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
 }
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
