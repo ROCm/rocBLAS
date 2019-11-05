@@ -24,6 +24,9 @@ void testing_set_get_matrix_async(const Arguments& arg)
     rocblas_int          ldc  = arg.ldc;
     rocblas_local_handle handle;
 
+    hipStream_t stream;
+    rocblas_get_stream(handle, &stream);
+
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
     if(rows < 0 || lda <= 0 || lda < rows || cols < 0 || ldb <= 0 || ldb < rows || ldc <= 0
@@ -43,19 +46,19 @@ void testing_set_get_matrix_async(const Arguments& arg)
         }
 
         EXPECT_ROCBLAS_STATUS(
-            rocblas_set_matrix_async(handle, rows, cols, sizeof(T), ha, lda, dc, ldc),
+            rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream),
             rocblas_status_invalid_size);
         EXPECT_ROCBLAS_STATUS(
-            rocblas_get_matrix_async(handle, rows, cols, sizeof(T), dc, ldc, hb, ldb),
+            rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream),
             rocblas_status_invalid_size);
         return;
     }
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> ha(cols * size_t(lda));
-    host_vector<T> hb(cols * size_t(ldb));
-    host_vector<T> hc(cols * size_t(ldc));
-    host_vector<T> hb_gold(cols * size_t(ldb));
+    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory,
+    host_pinned_vector<T> ha(cols * size_t(lda));
+    host_pinned_vector<T> hb(cols * size_t(ldb));
+    host_vector<T>        hc(cols * size_t(ldc));
+    host_vector<T>        hb_gold(cols * size_t(ldb));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
@@ -74,7 +77,6 @@ void testing_set_get_matrix_async(const Arguments& arg)
     rocblas_init<T>(ha, rows, cols, lda);
     rocblas_init<T>(hb, rows, cols, ldb);
     rocblas_init<T>(hc, rows, cols, ldc);
-    hb_gold = hb;
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -82,13 +84,13 @@ void testing_set_get_matrix_async(const Arguments& arg)
         rocblas_init<T>(hb, rows, cols, ldb);
         rocblas_init<T>(hc, rows, cols, ldc);
         CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(T) * ldc * cols, hipMemcpyHostToDevice));
+
         CHECK_ROCBLAS_ERROR(
-            rocblas_set_matrix_async(handle, rows, cols, sizeof(T), ha, lda, dc, ldc));
+            rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream));
         CHECK_ROCBLAS_ERROR(
-            rocblas_get_matrix_async(handle, rows, cols, sizeof(T), dc, ldc, hb, ldb));
-        hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
-        hipStreamSynchronize(rocblas_stream);
+            rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream));
+
+        hipStreamSynchronize(stream);
 
         // reference calculation
         cpu_time_used = get_time_us();
@@ -112,17 +114,15 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = 1;
+        int number_timing_iterations = 10;
         gpu_time_used                = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
-            rocblas_set_matrix_async(handle, rows, cols, sizeof(T), ha, lda, dc, ldc);
-            rocblas_get_matrix_async(handle, rows, cols, sizeof(T), dc, ldc, hb, ldb);
+            rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream);
+            rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream);
         }
-        hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
-        hipStreamSynchronize(rocblas_stream);
+        hipStreamSynchronize(stream);
 
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_bandwidth

@@ -33,7 +33,7 @@ namespace
             switch(TRANSFER_TYPE)
             {
             case SET_GET_VECTOR_SYNC:
-                return !strcmp(arg.function, "set_get_vector");
+                return !strcmp(arg.function, "set_get_vector_sync");
             case SET_GET_VECTOR_ASYNC:
                 return !strcmp(arg.function, "set_get_vector_async");
             }
@@ -76,7 +76,7 @@ namespace
     {
         void operator()(const Arguments& arg)
         {
-            if(!strcmp(arg.function, "set_get_vector"))
+            if(!strcmp(arg.function, "set_get_vector_sync"))
                 testing_set_get_vector<T>(arg);
             else if(!strcmp(arg.function, "set_get_vector_async"))
                 testing_set_get_vector_async<T>(arg);

@@ -35,7 +35,7 @@ namespace
             switch(TRANSFER_TYPE)
             {
             case SET_GET_MATRIX_SYNC:
-                return !strcmp(arg.function, "set_get_matrix");
+                return !strcmp(arg.function, "set_get_matrix_sync");
             case SET_GET_MATRIX_ASYNC:
                 return !strcmp(arg.function, "set_get_matrix_async");
             }
@@ -78,7 +78,7 @@ namespace
     {
         void operator()(const Arguments& arg)
         {
-            if(!strcmp(arg.function, "set_get_matrix"))
+            if(!strcmp(arg.function, "set_get_matrix_sync"))
                 testing_set_get_matrix<T>(arg);
             else if(!strcmp(arg.function, "set_get_matrix_async"))
                 testing_set_get_matrix_async<T>(arg);

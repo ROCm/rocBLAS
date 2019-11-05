@@ -13,7 +13,6 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
-#include "pinned_memory_allocator.hpp"
 
 template <typename T>
 void testing_set_get_vector_async(const Arguments& arg)
@@ -23,6 +22,9 @@ void testing_set_get_vector_async(const Arguments& arg)
     rocblas_int          incy = arg.incy;
     rocblas_int          incb = arg.incb;
     rocblas_local_handle handle;
+
+    hipStream_t stream;
+    rocblas_get_stream(handle, &stream);
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
@@ -38,23 +40,20 @@ void testing_set_get_vector_async(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        EXPECT_ROCBLAS_STATUS(rocblas_set_vector_async(handle, M, sizeof(T), hx, incx, db, incb),
+        EXPECT_ROCBLAS_STATUS(rocblas_set_vector_async(M, sizeof(T), hx, incx, db, incb, stream),
                               rocblas_status_invalid_size);
-        EXPECT_ROCBLAS_STATUS(rocblas_get_vector_async(handle, M, sizeof(T), db, incb, hy, incy),
+        EXPECT_ROCBLAS_STATUS(rocblas_get_vector_async(M, sizeof(T), db, incb, hy, incy, stream),
                               rocblas_status_invalid_size);
         return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    //pinned_memory_allocator<T> hipPinned;
-    T* hx;
-    hipHostMalloc(&hx, sizeof(T) * M * size_t(incx), hipHostMallocDefault);    
-    T* hy;
-    hipHostMalloc(&hy, sizeof(T) * M * size_t(incy), hipHostMallocDefault);  
-    //host_pinned_vector<T> hxvec(M, incx );
-    host_vector<T> hyvec(M, size_t(incy));
-    //host_vector<T> hb(M * size_t(incb));
+    host_pinned_vector<T> hp_x(M, incx);
+    host_pinned_vector<T> hp_y(M, incy);
+
+    host_vector<T> hy(M, incy);
     host_vector<T> hy_gold(M, size_t(incy));
+    host_vector<T> hb(M, incb);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_bandwidth, cpu_bandwidth;
@@ -70,36 +69,28 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    for(int i = 0; i < M; i++)
-    {
-        *(hx+i*incx) = T(i);
-    }
-    //rocblas_init<T>(hxvec, 1, M, incx);
-    //rocblas_init<T>(hy, 1, M, incy);
-    //rocblas_init<T>(hb, 1, M, incb);
-    //hy_gold = hy;
+    rocblas_init<T>(hp_x, 1, M, incx);
+    rocblas_init<T>(hp_y, 1, M, incy);
 
     if(arg.unit_check || arg.norm_check)
     {
-        // GPU BLAS
-        //rocblas_init<T>(hy, 1, M, incy);
-        //rocblas_init<T>(hb, 1, M, incb);
-        //CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * incb * M, hipMemcpyHostToDevice));
+        // set device memory to be random
+        rocblas_init<T>(hb, 1, M, incb);
+        CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * incb * M, hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(handle, M, sizeof(T), hx, incx, db, incb));
-        CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(handle, M, sizeof(T), db, incb, hy, incy));
-        hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
-        hipStreamSynchronize(rocblas_stream);
+        CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream));
+        CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream));
+
+        hipStreamSynchronize(stream);
 
         cpu_time_used = get_time_us();
 
-        hyvec.assign(hy, hy+M*incy); // copy to host_vector for checks
+        hy.assign(&hp_y[0], &hp_y[0] + M * incy); // copy to host_vector for _check_ compatibility
 
         // reference calculation
         for(int i = 0; i < M; i++)
         {
-            hy_gold[i * incy] = hx[i * incx];
+            hy_gold[i * incy] = hp_x[i * incx];
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -107,28 +98,26 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incy, hyvec, hy_gold);
+            unit_check_general<T>(1, M, incy, hy, hy_gold);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, incy, hyvec, hy_gold);
+            rocblas_error = norm_check_general<T>('F', 1, M, incy, hy, hy_gold);
         }
     }
 
     if(arg.timing)
     {
-        int number_timing_iterations = 1;
+        int number_timing_iterations = 10;
         gpu_time_used                = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
-            rocblas_set_vector_async(handle, M, sizeof(T), hx, incx, db, incb);
-            rocblas_get_vector_async(handle, M, sizeof(T), db, incb, hy, incy);
+            rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream);
+            rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream);
         }
-        hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
-        hipStreamSynchronize(rocblas_stream);
+        hipStreamSynchronize(stream);
 
         gpu_time_used     = get_time_us() - gpu_time_used;
         rocblas_bandwidth = (M * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
@@ -147,7 +136,4 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         std::cout << std::endl;
     }
-
-    hipHostFree(hx);
-    hipHostFree(hy);
 }
