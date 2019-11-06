@@ -109,7 +109,7 @@ endif( )
 # This finds the rocm-cmake project, and installs it if not found
 # rocm-cmake contains common cmake code for rocm projects to help setup and install
 set( PROJECT_EXTERN_DIR ${CMAKE_CURRENT_BINARY_DIR}/extern )
-find_package( ROCM CONFIG QUIET PATHS /opt/rocm )
+find_package( ROCM CONFIG QUIET PATHS /opt/rocm ${CMAKE_INSTALL_PREFIX})
 if( NOT ROCM_FOUND )
   set( rocm_cmake_tag "master" CACHE STRING "rocm-cmake tag to download" )
   file( DOWNLOAD https://github.com/RadeonOpenCompute/rocm-cmake/archive/${rocm_cmake_tag}.zip
@@ -154,7 +154,7 @@ rocm_setup_version( VERSION ${VERSION_STRING} )
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 # NOTE:  workaround until hcc & hip cmake modules fixes symlink logic in their config files; remove when fixed
-list( APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip )
+list( APPEND CMAKE_PREFIX_PATH /opt/rocm/hcc /opt/rocm/hip ${CMAKE_INSTALL_PREFIX}/hcc ${CMAKE_INSTALL_PREFIX}/hip)
 
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
@@ -199,8 +199,8 @@ endif()
 
 # Find HCC/HIP dependencies
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm )
-  find_package( hip REQUIRED CONFIG PATHS /opt/rocm )
+  find_package( hcc REQUIRED CONFIG PATHS /opt/rocm ${CMAKE_INSTALL_PREFIX})
+  find_package( hip REQUIRED CONFIG PATHS /opt/rocm ${CMAKE_INSTALL_PREFIX})
 endif( )
 
 # CMake list of machine targets
