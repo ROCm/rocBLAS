@@ -170,6 +170,8 @@ size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
     auto blocks = rocblas_reduction_kernel_block_count(n, NB);
     return sizeof(To) * (blocks + 1) * batch_count;
 }
