@@ -233,6 +233,8 @@ Tests:
     function:
       - asum_batched: *single_double_precisions_complex_real
       - nrm2_batched: *single_double_precisions_complex_real
+      - iamax_batched: *single_double_precisions_complex_real
+      - iamin_batched: *single_double_precisions_complex_real
 
   - name: blas1_strided_batched
     category: quick
@@ -243,6 +245,8 @@ Tests:
     function:
       - asum_strided_batched: *single_double_precisions_complex_real
       - nrm2_strided_batched: *single_double_precisions_complex_real
+      - iamax_strided_batched: *single_double_precisions_complex_real
+      - iamin_strided_batched: *single_double_precisions_complex_real
 
 # pre_checkin
   - name: blas1
@@ -264,6 +268,8 @@ Tests:
     function:
       - asum_batched: *double_precision_complex_real
       - nrm2_batched: *double_precision_complex_real
+      - iamax_batched: *double_precision_complex_real
+      - iamin_batched: *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: pre_checkin
@@ -274,6 +280,8 @@ Tests:
     function:
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched: *double_precision_complex_real
+      - iamax_strided_batched: *double_precision_complex_real
+      - iamin_strided_batched: *double_precision_complex_real
 
 # nightly
   - name: blas1
@@ -283,6 +291,8 @@ Tests:
     function:
       - nrm2:  *double_precision_complex_real
       - asum:  *double_precision_complex_real
+      - iamax:  *double_precision_complex_real
+      - iamin:  *double_precision_complex_real
 
   - name: blas1_batched
     category: nightly
@@ -292,6 +302,8 @@ Tests:
     function:
       - asum_batched: *double_precision_complex_real
       - nrm2_batched: *double_precision_complex_real
+      - iamax_batched: *double_precision_complex_real
+      - iamin_batched: *double_precision_complex_real
 
   - name: blas1_strided_batched
     category: nightly
@@ -302,6 +314,8 @@ Tests:
     function:
       - asum_strided_batched: *double_precision_complex_real
       - nrm2_strided_batched: *double_precision_complex_real
+      - iamax_strided_batched: *double_precision_complex_real
+      - iamin_strided_batched: *double_precision_complex_real
 
 # All functions with incx, incy, no alpha
 
@@ -428,7 +442,11 @@ Tests:
       - asum_batched_bad_arg:  *single_double_precisions_complex_real
       - asum_strided_batched_bad_arg:  *single_double_precisions_complex_real
       - iamax_bad_arg: *single_double_precisions_complex_real
+      - iamax_batched_bad_arg: *single_double_precisions_complex_real
+      - iamax_strided_batched_bad_arg: *single_double_precisions_complex_real
       - iamin_bad_arg: *single_double_precisions_complex_real
+      - iamin_batched_bad_arg: *single_double_precisions_complex_real
+      - iamin_strided_batched_bad_arg: *single_double_precisions_complex_real
       - axpy_bad_arg:  *half_single_precisions_complex_real
       - copy_bad_arg:  *single_double_precisions_complex_real
       - copy_batched_bad_arg:  *single_double_precisions_complex_real
