@@ -216,7 +216,7 @@ void testing_gemv(const Arguments& arg)
         cblas_gemv<T>(transA, M, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = gemv_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -250,19 +250,19 @@ void testing_gemv(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = gemv_gflop_count<T>(transA, M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,lda,incx,incy,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,N,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
             std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
         std::cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << incy
-                  << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta
+                  << "," << incy << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

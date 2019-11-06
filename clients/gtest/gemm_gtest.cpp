@@ -5,6 +5,8 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
@@ -20,6 +22,8 @@ namespace
     {
         GEMM,
         GEMM_EX,
+        GEMM_BATCHED,
+        GEMM_BATCHED_EX,
         GEMM_STRIDED_BATCHED,
         GEMM_STRIDED_BATCHED_EX,
     };
@@ -60,6 +64,14 @@ namespace
             case GEMM_EX:
                 return !strcmp(arg.function, "gemm_ex") || !strcmp(arg.function, "gemm_ex_bad_arg");
 
+            case GEMM_BATCHED:
+                return !strcmp(arg.function, "gemm_batched")
+                       || !strcmp(arg.function, "gemm_batched_bad_arg");
+
+            case GEMM_BATCHED_EX:
+                return !strcmp(arg.function, "gemm_batched_ex")
+                       || !strcmp(arg.function, "gemm_batched_ex_bad_arg");
+
             case GEMM_STRIDED_BATCHED:
                 return !strcmp(arg.function, "gemm_strided_batched");
 
@@ -76,8 +88,13 @@ namespace
         {
             RocBLAS_TestName<gemm_test_template> name;
             name << rocblas_datatype2string(arg.a_type);
+            bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
+                         || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
+            bool isBatched
+                = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
+                   || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
 
-            if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            if(isEx)
                 name << rocblas_datatype2string(arg.b_type) << rocblas_datatype2string(arg.c_type)
                      << rocblas_datatype2string(arg.d_type)
                      << rocblas_datatype2string(arg.compute_type);
@@ -86,12 +103,14 @@ namespace
                  << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda
                  << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
-            if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
+            if(isEx)
                 name << '_' << arg.ldd;
 
+            if(isBatched)
+                name << '_' << arg.batch_count;
+
             if(GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
-                name << '_' << arg.batch_count << '_' << arg.stride_a << '_' << arg.stride_b << '_'
-                     << arg.stride_c;
+                name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
             return std::move(name);
         }
@@ -99,6 +118,7 @@ namespace
 
     // ----------------------------------------------------------------------------
     // gemm
+    // gemm_batched
     // gemm_strided_batched
     // ----------------------------------------------------------------------------
 
@@ -112,12 +132,12 @@ namespace
 
     // When Ti = To = Tc != void, this test applies.
     // When converted to bool, this functor returns true.
-    // Complex is not supported yet.
     template <typename T>
     struct gemm_testing<T,
                         T,
                         T,
-                        typename std::enable_if<!std::is_same<T, void>{} && !is_complex<T>>::type>
+                        typename std::enable_if<!std::is_same<T, void>{}
+                                                && !std::is_same<T, rocblas_bfloat16>{}>::type>
     {
         explicit operator bool()
         {
@@ -129,6 +149,10 @@ namespace
                 testing_gemm<T>(arg);
             else if(!strcmp(arg.function, "gemm_bad_arg"))
                 testing_gemm_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "gemm_batched"))
+                testing_gemm_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemm_batched_bad_arg"))
+                testing_gemm_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched"))
                 testing_gemm_strided_batched<T>(arg);
             else
@@ -143,6 +167,13 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(gemm);
 
+    using gemm_batched = gemm_test_template<gemm_testing, GEMM_BATCHED>;
+    TEST_P(gemm_batched, blas3)
+    {
+        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(gemm_batched);
+
     using gemm_strided_batched = gemm_test_template<gemm_testing, GEMM_STRIDED_BATCHED>;
     TEST_P(gemm_strided_batched, blas3)
     {
@@ -152,6 +183,7 @@ namespace
 
     // ----------------------------------------------------------------------------
     // gemm_ex
+    // gemm_batched_ex
     // gemm_strided_batched_ex
     // ----------------------------------------------------------------------------
 
@@ -165,13 +197,14 @@ namespace
 
     // When Ti != void, this test applies.
     // When converted to bool, this functor returns true.
-    // Complex is not supported yet.
     template <typename Ti, typename To, typename Tc>
     struct gemm_ex_testing<
         Ti,
         To,
         Tc,
-        typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+        typename std::enable_if<!std::is_same<Ti, void>{}
+                                && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                     && std::is_same<Ti, rocblas_bfloat16>{})>::type>
     {
         explicit operator bool()
         {
@@ -184,6 +217,10 @@ namespace
                 testing_gemm_ex<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_ex_bad_arg"))
                 testing_gemm_ex_bad_arg<Ti, To, Tc>(arg);
+            else if(!strcmp(arg.function, "gemm_batched_ex"))
+                testing_gemm_batched_ex<Ti, To, Tc>(arg);
+            else if(!strcmp(arg.function, "gemm_batched_ex_bad_arg"))
+                testing_gemm_batched_ex_bad_arg<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched_ex"))
                 testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched_ex_bad_arg"))
@@ -199,6 +236,13 @@ namespace
         rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_ex);
+
+    using gemm_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_BATCHED_EX>;
+    TEST_P(gemm_batched_ex, blas3)
+    {
+        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(gemm_batched_ex);
 
     using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
     TEST_P(gemm_strided_batched_ex, blas3)

@@ -22,12 +22,14 @@ auto rocblas_simple_dispatch(const Arguments& arg)
     {
     case rocblas_datatype_f16_r:
         return TEST<rocblas_half>{}(arg);
+    case rocblas_datatype_bf16_r:
+        return TEST<rocblas_bfloat16>{}(arg);
     case rocblas_datatype_f32_r:
         return TEST<float>{}(arg);
     case rocblas_datatype_f64_r:
         return TEST<double>{}(arg);
-        //  case rocblas_datatype_f16_c:
-        //      return TEST<rocblas_half_complex>{}(arg);
+    //  case rocblas_datatype_f16_c:
+    //      return TEST<rocblas_half_complex>{}(arg);
     case rocblas_datatype_f32_c:
         return TEST<rocblas_float_complex>{}(arg);
     case rocblas_datatype_f64_c:
@@ -47,7 +49,7 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
         if(Tb == Ti)
             return rocblas_simple_dispatch<TEST>(arg);
         else
-        { // for csscal and zdscal only
+        { // for csscal and zdscal and complex rotg only
             if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
                 return TEST<rocblas_float_complex, float>{}(arg);
             else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
@@ -58,6 +60,10 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
         return TEST<rocblas_float_complex, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
         return TEST<rocblas_double_complex, double>{}(arg);
+    else if(Ti == rocblas_datatype_f32_r && Tb == rocblas_datatype_f32_r)
+        return TEST<float, float>{}(arg);
+    else if(Ti == rocblas_datatype_f64_r && Tb == rocblas_datatype_f64_r)
+        return TEST<double, double>{}(arg);
     //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
     //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
 

@@ -24,6 +24,15 @@ endif()
 # This project may compile dependencies for clients
 project( rocblas-clients LANGUAGES CXX )
 
+if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+endif()
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
+
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
 include( build-options )
@@ -75,3 +84,46 @@ add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_GENTEST}" )
+
+
+# TODO: move to rocm-cmake
+include(CMakeParseArguments)
+
+function(rocm_create_package_clients)
+    set(options)
+    set(oneValueArgs LIB_NAME DESCRIPTION SECTION MAINTAINER VERSION)
+    set(multiValueArgs DEPENDS)
+
+    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-Linux.deb")
+    string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
+                                           "\nVersion: " ${PARSE_VERSION}
+                                           "\nSection: " ${PARSE_SECTION}
+                                           "\nPriority: optional"
+                                           "\nArchitecture: amd64"
+                                           "\nMaintainer: " ${PARSE_MAINTAINER}
+                                           "\nDescription: " ${PARSE_DESCRIPTION}
+                                           "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
+
+    if(EXISTS "${PROJECT_BINARY_DIR}/package")
+        file(REMOVE_RECURSE "${PROJECT_BINARY_DIR}/package")
+    endif()
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin")
+    file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
+
+    add_custom_target(package_clients
+        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin"
+        COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
+endfunction(rocm_create_package_clients)
+
+
+if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
+
+rocm_create_package_clients(LIB_NAME rocblas
+                            DESCRIPTION "Radeon Open Compute BLAS library"
+                            MAINTAINER "rocblas-maintainer@amd.com>"
+                            SECTION "dev"
+                            VERSION ${rocblas_VERSION})
+endif()

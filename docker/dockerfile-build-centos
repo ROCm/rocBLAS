@@ -10,6 +10,7 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
+    rocm_smi64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
@@ -30,19 +31,22 @@ RUN yum install -y \
     python36-pytest \
     python36-setuptools \
     PyYAML \
+    llvm7.0-devel \
+    llvm7.0-static \
     libcxx-devel \
     boost-devel \
+    zlib-devel \ 
+    libgomp \
     numactl-libs \
-    rpm-build \ 
+    rpm-build \
     deltarpm
 
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
     'source scl_source enable devtoolset-7' >>/etc/profile.d/devtoolset7.sh
 
 RUN pip3 install wheel && pip3 install tox pyyaml
-    
-# docker pipeline runs containers with particular uid
-# create a jenkins user with this specific uid so it can use sudo priviledges
+
+# Create a jenkins user with this specific uid so it can use sudo priviledges
 # Grant any member of sudo group password-less sudo privileges
 RUN useradd --create-home -u ${user_uid} -o -G video --shell /bin/bash jenkins && \
     echo '%video ALL=(ALL) NOPASSWD:ALL' | tee /etc/sudoers.d/sudo-nopasswd && \

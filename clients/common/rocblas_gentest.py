@@ -195,6 +195,76 @@ def setdefaults(test):
     # Do not put constant defaults here -- use rocblas_common.yaml for that.
     # These are only for dynamic defaults
     # TODO: This should be ideally moved to YAML file, with eval'd expressions.
+
+    if test['function'] in ('asum_strided_batched', 'nrm2_strided_batched',
+                            'scal_strided_batched', 'swap_strided_batched',
+                            'copy_strided_batched', 'dot_strided_batched',
+                            'dotc_strided_batched', 'rot_strided_batched',
+                            'rotm_strided_batched', 'iamax_strided_batched',
+                            'iamin_strided_batched'):
+        if all([x in test for x in ('N', 'incx', 'stride_scale')]):
+            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
+            test.setdefault('stride_x', ldx)
+        if all([x in test for x in ('N', 'incy', 'stride_scale')]):
+            ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
+            test.setdefault('stride_y', ldy)
+        # we are using stride_c for param in rotm
+        if all([x in test for x in ('stride_scale')]):
+            test.setdefault('stride_c', int(test['stride_scale']) * 5)
+
+    elif test['function'] in ('gemv_strided_batched', 'ger_strided_batched', 'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched') or test['transA'] in ('T', 'C'):
+            if all([x in test for x in ('M', 'incx', 'stride_scale')]):
+                ldx = int(test['M'] * abs(test['incx']) * test['stride_scale'])
+                test.setdefault('stride_x', ldx)
+            if all([x in test for x in ('N', 'incy', 'stride_scale')]):
+                ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
+                test.setdefault('stride_y', ldy)
+        else:
+            if all([x in test for x in ('N', 'incx', 'stride_scale')]):
+                ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
+                test.setdefault('stride_x', ldx)
+            if all([x in test for x in ('M', 'incy', 'stride_scale')]):
+                ldy = int(test['M'] * abs(test['incy']) * test['stride_scale'])
+                test.setdefault('stride_y', ldy)
+
+    # we are using stride_c for arg c and stride_d for arg s in rotg
+    # these are are single values for each batch
+    elif test['function'] in ('rotg_strided_batched'):
+        if 'stride_scale' in test:
+            test.setdefault('stride_a', int(test['stride_scale']))
+            test.setdefault('stride_b', int(test['stride_scale']))
+            test.setdefault('stride_c', int(test['stride_scale']))
+            test.setdefault('stride_d', int(test['stride_scale']))
+
+    # we are using stride_a for d1, stride_b for d2, and stride_c for param in
+    # rotmg. These are are single values for each batch, except param which is
+    # a 5 element array
+    elif test['function'] in ('rotmg_strided_batched'):
+        if 'stride_scale' in test:
+            test.setdefault('stride_a', int(test['stride_scale']))
+            test.setdefault('stride_b', int(test['stride_scale']))
+            test.setdefault('stride_c', int(test['stride_scale']) * 5)
+            test.setdefault('stride_x', int(test['stride_scale']))
+            test.setdefault('stride_y', int(test['stride_scale']))
+
+    elif test['function'] in ('trsm_strided_batched', 'trsm_strided_batched_ex'):
+        if all([x in test for x in ('N', 'ldb', 'stride_scale')]):
+            ldN = int(test['N'] * test['ldb'] * test['stride_scale'])
+            test.setdefault('stride_b', ldN)
+
+        if test['side'].upper() == 'L':
+            if all([x in test for x in ('M', 'lda', 'stride_scale')]):
+                ldM = int(test['M'] * test['lda'] * test['stride_scale'])
+                test.setdefault('stride_a', ldM)
+        else:
+            if all([x in test for x in ('N', 'lda', 'stride_scale')]):
+                ldN = int(test['N'] * test['lda'] * test['stride_scale'])
+                test.setdefault('stride_a', ldN)
+
+    test.setdefault('stride_x', 0)
+    test.setdefault('stride_y', 0)
+
     if test['transA'] == '*' or test['transB'] == '*':
         test.setdefault('lda', 0)
         test.setdefault('ldb', 0)

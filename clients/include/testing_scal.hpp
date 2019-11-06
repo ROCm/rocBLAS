@@ -92,7 +92,7 @@ void testing_scal(const Arguments& arg)
         return;
     }
 
-    // copy data from CPU to device, does not work for incx != 1
+    // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
@@ -123,7 +123,7 @@ void testing_scal(const Arguments& arg)
         cpu_time_used = get_time_us();
         cblas_scal<T, U>(N, h_alpha, hy_gold, incx);
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = scal_gflop_count<T, U>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -158,7 +158,7 @@ void testing_scal(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";

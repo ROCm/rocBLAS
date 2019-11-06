@@ -40,6 +40,8 @@ Real precisions: &real_precisions
     { a_type: f64_r, b_type: f64_r, c_type: f64_r, d_type: f64_r, compute_type: f64_r }
   - &int8_precision
     { a_type:  i8_r, b_type:  i8_r, c_type: i32_r, d_type: i32_r, compute_type: i32_r }
+  - &bf16_precision
+    { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: bf16_r }
   - &hpa_bf16_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
 
@@ -173,6 +175,46 @@ Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
 
+#############################################
+#               Used for rot*               #
+#############################################
+Complex real mixed: &complex_real_mixed
+  - &single_precision_complex_real_in_complex_compute
+    { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_c }
+  - &double_precision_complex_real_in_complex_compute
+    { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_c }
+  - &single_precision_complex_real_in_real_compute
+    { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_r }
+  - &double_precision_complex_real_in_real_compute
+    { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_r }
+
+rot precisions: &rot_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_complex_compute
+  - *single_precision_complex_real_in_real_compute
+  - *double_precision_complex_real_in_complex_compute
+  - *double_precision_complex_real_in_real_compute
+
+rotg precisions: &rotg_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_complex_compute
+  - *double_precision_complex_real_in_complex_compute
+
+#############################################
+#           Used for Dot (quick)            #
+#############################################
+Half bfloat single double complex real: &half_bfloat_single_double_complex_real_precisions
+  - *half_precision
+  - *bf16_precision
+  - *single_precision
+  - *double_precision
+  - *half_precision_complex
+  - *single_precision_complex
+  - *double_precision_complex
+
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes
@@ -208,6 +250,8 @@ Arguments:
   - stride_b: rocblas_int
   - stride_c: rocblas_int
   - stride_d: rocblas_int
+  - stride_x: rocblas_int
+  - stride_y: rocblas_int
   - norm_check: rocblas_int
   - unit_check: rocblas_int
   - timing: rocblas_int
@@ -273,10 +317,6 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: -1
-  stride_a: 0
-  stride_b: 0
-  stride_c: 0
-  stride_d: 0
   norm_check: 0
   unit_check: 1
   timing: 0

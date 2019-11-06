@@ -293,7 +293,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     int32_t           solution_index(arg.solution_index);
     uint32_t          flags(arg.flags);
 
-    bool nantest    = rocblas_isnan(arg.beta);
+    bool nantest    = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
     Tc   h_alpha_Tc = arg.get_alpha<Tc>();
     Tc   h_beta_Tc  = arg.get_beta<Tc>();
 
