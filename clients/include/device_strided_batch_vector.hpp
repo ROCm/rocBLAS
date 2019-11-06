@@ -96,6 +96,22 @@ public:
     }
 
     //!
+    //! @brief Returns the data pointer.
+    //!
+    T* data()
+    {
+        return this->m_data;
+    }
+
+    //!
+    //! @brief Returns the data pointer.
+    //!
+    const T* data() const
+    {
+        return this->m_data;
+    }
+
+    //!
     //! @brief Returns the length.
     //!
     rocblas_int n() const
@@ -184,7 +200,8 @@ public:
     //!
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
-        return hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
+        return hipMemcpy(
+            this->data(), that.data(), sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
     }
 
     //!

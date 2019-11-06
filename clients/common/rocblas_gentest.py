@@ -200,7 +200,8 @@ def setdefaults(test):
                             'scal_strided_batched', 'swap_strided_batched',
                             'copy_strided_batched', 'dot_strided_batched',
                             'dotc_strided_batched', 'rot_strided_batched',
-                            'rotm_strided_batched'):
+                            'rotm_strided_batched', 'iamax_strided_batched',
+                            'iamin_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'stride_scale')]):
             ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
             test.setdefault('stride_x', ldx)

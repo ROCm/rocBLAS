@@ -29,22 +29,28 @@ rocblas_status rocblas_reduction_template(rocblas_handle handle,
 {
 
     // Quick return if possible.
-    if(n <= 0 || incx <= 0 || (ISBATCHED && batch_count == 0))
+    if(n <= 0 || incx <= 0 || (ISBATCHED && batch_count <= 0))
     {
-        if(handle->is_device_memory_size_query())
+        if(n > 0 && incx > 0 && batch_count < 0)
         {
-            return rocblas_status_size_unchanged;
-        }
-        else if(rocblas_pointer_mode_device == handle->pointer_mode && batch_count > 0)
-        {
-            RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(Tr)));
+            return rocblas_status_invalid_size;
         }
         else
         {
-
-            for(rocblas_int batch_index = 0; batch_index < batch_count; batch_index++)
+            if(handle->is_device_memory_size_query())
             {
-                results[batch_index] = Tr(0);
+                return rocblas_status_size_unchanged;
+            }
+            else if(rocblas_pointer_mode_device == handle->pointer_mode && batch_count > 0)
+            {
+                RETURN_IF_HIP_ERROR(hipMemset(results, 0, batch_count * sizeof(Tr)));
+            }
+            else
+            {
+                for(rocblas_int batch_index = 0; batch_index < batch_count; batch_index++)
+                {
+                    results[batch_index] = Tr(0);
+                }
             }
         }
         return rocblas_status_success;
