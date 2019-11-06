@@ -394,7 +394,7 @@ fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
 # hard-coded path has lesser priority
-export PATH=${PATH}:/opt/rocm/bin
+export PATH=${PATH}:/opt/rocm/bin:${ROCM_INSTALL_PATH}/hip/bin:${ROCM_INSTALL_PATH}/hcc/bin
 
 pushd .
   # #################################################

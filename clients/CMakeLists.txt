@@ -42,11 +42,11 @@ include( build-options )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 if( NOT TARGET rocblas )
-  find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
+  find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas ${CMAKE_INSTALL_PREFIX}/rocblas)
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
-list( APPEND CMAKE_PREFIX_PATH /opt/rocm )
+list( APPEND CMAKE_PREFIX_PATH /opt/rocm ${CMAKE_INSTALL_PREFIX})
 find_package( hip REQUIRED CONFIG PATHS ${CMAKE_PREFIX_PATH} )
 
 # Quietly look for CUDA, but if not found it's not an error
