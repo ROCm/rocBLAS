@@ -293,7 +293,7 @@ void reference_gemm(rocblas_operation transA,
         transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
     bool round = !is_replacement_kernel(m, n);
     for(int i = 0; i < size_C; ++i)
-        C[i] = rocblas_bfloat16(C_float[i], round);
+        C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
 }
 
 template <typename Ti, typename To, typename Tc>

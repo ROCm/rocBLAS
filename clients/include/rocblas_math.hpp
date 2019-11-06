@@ -25,6 +25,21 @@ inline __host__ float half_to_float(rocblas_half val)
 }
 
 /* ============================================================================================ */
+// Helper function to truncate float to bfloat16
+
+inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
+{
+    union
+    {
+        float    fp32;
+        uint32_t int32;
+    } u = {val};
+    rocblas_bfloat16 ret;
+    ret.data = uint16_t(u.int32 >> 16);
+    return ret;
+}
+
+/* ============================================================================================ */
 /*! \brief  returns true if value is NaN */
 
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
