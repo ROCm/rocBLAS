@@ -396,7 +396,7 @@ inline T log_trace_scalar_value(const T* value)
  * Bench log scalar values pointed to by pointer
  ************************************************************************************/
 
-inline auto log_bench_scalar_value(const char* name, const rocblas_half* value)
+inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
 {
     std::stringstream ss;
     ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
@@ -404,7 +404,7 @@ inline auto log_bench_scalar_value(const char* name, const rocblas_half* value)
 }
 
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
-inline auto log_bench_scalar_value(const char* name, const T* value)
+inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
@@ -412,7 +412,7 @@ inline auto log_bench_scalar_value(const char* name, const T* value)
 }
 
 template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
-inline auto log_bench_scalar_value(const char* name, const T* value)
+inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
     ss << "--" << name << " "
@@ -428,11 +428,11 @@ inline auto log_bench_scalar_value(const char* name, const T* value)
  * Log alpha and beta with dynamic compute_type in *_ex functions
  ************************************************************************************/
 
-inline auto log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
-                                    const void*        alpha,
-                                    const void*        beta,
-                                    std::stringstream& alphass,
-                                    std::stringstream& betass)
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
+                                              const void*        alpha,
+                                              const void*        beta,
+                                              std::stringstream& alphass,
+                                              std::stringstream& betass)
 {
     switch(compute_type)
     {
@@ -466,11 +466,11 @@ inline auto log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
     return rocblas_status_success;
 }
 
-inline auto log_bench_alpha_beta_ex(rocblas_datatype compute_type,
-                                    const void*      alpha,
-                                    const void*      beta,
-                                    std::string&     alphas,
-                                    std::string&     betas)
+inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
+                                              const void*      alpha,
+                                              const void*      beta,
+                                              std::string&     alphas,
+                                              std::string&     betas)
 {
     switch(compute_type)
     {

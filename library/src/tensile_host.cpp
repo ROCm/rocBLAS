@@ -28,7 +28,7 @@
 // or some other value. Tensile uses a double precision value to express the category of beta.
 // This function is required to convert complex or other types to a double representing the category.
 template <typename T>
-static constexpr auto value_category(const T& beta)
+static constexpr double value_category(const T& beta)
 {
     return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : -12345.0;
 }
