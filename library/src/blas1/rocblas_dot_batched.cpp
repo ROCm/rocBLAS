@@ -47,43 +47,46 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_dot_batched_name<CONJ, T>, n, x, incx, y, incy, batch_count);
+        if(!handle->is_device_memory_size_query())
+        {
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(
+                    handle, rocblas_dot_batched_name<CONJ, T>, n, x, incx, y, incy, batch_count);
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f dot_batched -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--incy",
-                      incy,
-                      "--batch",
-                      batch_count);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f dot_batched -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy,
+                          "--batch_count",
+                          batch_count);
 
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_dot_batched_name<CONJ, T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "incy",
-                        incy,
-                        "batch_count",
-                        batch_count);
-
-        if(!x || !y || !results)
-            return rocblas_status_invalid_pointer;
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle,
+                            rocblas_dot_batched_name<CONJ, T>,
+                            "N",
+                            n,
+                            "incx",
+                            incx,
+                            "incy",
+                            incy,
+                            "batch_count",
+                            batch_count);
+        }
 
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, (T2*)results);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n, batch_count);
+
+        if(!x || !y || !results)
+            return rocblas_status_invalid_pointer;
 
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
@@ -141,12 +144,12 @@ rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
 {
     return rocblas_dot_batched_impl<false>(handle,
                                            n,
-                                           (const _Float16* const*)x,
+                                           (const rocblas_half* const*)x,
                                            incx,
-                                           (const _Float16* const*)y,
+                                           (const rocblas_half* const*)y,
                                            incy,
                                            batch_count,
-                                           (_Float16*)result);
+                                           (rocblas_half*)result);
 }
 
 rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,

@@ -198,6 +198,21 @@ public:
 #endif // GOOGLE_TEST
 
 // ----------------------------------------------------------------------------
+// Normal tests which return true when converted to bool
+// ----------------------------------------------------------------------------
+struct rocblas_test_valid
+{
+    // Return true to indicate the type combination is valid, for filtering
+    explicit operator bool()
+    {
+        return true;
+    }
+
+    // Require derived class to define functor which takes (const Arguments &)
+    virtual void operator()(const Arguments&) = 0;
+};
+
+// ----------------------------------------------------------------------------
 // Error case which returns false when converted to bool. A void specialization
 // of the FILTER class template above, should be derived from this class, in
 // order to indicate that the type combination is invalid.

@@ -73,7 +73,7 @@ namespace
                               lda,
                               "--stride_a",
                               strideA,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
             }
             else
@@ -108,7 +108,7 @@ namespace
                             lda,
                             "stride_a",
                             strideA,
-                            "batch",
+                            "batch_count",
                             batch_count);
         }
 

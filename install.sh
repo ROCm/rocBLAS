@@ -1,31 +1,32 @@
 #!/usr/bin/env bash
-# Author: Kent Knox
 
-set -x #echo on
+/bin/ln -fs ../../.githooks/pre-commit .git/hooks/
 
 # #################################################
 # helper functions
 # #################################################
 function display_help()
 {
-  echo "rocBLAS build & installation helper script"
-  echo "./install [-h|--help] "
-  echo "    [-h|--help] prints this help message"
-#  echo "    [--prefix] Specify an alternate CMAKE_INSTALL_PREFIX for cmake"
-  echo "    [-i|--install] install after build"
-  echo "    [-d|--dependencies] install build dependencies"
-  echo "    [-c|--clients] build library clients too (combines with -i & -d)"
-  echo "    [-g|--debug] -DCMAKE_BUILD_TYPE=Debug (default is =Release)"
-  echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
-  echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
-  echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
-  echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
-  echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
-#  echo "    [--cuda] build library for cuda backend"
-  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
-  echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
-  echo "    [-n|--no_tensile] build subset of library that doesn't require tensile (testing)"
-  echo "    [-s|--tensile-host] build with tensile host"
+cat <<EOF
+rocBLAS build & installation helper script
+  $0 <options>
+      -h | --help              Print this help message
+      -i | --install           Install after build
+      -d | --dependencies      Install build dependencies
+      -c | --clients           Build library clients too (combines with -i & -d)
+      -g | --debug             Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -o | --cov               Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang         Build library for amdgpu backend using hip-clang
+      -n | --no_tensile        Build subset of library that does not require Tensile
+      -s | --tensile-host      Build with Tensile host
+EOF
+#          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
+#          --cuda              Build library for cuda backend
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -327,6 +328,8 @@ while true; do
         ;;
   esac
 done
+
+set -x
 
 if [[ "${cpu_ref_lib}" == blis ]]; then
   LINK_BLIS=true

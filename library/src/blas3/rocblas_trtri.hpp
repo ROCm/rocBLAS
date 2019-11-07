@@ -558,38 +558,28 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
     T* host_C[batch_count];
     if(BATCHED)
     {
-        hipError_t errA = hipMemcpy(host_A, A, batch_count * sizeof(T*), hipMemcpyDeviceToHost);
-        hipError_t errB
-            = hipMemcpy(host_invAg1, invAg1, batch_count * sizeof(T*), hipMemcpyDeviceToHost);
-        hipError_t errC
-            = hipMemcpy(host_invAg2a, invAg2a, batch_count * sizeof(T*), hipMemcpyDeviceToHost);
-        hipError_t errD
-            = hipMemcpy(host_invAg2c, invAg2c, batch_count * sizeof(T*), hipMemcpyDeviceToHost);
-        hipError_t errE = hipMemcpy(host_C, C, batch_count * sizeof(T*), hipMemcpyDeviceToHost);
-
-        if(get_rocblas_status_for_hip_status(errA) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errA);
-        else if(get_rocblas_status_for_hip_status(errB) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errB);
-        else if(get_rocblas_status_for_hip_status(errC) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errC);
-        else if(get_rocblas_status_for_hip_status(errD) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errD);
-        else if(get_rocblas_status_for_hip_status(errE) != rocblas_status_success)
-            return get_rocblas_status_for_hip_status(errE);
+        RETURN_IF_HIP_ERROR(hipMemcpy(host_A, A, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(host_invAg1, invAg1, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(host_invAg2a, invAg2a, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(host_invAg2c, invAg2c, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(host_C, C, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
     }
 
-    rocblas_status     status;
+    rocblas_status     status       = rocblas_status_success;
     static constexpr T one          = 1;
     static constexpr T zero         = 0;
     static constexpr T negative_one = -1;
 
     // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
-    // distance between each invA11 or invA22 is sub_stride_invA,  sub_stride_A for each A21 or A12, C
+    // distance between each invA11 or invA22 is sub_stride_invA, sub_stride_A for each A21 or A12, C
     // of size IB * IB
     for(int b = 0; b < batch_count; b++)
     {
-        T *aptr, *invAg1ptr, *invAg2ptr, *cptr, *invAg2cptr;
+        const T *aptr, *invAg1ptr, *invAg2ptr;
+        T *      cptr, *invAg2cptr;
 
         if(BATCHED)
         {
@@ -601,15 +591,14 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
         }
         else
         {
-            aptr       = (T*)load_ptr_batch(A, b, offset_A, stride_A);
-            invAg1ptr  = (T*)load_ptr_batch(invAg1, b, offset_invAg1, stride_invA);
-            invAg2ptr  = (T*)load_ptr_batch(invAg2a, b, offset_invAg2a, stride_invA);
-            cptr       = (T*)load_ptr_batch(C, b, offset_C, stride_C);
-            invAg2cptr = (T*)load_ptr_batch(invAg2c, b, offset_invAg2c, stride_invA);
+            aptr       = load_ptr_batch(A, b, offset_A, stride_A);
+            invAg1ptr  = load_ptr_batch(invAg1, b, offset_invAg1, stride_invA);
+            invAg2ptr  = load_ptr_batch(invAg2a, b, offset_invAg2a, stride_invA);
+            cptr       = load_ptr_batch(C, b, offset_C, stride_C);
+            invAg2cptr = load_ptr_batch(invAg2c, b, offset_invAg2c, stride_invA);
         }
 
-        // We are naively iterating through the batches, and uses sub-batches in a strided_batched
-        // style.
+        // We are naively iterating through the batches, and uses sub-batches in a strided_batched style.
         status = rocblas_gemm_template<false, true>(handle,
                                                     rocblas_operation_none,
                                                     rocblas_operation_none,
@@ -617,22 +606,23 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
                                                     N,
                                                     N,
                                                     &one,
-                                                    0,
-                                                    (const T*)aptr,
+                                                    aptr,
                                                     0,
                                                     ld_A,
                                                     sub_stride_A,
-                                                    (const T*)invAg1ptr,
+                                                    invAg1ptr,
                                                     0,
                                                     ld_invA,
                                                     sub_stride_invA,
                                                     &zero,
-                                                    0,
-                                                    (T*)cptr,
+                                                    cptr,
                                                     0,
                                                     ld_C,
                                                     sub_stride_C,
                                                     sub_blocks);
+
+        if(status != rocblas_status_success)
+            break;
 
         // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
         // distance between each invA21 or invA12 is stride_invA,
@@ -643,22 +633,22 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
                                                     N,
                                                     M,
                                                     &negative_one,
-                                                    0,
-                                                    (const T*)invAg2ptr,
+                                                    invAg2ptr,
                                                     0,
                                                     ld_invA,
                                                     sub_stride_invA,
-                                                    (const T*)cptr,
+                                                    cptr,
                                                     0,
                                                     ld_C,
                                                     sub_stride_C,
                                                     &zero,
-                                                    0,
-                                                    (T*)invAg2cptr,
+                                                    invAg2cptr,
                                                     0,
                                                     ld_invA,
                                                     sub_stride_invA,
                                                     sub_blocks);
+        if(status != rocblas_status_success)
+            break;
     }
 
     return status;
@@ -1076,4 +1066,4 @@ rocblas_status rocblas_trtri_template(rocblas_handle   handle,
     }
 }
 
-#endif // \include guard
+#endif // __ROCBLAS_TRTRI_HPP__

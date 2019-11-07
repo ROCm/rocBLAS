@@ -1,3 +1,9 @@
+/* ************************************************************************
+ * Copyright 2019 Advanced Micro Devices, Inc.
+ * ************************************************************************/
+
+// The implementation of the rocBLAS<->Tensile interface layer.
+
 #ifdef USE_TENSILE_HOST
 
 #include "tensile_host.hpp"
@@ -11,10 +17,23 @@
 #include <Tensile/hip/HipHardware.hpp>
 #include <Tensile/hip/HipSolutionAdapter.hpp>
 #include <Tensile/hip/HipUtils.hpp>
+#include <dlfcn.h>
 #include <glob.h>
-#include <iostream>
+#include <libgen.h>
+#include <memory>
 #include <string>
+#include <unistd.h>
 
+// Return the value category for a value as a double precision value, such as whether it's 0, 1,
+// or some other value. Tensile uses a double precision value to express the category of beta.
+// This function is required to convert complex or other types to a double representing the category.
+template <typename T>
+static constexpr double value_category(const T& beta)
+{
+    return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : -12345.0;
+}
+
+// Variable template to return Tensile type based on C++ rocBLAS type
 template <typename>
 static constexpr auto tensile_datatype = nullptr;
 
@@ -33,160 +52,63 @@ static constexpr auto tensile_datatype<rocblas_float_complex> = Tensile::DataTyp
 template <>
 static constexpr auto tensile_datatype<rocblas_double_complex> = Tensile::DataType::ComplexDouble;
 
-// return the value category for a value, such as whether it's 0 or 1
 template <typename T>
-constexpr auto value_category(const T& beta)
+static auto create_gemm_contraction_problem(rocblas_operation trans_a,
+                                            rocblas_operation trans_b,
+                                            size_t            m,
+                                            size_t            n,
+                                            size_t            k,
+                                            T                 alpha,
+                                            const T*          A,
+                                            size_t            ld_a,
+                                            const T*          B,
+                                            size_t            ld_b,
+                                            T                 beta,
+                                            T*                C,
+                                            size_t            ld_c,
+                                            size_t            stride_a    = 0,
+                                            size_t            stride_b    = 0,
+                                            size_t            stride_c    = 0,
+                                            size_t            batch_count = 1)
 {
-    return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : -12345.0;
-}
+    auto dt = tensile_datatype<T>;
 
-template <typename T>
-auto create_gemm_contraction_problem_strided_batched(rocblas_operation trans_a,
-                                                     rocblas_operation trans_b,
-                                                     size_t            m,
-                                                     size_t            n,
-                                                     size_t            k,
-                                                     T                 alpha,
-                                                     const T*          A,
-                                                     size_t            ld_a,
-                                                     size_t            stride_a,
-                                                     const T*          B,
-                                                     size_t            ld_b,
-                                                     size_t            stride_b,
-                                                     T                 beta,
-                                                     T*                C,
-                                                     size_t            ld_c,
-                                                     size_t            stride_c,
-                                                     size_t            batchSize)
-{
-    auto transposeA = trans_a != rocblas_operation_none;
-    auto transposeB = trans_b != rocblas_operation_none;
-    auto dt         = tensile_datatype<T>;
-
-    Tensile::ContractionProblem::FreeIndices  free{2};
-    Tensile::ContractionProblem::BoundIndices bound{1};
-    Tensile::ContractionProblem::BatchIndices batch{1};
-
-    free[0].isA = true;
-    free[0].i = free[0].c = free[0].d = 0;
-    free[1].isA                       = false;
-    free[1].i = free[1].c = free[1].d = 1;
-
-    batch[0].a = batch[0].b = batch[0].c = batch[0].d = 2;
-
-    Tensile::TensorDescriptor a, b;
-
-    if(transposeA)
-    {
-        a          = {dt, {k, m, batchSize}, {1, ld_a, stride_a}};
-        free[0].i  = 1;
-        bound[0].a = 0;
-    }
-    else
-    {
-        a          = {dt, {m, k, batchSize}, {1, ld_a, stride_a}};
-        free[0].i  = 0;
-        bound[0].a = 1;
-    }
-
-    if(transposeB)
-    {
-        b          = {dt, {n, k, batchSize}, {1, ld_b, stride_b}};
-        free[1].i  = 0;
-        bound[0].b = 1;
-    }
-    else
-    {
-        b          = {dt, {k, n, batchSize}, {1, ld_b, stride_b}};
-        free[1].i  = 1;
-        bound[0].b = 0;
-    }
-
-    Tensile::TensorDescriptor c{dt, {m, n, batchSize}, {1, ld_c, stride_c}};
-
-    Tensile::TensorOps aops;
-    if(is_complex<T> && trans_a == rocblas_operation_conjugate_transpose)
-        aops = {Tensile::TensorOp::Type::ComplexConjugate};
-
-    Tensile::TensorOps bops;
-    if(is_complex<T> && trans_b == rocblas_operation_conjugate_transpose)
-        bops = {Tensile::TensorOp::Type::ComplexConjugate};
-
-    Tensile::ContractionProblem problem{
-        a, aops, b, bops, c, {}, c, {}, free, batch, bound, value_category(beta)};
-
-    return problem;
-}
-
-// construct the gemm contraction problem
-template <typename T>
-auto create_gemm_contraction_problem(rocblas_operation trans_a,
-                                     rocblas_operation trans_b,
-                                     size_t            m,
-                                     size_t            n,
-                                     size_t            k,
-                                     T                 alpha,
-                                     const T*          A,
-                                     size_t            ld_a,
-                                     const T*          B,
-                                     size_t            ld_b,
-                                     T                 beta,
-                                     T*                C,
-                                     size_t            ld_c)
-{
-    auto transposeA = trans_a != rocblas_operation_none;
-    auto transposeB = trans_b != rocblas_operation_none;
-    auto dt         = tensile_datatype<T>;
-
-    Tensile::ContractionProblem::FreeIndices freeIndex(2);
-    Tensile::ContractionProblem::BoundIndex  boundIndex;
+    Tensile::ContractionProblem::FreeIndices  freeIndex(2);
+    Tensile::ContractionProblem::BoundIndices boundIndex(1);
+    Tensile::ContractionProblem::BatchIndices batchIndex{{2, 2, 2, 2}};
 
     freeIndex[0].isA = true;
-    freeIndex[0].i = freeIndex[0].c = freeIndex[0].d = 0;
-    freeIndex[1].isA                                 = false;
-    freeIndex[1].i = freeIndex[1].c = freeIndex[1].d = 1;
+    freeIndex[1].isA = false;
+    freeIndex[0].c = freeIndex[0].d = 0;
+    freeIndex[1].c = freeIndex[1].d = 1;
 
     Tensile::TensorDescriptor a, b;
 
-    if(transposeA)
+    if(trans_a != rocblas_operation_none)
     {
-        a              = {dt, {k, m}, {1, ld_a}};
-        freeIndex[0].i = 1;
-        boundIndex.a   = 0;
+        a               = {dt, {k, m, batch_count}, {1, ld_a, stride_a}};
+        freeIndex[0].i  = 1;
+        boundIndex[0].a = 0;
     }
     else
     {
-        a              = {dt, {m, k}, {1, ld_a}};
-        freeIndex[0].i = 0;
-        boundIndex.a   = 1;
+        a               = {dt, {m, k, batch_count}, {1, ld_a, stride_a}};
+        freeIndex[0].i  = 0;
+        boundIndex[0].a = 1;
     }
 
-    if(transposeB)
+    if(trans_b != rocblas_operation_none)
     {
-        b              = {dt, {n, k}, {1, ld_b}};
-        freeIndex[1].i = 0;
-        boundIndex.b   = 1;
+        b               = {dt, {n, k, batch_count}, {1, ld_b, stride_b}};
+        freeIndex[1].i  = 0;
+        boundIndex[0].b = 1;
     }
     else
     {
-        b              = {dt, {k, n}, {1, ld_b}};
-        freeIndex[1].i = 1;
-        boundIndex.b   = 0;
+        b               = {dt, {k, n, batch_count}, {1, ld_b, stride_b}};
+        freeIndex[1].i  = 1;
+        boundIndex[0].b = 0;
     }
-
-    Tensile::ContractionProblem::FreeIndices  freeIndices{freeIndex};
-    Tensile::ContractionProblem::BatchIndices batchIndices;
-    Tensile::ContractionProblem::BoundIndices boundIndices{boundIndex};
-
-    batchIndices.push_back({2, 2, 2, 2});
-
-    Tensile::TensorDescriptor c{dt, {m, n}, {1, ld_c}};
-
-    auto batchCount = 1;
-
-    a.appendDim(batchCount);
-    b.appendDim(batchCount);
-    c.appendDim(batchCount);
 
     Tensile::TensorOps aops;
     if(is_complex<T> && trans_a == rocblas_operation_conjugate_transpose)
@@ -196,26 +118,18 @@ auto create_gemm_contraction_problem(rocblas_operation trans_a,
     if(is_complex<T> && trans_b == rocblas_operation_conjugate_transpose)
         bops = {Tensile::TensorOp::Type::ComplexConjugate};
 
-    return Tensile::ContractionProblem(a,
-                                       aops,
-                                       b,
-                                       bops,
-                                       c,
-                                       {},
-                                       c,
-                                       {},
-                                       freeIndices,
-                                       batchIndices,
-                                       boundIndices,
-                                       value_category(beta));
+    Tensile::TensorDescriptor c{dt, {m, n, batch_count}, {1, ld_c, stride_c}};
+
+    return Tensile::ContractionProblem{
+        a, aops, b, bops, c, {}, c, {}, freeIndex, batchIndex, boundIndex, value_category(beta)};
 }
 
-template <typename PROB>
-auto ConstructTensileProblem(const PROB& problem)
+template <typename PROBLEM>
+static auto ConstructTensileProblem(const PROBLEM& problem)
 {
     switch(problem.problem_type)
     {
-    case GEMM:
+    case ContractionProblemType::GEMM:
         return create_gemm_contraction_problem(problem.trans_a,
                                                problem.trans_b,
                                                problem.m,
@@ -229,27 +143,29 @@ auto ConstructTensileProblem(const PROB& problem)
                                                problem.beta,
                                                problem.C,
                                                problem.ld_c);
-    case GEMMStridedBatch:
-        return create_gemm_contraction_problem_strided_batched(problem.trans_a,
-                                                               problem.trans_b,
-                                                               problem.m,
-                                                               problem.n,
-                                                               problem.k,
-                                                               problem.alpha,
-                                                               problem.A,
-                                                               problem.ld_a,
-                                                               problem.stride_a,
-                                                               problem.B,
-                                                               problem.ld_b,
-                                                               problem.stride_b,
-                                                               problem.beta,
-                                                               problem.C,
-                                                               problem.ld_c,
-                                                               problem.stride_c,
-                                                               problem.batch_size);
+
+    case ContractionProblemType::GEMMStridedBatched:
+        return create_gemm_contraction_problem(problem.trans_a,
+                                               problem.trans_b,
+                                               problem.m,
+                                               problem.n,
+                                               problem.k,
+                                               problem.alpha,
+                                               problem.A,
+                                               problem.ld_a,
+                                               problem.B,
+                                               problem.ld_b,
+                                               problem.beta,
+                                               problem.C,
+                                               problem.ld_c,
+                                               problem.stride_a,
+                                               problem.stride_b,
+                                               problem.stride_c,
+                                               problem.batch_count);
     }
 }
 
+// Map a static C++ type into a corresponding Tensile type
 template <typename T>
 struct rocblas_to_tensile_type
 {
@@ -274,15 +190,16 @@ struct rocblas_to_tensile_type<rocblas_half>
     using type = Tensile::Half;
 };
 
-template <typename T>
-auto GetTensileInputs(const RocblasContractionProblem<T>& problem)
+// Construct the inputs to a Tensile ContractionProblem
+template <typename T, typename U, typename V>
+static auto GetTensileInputs(const RocblasContractionProblem<T, U, V>& problem)
 {
     using tensile_type = typename rocblas_to_tensile_type<T>::type;
     Tensile::TypedContractionInputs<tensile_type> inputs;
     switch(problem.problem_type)
     {
-    case GEMM:
-    case GEMMStridedBatch:
+    case ContractionProblemType::GEMM:
+    case ContractionProblemType::GEMMStridedBatched:
         inputs.a = reinterpret_cast<const tensile_type*>(problem.A);
         inputs.b = reinterpret_cast<const tensile_type*>(problem.B);
         inputs.c = reinterpret_cast<tensile_type*>(problem.C);
@@ -291,31 +208,72 @@ auto GetTensileInputs(const RocblasContractionProblem<T>& problem)
         memcpy(&inputs.beta, &problem.beta, sizeof(T));
         break;
     }
-
     return inputs;
 }
 
+// TensileHostImpl class implements TensileHost as an opaque derived class
 struct TensileHostImpl : TensileHost
 {
+    // Constructor loads host according to environment variables and default paths based on librocblas.so location
     TensileHostImpl()
     {
-        const char* lib_path = getenv("ROCBLAS_TENSILE_LIBPATH");
-        if(!lib_path)
-            lib_path = "/opt/rocm/"; // TODO: Set default path
+        std::string path;
+        path.reserve(PATH_MAX);
 
-        std::string path(lib_path);
-        auto        dir = path + "/*co";
+        const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
+        if(env)
+        {
+            path = env;
+        }
+        else
+        {
+            Dl_info info;
+
+            // Find the location of librocblas.so
+            if(dladdr((void*)createTensileHost, &info))
+            {
+                path = info.dli_fname;
+                dirname(&path[0]);
+                path.resize(strlen(path.c_str()));
+                path += "/../../Tensile/library";
+            }
+            else
+            {
+                path = "/opt/rocm"; // TODO: Need to set default
+            }
+        }
+
+        auto dir = path + "/*co";
 
         glob_t glob_result;
-        glob(dir.c_str(), GLOB_TILDE, NULL, &glob_result);
-        for(size_t i = 0; i < glob_result.gl_pathc; ++i)
-            adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
+        auto   g = glob(dir.c_str(), GLOB_TILDE_CHECK | GLOB_NOSORT, nullptr, &glob_result);
+        if(!g)
+        {
+            for(size_t i = 0; i < glob_result.gl_pathc; ++i)
+                adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
+        }
+        else
+        {
+            fprintf(stderr,
+                    g == GLOB_NOMATCH ? "\nrocBLAS warning: No paths matched %s. Make sure "
+                                        "ROCBLAS_TENSILE_LIBPATH is set correctly.\n"
+                                      : "rocBLAS warning: glob(\"%s\", ...) returned %s.\n",
+                    dir.c_str(),
+                    g == GLOB_ABORTED ? "GLOB_ABORTED"
+                                      : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error");
+        }
         globfree(&glob_result);
+
+        path += "/TensileLibrary.yaml";
+        if(access(path.c_str(), R_OK))
+        {
+            fprintf(stderr, "\nrocBLAS error: Cannot read %s: %m\n", path.c_str());
+            abort();
+        }
 
         library = std::dynamic_pointer_cast<
             Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
-            Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path + "/TensileLibrary.yaml"));
-
+            Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
         hardware = Tensile::hip::GetCurrentDevice();
     }
 
@@ -326,20 +284,22 @@ private:
     friend class TensileHost;
 };
 
+// createTensileHost returns an instance of TensileHostImpl as a TensileHost
 TensileHost* createTensileHost()
 {
     return new TensileHostImpl;
 }
 
-template <typename T>
-rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<T>& problem)
+// runContractionProblem calls Tensile to run a contraction problem described by RocblasContractionProblem
+template <typename T, typename U, typename V>
+rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<T, U, V>& problem)
 try
 {
-    auto host            = static_cast<TensileHostImpl*>(this);
-    auto tensile_problem = ConstructTensileProblem(problem);
-    auto inputs          = GetTensileInputs(problem);
-    auto solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
-    auto result          = solution->solve(tensile_problem, inputs, *host->hardware);
+    auto* host            = static_cast<TensileHostImpl*>(this);
+    auto  tensile_problem = ConstructTensileProblem(problem);
+    auto  inputs          = GetTensileInputs(problem);
+    auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
+    auto  result          = solution->solve(tensile_problem, inputs, *host->hardware);
     host->adapter.launchKernels(result);
     return rocblas_status_success;
 }
@@ -348,19 +308,20 @@ catch(...)
     return rocblas_status_internal_error;
 }
 
+// Intantiate the cases of runContractionProblem which are needed to satisfy rocBLAS dependencies
+// This file's functions are not defined in a header file, in order to keep Tensile and rocBLAS separate
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>& problem);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
+
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<float>& problem);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<double>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<double>& problem);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
 
-template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_float_complex>& problem);
-
-template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_double_complex>& problem);
+template rocblas_status
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
 
 #endif

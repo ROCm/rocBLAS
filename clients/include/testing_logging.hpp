@@ -214,8 +214,8 @@ void testing_logging()
             void*             beta        = 0;
             float             alpha_float = 1.0;
             float             beta_float  = 1.0;
-            rocblas_half      alpha_half  = float_to_half(alpha_float);
-            rocblas_half      beta_half   = float_to_half(beta_float);
+            rocblas_half      alpha_half(alpha_float);
+            rocblas_half      beta_half(beta_float);
             double            alpha_double(alpha_float);
             double            beta_double(beta_float);
             rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
@@ -554,8 +554,8 @@ void testing_logging()
                        << " --transposeB " << transB_letter << " -m " << m << " -n " << n << " -k "
                        << k << " --alpha " << alpha << " --lda " << lda << " --stride_a "
                        << stride_a << " --ldb " << ldb << " --stride_b " << stride_b << " --beta "
-                       << beta << " --ldc " << ldc << " --stride_c " << stride_c << " --batch "
-                       << batch_count << '\n';
+                       << beta << " --ldc " << ldc << " --stride_c " << stride_c
+                       << " --batch_count " << batch_count << '\n';
         }
         else
         {
@@ -640,7 +640,7 @@ void testing_logging()
                        << stride_b << " --beta " << beta << " --c_type "
                        << rocblas_datatype_string(c_type) << " --ldc " << ldc << " --stride_c "
                        << stride_c << " --d_type " << rocblas_datatype_string(d_type) << " --ldd "
-                       << ldd << " --stride_d " << stride_d << " --batch " << batch_count
+                       << ldd << " --stride_d " << stride_d << " --batch_count " << batch_count
                        << " --compute_type " << rocblas_datatype_string(compute_type) << " --algo "
                        << algo << " --solution_index " << solution_index << " --flags " << flags
                        << '\n';

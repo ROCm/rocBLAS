@@ -70,11 +70,9 @@ void testing_rotg_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count)),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count)));
+        EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle, da, db, dc, ds, batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
