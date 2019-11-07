@@ -19,6 +19,11 @@
 template <typename T>
 void testing_trmm(const Arguments& arg)
 {
+    bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
+    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
+       && !is_complex<T> && nantest)
+        return; // Exclude integers or other types which don't support NaN
+
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
     rocblas_int lda = arg.lda;
@@ -28,7 +33,7 @@ void testing_trmm(const Arguments& arg)
     char char_uplo   = arg.uplo;
     char char_transA = arg.transA;
     char char_diag   = arg.diag;
-    T    alpha_h     = arg.alpha;
+    T    h_alpha_T   = arg.get_alpha<T>();
 
     rocblas_side      side   = char2rocblas_side(char_side);
     rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
@@ -55,7 +60,7 @@ void testing_trmm(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb),
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb),
             rocblas_status_invalid_size);
         return;
     }
@@ -89,8 +94,11 @@ void testing_trmm(const Arguments& arg)
         for(int j = 0; j < K; j++)
             hA[i + j * lda] = 0.0;
 
-    // Initial hX
-    rocblas_init<T>(hB, M, N, ldb);
+    // Initial hB
+    if(nantest)
+        rocblas_init_nan<T>(hB, M, N, ldb);
+    else
+        rocblas_init<T>(hB, M, N, ldb);
     // pad untouched area into zero
     for(int i = M; i < ldb; i++)
         for(int j = 0; j < N; j++)
@@ -110,14 +118,14 @@ void testing_trmm(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dB, hB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb));
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
 
         CHECK_HIP_ERROR(hipMemcpy(hB_1, dB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
         // calculate dB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(hipMemcpy(dB, hB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
             rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dB, ldb));
@@ -130,7 +138,7 @@ void testing_trmm(const Arguments& arg)
             cpu_time_used = get_time_us();
         }
 
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuB, ldb);
+        cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, cpuB, ldb);
 
         if(arg.timing)
         {
@@ -174,13 +182,13 @@ void testing_trmm(const Arguments& arg)
         for(int i = 0; i < number_cold_calls; i++)
         {
             CHECK_ROCBLAS_ERROR(rocblas_trmm<T>(
-                handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb));
+                handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dB, ldb);
+            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = trmm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
@@ -194,7 +202,7 @@ void testing_trmm(const Arguments& arg)
 
         std::cout << M << ',' << N << ',' << arg.get_alpha<T>() << ',' << lda << ',' << ldb << ','
                   << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << gpu_time_used;
+                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
             std::cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;

@@ -10,6 +10,86 @@
 #include "rocblas.h"
 #include "utility.h"
 
+template <typename T, typename U, typename V>
+__global__ void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
+                                                     rocblas_int    n,
+                                                     U              alpha_device_host,
+                                                     rocblas_stride stride_alpha,
+                                                     V              Aa,
+                                                     ptrdiff_t      shifta,
+                                                     rocblas_int    lda,
+                                                     rocblas_int    strideA)
+{
+    ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+
+    if(tx < m && ty < n && alpha == 0)
+    {
+        T* A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
+
+        A[tx + lda * ty] = 0;
+    }
+}
+
+template <typename T, typename U, typename V>
+rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
+                                                      rocblas_int    m,
+                                                      rocblas_int    n,
+                                                      const U*       alpha,
+                                                      rocblas_stride stride_alpha,
+                                                      V*             A,
+                                                      rocblas_int    offsetA,
+                                                      rocblas_int    lda,
+                                                      rocblas_int    strideA,
+                                                      rocblas_int    batch_count)
+{
+    // Quick return if possible. Not Argument error
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    hipStream_t rocblas_stream = handle->rocblas_stream;
+
+    static constexpr int GEMV_DIM_X = 16;
+    static constexpr int GEMV_DIM_Y = 16;
+    rocblas_int          blocksX    = (m - 1) / GEMV_DIM_X + 1;
+    rocblas_int          blocksY    = (n - 1) / GEMV_DIM_Y + 1;
+
+    dim3 grid(blocksX, blocksY, batch_count);
+    dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
+
+    if(handle->pointer_mode == rocblas_pointer_mode_device)
+        hipLaunchKernelGGL(set_matrix_zero_if_alpha_zero_kernel<T>,
+                           grid,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           alpha,
+                           stride_alpha,
+                           A,
+                           offsetA,
+                           lda,
+                           strideA);
+    else
+        hipLaunchKernelGGL(set_matrix_zero_if_alpha_zero_kernel<T>,
+                           grid,
+                           threads,
+                           0,
+                           rocblas_stream,
+                           m,
+                           n,
+                           *alpha,
+                           stride_alpha,
+                           A,
+                           offsetA,
+                           lda,
+                           strideA);
+    return rocblas_status_success;
+}
+
 template <rocblas_int RB, rocblas_int CB, typename T>
 rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                      rocblas_side      side,
@@ -50,30 +130,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
     if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
     {
         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-            (rocblas_gemm_template<false, false>)(handle,
-                                                  rocblas_operation_none,
-                                                  rocblas_operation_none,
-                                                  m,
-                                                  n,
-                                                  0,
-                                                  &zero,
-                                                  0,
-                                                  c,
-                                                  0,
-                                                  lda > ldc ? lda : ldc,
-                                                  0,
-                                                  c,
-                                                  0,
-                                                  lda > ldc ? lda : ldc,
-                                                  0,
-                                                  &zero,
-                                                  0,
-                                                  c,
-                                                  0,
-                                                  ldc,
-                                                  0,
-                                                  1));
+            (set_matrix_zero_if_alpha_zero_template<T>)(handle, m, n, alpha, 0, c, 0, ldc, 0, 1));
         return rocblas_status_success;
+    }
+    else if(rocblas_pointer_mode_device == handle->pointer_mode)
+    {
+        // set matrix to zero and continue calculation. This will give
+        // the same functionality as Legacy BLAS. alpha is on device and
+        // it should not be copied from device to host because this is
+        // an asynchronous function and the copy would make it synchronous.
+        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
+            (set_matrix_zero_if_alpha_zero_template<T>)(handle, m, n, alpha, 0, c, 0, ldc, 0, 1));
     }
 
     // grid size for rocblas_copy_template

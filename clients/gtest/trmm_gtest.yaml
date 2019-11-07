@@ -116,6 +116,18 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
 
+- name: trmm_NaN
+  category: pre_checkin
+  function: trmm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  alpha: .NaN # converted to 0.0 in test code
+  alphai: .NaN
+
 - name: trmm_testset1
   category: nightly
   function: trmm
