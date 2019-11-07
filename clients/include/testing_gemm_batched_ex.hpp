@@ -278,13 +278,10 @@ void testing_gemm_batched_ex(const Arguments& arg)
     auto                 B_col       = transB == rocblas_operation_none ? N : K;
     auto                 batch_count = arg.batch_count;
 
-    // Early exit
-    if(!M || !N || !batch_count)
-        return;
-
-    // check for invalid sizes
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
-       || batch_count < 0
+    // Quick-return or error sizes
+    // Note: K==0 is not an early exit, since we still must multiply C by beta
+    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
+       || batch_count <= 0
        || (std::is_same<Ti, int8_t>{}
            && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0))))
     {
@@ -324,7 +321,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
                                                       algo,
                                                       solution_index,
                                                       flags),
-                              rocblas_status_invalid_size);
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
         return;
     }
 
@@ -411,9 +409,9 @@ void testing_gemm_batched_ex(const Arguments& arg)
         // 65500 65500             2   -2
         // 65500 65500            -2    2
         //
-        const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
-        const rocblas_half positive_two       = float_to_half(2.0);
-        const rocblas_half negative_two       = float_to_half(-2.0);
+        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
+        const rocblas_half positive_two      (2.0);
+        const rocblas_half negative_two      (-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = ieee_half_near_max;

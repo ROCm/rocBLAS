@@ -6,6 +6,7 @@
 #include "rocblas.h"
 #include "rocblas_gemv.hpp"
 #include "utility.h"
+#include <limits>
 
 namespace
 {
@@ -83,7 +84,7 @@ namespace
                               LOG_BENCH_SCALAR_VALUE(beta),
                               "--incy",
                               incy,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
                 }
             }
@@ -139,6 +140,7 @@ namespace
                                         m,
                                         n,
                                         alpha,
+                                        0,
                                         A,
                                         0,
                                         lda,
@@ -148,6 +150,7 @@ namespace
                                         incx,
                                         0,
                                         beta,
+                                        0,
                                         y,
                                         0,
                                         incy,

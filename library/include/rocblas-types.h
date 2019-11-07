@@ -38,9 +38,18 @@ typedef int64_t rocblas_stride;
 #endif
 
 // floating point types
-typedef float    rocblas_float;
-typedef double   rocblas_double;
-typedef uint16_t rocblas_half; // TODO: should be replaced with a struct, to become a unique type
+typedef float  rocblas_float;
+typedef double rocblas_double;
+
+// Clang supports _Float16 as an extension in C11 and C++11 and later
+#if __cplusplus >= 201103L || __STDC_VERSION__ >= 201112L
+typedef _Float16 rocblas_half;
+#else
+typedef struct
+{
+    uint16_t data;
+} rocblas_half;
+#endif
 
 // complex types
 #include "rocblas-complex-types.h"
@@ -50,10 +59,6 @@ typedef uint16_t rocblas_half; // TODO: should be replaced with a struct, to bec
 /*! parameter constants.
  *  numbering is consistent with CBLAS, ACML and most standard C BLAS libraries
  */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /*! \brief Used to specify whether the matrix is to be transposed or not. */
 typedef enum rocblas_operation_
@@ -154,9 +159,5 @@ typedef enum rocblas_gemm_algo_
 {
     rocblas_gemm_algo_standard = 0b0000000000,
 } rocblas_gemm_algo;
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif

@@ -51,7 +51,7 @@ namespace
             log_bench(handle,
                       "./rocblas-bench -f rotmg_strided_batched -r",
                       rocblas_precision_string<T>,
-                      "--batch",
+                      "--batch_count",
                       batch_count,
                       "--stride_a",
                       stride_d1,
@@ -62,7 +62,7 @@ namespace
                       "--stride_y",
                       stride_y1);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_rotmg_name<T>, "batch", batch_count);
+            log_profile(handle, rocblas_rotmg_name<T>, "batch_count", batch_count);
 
         if(!d1 || !d2 || !x1 || !y1 || !param)
             return rocblas_status_invalid_pointer;

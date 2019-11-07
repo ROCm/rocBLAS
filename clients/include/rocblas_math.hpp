@@ -12,19 +12,6 @@
 #include <type_traits>
 
 /* ============================================================================================ */
-// Helper routine to convert floats into their half equivalent; uses F16C instructions
-inline __host__ rocblas_half float_to_half(float val)
-{
-    return _cvtss_sh(val, 0);
-}
-
-// Helper routine to convert halfs into their floats equivalent; uses F16C instructions
-inline __host__ float half_to_float(rocblas_half val)
-{
-    return _cvtsh_ss(val);
-}
-
-/* ============================================================================================ */
 // Helper function to truncate float to bfloat16
 
 inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
@@ -44,27 +31,33 @@ inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
 /* ============================================================================================ */
 /*! \brief  returns true if value is NaN */
 
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, typename std::enable_if<std::is_integral<T>{}, int>::type = 0>
 inline bool rocblas_isnan(T)
 {
     return false;
 }
-inline bool rocblas_isnan(double arg)
+
+template <typename T,
+          typename std::enable_if<!std::is_integral<T>{} && !is_complex<T>, int>::type = 0>
+inline bool rocblas_isnan(T arg)
 {
     return std::isnan(arg);
 }
-inline bool rocblas_isnan(float arg)
-{
-    return std::isnan(arg);
-}
-inline bool rocblas_isnan(rocblas_half arg)
-{
-    return (~arg & 0x7c00) == 0 && (arg & 0x3ff) != 0;
-}
+
 template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
 inline bool rocblas_isnan(const T& arg)
 {
     return rocblas_isnan(std::real(arg)) || rocblas_isnan(std::imag(arg));
+}
+
+inline bool rocblas_isnan(rocblas_half arg)
+{
+    union
+    {
+        rocblas_half fp;
+        uint16_t     data;
+    } x = {arg};
+    return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) != 0;
 }
 
 /* ============================================================================================ */
@@ -77,9 +70,16 @@ inline T negate(T x)
 }
 
 template <>
-inline rocblas_half negate(rocblas_half x)
+inline rocblas_half negate(rocblas_half arg)
 {
-    return x ^ 0x8000;
+    union
+    {
+        rocblas_half fp;
+        uint16_t     data;
+    } x = {arg};
+
+    x.data ^= 0x8000;
+    return x.fp;
 }
 
 template <>

@@ -422,9 +422,9 @@ void testing_gemm_ex(const Arguments& arg)
         // 65500 65500             2   -2
         // 65500 65500            -2    2
         //
-        const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
-        const rocblas_half positive_two       = float_to_half(2.0);
-        const rocblas_half negative_two       = float_to_half(-2.0);
+        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
+        const rocblas_half positive_two(2.0);
+        const rocblas_half negative_two(-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = Ti(ieee_half_near_max);

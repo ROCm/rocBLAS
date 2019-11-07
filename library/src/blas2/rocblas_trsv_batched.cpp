@@ -78,7 +78,7 @@ namespace
                               lda,
                               "--incx",
                               incx,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
             }
 
@@ -97,7 +97,7 @@ namespace
                             lda,
                             "incx",
                             incx,
-                            "batch",
+                            "batch_count",
                             batch_count);
         }
 

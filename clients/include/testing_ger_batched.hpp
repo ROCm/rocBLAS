@@ -65,11 +65,12 @@ void testing_ger_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        device_vector<T*, 0, T> dA(1);
-        device_vector<T*, 0, T> dx(1);
-        device_vector<T*, 0, T> dy(1);
+        static constexpr size_t safe_size = 100;
+        device_vector<T*, 0, T> dA(safe_size);
+        device_vector<T*, 0, T> dx(safe_size);
+        device_vector<T*, 0, T> dy(safe_size);
         if(!dA || !dx || !dy)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -78,33 +79,17 @@ void testing_ger_batched(const Arguments& arg)
 
         EXPECT_ROCBLAS_STATUS(rocblas_ger_batched<T>(
                                   handle, M, N, &h_alpha, dx, incx, dy, incy, dA, lda, batch_count),
-                              rocblas_status_invalid_size);
 
-        return;
-    }
-
-    //quick return
-    if(!M || !N || !batch_count)
-    {
-        device_vector<T*, 0, T> dA(1);
-        device_vector<T*, 0, T> dx(1);
-        device_vector<T*, 0, T> dy(1);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_ger_batched<T>(
-                                  handle, M, N, &h_alpha, dx, incx, dy, incy, dA, lda, batch_count),
-                              rocblas_status_success);
-
+                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                                      || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
+    size_t size_A   = size_t(lda) * N;
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 

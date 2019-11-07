@@ -49,62 +49,64 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_dot_strided_batched_name<CONJ, T>,
-                      n,
-                      x,
-                      incx,
-                      stridex,
-                      y,
-                      incy,
-                      stridey,
-                      batch_count);
+        if(!handle->is_device_memory_size_query())
+        {
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_dot_strided_batched_name<CONJ, T>,
+                          n,
+                          x,
+                          incx,
+                          stridex,
+                          y,
+                          incy,
+                          stridey,
+                          batch_count);
 
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench(handle,
-                      "./rocblas-bench -f dot_strided_batched -r",
-                      rocblas_precision_string<T>,
-                      "-n",
-                      n,
-                      "--incx",
-                      incx,
-                      "--stridex",
-                      stridex,
-                      "--incy",
-                      incy,
-                      "--stridey",
-                      stridey,
-                      "--batch",
-                      batch_count);
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f dot_strided_batched -r",
+                          rocblas_precision_string<T>,
+                          "-n",
+                          n,
+                          "--incx",
+                          incx,
+                          "--stridex",
+                          stridex,
+                          "--incy",
+                          incy,
+                          "--stridey",
+                          stridey,
+                          "--batch_count",
+                          batch_count);
 
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle,
-                        rocblas_dot_strided_batched_name<CONJ, T>,
-                        "N",
-                        n,
-                        "incx",
-                        incx,
-                        "stridex",
-                        stridex,
-                        "incy",
-                        incy,
-                        "stridey",
-                        stridey,
-                        "batch_count",
-                        batch_count);
-
-        if(!x || !y || !results)
-            return rocblas_status_invalid_pointer;
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile(handle,
+                            rocblas_dot_strided_batched_name<CONJ, T>,
+                            "N",
+                            n,
+                            "incx",
+                            incx,
+                            "stridex",
+                            stridex,
+                            "incy",
+                            incy,
+                            "stridey",
+                            stridey,
+                            "batch_count",
+                            batch_count);
+        }
 
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, (T2*)results);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n, batch_count);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
+
+        if(!x || !y || !results)
+            return rocblas_status_invalid_pointer;
 
         auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
@@ -165,16 +167,8 @@ rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
                                             rocblas_int         batch_count,
                                             rocblas_half*       result)
 {
-    return rocblas_dot_strided_batched_impl<false>(handle,
-                                                   n,
-                                                   (const _Float16*)x,
-                                                   incx,
-                                                   stridex,
-                                                   (const _Float16*)y,
-                                                   incy,
-                                                   stridey,
-                                                   batch_count,
-                                                   (_Float16*)result);
+    return rocblas_dot_strided_batched_impl<false>(
+        handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
 }
 
 rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,

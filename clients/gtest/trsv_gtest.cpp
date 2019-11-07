@@ -37,11 +37,8 @@ namespace
     struct trsv_testing<
         T,
         typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "trsv"))
@@ -92,8 +89,11 @@ namespace
 
             name << '_' << arg.incx;
 
+            if(TRSV_TYPE == TRSV_STRIDED_BATCHED)
+                name << '_' << arg.stride_x;
+
             if(TRSV_TYPE != TRSV)
-                name << '_' << arg.stride_x << '_' << arg.batch_count;
+                name << '_' << arg.batch_count;
 
             return std::move(name);
         }

@@ -138,11 +138,8 @@ namespace
                         T,
                         typename std::enable_if<!std::is_same<T, void>{}
                                                 && !std::is_same<T, rocblas_bfloat16>{}>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "gemm"))
@@ -205,12 +202,8 @@ namespace
         typename std::enable_if<!std::is_same<Ti, void>{}
                                 && !(std::is_same<Ti, Tc>{}
                                      && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
-
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "gemm_ex"))
