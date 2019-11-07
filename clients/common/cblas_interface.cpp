@@ -26,16 +26,16 @@ void cblas_axpy<rocblas_half>(rocblas_int   n,
 
     for(size_t i = 0; i < n; i++)
     {
-        x_float[i * abs_incx] = half_to_float(x[i * abs_incx]);
-        y_float[i * abs_incy] = half_to_float(y[i * abs_incy]);
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
     }
 
-    cblas_saxpy(n, half_to_float(alpha), x_float, incx, y_float, incy);
+    cblas_saxpy(n, alpha, x_float, incx, y_float, incy);
 
     for(size_t i = 0; i < n; i++)
     {
-        x[i * abs_incx] = float_to_half(x_float[i * abs_incx]);
-        y[i * abs_incy] = float_to_half(y_float[i * abs_incy]);
+        x[i * abs_incx] = rocblas_half(x_float[i * abs_incx]);
+        y[i * abs_incy] = rocblas_half(y_float[i * abs_incy]);
     }
 }
 
@@ -54,11 +54,11 @@ void cblas_dot<rocblas_half>(rocblas_int         n,
 
     for(size_t i = 0; i < n; i++)
     {
-        x_float[i * abs_incx] = half_to_float(x[i * abs_incx]);
-        y_float[i * abs_incy] = half_to_float(y[i * abs_incy]);
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
     }
 
-    *result = float_to_half(cblas_sdot(n, x_float, incx, y_float, incy));
+    *result = rocblas_half(cblas_sdot(n, x_float, incx, y_float, incy));
 }
 
 template <>
@@ -172,11 +172,11 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
     for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = half_to_float(A[i]);
+        A_float[i] = A[i];
     for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = half_to_float(B[i]);
+        B_float[i] = B[i];
     for(size_t i = 0; i < sizeC; i++)
-        C_float[i] = half_to_float(C[i]);
+        C_float[i] = C[i];
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -196,7 +196,7 @@ void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i] = float_to_half(C_float[i]);
+        C[i] = rocblas_half(C_float[i]);
 }
 
 template <>
@@ -216,8 +216,8 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
 {
     // cblas does not support rocblas_half, so convert to higher precision float
     // This will give more precise result which is acceptable for testing
-    float alpha_float = half_to_float(alpha);
-    float beta_float  = half_to_float(beta);
+    float alpha_float = alpha;
+    float beta_float  = beta;
 
     size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
     size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
@@ -226,11 +226,11 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
     host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
 
     for(size_t i = 0; i < sizeA; i++)
-        A_float[i] = half_to_float(A[i]);
+        A_float[i] = A[i];
     for(size_t i = 0; i < sizeB; i++)
-        B_float[i] = half_to_float(B[i]);
+        B_float[i] = B[i];
     for(size_t i = 0; i < sizeC; i++)
-        C_float[i] = half_to_float(C[i]);
+        C_float[i] = C[i];
 
     // just directly cast, since transA, transB are integers in the enum
     // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
@@ -250,7 +250,7 @@ void cblas_gemm<rocblas_half, rocblas_half, rocblas_half>(rocblas_operation tran
                 ldc);
 
     for(size_t i = 0; i < sizeC; i++)
-        C[i] = float_to_half(C_float[i]);
+        C[i] = rocblas_half(C_float[i]);
 }
 
 template <>

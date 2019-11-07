@@ -6,6 +6,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 
 namespace
 {

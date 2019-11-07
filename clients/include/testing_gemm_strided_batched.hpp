@@ -45,7 +45,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
     // check here to prevent undefined memory allocation error
-    if(M <= 0 || N <= 0 || K <= 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
+    // Note: K==0 is not an early exit, since C must still be multiplied by beta
+    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
@@ -57,45 +58,26 @@ void testing_gemm_strided_batched(const Arguments& arg)
             return;
         }
 
-        if(M == 0 || N == 0 || K == 0 || batch_count == 0)
-            CHECK_ROCBLAS_ERROR((rocblas_gemm_strided_batched<T>)(handle,
-                                                                  transA,
-                                                                  transB,
-                                                                  M,
-                                                                  N,
-                                                                  K,
-                                                                  &h_alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  dB,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  &h_beta,
-                                                                  dC,
-                                                                  ldc,
-                                                                  stride_c,
-                                                                  batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched<T>(handle,
-                                                                  transA,
-                                                                  transB,
-                                                                  M,
-                                                                  N,
-                                                                  K,
-                                                                  &h_alpha,
-                                                                  dA,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  dB,
-                                                                  ldb,
-                                                                  stride_b,
-                                                                  &h_beta,
-                                                                  dC,
-                                                                  ldc,
-                                                                  stride_c,
-                                                                  batch_count),
-                                  rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched<T>(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              &h_alpha,
+                                                              dA,
+                                                              lda,
+                                                              stride_a,
+                                                              dB,
+                                                              ldb,
+                                                              stride_b,
+                                                              &h_beta,
+                                                              dC,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count),
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
         return;
     }
 

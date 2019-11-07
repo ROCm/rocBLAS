@@ -95,7 +95,6 @@ namespace
                                      rocblas_int       m,
                                      rocblas_int       n,
                                      const T*          alpha,
-                                     rocblas_stride    stride_alpha,
                                      U                 A,
                                      rocblas_int       offset_Ain,
                                      rocblas_int       lda,
@@ -129,7 +128,6 @@ namespace
                                                          n,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          invA,
                                                          offset_invAin,
                                                          BLOCK,
@@ -139,7 +137,6 @@ namespace
                                                          ldb,
                                                          stride_B,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          0,
                                                          m,
@@ -155,7 +152,6 @@ namespace
                                                              n,
                                                              BLOCK,
                                                              &negative_one<T>,
-                                                             0,
                                                              A,
                                                              BLOCK + offset_Ain,
                                                              lda,
@@ -165,7 +161,6 @@ namespace
                                                              m,
                                                              stride_X,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              BLOCK + offset_Bin,
                                                              ldb,
@@ -183,7 +178,6 @@ namespace
                                                                  n,
                                                                  jb,
                                                                  &one<T>,
-                                                                 0,
                                                                  invA,
                                                                  i * BLOCK + offset_invAin,
                                                                  BLOCK,
@@ -193,7 +187,6 @@ namespace
                                                                  ldb,
                                                                  stride_B,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i,
                                                                  m,
@@ -211,7 +204,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  A,
                                                                  i + BLOCK + i * lda + offset_Ain,
                                                                  lda,
@@ -221,7 +213,6 @@ namespace
                                                                  m,
                                                                  stride_X,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  i + BLOCK + offset_Bin,
                                                                  ldb,
@@ -256,7 +247,6 @@ namespace
                                                          n,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          invA,
                                                          i * BLOCK + offset_invAin,
                                                          BLOCK,
@@ -266,7 +256,6 @@ namespace
                                                          ldb,
                                                          stride_B,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          i,
                                                          m,
@@ -282,7 +271,6 @@ namespace
                                                              n,
                                                              jb,
                                                              &negative_one<T>,
-                                                             0,
                                                              A,
                                                              i * lda + offset_Ain,
                                                              lda,
@@ -292,7 +280,6 @@ namespace
                                                              m,
                                                              stride_X,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              offset_Bin,
                                                              ldb,
@@ -310,7 +297,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &one<T>,
-                                                                 0,
                                                                  invA,
                                                                  i * BLOCK + offset_invAin,
                                                                  BLOCK,
@@ -320,7 +306,6 @@ namespace
                                                                  ldb,
                                                                  stride_B,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i,
                                                                  m,
@@ -335,7 +320,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  A,
                                                                  i * lda + offset_Ain,
                                                                  lda,
@@ -345,7 +329,6 @@ namespace
                                                                  m,
                                                                  stride_X,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  offset_Bin,
                                                                  ldb,
@@ -369,7 +352,6 @@ namespace
                                                          n,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          invA,
                                                          i * BLOCK + offset_invAin,
                                                          BLOCK,
@@ -379,7 +361,6 @@ namespace
                                                          ldb,
                                                          stride_B,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          i,
                                                          m,
@@ -394,7 +375,6 @@ namespace
                                                              n,
                                                              jb,
                                                              &negative_one<T>,
-                                                             0,
                                                              A,
                                                              i + offset_Ain,
                                                              lda,
@@ -404,7 +384,6 @@ namespace
                                                              m,
                                                              stride_X,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              offset_Bin,
                                                              ldb,
@@ -421,7 +400,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &one<T>,
-                                                                 0,
                                                                  invA,
                                                                  i * BLOCK + offset_invAin,
                                                                  BLOCK,
@@ -431,7 +409,6 @@ namespace
                                                                  ldb,
                                                                  stride_B,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i,
                                                                  m,
@@ -446,7 +423,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  A,
                                                                  i + offset_Ain,
                                                                  lda,
@@ -456,7 +432,6 @@ namespace
                                                                  m,
                                                                  stride_X,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  offset_Bin,
                                                                  ldb,
@@ -476,7 +451,6 @@ namespace
                                                          n,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          invA,
                                                          offset_invAin,
                                                          BLOCK,
@@ -486,7 +460,6 @@ namespace
                                                          ldb,
                                                          stride_B,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          0,
                                                          m,
@@ -501,7 +474,6 @@ namespace
                                                              n,
                                                              BLOCK,
                                                              &negative_one<T>,
-                                                             0,
                                                              A,
                                                              BLOCK * lda + offset_Ain,
                                                              lda,
@@ -511,7 +483,6 @@ namespace
                                                              m,
                                                              stride_X,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              BLOCK + offset_Bin,
                                                              ldb,
@@ -529,7 +500,6 @@ namespace
                                                                  n,
                                                                  jb,
                                                                  &one<T>,
-                                                                 0,
                                                                  invA,
                                                                  i * BLOCK + offset_invAin,
                                                                  BLOCK,
@@ -539,7 +509,6 @@ namespace
                                                                  ldb,
                                                                  stride_B,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i,
                                                                  m,
@@ -554,7 +523,6 @@ namespace
                                                                  n,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  A,
                                                                  i + (i + BLOCK) * lda + offset_Ain,
                                                                  lda,
@@ -564,7 +532,6 @@ namespace
                                                                  m,
                                                                  stride_X,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  i + BLOCK + offset_Bin,
                                                                  ldb,
@@ -587,7 +554,6 @@ namespace
                                       rocblas_int       m,
                                       rocblas_int       n,
                                       const T*          alpha,
-                                      rocblas_stride    stride_alpha,
                                       U                 A,
                                       rocblas_int       offset_Ain,
                                       rocblas_int       lda,
@@ -622,8 +588,7 @@ namespace
                                                          jb,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
-                                                         (U)B,
+                                                         U(B),
                                                          i * ldb + offset_Bin,
                                                          ldb,
                                                          stride_B,
@@ -632,7 +597,6 @@ namespace
                                                          BLOCK,
                                                          stride_invA,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          i * m,
                                                          m,
@@ -647,7 +611,6 @@ namespace
                                                              i,
                                                              jb,
                                                              &negative_one<T>,
-                                                             0,
                                                              (U)X,
                                                              i * m,
                                                              m,
@@ -657,7 +620,6 @@ namespace
                                                              lda,
                                                              stride_A,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              offset_Bin,
                                                              ldb,
@@ -674,7 +636,6 @@ namespace
                                                                  BLOCK,
                                                                  BLOCK,
                                                                  &one<T>,
-                                                                 0,
                                                                  (U)B,
                                                                  i * ldb + offset_Bin,
                                                                  ldb,
@@ -684,7 +645,6 @@ namespace
                                                                  BLOCK,
                                                                  stride_invA,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i * m,
                                                                  m,
@@ -699,7 +659,6 @@ namespace
                                                                  i,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  (U)X,
                                                                  i * m,
                                                                  m,
@@ -709,7 +668,6 @@ namespace
                                                                  lda,
                                                                  stride_A,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  offset_Bin,
                                                                  ldb,
@@ -729,7 +687,6 @@ namespace
                                                          jb,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          (U)B,
                                                          offset_Bin,
                                                          ldb,
@@ -739,7 +696,6 @@ namespace
                                                          BLOCK,
                                                          stride_invA,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          0,
                                                          m,
@@ -754,7 +710,6 @@ namespace
                                                              n - BLOCK,
                                                              BLOCK,
                                                              &negative_one<T>,
-                                                             0,
                                                              (U)X,
                                                              0,
                                                              m,
@@ -764,7 +719,6 @@ namespace
                                                              lda,
                                                              stride_A,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              BLOCK * ldb + offset_Bin,
                                                              ldb,
@@ -782,7 +736,6 @@ namespace
                                                                  jb,
                                                                  jb,
                                                                  &one<T>,
-                                                                 0,
                                                                  (U)B,
                                                                  i * ldb + offset_Bin,
                                                                  ldb,
@@ -792,7 +745,6 @@ namespace
                                                                  BLOCK,
                                                                  stride_invA,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i * m,
                                                                  m,
@@ -807,7 +759,6 @@ namespace
                                                                  n - i - BLOCK,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  (U)X,
                                                                  i * m,
                                                                  m,
@@ -817,7 +768,6 @@ namespace
                                                                  lda,
                                                                  stride_A,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  (i + BLOCK) * ldb + offset_Bin,
                                                                  ldb,
@@ -840,8 +790,7 @@ namespace
                                                          jb,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
-                                                         (U)B,
+                                                         U(B),
                                                          offset_Bin,
                                                          ldb,
                                                          stride_B,
@@ -850,7 +799,6 @@ namespace
                                                          BLOCK,
                                                          stride_invA,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          0,
                                                          m,
@@ -865,8 +813,7 @@ namespace
                                                              n - BLOCK,
                                                              BLOCK,
                                                              &negative_one<T>,
-                                                             0,
-                                                             (U)X,
+                                                             U(X),
                                                              0,
                                                              m,
                                                              stride_X,
@@ -875,7 +822,6 @@ namespace
                                                              lda,
                                                              stride_A,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              BLOCK * ldb + offset_Bin,
                                                              ldb,
@@ -893,7 +839,6 @@ namespace
                                                                  jb,
                                                                  jb,
                                                                  &one<T>,
-                                                                 0,
                                                                  (U)B,
                                                                  i * ldb + offset_Bin,
                                                                  ldb,
@@ -903,7 +848,6 @@ namespace
                                                                  BLOCK,
                                                                  stride_invA,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i * m,
                                                                  m,
@@ -918,7 +862,6 @@ namespace
                                                                  n - i - BLOCK,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  (U)X,
                                                                  i * m,
                                                                  m,
@@ -928,7 +871,6 @@ namespace
                                                                  lda,
                                                                  stride_A,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  (i + BLOCK) * ldb + offset_Bin,
                                                                  ldb,
@@ -949,7 +891,6 @@ namespace
                                                          jb,
                                                          jb,
                                                          alpha,
-                                                         stride_alpha,
                                                          (U)B,
                                                          i * ldb + offset_Bin,
                                                          ldb,
@@ -959,7 +900,6 @@ namespace
                                                          BLOCK,
                                                          stride_invA,
                                                          &zero<T>,
-                                                         0,
                                                          X,
                                                          i * m,
                                                          m,
@@ -974,7 +914,6 @@ namespace
                                                              i,
                                                              jb,
                                                              &negative_one<T>,
-                                                             0,
                                                              (U)X,
                                                              i * m,
                                                              m,
@@ -984,7 +923,6 @@ namespace
                                                              lda,
                                                              stride_A,
                                                              alpha,
-                                                             stride_alpha,
                                                              B,
                                                              offset_Bin,
                                                              ldb,
@@ -1001,7 +939,6 @@ namespace
                                                                  BLOCK,
                                                                  BLOCK,
                                                                  &one<T>,
-                                                                 0,
                                                                  (U)B,
                                                                  i * ldb + offset_Bin,
                                                                  ldb,
@@ -1011,7 +948,6 @@ namespace
                                                                  BLOCK,
                                                                  stride_invA,
                                                                  &zero<T>,
-                                                                 0,
                                                                  X,
                                                                  i * m,
                                                                  m,
@@ -1026,7 +962,6 @@ namespace
                                                                  i,
                                                                  BLOCK,
                                                                  &negative_one<T>,
-                                                                 0,
                                                                  (U)X,
                                                                  i * m,
                                                                  m,
@@ -1036,7 +971,6 @@ namespace
                                                                  lda,
                                                                  stride_A,
                                                                  &one<T>,
-                                                                 0,
                                                                  B,
                                                                  offset_Bin,
                                                                  ldb,
@@ -1059,7 +993,6 @@ namespace
                                          rocblas_int       m,
                                          rocblas_int       n,
                                          const T*          alpha,
-                                         rocblas_stride    stride_alpha,
                                          U                 A,
                                          rocblas_int       offset_Ain,
                                          rocblas_int       lda,
@@ -1129,7 +1062,6 @@ namespace
                                                                      width,
                                                                      r * BLOCK,
                                                                      &negative_one<T>,
-                                                                     0,
                                                                      A,
                                                                      offsetA + offset_Ain,
                                                                      lda,
@@ -1139,7 +1071,6 @@ namespace
                                                                      ldb,
                                                                      stride_B,
                                                                      alpha,
-                                                                     stride_alpha,
                                                                      x_temp,
                                                                      0,
                                                                      BLOCK,
@@ -1160,7 +1091,6 @@ namespace
                                                               width,
                                                               r * BLOCK,
                                                               &negative_one<T>,
-                                                              0,
                                                               A,
                                                               compute_type,
                                                               offsetA + offset_Ain,
@@ -1172,7 +1102,6 @@ namespace
                                                               ldb,
                                                               stride_B,
                                                               alpha,
-                                                              stride_alpha,
                                                               B,
                                                               compute_type,
                                                               j * BLOCK + w * B_chunk_size * ldb
@@ -1196,7 +1125,6 @@ namespace
                                                              width,
                                                              BLOCK,
                                                              r ? &one<T> : alpha,
-                                                             r ? 0 : stride_alpha,
                                                              invA,
                                                              j * BLOCK * BLOCK + offset_invAin,
                                                              BLOCK,
@@ -1206,7 +1134,6 @@ namespace
                                                              BLOCK,
                                                              stride_X,
                                                              &zero<T>,
-                                                             0,
                                                              B,
                                                              w * B_chunk_size * ldb + j * BLOCK
                                                                  + offset_Bin,
@@ -1256,7 +1183,6 @@ namespace
                                                                      BLOCK,
                                                                      r * BLOCK,
                                                                      &negative_one<T>,
-                                                                     0,
                                                                      (U)B,
                                                                      offsetB + offset_Bin,
                                                                      ldb,
@@ -1266,7 +1192,6 @@ namespace
                                                                      lda,
                                                                      stride_A,
                                                                      alpha,
-                                                                     stride_alpha,
                                                                      x_temp,
                                                                      0,
                                                                      width,
@@ -1287,7 +1212,6 @@ namespace
                                                               BLOCK,
                                                               r * BLOCK,
                                                               &negative_one<T>,
-                                                              0,
                                                               B,
                                                               compute_type,
                                                               offsetB + offset_Bin,
@@ -1299,7 +1223,6 @@ namespace
                                                               lda,
                                                               stride_A,
                                                               alpha,
-                                                              stride_alpha,
                                                               B,
                                                               compute_type,
                                                               j * BLOCK * ldb + w * B_chunk_size
@@ -1323,8 +1246,7 @@ namespace
                                                              BLOCK,
                                                              BLOCK,
                                                              r ? &one<T> : alpha,
-                                                             r ? 0 : stride_alpha,
-                                                             (U)x_temp,
+                                                             U(x_temp),
                                                              0,
                                                              width,
                                                              stride_X,
@@ -1333,7 +1255,6 @@ namespace
                                                              BLOCK,
                                                              stride_invA,
                                                              &zero<T>,
-                                                             0,
                                                              B,
                                                              w * B_chunk_size * ldb
                                                                  + j * BLOCK * ldb + offset_Bin,
@@ -1363,11 +1284,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
                                          rocblas_int    m,
                                          rocblas_int    n,
                                          rocblas_int    batch_count,
-                                         void**         mem_x_temp,
-                                         void**         mem_x_temp_arr,
-                                         void**         mem_invA,
-                                         void**         mem_invA_arr,
-                                         bool*          optimal_mem,
+                                         void*&         mem_x_temp,
+                                         void*&         mem_x_temp_arr,
+                                         void*&         mem_invA,
+                                         void*&         mem_invA_arr,
                                          U              supplied_invA      = nullptr,
                                          rocblas_int    supplied_invA_size = 0)
 {
@@ -1386,8 +1306,12 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
     // If not large enough, indicate degraded performance and ignore supplied invA
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        perf_status   = rocblas_status_perf_degraded;
-        supplied_invA = nullptr;
+        // One-time warning message
+        static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
+                               "is being ignored; TRSM performance is degraded\n",
+                               stderr);
+        perf_status    = rocblas_status_perf_degraded;
+        supplied_invA  = nullptr;
     }
 
     if(!supplied_invA)
@@ -1447,12 +1371,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size
-    auto mem     = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-    *optimal_mem = true;
+    auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     if(!mem)
     {
-        *optimal_mem = false;
         if(exact_blocks)
         {
             B_chunk_size   = 1; // Fall back on chunk size of 1 (like TRSV)
@@ -1473,8 +1395,8 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
                                "TRSM performance is degraded\n",
                                stderr);
     }
-    std::tie(*mem_x_temp, *mem_x_temp_arr, *mem_invA, *mem_invA_arr) = mem;
 
+    std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
     return perf_status;
 }
 
@@ -1490,7 +1412,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                      rocblas_int       m,
                                      rocblas_int       n,
                                      const T*          alpha,
-                                     rocblas_stride    stride_alpha,
                                      U                 A,
                                      rocblas_int       offset_A,
                                      rocblas_int       lda,
@@ -1514,7 +1435,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     if(batch_count == 0)
         return rocblas_status_success;
 
-    if(transA == rocblas_operation_conjugate_transpose)
+    if(!is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
     rocblas_int k = side == rocblas_side_left ? m : n;
@@ -1534,36 +1455,18 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     // Get alpha
-    T alpha_h[batch_count];
+    T alpha_h;
     if(saved_pointer_mode == rocblas_pointer_mode_host)
-    {
-        for(int b = 0; b < batch_count; b++)
-            alpha_h[b] = *(alpha + b * stride_alpha);
-    }
+        alpha_h = *alpha;
     else
-    {
-        if(stride_alpha != 0)
-        {
-            // This should not happen from API calls.
-            for(int b = 0; b < batch_count; b++)
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    &(alpha_h[b]), alpha + b * stride_alpha, sizeof(T), hipMemcpyDeviceToHost));
-        }
-        else
-        {
-            RETURN_IF_HIP_ERROR(hipMemcpy(&(alpha_h[0]), alpha, sizeof(T), hipMemcpyDeviceToHost));
-            for(int b = 1; b < batch_count; b++)
-                alpha_h[b] = alpha_h[0];
-        }
-    }
-    rocblas_stride stride_alpha_host = (stride_alpha == 0) ? 0 : 1;
+        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
 
     rocblas_status status = rocblas_status_success;
 
     if(supplied_invA)
     {
-        invAarr = (V)(supplied_invA);
-        invA    = (V)(supplied_invA);
+        invAarr = V(supplied_invA);
+        invA    = V(supplied_invA);
     }
     else
     {
@@ -1581,7 +1484,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
         }
 
         status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
-                                                                (V)(BATCHED ? x_temparr : c_temp),
+                                                                V(BATCHED ? x_temparr : c_temp),
                                                                 uplo,
                                                                 diag,
                                                                 k,
@@ -1589,7 +1492,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                                                 offset_A,
                                                                 lda,
                                                                 stride_A,
-                                                                (V)(BATCHED ? invAarr : invA),
+                                                                V(BATCHED ? invAarr : invA),
                                                                 offset_invA,
                                                                 stride_invA,
                                                                 batch_count);
@@ -1615,92 +1518,86 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                                        diag,
                                                        m,
                                                        n,
-                                                       alpha_h,
-                                                       stride_alpha_host,
-                                                       (U)A,
+                                                       &alpha_h,
+                                                       U(A),
                                                        offset_A,
                                                        lda,
                                                        stride_A,
-                                                       (V)B,
+                                                       V(B),
                                                        offset_B,
                                                        ldb,
                                                        stride_B,
                                                        batch_count,
-                                                       (U)(BATCHED ? invAarr : invA),
+                                                       U(BATCHED ? invAarr : invA),
                                                        offset_invA,
                                                        stride_invA,
                                                        B_chunk_size,
-                                                       (V)(BATCHED ? x_temparr : x_temp),
+                                                       V(BATCHED ? x_temparr : x_temp),
                                                        x_temp_els);
     }
     else
     {
         if(side == rocblas_side_left)
-        {
             status = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
                                                           uplo,
                                                           transA,
                                                           m,
                                                           n,
-                                                          alpha_h,
-                                                          stride_alpha_host,
-                                                          (U)A,
+                                                          &alpha_h,
+                                                          U(A),
                                                           offset_A,
                                                           lda,
                                                           stride_A,
-                                                          (V)B,
+                                                          V(B),
                                                           offset_B,
                                                           ldb,
                                                           stride_B,
                                                           batch_count,
-                                                          (U)(BATCHED ? invAarr : invA),
+                                                          U(BATCHED ? invAarr : invA),
                                                           offset_invA,
                                                           stride_invA,
-                                                          (V)(BATCHED ? x_temparr : x_temp),
+                                                          V(BATCHED ? x_temparr : x_temp),
                                                           x_temp_els);
-        }
         else
             status = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
                                                            uplo,
                                                            transA,
                                                            m,
                                                            n,
-                                                           alpha_h,
-                                                           stride_alpha_host,
-                                                           (U)A,
+                                                           &alpha_h,
+                                                           U(A),
                                                            offset_A,
                                                            lda,
                                                            stride_A,
-                                                           (V)B,
+                                                           V(B),
                                                            offset_B,
                                                            ldb,
                                                            stride_B,
                                                            batch_count,
-                                                           (U)(BATCHED ? invAarr : invA),
+                                                           U(BATCHED ? invAarr : invA),
                                                            offset_invA,
                                                            stride_invA,
-                                                           (V)(BATCHED ? x_temparr : x_temp),
+                                                           V(BATCHED ? x_temparr : x_temp),
                                                            x_temp_els);
 
-        if(status == rocblas_status_success)
-            copy_block_unit<T>(handle,
-                               m,
-                               n,
-                               (U)(BATCHED ? x_temparr : x_temp),
-                               m,
-                               x_temp_els,
-                               (V)B,
-                               ldb,
-                               stride_B,
-                               batch_count,
-                               0,
-                               offset_B);
+        if(status != rocblas_status_success)
+            return status;
+
+        copy_block_unit<T>(handle,
+                           m,
+                           n,
+                           U(BATCHED ? x_temparr : x_temp),
+                           m,
+                           x_temp_els,
+                           V(B),
+                           ldb,
+                           stride_B,
+                           batch_count,
+                           0,
+                           offset_B);
     }
 
-    if(status != rocblas_status_success)
-        return status;
-
-    // If status is successful, return perf_status; else return error
+    // If status is successful, return perf_status; else return status
     return status == rocblas_status_success ? perf_status : status;
 }
 
