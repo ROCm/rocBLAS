@@ -5,7 +5,8 @@
 #include <hip/hip_runtime.h>
 
 //!
-//! @brief  Allocator which uses pinned host memory.
+//! @brief  Allocator which requests pinned host memory via hipHostMalloc.
+//!         This class can be removed once hipHostRegister has been proven equivalent
 //!
 template <class T>
 struct pinned_memory_allocator
