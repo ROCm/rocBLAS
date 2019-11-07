@@ -7,6 +7,8 @@
 
 //!
 //! @brief  Pseudo-vector subclass which uses host pinned memory.
+//!         Delete this class once hipHostRegister has been proven equivalent and host_vector
+//!         is extended to manage pinning/unpinning.
 //!
 template <typename T>
 struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
@@ -66,22 +68,6 @@ struct host_pinned_vector : std::vector<T, pinned_memory_allocator<T>>
     rocblas_int inc() const
     {
         return this->m_inc;
-    }
-
-    //!
-    //! @brief Returns the batch count (always 1).
-    //!
-    rocblas_int batch_count() const
-    {
-        return 1;
-    }
-
-    //!
-    //! @brief Returns the stride (out of context, always 0)
-    //!
-    rocblas_stride stride() const
-    {
-        return 0;
     }
 
     //!
