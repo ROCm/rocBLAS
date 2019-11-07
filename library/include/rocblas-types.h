@@ -42,6 +42,7 @@ typedef float  rocblas_float;
 typedef double rocblas_double;
 
 // Clang supports _Float16 as an extension in C11 and C++11 and later
+/*! \brief Represents a 16 bit floating point number. */
 #if __cplusplus >= 201103L || __STDC_VERSION__ >= 201112L
 typedef _Float16 rocblas_half;
 #else

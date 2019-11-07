@@ -1,6 +1,7 @@
 .. toctree::
    :maxdepth: 4 
    :caption: Contents:
+.. _api_label:
 
 ****
 API
@@ -23,7 +24,7 @@ rocblas_stride
 
 rocblas_half
 ^^^^^^^^^^^^
-.. doxygentypedef:: rocblas_half
+.. doxygenstruct:: rocblas_half
 
 rocblas_bfloat16
 ^^^^^^^^^^^^^^^^
@@ -327,6 +328,27 @@ rocblas_i<type>amax()
 
 .. doxygenfunction:: rocblas_izamax
 
+rocblas_i<type>amax_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_isamax_batched
+
+.. doxygenfunction:: rocblas_idamax_batched
+
+.. doxygenfunction:: rocblas_icamax_batched
+
+.. doxygenfunction:: rocblas_izamax_batched
+
+rocblas_i<type>amax_strided_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_isamax_strided_batched
+
+.. doxygenfunction:: rocblas_idamax_strided_batched
+
+.. doxygenfunction:: rocblas_icamax_strided_batched
+
+.. doxygenfunction:: rocblas_izamax_strided_batched
+
+
 rocblas_i<type>amin()
 ^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_isamin
@@ -336,6 +358,26 @@ rocblas_i<type>amin()
 .. doxygenfunction:: rocblas_icamin
 
 .. doxygenfunction:: rocblas_izamin
+
+rocblas_i<type>amin_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_isamin_batched
+
+.. doxygenfunction:: rocblas_idamin_batched
+
+.. doxygenfunction:: rocblas_icamin_batched
+
+.. doxygenfunction:: rocblas_izamin_batched
+
+rocblas_i<type>amin_strided_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_isamin_strided_batched
+
+.. doxygenfunction:: rocblas_idamin_strided_batched
+
+.. doxygenfunction:: rocblas_icamin_strided_batched
+
+.. doxygenfunction:: rocblas_izamin_strided_batched
 
 rocblas_<type>rot()
 ^^^^^^^^^^^^^^^^^^^
@@ -615,7 +657,7 @@ rocblas_gemm_ex()
 
 rocblas_gemm_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_gemm_batched_ex
+.. doxygenfunction:: rocblas_gemm_batched_ex
 
 rocblas_gemm_strided_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -623,15 +665,15 @@ rocblas_gemm_strided_batched_ex()
 
 rocblas_trsm_ex()
 ^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_trsm_ex
+.. doxygenfunction:: rocblas_trsm_ex
 
 rocblas_trsm_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_trsm_batched_ex
+.. doxygenfunction:: rocblas_trsm_batched_ex
 
 rocblas_trsm_strided_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_trsm_strided_batched_ex
+.. doxygenfunction:: rocblas_trsm_strided_batched_ex
 
 Build Information
 -----------------

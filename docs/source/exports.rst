@@ -116,6 +116,27 @@ rocblas_Xgemm_strided_batched  x      x      x              x              x
 **rocblas_Xgeam**              x      x                                   
 ============================== ====== ====== ============== ============== ====
 
+BLAS extensions
+---------------
+
+See :ref:`api_label` for more information on these extended BLAS functions.
+
++---------------------------------+
+| Function name                   |
++---------------------------------+
+| **rocblas_gemm_ex**             |
++---------------------------------+
+| rocblas_gemm_batched_ex         |
++---------------------------------+
+| rocblas_gemm_strided_batched_ex |
++---------------------------------+
+| **rocblas_trsm_ex**             |
++---------------------------------+
+| rocblas_trsm_batched_ex         |
++---------------------------------+
+| rocblas_trsm_strided_batched_ex |
++---------------------------------+
+
 Rules for obtaining the rocBLAS API from Legacy BLAS
 ====================================================
 

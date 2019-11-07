@@ -26,10 +26,10 @@ pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
 This repository follows the `git
 flow <http://nvie.com/posts/a-successful-git-branching-model/>`__
 workflow, which dictates a /master branch where releases are cut, and a
-/develop branch which serves as an integration branch for new code. \* A
+/develop branch which serves as an integration branch for new code. A
 `git extention <https://github.com/nvie/gitflow>`__ has been developed
 to ease the use of the 'git flow' methodology, but requires manual
-installation by the user. Refer to the projects wiki
+installation by the user. Refer to the `project's wiki <https://github.com/nvie/gitflow/wiki/Installation>`__.
 
 Pull-request guidelines
 =======================
