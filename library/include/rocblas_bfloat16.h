@@ -36,6 +36,7 @@
 // include a minimal definition of rocblas_bfloat16
 
 #include <stdint.h>
+/*! \brief Struct to represent a 16 bit brain floating point number. */
 typedef struct
 {
     uint16_t data;

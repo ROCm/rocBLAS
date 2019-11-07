@@ -27,8 +27,8 @@ typedef struct _rocblas_handle* rocblas_handle;
 typedef struct ihipStream_t* hipStream_t;
 
 // integer types
-/*! \brief To specify whether int32 or int64 is used
- */
+// /*! \brief To specify whether int32 or int64 is used
+//  */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
 typedef int64_t rocblas_stride;
@@ -133,19 +133,26 @@ typedef enum rocblas_datatype_
     rocblas_datatype_bf16_c = 169, /**< 16 bit bfloat, complex */
 } rocblas_datatype;
 
-/*! \brief Indicates the pointer is device pointer or host pointer */
+/*! \brief Indicates the pointer is device pointer or host pointer. This is typically used for
+*    scalars such as alpha and beta. */
 typedef enum rocblas_pointer_mode_
 {
+    /*! \brief Scalar values affected by this variable will be located on the host. */
     rocblas_pointer_mode_host   = 0,
+    /*! \brief Scalar values affected by this variable will be located on the device. */
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_
 {
+    /*! \brief No logging will take place. */
     rocblas_layer_mode_none        = 0b0000000000,
+    /*! \brief Logging of the trace will take place. */
     rocblas_layer_mode_log_trace   = 0b0000000001,
+    /*! \brief Logging of function parameters in a format to re-run the case with rocblas-bench. */
     rocblas_layer_mode_log_bench   = 0b0000000010,
+    /*! \brief Logging of parameters passed into API calls will take place. */
     rocblas_layer_mode_log_profile = 0b0000000100,
 } rocblas_layer_mode;
 

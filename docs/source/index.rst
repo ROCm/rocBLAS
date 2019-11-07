@@ -17,7 +17,6 @@ Welcome to rocBLAS's documentation!
    contributing
    streams
    api
-   allapi
 
 Indices and tables
 ==================
