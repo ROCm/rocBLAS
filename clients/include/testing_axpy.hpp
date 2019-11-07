@@ -74,7 +74,11 @@ void testing_axpy(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy, incy));
         return;
     }
-
+#if 1
+  std::cout << "N " <<  N << std::endl;
+  std::cout << "incx " <<  incx << std::endl;
+  std::cout << "incy " <<  incy << std::endl;
+#endif
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx);
@@ -119,6 +123,20 @@ void testing_axpy(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+#if 1
+	std::cout << "alpha " << h_alpha << std::endl;
+	std::cout << "HX" << std::endl;
+	for (int i=0;i<N;++i)
+	  {
+	    std::cout << " " << hx[i*incx] << std::endl;	    
+	  }
+	
+	std::cout << "HY" << std::endl;
+	for (int i=0;i<N;++i)
+	  {
+	    std::cout << " " << hy_1[i*incy] << std::endl;	    
+	  }
+#endif
         CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
@@ -133,7 +151,7 @@ void testing_axpy(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-
+	
         // CPU BLAS
         cpu_time_used = get_time_us();
 
@@ -141,6 +159,24 @@ void testing_axpy(const Arguments& arg)
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+#if 1
+	std::cout << "HY REF" << std::endl;
+	for (int i=0;i<N;++i)
+	  {
+	    std::cout << " " << hy_gold[i*incy] << std::endl;	    
+	  }
+	std::cout << "HY1" << std::endl;
+	for (int i=0;i<N;++i)
+	  {
+	    std::cout << " " << hy_1[i*incy] << std::endl;	    
+	  }
+	std::cout << "HY2" << std::endl;
+	for (int i=0;i<N;++i)
+	  {
+	    std::cout << " " << hy_2[i*incy] << std::endl;	    
+	  }
+#endif
 
         if(arg.unit_check)
         {

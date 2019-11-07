@@ -1,35 +1,35 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_axpy.hpp"
-#include "logging.h"
+#include "rocblas_axpy_batched.hpp"
 
 namespace
 {
 
   template <typename>
-  constexpr char rocblas_axpy_name[] = "unknown";
+  constexpr char rocblas_axpy_batched_name[] = "unknown";
   template <>
-  constexpr char rocblas_axpy_name<float>[] = "rocblas_saxpy";
+  constexpr char rocblas_axpy_batched_name<float>[] = "rocblas_saxpy_batched";
   template <>
-  constexpr char rocblas_axpy_name<double>[] = "rocblas_daxpy";
+  constexpr char rocblas_axpy_batched_name<double>[] = "rocblas_daxpy_batched";
   template <>
-  constexpr char rocblas_axpy_name<rocblas_half>[] = "rocblas_haxpy";
+  constexpr char rocblas_axpy_batched_name<rocblas_half>[] = "rocblas_haxpy_batched";
   template <>
-  constexpr char rocblas_axpy_name<rocblas_float_complex>[] = "rocblas_caxpy";
+  constexpr char rocblas_axpy_batched_name<rocblas_float_complex>[] = "rocblas_caxpy_batched";
   template <>
-  constexpr char rocblas_axpy_name<rocblas_double_complex>[] = "rocblas_zaxpy";
+  constexpr char rocblas_axpy_batched_name<rocblas_double_complex>[] = "rocblas_zaxpy_batched";
 
   template <int NB, typename T>
-  rocblas_status rocblas_axpy_impl(rocblas_handle      handle,
-				   rocblas_int         n,
-				   const T*            alpha,
-				   const T*             x,
-				   rocblas_int         incx,
-				   T*                  y,
-				   rocblas_int         incy,							      
-				   const char *        name,
-				   const char *        bench_name)
+  rocblas_status rocblas_axpy_batched_impl(rocblas_handle      handle,
+					   rocblas_int         n,
+					   const T*            alpha,
+					   const T*const*      x,
+					   rocblas_int         incx,
+					   T*const*      y,
+					   rocblas_int         incy,							      
+					   rocblas_int         batch_count,
+					   const char *        name,
+					   const char *        bench_name)
   {  
     if(!handle)
       {
@@ -55,7 +55,8 @@ namespace
 		      x,
 		      incx,
 		      y,
-		      incy);
+		      incy,
+		      batch_count);
 	  }
 	
 	if(layer_mode & rocblas_layer_mode_log_bench)
@@ -65,7 +66,7 @@ namespace
 		    << (std::imag(*alpha) != 0
 			? (" --alphai " + std::to_string(std::imag(*alpha)))
 			: "");
-	    
+
 	    log_bench(handle,
 		      "./rocblas-bench",
 		      "-f",
@@ -78,9 +79,11 @@ namespace
 		      "--incx",
 		      incx,
 		      "--incy",
-		      incy);
-
+		      incy,
+		      "--batch",
+		      batch_count);
 	  }
+
       }
     else if(layer_mode & rocblas_layer_mode_log_trace)
       {
@@ -91,7 +94,8 @@ namespace
 		  x,
 		  incx,
 		  y,
-		  incy);
+		  incy,
+		  batch_count);
       }
     
     if(layer_mode & rocblas_layer_mode_log_profile)
@@ -103,29 +107,39 @@ namespace
 		    "incx",
 		    incx,
 		    "incy",
-		    incy);
+		    incy,
+		    "batch",
+		    batch_count);
       }
     
     if(!x || !y)
       {
 	return rocblas_status_invalid_pointer;
       }
-    
-    if(n <= 0) // Quick return if possible. Not Argument error
+
+    if(n <= 0 || 0 == batch_count) // Quick return if possible. Not Argument error
       {
 	return rocblas_status_success;
       }
 
-    return rocblas_axpy_template<NB>(handle,
-				     n,
-				     alpha,
-				     x,
-				     incx,
-				     y,
-				     incy);
+    if(batch_count < 0) 
+      {
+	return rocblas_status_invalid_size;
+      }
+    
+
+    return rocblas_axpy_batched_template<NB>(handle,
+					     n,
+					     alpha,
+					     x,
+					     incx,
+					     y,
+					     incy,							      
+					     batch_count);
   }
 
 }
+
 
 /*
  * ===========================================================================
@@ -138,34 +152,34 @@ extern "C" {
 #ifdef IMPL
 #error IMPL ALREADY DEFINED
 #endif
-
+  
 #define IMPL(routine_name_,T_) rocblas_status routine_name_(rocblas_handle      handle,	\
 							    rocblas_int         n, \
 							    const T_*           alpha, \
-							    const T_*           x, \
+							    const T_* const     x[], \
 							    rocblas_int         incx, \
-							    T_*                 y, \
-							    rocblas_int         incy) \
+							    T_* const           y[], \
+							    rocblas_int         incy, \
+							    rocblas_int         batch_count) \
   {									\
-    return rocblas_axpy_impl<256>(handle,				\
-				  n,					\
-				  alpha,				\
-				  x,					\
-				  incx,					\
-				  y,					\
-				  incy,					\
-				  #routine_name_,			\
-				  "axpy");				\
+    return rocblas_axpy_batched_impl<256>(handle,			\
+					  n,				\
+					  alpha,			\
+					  x,				\
+					  incx,				\
+					  y,				\
+					  incy,				\
+					  batch_count,			\
+					  #routine_name_,		\
+					  "axpy_batched");				\
   }
-  
-  IMPL(rocblas_saxpy,float);
-  IMPL(rocblas_daxpy,double);
-  IMPL(rocblas_caxpy,rocblas_float_complex);
-  IMPL(rocblas_zaxpy,rocblas_double_complex);
-  IMPL(rocblas_haxpy,rocblas_half);
+
+  IMPL(rocblas_saxpy_batched,float);
+  IMPL(rocblas_daxpy_batched,double);
+  IMPL(rocblas_caxpy_batched,rocblas_float_complex);
+  IMPL(rocblas_zaxpy_batched,rocblas_double_complex);
+  IMPL(rocblas_haxpy_batched,rocblas_half);
 
 #undef IMPL
 
 } // extern "C"
-
-
