@@ -625,13 +625,13 @@ rocblas_trsm_ex()
 ^^^^^^^^^^^^^^^^^
 ..doxygenfunction:: rocblas_trsm_ex
 
-rocblas_trsm_ex_batched()
+rocblas_trsm_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_trsm_ex_batched
+..doxygenfunction:: rocblas_trsm_batched_ex
 
-rocblas_trsm_ex_strided_batched()
+rocblas_trsm_strided_batched_ex()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-..doxygenfunction:: rocblas_trsm_ex_strided_batched
+..doxygenfunction:: rocblas_trsm_strided_batched_ex
 
 Build Information
 -----------------
