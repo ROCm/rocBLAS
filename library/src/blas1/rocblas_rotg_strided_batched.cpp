@@ -44,10 +44,10 @@ namespace
                       rocblas_precision_string<T>,
                       "--b_type",
                       rocblas_precision_string<U>,
-                      "--batch",
+                      "--batch_count",
                       batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_rotg_name<T>, "batch", batch_count);
+            log_profile(handle, rocblas_rotg_name<T>, "batch_count", batch_count);
 
         if(!a || !b || !c || !s)
             return rocblas_status_invalid_pointer;

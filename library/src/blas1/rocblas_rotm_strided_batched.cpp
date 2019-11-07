@@ -61,7 +61,7 @@ namespace
                       incy,
                       "--stride_y",
                       stride_y,
-                      "--batch",
+                      "--batch_count",
                       batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
@@ -76,7 +76,7 @@ namespace
                         incy,
                         "stride_y",
                         stride_y,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!x || !y || !param)

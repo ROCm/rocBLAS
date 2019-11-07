@@ -73,22 +73,22 @@ public:
 
     // Constructor
     __device__ __host__ rocblas_complex_num(T r, T i)
-        : x(r)
-        , y(i)
+        : x{r}
+        , y{i}
     {
     }
 
     // Conversion from real
     __device__ __host__ rocblas_complex_num(T r)
-        : x(r)
-        , y(0)
+        : x{r}
+        , y{0}
     {
     }
 
     // Conversion from std::complex<T>
     __device__ __host__ rocblas_complex_num(const std::complex<T>& z)
-        : x(reinterpret_cast<T (&)[2]>(z)[0])
-        , y(reinterpret_cast<T (&)[2]>(z)[1])
+        : x{reinterpret_cast<const T (&)[2]>(z)[0]}
+        , y{reinterpret_cast<const T (&)[2]>(z)[1]}
     {
     }
 

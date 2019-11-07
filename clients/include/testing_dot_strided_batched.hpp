@@ -122,35 +122,19 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        if(batch_count < 0)
-        {
-            EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
-                                        : rocblas_dot_strided_batched<T>)(handle,
-                                                                          N,
-                                                                          dx,
-                                                                          incx,
-                                                                          stride_x,
-                                                                          dy,
-                                                                          incy,
-                                                                          stride_y,
-                                                                          batch_count,
-                                                                          d_rocblas_result),
-                                  rocblas_status_invalid_size);
-        }
-        else
-        {
-            CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
-                                      : rocblas_dot_strided_batched<T>)(handle,
-                                                                        N,
-                                                                        dx,
-                                                                        incx,
-                                                                        stride_x,
-                                                                        dy,
-                                                                        incy,
-                                                                        stride_y,
-                                                                        batch_count,
-                                                                        d_rocblas_result));
-        }
+        EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
+                                    : rocblas_dot_strided_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      stride_x,
+                                                                      dy,
+                                                                      incy,
+                                                                      stride_y,
+                                                                      batch_count,
+                                                                      d_rocblas_result),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -245,8 +229,10 @@ void testing_dot_strided_batched(const Arguments& arg)
                       << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
             for(int b = 0; b < batch_count; ++b)
             {
-                rocblas_error_1 += std::abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2 += std::abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
             }
         }
     }
